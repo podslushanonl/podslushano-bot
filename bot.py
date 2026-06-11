@@ -8,7 +8,7 @@ from aiogram.enums import ParseMode
 
 import config
 from database.db import init_db
-from handlers import contacts, moderation, start, submissions
+from handlers import chat, contacts, moderation, start, submissions
 
 
 async def main() -> None:
@@ -23,11 +23,13 @@ async def main() -> None:
     )
     dp = Dispatcher()
 
-    # Порядок важен: сначала /start и «Отмена», потом остальное
+    # Порядок важен: сначала команды и кнопки меню, СВОБОДНЫЙ ЧАТ — последним,
+    # чтобы он ловил только то, что не поймали остальные
     dp.include_router(start.router)
     dp.include_router(submissions.router)
     dp.include_router(contacts.router)
     dp.include_router(moderation.router)
+    dp.include_router(chat.router)
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)

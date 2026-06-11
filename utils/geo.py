@@ -45,6 +45,7 @@ CITY_TO_PROVINCE: dict[str, tuple[str, str]] = {
     "den haag": ("Den Haag", "Zuid-Holland"),
     "the hague": ("Den Haag", "Zuid-Holland"),
     "гаага": ("Den Haag", "Zuid-Holland"),
+    "гааг": ("Den Haag", "Zuid-Holland"),  # ловит склонения: в Гааге, из Гааги
     "ден хааг": ("Den Haag", "Zuid-Holland"),
     "leiden": ("Leiden", "Zuid-Holland"),
     "лейден": ("Leiden", "Zuid-Holland"),
@@ -64,6 +65,8 @@ CITY_TO_PROVINCE: dict[str, tuple[str, str]] = {
     "тилбург": ("Tilburg", "Noord-Brabant"),
     "breda": ("Breda", "Noord-Brabant"),
     "бреда": ("Breda", "Noord-Brabant"),
+    "бреде": ("Breda", "Noord-Brabant"),  # «в Бреде»
+    "бреды": ("Breda", "Noord-Brabant"),
     "den bosch": ("Den Bosch", "Noord-Brabant"),
     "ден бос": ("Den Bosch", "Noord-Brabant"),
     # Limburg
