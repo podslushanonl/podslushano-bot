@@ -1,0 +1,29 @@
+# systemd-юнит для запуска бота на обычном VPS (без Docker).
+#
+# Установка (от root):
+#   1) Положи проект в /opt/podslushano-bot и создай там .env
+#   2) python3 -m venv /opt/podslushano-bot/.venv
+#      /opt/podslushano-bot/.venv/bin/pip install -r /opt/podslushano-bot/requirements.txt
+#   3) cp /opt/podslushano-bot/deploy/podslushano-bot.service /etc/systemd/system/
+#   4) systemctl daemon-reload && systemctl enable --now podslushano-bot
+#   Логи:    journalctl -u podslushano-bot -f
+#   Рестарт: systemctl restart podslushano-bot
+
+[Unit]
+Description=Telegram bot Podslushano.nl
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/podslushano-bot
+# .env подхватывается самим ботом (python-dotenv), отдельно прописывать не нужно
+ExecStart=/opt/podslushano-bot/.venv/bin/python /opt/podslushano-bot/bot.py
+Restart=on-failure
+RestartSec=5
+# Немного безопасности
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

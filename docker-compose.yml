@@ -1,0 +1,11 @@
+services:
+  bot:
+    build: .
+    container_name: podslushano-bot
+    # .env с токеном и настройками лежит рядом и НЕ попадает в git
+    env_file: .env
+    # База SQLite живёт на хосте в папке ./data — переживает пересборку образа
+    volumes:
+      - ./data:/app/data
+    # Автоперезапуск при падении и после перезагрузки сервера
+    restart: unless-stopped
