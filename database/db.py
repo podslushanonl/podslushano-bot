@@ -36,12 +36,15 @@ async def _seed_specialists() -> None:
             return  # данные уже есть — ничего не делаем
 
         for item in SEED_SPECIALISTS:
+            # Провинцию берём явно из данных (специалисты в гайде сгруппированы
+            # по провинциям); если её нет — пытаемся вычислить по городу.
+            province = item.get("province") or province_of_city(item.get("city", "")) or ""
             session.add(
                 Specialist(
                     name=item["name"],
                     category=item["category"],
-                    city=item["city"],
-                    province=province_of_city(item["city"]) or "",
+                    city=item.get("city", ""),
+                    province=province,
                     description=item.get("description"),
                     contact=item.get("contact"),
                 )

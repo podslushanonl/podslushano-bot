@@ -42,7 +42,10 @@ async def ask_query(message: Message, state: FSMContext) -> None:
 
 def _format(spec: Specialist) -> str:
     """Красиво оформляет одного специалиста."""
-    line = f"• <b>{spec.name}</b> ({spec.city})"
+    # У многих специалистов город не указан (работают онлайн или по всей
+    # провинции) — тогда показываем провинцию.
+    where = spec.city or spec.province
+    line = f"• <b>{spec.name}</b>" + (f" ({where})" if where else "")
     if spec.description:
         line += f"\n  {spec.description}"
     if spec.contact:
