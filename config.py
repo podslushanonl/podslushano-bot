@@ -1,0 +1,38 @@
+"""Загрузка настроек из файла .env."""
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+def _parse_admin_ids(raw: str) -> list[int]:
+    """Превращает строку "111,222" в список чисел [111, 222]."""
+    ids: list[int] = []
+    for part in raw.split(","):
+        part = part.strip()
+        if part.isdigit():
+            ids.append(int(part))
+    return ids
+
+
+BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
+ADMIN_IDS: list[int] = _parse_admin_ids(os.getenv("ADMIN_IDS", ""))
+GUIDE_URL: str = os.getenv("GUIDE_URL", "")
+
+# Путь к файлу базы данных SQLite (лежит рядом с проектом)
+DB_PATH = os.path.join(os.path.dirname(__file__), "data", "bot.db")
+DB_URL = f"sqlite+aiosqlite:///{DB_PATH}"
+
+
+def validate() -> None:
+    """Проверяет, что обязательные настройки заданы. Вызывается при старте."""
+    if not BOT_TOKEN or BOT_TOKEN.startswith("123456:"):
+        raise RuntimeError(
+            "Не задан BOT_TOKEN. Создай файл .env (по образцу .env.example) "
+            "и впиши токен от @BotFather."
+        )
+    if not ADMIN_IDS:
+        raise RuntimeError(
+            "Не задан ни один ADMIN_IDS. Впиши в .env свой Telegram ID "
+            "(узнать можно у @userinfobot)."
+        )

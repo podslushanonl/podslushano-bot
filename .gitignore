@@ -1,0 +1,22 @@
+# Секреты — НИКОГДА не коммитим настоящий токен
+.env
+
+# База данных
+*.db
+*.sqlite
+*.sqlite3
+data/*.db
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# IDE / системное
+.vscode/
+.idea/
+.DS_Store
+*.log
