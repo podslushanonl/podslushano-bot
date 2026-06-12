@@ -10,8 +10,10 @@ None, и вызывающий код мягко откатится на прав
 """
 from __future__ import annotations
 
+import json
 import logging
 from datetime import date
+from urllib.parse import urlparse
 
 import config
 
@@ -170,15 +172,42 @@ async def ai_reply(
     return _finalize(response)
 
 
+# Официальные нидерландские источники — им отдаём приоритет в ссылке
+OFFICIAL_DOMAINS = (
+    "belastingdienst.nl", "toeslagen.nl", "ind.nl", "digid.nl",
+    "government.nl", "rijksoverheid.nl", "overheid.nl", "mijnoverheid.nl",
+    "cbr.nl", "rdw.nl", "duo.nl", "uwv.nl", "svb.nl", "kvk.nl",
+    "werk.nl", "business.gov.nl", "rivm.nl", "politie.nl",
+    "iamsterdam.com", "denederlandseziekenfonds.nl",
+)
+
+
+def _is_official(url: str) -> bool:
+    host = urlparse(url).netloc.lower().removeprefix("www.")
+    if host.endswith(".overheid.nl") or host.endswith(".nl") and "gemeente" in host:
+        return True
+    return any(host == d or host.endswith("." + d) for d in OFFICIAL_DOMAINS)
+
+
+def _pick_source(sources: list[str]) -> str | None:
+    """Выбирает ОДИН источник, отдавая приоритет официальным сайтам."""
+    if not sources:
+        return None
+    for url in sources:
+        if _is_official(url):
+            return url
+    return sources[0]
+
+
 def _finalize(response) -> str | None:
-    """Готовит итоговый текст: чистим markdown и добавляем источники веб-поиска."""
+    """Готовит итоговый текст: чистим markdown и добавляем один источник."""
     text, sources = _extract_text_and_sources(response)
     text = _clean(text)
     if not text:
         return None
-    if sources:
-        footer = "\n\n🔗 Источник: " + ", ".join(sources[:3])
-        text = f"{text}{footer}"
+    source = _pick_source(sources)
+    if source:
+        text = f"{text}\n\n🔗 Источник: {source}"
     return text
 
 
@@ -189,6 +218,65 @@ def _clean(text: str) -> str:
     это выглядит как лишние звёздочки, поэтому маркеры просто срезаем.
     """
     return text.replace("**", "").replace("__", "")
+
+
+def _parse_json(raw: str) -> dict:
+    """Достаёт JSON-объект из ответа модели (даже если он обёрнут в текст)."""
+    raw = raw.strip()
+    start, end = raw.find("{"), raw.rfind("}")
+    if start == -1 or end == -1 or end < start:
+        return {}
+    try:
+        return json.loads(raw[start : end + 1])
+    except Exception:  # noqa: BLE001
+        return {}
+
+
+async def extract_specialist_query(text: str, categories: list[str]) -> dict:
+    """Через ИИ понимает, какого специалиста и в каком городе ищет человек.
+
+    Возвращает {"category": <одна из categories или None>, "city": <город|None>}.
+    Понимает синонимы и опечатки. Если это НЕ запрос специалиста — category=None.
+    Веб-поиск тут не нужен — это быстрая дешёвая классификация.
+    """
+    if not ai_enabled():
+        return {"category": None, "city": None}
+
+    cats = ", ".join(categories)
+    system = (
+        "Ты — классификатор запросов для справочника специалистов в Нидерландах. "
+        "По сообщению пользователя определи, ищет ли он КОНКРЕТНОГО специалиста или "
+        "услугу из списка категорий, и если да — верни категорию (ровно как в "
+        "списке) и город.\n\n"
+        f"Категории: {cats}.\n\n"
+        "Правила:\n"
+        "- Понимай синонимы и опечатки (зубной→стоматолог, адвокат→юрист, "
+        "фотик→фотограф, ноготочки→мастер маникюра).\n"
+        "- Если это НЕ поиск специалиста из списка (общий вопрос, совет про "
+        "места/кафе/досуг, болтовня) — category=null.\n"
+        "- city — название города как в сообщении (можно по-русски), иначе null.\n"
+        'Ответь СТРОГО одним JSON без пояснений: '
+        '{"category": <строка|null>, "city": <строка|null>}.'
+    )
+    try:
+        client = _get_client()
+        resp = await client.messages.create(
+            model=config.AI_MODEL,
+            max_tokens=120,
+            system=system,
+            messages=[{"role": "user", "content": text}],
+        )
+        data = _parse_json(_extract_text_and_sources(resp)[0])
+    except Exception as e:  # noqa: BLE001
+        log.warning("Ошибка классификации запроса ИИ: %s", e)
+        return {"category": None, "city": None}
+
+    cat = data.get("category")
+    if cat:
+        cat_l = str(cat).strip().lower()
+        cat = next((c for c in categories if c.lower() == cat_l), None)
+    city = data.get("city")
+    return {"category": cat, "city": str(city).strip() if city else None}
 
 
 async def reply_with_ai(message, state) -> bool:

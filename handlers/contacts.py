@@ -16,7 +16,7 @@ from database.db import get_session
 from database.models import Specialist
 from keyboards.menus import BTN_CONTACTS, cancel_menu, main_menu
 from states.forms import ContactSearch
-from utils.ai import reply_with_ai
+from utils.ai import extract_specialist_query, reply_with_ai
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city
 
 router = Router()
@@ -71,6 +71,15 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     data = await state.get_data()
     category = detect_category(text) or data.get("pending_category")
     city_info = detect_city(text)
+
+    # Ключевые слова не дали категорию — спросим ИИ (понимает синонимы и опечатки:
+    # «зубной»→стоматолог, «адвокат»→юрист и т.п.)
+    if not category:
+        extracted = await extract_specialist_query(text, list(CATEGORIES.keys()))
+        if extracted.get("category"):
+            category = extracted["category"]
+        if not city_info and extracted.get("city"):
+            city_info = detect_city(extracted["city"])
 
     # Совсем ничего не поняли про специалиста. Если подключён ИИ — пусть ответит
     # как умный собеседник и выйдет из режима поиска (чтобы не зацикливаться).
