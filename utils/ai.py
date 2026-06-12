@@ -48,10 +48,15 @@ SYSTEM_PROMPT = (
     "• ВСЯ информация должна быть актуальной. Конкретные цифры — ставки налогов, "
     "суммы пособий (toeslagen), пошлины, лимиты, сроки, правила — в Нидерландах "
     "часто меняются (обычно раз в год). Если не уверен в актуальном на СЕГОДНЯ "
-    "значении — НЕ называй устаревшие числа как текущие: честно скажи, что точную "
-    "сумму/ставку нужно проверить, и дай ссылку на официальный источник "
-    "(belastingdienst.nl, toeslagen.nl, ind.nl, digid.nl, government.nl, сайт "
-    "gemeente). Лучше отправить к первоисточнику, чем назвать неверную цифру.\n"
+    "значении — НЕ называй устаревшие числа как текущие.\n"
+    "• У тебя есть ВЕБ-ПОИСК. Используй его сам, когда нужна свежая или точная "
+    "информация: актуальные суммы и ставки, пошлины, сроки, изменения правил, "
+    "новости, расписания, текущие события. Не выдумывай — лучше найди. Для "
+    "официальных тем (налоги, BSN, DigiD, визы и ВНЖ через IND, пособия) ищи в "
+    "первую очередь на официальных нидерландских сайтах: belastingdienst.nl, "
+    "toeslagen.nl, ind.nl, digid.nl, government.nl, rijksoverheid.nl и сайте "
+    "нужного gemeente. Если приводишь конкретную цифру или правило — коротко "
+    "укажи источник (например: «источник: belastingdienst.nl»).\n"
     "• Если вопрос личный/основан на опыте (отзывы, «как лучше», «куда сходить»), "
     "можешь предложить отправить его в предложку сообщества — там ответят живые "
     "люди.\n"
@@ -75,6 +80,35 @@ def _get_client():
     return _client
 
 
+def _web_search_tool() -> list | None:
+    """Инструмент веб-поиска (если включён) — даёт ИИ доступ к свежим данным."""
+    if not config.AI_WEB_SEARCH:
+        return None
+    return [
+        {
+            "type": "web_search_20250305",
+            "name": "web_search",
+            "max_uses": config.AI_WEB_MAX_USES,
+            # Подсказываем местоположение — результаты релевантнее для NL
+            "user_location": {
+                "type": "approximate",
+                "country": "NL",
+                "timezone": "Europe/Amsterdam",
+            },
+        }
+    ]
+
+
+def _extract_text(response) -> str:
+    """Собирает финальный текст ответа (без служебных блоков веб-поиска)."""
+    parts = [
+        block.text
+        for block in response.content
+        if getattr(block, "type", None) == "text"
+    ]
+    return "".join(parts).strip()
+
+
 async def ai_reply(
     user_text: str, history: list[dict] | None = None
 ) -> str | None:
@@ -83,7 +117,9 @@ async def ai_reply(
     history — список вида [{"role": "user"/"assistant", "content": "..."}],
     последние реплики диалога для связного контекста.
 
-    При любой ошибке или без ключа возвращает None (вызывающий код откатится).
+    Если включён веб-поиск, модель сама решает, когда искать в интернете
+    свежие данные. Веб-поиск «лучшее усилие»: если он недоступен — пробуем
+    ответить без него. При любой ошибке или без ключа возвращаем None.
     """
     if not ai_enabled():
         return None
@@ -97,20 +133,30 @@ async def ai_reply(
         "и есть текущий момент; не выдавай устаревшие данные за сегодняшние."
     )
 
-    try:
-        client = _get_client()
-        response = await client.messages.create(
+    client = _get_client()
+
+    async def _create(tools):
+        kwargs = dict(
             model=config.AI_MODEL,
-            max_tokens=600,
+            max_tokens=900,
             system=system,
             messages=messages,
         )
-        parts = [block.text for block in response.content if block.type == "text"]
-        text = "".join(parts).strip()
-        return _clean(text) or None
-    except Exception as e:  # noqa: BLE001 — никогда не роняем бота из-за ИИ
-        log.warning("Ошибка обращения к ИИ: %s", e)
-        return None
+        if tools:
+            kwargs["tools"] = tools
+        return await client.messages.create(**kwargs)
+
+    try:
+        response = await _create(_web_search_tool())
+    except Exception as e:  # noqa: BLE001 — веб-поиск не сработал, пробуем без него
+        log.warning("ИИ с веб-поиском не сработал (%s) — пробую без поиска", e)
+        try:
+            response = await _create(None)
+        except Exception as e2:  # noqa: BLE001 — никогда не роняем бота из-за ИИ
+            log.warning("Ошибка обращения к ИИ: %s", e2)
+            return None
+
+    return _clean(_extract_text(response)) or None
 
 
 def _clean(text: str) -> str:

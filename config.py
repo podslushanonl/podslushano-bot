@@ -28,6 +28,17 @@ ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
 # Модель: Haiku — быстрая и дешёвая, хорошо подходит для чата сообщества.
 AI_MODEL: str = os.getenv("AI_MODEL", "claude-haiku-4-5-20251001")
 
+# Веб-поиск для ИИ — даёт свежую информацию (актуальные цифры, правила, новости).
+# 1/true — включён (по умолчанию). 0/false — выключить.
+AI_WEB_SEARCH: bool = os.getenv("AI_WEB_SEARCH", "1").strip().lower() in (
+    "1", "true", "yes", "on", "да",
+)
+# Сколько поисков максимум за один ответ (защита от лишних расходов).
+try:
+    AI_WEB_MAX_USES: int = int(os.getenv("AI_WEB_MAX_USES", "4"))
+except ValueError:
+    AI_WEB_MAX_USES = 4
+
 # --- Стикеры ----------------------------------------------------------------
 # Ссылка на ваш стикерпак, например https://t.me/addstickers/ВашПак
 # Если задана — в меню появляется кнопка «🎨 Наши стикеры» с этой ссылкой.
