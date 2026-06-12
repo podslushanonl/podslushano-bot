@@ -23,13 +23,13 @@ def _headers() -> dict:
     }
 
 
-async def create_payment(description: str, metadata: dict) -> dict | None:
-    """Создаёт платёж в Mollie. Возвращает dict с id и ссылкой на оплату.
+async def create_payment(description: str, metadata: dict, amount: str) -> dict | None:
+    """Создаёт платёж в Mollie на сумму amount. Возвращает id и ссылку на оплату.
 
     {"id": "tr_...", "checkout_url": "https://..."} или None при ошибке.
     """
     body = {
-        "amount": {"currency": config.LISTING_CURRENCY, "value": config.LISTING_PRICE},
+        "amount": {"currency": config.LISTING_CURRENCY, "value": amount},
         "description": description,
         "redirectUrl": config.SITE_URL or "https://www.mollie.com",
         "webhookUrl": f"{config.WEBHOOK_BASE_URL}/mollie-webhook",

@@ -28,6 +28,7 @@ _LATER_COLUMNS = {
     "submitter_user_id": "BIGINT",
     "paid_until": "DATETIME",
     "payment_id": "VARCHAR(100)",
+    "plan": "VARCHAR(10) DEFAULT 'year'",
     "renewal_reminded": "BOOLEAN DEFAULT 0",
 }
 

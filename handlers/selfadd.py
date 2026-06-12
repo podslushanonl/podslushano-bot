@@ -36,8 +36,23 @@ router.message.filter(F.chat.type == ChatType.PRIVATE)
 ONLINE_WORDS = {"онлайн", "online", "по всей стране"}
 
 
-def _price() -> str:
-    return f"{config.LISTING_PRICE} {config.LISTING_CURRENCY}"
+def _price_str(plan: str) -> str:
+    info = config.plan_info(plan)
+    return f"{info['price']} {config.LISTING_CURRENCY} / {info['title']}"
+
+
+def _plan_kb() -> InlineKeyboardMarkup:
+    m, y = config.plan_info("month"), config.plan_info("year")
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(
+                text=f"📅 {m['price']} {config.LISTING_CURRENCY} / месяц",
+                callback_data="selfplan:month")],
+            [InlineKeyboardButton(
+                text=f"⭐ {y['price']} {config.LISTING_CURRENCY} / год (выгоднее)",
+                callback_data="selfplan:year")],
+        ]
+    )
 
 
 def _where(sp: Specialist) -> str:
@@ -66,9 +81,11 @@ def _review_kb(spec_id: int) -> InlineKeyboardMarkup:
     )
 
 
-def _pay_kb(checkout_url: str) -> InlineKeyboardMarkup:
+def _pay_kb(checkout_url: str, plan: str) -> InlineKeyboardMarkup:
+    info = config.plan_info(plan)
     return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text=f"💳 Оплатить {_price()}", url=checkout_url)]]
+        inline_keyboard=[[InlineKeyboardButton(
+            text=f"💳 Оплатить {info['price']} {config.LISTING_CURRENCY}", url=checkout_url)]]
     )
 
 
@@ -82,9 +99,12 @@ async def self_start(message: Message, state: FSMContext) -> None:
         )
         return
     await state.set_state(SelfAddSpecialist.name)
+    m, y = config.plan_info("month"), config.plan_info("year")
     await message.answer(
         "Отлично, давай добавим тебя в гайд! 🎉\n\n"
-        f"Размещение — <b>{_price()} в год</b>, с проверкой нашей командой.\n\n"
+        f"Размещение — <b>{m['price']} {config.LISTING_CURRENCY}/мес</b> или "
+        f"<b>{y['price']} {config.LISTING_CURRENCY}/год</b> (тариф выберешь в конце), "
+        "с проверкой нашей командой.\n\n"
         "Шаг 1/5. Имя или название (как показать в гайде)?",
         reply_markup=cancel_menu(),
     )
@@ -164,6 +184,20 @@ async def self_contact(message: Message, state: FSMContext) -> None:
     if not message.text:
         await message.answer("Напиши контакты текстом 🙂")
         return
+    await state.update_data(sp_contact=message.text.strip())
+    await state.set_state(SelfAddSpecialist.plan)
+    await message.answer(
+        "Отлично, анкета готова! 🎉 Осталось выбрать тариф размещения:",
+        reply_markup=_plan_kb(),
+    )
+
+
+@router.callback_query(SelfAddSpecialist.plan, F.data.startswith("selfplan:"))
+async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
+    plan = callback.data.split(":", 1)[1]
+    if plan not in ("month", "year"):
+        plan = "year"
+    info = config.plan_info(plan)
     data = await state.get_data()
     async with get_session() as session:
         sp = Specialist(
@@ -172,11 +206,12 @@ async def self_contact(message: Message, state: FSMContext) -> None:
             city=data.get("sp_city", ""),
             province=data.get("sp_province", ""),
             description=data.get("sp_description"),
-            contact=message.text.strip(),
+            contact=data.get("sp_contact", ""),
             is_online=data.get("sp_online", False),
             status="awaiting_payment",
             source="self",
-            submitter_user_id=message.from_user.id,
+            submitter_user_id=callback.from_user.id,
+            plan=plan,
         )
         session.add(sp)
         await session.commit()
@@ -185,25 +220,29 @@ async def self_contact(message: Message, state: FSMContext) -> None:
     await state.clear()
 
     payment = await create_payment(
-        f"Размещение в гайде: {name}", {"specialist_id": sid, "kind": "new"}
+        f"Размещение в гайде: {name}",
+        {"specialist_id": sid, "kind": "new", "plan": plan},
+        info["price"],
     )
     if not payment or not payment.get("checkout_url"):
-        await message.answer(
+        await callback.message.answer(
             "Не получилось создать ссылку на оплату 😔 Попробуй позже или напиши нам.",
             reply_markup=main_menu(),
         )
+        await callback.answer()
         return
     async with get_session() as session:
         sp = await session.get(Specialist, sid)
         if sp:
             sp.payment_id = payment["id"]
             await session.commit()
-    await message.answer(
-        f"Почти готово! 🎉 Размещение в гайде — <b>{_price()} в год</b>.\n\n"
+    await callback.message.answer(
+        f"Почти готово! 🎉 Тариф: <b>{_price_str(plan)}</b>.\n\n"
         "Нажми кнопку, чтобы оплатить. После оплаты мы проверим анкету и "
         "опубликуем карточку — я напишу тебе ✅",
-        reply_markup=_pay_kb(payment["checkout_url"]),
+        reply_markup=_pay_kb(payment["checkout_url"], plan),
     )
+    await callback.answer()
 
 
 # --- Подтверждение оплаты (вызывается из webhook) ---------------------------
@@ -226,14 +265,17 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         if sp is None:
             return
         now = datetime.utcnow()
+        plan = meta.get("plan", sp.plan or "year")
+        days = config.plan_info(plan)["days"]
         if kind == "renew":
             base = sp.paid_until if sp.paid_until and sp.paid_until > now else now
-            sp.paid_until = base + timedelta(days=config.LISTING_PERIOD_DAYS)
+            sp.paid_until = base + timedelta(days=days)
             sp.renewal_reminded = False
             sp.status = "active"
         else:
-            sp.paid_until = now + timedelta(days=config.LISTING_PERIOD_DAYS)
+            sp.paid_until = now + timedelta(days=days)
             sp.status = "pending"  # оплачено, ждёт проверки админом
+            sp.plan = plan
         session.add(Meta(key=f"pay:{payment_id}", value="done"))
         await session.commit()
         sub, name, card = sp.submitter_user_id, sp.name, _card_text(sp)
@@ -275,16 +317,19 @@ async def spec_renew(callback: CallbackQuery) -> None:
         if sp is None or sp.submitter_user_id != callback.from_user.id:
             await callback.answer("Карточка не найдена", show_alert=True)
             return
-        name = sp.name
+        name, plan = sp.name, sp.plan or "year"
+    info = config.plan_info(plan)
     payment = await create_payment(
-        f"Продление в гайде: {name}", {"specialist_id": sid, "kind": "renew"}
+        f"Продление в гайде: {name}",
+        {"specialist_id": sid, "kind": "renew", "plan": plan},
+        info["price"],
     )
     if not payment or not payment.get("checkout_url"):
         await callback.answer("Не удалось создать оплату, попробуй позже", show_alert=True)
         return
     await callback.message.answer(
-        f"Продление размещения на год — <b>{_price()}</b>. Жми кнопку 👇",
-        reply_markup=_pay_kb(payment["checkout_url"]),
+        f"Продление размещения — <b>{_price_str(plan)}</b>. Жми кнопку 👇",
+        reply_markup=_pay_kb(payment["checkout_url"], plan),
     )
     await callback.answer()
 
@@ -318,18 +363,18 @@ async def _send_renewal_reminders(bot) -> None:
                 )
             )
         ).all()
-        targets = [(s.submitter_user_id, s.id, s.name, s.paid_until) for s in rows]
+        targets = [(s.submitter_user_id, s.id, s.name, s.paid_until, s.plan or "year") for s in rows]
         for s in rows:
             s.renewal_reminded = True
         await session.commit()
 
-    for uid, sid, name, until in targets:
+    for uid, sid, name, until, plan in targets:
         kb = InlineKeyboardMarkup(
             inline_keyboard=[[InlineKeyboardButton(text="🔁 Продлить", callback_data=f"specrenew:{sid}")]]
         )
         await _safe_send(
             bot, uid,
             f"⏳ Размещение «{name}» в гайде заканчивается {until:%d.%m.%Y}.\n"
-            f"Продлить на год за {_price()}?",
+            f"Продлить ({_price_str(plan)})?",
             kb,
         )
