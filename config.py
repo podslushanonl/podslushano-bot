@@ -25,6 +25,15 @@ BOT_URL: str = os.getenv("BOT_URL", "https://t.me/podslushano_nl_bot")
 # Публичная ссылка на логотип (показывается на странице оплаты). Пусто = без лого.
 LOGO_URL: str = os.getenv("LOGO_URL", "")
 
+# Реквизиты компании (для юридических страниц)
+COMPANY_NAME: str = os.getenv("COMPANY_NAME", "Podslushano.nl")
+COMPANY_EMAIL: str = os.getenv("COMPANY_EMAIL", "podslushano.nl@gmail.com")
+COMPANY_KVK: str = os.getenv("COMPANY_KVK", "98882317")
+COMPANY_BTW: str = os.getenv("COMPANY_BTW", "NL005359099B74")
+COMPANY_ADDRESS: str = os.getenv(
+    "COMPANY_ADDRESS", "Karel Doormanstraat 63, 5342 TJ Oss, Nederland"
+)
+
 # --- Искусственный интеллект (Claude) ---------------------------------------
 # Ключ берётся в консоли Anthropic: https://console.anthropic.com/ → API Keys.
 # Если ключа нет — бот продолжит работать на правилах, просто без «живого» ИИ.
