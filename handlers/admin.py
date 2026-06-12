@@ -4,6 +4,8 @@
 Команда /admin открывает панель: добавить специалиста, посмотреть добавленные
 вручную, найти и удалить.
 """
+import html
+
 from aiogram import F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command
@@ -170,7 +172,8 @@ async def add_contact(message: Message, state: FSMContext) -> None:
         await session.refresh(sp)
     await state.clear()
     await message.answer(
-        f"✅ Добавлено в гайд (#{sp.id}):\n<b>{sp.name}</b> — {sp.category}, {_where(sp)}",
+        f"✅ Добавлено в гайд (#{sp.id}):\n<b>{html.escape(sp.name)}</b> — "
+        f"{html.escape(sp.category)}, {html.escape(_where(sp))}",
         reply_markup=main_menu(),
     )
 
@@ -197,7 +200,9 @@ async def list_added(callback: CallbackQuery) -> None:
     await callback.message.answer(f"📋 Добавленные ({len(rows)}):")
     for sp in rows:
         await callback.message.answer(
-            f"#{sp.id} <b>{sp.name}</b>\n{sp.category} · {_where(sp)}\n{sp.contact or ''}",
+            f"#{sp.id} <b>{html.escape(sp.name)}</b>\n"
+            f"{html.escape(sp.category)} · {html.escape(_where(sp))}\n"
+            f"{html.escape(sp.contact or '')}",
             reply_markup=_del_button(sp.id),
         )
 
@@ -250,7 +255,8 @@ async def find_run(message: Message, state: FSMContext) -> None:
     )
     for sp in rows:
         await message.answer(
-            f"#{sp.id} <b>{sp.name}</b>\n{sp.category} · {_where(sp)}",
+            f"#{sp.id} <b>{html.escape(sp.name)}</b>\n"
+            f"{html.escape(sp.category)} · {html.escape(_where(sp))}",
             reply_markup=_del_button(sp.id),
         )
 

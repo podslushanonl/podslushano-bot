@@ -3,6 +3,7 @@
 Бот ведёт живой диалог: если человек написал только профессию — спросит город
 (и запомнит, кого ищем); если только город — спросит, кто нужен.
 """
+import html
 import random
 from datetime import datetime
 
@@ -50,13 +51,15 @@ MAX_RESULTS = 8  # максимум карточек в одной выдаче 
 
 
 def _spec_text(spec: Specialist) -> str:
-    """Текст карточки одного специалиста."""
+    """Текст карточки одного специалиста (данные экранируем для HTML)."""
     where = "онлайн" if spec.is_online else (spec.city or spec.province)
-    text = f"<b>{spec.name}</b>" + (f" · {where}" if where else "")
+    text = f"<b>{html.escape(spec.name)}</b>"
+    if where:
+        text += f" · {html.escape(where)}"
     if spec.description:
-        text += f"\n{spec.description}"
+        text += f"\n{html.escape(spec.description)}"
     if spec.contact:
-        text += f"\n📞 {spec.contact}"
+        text += f"\n📞 {html.escape(spec.contact)}"
     return text
 
 
@@ -94,9 +97,12 @@ async def _send_results(message: Message, state: FSMContext, sections: list) -> 
             if shown >= MAX_RESULTS:
                 overflow += 1
                 continue
-            await message.answer(
-                _spec_text(s), reply_markup=_spec_kb(s), disable_web_page_preview=True
-            )
+            try:
+                await message.answer(
+                    _spec_text(s), reply_markup=_spec_kb(s), disable_web_page_preview=True
+                )
+            except Exception:  # noqa: BLE001 — одна кривая карточка не рушит всю выдачу
+                await message.answer(_spec_text(s), disable_web_page_preview=True)
             shown += 1
     tail = "Если что-то ещё нужно — я тут 😉"
     if overflow:
