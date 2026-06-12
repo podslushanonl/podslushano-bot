@@ -93,10 +93,19 @@ async def ai_reply(
         )
         parts = [block.text for block in response.content if block.type == "text"]
         text = "".join(parts).strip()
-        return text or None
+        return _clean(text) or None
     except Exception as e:  # noqa: BLE001 — никогда не роняем бота из-за ИИ
         log.warning("Ошибка обращения к ИИ: %s", e)
         return None
+
+
+def _clean(text: str) -> str:
+    """Убирает остатки markdown-разметки: мы шлём чистый текст, без HTML/MD.
+
+    Модель изредка ставит **жирный** или __подчёркнутый__ — в чистом тексте
+    это выглядит как лишние звёздочки, поэтому маркеры просто срезаем.
+    """
+    return text.replace("**", "").replace("__", "")
 
 
 async def reply_with_ai(message, state) -> bool:
