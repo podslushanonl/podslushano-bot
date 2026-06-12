@@ -97,3 +97,40 @@ async def ai_reply(
     except Exception as e:  # noqa: BLE001 — никогда не роняем бота из-за ИИ
         log.warning("Ошибка обращения к ИИ: %s", e)
         return None
+
+
+async def reply_with_ai(message, state) -> bool:
+    """Отвечает на свободное сообщение через ИИ и помнит контекст диалога.
+
+    Возвращает True, если ИИ ответил (тогда вызывающему коду делать ничего не
+    нужно), и False — если ИИ выключен или не смог ответить (нужен запасной
+    вариант). Заодно выходит из любого «залипшего» режима (clear) — кроме
+    истории диалога, которую сохраняем.
+    """
+    if not ai_enabled():
+        return False
+
+    from keyboards.menus import main_menu
+
+    user_text = (message.text or "").strip()
+    if not user_text:
+        return False
+
+    await message.bot.send_chat_action(message.chat.id, action="typing")
+    data = await state.get_data()
+    history = data.get("ai_history", [])
+    reply = await ai_reply(user_text, history)
+    if not reply:
+        return False
+
+    history = (
+        history
+        + [
+            {"role": "user", "content": user_text},
+            {"role": "assistant", "content": reply},
+        ]
+    )[-2 * HISTORY_LIMIT:]
+    await state.clear()
+    await state.update_data(ai_history=history)
+    await message.answer(reply, reply_markup=main_menu(), parse_mode=None)
+    return True

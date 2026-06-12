@@ -15,6 +15,7 @@ from database.db import get_session
 from database.models import Specialist
 from keyboards.menus import BTN_CONTACTS, cancel_menu, main_menu
 from states.forms import ContactSearch
+from utils.ai import reply_with_ai
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city
 from utils.stickers import send_sticker
 
@@ -69,8 +70,12 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     category = detect_category(text) or data.get("pending_category")
     city_info = detect_city(text)
 
-    # Совсем ничего не поняли — мягко подсказываем
+    # Совсем ничего не поняли про специалиста. Если подключён ИИ — пусть ответит
+    # как умный собеседник и выйдет из режима поиска (чтобы не зацикливаться).
+    # Иначе — мягко подсказываем, по каким категориям умеем искать.
     if not category and not city_info:
+        if await reply_with_ai(message, state):
+            return
         categories = ", ".join(CATEGORIES.keys())
         await state.set_state(ContactSearch.waiting_for_query)
         await message.answer(

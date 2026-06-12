@@ -18,8 +18,8 @@ import config
 from handlers.contacts import process_query
 from handlers.submissions import THANKS, create_submission, extract_content
 from keyboards.menus import main_menu
-from utils.ai import HISTORY_LIMIT, ai_enabled, ai_reply
-from utils.geo import detect_category, detect_city
+from utils.ai import reply_with_ai
+from utils.geo import detect_category
 from utils.stickers import send_sticker
 
 router = Router()
@@ -92,29 +92,16 @@ async def free_chat(message: Message, state: FSMContext) -> None:
             await message.answer(random.choice(BYE_REPLIES), reply_markup=main_menu())
             return
 
-    # Похоже на поиск специалиста («нужен стоматолог…», «посоветуйте юриста в…»)
-    # Контакты отдаём только из проверенной базы, ИИ их не выдумывает.
-    if detect_category(text) or detect_city(text):
+    # Явный запрос специалиста — только если назван род занятий (стоматолог,
+    # юрист…). Просто упоминание города (кафе/вопрос «в Гааге») — это НЕ поиск,
+    # такое уходит к ИИ. Контакты отдаём только из проверенной базы.
+    if detect_category(text):
         await process_query(message, state, text)
         return
 
-    # Умный ответ: отдаём свободный вопрос модели Claude
-    if ai_enabled():
-        await message.bot.send_chat_action(message.chat.id, action="typing")
-        data = await state.get_data()
-        history = data.get("ai_history", [])
-        reply = await ai_reply(text, history)
-        if reply:
-            history = (
-                history
-                + [
-                    {"role": "user", "content": text},
-                    {"role": "assistant", "content": reply},
-                ]
-            )[-2 * HISTORY_LIMIT:]
-            await state.update_data(ai_history=history)
-            await message.answer(reply, reply_markup=main_menu(), parse_mode=None)
-            return
+    # Умный ответ на свободный вопрос — отдаём модели Claude
+    if await reply_with_ai(message, state):
+        return
 
     # ИИ выключен или не ответил — мягко уточняем, что сделать с сообщением
     await state.update_data(chat_text=text)
