@@ -27,7 +27,7 @@ async def _seed_specialists() -> None:
 
     Реальные данные с сайта заменят эти примеры позже.
     """
-    from data.specialists_seed import SEED_SPECIALISTS
+    from seeds.specialists_seed import SEED_SPECIALISTS
     from utils.geo import province_of_city
 
     async with async_session() as session:
