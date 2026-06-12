@@ -4,14 +4,18 @@ Mollie после оплаты дёргает POST /mollie-webhook с полем
 Мы проверяем платёж и публикуем/продлеваем размещение. Также есть health-check
 на GET / (нужен Railway).
 """
+import html as html_lib
 import logging
+from datetime import datetime
 
 from aiohttp import web
+from sqlalchemy import or_, select
 
 import config
 from database.db import get_session
 from database.models import Specialist
 from handlers.selfadd import on_payment_paid
+from utils.contact_links import parse_contact_links
 from utils.payments import get_payment
 
 log = logging.getLogger(__name__)
@@ -260,6 +264,114 @@ async def _thanks(request: web.Request) -> web.Response:
     return web.Response(text=_render(title, ico, body), content_type="text/html")
 
 
+async def _active_specialists() -> list[Specialist]:
+    """Все активные (видимые) специалисты, без дублей одного человека."""
+    now = datetime.utcnow()
+    async with get_session() as session:
+        rows = (
+            await session.scalars(
+                select(Specialist)
+                .where(
+                    Specialist.status == "active",
+                    or_(Specialist.paid_until.is_(None), Specialist.paid_until > now),
+                )
+                .order_by(Specialist.category, Specialist.name)
+            )
+        ).all()
+    seen: set[tuple[str, str]] = set()
+    uniq: list[Specialist] = []
+    for s in rows:
+        key = (s.name.strip().lower(), (s.contact or "").strip().lower())
+        if key in seen:
+            continue
+        seen.add(key)
+        uniq.append(s)
+    return uniq
+
+
+async def _api_specialists(request: web.Request) -> web.Response:
+    """JSON со всеми активными специалистами (для сайта). CORS открыт."""
+    rows = await _active_specialists()
+    data = [
+        {
+            "name": s.name,
+            "category": s.category,
+            "city": s.city or "",
+            "province": s.province or "",
+            "online": bool(s.is_online),
+            "description": s.description or "",
+            "contact": s.contact or "",
+            "links": parse_contact_links(s.contact),
+        }
+        for s in rows
+    ]
+    resp = web.json_response({"count": len(data), "specialists": data})
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    return resp
+
+
+_GUIDE_PAGE = """<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Гайд специалистов — Подслушано в Нидерландах</title>
+<style>
+ body{{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#eef2f8;margin:0;padding:20px;color:#222}}
+ .wrap{{max-width:760px;margin:0 auto}}
+ .top{{text-align:center;margin-bottom:14px}} .top img{{max-width:160px}}
+ h1{{font-size:22px;margin:6px 0}} h2{{font-size:17px;margin:24px 0 8px;color:#2a6}}
+ input{{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #cfd6e4;border-radius:12px;font-size:15px;margin-bottom:8px}}
+ .card{{background:#fff;border-radius:14px;padding:14px 16px;margin:8px 0;box-shadow:0 4px 14px rgba(0,0,0,.05)}}
+ .nm{{font-weight:700}} .ds{{color:#555;margin:4px 0 8px;font-size:14px;line-height:1.45}}
+ .lnks a{{display:inline-block;margin:4px 6px 0 0;padding:7px 12px;background:#2aabee;color:#fff;
+  text-decoration:none;border-radius:10px;font-size:14px}}
+ .muted{{color:#888;font-size:13px;text-align:center;margin-top:18px}}
+</style></head><body><div class="wrap">
+ <div class="top">{logo}<h1>Гайд специалистов 🇳🇱</h1></div>
+ <input id="q" placeholder="Поиск: профессия, имя или город…" oninput="flt()">
+ <div id="list">{body}</div>
+ <p class="muted">Обновляется автоматически · podslushano.nl</p>
+</div>
+<script>
+function flt(){{var v=document.getElementById('q').value.toLowerCase();
+ document.querySelectorAll('#list .card').forEach(function(c){{
+  c.style.display=c.innerText.toLowerCase().indexOf(v)>-1?'':'none';}});
+ document.querySelectorAll('#list h2').forEach(function(h){{var n=h.nextElementSibling,s=false;
+  while(n&&n.tagName!=='H2'){{if(n.classList.contains('card')&&n.style.display!=='none')s=true;n=n.nextElementSibling;}}
+  h.style.display=s?'':'none';}});}}
+</script>
+</body></html>"""
+
+
+def _guide_card(s: Specialist) -> str:
+    where = "онлайн" if s.is_online else (s.city or s.province or "")
+    name = html_lib.escape(s.name)
+    head = name + (f" · {html_lib.escape(where)}" if where else "")
+    desc = (
+        f'<div class="ds">{html_lib.escape(s.description)}</div>' if s.description else ""
+    )
+    links = parse_contact_links(s.contact)
+    btns = "".join(
+        f'<a href="{html_lib.escape(l["url"])}" target="_blank" rel="noopener">{l["label"]}</a>'
+        for l in links
+    )
+    return f'<div class="card"><div class="nm">{head}</div>{desc}<div class="lnks">{btns}</div></div>'
+
+
+async def _guide(request: web.Request) -> web.Response:
+    rows = await _active_specialists()
+    groups: dict[str, list[Specialist]] = {}
+    for s in rows:
+        groups.setdefault(s.category, []).append(s)
+    parts: list[str] = []
+    for cat in sorted(groups):
+        parts.append(f"<h2>{html_lib.escape(cat).capitalize()}</h2>")
+        parts.extend(_guide_card(s) for s in groups[cat])
+    body = "".join(parts) or "<p>Пока пусто.</p>"
+    logo = f'<img src="{config.LOGO_URL}" alt="logo"><br>' if config.LOGO_URL else ""
+    return web.Response(
+        text=_GUIDE_PAGE.format(logo=logo, body=body), content_type="text/html"
+    )
+
+
 async def _mollie_webhook(request: web.Request) -> web.Response:
     try:
         data = await request.post()
@@ -280,6 +392,8 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/thanks", _thanks)
     app.router.add_get("/privacy", _privacy)
     app.router.add_get("/terms", _terms)
+    app.router.add_get("/guide", _guide)
+    app.router.add_get("/api/specialists.json", _api_specialists)
     app.router.add_post("/mollie-webhook", _mollie_webhook)
 
     runner = web.AppRunner(app)

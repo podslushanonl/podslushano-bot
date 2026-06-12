@@ -4,7 +4,6 @@
 (и запомнит, кого ищем); если только город — спросит, кто нужен.
 """
 import random
-import re
 from datetime import datetime
 
 from aiogram import F, Router
@@ -19,6 +18,7 @@ from database.models import Specialist
 from keyboards.menus import BTN_CONTACTS, cancel_menu, main_menu
 from states.forms import ContactSearch
 from utils.ai import extract_specialist_query, reply_with_ai
+from utils.contact_links import TELEGRAM_TYPES, parse_contact_links
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city
 
 router = Router()
@@ -48,13 +48,6 @@ async def ask_query(message: Message, state: FSMContext) -> None:
 
 MAX_RESULTS = 8  # максимум карточек в одной выдаче (каждая — отдельным сообщением)
 
-_IG_RE = re.compile(r"(?:instagram|инстаграм)\b[:\s]*@?([A-Za-z0-9_.]+)", re.I)
-_IG_URL_RE = re.compile(r"instagram\.com/([A-Za-z0-9_.]+)", re.I)
-_TG_RE = re.compile(r"(?:telegram|телеграм|tg)\b[:\s]*@?([A-Za-z0-9_]{3,})", re.I)
-_TG_URL_RE = re.compile(r"t\.me/([A-Za-z0-9_]+)", re.I)
-_URL_RE = re.compile(r"https?://[^\s,)]+", re.I)
-_PHONE_RE = re.compile(r"(\+?\d[\d\s\-]{7,}\d)")
-
 
 def _spec_text(spec: Specialist) -> str:
     """Текст карточки одного специалиста."""
@@ -67,40 +60,12 @@ def _spec_text(spec: Specialist) -> str:
     return text
 
 
-def _contact_buttons(contact: str | None) -> list[InlineKeyboardButton]:
-    """Достаёт из строки контакта кликабельные кнопки (Instagram/Telegram/сайт/WhatsApp)."""
-    if not contact:
-        return []
-    btns: list[InlineKeyboardButton] = []
-    m = _IG_RE.search(contact) or _IG_URL_RE.search(contact)
-    if m:
-        handle = m.group(1).strip(".")
-        btns.append(InlineKeyboardButton(text="📷 Instagram", url=f"https://instagram.com/{handle}"))
-    m = _TG_RE.search(contact) or _TG_URL_RE.search(contact)
-    if m:
-        btns.append(InlineKeyboardButton(text="✈️ Telegram", url=f"https://t.me/{m.group(1)}"))
-    for um in _URL_RE.finditer(contact):
-        url = um.group(0)
-        if "instagram.com" in url or "t.me/" in url:
-            continue
-        btns.append(InlineKeyboardButton(text="🌐 Сайт", url=url))
-        break
-    pm = _PHONE_RE.search(contact)
-    if pm:
-        digits = re.sub(r"\D", "", pm.group(1))
-        if digits.startswith("00"):
-            digits = digits[2:]
-        elif digits.startswith("0"):
-            digits = "31" + digits[1:]  # NL: 06… → 316…
-        if 8 <= len(digits) <= 15:
-            btns.append(InlineKeyboardButton(text="💬 WhatsApp", url=f"https://wa.me/{digits}"))
-    return btns
-
-
 def _spec_kb(spec: Specialist) -> InlineKeyboardMarkup | None:
-    btns = _contact_buttons(spec.contact)
-    if not btns:
+    # В Telegram-кнопках только http/https (tel:/mailto: нельзя)
+    links = [l for l in parse_contact_links(spec.contact) if l["type"] in TELEGRAM_TYPES]
+    if not links:
         return None
+    btns = [InlineKeyboardButton(text=l["label"], url=l["url"]) for l in links]
     rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
