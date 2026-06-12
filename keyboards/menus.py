@@ -37,6 +37,30 @@ def cancel_menu() -> ReplyKeyboardMarkup:
     )
 
 
+# Варианты формата для анкеты рекламы (текст кнопок = ответ пользователя)
+AD_FORMATS = [
+    "📰 Пост в ленте",
+    "📲 Сторис",
+    "🎬 Видео / Reels",
+    "🧩 Несколько форматов",
+    "🤔 Пока не уверен(а)",
+]
+
+
+def ad_format_menu() -> ReplyKeyboardMarkup:
+    """Кнопки выбора формата размещения в анкете рекламы."""
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=AD_FORMATS[0]), KeyboardButton(text=AD_FORMATS[1])],
+            [KeyboardButton(text=AD_FORMATS[2]), KeyboardButton(text=AD_FORMATS[3])],
+            [KeyboardButton(text=AD_FORMATS[4])],
+            [KeyboardButton(text=BTN_CANCEL)],
+        ],
+        resize_keyboard=True,
+        input_field_placeholder="Выбери формат или напиши свой 👇",
+    )
+
+
 def moderation_buttons(submission_id: int) -> InlineKeyboardMarkup:
     """Кнопки «Одобрить / Отклонить» под заявкой в личке у админа."""
     return InlineKeyboardMarkup(

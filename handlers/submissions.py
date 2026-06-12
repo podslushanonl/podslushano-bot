@@ -10,11 +10,13 @@ from keyboards.menus import (
     BTN_QUESTION,
     BTN_STORY,
     BTN_VIDEO,
+    ad_format_menu,
     cancel_menu,
     main_menu,
 )
 from states.forms import AdForm, QuestionForm, StoryForm, VideoForm
 from utils.notify import send_to_admins
+from utils.stickers import send_sticker
 
 router = Router()
 
@@ -73,16 +75,81 @@ async def ask_video(message: Message, state: FSMContext) -> None:
     )
 
 
+# --- Реклама: пошаговая анкета ----------------------------------------------
+
 @router.message(F.text == BTN_AD)
 async def ask_ad(message: Message, state: FSMContext) -> None:
-    await state.set_state(AdForm.waiting_for_content)
+    await state.set_state(AdForm.waiting_for_subject)
     await message.answer(
-        "Отлично, давай обсудим! 📢 Расскажи одним сообщением:\n\n"
-        "• что хочешь прорекламировать;\n"
-        "• как с тобой связаться (телефон / @username / почта).\n\n"
-        "Команда посмотрит и обязательно ответит 🤝",
+        "Здорово, что хотите разместиться у нас! 📢\n\n"
+        "Задам пару коротких вопросов, чтобы команда сразу всё поняла и "
+        "ответила предметно.\n\n"
+        "<b>1/4.</b> Что рекламируем? Опишите товар, услугу или бренд "
+        "в двух-трёх словах.",
         reply_markup=cancel_menu(),
     )
+
+
+@router.message(AdForm.waiting_for_subject)
+async def ad_subject(message: Message, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("Напишите, пожалуйста, текстом — что рекламируем? 🙂")
+        return
+    await state.update_data(ad_subject=message.text.strip())
+    await state.set_state(AdForm.waiting_for_format)
+    await message.answer(
+        "<b>2/4.</b> В каком формате хотите разместиться? "
+        "Выберите вариант ниже или напишите свой.",
+        reply_markup=ad_format_menu(),
+    )
+
+
+@router.message(AdForm.waiting_for_format)
+async def ad_format(message: Message, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("Выберите формат кнопкой ниже или напишите словами 🙂")
+        return
+    await state.update_data(ad_format=message.text.strip())
+    await state.set_state(AdForm.waiting_for_timing)
+    await message.answer(
+        "<b>3/4.</b> Когда хотели бы запуститься? "
+        "Например: «как можно скорее», «в этом месяце» или конкретная дата.",
+        reply_markup=cancel_menu(),
+    )
+
+
+@router.message(AdForm.waiting_for_timing)
+async def ad_timing(message: Message, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("Напишите, пожалуйста, желаемые сроки текстом 🙂")
+        return
+    await state.update_data(ad_timing=message.text.strip())
+    await state.set_state(AdForm.waiting_for_contact)
+    await message.answer(
+        "<b>4/4.</b> И последнее — как с вами связаться? "
+        "Оставьте телефон, @username или e-mail.",
+        reply_markup=cancel_menu(),
+    )
+
+
+@router.message(AdForm.waiting_for_contact)
+async def ad_contact(message: Message, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("Оставьте, пожалуйста, контакт текстом 🙂")
+        return
+    data = await state.get_data()
+    contact = message.text.strip()
+    summary = (
+        "📢 <b>Заявка на рекламу</b>\n\n"
+        f"• <b>Что рекламируют:</b> {data.get('ad_subject', '—')}\n"
+        f"• <b>Формат:</b> {data.get('ad_format', '—')}\n"
+        f"• <b>Сроки:</b> {data.get('ad_timing', '—')}\n"
+        f"• <b>Контакт:</b> {contact}"
+    )
+    await create_submission(message.bot, message.from_user, "ad", summary)
+    await state.clear()
+    await message.answer(THANKS["ad"], reply_markup=main_menu())
+    await send_sticker(message.bot, message.chat.id, "thanks")
 
 
 # --- Сохранение заявки (используется и кнопками меню, и свободным чатом) ----
@@ -143,6 +210,7 @@ async def _save_and_notify(
     )
     await state.clear()
     await message.answer(THANKS[sub_type], reply_markup=main_menu())
+    await send_sticker(message.bot, message.chat.id, "thanks")
 
 
 # --- Шаг 2: принимаем содержимое для каждого типа заявки --------------------
@@ -166,8 +234,3 @@ async def receive_video(message: Message, state: FSMContext) -> None:
         )
         return
     await _save_and_notify(message, state, "video")
-
-
-@router.message(AdForm.waiting_for_content)
-async def receive_ad(message: Message, state: FSMContext) -> None:
-    await _save_and_notify(message, state, "ad")

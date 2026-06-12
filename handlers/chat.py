@@ -14,10 +14,13 @@ from aiogram import F, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
+import config
 from handlers.contacts import process_query
 from handlers.submissions import THANKS, create_submission, extract_content
 from keyboards.menus import main_menu
+from utils.ai import HISTORY_LIMIT, ai_enabled, ai_reply
 from utils.geo import detect_category, detect_city
+from utils.stickers import send_sticker
 
 router = Router()
 
@@ -90,11 +93,30 @@ async def free_chat(message: Message, state: FSMContext) -> None:
             return
 
     # Похоже на поиск специалиста («нужен стоматолог…», «посоветуйте юриста в…»)
+    # Контакты отдаём только из проверенной базы, ИИ их не выдумывает.
     if detect_category(text) or detect_city(text):
         await process_query(message, state, text)
         return
 
-    # Всё остальное: не гадаем, а спрашиваем человека, что сделать с сообщением
+    # Умный ответ: отдаём свободный вопрос модели Claude
+    if ai_enabled():
+        await message.bot.send_chat_action(message.chat.id, action="typing")
+        data = await state.get_data()
+        history = data.get("ai_history", [])
+        reply = await ai_reply(text, history)
+        if reply:
+            history = (
+                history
+                + [
+                    {"role": "user", "content": text},
+                    {"role": "assistant", "content": reply},
+                ]
+            )[-2 * HISTORY_LIMIT:]
+            await state.update_data(ai_history=history)
+            await message.answer(reply, reply_markup=main_menu(), parse_mode=None)
+            return
+
+    # ИИ выключен или не ответил — мягко уточняем, что сделать с сообщением
     await state.update_data(chat_text=text)
     looks_like_question = "?" in text
     if looks_like_question:
@@ -130,9 +152,29 @@ async def free_media(message: Message, state: FSMContext) -> None:
     )
 
 
+@router.message(F.sticker)
+async def on_sticker(message: Message) -> None:
+    """Стикеры: админу показываем данные пака (для настройки), остальным — ответ."""
+    if message.from_user and message.from_user.id in config.ADMIN_IDS:
+        s = message.sticker
+        await message.answer(
+            "🛠 Данные стикера (для настройки бота):\n"
+            f"<b>set_name:</b> <code>{s.set_name}</code>\n"
+            f"<b>file_id:</b> <code>{s.file_id}</code>\n\n"
+            "Чтобы бот слал стикеры из этого пака, добавь в Railway переменную "
+            "<code>STICKER_SET_NAME</code> со значением из <b>set_name</b>."
+        )
+        return
+    await message.answer(
+        "Классный стикер! 😄 Я пока общаюсь текстом — "
+        "напиши словами или загляни в меню 👇",
+        reply_markup=main_menu(),
+    )
+
+
 @router.message()
 async def anything_else(message: Message) -> None:
-    """Стикеры, голосовые и прочее — отвечаем, а не молчим."""
+    """Голосовые и прочее — отвечаем, а не молчим."""
     await message.answer(
         "Принято! 😄 Правда, с таким форматом я пока не работаю — "
         "напиши мне текстом или выбери пункт меню 👇",
@@ -174,4 +216,5 @@ async def chat_action(callback: CallbackQuery, state: FSMContext) -> None:
     )
     await callback.message.edit_reply_markup(reply_markup=None)
     await callback.message.answer(THANKS[action], reply_markup=main_menu())
+    await send_sticker(callback.bot, callback.message.chat.id, "thanks")
     await callback.answer("Отправлено!")

@@ -19,6 +19,18 @@ BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
 ADMIN_IDS: list[int] = _parse_admin_ids(os.getenv("ADMIN_IDS", ""))
 GUIDE_URL: str = os.getenv("GUIDE_URL", "")
 
+# --- Искусственный интеллект (Claude) ---------------------------------------
+# Ключ берётся в консоли Anthropic: https://console.anthropic.com/ → API Keys.
+# Если ключа нет — бот продолжит работать на правилах, просто без «живого» ИИ.
+ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
+# Модель: Haiku — быстрая и дешёвая, хорошо подходит для чата сообщества.
+AI_MODEL: str = os.getenv("AI_MODEL", "claude-haiku-4-5-20251001")
+
+# --- Стикеры ----------------------------------------------------------------
+# Короткое имя вашего стикерпака (из ссылки t.me/addstickers/ИМЯ).
+# Если пусто — бот просто не шлёт стикеры, всё остальное работает.
+STICKER_SET_NAME: str = os.getenv("STICKER_SET_NAME", "")
+
 # Путь к файлу базы данных SQLite (лежит рядом с проектом)
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "bot.db")
 DB_URL = f"sqlite+aiosqlite:///{DB_PATH}"
