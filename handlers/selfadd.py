@@ -35,6 +35,10 @@ router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 ONLINE_WORDS = {"онлайн", "online", "по всей стране"}
 
+# Описание платежа (видно в Mollie/банке) — на нидерландском
+DESC_NEW = "Vermelding in Podslushano-gids"
+DESC_RENEW = "Verlenging vermelding Podslushano-gids"
+
 
 def _price_str(plan: str) -> str:
     info = config.plan_info(plan)
@@ -220,7 +224,7 @@ async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
 
     payment = await create_payment(
-        f"Размещение в гайде: {name}",
+        f"{DESC_NEW}: {name}",
         {"specialist_id": sid, "kind": "new", "plan": plan},
         info["price"],
     )
@@ -357,7 +361,7 @@ async def spec_retry(callback: CallbackQuery) -> None:
         name, plan = sp.name, sp.plan or "year"
     info = config.plan_info(plan)
     payment = await create_payment(
-        f"Размещение в гайде: {name}",
+        f"{DESC_NEW}: {name}",
         {"specialist_id": sid, "kind": "new", "plan": plan},
         info["price"],
     )
@@ -388,7 +392,7 @@ async def spec_renew(callback: CallbackQuery) -> None:
         name, plan = sp.name, sp.plan or "year"
     info = config.plan_info(plan)
     payment = await create_payment(
-        f"Продление в гайде: {name}",
+        f"{DESC_RENEW}: {name}",
         {"specialist_id": sid, "kind": "renew", "plan": plan},
         info["price"],
     )
