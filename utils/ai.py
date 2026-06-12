@@ -311,10 +311,20 @@ async def reply_with_ai(message, state) -> bool:
         return False
 
     from keyboards.menus import main_menu
+    from utils.limits import allow_ai
 
     user_text = (message.text or "").strip()
     if not user_text:
         return False
+
+    uid = message.from_user.id if message.from_user else 0
+    if not allow_ai(uid):
+        await message.answer(
+            "На сегодня ты задал уже много вопросов 🙏 Я немного передохну — "
+            "загляни в меню или напиши попозже 👇",
+            reply_markup=main_menu(),
+        )
+        return True
 
     await message.bot.send_chat_action(message.chat.id, action="typing")
     data = await state.get_data()

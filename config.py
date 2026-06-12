@@ -89,6 +89,14 @@ def payments_enabled() -> bool:
     """Платный поток доступен, если есть ключ Mollie и публичный адрес webhook."""
     return bool(MOLLIE_API_KEY and WEBHOOK_BASE_URL)
 
+
+# --- Защита от спама и лимит расходов на ИИ ----------------------------------
+# Антифлуд: не больше FLOOD_LIMIT сообщений за FLOOD_WINDOW секунд.
+FLOOD_LIMIT: int = _int_env("FLOOD_LIMIT", 6)
+FLOOD_WINDOW: int = _int_env("FLOOD_WINDOW", 8)
+# Сколько ответов ИИ в день на одного пользователя (0 = без лимита).
+AI_DAILY_LIMIT: int = _int_env("AI_DAILY_LIMIT", 40)
+
 # Путь к файлу базы данных SQLite (лежит рядом с проектом)
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "bot.db")
 DB_URL = f"sqlite+aiosqlite:///{DB_PATH}"

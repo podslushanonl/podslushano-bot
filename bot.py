@@ -11,6 +11,7 @@ import config
 from database.db import init_db
 from handlers import admin, chat, contacts, moderation, selfadd, start, submissions
 from handlers.selfadd import reminder_loop
+from utils.limits import ThrottleMiddleware
 from utils.webserver import start_webserver
 
 
@@ -71,6 +72,7 @@ async def main() -> None:
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     dp = Dispatcher()
+    dp.message.middleware(ThrottleMiddleware())  # антиспам по частоте сообщений
 
     await configure_profile(bot)  # описание/команды на стартовом экране
 
