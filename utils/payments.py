@@ -31,7 +31,11 @@ async def create_payment(description: str, metadata: dict, amount: str) -> dict 
     body = {
         "amount": {"currency": config.LISTING_CURRENCY, "value": amount},
         "description": description,
-        "redirectUrl": config.SITE_URL or "https://www.mollie.com",
+        "redirectUrl": (
+            f"{config.WEBHOOK_BASE_URL}/thanks"
+            if config.WEBHOOK_BASE_URL
+            else (config.SITE_URL or "https://www.mollie.com")
+        ),
         "webhookUrl": f"{config.WEBHOOK_BASE_URL}/mollie-webhook",
         "metadata": metadata,
     }

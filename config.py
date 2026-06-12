@@ -20,6 +20,8 @@ ADMIN_IDS: list[int] = _parse_admin_ids(os.getenv("ADMIN_IDS", ""))
 GUIDE_URL: str = os.getenv("GUIDE_URL", "")
 # Главный сайт сообщества (показываем на стартовом экране и в приветствии)
 SITE_URL: str = os.getenv("SITE_URL", "https://www.podslushano.nl")
+# Ссылка на бота (для кнопки «Вернуться в Telegram» на странице оплаты)
+BOT_URL: str = os.getenv("BOT_URL", "https://t.me/podslushano_nl_bot")
 
 # --- Искусственный интеллект (Claude) ---------------------------------------
 # Ключ берётся в консоли Anthropic: https://console.anthropic.com/ → API Keys.

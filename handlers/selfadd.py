@@ -236,10 +236,14 @@ async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
         if sp:
             sp.payment_id = payment["id"]
             await session.commit()
+    # Возвращаем обычное меню (убираем клавиатуру «Отмена» из анкеты)
     await callback.message.answer(
         f"Почти готово! 🎉 Тариф: <b>{_price_str(plan)}</b>.\n\n"
-        "Нажми кнопку, чтобы оплатить. После оплаты мы проверим анкету и "
-        "опубликуем карточку — я напишу тебе ✅",
+        "После оплаты мы проверим анкету и опубликуем карточку — я напишу тебе ✅",
+        reply_markup=main_menu(),
+    )
+    await callback.message.answer(
+        "👇 Кнопка для оплаты:",
         reply_markup=_pay_kb(payment["checkout_url"], plan),
     )
     await callback.answer()
