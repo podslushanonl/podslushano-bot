@@ -57,6 +57,8 @@ class Specialist(Base):
     paid_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     # Id платежа в Mollie (для платного потока)
     payment_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # Напомнили ли уже о продлении (чтобы не слать дважды)
+    renewal_reminded: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class Meta(Base):

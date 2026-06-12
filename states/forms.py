@@ -41,3 +41,13 @@ class AdminFind(StatesGroup):
     """Поиск специалиста админом для удаления."""
 
     waiting_query = State()
+
+
+class SelfAddSpecialist(StatesGroup):
+    """Само-добавление специалиста (платно): пошаговая анкета."""
+
+    name = State()
+    category = State()
+    location = State()
+    description = State()
+    contact = State()

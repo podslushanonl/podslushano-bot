@@ -268,3 +268,51 @@ async def delete_spec(callback: CallbackQuery) -> None:
         await session.commit()
     await callback.message.edit_text(f"🗑 Удалено: {name}")
     await callback.answer("Удалено")
+
+
+# --- Модерация платных само-добавлений --------------------------------------
+
+@router.callback_query(F.data.startswith("specok:"))
+async def spec_publish(callback: CallbackQuery) -> None:
+    spec_id = int(callback.data.split(":", 1)[1])
+    async with get_session() as session:
+        sp = await session.get(Specialist, spec_id)
+        if sp is None:
+            await callback.answer("Карточка не найдена", show_alert=True)
+            return
+        sp.status = "active"
+        await session.commit()
+        sub, name = sp.submitter_user_id, sp.name
+    await callback.message.edit_text((callback.message.text or "") + "\n\n✅ ОПУБЛИКОВАНО")
+    if sub:
+        try:
+            await callback.bot.send_message(
+                sub, f"🎉 Готово! Твоя карточка «{name}» опубликована в гайде. Спасибо!"
+            )
+        except Exception:  # noqa: BLE001
+            pass
+    await callback.answer("Опубликовано")
+
+
+@router.callback_query(F.data.startswith("specno:"))
+async def spec_decline(callback: CallbackQuery) -> None:
+    spec_id = int(callback.data.split(":", 1)[1])
+    async with get_session() as session:
+        sp = await session.get(Specialist, spec_id)
+        if sp is None:
+            await callback.answer("Карточка не найдена", show_alert=True)
+            return
+        sp.status = "rejected"
+        await session.commit()
+        sub, name = sp.submitter_user_id, sp.name
+    await callback.message.edit_text((callback.message.text or "") + "\n\n❌ ОТКЛОНЕНО")
+    if sub:
+        try:
+            await callback.bot.send_message(
+                sub,
+                f"К сожалению, карточку «{name}» мы не опубликовали. "
+                "По возврату средств напишите нам — поможем 🙏",
+            )
+        except Exception:  # noqa: BLE001
+            pass
+    await callback.answer("Отклонено")

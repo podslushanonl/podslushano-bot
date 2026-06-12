@@ -45,6 +45,33 @@ except ValueError:
 # Если пусто — кнопки просто нет, всё остальное работает.
 STICKER_PACK_URL: str = os.getenv("STICKER_PACK_URL", "")
 
+# --- Платное само-добавление в гайд (Mollie) --------------------------------
+# Ключ Mollie (test_... или live_...). Без него платный поток выключен.
+MOLLIE_API_KEY: str = os.getenv("MOLLIE_API_KEY", "")
+# Цена и период размещения
+LISTING_PRICE: str = os.getenv("LISTING_PRICE", "99.00")  # строкой, как требует Mollie
+LISTING_CURRENCY: str = os.getenv("LISTING_CURRENCY", "EUR")
+try:
+    LISTING_PERIOD_DAYS: int = int(os.getenv("LISTING_PERIOD_DAYS", "365"))
+except ValueError:
+    LISTING_PERIOD_DAYS = 365
+# Публичный адрес сервиса для webhook оплаты. Railway генерирует домен —
+# берём его автоматически, либо можно задать WEBHOOK_BASE_URL вручную.
+_railway_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN", "")
+WEBHOOK_BASE_URL: str = os.getenv("WEBHOOK_BASE_URL", "") or (
+    f"https://{_railway_domain}" if _railway_domain else ""
+)
+# Порт веб-сервера (Railway задаёт PORT)
+try:
+    PORT: int = int(os.getenv("PORT", "8080"))
+except ValueError:
+    PORT = 8080
+
+
+def payments_enabled() -> bool:
+    """Платный поток доступен, если есть ключ Mollie и публичный адрес webhook."""
+    return bool(MOLLIE_API_KEY and WEBHOOK_BASE_URL)
+
 # Путь к файлу базы данных SQLite (лежит рядом с проектом)
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "bot.db")
 DB_URL = f"sqlite+aiosqlite:///{DB_PATH}"

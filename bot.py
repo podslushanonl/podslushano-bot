@@ -9,7 +9,9 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 
 import config
 from database.db import init_db
-from handlers import admin, chat, contacts, moderation, start, submissions
+from handlers import admin, chat, contacts, moderation, selfadd, start, submissions
+from handlers.selfadd import reminder_loop
+from utils.webserver import start_webserver
 
 
 async def configure_profile(bot: Bot) -> None:
@@ -76,12 +78,20 @@ async def main() -> None:
     # чтобы он ловил только то, что не поймали остальные
     dp.include_router(start.router)
     dp.include_router(admin.router)  # /admin — управление базой (только админы)
+    dp.include_router(selfadd.router)  # платное само-добавление в гайд
     dp.include_router(submissions.router)
     dp.include_router(contacts.router)
     dp.include_router(moderation.router)
     dp.include_router(chat.router)
     # В группах/обсуждениях бот молчит: все хендлеры выше работают только
     # в личных чатах (router.message.filter PRIVATE), а группового нет.
+
+    # Веб-сервер (webhook оплаты + health-check) и фоновые напоминания
+    try:
+        await start_webserver(bot)
+        asyncio.create_task(reminder_loop(bot))
+    except Exception as e:  # noqa: BLE001 — без веб-сервера бот всё равно работает
+        logging.warning("Веб-сервер не запустился: %s", e)
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)

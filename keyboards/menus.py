@@ -14,6 +14,7 @@ BTN_QUESTION = "❓ Задать вопрос (предложка)"
 BTN_VIDEO = "🎬 Прислать видео"
 BTN_AD = "📢 Реклама / сотрудничество"
 BTN_CONTACTS = "🔍 Найти специалиста"
+BTN_SELF_ADD = "➕ Добавить себя в гайд"
 BTN_STICKERS = "🎨 Наши стикеры"
 BTN_CANCEL = "❌ Отмена"
 
@@ -26,6 +27,9 @@ def main_menu() -> ReplyKeyboardMarkup:
         [KeyboardButton(text=BTN_AD)],
         [KeyboardButton(text=BTN_CONTACTS)],
     ]
+    # Кнопка платного само-добавления — только если подключена оплата
+    if config.payments_enabled():
+        keyboard.append([KeyboardButton(text=BTN_SELF_ADD)])
     # Кнопка стикерпака — только если задана ссылка в настройках
     if config.STICKER_PACK_URL:
         keyboard.append([KeyboardButton(text=BTN_STICKERS)])

@@ -2,6 +2,7 @@
 import os
 from collections import defaultdict
 
+from sqlalchemy import delete, inspect
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 import config
@@ -19,27 +20,56 @@ SEED_VERSION = "3"
 ONLINE_PROVINCE_THRESHOLD = 6
 
 
+# Колонки, которые могли появиться позже (для миграции существующей базы)
+_LATER_COLUMNS = {
+    "is_online": "BOOLEAN DEFAULT 0",
+    "status": "VARCHAR(20) DEFAULT 'active'",
+    "source": "VARCHAR(20) DEFAULT 'seed'",
+    "submitter_user_id": "BIGINT",
+    "paid_until": "DATETIME",
+    "payment_id": "VARCHAR(100)",
+    "renewal_reminded": "BOOLEAN DEFAULT 0",
+}
+
+
 async def init_db() -> None:
-    """Создаёт таблицы и при необходимости заливает специалистов."""
+    """Создаёт таблицы, добавляет недостающие колонки и засевает специалистов."""
     os.makedirs(os.path.dirname(config.DB_PATH), exist_ok=True)
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
+    await _migrate()
     await _seed_if_needed()
 
 
+async def _migrate() -> None:
+    """Добавляет недостающие колонки в таблицу специалистов (без потери данных)."""
+    async with engine.begin() as conn:
+        def existing_cols(sync_conn) -> set[str]:
+            return {c["name"] for c in inspect(sync_conn).get_columns("specialists")}
+
+        cols = await conn.run_sync(existing_cols)
+        for name, ddl in _LATER_COLUMNS.items():
+            if name not in cols:
+                await conn.exec_driver_sql(
+                    f"ALTER TABLE specialists ADD COLUMN {name} {ddl}"
+                )
+
+
 async def _seed_if_needed() -> None:
-    """Засевает базу специалистов, если версия засева устарела."""
+    """Засевает специалистов из гайда, если версия засева устарела.
+
+    Карточки, добавленные админом и через само-добавление (source != seed),
+    НИКОГДА не трогаем — обновляем только данные из гайда.
+    """
     async with async_session() as session:
         version = await session.get(Meta, "seed_version")
         if version is not None and version.value == SEED_VERSION:
             return  # актуальная версия уже залита
-
-    # Пересоздаём таблицу специалистов и заливаем заново (с дедупликацией)
-    async with engine.begin() as conn:
-        await conn.run_sync(Specialist.__table__.drop, checkfirst=True)
-        await conn.run_sync(Specialist.__table__.create)
+        # Удаляем только старые seed-карточки, платные/ручные сохраняем
+        await session.execute(delete(Specialist).where(Specialist.source == "seed"))
+        await session.commit()
 
     await _seed_specialists()
 
