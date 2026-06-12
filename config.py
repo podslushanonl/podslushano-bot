@@ -18,6 +18,8 @@ def _parse_admin_ids(raw: str) -> list[int]:
 BOT_TOKEN: str = os.getenv("BOT_TOKEN", "")
 ADMIN_IDS: list[int] = _parse_admin_ids(os.getenv("ADMIN_IDS", ""))
 GUIDE_URL: str = os.getenv("GUIDE_URL", "")
+# Главный сайт сообщества (показываем на стартовом экране и в приветствии)
+SITE_URL: str = os.getenv("SITE_URL", "https://www.podslushano.nl")
 
 # --- Искусственный интеллект (Claude) ---------------------------------------
 # Ключ берётся в консоли Anthropic: https://console.anthropic.com/ → API Keys.

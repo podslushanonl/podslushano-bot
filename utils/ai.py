@@ -11,6 +11,7 @@ None, и вызывающий код мягко откатится на прав
 from __future__ import annotations
 
 import logging
+from datetime import date
 
 import config
 
@@ -44,6 +45,13 @@ SYSTEM_PROMPT = (
     "• По юридическим, налоговым и медицинским вопросам давай общую ориентировку, "
     "но советуй сверяться с официальными источниками (gemeente, belastingdienst, "
     "huisarts), не выдавай это за точную консультацию.\n"
+    "• ВСЯ информация должна быть актуальной. Конкретные цифры — ставки налогов, "
+    "суммы пособий (toeslagen), пошлины, лимиты, сроки, правила — в Нидерландах "
+    "часто меняются (обычно раз в год). Если не уверен в актуальном на СЕГОДНЯ "
+    "значении — НЕ называй устаревшие числа как текущие: честно скажи, что точную "
+    "сумму/ставку нужно проверить, и дай ссылку на официальный источник "
+    "(belastingdienst.nl, toeslagen.nl, ind.nl, digid.nl, government.nl, сайт "
+    "gemeente). Лучше отправить к первоисточнику, чем назвать неверную цифру.\n"
     "• Если вопрос личный/основан на опыте (отзывы, «как лучше», «куда сходить»), "
     "можешь предложить отправить его в предложку сообщества — там ответят живые "
     "люди.\n"
@@ -83,12 +91,18 @@ async def ai_reply(
     messages = list(history or [])
     messages.append({"role": "user", "content": user_text})
 
+    today = date.today().strftime("%d.%m.%Y")
+    system = (
+        f"{SYSTEM_PROMPT}\n\nСегодняшняя дата: {today}. Отвечай так, будто это "
+        "и есть текущий момент; не выдавай устаревшие данные за сегодняшние."
+    )
+
     try:
         client = _get_client()
         response = await client.messages.create(
             model=config.AI_MODEL,
             max_tokens=600,
-            system=SYSTEM_PROMPT,
+            system=system,
             messages=messages,
         )
         parts = [block.text for block in response.content if block.type == "text"]

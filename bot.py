@@ -5,10 +5,44 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
+from aiogram.types import BotCommand
 
 import config
 from database.db import init_db
-from handlers import chat, contacts, group, moderation, start, submissions
+from handlers import chat, contacts, moderation, start, submissions
+
+
+async def configure_profile(bot: Bot) -> None:
+    """Настраивает «витрину» бота: команды, краткое и полное описание.
+
+    Полное описание показывается на стартовом экране (пустой чат, кнопка
+    «Что может делать этот бот / Запустить»). Меняется при каждом запуске,
+    поэтому всегда актуально.
+    """
+    try:
+        await bot.set_my_commands(
+            [
+                BotCommand(command="start", description="Запустить бота и открыть меню"),
+                BotCommand(command="menu", description="Показать меню"),
+                BotCommand(command="help", description="Что я умею"),
+            ]
+        )
+        await bot.set_my_short_description(
+            "Помощник сообщества «Подслушано в Нидерландах»: ответы о жизни в NL, "
+            "поиск специалистов, истории и вопросы."
+        )
+        await bot.set_my_description(
+            "«Подслушано в Нидерландах» 🇳🇱 — бот-помощник для русскоязычных "
+            "жителей Нидерландов.\n\n"
+            "Что я умею:\n"
+            "• Отвечаю на вопросы о жизни в NL: BSN, DigiD, налоги, жильё, медицина, транспорт\n"
+            "• Найду специалиста из проверенного гайда\n"
+            "• Приму историю, вопрос, видео или заявку на рекламу\n\n"
+            f"Сайт сообщества: {config.SITE_URL}\n\n"
+            "Нажми «Запустить», чтобы начать 👇"
+        )
+    except Exception as e:  # noqa: BLE001 — витрина не критична для работы
+        logging.warning("Не удалось настроить профиль бота: %s", e)
 
 
 async def main() -> None:
@@ -23,6 +57,8 @@ async def main() -> None:
     )
     dp = Dispatcher()
 
+    await configure_profile(bot)  # описание/команды на стартовом экране
+
     # Порядок важен: сначала команды и кнопки меню, СВОБОДНЫЙ ЧАТ — последним,
     # чтобы он ловил только то, что не поймали остальные
     dp.include_router(start.router)
@@ -30,8 +66,8 @@ async def main() -> None:
     dp.include_router(contacts.router)
     dp.include_router(moderation.router)
     dp.include_router(chat.router)
-    # В группе обсуждений бот отвечает только на прямое обращение к нему
-    dp.include_router(group.router)
+    # В группах/обсуждениях бот молчит: все хендлеры выше работают только
+    # в личных чатах (router.message.filter PRIVATE), а группового нет.
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)
