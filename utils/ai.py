@@ -55,8 +55,8 @@ SYSTEM_PROMPT = (
     "официальных тем (налоги, BSN, DigiD, визы и ВНЖ через IND, пособия) ищи в "
     "первую очередь на официальных нидерландских сайтах: belastingdienst.nl, "
     "toeslagen.nl, ind.nl, digid.nl, government.nl, rijksoverheid.nl и сайте "
-    "нужного gemeente. Если приводишь конкретную цифру или правило — коротко "
-    "укажи источник (например: «источник: belastingdienst.nl»).\n"
+    "нужного gemeente. Ссылки на источники подставятся автоматически — тебе их "
+    "вписывать не нужно, просто давай точный ответ на основе найденного.\n"
     "• Если вопрос личный/основан на опыте (отзывы, «как лучше», «куда сходить»), "
     "можешь предложить отправить его в предложку сообщества — там ответят живые "
     "люди.\n"
@@ -99,14 +99,25 @@ def _web_search_tool() -> list | None:
     ]
 
 
-def _extract_text(response) -> str:
-    """Собирает финальный текст ответа (без служебных блоков веб-поиска)."""
-    parts = [
-        block.text
-        for block in response.content
-        if getattr(block, "type", None) == "text"
-    ]
-    return "".join(parts).strip()
+def _extract_text_and_sources(response) -> tuple[str, list[str]]:
+    """Собирает финальный текст ответа и реальные ссылки из веб-поиска.
+
+    Когда модель искала в интернете, её текстовые блоки содержат цитаты с url —
+    их и берём, чтобы честно показать источники под ответом.
+    """
+    text_parts: list[str] = []
+    sources: list[str] = []
+    seen: set[str] = set()
+    for block in response.content:
+        if getattr(block, "type", None) != "text":
+            continue
+        text_parts.append(block.text)
+        for cit in getattr(block, "citations", None) or []:
+            url = getattr(cit, "url", None) if not isinstance(cit, dict) else cit.get("url")
+            if url and url not in seen:
+                seen.add(url)
+                sources.append(url)
+    return "".join(text_parts).strip(), sources
 
 
 async def ai_reply(
@@ -156,7 +167,19 @@ async def ai_reply(
             log.warning("Ошибка обращения к ИИ: %s", e2)
             return None
 
-    return _clean(_extract_text(response)) or None
+    return _finalize(response)
+
+
+def _finalize(response) -> str | None:
+    """Готовит итоговый текст: чистим markdown и добавляем источники веб-поиска."""
+    text, sources = _extract_text_and_sources(response)
+    text = _clean(text)
+    if not text:
+        return None
+    if sources:
+        footer = "\n\n🔗 Источник: " + ", ".join(sources[:3])
+        text = f"{text}{footer}"
+    return text
 
 
 def _clean(text: str) -> str:
