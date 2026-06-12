@@ -46,15 +46,30 @@ async def ask_query(message: Message, state: FSMContext) -> None:
 
 def _format(spec: Specialist) -> str:
     """Красиво оформляет одного специалиста."""
-    # У многих специалистов город не указан (работают онлайн или по всей
-    # провинции) — тогда показываем провинцию.
-    where = spec.city or spec.province
+    if spec.is_online:
+        where = "онлайн"
+    else:
+        # У многих город не указан (работают по всей провинции) — тогда провинция.
+        where = spec.city or spec.province
     line = f"• <b>{spec.name}</b>" + (f" ({where})" if where else "")
     if spec.description:
         line += f"\n  {spec.description}"
     if spec.contact:
         line += f"\n  📞 {spec.contact}"
     return line
+
+
+def _render(specs) -> str:
+    """Оформляет список специалистов, убирая дубли одного человека (имя+контакт)."""
+    seen: set[tuple[str, str]] = set()
+    lines: list[str] = []
+    for s in specs:
+        key = (s.name.strip().lower(), (s.contact or "").strip().lower())
+        if key in seen:
+            continue
+        seen.add(key)
+        lines.append(_format(s))
+    return "\n\n".join(lines)
 
 
 @router.message(ContactSearch.waiting_for_query)
@@ -71,19 +86,26 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     data = await state.get_data()
     category = detect_category(text) or data.get("pending_category")
     city_info = detect_city(text)
+    # Город мог прийти прошлым сообщением (уже разобранный)
+    if not city_info and data.get("pending_province"):
+        city_info = (data.get("pending_city") or data["pending_province"], data["pending_province"])
 
-    # Ключевые слова не дали категорию — спросим ИИ (понимает синонимы и опечатки:
-    # «зубной»→стоматолог, «адвокат»→юрист и т.п.)
-    if not category:
-        extracted = await extract_specialist_query(text, list(CATEGORIES.keys()))
-        if extracted.get("category"):
+    # Если ключевые слова не дали категорию ИЛИ город — спросим ИИ. Он понимает
+    # синонимы/опечатки и знает провинцию даже для маленьких городов (Oisterwijk).
+    if not category or not city_info:
+        extracted = await extract_specialist_query(
+            text, list(CATEGORIES.keys()), list(NEIGHBORS.keys())
+        )
+        if not category and extracted.get("category"):
             category = extracted["category"]
-        if not city_info and extracted.get("city"):
-            city_info = detect_city(extracted["city"])
+        if not city_info:
+            known = detect_city(extracted["city"]) if extracted.get("city") else None
+            if known:
+                city_info = known
+            elif extracted.get("province"):
+                city_info = (extracted.get("city") or extracted["province"], extracted["province"])
 
-    # Совсем ничего не поняли про специалиста. Если подключён ИИ — пусть ответит
-    # как умный собеседник и выйдет из режима поиска (чтобы не зацикливаться).
-    # Иначе — мягко подсказываем, по каким категориям умеем искать.
+    # Совсем не про специалиста — передаём ИИ и выходим из режима поиска
     if not category and not city_info:
         if await reply_with_ai(message, state):
             return
@@ -99,9 +121,9 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
 
     # Город есть, а кто нужен — нет
     if not category:
-        city, _ = city_info
+        city, province = city_info
         await state.set_state(ContactSearch.waiting_for_query)
-        await state.update_data(pending_city=text)
+        await state.update_data(pending_city=city, pending_province=province)
         await message.answer(
             f"Так, город понял — {city} 📍 А кто нужен? "
             "Например: стоматолог, юрист, парикмахер…",
@@ -109,10 +131,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
         )
         return
 
-    # Кто нужен — понятно, города нет. Может, город был в прошлом сообщении?
-    if not city_info and data.get("pending_city"):
-        city_info = detect_city(data["pending_city"])
-
+    # Кто нужен — понятно, города нет
     if not city_info:
         await state.set_state(ContactSearch.waiting_for_query)
         await state.update_data(pending_category=category)
@@ -123,74 +142,67 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
         return
 
     city, province = city_info
+    neighbor_provinces = NEIGHBORS.get(province, [])
 
     async with get_session() as session:
-        # 1) Ищем точно в нужном городе
-        in_city = (
-            await session.scalars(
-                select(Specialist).where(
-                    Specialist.category == category, Specialist.city == city
-                )
+        async def fetch(*conds):
+            result = await session.scalars(
+                select(Specialist).where(Specialist.category == category, *conds)
             )
-        ).all()
+            return result.all()
 
-        if in_city:
-            body = "\n\n".join(_format(s) for s in in_city)
-            await _finish(
-                message,
-                state,
+        online = await fetch(Specialist.is_online.is_(True))
+        in_province = await fetch(
+            Specialist.is_online.is_(False), Specialist.province == province
+        )
+        in_neighbors = (
+            await fetch(
+                Specialist.is_online.is_(False),
+                Specialist.province.in_(neighbor_provinces),
+            )
+            if neighbor_provinces
+            else []
+        )
+
+    # Точные совпадения по городу — вперёд списка
+    in_province = sorted(in_province, key=lambda s: 0 if (city and s.city == city) else 1)
+    has_exact_city = any(city and s.city == city for s in in_province)
+
+    blocks: list[str] = []
+    if in_province:
+        if has_exact_city:
+            head = (
                 f"{random.choice(FOUND_PHRASES)}\n\n"
-                f"<b>{category.capitalize()}</b> в {city}:\n\n{body}\n\n"
-                "Если что-то ещё нужно — я тут 😉",
+                f"<b>{category.capitalize()}</b> — вот кто есть в {city} и провинции {province}:"
             )
-            return
-
-        # 2) В городе никого — ищем в той же провинции (другие города)
-        in_province = (
-            await session.scalars(
-                select(Specialist).where(
-                    Specialist.category == category,
-                    Specialist.province == province,
-                    Specialist.city != city,
-                )
+        else:
+            head = (
+                f"Прямо в {city} пока никого, но по запросу «{category}» "
+                f"в провинции {province} есть:"
             )
-        ).all()
+        blocks.append(head + "\n\n" + _render(in_province))
+    elif in_neighbors:
+        blocks.append(
+            f"В {city} и провинции {province} по запросу «{category}» никого нет, "
+            f"но в соседних провинциях есть:\n\n" + _render(in_neighbors)
+        )
 
-        if in_province:
-            body = "\n\n".join(_format(s) for s in in_province)
-            await _finish(
-                message,
-                state,
-                f"Прямо в {city} по запросу «{category}» пока никого нет, "
-                f"но совсем рядом, в той же провинции ({province}), есть:\n\n{body}\n\n"
-                "Надеюсь, подойдёт! 🤞",
+    if online:
+        if blocks:
+            blocks.append("🌐 А ещё работают онлайн (по всей стране):\n\n" + _render(online))
+        else:
+            blocks.append(
+                f"По запросу «{category}» рядом с {city} в базе пока никого нет, "
+                f"но есть онлайн-специалисты (работают по всей стране):\n\n" + _render(online)
             )
-            return
 
-        # 3) Ищем в соседних провинциях
-        neighbor_provinces = NEIGHBORS.get(province, [])
-        if neighbor_provinces:
-            in_neighbors = (
-                await session.scalars(
-                    select(Specialist).where(
-                        Specialist.category == category,
-                        Specialist.province.in_(neighbor_provinces),
-                    )
-                )
-            ).all()
+    if blocks:
+        await _finish(
+            message, state, "\n\n".join(blocks) + "\n\nЕсли что-то ещё нужно — я тут 😉"
+        )
+        return
 
-            if in_neighbors:
-                body = "\n\n".join(_format(s) for s in in_neighbors)
-                await _finish(
-                    message,
-                    state,
-                    f"В {city} и окрестностях по запросу «{category}» никого "
-                    f"не нашлось, но в соседних провинциях есть:\n\n{body}\n\n"
-                    "Может, кто-то из них работает онлайн или стоит поездки 🚗",
-                )
-                return
-
-    # 4) Совсем ничего не нашли — предлагаем гайд на сайте
+    # Совсем ничего не нашли — предлагаем гайд на сайте
     fallback = (
         f"Эх, по запросу «{category}» рядом с {city} в моей базе пока "
         "пусто 😔 Но база пополняется!"

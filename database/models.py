@@ -1,7 +1,7 @@
 """Описание таблиц базы данных."""
 from datetime import datetime
 
-from sqlalchemy import BigInteger, DateTime, Integer, String, Text, func
+from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -45,3 +45,14 @@ class Specialist(Base):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Контакт: телефон / @username / ссылка / сайт
     contact: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    # Онлайн-специалист (работает по всей стране) — показываем для любого города
+    is_online: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class Meta(Base):
+    """Служебная таблица «ключ-значение» (например, версия засева базы)."""
+
+    __tablename__ = "meta"
+
+    key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    value: Mapped[str] = mapped_column(String(100))

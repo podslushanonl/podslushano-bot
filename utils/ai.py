@@ -232,51 +232,71 @@ def _parse_json(raw: str) -> dict:
         return {}
 
 
-async def extract_specialist_query(text: str, categories: list[str]) -> dict:
-    """Через ИИ понимает, какого специалиста и в каком городе ищет человек.
+async def extract_specialist_query(
+    text: str, categories: list[str], provinces: list[str] | None = None
+) -> dict:
+    """Через ИИ понимает, какого специалиста, в каком городе и провинции ищут.
 
-    Возвращает {"category": <одна из categories или None>, "city": <город|None>}.
-    Понимает синонимы и опечатки. Если это НЕ запрос специалиста — category=None.
-    Веб-поиск тут не нужен — это быстрая дешёвая классификация.
+    Возвращает {"category": <из categories|None>, "city": <город|None>,
+    "province": <провинция NL|None>}. Понимает синонимы и опечатки, знает, к какой
+    провинции относится даже маленький город. Если это НЕ запрос специалиста —
+    category=None. Веб-поиск тут не нужен — быстрая дешёвая классификация.
     """
+    empty = {"category": None, "city": None, "province": None}
     if not ai_enabled():
-        return {"category": None, "city": None}
+        return dict(empty)
 
     cats = ", ".join(categories)
+    provs = ", ".join(provinces) if provinces else (
+        "Groningen, Friesland, Drenthe, Overijssel, Flevoland, Gelderland, "
+        "Utrecht, Noord-Holland, Zuid-Holland, Zeeland, Noord-Brabant, Limburg"
+    )
     system = (
         "Ты — классификатор запросов для справочника специалистов в Нидерландах. "
         "По сообщению пользователя определи, ищет ли он КОНКРЕТНОГО специалиста или "
-        "услугу из списка категорий, и если да — верни категорию (ровно как в "
-        "списке) и город.\n\n"
-        f"Категории: {cats}.\n\n"
+        "услугу из списка категорий, и если да — верни категорию, город и "
+        "провинцию.\n\n"
+        f"Категории: {cats}.\n"
+        f"Провинции (12, пиши ровно так): {provs}.\n\n"
         "Правила:\n"
         "- Понимай синонимы и опечатки (зубной→стоматолог, адвокат→юрист, "
-        "фотик→фотограф, ноготочки→мастер маникюра).\n"
+        "электрик/сантехник→мастер на час, ноготочки→мастер маникюра).\n"
         "- Если это НЕ поиск специалиста из списка (общий вопрос, совет про "
         "места/кафе/досуг, болтовня) — category=null.\n"
-        "- city — название города как в сообщении (можно по-русски), иначе null.\n"
-        'Ответь СТРОГО одним JSON без пояснений: '
-        '{"category": <строка|null>, "city": <строка|null>}.'
+        "- city — город как в сообщении (можно по-русски), иначе null.\n"
+        "- province — провинция NL для этого города (ровно из списка). Ты знаешь, "
+        "к какой провинции относится даже маленький городок (Oisterwijk→"
+        "Noord-Brabant). Если город не назван — null.\n"
+        'Ответь СТРОГО одним JSON без пояснений: {"category": <строка|null>, '
+        '"city": <строка|null>, "province": <строка|null>}.'
     )
     try:
         client = _get_client()
         resp = await client.messages.create(
             model=config.AI_MODEL,
-            max_tokens=120,
+            max_tokens=150,
             system=system,
             messages=[{"role": "user", "content": text}],
         )
         data = _parse_json(_extract_text_and_sources(resp)[0])
     except Exception as e:  # noqa: BLE001
         log.warning("Ошибка классификации запроса ИИ: %s", e)
-        return {"category": None, "city": None}
+        return dict(empty)
 
     cat = data.get("category")
     if cat:
         cat_l = str(cat).strip().lower()
         cat = next((c for c in categories if c.lower() == cat_l), None)
+    prov = data.get("province")
+    if prov and provinces is not None:
+        prov_l = str(prov).strip().lower()
+        prov = next((p for p in provinces if p.lower() == prov_l), None)
     city = data.get("city")
-    return {"category": cat, "city": str(city).strip() if city else None}
+    return {
+        "category": cat,
+        "city": str(city).strip() if city else None,
+        "province": str(prov).strip() if prov else None,
+    }
 
 
 async def reply_with_ai(message, state) -> bool:
