@@ -54,8 +54,8 @@ async def cmd_legal(message: Message) -> None:
     """Ссылки на политику конфиденциальности и условия размещения."""
     await message.answer(
         "📄 Документы:\n"
-        f"• Privacybeleid: {config.privacy_url()}\n"
-        f"• Algemene voorwaarden (условия): {config.terms_url()}",
+        f"• Политика конфиденциальности: {config.privacy_url()}\n"
+        f"• Условия размещения: {config.terms_url()}",
         reply_markup=main_menu(),
         disable_web_page_preview=True,
     )
