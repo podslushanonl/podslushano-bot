@@ -254,13 +254,21 @@ async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
 async def on_payment_paid(bot, payment_id: str) -> None:
     """Обрабатывает оплаченный платёж: публикация на проверку или продление."""
     payment = await get_payment(payment_id)
-    if not payment or payment.get("status") != "paid":
+    if not payment:
         return
+    status = payment.get("status")
     meta = payment.get("metadata") or {}
     sid = meta.get("specialist_id")
     kind = meta.get("kind", "new")
     if not sid:
         return
+
+    # Неуспешная оплата — мягко сообщаем и предлагаем повторить
+    if status in ("failed", "canceled", "expired"):
+        await _on_payment_failed(bot, int(sid), payment_id, kind, status)
+        return
+    if status != "paid":
+        return  # open/pending — ждём финального статуса
 
     async with get_session() as session:
         if await session.get(Meta, f"pay:{payment_id}"):
@@ -309,6 +317,62 @@ async def _safe_send(bot, chat_id, text, reply_markup=None) -> None:
         await bot.send_message(chat_id, text, reply_markup=reply_markup)
     except Exception as e:  # noqa: BLE001
         log.warning("Не удалось отправить сообщение %s: %s", chat_id, e)
+
+
+async def _on_payment_failed(bot, sid: int, payment_id: str, kind: str, status: str) -> None:
+    """Сообщает о неуспешной оплате и предлагает повторить (для нового платежа)."""
+    async with get_session() as session:
+        if await session.get(Meta, f"payfail:{payment_id}"):
+            return  # уже сообщали об этой неудаче
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            return
+        sub, name = sp.submitter_user_id, sp.name
+        session.add(Meta(key=f"payfail:{payment_id}", value=status))
+        await session.commit()
+    if not sub:
+        return
+    if kind == "renew":
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text="🔁 Повторить", callback_data=f"specrenew:{sid}")]]
+        )
+        await _safe_send(bot, sub, f"Оплата продления «{name}» не прошла 😕 Можно попробовать ещё раз.", kb)
+    else:
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text="🔁 Попробовать снова", callback_data=f"specretry:{sid}")]]
+        )
+        await _safe_send(
+            bot, sub, f"Оплата за «{name}» не прошла 😕 Это бывает — можно попробовать ещё раз.", kb
+        )
+
+
+@router.callback_query(F.data.startswith("specretry:"))
+async def spec_retry(callback: CallbackQuery) -> None:
+    sid = int(callback.data.split(":", 1)[1])
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None or sp.submitter_user_id != callback.from_user.id:
+            await callback.answer("Карточка не найдена", show_alert=True)
+            return
+        name, plan = sp.name, sp.plan or "year"
+    info = config.plan_info(plan)
+    payment = await create_payment(
+        f"Размещение в гайде: {name}",
+        {"specialist_id": sid, "kind": "new", "plan": plan},
+        info["price"],
+    )
+    if not payment or not payment.get("checkout_url"):
+        await callback.answer("Не удалось создать оплату, попробуй позже", show_alert=True)
+        return
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp:
+            sp.payment_id = payment["id"]
+            await session.commit()
+    await callback.message.answer(
+        "👇 Кнопка для оплаты:", reply_markup=_pay_kb(payment["checkout_url"], plan)
+    )
+    await callback.answer()
 
 
 # --- Продление ---------------------------------------------------------------

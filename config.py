@@ -22,6 +22,8 @@ GUIDE_URL: str = os.getenv("GUIDE_URL", "")
 SITE_URL: str = os.getenv("SITE_URL", "https://www.podslushano.nl")
 # Ссылка на бота (для кнопки «Вернуться в Telegram» на странице оплаты)
 BOT_URL: str = os.getenv("BOT_URL", "https://t.me/podslushano_nl_bot")
+# Публичная ссылка на логотип (показывается на странице оплаты). Пусто = без лого.
+LOGO_URL: str = os.getenv("LOGO_URL", "")
 
 # --- Искусственный интеллект (Claude) ---------------------------------------
 # Ключ берётся в консоли Anthropic: https://console.anthropic.com/ → API Keys.

@@ -28,14 +28,16 @@ async def create_payment(description: str, metadata: dict, amount: str) -> dict 
 
     {"id": "tr_...", "checkout_url": "https://..."} или None при ошибке.
     """
+    sid = metadata.get("specialist_id")
+    redirect = (
+        f"{config.WEBHOOK_BASE_URL}/thanks?sid={sid}"
+        if config.WEBHOOK_BASE_URL
+        else (config.SITE_URL or "https://www.mollie.com")
+    )
     body = {
         "amount": {"currency": config.LISTING_CURRENCY, "value": amount},
         "description": description,
-        "redirectUrl": (
-            f"{config.WEBHOOK_BASE_URL}/thanks"
-            if config.WEBHOOK_BASE_URL
-            else (config.SITE_URL or "https://www.mollie.com")
-        ),
+        "redirectUrl": redirect,
         "webhookUrl": f"{config.WEBHOOK_BASE_URL}/mollie-webhook",
         "metadata": metadata,
     }
