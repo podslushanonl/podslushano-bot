@@ -4,12 +4,13 @@
 (и запомнит, кого ищем); если только город — спросит, кто нужен.
 """
 import random
+import re
 from datetime import datetime
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
 from sqlalchemy import or_, select
 
 import config
@@ -45,32 +46,97 @@ async def ask_query(message: Message, state: FSMContext) -> None:
     )
 
 
-def _format(spec: Specialist) -> str:
-    """Красиво оформляет одного специалиста."""
-    if spec.is_online:
-        where = "онлайн"
-    else:
-        # У многих город не указан (работают по всей провинции) — тогда провинция.
-        where = spec.city or spec.province
-    line = f"• <b>{spec.name}</b>" + (f" ({where})" if where else "")
+MAX_RESULTS = 8  # максимум карточек в одной выдаче (каждая — отдельным сообщением)
+
+_IG_RE = re.compile(r"(?:instagram|инстаграм)\b[:\s]*@?([A-Za-z0-9_.]+)", re.I)
+_IG_URL_RE = re.compile(r"instagram\.com/([A-Za-z0-9_.]+)", re.I)
+_TG_RE = re.compile(r"(?:telegram|телеграм|tg)\b[:\s]*@?([A-Za-z0-9_]{3,})", re.I)
+_TG_URL_RE = re.compile(r"t\.me/([A-Za-z0-9_]+)", re.I)
+_URL_RE = re.compile(r"https?://[^\s,)]+", re.I)
+_PHONE_RE = re.compile(r"(\+?\d[\d\s\-]{7,}\d)")
+
+
+def _spec_text(spec: Specialist) -> str:
+    """Текст карточки одного специалиста."""
+    where = "онлайн" if spec.is_online else (spec.city or spec.province)
+    text = f"<b>{spec.name}</b>" + (f" · {where}" if where else "")
     if spec.description:
-        line += f"\n  {spec.description}"
+        text += f"\n{spec.description}"
     if spec.contact:
-        line += f"\n  📞 {spec.contact}"
-    return line
+        text += f"\n📞 {spec.contact}"
+    return text
 
 
-def _render(specs) -> str:
-    """Оформляет список специалистов, убирая дубли одного человека (имя+контакт)."""
-    seen: set[tuple[str, str]] = set()
-    lines: list[str] = []
-    for s in specs:
-        key = (s.name.strip().lower(), (s.contact or "").strip().lower())
-        if key in seen:
+def _contact_buttons(contact: str | None) -> list[InlineKeyboardButton]:
+    """Достаёт из строки контакта кликабельные кнопки (Instagram/Telegram/сайт/WhatsApp)."""
+    if not contact:
+        return []
+    btns: list[InlineKeyboardButton] = []
+    m = _IG_RE.search(contact) or _IG_URL_RE.search(contact)
+    if m:
+        handle = m.group(1).strip(".")
+        btns.append(InlineKeyboardButton(text="📷 Instagram", url=f"https://instagram.com/{handle}"))
+    m = _TG_RE.search(contact) or _TG_URL_RE.search(contact)
+    if m:
+        btns.append(InlineKeyboardButton(text="✈️ Telegram", url=f"https://t.me/{m.group(1)}"))
+    for um in _URL_RE.finditer(contact):
+        url = um.group(0)
+        if "instagram.com" in url or "t.me/" in url:
             continue
-        seen.add(key)
-        lines.append(_format(s))
-    return "\n\n".join(lines)
+        btns.append(InlineKeyboardButton(text="🌐 Сайт", url=url))
+        break
+    pm = _PHONE_RE.search(contact)
+    if pm:
+        digits = re.sub(r"\D", "", pm.group(1))
+        if digits.startswith("00"):
+            digits = digits[2:]
+        elif digits.startswith("0"):
+            digits = "31" + digits[1:]  # NL: 06… → 316…
+        if 8 <= len(digits) <= 15:
+            btns.append(InlineKeyboardButton(text="💬 WhatsApp", url=f"https://wa.me/{digits}"))
+    return btns
+
+
+def _spec_kb(spec: Specialist) -> InlineKeyboardMarkup | None:
+    btns = _contact_buttons(spec.contact)
+    if not btns:
+        return None
+    rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+async def _send_results(message: Message, state: FSMContext, sections: list) -> None:
+    """Отправляет результаты: заголовок секции + каждый специалист отдельной карточкой."""
+    await state.clear()
+    seen: set[tuple[str, str]] = set()
+    shown = 0
+    overflow = 0
+    for header, specs in sections:
+        uniq = []
+        for s in specs:
+            key = (s.name.strip().lower(), (s.contact or "").strip().lower())
+            if key in seen:
+                continue
+            seen.add(key)
+            uniq.append(s)
+        if not uniq:
+            continue
+        if shown >= MAX_RESULTS:
+            overflow += len(uniq)
+            continue
+        await message.answer(header)
+        for s in uniq:
+            if shown >= MAX_RESULTS:
+                overflow += 1
+                continue
+            await message.answer(
+                _spec_text(s), reply_markup=_spec_kb(s), disable_web_page_preview=True
+            )
+            shown += 1
+    tail = "Если что-то ещё нужно — я тут 😉"
+    if overflow:
+        tail = f"…и ещё {overflow} — уточни город, покажу ближайших 🙂\n\n" + tail
+    await message.answer(tail, reply_markup=main_menu())
 
 
 @router.message(ContactSearch.waiting_for_query)
@@ -176,38 +242,42 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     in_province = sorted(in_province, key=lambda s: 0 if (city and s.city == city) else 1)
     has_exact_city = any(city and s.city == city for s in in_province)
 
-    blocks: list[str] = []
+    sections: list = []
     if in_province:
         if has_exact_city:
-            head = (
-                f"{random.choice(FOUND_PHRASES)}\n\n"
-                f"<b>{category.capitalize()}</b> — вот кто есть в {city} и провинции {province}:"
+            header = (
+                f"{random.choice(FOUND_PHRASES)}\n"
+                f"<b>{category.capitalize()}</b> — в {city} и провинции {province}:"
             )
         else:
-            head = (
+            header = (
                 f"Прямо в {city} пока никого, но по запросу «{category}» "
                 f"в провинции {province} есть:"
             )
-        blocks.append(head + "\n\n" + _render(in_province))
+        sections.append((header, in_province))
     elif in_neighbors:
-        blocks.append(
-            f"В {city} и провинции {province} по запросу «{category}» никого нет, "
-            f"но в соседних провинциях есть:\n\n" + _render(in_neighbors)
+        sections.append(
+            (
+                f"В {city} и провинции {province} по запросу «{category}» никого нет, "
+                "но рядом в соседних провинциях есть:",
+                in_neighbors,
+            )
         )
 
     if online:
-        if blocks:
-            blocks.append("🌐 А ещё работают онлайн (по всей стране):\n\n" + _render(online))
+        if sections:
+            sections.append(("🌐 А ещё работают онлайн (по всей стране):", online))
         else:
-            blocks.append(
-                f"По запросу «{category}» рядом с {city} в базе пока никого нет, "
-                f"но есть онлайн-специалисты (работают по всей стране):\n\n" + _render(online)
+            sections.append(
+                (
+                    f"По запросу «{category}» рядом с {city} пока никого, "
+                    "но есть онлайн-специалисты (работают по всей стране):",
+                    online,
+                )
             )
 
-    if blocks:
-        await _finish(
-            message, state, "\n\n".join(blocks) + "\n\nЕсли что-то ещё нужно — я тут 😉"
-        )
+    if sections:
+        await _send_results(message, state, sections)
         return
 
     # Совсем ничего не нашли — предлагаем гайд на сайте
