@@ -37,10 +37,10 @@ async def ask_query(message: Message, state: FSMContext) -> None:
     name = message.from_user.first_name or "друг"
     categories = ", ".join(CATEGORIES.keys())
     await message.answer(
-        f"{name}, кого тебе найти и в каком городе? 🔍\n\n"
-        "Напиши обычными словами, например: "
-        "<i>«нужен стоматолог в Амстердаме»</i>\n\n"
-        f"Сейчас я умею искать: {categories}.",
+        f"{name}, кого ищем и в каком городе? 🔍\n\n"
+        "Напиши обычными словами — я пойму.\n"
+        "<i>Например: «нужен стоматолог в Амстердаме» или «юрист в Гааге»</i>\n\n"
+        f"Ищу по категориям: {categories}.",
         reply_markup=cancel_menu(),
     )
 

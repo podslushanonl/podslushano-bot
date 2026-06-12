@@ -123,7 +123,10 @@ async def self_name(message: Message, state: FSMContext) -> None:
     await state.set_state(SelfAddSpecialist.category)
     cats = ", ".join(CATEGORIES.keys())
     await message.answer(
-        f"Шаг 2/5. Категория? Напиши одну из:\n\n{cats}", reply_markup=cancel_menu()
+        "Шаг 2/5. Категория? Напиши одну из списка ниже.\n"
+        "<i>Например: стоматолог, юрист, мастер маникюра…</i>\n\n"
+        f"{cats}",
+        reply_markup=cancel_menu(),
     )
 
 
@@ -167,7 +170,8 @@ async def self_location(message: Message, state: FSMContext) -> None:
         await state.update_data(sp_online=False, sp_city=city, sp_province=province)
     await state.set_state(SelfAddSpecialist.description)
     await message.answer(
-        "Шаг 4/5. Коротко опиши свои услуги (или «-», чтобы пропустить).",
+        "Шаг 4/5. Коротко опиши свои услуги (или поставь «-», чтобы пропустить).\n"
+        "<i>Например: «Маникюр, педикюр, наращивание. Работаю на дому»</i>",
         reply_markup=cancel_menu(),
     )
 
@@ -178,7 +182,8 @@ async def self_description(message: Message, state: FSMContext) -> None:
     await state.update_data(sp_description=None if desc == "-" else desc)
     await state.set_state(SelfAddSpecialist.contact)
     await message.answer(
-        "Шаг 5/5. Контакты для клиентов (телефон / @username / email / сайт)?",
+        "Шаг 5/5. Как с тобой связаться клиентам? Телефон, @username, e-mail или сайт.\n"
+        "<i>Например: +31 6 12345678, @username, mail@example.com</i>",
         reply_markup=cancel_menu(),
     )
 

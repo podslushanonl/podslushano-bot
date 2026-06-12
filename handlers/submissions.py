@@ -50,9 +50,9 @@ THANKS = {
 async def ask_story(message: Message, state: FSMContext) -> None:
     await state.set_state(StoryForm.waiting_for_content)
     await message.answer(
-        "Ооо, обожаю истории! 🤫 Рассказывай — одним сообщением.\n\n"
-        "Не переживай: публикуем <b>полностью анонимно</b>, никто не узнает, "
-        "что это от тебя. Можно приложить фото, если есть.",
+        "Обожаю истории! 🤫 Расскажи свою — одним сообщением.\n\n"
+        "Публикуем <b>анонимно</b>, имя нигде не появится. Можно приложить фото.\n"
+        "<i>Например: «Сегодня в трамвае в Гааге случилось такое…»</i>",
         reply_markup=cancel_menu(),
     )
 
@@ -61,8 +61,9 @@ async def ask_story(message: Message, state: FSMContext) -> None:
 async def ask_question(message: Message, state: FSMContext) -> None:
     await state.set_state(QuestionForm.waiting_for_content)
     await message.answer(
-        "Конечно! Напиши свой вопрос одним сообщением — я передам его "
-        "в предложку 📨 Спрашивай о чём угодно про жизнь в Нидерландах.",
+        "Давай спросим у сообщества! 📨 Напиши вопрос одним сообщением — "
+        "отправим его в предложку, ответят живые подписчики.\n"
+        "<i>Например: «Кто менял права на голландские — сколько заняло по времени?»</i>",
         reply_markup=cancel_menu(),
     )
 
@@ -72,7 +73,8 @@ async def ask_video(message: Message, state: FSMContext) -> None:
     await state.set_state(VideoForm.waiting_for_content)
     await message.answer(
         "Класс, ждём твоё видео! 🎬 Пришли его одним сообщением. "
-        "Если хочешь что-то рассказать о нём — добавь текст в подпись к видео.",
+        "Хочешь что-то добавить — напиши в подписи к видео.\n"
+        "<i>Например: рилс про переезд, лайфхаки или обзор города</i>",
         reply_markup=cancel_menu(),
     )
 
@@ -87,7 +89,8 @@ async def ask_ad(message: Message, state: FSMContext) -> None:
         "Задам пару коротких вопросов, чтобы команда сразу всё поняла и "
         "ответила предметно.\n\n"
         "<b>1/4.</b> Что рекламируем? Опишите товар, услугу или бренд "
-        "в двух-трёх словах.",
+        "в двух-трёх словах.\n"
+        "<i>Например: «Салон маникюра в Роттердаме» или «Доставка русских продуктов»</i>",
         reply_markup=cancel_menu(),
     )
 
