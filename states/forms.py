@@ -25,3 +25,19 @@ class AdForm(StatesGroup):
 
 class ContactSearch(StatesGroup):
     waiting_for_query = State()
+
+
+class AdminAddSpecialist(StatesGroup):
+    """Пошаговое добавление специалиста админом."""
+
+    name = State()
+    category = State()
+    location = State()
+    description = State()
+    contact = State()
+
+
+class AdminFind(StatesGroup):
+    """Поиск специалиста админом для удаления."""
+
+    waiting_query = State()

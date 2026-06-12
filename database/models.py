@@ -47,6 +47,16 @@ class Specialist(Base):
     contact: Mapped[str | None] = mapped_column(String(300), nullable=True)
     # Онлайн-специалист (работает по всей стране) — показываем для любого города
     is_online: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Статус: active (виден в поиске) | pending (ждёт оплаты/проверки) | expired
+    status: Mapped[str] = mapped_column(String(20), default="active")
+    # Откуда карточка: seed (из гайда) | admin (добавил админ) | self (само-добавление)
+    source: Mapped[str] = mapped_column(String(20), default="seed")
+    # Telegram-id того, кто добавил себя сам (для платного потока)
+    submitter_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    # До какого момента оплачено размещение (None = бессрочно: seed/admin)
+    paid_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Id платежа в Mollie (для платного потока)
+    payment_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
 
 class Meta(Base):

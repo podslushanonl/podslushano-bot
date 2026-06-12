@@ -4,12 +4,13 @@
 (и запомнит, кого ищем); если только город — спросит, кто нужен.
 """
 import random
+from datetime import datetime
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 import config
 from database.db import get_session
@@ -144,10 +145,17 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     city, province = city_info
     neighbor_provinces = NEIGHBORS.get(province, [])
 
+    now = datetime.utcnow()
     async with get_session() as session:
         async def fetch(*conds):
             result = await session.scalars(
-                select(Specialist).where(Specialist.category == category, *conds)
+                select(Specialist).where(
+                    Specialist.category == category,
+                    Specialist.status == "active",
+                    # бессрочные (seed/admin) или ещё оплаченные
+                    or_(Specialist.paid_until.is_(None), Specialist.paid_until > now),
+                    *conds,
+                )
             )
             return result.all()
 

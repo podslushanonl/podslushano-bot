@@ -5,11 +5,11 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.types import BotCommand
+from aiogram.types import BotCommand, BotCommandScopeChat
 
 import config
 from database.db import init_db
-from handlers import chat, contacts, moderation, start, submissions
+from handlers import admin, chat, contacts, moderation, start, submissions
 
 
 async def configure_profile(bot: Bot) -> None:
@@ -41,6 +41,19 @@ async def configure_profile(bot: Bot) -> None:
             f"Сайт сообщества: {config.SITE_URL}\n\n"
             "Нажми «Запустить», чтобы начать 👇"
         )
+        # Для админов в меню добавляем команду /admin
+        for admin_id in config.ADMIN_IDS:
+            try:
+                await bot.set_my_commands(
+                    [
+                        BotCommand(command="start", description="Запустить бота и открыть меню"),
+                        BotCommand(command="menu", description="Показать меню"),
+                        BotCommand(command="admin", description="Управление базой (админ)"),
+                    ],
+                    scope=BotCommandScopeChat(chat_id=admin_id),
+                )
+            except Exception:  # noqa: BLE001
+                pass
     except Exception as e:  # noqa: BLE001 — витрина не критична для работы
         logging.warning("Не удалось настроить профиль бота: %s", e)
 
@@ -62,6 +75,7 @@ async def main() -> None:
     # Порядок важен: сначала команды и кнопки меню, СВОБОДНЫЙ ЧАТ — последним,
     # чтобы он ловил только то, что не поймали остальные
     dp.include_router(start.router)
+    dp.include_router(admin.router)  # /admin — управление базой (только админы)
     dp.include_router(submissions.router)
     dp.include_router(contacts.router)
     dp.include_router(moderation.router)
