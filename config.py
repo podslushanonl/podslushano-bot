@@ -94,6 +94,14 @@ def payments_enabled() -> bool:
     return bool(MOLLIE_API_KEY and WEBHOOK_BASE_URL)
 
 
+def privacy_url() -> str:
+    return f"{WEBHOOK_BASE_URL}/privacy" if WEBHOOK_BASE_URL else SITE_URL
+
+
+def terms_url() -> str:
+    return f"{WEBHOOK_BASE_URL}/terms" if WEBHOOK_BASE_URL else SITE_URL
+
+
 # --- Защита от спама и лимит расходов на ИИ ----------------------------------
 # Антифлуд: не больше FLOOD_LIMIT сообщений за FLOOD_WINDOW секунд.
 FLOOD_LIMIT: int = _int_env("FLOOD_LIMIT", 6)

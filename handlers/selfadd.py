@@ -243,8 +243,11 @@ async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
     # Возвращаем обычное меню (убираем клавиатуру «Отмена» из анкеты)
     await callback.message.answer(
         f"Почти готово! 🎉 Тариф: <b>{_price_str(plan)}</b>.\n\n"
-        "После оплаты мы проверим анкету и опубликуем карточку — я напишу тебе ✅",
+        "После оплаты мы проверим анкету и опубликуем карточку — я напишу тебе ✅\n\n"
+        f'Оплачивая, ты соглашаешься с <a href="{config.terms_url()}">Условиями</a> '
+        f'и <a href="{config.privacy_url()}">Политикой конфиденциальности</a>.',
         reply_markup=main_menu(),
+        disable_web_page_preview=True,
     )
     await callback.message.answer(
         "👇 Кнопка для оплаты:",

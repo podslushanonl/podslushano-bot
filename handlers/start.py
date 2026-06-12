@@ -49,6 +49,18 @@ async def cmd_help(message: Message, state: FSMContext) -> None:
     await message.answer(WELCOME.format(name=name), reply_markup=main_menu())
 
 
+@router.message(Command("privacy", "terms"))
+async def cmd_legal(message: Message) -> None:
+    """Ссылки на политику конфиденциальности и условия размещения."""
+    await message.answer(
+        "📄 Документы:\n"
+        f"• Privacybeleid: {config.privacy_url()}\n"
+        f"• Algemene voorwaarden (условия): {config.terms_url()}",
+        reply_markup=main_menu(),
+        disable_web_page_preview=True,
+    )
+
+
 @router.message(F.text == BTN_STICKERS)
 async def show_stickers(message: Message) -> None:
     """Кнопка «Наши стикеры» — даём ссылку на стикерпак."""

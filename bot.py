@@ -28,6 +28,7 @@ async def configure_profile(bot: Bot) -> None:
                 BotCommand(command="start", description="Запустить бота и открыть меню"),
                 BotCommand(command="menu", description="Показать меню"),
                 BotCommand(command="help", description="Что я умею"),
+                BotCommand(command="privacy", description="Конфиденциальность и условия"),
             ]
         )
         await bot.set_my_short_description(
