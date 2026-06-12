@@ -6,6 +6,7 @@
 import random
 
 from aiogram import F, Router
+from aiogram.enums import ChatType
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 from sqlalchemy import select
@@ -19,6 +20,8 @@ from utils.ai import reply_with_ai
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city
 
 router = Router()
+# Поиск специалистов — только в личных чатах
+router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 FOUND_PHRASES = [
     "Отличные новости — нашёл! 🎉",

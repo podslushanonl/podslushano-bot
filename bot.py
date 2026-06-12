@@ -8,7 +8,7 @@ from aiogram.enums import ParseMode
 
 import config
 from database.db import init_db
-from handlers import chat, contacts, moderation, start, submissions
+from handlers import chat, contacts, group, moderation, start, submissions
 
 
 async def main() -> None:
@@ -30,6 +30,8 @@ async def main() -> None:
     dp.include_router(contacts.router)
     dp.include_router(moderation.router)
     dp.include_router(chat.router)
+    # В группе обсуждений бот отвечает только на прямое обращение к нему
+    dp.include_router(group.router)
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)

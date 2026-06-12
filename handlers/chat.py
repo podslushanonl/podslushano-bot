@@ -11,6 +11,7 @@
 import random
 
 from aiogram import F, Router
+from aiogram.enums import ChatType
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
@@ -21,6 +22,8 @@ from utils.ai import reply_with_ai
 from utils.geo import detect_category
 
 router = Router()
+# Свободный чат / ИИ-диалог — только в личных чатах (в группе своя логика)
+router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 GREETING_WORDS = (
     "привет", "здравствуй", "здрасте", "добрый день", "добрый вечер",

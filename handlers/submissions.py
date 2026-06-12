@@ -1,5 +1,6 @@
 """Приём заявок от пользователей: истории, вопросы, видео, реклама."""
 from aiogram import Bot, F, Router
+from aiogram.enums import ChatType
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message, User
 
@@ -18,6 +19,8 @@ from states.forms import AdForm, QuestionForm, StoryForm, VideoForm
 from utils.notify import send_to_admins
 
 router = Router()
+# Приём заявок — только в личных чатах
+router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 # Тёплые подтверждения после отправки — для каждого типа заявки своё
 THANKS = {

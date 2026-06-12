@@ -1,5 +1,6 @@
 """Команда /start и показ главного меню."""
 from aiogram import F, Router
+from aiogram.enums import ChatType
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
@@ -8,6 +9,8 @@ import config
 from keyboards.menus import BTN_CANCEL, BTN_STICKERS, main_menu, stickers_button
 
 router = Router()
+# Всё «личное» меню работает только в личных чатах, не в группах
+router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 WELCOME = (
     "Привет, {name}! 👋\n\n"
