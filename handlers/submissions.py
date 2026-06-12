@@ -16,7 +16,6 @@ from keyboards.menus import (
 )
 from states.forms import AdForm, QuestionForm, StoryForm, VideoForm
 from utils.notify import send_to_admins
-from utils.stickers import send_sticker
 
 router = Router()
 
@@ -149,7 +148,6 @@ async def ad_contact(message: Message, state: FSMContext) -> None:
     await create_submission(message.bot, message.from_user, "ad", summary)
     await state.clear()
     await message.answer(THANKS["ad"], reply_markup=main_menu())
-    await send_sticker(message.bot, message.chat.id, "thanks")
 
 
 # --- Сохранение заявки (используется и кнопками меню, и свободным чатом) ----
@@ -210,7 +208,6 @@ async def _save_and_notify(
     )
     await state.clear()
     await message.answer(THANKS[sub_type], reply_markup=main_menu())
-    await send_sticker(message.bot, message.chat.id, "thanks")
 
 
 # --- Шаг 2: принимаем содержимое для каждого типа заявки --------------------

@@ -17,7 +17,6 @@ from keyboards.menus import BTN_CONTACTS, cancel_menu, main_menu
 from states.forms import ContactSearch
 from utils.ai import reply_with_ai
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city
-from utils.stickers import send_sticker
 
 router = Router()
 
@@ -131,7 +130,6 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
                 f"{random.choice(FOUND_PHRASES)}\n\n"
                 f"<b>{category.capitalize()}</b> в {city}:\n\n{body}\n\n"
                 "Если что-то ещё нужно — я тут 😉",
-                found=True,
             )
             return
 
@@ -154,7 +152,6 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
                 f"Прямо в {city} по запросу «{category}» пока никого нет, "
                 f"но совсем рядом, в той же провинции ({province}), есть:\n\n{body}\n\n"
                 "Надеюсь, подойдёт! 🤞",
-                found=True,
             )
             return
 
@@ -178,7 +175,6 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
                     f"В {city} и окрестностях по запросу «{category}» никого "
                     f"не нашлось, но в соседних провинциях есть:\n\n{body}\n\n"
                     "Может, кто-то из них работает онлайн или стоит поездки 🚗",
-                    found=True,
                 )
                 return
 
@@ -193,14 +189,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     await _finish(message, state, fallback)
 
 
-async def _finish(
-    message: Message, state: FSMContext, text: str, found: bool = False
-) -> None:
-    """Отправляет результат и возвращает в главное меню.
-
-    found=True — поиск удачный, шлём радостный стикер.
-    """
+async def _finish(message: Message, state: FSMContext, text: str) -> None:
+    """Отправляет результат и возвращает в главное меню."""
     await state.clear()
-    if found:
-        await send_sticker(message.bot, message.chat.id, "found")
     await message.answer(text, reply_markup=main_menu(), disable_web_page_preview=True)

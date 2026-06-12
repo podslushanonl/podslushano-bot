@@ -4,8 +4,8 @@ from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
-from keyboards.menus import BTN_CANCEL, main_menu
-from utils.stickers import send_sticker
+import config
+from keyboards.menus import BTN_CANCEL, BTN_STICKERS, main_menu, stickers_button
 
 router = Router()
 
@@ -30,7 +30,6 @@ WELCOME = (
 async def cmd_start(message: Message, state: FSMContext) -> None:
     await state.clear()
     name = message.from_user.first_name or "друг"
-    await send_sticker(message.bot, message.chat.id, "welcome")
     await message.answer(WELCOME.format(name=name), reply_markup=main_menu())
 
 
@@ -45,6 +44,17 @@ async def cmd_help(message: Message, state: FSMContext) -> None:
     await state.clear()
     name = message.from_user.first_name or "друг"
     await message.answer(WELCOME.format(name=name), reply_markup=main_menu())
+
+
+@router.message(F.text == BTN_STICKERS)
+async def show_stickers(message: Message) -> None:
+    """Кнопка «Наши стикеры» — даём ссылку на стикерпак."""
+    if not config.STICKER_PACK_URL:
+        return
+    await message.answer(
+        "Лови наши стикеры! 🎨 Жми кнопку — добавятся в один тап 👇",
+        reply_markup=stickers_button(),
+    )
 
 
 @router.message(F.text == BTN_CANCEL)

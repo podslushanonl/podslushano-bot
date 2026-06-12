@@ -27,9 +27,10 @@ ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
 AI_MODEL: str = os.getenv("AI_MODEL", "claude-haiku-4-5-20251001")
 
 # --- Стикеры ----------------------------------------------------------------
-# Короткое имя вашего стикерпака (из ссылки t.me/addstickers/ИМЯ).
-# Если пусто — бот просто не шлёт стикеры, всё остальное работает.
-STICKER_SET_NAME: str = os.getenv("STICKER_SET_NAME", "")
+# Ссылка на ваш стикерпак, например https://t.me/addstickers/ВашПак
+# Если задана — в меню появляется кнопка «🎨 Наши стикеры» с этой ссылкой.
+# Если пусто — кнопки просто нет, всё остальное работает.
+STICKER_PACK_URL: str = os.getenv("STICKER_PACK_URL", "")
 
 # Путь к файлу базы данных SQLite (лежит рядом с проектом)
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "bot.db")

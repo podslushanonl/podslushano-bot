@@ -6,26 +6,42 @@ from aiogram.types import (
     ReplyKeyboardMarkup,
 )
 
+import config
+
 # Тексты пунктов главного меню (используются и для кнопок, и для распознавания)
 BTN_STORY = "📰 Прислать историю / сплетню"
 BTN_QUESTION = "❓ Задать вопрос (предложка)"
 BTN_VIDEO = "🎬 Прислать видео"
 BTN_AD = "📢 Реклама / сотрудничество"
 BTN_CONTACTS = "🔍 Найти специалиста"
+BTN_STICKERS = "🎨 Наши стикеры"
 BTN_CANCEL = "❌ Отмена"
 
 
 def main_menu() -> ReplyKeyboardMarkup:
     """Главное меню с кнопками внизу экрана."""
+    keyboard = [
+        [KeyboardButton(text=BTN_STORY)],
+        [KeyboardButton(text=BTN_QUESTION), KeyboardButton(text=BTN_VIDEO)],
+        [KeyboardButton(text=BTN_AD)],
+        [KeyboardButton(text=BTN_CONTACTS)],
+    ]
+    # Кнопка стикерпака — только если задана ссылка в настройках
+    if config.STICKER_PACK_URL:
+        keyboard.append([KeyboardButton(text=BTN_STICKERS)])
     return ReplyKeyboardMarkup(
-        keyboard=[
-            [KeyboardButton(text=BTN_STORY)],
-            [KeyboardButton(text=BTN_QUESTION), KeyboardButton(text=BTN_VIDEO)],
-            [KeyboardButton(text=BTN_AD)],
-            [KeyboardButton(text=BTN_CONTACTS)],
-        ],
+        keyboard=keyboard,
         resize_keyboard=True,
         input_field_placeholder="Выбери пункт меню 👇",
+    )
+
+
+def stickers_button() -> InlineKeyboardMarkup:
+    """Inline-кнопка-ссылка на стикерпак (добавляется в один тап)."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🎨 Добавить стикерпак", url=config.STICKER_PACK_URL)]
+        ]
     )
 
 
