@@ -14,7 +14,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     Message,
 )
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 import config
 from database.db import get_session
@@ -22,7 +22,7 @@ from database.models import Specialist
 from keyboards.menus import cancel_menu, main_menu
 from states.forms import AdminAddSpecialist, AdminFind
 from utils.ai import extract_specialist_query
-from utils.geo import CATEGORIES, NEIGHBORS, detect_category, province_of_city
+from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
 
 router = Router()
 # Только админы и только в личке
@@ -119,13 +119,16 @@ async def add_location(message: Message, state: FSMContext) -> None:
     if loc.lower() in ONLINE_WORDS:
         await state.update_data(sp_online=True, sp_city="", sp_province="")
     else:
-        province = province_of_city(loc) or ""
-        if not province:
+        known = detect_city(loc)  # каноничное имя города + провинция
+        if known:
+            city, province = known
+        else:
+            city = loc
             extracted = await extract_specialist_query(
                 loc, list(CATEGORIES.keys()), list(NEIGHBORS.keys())
             )
             province = extracted.get("province") or ""
-        await state.update_data(sp_online=False, sp_city=loc, sp_province=province)
+        await state.update_data(sp_online=False, sp_city=city, sp_province=province)
     await state.set_state(AdminAddSpecialist.description)
     await message.answer(
         "Шаг 4/5. Короткое описание услуг? (или «-», чтобы пропустить)",
@@ -213,21 +216,38 @@ async def find_start(callback: CallbackQuery, state: FSMContext) -> None:
 
 @router.message(AdminFind.waiting_query)
 async def find_run(message: Message, state: FSMContext) -> None:
+    # Остаёмся в режиме поиска: можно искать и удалять подряд, выход — «❌ Отмена»
     query = (message.text or "").strip()
-    await state.clear()
     if not query:
-        await message.answer("Пустой запрос 🙂", reply_markup=main_menu())
+        await message.answer("Напиши слово для поиска 🙂", reply_markup=cancel_menu())
         return
+    like = f"%{query}%"
     async with get_session() as session:
         rows = (
             await session.scalars(
-                select(Specialist).where(Specialist.name.ilike(f"%{query}%")).limit(20)
+                select(Specialist)
+                .where(
+                    or_(
+                        Specialist.name.ilike(like),
+                        Specialist.category.ilike(like),
+                        Specialist.description.ilike(like),
+                        Specialist.city.ilike(like),
+                    )
+                )
+                .limit(20)
             )
         ).all()
     if not rows:
-        await message.answer("Никого не нашёл по этому слову.", reply_markup=main_menu())
+        await message.answer(
+            "Никого не нашёл. Попробуй другое слово (имя, категория, город) "
+            "или нажми «❌ Отмена».",
+            reply_markup=cancel_menu(),
+        )
         return
-    await message.answer(f"Нашёл ({len(rows)}). Нажми «Удалить» под нужным:", reply_markup=main_menu())
+    await message.answer(
+        f"Нашёл ({len(rows)}). Жми «🗑 Удалить» под нужным. "
+        "Можно искать дальше или «❌ Отмена»."
+    )
     for sp in rows:
         await message.answer(
             f"#{sp.id} <b>{sp.name}</b>\n{sp.category} · {_where(sp)}",
