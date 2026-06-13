@@ -597,6 +597,60 @@ async def cmd_legacy_deadline(message: Message) -> None:
     await _legacy_set_deadline(message)
 
 
+@router.message(Command("setcontact"))
+async def cmd_setcontact(message: Message) -> None:
+    """Сменить контакты карточки без удаления (отзывы и оплата сохраняются).
+    /setcontact ID  — показать текущий контакт.
+    /setcontact ID новый контакт  — заменить."""
+    from database.models import Review
+    from utils.contact_links import parse_contact_links
+    from utils.reviews import specialist_key
+
+    parts = (message.text or "").split(maxsplit=2)
+    if len(parts) < 2 or not parts[1].isdigit():
+        await message.answer(
+            "Использование:\n"
+            "<code>/setcontact ID</code> — показать текущий контакт\n"
+            "<code>/setcontact ID новый контакт</code> — заменить\n\n"
+            "Пример: <code>/setcontact 220 https://site.com · instagram: @user · +31 6 12345678</code>\n"
+            "Контакты разделяй « · ». ID — из CSV (/legacy_export) или ссылки claim_&lt;ID&gt;.",
+            reply_markup=main_menu(),
+        )
+        return
+    sid = int(parts[1])
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await message.answer(f"Карточка #{sid} не найдена 🤔")
+            return
+        if len(parts) < 3:
+            await message.answer(
+                f"Карточка «{html.escape(sp.name)}» (#{sid}).\n\nТекущий контакт:\n"
+                f"<code>{html.escape(sp.contact or '—')}</code>\n\n"
+                f"Чтобы заменить — пришли:\n<code>/setcontact {sid} новый контакт</code>"
+            )
+            return
+        new_contact = parts[2].strip()
+        old, name = sp.contact, sp.name
+        # Переносим отзывы на новый ключ (он завязан на имя+контакт)
+        old_key, new_key = specialist_key(name, old), specialist_key(name, new_contact)
+        if old_key != new_key:
+            revs = (await session.scalars(select(Review).where(Review.spec_key == old_key))).all()
+            for r in revs:
+                r.spec_key = new_key
+        sp.contact = new_contact
+        await session.commit()
+    links = parse_contact_links(new_contact)
+    link_lines = "\n".join(f"• {l['label']} → {l['url']}" for l in links) or "— ссылки не распознаны (проверь формат)"
+    await message.answer(
+        f"✅ Контакт карточки «{html.escape(name)}» (#{sid}) обновлён.\n\n"
+        f"Было: <code>{html.escape(old or '—')}</code>\n"
+        f"Стало: <code>{html.escape(new_contact)}</code>\n\n"
+        f"Кнопки будут такие:\n{link_lines}",
+        reply_markup=main_menu(),
+    )
+
+
 @router.message(Command("grant"))
 async def cmd_grant(message: Message) -> None:
     """Бесплатно продлить карточку до даты — например, тем, кто недавно оплатил.
