@@ -395,8 +395,14 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     if in_province:
         if has_exact_city:
             header = f"{random.choice(FOUND_PHRASES)}\nВот кто есть в {city} и рядом ({province}):"
+        elif city.strip().lower() == province.strip().lower():
+            # Искали столицу/название провинции — показываем по провинции позитивно
+            header = f"{random.choice(FOUND_PHRASES)}\nВот специалисты в провинции {province}:"
         else:
-            header = f"Прямо в {city} пока никого, но рядом в провинции {province} есть:"
+            header = (
+                f"{random.choice(FOUND_PHRASES)}\nВ самом {city} точных совпадений нет, "
+                f"но вот кто работает рядом — в провинции {province}:"
+            )
         sections.append((header, in_province))
     elif in_neighbors:
         sections.append(
