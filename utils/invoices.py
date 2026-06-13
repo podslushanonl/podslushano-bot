@@ -245,6 +245,8 @@ async def send_invoice(to_email: str, buyer_name: str, description: str,
         f"Во вложении — счёт (factuur) №{no}.</p>"
         f"<p>С уважением,<br>{config.COMPANY_NAME}<br>{config.COMPANY_EMAIL}</p>"
     )
-    if config.GMAIL_ADDRESS and config.GMAIL_APP_PASSWORD:
-        return await _send_gmail(to_email, subject, html, pdf, filename)
-    return await _send_email(to_email, subject, html, pdf, filename)
+    # Приоритет — Resend (HTTPS, работает на Railway). Gmail/SMTP оставлен как
+    # запасной вариант для окружений, где исходящий SMTP не заблокирован.
+    if config.RESEND_API_KEY and config.INVOICE_FROM_EMAIL:
+        return await _send_email(to_email, subject, html, pdf, filename)
+    return await _send_gmail(to_email, subject, html, pdf, filename)
