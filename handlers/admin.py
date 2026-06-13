@@ -597,6 +597,43 @@ async def cmd_legacy_deadline(message: Message) -> None:
     await _legacy_set_deadline(message)
 
 
+@router.message(Command("grant"))
+async def cmd_grant(message: Message) -> None:
+    """Бесплатно продлить карточку до даты — например, тем, кто недавно оплатил.
+    Использование: /grant ID ГГГГ-ММ-ДД"""
+    parts = (message.text or "").split()
+    if len(parts) < 3 or not parts[1].isdigit():
+        await message.answer(
+            "Использование: <code>/grant ID ДАТА</code>\n"
+            "Например: <code>/grant 204 2027-01-31</code> — оставить карточку #204 "
+            "активной бесплатно до 31.01.2027 (для тех, кто оплатил недавно).\n\n"
+            "ID карточки — из CSV выгрузки (/legacy_export) или из ссылки claim_<ID>.",
+            reply_markup=main_menu(),
+        )
+        return
+    sid = int(parts[1])
+    try:
+        until = datetime.strptime(parts[2], "%Y-%m-%d").replace(hour=23, minute=59, second=59)
+    except ValueError:
+        await message.answer("Дата должна быть в формате ГГГГ-ММ-ДД, например 2027-01-31.")
+        return
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await message.answer(f"Карточка #{sid} не найдена 🤔")
+            return
+        sp.paid_until = until
+        sp.status = "active"
+        sp.renewal_reminded = False
+        name = sp.name
+        await session.commit()
+    await message.answer(
+        f"✅ Карточка «{name}» (#{sid}) активна и оплачена до <b>{until:%d.%m.%Y}</b> — бесплатно.\n"
+        "Деньги не списываются, авто-скрытие её не тронет.",
+        reply_markup=main_menu(),
+    )
+
+
 @router.callback_query(F.data == "admin:legacydeadline")
 async def legacy_deadline_btn(callback: CallbackQuery) -> None:
     await _legacy_set_deadline(callback.message)
