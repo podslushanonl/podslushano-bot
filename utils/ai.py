@@ -69,6 +69,13 @@ SYSTEM_PROMPT = (
     "• Если вопрос личный/основан на опыте (отзывы, «как лучше», «куда сходить»), "
     "можешь предложить отправить его в предложку сообщества — там ответят живые "
     "люди.\n"
+    "• НЕ описывай процесс поиска. Не пиши «сейчас поищу», «давай посмотрю», "
+    "«я нашёл информацию» и т.п. — сразу давай готовый ответ. Ссылка на источник "
+    "подставится автоматически в конце.\n"
+    "• Если человек хочет связаться с командой/создателем бота, сообщить о проблеме "
+    "или обсудить возврат — направь его нажать кнопку «✉️ Связаться с нами» в меню "
+    "или команду /contact (его сообщение придёт нашей команде). Не выдумывай другие "
+    "способы связи.\n"
     "• Не используй HTML или Markdown-разметку — только обычный текст и эмодзи.\n"
     "• Если не знаешь — честно скажи об этом, не выдумывай факты."
 )
@@ -118,14 +125,18 @@ def _extract_text_and_sources(response) -> tuple[str, list[str]]:
     sources: list[str] = []
     seen: set[str] = set()
     for block in response.content:
-        if getattr(block, "type", None) != "text":
-            continue
-        text_parts.append(block.text)
-        for cit in getattr(block, "citations", None) or []:
-            url = getattr(cit, "url", None) if not isinstance(cit, dict) else cit.get("url")
-            if url and url not in seen:
-                seen.add(url)
-                sources.append(url)
+        btype = getattr(block, "type", None)
+        if btype == "text":
+            text_parts.append(block.text)
+            for cit in getattr(block, "citations", None) or []:
+                url = getattr(cit, "url", None) if not isinstance(cit, dict) else cit.get("url")
+                if url and url not in seen:
+                    seen.add(url)
+                    sources.append(url)
+        else:
+            # Блок поиска/инструмента: всё, что было до него — это «преамбула»
+            # модели («сейчас поищу…»). Отбрасываем её, оставляем финальный ответ.
+            text_parts.clear()
     return "".join(text_parts).strip(), sources
 
 
