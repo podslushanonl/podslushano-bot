@@ -651,6 +651,36 @@ async def cmd_setcontact(message: Message) -> None:
     )
 
 
+@router.message(Command("premium"))
+async def cmd_premium(message: Message) -> None:
+    """Включить/выключить премиум-размещение карточки (выше в выдаче + значок 🌟).
+    Использование: /premium ID on|off"""
+    parts = (message.text or "").split()
+    flag = parts[2].lower() if len(parts) >= 3 else ""
+    if len(parts) < 3 or not parts[1].isdigit() or flag not in ("on", "off", "вкл", "выкл"):
+        await message.answer(
+            "Использование: <code>/premium ID on|off</code>\n"
+            "Например: <code>/premium 220 on</code> — карточка показывается выше "
+            "остальных и со значком 🌟 (в боте и на сайте).",
+            reply_markup=main_menu(),
+        )
+        return
+    sid = int(parts[1])
+    on = flag in ("on", "вкл")
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await message.answer(f"Карточка #{sid} не найдена 🤔")
+            return
+        sp.is_premium = on
+        name = sp.name
+        await session.commit()
+    await message.answer(
+        f"{'🌟 Премиум включён' if on else 'Премиум выключен'} для «{html.escape(name)}» (#{sid}).",
+        reply_markup=main_menu(),
+    )
+
+
 @router.message(Command("grant"))
 async def cmd_grant(message: Message) -> None:
     """Бесплатно продлить карточку до даты — например, тем, кто недавно оплатил.
