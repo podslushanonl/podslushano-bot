@@ -69,6 +69,27 @@ async def gather_stats() -> str:
                 .limit(10)
             )
         ).all()
+        # Спрос без предложения: что ищут, но активных карточек в категории нет
+        search_by_cat = (
+            await session.execute(
+                select(Event.key, func.count())
+                .where(Event.type == "search", Event.key != "")
+                .group_by(Event.key)
+            )
+        ).all()
+        active_by_cat = dict(
+            (
+                await session.execute(
+                    select(Specialist.category, func.count())
+                    .where(Specialist.status == "active")
+                    .group_by(Specialist.category)
+                )
+            ).all()
+        )
+        gaps = sorted(
+            ((k, c) for k, c in search_by_cat if active_by_cat.get(k, 0) == 0),
+            key=lambda x: -x[1],
+        )[:10]
         subs = (
             await session.execute(
                 select(Submission.type, func.count()).group_by(Submission.type)
@@ -96,6 +117,10 @@ async def gather_stats() -> str:
     if top_cats:
         lines.append("\n<b>Топ категорий поиска:</b>")
         lines += [f"  • {k}: {c}" for k, c in top_cats]
+    if gaps:
+        lines.append("\n<b>🕳 Ищут, но нет в гайде:</b>")
+        lines += [f"  • {k}: {c} запр." for k, c in gaps]
+        lines.append("<i>↑ сюда стоит позвать специалистов</i>")
     if subs:
         lines.append("\n<b>Заявки:</b>")
         lines += [f"  • {_SUB_TITLES.get(t, t)}: {c}" for t, c in subs]
