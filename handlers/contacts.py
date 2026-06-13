@@ -5,6 +5,7 @@
 """
 import html
 import random
+import re
 from datetime import datetime
 
 from aiogram import F, Router
@@ -48,6 +49,41 @@ async def ask_query(message: Message, state: FSMContext) -> None:
 
 
 MAX_RESULTS = 8  # максимум карточек в одной выдаче (каждая — отдельным сообщением)
+
+# Слова, которые не несут смысла для ранжирования
+_STOP = {
+    "нужен", "нужна", "нужно", "ищу", "ищем", "найти", "найди", "найдите",
+    "посоветуй", "посоветуйте", "порекомендуй", "хочу", "мне", "для", "есть",
+    "как", "где", "который", "хороший", "хорошего", "лучший", "срочно", "можно",
+    "пожалуйста", "специалист", "специалиста", "контакт", "контакты",
+}
+
+
+def _query_tokens(text: str) -> list[str]:
+    """Значимые слова из запроса (без городов, предлогов и т.п.) — для релевантности."""
+    tokens = []
+    for w in re.findall(r"[а-яёa-z]{4,}", (text or "").lower()):
+        if w in _STOP or detect_city(w):
+            continue
+        tokens.append(w)
+    return tokens
+
+
+def _filter_relevant(specs: list, tokens: list[str]) -> list:
+    """Оставляет специалистов, чьё имя/описание совпадают с запросом, ранжируя по совпадениям.
+
+    Если конкретных слов нет или ничего не совпало — возвращает список как есть.
+    """
+    if not tokens:
+        return specs
+    scored = []
+    for s in specs:
+        hay = f"{s.name} {s.description or ''} {s.category}".lower()
+        score = sum(1 for t in tokens if t[:5] in hay)
+        scored.append((score, s))
+    if any(score > 0 for score, _ in scored):
+        return [s for score, s in sorted(scored, key=lambda x: -x[0]) if score > 0]
+    return specs
 
 
 def _spec_text(spec: Specialist) -> str:
@@ -172,7 +208,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     # Кто нужен — понятно, города нет
     if not city_info:
         await state.set_state(ContactSearch.waiting_for_query)
-        await state.update_data(pending_category=category)
+        await state.update_data(pending_category=category, pending_terms=_query_tokens(text))
         await message.answer(
             f"Понял, ищем — <b>{category}</b> 👌 В каком городе ты находишься?",
             reply_markup=cancel_menu(),
@@ -209,6 +245,15 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
             else []
         )
 
+    # Релевантность: если в запросе были конкретные слова («вокал», «детский»…),
+    # показываем только подходящих, а не всю широкую категорию.
+    terms = _query_tokens(text)
+    if data.get("pending_terms"):
+        terms = list(dict.fromkeys(terms + data["pending_terms"]))
+    online = _filter_relevant(online, terms)
+    in_province = _filter_relevant(in_province, terms)
+    in_neighbors = _filter_relevant(in_neighbors, terms)
+
     # Точные совпадения по городу — вперёд списка
     in_province = sorted(in_province, key=lambda s: 0 if (city and s.city == city) else 1)
     has_exact_city = any(city and s.city == city for s in in_province)
@@ -216,21 +261,15 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     sections: list = []
     if in_province:
         if has_exact_city:
-            header = (
-                f"{random.choice(FOUND_PHRASES)}\n"
-                f"<b>{category.capitalize()}</b> — в {city} и провинции {province}:"
-            )
+            header = f"{random.choice(FOUND_PHRASES)}\nВот кто есть в {city} и рядом ({province}):"
         else:
-            header = (
-                f"Прямо в {city} пока никого, но по запросу «{category}» "
-                f"в провинции {province} есть:"
-            )
+            header = f"Прямо в {city} пока никого, но рядом в провинции {province} есть:"
         sections.append((header, in_province))
     elif in_neighbors:
         sections.append(
             (
-                f"В {city} и провинции {province} по запросу «{category}» никого нет, "
-                "но рядом в соседних провинциях есть:",
+                f"В {city} и провинции {province} никого, "
+                "но в соседних провинциях есть:",
                 in_neighbors,
             )
         )
@@ -241,7 +280,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
         else:
             sections.append(
                 (
-                    f"По запросу «{category}» рядом с {city} пока никого, "
+                    f"Рядом с {city} пока никого, "
                     "но есть онлайн-специалисты (работают по всей стране):",
                     online,
                 )
@@ -253,7 +292,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
 
     # Совсем ничего не нашли — предлагаем гайд на сайте
     fallback = (
-        f"Эх, по запросу «{category}» рядом с {city} в моей базе пока "
+        f"Эх, рядом с {city} по такому запросу в моей базе пока "
         "пусто 😔 Но база пополняется!"
     )
     if config.GUIDE_URL:
