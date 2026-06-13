@@ -3,7 +3,8 @@ import html
 import logging
 
 from aiogram import F, Router
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.filters import Command
+from aiogram.types import CallbackQuery, Message
 
 import config
 from database.db import get_session
@@ -27,22 +28,25 @@ PREDLOZHKA_HASHTAG = "#pnl_предложка"
 
 
 async def _publish_question(bot, question_text: str):
-    """Публикует одобрённый вопрос анонимно в канал-предложку. Возвращает Message или None."""
+    """Публикует одобрённый вопрос анонимно в канал-предложку. Возвращает Message или None.
+
+    Важно: БЕЗ inline-кнопок — иначе Telegram не показывает кнопку «Комментировать».
+    Призыв «Задать свой вопрос» делаем ссылкой прямо в тексте.
+    """
     channel = config.ANNOUNCE_CHANNEL
     if not channel or not question_text:
         return None
     me = await bot.me()
+    ask_link = f"https://t.me/{me.username}?start=ask"
     body = (
         "❓ <b>Вопрос от подписчика</b>\n\n"
         f"{html.escape(question_text)}\n\n"
         "💬 Знаете ответ или есть опыт? Поделитесь в комментариях 👇\n\n"
+        f'👉 <a href="{ask_link}">Задать свой вопрос боту</a>\n'
         f"{PREDLOZHKA_HASHTAG}"
     )
-    kb = InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text="❓ Задать свой вопрос", url=f"https://t.me/{me.username}?start=ask"),
-    ]])
     try:
-        return await bot.send_message(channel, body, reply_markup=kb, disable_web_page_preview=True)
+        return await bot.send_message(channel, body, disable_web_page_preview=True)
     except Exception as e:  # noqa: BLE001
         log.warning("Не удалось опубликовать вопрос в канал: %s", e)
         return None
@@ -52,6 +56,31 @@ def _post_link(channel: str, message_id: int) -> str | None:
     if channel and channel.startswith("@"):
         return f"https://t.me/{channel[1:]}/{message_id}"
     return None
+
+
+@router.message(Command("repost"))
+async def cmd_repost(message: Message) -> None:
+    """/repost <номер заявки> — переопубликовать вопрос в канал-предложку."""
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+    parts = (message.text or "").split()
+    if len(parts) < 2 or not parts[1].isdigit():
+        await message.answer("Использование: <code>/repost НОМЕР</code> (номер заявки-вопроса).")
+        return
+    async with get_session() as session:
+        sub = await session.get(Submission, int(parts[1]))
+    if sub is None or sub.type != "question":
+        await message.answer("Вопрос с таким номером не найден.")
+        return
+    posted = await _publish_question(message.bot, sub.text or "")
+    if posted is None:
+        await message.answer(
+            "Не удалось опубликовать. Проверь, что задан ANNOUNCE_CHANNEL и бот — админ канала."
+        )
+        return
+    link = _post_link(config.ANNOUNCE_CHANNEL, posted.message_id)
+    await message.answer("✅ Опубликовал заново." + (f"\n{link}" if link else ""),
+                         disable_web_page_preview=True)
 
 
 async def _update_status(submission_id: int, status: str) -> Submission | None:
