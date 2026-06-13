@@ -28,6 +28,7 @@ from utils.reviews import (
     ratings_for,
     set_review_text,
     specialist_key,
+    texts_for,
 )
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city
 
@@ -193,7 +194,8 @@ def _filter_relevant(specs: list, tokens: list[str]) -> list:
     return specs
 
 
-def _spec_text(spec: Specialist, badge: str = "") -> str:
+def _spec_text(spec: Specialist, badge: str = "",
+               reviews: list[tuple[int, str]] | None = None) -> str:
     """Текст карточки одного специалиста (данные экранируем для HTML)."""
     where = "онлайн" if spec.is_online else (spec.city or spec.province)
     text = "🌟 " if spec.is_premium else ""
@@ -206,6 +208,8 @@ def _spec_text(spec: Specialist, badge: str = "") -> str:
         text += f"\n{html.escape(spec.description)}"
     if spec.contact:
         text += f"\n📞 {html.escape(spec.contact)}"
+    for rating, rtext in reviews or []:
+        text += f"\n\n💬 {'⭐' * rating}\n<i>«{html.escape(rtext)}»</i>"
     return text
 
 
@@ -223,7 +227,9 @@ async def _send_results(message: Message, state: FSMContext, sections: list) -> 
     await state.clear()
     # Подтягиваем рейтинги для всех специалистов одним запросом
     all_specs = [s for _, specs in sections for s in specs]
-    ratings = await ratings_for([specialist_key(s.name, s.contact) for s in all_specs])
+    keys = [specialist_key(s.name, s.contact) for s in all_specs]
+    ratings = await ratings_for(keys)
+    review_texts = await texts_for(keys)
     seen: set[tuple[str, str]] = set()
     shown = 0
     overflow = 0
@@ -246,13 +252,16 @@ async def _send_results(message: Message, state: FSMContext, sections: list) -> 
             if shown >= MAX_RESULTS:
                 overflow += 1
                 continue
-            badge = rating_badge(ratings.get(specialist_key(s.name, s.contact)))
+            key = specialist_key(s.name, s.contact)
+            badge = rating_badge(ratings.get(key))
+            revs = review_texts.get(key)
             try:
                 await message.answer(
-                    _spec_text(s, badge), reply_markup=_spec_kb(s), disable_web_page_preview=True
+                    _spec_text(s, badge, revs), reply_markup=_spec_kb(s),
+                    disable_web_page_preview=True,
                 )
             except Exception:  # noqa: BLE001 — одна кривая карточка не рушит всю выдачу
-                await message.answer(_spec_text(s, badge), disable_web_page_preview=True)
+                await message.answer(_spec_text(s, badge, revs), disable_web_page_preview=True)
             shown += 1
     tail = "Если что-то ещё нужно — я тут 😉"
     if overflow:

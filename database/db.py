@@ -14,7 +14,7 @@ async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 # Версия засева базы специалистов. Повышай число, когда меняешь данные/логику —
 # при следующем запуске бот пересоздаст таблицу специалистов заново.
-SEED_VERSION = "5"
+SEED_VERSION = "6"
 # В скольких провинциях должна встречаться карточка, чтобы считать её
 # «онлайн-специалистом» (работает по всей стране) и хранить одной записью.
 ONLINE_PROVINCE_THRESHOLD = 6
@@ -89,7 +89,15 @@ async def _seed_specialists() -> None:
     (локальных) сохраняем как есть.
     """
     from seeds.specialists_seed import SEED_SPECIALISTS
-    from utils.geo import province_of_city
+    from utils.geo import detect_category, province_of_city
+
+    def _fix_category(item: dict) -> str:
+        """Категория по имени (надёжный сигнал) — иначе как в каталоге.
+
+        Исправляет ошибки авто-классификатора при импорте: напр. «Стилист»,
+        ошибочно попавший в «фотограф», по имени определится как «стилист».
+        """
+        return detect_category(item["name"]) or item["category"]
 
     # Группируем карточки по человеку (имя + контакт)
     groups: dict[tuple[str, str], list[dict]] = defaultdict(list)
@@ -110,7 +118,7 @@ async def _seed_specialists() -> None:
             rows.append(
                 Specialist(
                     name=base["name"],
-                    category=base["category"],
+                    category=_fix_category(base),
                     city="",
                     province="",
                     description=base.get("description"),
@@ -129,7 +137,7 @@ async def _seed_specialists() -> None:
                 rows.append(
                     Specialist(
                         name=it["name"],
-                        category=it["category"],
+                        category=_fix_category(it),
                         city=it.get("city", ""),
                         province=province,
                         description=it.get("description"),

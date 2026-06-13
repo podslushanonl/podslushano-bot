@@ -6,6 +6,7 @@
 """
 import asyncio
 import html
+from datetime import datetime, timedelta
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
@@ -292,6 +293,12 @@ async def spec_publish(callback: CallbackQuery) -> None:
             await callback.answer("Карточка не найдена", show_alert=True)
             return
         sp.status = "active"
+        # Платный срок отсчитываем с момента публикации (а не оплаты), чтобы
+        # дни на проверке не «съедались». Только для платных карточек.
+        if sp.source == "self" and sp.paid_until is not None:
+            days = config.plan_info(sp.plan or "year")["days"]
+            sp.paid_until = datetime.utcnow() + timedelta(days=days)
+            sp.renewal_reminded = False
         await session.commit()
         sub, name = sp.submitter_user_id, sp.name
     await callback.message.edit_text((callback.message.text or "") + "\n\n✅ ОПУБЛИКОВАНО")

@@ -29,6 +29,28 @@ async def ratings_for(keys: list[str]) -> dict[str, tuple[float, int]]:
     return {k: (round(float(avg), 1), int(cnt)) for k, avg, cnt in rows}
 
 
+async def texts_for(keys: list[str], per_key: int = 2) -> dict[str, list[tuple[int, str]]]:
+    """Для списка ключей возвращает последние отзывы с текстом:
+    {key: [(оценка, текст), ...]} — не больше per_key на специалиста."""
+    keys = [k for k in set(keys) if k]
+    if not keys:
+        return {}
+    async with get_session() as session:
+        rows = (
+            await session.execute(
+                select(Review.spec_key, Review.rating, Review.text)
+                .where(Review.spec_key.in_(keys), Review.text.is_not(None), Review.text != "")
+                .order_by(Review.created_at.desc())
+            )
+        ).all()
+    out: dict[str, list[tuple[int, str]]] = {}
+    for key, rating, text in rows:
+        bucket = out.setdefault(key, [])
+        if len(bucket) < per_key:
+            bucket.append((int(rating), text))
+    return out
+
+
 def rating_badge(rating: tuple[float, int] | None) -> str:
     """Текстовый бейдж рейтинга: '⭐ 4.6 (12)' или '' если отзывов нет."""
     if not rating or rating[1] == 0:

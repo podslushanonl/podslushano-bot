@@ -471,6 +471,7 @@ async def reminder_loop(bot) -> None:
     while True:
         try:
             await _send_renewal_reminders(bot)
+            await _send_expiry_notices(bot)
         except Exception as e:  # noqa: BLE001
             log.warning("Ошибка в напоминаниях о продлении: %s", e)
         await asyncio.sleep(12 * 3600)
@@ -506,5 +507,38 @@ async def _send_renewal_reminders(bot) -> None:
             bot, uid,
             f"⏳ Размещение «{name}» в гайде заканчивается {until:%d.%m.%Y}.\n"
             f"Продлить ({_price_str(plan)})?",
+            kb,
+        )
+
+
+async def _send_expiry_notices(bot) -> None:
+    """Уведомляет, когда оплаченный срок истёк: карточку скрываем (expired)
+    и предлагаем продлить. Шлём один раз — статус меняется на expired."""
+    now = datetime.utcnow()
+    async with get_session() as session:
+        rows = (
+            await session.scalars(
+                select(Specialist).where(
+                    Specialist.source == "self",
+                    Specialist.status == "active",
+                    Specialist.paid_until.is_not(None),
+                    Specialist.paid_until <= now,
+                    Specialist.submitter_user_id.is_not(None),
+                )
+            )
+        ).all()
+        targets = [(s.submitter_user_id, s.id, s.name, s.plan or "year") for s in rows]
+        for s in rows:
+            s.status = "expired"
+        await session.commit()
+
+    for uid, sid, name, plan in targets:
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text="🔁 Продлить", callback_data=f"specrenew:{sid}")]]
+        )
+        await _safe_send(
+            bot, uid,
+            f"❌ Срок размещения «{name}» в гайде истёк, и карточка скрыта из поиска.\n"
+            f"Хочешь вернуть её? Продли ({_price_str(plan)}) 👇",
             kb,
         )

@@ -148,12 +148,23 @@ async def free_media(message: Message, state: FSMContext) -> None:
 
 @router.message()
 async def anything_else(message: Message) -> None:
-    """Стикеры, голосовые и прочее — отвечаем, а не молчим."""
-    await message.answer(
-        "Принято! 😄 Правда, с таким форматом я пока не работаю — "
-        "напиши мне текстом или выбери пункт меню 👇",
-        reply_markup=main_menu(),
-    )
+    """Стикеры, голосовые и прочее — отвечаем тепло, а не сухо."""
+    if message.sticker:
+        reply = random.choice([
+            "Классный стикер! 😄 А по делу — задай вопрос о жизни в NL или выбери пункт меню 👇",
+            "Принял стикер 😎 Чем могу помочь? Напиши вопрос или загляни в меню 👇",
+        ])
+    elif message.voice or message.video_note or message.audio:
+        reply = (
+            "Голосовые я пока не расшифровываю 🙈 Но если напишешь вопрос "
+            "<b>текстом</b> — отвечу на что угодно про жизнь в Нидерландах! 👇"
+        )
+    else:
+        reply = (
+            "Получил! 📩 С таким форматом я пока не работаю, но напиши мне "
+            "<b>текстом</b> — помогу с любым вопросом или подберу специалиста 👇"
+        )
+    await message.answer(reply, reply_markup=main_menu())
 
 
 @router.callback_query(F.data.startswith("chat:"))

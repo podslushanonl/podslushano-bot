@@ -12,6 +12,19 @@ router = Router()
 # Всё «личное» меню работает только в личных чатах, не в группах
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
+WELCOME_SHORT = (
+    "Привет, {name}! 👋 Я — бот сообщества «Подслушано в Нидерландах» 🇳🇱\n\n"
+    "💬 <b>Самое простое — просто напиши мне любой вопрос о жизни в NL.</b>\n"
+    "BSN, DigiD, налоги, жильё, врачи, транспорт, ВНЖ — отвечу по делу и при "
+    "необходимости загляну в свежие официальные источники.\n"
+    "<i>Например: «Как получить DigiD?» или «Положена ли мне zorgtoeslag?»</i>\n\n"
+    "А ещё через меню можно 👇\n"
+    "🔍 найти специалиста из проверенного гайда\n"
+    "📰 прислать историю анонимно · ❓ задать вопрос сообществу\n"
+    "🎬 прислать видео · 📢 реклама и сотрудничество\n\n"
+    "Просто напиши или выбери пункт меню. Подробнее — /help 🙂"
+)
+
 WELCOME = (
     "Привет, {name}! 👋\n\n"
     "Я — голос «Подслушано в Нидерландах», твой помощник по жизни в NL 🇳🇱 "
@@ -41,8 +54,24 @@ WELCOME = (
 )
 
 
+def _footer() -> str:
+    return (
+        f"\n\n🌐 Сайт: {config.SITE_URL}\n"
+        "✉️ Связаться с нами (вопросы, возвраты): /contact\n"
+        "📄 /privacy — конфиденциальность и условия"
+    )
+
+
 def welcome_text(name: str) -> str:
-    """Собирает приветствие, добавляя пункт само-добавления (если включена оплата)."""
+    """Короткое приветствие для /start — с акцентом «просто напиши вопрос»."""
+    text = WELCOME_SHORT.format(name=name)
+    if config.payments_enabled():
+        text += "\n\n➕ Специалист или бизнес? Размести себя в гайде — кнопка в меню."
+    return text + _footer()
+
+
+def features_text(name: str) -> str:
+    """Подробный список возможностей — для /help."""
     text = WELCOME.format(name=name)
     if config.payments_enabled():
         text += (
@@ -50,12 +79,7 @@ def welcome_text(name: str) -> str:
             "Специалист или бизнес? Размести свою карточку, чтобы тебя находили.\n"
             "<i>Например: мастер маникюра, юрист, фотограф…</i>"
         )
-    text += (
-        f"\n\n🌐 Сайт: {config.SITE_URL}\n"
-        "✉️ Связаться с нами (вопросы, возвраты): /contact\n"
-        "📄 /privacy — конфиденциальность и условия"
-    )
-    return text
+    return text + _footer()
 
 
 @router.message(CommandStart())
@@ -75,7 +99,7 @@ async def cmd_menu(message: Message, state: FSMContext) -> None:
 async def cmd_help(message: Message, state: FSMContext) -> None:
     await state.clear()
     name = message.from_user.first_name or "друг"
-    await message.answer(welcome_text(name), reply_markup=main_menu())
+    await message.answer(features_text(name), reply_markup=main_menu())
 
 
 @router.message(Command("privacy", "terms"))
