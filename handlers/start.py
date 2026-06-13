@@ -121,6 +121,11 @@ async def _attribute_referral(user_id: int, payload: str | None) -> None:
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext, command: CommandObject) -> None:
     await state.clear()
+    # Пришёл по кнопке «Задать свой вопрос» из поста-предложки — сразу открываем форму
+    if command.args == "ask":
+        from handlers.submissions import ask_question
+        await ask_question(message, state)
+        return
     await _attribute_referral(message.from_user.id, command.args)
     name = message.from_user.first_name or "друг"
     await message.answer(welcome_text(name), reply_markup=main_menu())
