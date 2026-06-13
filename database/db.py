@@ -23,6 +23,7 @@ ONLINE_PROVINCE_THRESHOLD = 6
 # Колонки, которые могли появиться позже (для миграции существующей базы)
 _LATER_COLUMNS = {
     "is_online": "BOOLEAN DEFAULT 0",
+    "is_premium": "BOOLEAN DEFAULT 0",
     "status": "VARCHAR(20) DEFAULT 'active'",
     "source": "VARCHAR(20) DEFAULT 'seed'",
     "submitter_user_id": "BIGINT",

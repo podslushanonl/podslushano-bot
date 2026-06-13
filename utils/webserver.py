@@ -303,6 +303,7 @@ async def _api_specialists(request: web.Request) -> web.Response:
             "city": s.city or "",
             "province": s.province or "",
             "online": bool(s.is_online),
+            "premium": bool(s.is_premium),
             "description": s.description or "",
             "contact": s.contact or "",
             "links": parse_contact_links(s.contact),
@@ -347,7 +348,7 @@ function flt(){{var v=document.getElementById('q').value.toLowerCase();
 
 def _guide_card(s: Specialist, badge: str = "") -> str:
     where = "онлайн" if s.is_online else (s.city or s.province or "")
-    name = html_lib.escape(s.name)
+    name = ("🌟 " if s.is_premium else "") + html_lib.escape(s.name)
     head = name + (f" · {html_lib.escape(where)}" if where else "")
     if badge:
         head += f' <span class="rt">{html_lib.escape(badge)}</span>'
@@ -371,9 +372,11 @@ async def _guide(request: web.Request) -> web.Response:
     parts: list[str] = []
     for cat in sorted(groups):
         parts.append(f"<h2>{html_lib.escape(cat).capitalize()}</h2>")
+        # премиум — вперёд внутри категории
+        cat_specs = sorted(groups[cat], key=lambda s: 0 if s.is_premium else 1)
         parts.extend(
             _guide_card(s, rating_badge(ratings.get(specialist_key(s.name, s.contact))))
-            for s in groups[cat]
+            for s in cat_specs
         )
     body = "".join(parts) or "<p>Пока пусто.</p>"
     logo = f'<img src="{config.LOGO_URL}" alt="logo"><br>' if config.LOGO_URL else ""

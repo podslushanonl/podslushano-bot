@@ -48,15 +48,19 @@ def _price_str(plan: str) -> str:
 
 
 def _plan_kb() -> InlineKeyboardMarkup:
+    cur = config.LISTING_CURRENCY
     m, y = config.plan_info("month"), config.plan_info("year")
+    mp, yp = config.plan_info("month_premium"), config.plan_info("year_premium")
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [InlineKeyboardButton(
-                text=f"📅 {m['price']} {config.LISTING_CURRENCY} / месяц",
-                callback_data="selfplan:month")],
-            [InlineKeyboardButton(
-                text=f"⭐ {y['price']} {config.LISTING_CURRENCY} / год (выгоднее)",
-                callback_data="selfplan:year")],
+            [InlineKeyboardButton(text=f"📅 Обычное · {m['price']} {cur}/мес",
+                                  callback_data="selfplan:month")],
+            [InlineKeyboardButton(text=f"📅 Обычное · {y['price']} {cur}/год (выгоднее)",
+                                  callback_data="selfplan:year")],
+            [InlineKeyboardButton(text=f"🌟 Премиум · {mp['price']} {cur}/мес",
+                                  callback_data="selfplan:month_premium")],
+            [InlineKeyboardButton(text=f"🌟 Премиум · {yp['price']} {cur}/год",
+                                  callback_data="selfplan:year_premium")],
         ]
     )
 
@@ -198,7 +202,9 @@ async def self_contact(message: Message, state: FSMContext) -> None:
     await state.update_data(sp_contact=message.text.strip())
     await state.set_state(SelfAddSpecialist.plan)
     await message.answer(
-        "Отлично, анкета готова! 🎉 Осталось выбрать тариф размещения:",
+        "Отлично, анкета готова! 🎉 Выбери тариф размещения:\n\n"
+        "🌟 <b>Премиум</b> — карточка показывается <b>выше</b> в выдаче и с бейджем, "
+        "тебя замечают первым.",
         reply_markup=_plan_kb(),
     )
 
@@ -206,7 +212,7 @@ async def self_contact(message: Message, state: FSMContext) -> None:
 @router.callback_query(SelfAddSpecialist.plan, F.data.startswith("selfplan:"))
 async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
     plan = callback.data.split(":", 1)[1]
-    if plan not in ("month", "year"):
+    if plan not in ("month", "year", "month_premium", "year_premium"):
         plan = "year"
     info = config.plan_info(plan)
     data = await state.get_data()
@@ -219,6 +225,7 @@ async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
             description=data.get("sp_description"),
             contact=data.get("sp_contact", ""),
             is_online=data.get("sp_online", False),
+            is_premium=info["premium"],
             status="awaiting_payment",
             source="self",
             submitter_user_id=callback.from_user.id,
@@ -292,7 +299,9 @@ async def on_payment_paid(bot, payment_id: str) -> None:
             return
         now = datetime.utcnow()
         plan = meta.get("plan", sp.plan or "year")
-        days = config.plan_info(plan)["days"]
+        info = config.plan_info(plan)
+        days = info["days"]
+        sp.is_premium = info["premium"]
         if kind == "renew":
             base = sp.paid_until if sp.paid_until and sp.paid_until > now else now
             sp.paid_until = base + timedelta(days=days)

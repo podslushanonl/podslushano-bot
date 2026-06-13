@@ -47,6 +47,8 @@ class Specialist(Base):
     contact: Mapped[str | None] = mapped_column(String(300), nullable=True)
     # Онлайн-специалист (работает по всей стране) — показываем для любого города
     is_online: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Премиум-размещение: выше в выдаче + бейдж
+    is_premium: Mapped[bool] = mapped_column(Boolean, default=False)
     # Статус: active (виден в поиске) | pending (ждёт оплаты/проверки) | expired
     status: Mapped[str] = mapped_column(String(20), default="active")
     # Откуда карточка: seed (из гайда) | admin (добавил админ) | self (само-добавление)

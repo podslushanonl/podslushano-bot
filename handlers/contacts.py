@@ -196,7 +196,8 @@ def _filter_relevant(specs: list, tokens: list[str]) -> list:
 def _spec_text(spec: Specialist, badge: str = "") -> str:
     """Текст карточки одного специалиста (данные экранируем для HTML)."""
     where = "онлайн" if spec.is_online else (spec.city or spec.province)
-    text = f"<b>{html.escape(spec.name)}</b>"
+    text = "🌟 " if spec.is_premium else ""
+    text += f"<b>{html.escape(spec.name)}</b>"
     if where:
         text += f" · {html.escape(where)}"
     if badge:
@@ -236,6 +237,7 @@ async def _send_results(message: Message, state: FSMContext, sections: list) -> 
             uniq.append(s)
         if not uniq:
             continue
+        uniq.sort(key=lambda s: 0 if s.is_premium else 1)  # премиум — вперёд
         if shown >= MAX_RESULTS:
             overflow += len(uniq)
             continue
@@ -367,8 +369,11 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     in_province = _filter_relevant(in_province, terms)
     in_neighbors = _filter_relevant(in_neighbors, terms)
 
-    # Точные совпадения по городу — вперёд списка
-    in_province = sorted(in_province, key=lambda s: 0 if (city and s.city == city) else 1)
+    # Премиум — вперёд, затем точные совпадения по городу
+    in_province = sorted(
+        in_province,
+        key=lambda s: (0 if s.is_premium else 1, 0 if (city and s.city == city) else 1),
+    )
     has_exact_city = any(city and s.city == city for s in in_province)
 
     sections: list = []

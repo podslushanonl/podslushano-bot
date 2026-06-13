@@ -65,6 +65,9 @@ MOLLIE_API_KEY: str = os.getenv("MOLLIE_API_KEY", "")
 LISTING_CURRENCY: str = os.getenv("LISTING_CURRENCY", "EUR")
 LISTING_PRICE_MONTH: str = os.getenv("LISTING_PRICE_MONTH", "9.99")
 LISTING_PRICE_YEAR: str = os.getenv("LISTING_PRICE_YEAR", "99.00")
+# Премиум-тарифы (карточка выше в выдаче + бейдж)
+LISTING_PRICE_MONTH_PREMIUM: str = os.getenv("LISTING_PRICE_MONTH_PREMIUM", "19.99")
+LISTING_PRICE_YEAR_PREMIUM: str = os.getenv("LISTING_PRICE_YEAR_PREMIUM", "199.00")
 
 
 def _int_env(name: str, default: int) -> int:
@@ -79,12 +82,20 @@ LISTING_DAYS_YEAR: int = _int_env("LISTING_DAYS_YEAR", 365)
 
 
 def plan_info(plan: str) -> dict:
-    """Данные тарифа: цена, период в днях и подпись. plan: 'month' | 'year'."""
-    if plan == "month":
-        return {"plan": "month", "price": LISTING_PRICE_MONTH,
-                "days": LISTING_DAYS_MONTH, "title": "месяц"}
-    return {"plan": "year", "price": LISTING_PRICE_YEAR,
-            "days": LISTING_DAYS_YEAR, "title": "год"}
+    """Данные тарифа: цена, период, премиум-флаг и подпись.
+
+    plan: 'month' | 'year' | 'month_premium' | 'year_premium'.
+    """
+    premium = plan.endswith("_premium")
+    if plan.startswith("month"):
+        price = LISTING_PRICE_MONTH_PREMIUM if premium else LISTING_PRICE_MONTH
+        days, title = LISTING_DAYS_MONTH, "месяц"
+    else:
+        price = LISTING_PRICE_YEAR_PREMIUM if premium else LISTING_PRICE_YEAR
+        days, title = LISTING_DAYS_YEAR, "год"
+    if premium:
+        title += " 🌟 Премиум"
+    return {"plan": plan, "price": price, "days": days, "title": title, "premium": premium}
 # Публичный адрес сервиса для webhook оплаты. Railway генерирует домен —
 # берём его автоматически, либо можно задать WEBHOOK_BASE_URL вручную.
 _railway_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN", "")
