@@ -721,6 +721,42 @@ async def cmd_card(message: Message) -> None:
     await message.answer(info, reply_markup=main_menu())
 
 
+@router.message(Command("setcity"))
+async def cmd_setcity(message: Message) -> None:
+    """Сменить город карточки (или сделать онлайн). /setcity ID Город"""
+    parts = (message.text or "").split(maxsplit=2)
+    if len(parts) < 3 or not parts[1].isdigit():
+        await message.answer(
+            "Использование: <code>/setcity ID Город</code> (или «онлайн»)\n"
+            "Например: <code>/setcity 12 Utrecht</code>",
+            reply_markup=main_menu(),
+        )
+        return
+    sid, loc = int(parts[1]), parts[2].strip()
+    online = loc.lower() in ONLINE_WORDS
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await message.answer(f"Карточка #{sid} не найдена 🤔")
+            return
+        if online:
+            sp.is_online, sp.city, sp.province = True, "", ""
+        else:
+            known = detect_city(loc)
+            if known:
+                city, province = known
+            else:  # незнакомый город — провинцию не теряем, если не определилась
+                city, province = loc, (province_of_city(loc) or sp.province or "")
+            sp.is_online, sp.city, sp.province = False, city, province
+        name, city_now, prov_now, onl = sp.name, sp.city, sp.province, sp.is_online
+        await session.commit()
+    where = "онлайн (вся страна)" if onl else (city_now + (f", {prov_now}" if prov_now else ""))
+    await message.answer(
+        f"✅ Локация карточки «{html.escape(name)}» (#{sid}): {where}.",
+        reply_markup=main_menu(),
+    )
+
+
 @router.message(Command("setcategory"))
 async def cmd_setcategory(message: Message) -> None:
     """Сменить категорию карточки. /setcategory ID категория"""
