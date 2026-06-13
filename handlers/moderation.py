@@ -42,7 +42,7 @@ async def _publish_question(bot, question_text: str):
         "❓ <b>Вопрос от подписчика</b>\n\n"
         f"{html.escape(question_text)}\n\n"
         "💬 Знаете ответ или есть опыт? Поделитесь в комментариях 👇\n\n"
-        f'👉 <a href="{ask_link}">Задать свой вопрос боту</a>\n'
+        f'👉 <a href="{ask_link}">Задать вопрос в предложку</a>\n'
         f"{PREDLOZHKA_HASHTAG}"
     )
     try:
