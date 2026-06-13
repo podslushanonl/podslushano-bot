@@ -721,6 +721,39 @@ async def cmd_card(message: Message) -> None:
     await message.answer(info, reply_markup=main_menu())
 
 
+@router.message(Command("setcategory"))
+async def cmd_setcategory(message: Message) -> None:
+    """Сменить категорию карточки. /setcategory ID категория"""
+    parts = (message.text or "").split(maxsplit=2)
+    if len(parts) < 3 or not parts[1].isdigit():
+        await message.answer(
+            "Использование: <code>/setcategory ID категория</code>\n"
+            "Например: <code>/setcategory 257 мастер маникюра</code>\n\n"
+            "Категории: " + ", ".join(CATEGORIES.keys()),
+            reply_markup=main_menu(),
+        )
+        return
+    sid, raw = int(parts[1]), parts[2].strip()
+    cat = detect_category(raw) or next((c for c in CATEGORIES if c.lower() == raw.lower()), None)
+    if not cat:
+        await message.answer(
+            "Не распознал категорию 🤔 Доступные: " + ", ".join(CATEGORIES.keys())
+        )
+        return
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await message.answer(f"Карточка #{sid} не найдена 🤔")
+            return
+        old, name = sp.category, sp.name
+        sp.category = cat
+        await session.commit()
+    await message.answer(
+        f"✅ Категория карточки «{html.escape(name)}» (#{sid}): <b>{cat}</b> (было «{old}»).",
+        reply_markup=main_menu(),
+    )
+
+
 @router.message(Command("setname"))
 async def cmd_setname(message: Message) -> None:
     """Сменить имя/название карточки. /setname ID Новое имя"""
