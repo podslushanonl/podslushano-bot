@@ -364,7 +364,7 @@ async def on_payment_paid(bot, payment_id: str) -> None:
                 await _safe_send(
                     bot, sub,
                     f"✅ Оплата получена! Карточка «{name}» остаётся в гайде. "
-                    "Спасибо, что с нами с самого начала 💚",
+                    "Спасибо, что с нами с самого начала 🧡",
                 )
             else:
                 await _safe_send(bot, sub, f"✅ Оплата получена! Размещение «{name}» продлено. Спасибо 🙌")
@@ -517,7 +517,7 @@ async def start_claim(message: Message, sid: int) -> None:
         return
     if already:
         await message.answer(
-            f"Твоя карточка «{name}» уже оплачена и активна — всё в порядке! 🙌 Спасибо 💚",
+            f"Твоя карточка «{name}» уже оплачена и активна — всё в порядке! 🙌 Спасибо 🧡",
             reply_markup=main_menu(),
         )
         return
