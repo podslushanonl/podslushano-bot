@@ -45,6 +45,8 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="📋 Добавленные вручную", callback_data="admin:list")],
             [InlineKeyboardButton(text="🔎 Найти и удалить", callback_data="admin:find")],
             [InlineKeyboardButton(text="📣 Рассылка-анонс", callback_data="admin:broadcast")],
+            [InlineKeyboardButton(text="⏳ Старый гайд: дедлайн оплаты", callback_data="admin:legacydeadline")],
+            [InlineKeyboardButton(text="📋 Старый гайд: список для рассылки", callback_data="admin:legacyexport")],
             [InlineKeyboardButton(text="📊 Статистика", callback_data="admin:stats")],
         ]
     )
@@ -586,3 +588,115 @@ async def _do_broadcast(bot, src_chat: int, src_msg: int, admin_id: int) -> None
         )
     except Exception:  # noqa: BLE001
         pass
+
+
+# --- Старый бессрочный гайд: дедлайн оплаты и выгрузка для рассылки ----------
+
+@router.message(Command("legacy_deadline"))
+async def cmd_legacy_deadline(message: Message) -> None:
+    await _legacy_set_deadline(message)
+
+
+@router.callback_query(F.data == "admin:legacydeadline")
+async def legacy_deadline_btn(callback: CallbackQuery) -> None:
+    await _legacy_set_deadline(callback.message)
+    await callback.answer()
+
+
+async def _legacy_set_deadline(message: Message) -> None:
+    """Проставляет всем бессрочным карточкам из старого гайда дедлайн оплаты.
+    После него фильтр видимости автоматически убирает их из поиска."""
+    deadline = config.grandfather_deadline()
+    async with get_session() as session:
+        rows = (
+            await session.scalars(
+                select(Specialist).where(
+                    Specialist.source == "seed",
+                    Specialist.status == "active",
+                    Specialist.paid_until.is_(None),
+                )
+            )
+        ).all()
+        n = 0
+        for s in rows:
+            s.paid_until = deadline
+            n += 1
+        await session.commit()
+    await message.answer(
+        f"⏳ Дедлайн оплаты <b>{deadline:%d.%m.%Y}</b> проставлен для <b>{n}</b> "
+        "карточек из старого гайда.\n\n"
+        "До этой даты они видны как обычно, после — автоматически скроются из поиска "
+        "(не удаляются: оплата вернёт карточку).\n\n"
+        "Дальше выгрузи список со ссылками для рассылки: /legacy_export",
+        reply_markup=main_menu(),
+    )
+
+
+@router.message(Command("legacy_export"))
+async def cmd_legacy_export(message: Message) -> None:
+    await _legacy_export(message)
+
+
+@router.callback_query(F.data == "admin:legacyexport")
+async def legacy_export_btn(callback: CallbackQuery) -> None:
+    await _legacy_export(callback.message)
+    await callback.answer()
+
+
+async def _legacy_export(message: Message) -> None:
+    """Отдаёт CSV со старыми карточками и персональной ссылкой оплаты для каждой,
+    плюс готовый шаблон сообщения для рассылки."""
+    import csv
+    import io
+
+    from aiogram.types import BufferedInputFile
+
+    me = await message.bot.me()
+    async with get_session() as session:
+        rows = (
+            await session.scalars(
+                select(Specialist)
+                .where(Specialist.source == "seed", Specialist.status == "active")
+                .order_by(Specialist.category, Specialist.name)
+            )
+        ).all()
+    if not rows:
+        await message.answer(
+            "Активных карточек из старого гайда не найдено 🤔", reply_markup=main_menu()
+        )
+        return
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["id", "Имя", "Категория", "Город", "Контакт", "Ссылка для оплаты", "Оплачено до"])
+    for s in rows:
+        link = f"https://t.me/{me.username}?start=claim_{s.id}"
+        writer.writerow([
+            s.id, s.name, s.category, s.city or s.province or "",
+            s.contact or "", link,
+            s.paid_until.strftime("%Y-%m-%d") if s.paid_until else "",
+        ])
+    data = buf.getvalue().encode("utf-8-sig")  # BOM — чтобы Excel открыл кириллицу
+    doc = BufferedInputFile(data, filename="legacy_specialists.csv")
+    await message.answer_document(
+        doc,
+        caption=(
+            f"📋 {len(rows)} карточек из старого гайда.\n"
+            "В колонке «Ссылка для оплаты» — персональная ссылка для каждого: "
+            "по ней человек платит сам по лояльной цене, и карточка остаётся."
+        ),
+    )
+    cur = config.LISTING_CURRENCY
+    y = config.plan_info("year_legacy")
+    norm_y = config.plan_info("year")
+    deadline = config.grandfather_deadline()
+    await message.answer(
+        "✉️ <b>Шаблон сообщения для рассылки</b> (скопируй, подставь имя и ссылку из CSV):\n\n"
+        "<code>Здравствуйте! Вы есть в гайде специалистов сообщества «Подслушано в "
+        "Нидерландах». Раньше размещение было бессрочным, но с "
+        f"{deadline:%d.%m.%Y} гайд становится платным. Для вас как для одного из первых "
+        f"— специальная цена {y['price']} {cur}/год (обычная — {norm_y['price']} {cur}). "
+        f"Чтобы карточка осталась в гайде, оплатите по ссылке до {deadline:%d.%m.%Y}: "
+        "ССЫЛКА. Если не хотите продолжать — ничего делать не нужно, карточка просто "
+        "перестанет показываться. Спасибо, что были с нами! 💚</code>",
+        reply_markup=main_menu(),
+    )

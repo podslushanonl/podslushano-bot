@@ -84,6 +84,21 @@ LISTING_PRICE_YEAR: str = os.getenv("LISTING_PRICE_YEAR", "99.00")
 # Премиум-тарифы (карточка выше в выдаче + бейдж)
 LISTING_PRICE_MONTH_PREMIUM: str = os.getenv("LISTING_PRICE_MONTH_PREMIUM", "19.99")
 LISTING_PRICE_YEAR_PREMIUM: str = os.getenv("LISTING_PRICE_YEAR_PREMIUM", "199.00")
+# Лояльный тариф для «старожилов» — карточек из старого бессрочного контакт-гайда
+LISTING_PRICE_MONTH_LEGACY: str = os.getenv("LISTING_PRICE_MONTH_LEGACY", "4.99")
+LISTING_PRICE_YEAR_LEGACY: str = os.getenv("LISTING_PRICE_YEAR_LEGACY", "29.00")
+# Дедлайн оплаты для бессрочных карточек из старого гайда (после — скрываем из поиска)
+GRANDFATHER_DEADLINE: str = os.getenv("GRANDFATHER_DEADLINE", "2026-06-30")
+
+
+def grandfather_deadline() -> "datetime":
+    """Момент, до которого старым карточкам нужно оплатить размещение (конец дня)."""
+    from datetime import datetime as _dt
+    try:
+        d = _dt.strptime(GRANDFATHER_DEADLINE, "%Y-%m-%d")
+    except ValueError:
+        d = _dt(2026, 6, 30)
+    return d.replace(hour=23, minute=59, second=59)
 
 
 def _int_env(name: str, default: int) -> int:
@@ -103,11 +118,18 @@ def plan_info(plan: str) -> dict:
     plan: 'month' | 'year' | 'month_premium' | 'year_premium'.
     """
     premium = plan.endswith("_premium")
+    legacy = plan.endswith("_legacy")
     if plan.startswith("month"):
-        price = LISTING_PRICE_MONTH_PREMIUM if premium else LISTING_PRICE_MONTH
+        if legacy:
+            price = LISTING_PRICE_MONTH_LEGACY
+        else:
+            price = LISTING_PRICE_MONTH_PREMIUM if premium else LISTING_PRICE_MONTH
         days, title = LISTING_DAYS_MONTH, "месяц"
     else:
-        price = LISTING_PRICE_YEAR_PREMIUM if premium else LISTING_PRICE_YEAR
+        if legacy:
+            price = LISTING_PRICE_YEAR_LEGACY
+        else:
+            price = LISTING_PRICE_YEAR_PREMIUM if premium else LISTING_PRICE_YEAR
         days, title = LISTING_DAYS_YEAR, "год"
     if premium:
         title += " 🌟 Премиум"

@@ -126,6 +126,16 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from handlers.submissions import ask_question
         await ask_question(message, state)
         return
+    # Пришёл по личной ссылке оплаты карточки из старого гайда (?start=claim_<id>)
+    if command.args and command.args.startswith("claim_"):
+        try:
+            sid = int(command.args[6:])
+        except ValueError:
+            sid = 0
+        if sid:
+            from handlers.selfadd import start_claim
+            await start_claim(message, sid)
+            return
     await _attribute_referral(message.from_user.id, command.args)
     name = message.from_user.first_name or "друг"
     await message.answer(welcome_text(name), reply_markup=main_menu())

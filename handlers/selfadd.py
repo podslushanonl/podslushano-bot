@@ -318,11 +318,14 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         info = config.plan_info(plan)
         days = info["days"]
         sp.is_premium = info["premium"]
-        if kind == "renew":
+        if kind in ("renew", "claim"):
             base = sp.paid_until if sp.paid_until and sp.paid_until > now else now
             sp.paid_until = base + timedelta(days=days)
             sp.renewal_reminded = False
             sp.status = "active"
+            if kind == "claim":
+                # Старая карточка из гайда оплачена — дальше ей управляет владелец
+                sp.source = "self"
         else:
             sp.paid_until = now + timedelta(days=days)
             sp.status = "pending"  # оплачено, ждёт проверки админом
@@ -355,9 +358,16 @@ async def on_payment_paid(bot, payment_id: str) -> None:
                     f"Проверь Resend и дошли вручную: /invoice {sp_id}",
                 )
 
-    if kind == "renew":
+    if kind in ("renew", "claim"):
         if sub:
-            await _safe_send(bot, sub, f"✅ Оплата получена! Размещение «{name}» продлено. Спасибо 🙌")
+            if kind == "claim":
+                await _safe_send(
+                    bot, sub,
+                    f"✅ Оплата получена! Карточка «{name}» остаётся в гайде. "
+                    "Спасибо, что с нами с самого начала 💚",
+                )
+            else:
+                await _safe_send(bot, sub, f"✅ Оплата получена! Размещение «{name}» продлено. Спасибо 🙌")
         return
 
     for admin_id in config.ADMIN_IDS:
@@ -394,7 +404,13 @@ async def _on_payment_failed(bot, sid: int, payment_id: str, kind: str, status: 
         await session.commit()
     if not sub:
         return
-    if kind == "renew":
+    if kind == "claim":
+        await _safe_send(
+            bot, sub,
+            f"Оплата за «{name}» не прошла 😕 Это бывает — выбери вариант ещё раз 👇",
+            _claim_plan_kb(sid),
+        )
+    elif kind == "renew":
         kb = InlineKeyboardMarkup(
             inline_keyboard=[[InlineKeyboardButton(text="🔁 Повторить", callback_data=f"specrenew:{sid}")]]
         )
@@ -464,6 +480,106 @@ async def spec_renew(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
+# --- Claim: оплата «старожилами» из старого бессрочного гайда ----------------
+
+def _claim_plan_kb(sid: int) -> InlineKeyboardMarkup:
+    cur = config.LISTING_CURRENCY
+    y = config.plan_info("year_legacy")
+    m = config.plan_info("month_legacy")
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=f"✅ Оставить на год · {y['price']} {cur}",
+                                  callback_data=f"claimplan:{sid}:year_legacy")],
+            [InlineKeyboardButton(text=f"📅 Помесячно · {m['price']} {cur}/мес",
+                                  callback_data=f"claimplan:{sid}:month_legacy")],
+        ]
+    )
+
+
+async def start_claim(message: Message, sid: int) -> None:
+    """Открывается по ссылке t.me/<bot>?start=claim_<id> из рассылки старым специалистам."""
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await message.answer(
+                "Карточка не найдена 🤔 Возможно, ссылка устарела — напиши нам через /contact.",
+                reply_markup=main_menu(),
+            )
+            return
+        now = datetime.utcnow()
+        name, card = sp.name, _card_text(sp)
+        already = bool(sp.paid_until and sp.paid_until > now and sp.source == "self")
+    if not config.payments_enabled():
+        await message.answer(
+            "Оплата временно недоступна 🙏 Напиши нам через /contact — поможем.",
+            reply_markup=main_menu(),
+        )
+        return
+    if already:
+        await message.answer(
+            f"Твоя карточка «{name}» уже оплачена и активна — всё в порядке! 🙌 Спасибо 💚",
+            reply_markup=main_menu(),
+        )
+        return
+    cur = config.LISTING_CURRENCY
+    y, m = config.plan_info("year_legacy"), config.plan_info("month_legacy")
+    norm_y = config.plan_info("year")
+    deadline = config.grandfather_deadline()
+    await message.answer(
+        f"Привет! 👋 Это твоя карточка из нашего гайда специалистов:\n\n{card}\n\n"
+        f"Раньше размещение было бесплатным навсегда, но с <b>{deadline:%d.%m.%Y}</b> "
+        "гайд становится платным. Для тех, кто с нами с самого начала, мы оставили "
+        "<b>специальную цену</b>:\n"
+        f"• <b>{y['price']} {cur}/год</b> (обычная — {norm_y['price']} {cur})\n"
+        f"• или {m['price']} {cur}/мес\n\n"
+        "Чтобы карточка осталась в гайде — выбери вариант 👇",
+        reply_markup=_claim_plan_kb(sid),
+    )
+
+
+@router.callback_query(F.data.startswith("claimplan:"))
+async def claim_plan(callback: CallbackQuery) -> None:
+    parts = callback.data.split(":")
+    sid = int(parts[1])
+    plan = parts[2] if len(parts) > 2 else "year_legacy"
+    if plan not in ("year_legacy", "month_legacy"):
+        plan = "year_legacy"
+    info = config.plan_info(plan)
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await callback.answer("Карточка не найдена", show_alert=True)
+            return
+        sp.submitter_user_id = callback.from_user.id  # привязываем карточку к плательщику
+        sp.plan = plan
+        name = sp.name
+        await session.commit()
+    payment = await create_payment(
+        f"{DESC_RENEW}: {name}",
+        {"specialist_id": sid, "kind": "claim", "plan": plan},
+        info["price"],
+    )
+    if not payment or not payment.get("checkout_url"):
+        await callback.answer("Не удалось создать оплату, попробуй позже", show_alert=True)
+        return
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp:
+            sp.payment_id = payment["id"]
+            await session.commit()
+    await callback.message.answer(
+        f"Отлично! Тариф: <b>{_price_str(plan)}</b>.\n\n"
+        f'Оплачивая, ты соглашаешься с <a href="{config.terms_url()}">Условиями</a> '
+        f'и <a href="{config.privacy_url()}">Политикой конфиденциальности</a>.',
+        reply_markup=main_menu(),
+        disable_web_page_preview=True,
+    )
+    await callback.message.answer(
+        "👇 Кнопка для оплаты:", reply_markup=_pay_kb(payment["checkout_url"], plan)
+    )
+    await callback.answer()
+
+
 # --- Фоновые напоминания о продлении ----------------------------------------
 
 async def reminder_loop(bot) -> None:
@@ -473,10 +589,38 @@ async def reminder_loop(bot) -> None:
         try:
             await _send_renewal_reminders(bot)
             await _send_expiry_notices(bot)
+            await _hide_expired_grandfathered(bot)  # старый гайд: скрыть неоплаченные
             await check_seasonal(bot)  # сезонные дедлайны NL (страховка, налоги)
         except Exception as e:  # noqa: BLE001
             log.warning("Ошибка в фоновых напоминаниях: %s", e)
         await asyncio.sleep(12 * 3600)
+
+
+async def _hide_expired_grandfathered(bot) -> None:
+    """После дедлайна скрывает неоплаченные карточки из старого гайда (source=seed,
+    срок проставлен и истёк). Данные не удаляем — если оплатят позже, карточка вернётся."""
+    now = datetime.utcnow()
+    async with get_session() as session:
+        rows = (
+            await session.scalars(
+                select(Specialist).where(
+                    Specialist.source == "seed",
+                    Specialist.status == "active",
+                    Specialist.paid_until.is_not(None),
+                    Specialist.paid_until <= now,
+                )
+            )
+        ).all()
+        n = len(rows)
+        for s in rows:
+            s.status = "expired"
+        await session.commit()
+    if n:
+        for admin_id in config.ADMIN_IDS:
+            await _safe_send(
+                bot, admin_id,
+                f"🗂 Гайд: скрыто {n} неоплаченных карточек из старого гайда (срок истёк).",
+            )
 
 
 async def _send_renewal_reminders(bot) -> None:
