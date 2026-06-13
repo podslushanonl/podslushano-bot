@@ -16,6 +16,7 @@ from keyboards.menus import (
     main_menu,
 )
 from states.forms import AdForm, QuestionForm, StoryForm, VideoForm
+from utils.analytics import log_event
 from utils.notify import send_to_admins
 
 router = Router()
@@ -194,6 +195,7 @@ async def create_submission(
         await session.refresh(submission)
 
     await send_to_admins(bot, submission)
+    await log_event("submission", sub_type)
     return submission
 
 

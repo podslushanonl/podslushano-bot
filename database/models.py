@@ -72,6 +72,17 @@ class Meta(Base):
     value: Mapped[str] = mapped_column(String(100))
 
 
+class Event(Base):
+    """Событие для аналитики: поиск, заявка, оплата и т.п."""
+
+    __tablename__ = "events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    type: Mapped[str] = mapped_column(String(30), index=True)
+    key: Mapped[str] = mapped_column(String(100), default="")
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class Review(Base):
     """Отзыв и оценка специалиста. Привязка по стабильному ключу (имя+контакт),
     чтобы оценки не терялись при пере-засеве базы (где меняются id)."""

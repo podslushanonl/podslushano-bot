@@ -26,6 +26,7 @@ from database.models import BotUser, Specialist
 from keyboards.menus import cancel_menu, main_menu
 from states.forms import AdminAddSpecialist, AdminBroadcast, AdminFind
 from utils.ai import extract_specialist_query
+from utils.analytics import gather_stats
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
 
 router = Router()
@@ -43,6 +44,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="📋 Добавленные вручную", callback_data="admin:list")],
             [InlineKeyboardButton(text="🔎 Найти и удалить", callback_data="admin:find")],
             [InlineKeyboardButton(text="📣 Рассылка-анонс", callback_data="admin:broadcast")],
+            [InlineKeyboardButton(text="📊 Статистика", callback_data="admin:stats")],
         ]
     )
 
@@ -325,6 +327,20 @@ async def spec_decline(callback: CallbackQuery) -> None:
         except Exception:  # noqa: BLE001
             pass
     await callback.answer("Отклонено")
+
+
+# --- Статистика -------------------------------------------------------------
+
+@router.message(Command("stats"))
+async def cmd_stats(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    await message.answer(await gather_stats(), reply_markup=main_menu())
+
+
+@router.callback_query(F.data == "admin:stats")
+async def stats_btn(callback: CallbackQuery) -> None:
+    await callback.message.answer(await gather_stats())
+    await callback.answer()
 
 
 # --- Рассылка-анонс ---------------------------------------------------------

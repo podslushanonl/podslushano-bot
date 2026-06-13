@@ -26,6 +26,7 @@ from database.models import Meta, Specialist
 from keyboards.menus import BTN_SELF_ADD, cancel_menu, main_menu
 from states.forms import SelfAddSpecialist
 from utils.ai import extract_specialist_query
+from utils.analytics import log_event
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
 from utils.payments import create_payment, get_payment
 
@@ -305,6 +306,7 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         await session.commit()
         sub, name, card = sp.submitter_user_id, sp.name, _card_text(sp)
         sp_id = sp.id
+    await log_event("payment", f"{kind}:{plan}")
 
     if kind == "renew":
         if sub:

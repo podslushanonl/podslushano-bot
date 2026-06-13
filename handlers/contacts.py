@@ -20,6 +20,7 @@ from database.models import Specialist
 from keyboards.menus import BTN_CONTACTS, cancel_menu, main_menu
 from states.forms import ContactSearch, ReviewForm
 from utils.ai import extract_specialist_query, reply_with_ai
+from utils.analytics import log_event
 from utils.contact_links import TELEGRAM_TYPES, parse_contact_links
 from utils.reviews import (
     add_or_update_review,
@@ -124,6 +125,7 @@ async def pick_city(callback: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(ContactSearch.waiting_for_query)
     await state.update_data(pending_category=cat, pending_terms=[])
     if val == "__all__":
+        await log_event("search", cat)
         now = datetime.utcnow()
         async with get_session() as session:
             allspecs = (
@@ -327,6 +329,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
 
     city, province = city_info
     neighbor_provinces = NEIGHBORS.get(province, [])
+    await log_event("search", category)
 
     now = datetime.utcnow()
     async with get_session() as session:
