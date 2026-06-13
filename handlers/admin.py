@@ -349,8 +349,23 @@ async def cmd_invoice(message: Message, state: FSMContext) -> None:
     await state.clear()
     parts = (message.text or "").split()
     if len(parts) < 2 or not parts[1].isdigit():
-        await message.answer("Использование: <code>/invoice ID [email]</code>\n"
-                             "ID специалиста — из списка/карточки.")
+        # Покажем кандидатов с сохранённым e-mail, чтобы было откуда взять ID
+        async with get_session() as session:
+            rows = (await session.execute(
+                select(Specialist)
+                .where(Specialist.invoice_email.isnot(None))
+                .order_by(Specialist.id.desc()).limit(10)
+            )).scalars().all()
+        if rows:
+            lines = [f"#{s.id} — {html.escape(s.name)} — {html.escape(s.invoice_email)}"
+                     for s in rows]
+            await message.answer(
+                "Кому дослать счёт? Скопируй нужный номер и отправь, напр. "
+                f"<code>/invoice {rows[0].id}</code>\n\n" + "\n".join(lines)
+            )
+        else:
+            await message.answer("Пока нет специалистов с сохранённым e-mail для счёта.\n"
+                                 "Использование: <code>/invoice ID [email]</code>")
         return
     if not config.invoice_enabled():
         await message.answer("⚠️ Resend не настроен: задай RESEND_API_KEY и "
