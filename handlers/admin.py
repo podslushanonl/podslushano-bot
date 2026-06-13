@@ -757,6 +757,43 @@ async def cmd_setcity(message: Message) -> None:
     )
 
 
+@router.message(Command("fillcities"))
+async def cmd_fillcities(message: Message) -> None:
+    """Массово проставить город карточкам без него — только из названия (надёжно)."""
+    scanned = filled = 0
+    changes: list[str] = []
+    async with get_session() as session:
+        rows = (
+            await session.scalars(
+                select(Specialist).where(
+                    Specialist.is_online.is_(False),
+                    Specialist.status == "active",
+                    or_(Specialist.city.is_(None), Specialist.city == ""),
+                )
+            )
+        ).all()
+        scanned = len(rows)
+        for sp in rows:
+            d = detect_city(sp.name or "")  # только из названия — без угадывания по описанию
+            if d:
+                city, prov = d
+                sp.city = city
+                if not sp.province:
+                    sp.province = prov
+                filled += 1
+                if len(changes) < 25:
+                    changes.append(f"#{sp.id} {sp.name[:30]} → {city}")
+        await session.commit()
+    txt = (
+        f"🗺 Карточек без города: {scanned}. Проставил город из названия: {filled}.\n"
+        "Остальные находятся по провинции — поиск это уже показывает корректно. "
+        "Точечно можно добить командой /setcity."
+    )
+    if changes:
+        txt += "\n\n" + "\n".join(changes)
+    await message.answer(txt, reply_markup=main_menu())
+
+
 @router.message(Command("setcategory"))
 async def cmd_setcategory(message: Message) -> None:
     """Сменить категорию карточки. /setcategory ID категория"""
