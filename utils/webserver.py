@@ -469,6 +469,7 @@ async def _api_guide(request: web.Request) -> web.Response:
             "prov": "" if s.is_online else (s.province or ""),
             "cat": _SITE_GROUP.get(s.category, "Услуги"),
             "premium": bool(s.is_premium),
+            "photo": _photo_url(s) or "",
         })
     resp = web.json_response(data)
     resp.headers["Access-Control-Allow-Origin"] = "*"
