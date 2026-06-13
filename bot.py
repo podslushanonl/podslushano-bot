@@ -10,7 +10,8 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 import config
 from database.db import init_db
 from handlers import (
-    admin, chat, contacts, guides, moderation, selfadd, start, submissions, support,
+    admin, chat, contacts, guides, letters, moderation, selfadd, start, submissions,
+    support,
 )
 from handlers.selfadd import reminder_loop
 from utils.limits import ThrottleMiddleware
@@ -32,6 +33,7 @@ async def configure_profile(bot: Bot) -> None:
                 BotCommand(command="menu", description="Показать меню"),
                 BotCommand(command="help", description="Что я умею"),
                 BotCommand(command="guide", description="Полезное о жизни в Нидерландах"),
+                BotCommand(command="letter", description="Разобрать письмо по фото"),
                 BotCommand(command="contact", description="Связаться с нами / возвраты"),
                 BotCommand(command="privacy", description="Конфиденциальность и условия"),
             ]
@@ -92,6 +94,7 @@ async def main() -> None:
     # чтобы он ловил только то, что не поймали остальные
     dp.include_router(start.router)
     dp.include_router(guides.router)  # 📚 Полезное — справочник о жизни в NL
+    dp.include_router(letters.router)  # 📩 разбор официальных писем по фото
     dp.include_router(support.router)  # связь с командой / возвраты
     dp.include_router(admin.router)  # /admin — управление базой (только админы)
     dp.include_router(selfadd.router)  # платное само-добавление в гайд

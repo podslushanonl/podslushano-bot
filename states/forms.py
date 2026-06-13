@@ -33,6 +33,12 @@ class SupportContact(StatesGroup):
     waiting_message = State()
 
 
+class LetterExplain(StatesGroup):
+    """Разбор официального письма по фото."""
+
+    waiting_photo = State()
+
+
 class AdminAnnounce(StatesGroup):
     """Анонс в канал с кнопкой «Открыть бота»."""
 

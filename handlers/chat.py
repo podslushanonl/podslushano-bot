@@ -132,18 +132,18 @@ async def free_media(message: Message, state: FSMContext) -> None:
     if file_type == "video":
         prompt = "Вижу видео! 🎬 Отправить его в предложку для нашего Instagram?"
     else:
-        prompt = "Получил файл 📎 Что мне с ним сделать?"
+        prompt = "Получил фото 📸 Что мне с ним сделать?"
 
-    await message.answer(
-        prompt,
-        reply_markup=InlineKeyboardMarkup(
-            inline_keyboard=[
-                [InlineKeyboardButton(text="🎬 Да, это видео в предложку", callback_data="chat:video")],
-                [InlineKeyboardButton(text="📰 Это к истории — анонимно", callback_data="chat:story")],
-                [InlineKeyboardButton(text="❌ Ничего, я случайно", callback_data="chat:menu")],
-            ]
-        ),
-    )
+    rows = []
+    # Для фото предлагаем разобрать официальное письмо
+    if file_type == "photo":
+        rows.append([InlineKeyboardButton(
+            text="📩 Объяснить письмо (по-русски)", callback_data="letter:explain")])
+    if file_type == "video":
+        rows.append([InlineKeyboardButton(text="🎬 Да, это видео в предложку", callback_data="chat:video")])
+    rows.append([InlineKeyboardButton(text="📰 Это к истории — анонимно", callback_data="chat:story")])
+    rows.append([InlineKeyboardButton(text="❌ Ничего, я случайно", callback_data="chat:menu")])
+    await message.answer(prompt, reply_markup=InlineKeyboardMarkup(inline_keyboard=rows))
 
 
 @router.message()
