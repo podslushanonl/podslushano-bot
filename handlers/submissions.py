@@ -62,9 +62,11 @@ async def ask_story(message: Message, state: FSMContext) -> None:
 async def ask_question(message: Message, state: FSMContext) -> None:
     await state.set_state(QuestionForm.waiting_for_content)
     await message.answer(
-        "Давай спросим у сообщества! 📨 Напиши вопрос одним сообщением — "
-        "отправим его в предложку, ответят живые подписчики.\n"
-        "<i>Например: «Кто менял права на голландские — сколько заняло по времени?»</i>",
+        "Давай спросим у сообщества! 📨 Напиши вопрос <b>с деталями</b> — так тебе "
+        "ответят по делу. Добавь контекст: город, свою ситуацию, что именно важно.\n\n"
+        "<i>🙅 Не очень: «Кто ездил в Гаагу?»\n"
+        "👍 Хорошо: «Едем в Гаагу с детьми 4 и 7 лет на выходные в июле — посоветуйте "
+        "тихие пляжи и места без толп?»</i>",
         reply_markup=cancel_menu(),
     )
 
@@ -225,8 +227,27 @@ async def receive_story(message: Message, state: FSMContext) -> None:
     await _save_and_notify(message, state, "story")
 
 
+def _too_short_question(text: str) -> bool:
+    """Слишком короткий/пустой вопрос — отвечать будет не на что."""
+    return len(text.split()) < 6
+
+
 @router.message(QuestionForm.waiting_for_content)
 async def receive_question(message: Message, state: FSMContext) -> None:
+    text = (message.text or "").strip()
+    data = await state.get_data()
+    # Один раз мягко просим добавить деталей, если вопрос совсем короткий
+    if text and _too_short_question(text) and not data.get("q_nudged"):
+        await state.update_data(q_nudged=True)
+        await message.answer(
+            "Чуть подробнее? 🙂 Так подписчикам будет на что ответить.\n"
+            "Добавь контекст: город, твою ситуацию, что именно интересует.\n\n"
+            "<i>Например: вместо «кто ездил в Гаагу?» → «едем в Гаагу с детьми на "
+            "выходные в июле, посоветуйте тихие пляжи и что посмотреть рядом?»</i>\n\n"
+            "Или пришли как есть ещё раз — опубликуем 👌",
+            reply_markup=cancel_menu(),
+        )
+        return
     await _save_and_notify(message, state, "question")
 
 
