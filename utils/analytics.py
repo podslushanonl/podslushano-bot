@@ -34,6 +34,25 @@ async def gather_stats() -> str:
         payments = await session.scalar(
             select(func.count()).select_from(Event).where(Event.type == "payment")
         ) or 0
+
+        async def _count(ev_type: str) -> int:
+            return await session.scalar(
+                select(func.count()).select_from(Event).where(Event.type == ev_type)
+            ) or 0
+
+        ai_chats = await _count("ai")      # вопросы боту (ИИ)
+        letters = await _count("letter")   # разбор писем
+        salary = await _count("salary")    # калькулятор зарплаты
+        guides = await _count("guide")     # «Полезное»
+        top_guides = (
+            await session.execute(
+                select(Event.key, func.count())
+                .where(Event.type == "guide", Event.key != "", Event.key != "menu")
+                .group_by(Event.key)
+                .order_by(func.count().desc())
+                .limit(5)
+            )
+        ).all()
         reviews = await session.scalar(select(func.count()).select_from(Review)) or 0
         specs_active = await session.scalar(
             select(func.count()).select_from(Specialist).where(Specialist.status == "active")
@@ -64,7 +83,16 @@ async def gather_stats() -> str:
         f"📇 Специалистов в гайде: <b>{specs_active}</b> (платных: {specs_paid})",
         f"⭐ Отзывов: <b>{reviews}</b>",
         f"💳 Успешных оплат: <b>{payments}</b>",
+        "",
+        "<b>Использование функций:</b>",
+        f"💬 Вопросов боту (ИИ): <b>{ai_chats}</b>",
+        f"📩 Разборов писем: <b>{letters}</b>",
+        f"🧮 Калькулятор зарплаты: <b>{salary}</b>",
+        f"📚 «Полезное» (открытий): <b>{guides}</b>",
     ]
+    if top_guides:
+        lines.append("\n<b>Топ тем «Полезного»:</b>")
+        lines += [f"  • {k}: {c}" for k, c in top_guides]
     if top_cats:
         lines.append("\n<b>Топ категорий поиска:</b>")
         lines += [f"  • {k}: {c}" for k, c in top_cats]

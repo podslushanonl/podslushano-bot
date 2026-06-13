@@ -13,6 +13,7 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 
 from keyboards.menus import BTN_SALARY, cancel_menu, main_menu
 from states.forms import SalaryCalc
+from utils.analytics import log_event
 from utils.ai import ai_enabled, ai_salary
 from utils.limits import allow_ai
 
@@ -84,6 +85,7 @@ async def salary_calc(callback: CallbackQuery, state: FSMContext) -> None:
         )
         await callback.answer()
         return
+    await log_event("salary", "ruling" if ruling else "normal")
     await callback.message.answer(
         "🧮 <b>Расчёт зарплаты</b>\n\n" + result
         + "\n\n💬 Нужен точный расчёт под твой случай? Нажми «🔍 Найти специалиста» (бухгалтер)."

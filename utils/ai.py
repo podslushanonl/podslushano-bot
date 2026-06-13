@@ -450,4 +450,6 @@ async def reply_with_ai(message, state) -> bool:
     await state.clear()
     await state.update_data(ai_history=history)
     await message.answer(reply, reply_markup=main_menu(), parse_mode=None)
+    from utils.analytics import log_event
+    await log_event("ai")
     return True

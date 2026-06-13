@@ -11,6 +11,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from keyboards.menus import BTN_GUIDE, main_menu
+from utils.analytics import log_event
 
 router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
@@ -125,6 +126,7 @@ def _guide_kb() -> InlineKeyboardMarkup:
 @router.message(F.text == BTN_GUIDE)
 async def show_menu(message: Message, state: FSMContext) -> None:
     await state.clear()
+    await log_event("guide", "menu")
     await message.answer(_INTRO, reply_markup=_menu_kb(), disable_web_page_preview=True)
 
 
@@ -141,6 +143,7 @@ async def show_guide(callback: CallbackQuery) -> None:
     if not guide:
         await callback.answer()
         return
+    await log_event("guide", key)
     await callback.message.edit_text(
         guide[1] + _CTA, reply_markup=_guide_kb(), disable_web_page_preview=True
     )
