@@ -9,7 +9,7 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 
 import config
 from database.db import init_db
-from handlers import admin, chat, contacts, moderation, selfadd, start, submissions
+from handlers import admin, chat, contacts, moderation, selfadd, start, submissions, support
 from handlers.selfadd import reminder_loop
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
@@ -29,6 +29,7 @@ async def configure_profile(bot: Bot) -> None:
                 BotCommand(command="start", description="Запустить бота и открыть меню"),
                 BotCommand(command="menu", description="Показать меню"),
                 BotCommand(command="help", description="Что я умею"),
+                BotCommand(command="contact", description="Связаться с нами / возвраты"),
                 BotCommand(command="privacy", description="Конфиденциальность и условия"),
             ]
         )
@@ -53,6 +54,7 @@ async def configure_profile(bot: Bot) -> None:
                     [
                         BotCommand(command="start", description="Запустить бота и открыть меню"),
                         BotCommand(command="menu", description="Показать меню"),
+                        BotCommand(command="contact", description="Связаться с нами / возвраты"),
                         BotCommand(command="admin", description="Управление базой (админ)"),
                         BotCommand(command="broadcast", description="Рассылка-анонс (админ)"),
                         BotCommand(command="stats", description="Статистика (админ)"),
@@ -85,6 +87,7 @@ async def main() -> None:
     # Порядок важен: сначала команды и кнопки меню, СВОБОДНЫЙ ЧАТ — последним,
     # чтобы он ловил только то, что не поймали остальные
     dp.include_router(start.router)
+    dp.include_router(support.router)  # связь с командой / возвраты
     dp.include_router(admin.router)  # /admin — управление базой (только админы)
     dp.include_router(selfadd.router)  # платное само-добавление в гайд
     dp.include_router(submissions.router)

@@ -52,6 +52,7 @@ def welcome_text(name: str) -> str:
         )
     text += (
         f"\n\n🌐 Сайт: {config.SITE_URL}\n"
+        "✉️ Связаться с нами (вопросы, возвраты): /contact\n"
         "📄 /privacy — конфиденциальность и условия"
     )
     return text

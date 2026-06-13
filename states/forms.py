@@ -27,6 +27,12 @@ class ContactSearch(StatesGroup):
     waiting_for_query = State()
 
 
+class SupportContact(StatesGroup):
+    """Обращение в поддержку: пользователь пишет, бот пересылает админам."""
+
+    waiting_message = State()
+
+
 class AdminAddSpecialist(StatesGroup):
     """Пошаговое добавление специалиста админом."""
 

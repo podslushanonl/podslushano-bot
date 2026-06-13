@@ -34,6 +34,19 @@ COMPANY_ADDRESS: str = os.getenv(
     "COMPANY_ADDRESS", "Karel Doormanstraat 63, 5342 TJ Oss, Nederland"
 )
 
+# Контакты поддержки для пользователей (вопросы, проблемы, возвраты).
+SUPPORT_EMAIL: str = os.getenv("SUPPORT_EMAIL", "") or COMPANY_EMAIL
+# Необязательно: публичный Telegram для прямой связи (напр. @username или ссылка).
+SUPPORT_TELEGRAM: str = os.getenv("SUPPORT_TELEGRAM", "")
+
+
+def support_block() -> str:
+    """Готовый блок с контактами поддержки для вставки в сообщения."""
+    lines = [f"✉️ E-mail: {SUPPORT_EMAIL}"]
+    if SUPPORT_TELEGRAM:
+        lines.append(f"💬 Telegram: {SUPPORT_TELEGRAM}")
+    return "\n".join(lines)
+
 # --- Искусственный интеллект (Claude) ---------------------------------------
 # Ключ берётся в консоли Anthropic: https://console.anthropic.com/ → API Keys.
 # Если ключа нет — бот продолжит работать на правилах, просто без «живого» ИИ.

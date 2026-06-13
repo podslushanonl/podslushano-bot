@@ -16,6 +16,7 @@ BTN_AD = "📢 Реклама / сотрудничество"
 BTN_CONTACTS = "🔍 Найти специалиста"
 BTN_SELF_ADD = "➕ Добавить себя в гайд"
 BTN_STICKERS = "🎨 Наши стикеры"
+BTN_CONTACT = "✉️ Связаться с нами"
 BTN_CANCEL = "❌ Отмена"
 
 
@@ -33,6 +34,7 @@ def main_menu() -> ReplyKeyboardMarkup:
     # Кнопка стикерпака — только если задана ссылка в настройках
     if config.STICKER_PACK_URL:
         keyboard.append([KeyboardButton(text=BTN_STICKERS)])
+    keyboard.append([KeyboardButton(text=BTN_CONTACT)])
     return ReplyKeyboardMarkup(
         keyboard=keyboard,
         resize_keyboard=True,

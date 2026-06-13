@@ -322,7 +322,9 @@ async def spec_decline(callback: CallbackQuery) -> None:
             await callback.bot.send_message(
                 sub,
                 f"К сожалению, карточку «{name}» мы не опубликовали. "
-                "По возврату средств напишите нам — поможем 🙏",
+                "Если вы оплачивали размещение — мы вернём средства 🙏\n\n"
+                "Напишите нам через /contact или напрямую:\n" + config.support_block(),
+                disable_web_page_preview=True,
             )
         except Exception:  # noqa: BLE001
             pass
