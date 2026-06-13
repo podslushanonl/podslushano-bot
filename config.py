@@ -114,6 +114,22 @@ def payments_enabled() -> bool:
     return bool(MOLLIE_API_KEY and WEBHOOK_BASE_URL)
 
 
+# --- Счета на e-mail (Resend) -----------------------------------------------
+RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
+# Отправитель письма со счётом. Для боевого — адрес на verified-домене в Resend,
+# например "Podslushano <facturen@podslushano.nl>". Для теста — onboarding@resend.dev.
+INVOICE_FROM_EMAIL: str = os.getenv("INVOICE_FROM_EMAIL", "")
+# Ставка BTW (НДС), % — цена считается ВКЛЮЧАЮЩЕЙ этот процент.
+try:
+    BTW_PERCENT: float = float(os.getenv("BTW_PERCENT", "21"))
+except ValueError:
+    BTW_PERCENT = 21.0
+
+
+def invoice_enabled() -> bool:
+    return bool(RESEND_API_KEY and INVOICE_FROM_EMAIL)
+
+
 def privacy_url() -> str:
     return f"{WEBHOOK_BASE_URL}/privacy" if WEBHOOK_BASE_URL else SITE_URL
 

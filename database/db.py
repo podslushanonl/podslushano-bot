@@ -27,6 +27,7 @@ _LATER_COLUMNS = {
     "status": "VARCHAR(20) DEFAULT 'active'",
     "source": "VARCHAR(20) DEFAULT 'seed'",
     "submitter_user_id": "BIGINT",
+    "invoice_email": "VARCHAR(200)",
     "paid_until": "DATETIME",
     "payment_id": "VARCHAR(100)",
     "plan": "VARCHAR(10) DEFAULT 'year'",

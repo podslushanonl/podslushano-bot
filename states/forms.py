@@ -63,4 +63,5 @@ class SelfAddSpecialist(StatesGroup):
     location = State()
     description = State()
     contact = State()
+    email = State()
     plan = State()

@@ -55,6 +55,8 @@ class Specialist(Base):
     source: Mapped[str] = mapped_column(String(20), default="seed")
     # Telegram-id того, кто добавил себя сам (для платного потока)
     submitter_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    # E-mail для счёта (factuur)
+    invoice_email: Mapped[str | None] = mapped_column(String(200), nullable=True)
     # До какого момента оплачено размещение (None = бессрочно: seed/admin)
     paid_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     # Id платежа в Mollie (для платного потока)
