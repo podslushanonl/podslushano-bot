@@ -494,7 +494,7 @@ async def _api_guide(request: web.Request) -> web.Response:
         })
     resp = web.json_response(data)
     resp.headers["Access-Control-Allow-Origin"] = "*"
-    resp.headers["Cache-Control"] = "public, max-age=300"
+    resp.headers["Cache-Control"] = "no-store"
     return resp
 
 
