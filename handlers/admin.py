@@ -757,6 +757,62 @@ async def cmd_setcity(message: Message) -> None:
     )
 
 
+@router.message(Command("listcat"))
+async def cmd_listcat(message: Message) -> None:
+    """Список карточек по категории (для проверки правильности категорий).
+    /listcat — категории со счётчиком; /listcat <категория> — карточки в ней."""
+    parts = (message.text or "").split(maxsplit=1)
+    async with get_session() as session:
+        if len(parts) < 2:
+            rows = (
+                await session.execute(
+                    select(Specialist.category, func.count())
+                    .where(Specialist.status == "active")
+                    .group_by(Specialist.category)
+                    .order_by(func.count().desc())
+                )
+            ).all()
+            txt = (
+                "📂 Категории (проверить: <code>/listcat категория</code>):\n\n"
+                + "\n".join(f"  • {c}: {n}" for c, n in rows)
+            )
+            await message.answer(txt, reply_markup=main_menu())
+            return
+        raw = parts[1].strip()
+        cat = (
+            detect_category(raw)
+            or next((c for c in CATEGORIES if c.lower() == raw.lower()), None)
+            or raw
+        )
+        specs = (
+            await session.scalars(
+                select(Specialist)
+                .where(Specialist.status == "active", Specialist.category == cat)
+                .order_by(Specialist.is_online, Specialist.city, Specialist.name)
+            )
+        ).all()
+    if not specs:
+        await message.answer(
+            f"В «{cat}» активных карточек нет (или категория названа иначе). "
+            "Список категорий — /listcat без аргумента.",
+            reply_markup=main_menu(),
+        )
+        return
+    buf = (
+        f"📂 <b>{html.escape(cat)}</b> — {len(specs)} карточек.\n"
+        "Не та категория? <code>/setcategory ID нужная</code>\n\n"
+    )
+    for sp in specs:
+        where = "онлайн" if sp.is_online else (sp.city or sp.province or "—")
+        line = f"#{sp.id} {html.escape(sp.name[:45])} · {html.escape(where)}\n"
+        if len(buf) + len(line) > 3500:  # не упираемся в лимит сообщения
+            await message.answer(buf)
+            buf = ""
+        buf += line
+    if buf:
+        await message.answer(buf, reply_markup=main_menu())
+
+
 @router.message(Command("fillcities"))
 async def cmd_fillcities(message: Message) -> None:
     """Массово проставить город карточкам без него — только из названия (надёжно)."""
