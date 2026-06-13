@@ -79,7 +79,7 @@ def _cities_kb(cat: str) -> InlineKeyboardMarkup:
     # Категорию зашиваем прямо в кнопку — не зависим от состояния диалога.
     btns = [InlineKeyboardButton(text=c, callback_data=f"fcity|{cat}|{c}") for c in POPULAR_CITIES]
     rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
-    rows.append([InlineKeyboardButton(text="🌐 Онлайн / вся страна", callback_data=f"fcity|{cat}|__online__")])
+    rows.append([InlineKeyboardButton(text="🌍 Показать всех (вся страна)", callback_data=f"fcity|{cat}|__all__")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -116,28 +116,29 @@ async def pick_city(callback: CallbackQuery, state: FSMContext) -> None:
     _, cat, val = callback.data.split("|", 2)
     await state.set_state(ContactSearch.waiting_for_query)
     await state.update_data(pending_category=cat, pending_terms=[])
-    if val == "__online__":
+    if val == "__all__":
         now = datetime.utcnow()
         async with get_session() as session:
-            online = (
+            allspecs = (
                 await session.scalars(
                     select(Specialist).where(
                         Specialist.category == cat,
                         Specialist.status == "active",
-                        Specialist.is_online.is_(True),
                         or_(Specialist.paid_until.is_(None), Specialist.paid_until > now),
                     )
                 )
             ).all()
-        if online:
+        if allspecs:
+            # локальные сгруппированы, онлайн — в конце
+            allspecs = sorted(allspecs, key=lambda s: (s.is_online, s.province or "", s.city or ""))
             await _send_results(
                 callback.message, state,
-                [("🌐 Онлайн-специалисты (по всей стране):", online)],
+                [(f"Специалисты «{cat}» по всей стране:", allspecs)],
             )
         else:
+            await state.clear()
             await callback.message.answer(
-                "Онлайн в этой категории пока нет — выбери город или напиши другой 👇",
-                reply_markup=_cities_kb(cat),
+                "Пока пусто в этой категории 🙂", reply_markup=main_menu()
             )
         await callback.answer()
         return
