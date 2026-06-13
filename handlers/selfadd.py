@@ -468,12 +468,14 @@ async def spec_renew(callback: CallbackQuery) -> None:
 
 async def reminder_loop(bot) -> None:
     """Раз в 12 часов напоминает о скором окончании размещения."""
+    from utils.seasonal import check_seasonal
     while True:
         try:
             await _send_renewal_reminders(bot)
             await _send_expiry_notices(bot)
+            await check_seasonal(bot)  # сезонные дедлайны NL (страховка, налоги)
         except Exception as e:  # noqa: BLE001
-            log.warning("Ошибка в напоминаниях о продлении: %s", e)
+            log.warning("Ошибка в фоновых напоминаниях: %s", e)
         await asyncio.sleep(12 * 3600)
 
 
