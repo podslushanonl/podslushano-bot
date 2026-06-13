@@ -757,6 +757,27 @@ async def cmd_setcity(message: Message) -> None:
     )
 
 
+@router.message(Command("preview"))
+async def cmd_preview(message: Message) -> None:
+    """Ссылка на живой гайд (для предпросмотра перед вставкой на сайт)."""
+    base = config.WEBHOOK_BASE_URL
+    if not base:
+        await message.answer(
+            "Публичный адрес не задан (WEBHOOK_BASE_URL / RAILWAY_PUBLIC_DOMAIN) — "
+            "предпросмотр недоступен.",
+            reply_markup=main_menu(),
+        )
+        return
+    await message.answer(
+        "🌐 <b>Живой гайд</b> — открой в браузере, это предпросмотр для сайта "
+        "(данные подтягиваются из бота автоматически):\n\n"
+        f"{base}/guide\n\n"
+        f"📦 Данные для сайта (JSON): {base}/api/specialists.json",
+        reply_markup=main_menu(),
+        disable_web_page_preview=True,
+    )
+
+
 @router.message(Command("listcat"))
 async def cmd_listcat(message: Message) -> None:
     """Список карточек по категории (для проверки правильности категорий).
