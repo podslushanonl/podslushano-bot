@@ -43,6 +43,12 @@ class AdminFind(StatesGroup):
     waiting_query = State()
 
 
+class AdminBroadcast(StatesGroup):
+    """Рассылка-анонс админом."""
+
+    waiting_message = State()
+
+
 class SelfAddSpecialist(StatesGroup):
     """Само-добавление специалиста (платно): пошаговая анкета."""
 

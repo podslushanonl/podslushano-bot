@@ -4,10 +4,12 @@
 Команда /admin открывает панель: добавить специалиста, посмотреть добавленные
 вручную, найти и удалить.
 """
+import asyncio
 import html
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
+from aiogram.exceptions import TelegramForbiddenError
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import (
@@ -16,13 +18,13 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     Message,
 )
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 
 import config
 from database.db import get_session
-from database.models import Specialist
+from database.models import BotUser, Specialist
 from keyboards.menus import cancel_menu, main_menu
-from states.forms import AdminAddSpecialist, AdminFind
+from states.forms import AdminAddSpecialist, AdminBroadcast, AdminFind
 from utils.ai import extract_specialist_query
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
 
@@ -40,6 +42,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="➕ Добавить специалиста", callback_data="admin:add")],
             [InlineKeyboardButton(text="📋 Добавленные вручную", callback_data="admin:list")],
             [InlineKeyboardButton(text="🔎 Найти и удалить", callback_data="admin:find")],
+            [InlineKeyboardButton(text="📣 Рассылка-анонс", callback_data="admin:broadcast")],
         ]
     )
 
@@ -322,3 +325,105 @@ async def spec_decline(callback: CallbackQuery) -> None:
         except Exception:  # noqa: BLE001
             pass
     await callback.answer("Отклонено")
+
+
+# --- Рассылка-анонс ---------------------------------------------------------
+
+async def _users_count() -> int:
+    async with get_session() as session:
+        return await session.scalar(
+            select(func.count()).select_from(BotUser).where(BotUser.is_blocked.is_(False))
+        ) or 0
+
+
+@router.message(Command("broadcast"))
+async def cmd_broadcast(message: Message, state: FSMContext) -> None:
+    await _broadcast_start(message, state)
+
+
+@router.callback_query(F.data == "admin:broadcast")
+async def broadcast_btn(callback: CallbackQuery, state: FSMContext) -> None:
+    await _broadcast_start(callback.message, state)
+    await callback.answer()
+
+
+async def _broadcast_start(message: Message, state: FSMContext) -> None:
+    await state.set_state(AdminBroadcast.waiting_message)
+    count = await _users_count()
+    await message.answer(
+        f"📣 <b>Рассылка-анонс</b> для {count} пользователей.\n\n"
+        "Пришли сообщение, которое нужно разослать — текст, фото, видео или с кнопкой-ссылкой. "
+        "Я покажу предпросмотр и спрошу подтверждение.",
+        reply_markup=cancel_menu(),
+    )
+
+
+@router.message(AdminBroadcast.waiting_message)
+async def broadcast_preview(message: Message, state: FSMContext) -> None:
+    await state.update_data(bc_chat=message.chat.id, bc_msg=message.message_id)
+    count = await _users_count()
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=f"✅ Отправить всем ({count})", callback_data="bcast:yes")],
+            [InlineKeyboardButton(text="❌ Отмена", callback_data="bcast:no")],
+        ]
+    )
+    await message.answer(
+        "👆 Вот так выглядит сообщение. Разослать его всем "
+        f"{count} пользователям?",
+        reply_markup=kb,
+    )
+
+
+@router.callback_query(F.data == "bcast:no")
+async def broadcast_cancel(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer("Рассылка отменена 👌", reply_markup=main_menu())
+    await callback.answer()
+
+
+@router.callback_query(F.data == "bcast:yes")
+async def broadcast_send(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    await state.clear()
+    src_chat, src_msg = data.get("bc_chat"), data.get("bc_msg")
+    if not src_chat or not src_msg:
+        await callback.answer("Сообщение потерялось, начни заново", show_alert=True)
+        return
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer("🚀 Рассылка запущена! Пришлю итог, когда закончу.")
+    asyncio.create_task(
+        _do_broadcast(callback.bot, src_chat, src_msg, callback.from_user.id)
+    )
+    await callback.answer()
+
+
+async def _do_broadcast(bot, src_chat: int, src_msg: int, admin_id: int) -> None:
+    async with get_session() as session:
+        user_ids = (
+            await session.scalars(select(BotUser.user_id).where(BotUser.is_blocked.is_(False)))
+        ).all()
+    sent = 0
+    failed = 0
+    for uid in user_ids:
+        try:
+            await bot.copy_message(uid, src_chat, src_msg)
+            sent += 1
+        except TelegramForbiddenError:
+            failed += 1
+            async with get_session() as session:  # бот заблокирован — помечаем
+                u = await session.get(BotUser, uid)
+                if u:
+                    u.is_blocked = True
+                    await session.commit()
+        except Exception:  # noqa: BLE001
+            failed += 1
+        await asyncio.sleep(0.05)  # ~20 сообщений/сек — в пределах лимитов Telegram
+    try:
+        await bot.send_message(
+            admin_id,
+            f"✅ Рассылка завершена.\nДоставлено: {sent}\nНе доставлено: {failed}",
+        )
+    except Exception:  # noqa: BLE001
+        pass

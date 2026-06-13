@@ -12,6 +12,7 @@ from database.db import init_db
 from handlers import admin, chat, contacts, moderation, selfadd, start, submissions
 from handlers.selfadd import reminder_loop
 from utils.limits import ThrottleMiddleware
+from utils.users import RegisterUserMiddleware
 from utils.webserver import start_webserver
 
 
@@ -53,6 +54,7 @@ async def configure_profile(bot: Bot) -> None:
                         BotCommand(command="start", description="Запустить бота и открыть меню"),
                         BotCommand(command="menu", description="Показать меню"),
                         BotCommand(command="admin", description="Управление базой (админ)"),
+                        BotCommand(command="broadcast", description="Рассылка-анонс (админ)"),
                     ],
                     scope=BotCommandScopeChat(chat_id=admin_id),
                 )
@@ -74,6 +76,8 @@ async def main() -> None:
     )
     dp = Dispatcher()
     dp.message.middleware(ThrottleMiddleware())  # антиспам по частоте сообщений
+    dp.message.middleware(RegisterUserMiddleware())  # учёт пользователей для рассылок
+    dp.callback_query.middleware(RegisterUserMiddleware())
 
     await configure_profile(bot)  # описание/команды на стартовом экране
 
