@@ -436,6 +436,46 @@ async def _sp_photo(request: web.Request) -> web.Response:
     return resp
 
 
+# Карта granular-категорий бота → 8 укрупнённых групп виджета каталога на сайте
+_SITE_GROUP = {
+    "нутрициолог": "Здоровье", "психолог": "Здоровье", "стоматолог": "Здоровье", "врач": "Здоровье",
+    "массаж": "Бьюти", "парикмахер": "Бьюти", "косметолог": "Бьюти",
+    "мастер маникюра": "Бьюти", "тату": "Бьюти", "стилист": "Бьюти",
+    "риелтор": "Дом", "дизайнер": "Дом", "ремонт": "Дом", "мастер на час": "Дом", "клининг": "Дом",
+    "репетитор": "Образование", "автошкола": "Образование", "музыка": "Образование",
+    "кондитер": "Вкус", "еда": "Вкус",
+    "няня": "Дети", "аниматор": "Дети",
+    "ведущий": "Впечатления", "фотограф": "Впечатления", "гид": "Впечатления",
+    "фитнес": "Впечатления", "творчество": "Впечатления",
+    "юрист": "Услуги", "бухгалтер": "Услуги", "веб-разработчик": "Услуги",
+    "автосервис": "Услуги", "услуги": "Услуги",
+}
+
+
+async def _api_guide(request: web.Request) -> web.Response:
+    """JSON-фид для кастомного виджета каталога на сайте (KG_DATA_URL).
+
+    Формат: массив [{name, desc, prov, cat}] — ровно то, что понимает виджет.
+    Контакты идут в desc, виджет сам делает ссылки кликабельными.
+    """
+    rows = await _active_specialists()
+    rows = sorted(rows, key=lambda s: (0 if s.is_premium else 1, s.category, s.name))
+    data = []
+    for s in rows:
+        desc = " · ".join(p for p in [s.description, s.contact] if p)
+        data.append({
+            "name": s.name,
+            "desc": desc,
+            "prov": "" if s.is_online else (s.province or ""),
+            "cat": _SITE_GROUP.get(s.category, "Услуги"),
+            "premium": bool(s.is_premium),
+        })
+    resp = web.json_response(data)
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    resp.headers["Cache-Control"] = "public, max-age=300"
+    return resp
+
+
 async def start_webserver(bot) -> web.AppRunner:
     """Запускает веб-сервер на нужном порту (для webhook оплаты и health-check)."""
     app = web.Application()
@@ -447,6 +487,7 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/guide", _guide)
     app.router.add_get("/sp-photo/{sid}", _sp_photo)
     app.router.add_get("/api/specialists.json", _api_specialists)
+    app.router.add_get("/api/guide.json", _api_guide)
     app.router.add_post("/mollie-webhook", _mollie_webhook)
 
     runner = web.AppRunner(app)
