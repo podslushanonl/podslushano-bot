@@ -687,6 +687,40 @@ async def cmd_premium(message: Message) -> None:
     )
 
 
+@router.message(Command("card"))
+async def cmd_card(message: Message) -> None:
+    """Показать карточку целиком. /card ID"""
+    parts = (message.text or "").split()
+    if len(parts) < 2 or not parts[1].isdigit():
+        await message.answer("Использование: <code>/card ID</code> — показать карточку.",
+                             reply_markup=main_menu())
+        return
+    sid = int(parts[1])
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+    if sp is None:
+        await message.answer(f"Карточка #{sid} не найдена 🤔")
+        return
+    where = "онлайн" if sp.is_online else (sp.city or sp.province or "—")
+    paid = sp.paid_until.strftime("%d.%m.%Y") if sp.paid_until else "бессрочно"
+    info = (
+        f"🪪 <b>Карточка #{sp.id}</b>\n"
+        f"Имя: {html.escape(sp.name)}\n"
+        f"Категория: {html.escape(sp.category)} · {html.escape(where)}\n"
+        f"{'🌟 Премиум' if sp.is_premium else 'Обычная'} · статус: {sp.status} · источник: {sp.source}\n"
+        f"Оплачено до: {paid} · Фото: {'есть' if sp.photo_file_id else 'нет'}\n\n"
+        f"Описание: {html.escape(sp.description or '—')}\n"
+        f"Контакт: {html.escape(sp.contact or '—')}"
+    )
+    if sp.photo_file_id:
+        try:
+            await message.answer_photo(sp.photo_file_id, caption=info, reply_markup=main_menu())
+            return
+        except Exception:  # noqa: BLE001
+            pass
+    await message.answer(info, reply_markup=main_menu())
+
+
 @router.message(Command("setname"))
 async def cmd_setname(message: Message) -> None:
     """Сменить имя/название карточки. /setname ID Новое имя"""
