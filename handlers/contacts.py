@@ -407,8 +407,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     elif in_neighbors:
         sections.append(
             (
-                f"В {city} и провинции {province} никого, "
-                "но в соседних провинциях есть:",
+                f"{random.choice(FOUND_PHRASES)}\nБлижайшие к {city} — в соседних провинциях:",
                 in_neighbors,
             )
         )
@@ -419,8 +418,8 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
         else:
             sections.append(
                 (
-                    f"Рядом с {city} пока никого, "
-                    "но есть онлайн-специалисты (работают по всей стране):",
+                    f"{random.choice(FOUND_PHRASES)}\nРаботают по всей стране — "
+                    f"а значит, и в {city}:",
                     online,
                 )
             )
