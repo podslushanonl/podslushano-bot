@@ -10,8 +10,8 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 import config
 from database.db import init_db
 from handlers import (
-    admin, chat, contacts, guides, letters, moderation, salary, selfadd, share, start,
-    submissions, support,
+    admin, chat, contacts, errors, guides, letters, moderation, salary, selfadd, share,
+    start, submissions, support,
 )
 from handlers.selfadd import reminder_loop
 from utils.limits import ThrottleMiddleware
@@ -37,6 +37,7 @@ async def configure_profile(bot: Bot) -> None:
                 BotCommand(command="salary", description="Калькулятор netto-зарплаты"),
                 BotCommand(command="share", description="Поделиться ботом с друзьями"),
                 BotCommand(command="contact", description="Связаться с нами / поддержка"),
+                BotCommand(command="report", description="Сообщить об ошибке 🐞"),
                 BotCommand(command="privacy", description="Конфиденциальность и условия"),
             ]
         )
@@ -106,6 +107,7 @@ async def main() -> None:
     dp.include_router(contacts.router)
     dp.include_router(moderation.router)
     dp.include_router(chat.router)
+    dp.include_router(errors.router)  # глобальный перехват ошибок (краш-репорт)
     # В группах/обсуждениях бот молчит: все хендлеры выше работают только
     # в личных чатах (router.message.filter PRIVATE), а группового нет.
 
