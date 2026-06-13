@@ -73,6 +73,12 @@ class AdminBroadcast(StatesGroup):
     waiting_message = State()
 
 
+class AdminSetPhoto(StatesGroup):
+    """Загрузка фото для карточки специалиста (премиум)."""
+
+    waiting_photo = State()
+
+
 class ReviewForm(StatesGroup):
     """Оставить отзыв специалисту: после оценки — необязательный текст."""
 

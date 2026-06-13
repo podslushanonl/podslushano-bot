@@ -312,6 +312,7 @@ async def _api_specialists(request: web.Request) -> web.Response:
             "description": s.description or "",
             "contact": s.contact or "",
             "links": parse_contact_links(s.contact),
+            "photo": _photo_url(s),
             "rating": r[0] if r else None,
             "reviews": r[1] if r else 0,
         })
@@ -330,6 +331,7 @@ _GUIDE_PAGE = """<!doctype html><html lang="ru"><head><meta charset="utf-8">
  h1{{font-size:22px;margin:6px 0}} h2{{font-size:17px;margin:24px 0 8px;color:#2a6}}
  input{{width:100%;box-sizing:border-box;padding:12px 14px;border:1px solid #cfd6e4;border-radius:12px;font-size:15px;margin-bottom:8px}}
  .card{{background:#fff;border-radius:14px;padding:14px 16px;margin:8px 0;box-shadow:0 4px 14px rgba(0,0,0,.05)}}
+ .ph{{width:100%;max-height:260px;object-fit:cover;border-radius:10px;margin-bottom:8px}}
  .nm{{font-weight:700}} .ds{{color:#555;margin:4px 0 8px;font-size:14px;line-height:1.45}}
  .lnks a{{display:inline-block;margin:4px 6px 0 0;padding:7px 12px;background:#2aabee;color:#fff;
   text-decoration:none;border-radius:10px;font-size:14px}}
@@ -365,7 +367,9 @@ def _guide_card(s: Specialist, badge: str = "") -> str:
         f'<a href="{html_lib.escape(l["url"])}" target="_blank" rel="noopener">{l["label"]}</a>'
         for l in links
     )
-    return f'<div class="card"><div class="nm">{head}</div>{desc}<div class="lnks">{btns}</div></div>'
+    purl = _photo_url(s)
+    photo = f'<img class="ph" src="{html_lib.escape(purl)}" alt="" loading="lazy">' if purl else ""
+    return f'<div class="card">{photo}<div class="nm">{head}</div>{desc}<div class="lnks">{btns}</div></div>'
 
 
 async def _guide(request: web.Request) -> web.Response:
@@ -402,6 +406,36 @@ async def _mollie_webhook(request: web.Request) -> web.Response:
     return web.Response(text="ok")
 
 
+def _photo_url(s: Specialist) -> str | None:
+    """Абсолютный URL фото карточки (через наш прокси), или None."""
+    if not getattr(s, "photo_file_id", None):
+        return None
+    return f"{config.WEBHOOK_BASE_URL or ''}/sp-photo/{s.id}"
+
+
+async def _sp_photo(request: web.Request) -> web.Response:
+    """Отдаёт фото карточки: тянем файл из Telegram по file_id и стримим как картинку."""
+    sid_s = request.match_info.get("sid", "")
+    if not sid_s.isdigit():
+        return web.Response(status=404, text="not found")
+    async with get_session() as session:
+        sp = await session.get(Specialist, int(sid_s))
+    if sp is None or not sp.photo_file_id:
+        return web.Response(status=404, text="no photo")
+    bot = request.app["bot"]
+    try:
+        f = await bot.get_file(sp.photo_file_id)
+        buf = await bot.download_file(f.file_path)
+        data = buf.read()
+    except Exception as e:  # noqa: BLE001
+        log.warning("Не удалось отдать фото #%s: %s", sid_s, e)
+        return web.Response(status=404, text="no photo")
+    resp = web.Response(body=data, content_type="image/jpeg")
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    return resp
+
+
 async def start_webserver(bot) -> web.AppRunner:
     """Запускает веб-сервер на нужном порту (для webhook оплаты и health-check)."""
     app = web.Application()
@@ -411,6 +445,7 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/privacy", _privacy)
     app.router.add_get("/terms", _terms)
     app.router.add_get("/guide", _guide)
+    app.router.add_get("/sp-photo/{sid}", _sp_photo)
     app.router.add_get("/api/specialists.json", _api_specialists)
     app.router.add_post("/mollie-webhook", _mollie_webhook)
 

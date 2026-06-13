@@ -65,6 +65,8 @@ class Specialist(Base):
     plan: Mapped[str] = mapped_column(String(10), default="year")
     # Напомнили ли уже о продлении (чтобы не слать дважды)
     renewal_reminded: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Фото карточки (Telegram file_id) — для премиум-размещения
+    photo_file_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class Meta(Base):

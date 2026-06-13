@@ -255,13 +255,19 @@ async def _send_results(message: Message, state: FSMContext, sections: list) -> 
             key = specialist_key(s.name, s.contact)
             badge = rating_badge(ratings.get(key))
             revs = review_texts.get(key)
+            text = _spec_text(s, badge, revs)
             try:
-                await message.answer(
-                    _spec_text(s, badge, revs), reply_markup=_spec_kb(s),
-                    disable_web_page_preview=True,
-                )
+                # Премиум с фото — показываем карточку с картинкой (подпись Telegram ≤ 1024)
+                if s.photo_file_id and len(text) <= 1024:
+                    await message.answer_photo(
+                        s.photo_file_id, caption=text, reply_markup=_spec_kb(s)
+                    )
+                else:
+                    await message.answer(
+                        text, reply_markup=_spec_kb(s), disable_web_page_preview=True
+                    )
             except Exception:  # noqa: BLE001 — одна кривая карточка не рушит всю выдачу
-                await message.answer(_spec_text(s, badge, revs), disable_web_page_preview=True)
+                await message.answer(text, disable_web_page_preview=True)
             shown += 1
     tail = "Если что-то ещё нужно — я тут 😉"
     if overflow:

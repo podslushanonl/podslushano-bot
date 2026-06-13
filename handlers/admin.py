@@ -25,7 +25,13 @@ import config
 from database.db import get_session
 from database.models import BotUser, Specialist
 from keyboards.menus import cancel_menu, main_menu
-from states.forms import AdminAddSpecialist, AdminAnnounce, AdminBroadcast, AdminFind
+from states.forms import (
+    AdminAddSpecialist,
+    AdminAnnounce,
+    AdminBroadcast,
+    AdminFind,
+    AdminSetPhoto,
+)
 from utils.ai import extract_specialist_query
 from utils.analytics import gather_stats
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
@@ -677,6 +683,119 @@ async def cmd_premium(message: Message) -> None:
         await session.commit()
     await message.answer(
         f"{'🌟 Премиум включён' if on else 'Премиум выключен'} для «{html.escape(name)}» (#{sid}).",
+        reply_markup=main_menu(),
+    )
+
+
+@router.message(Command("setname"))
+async def cmd_setname(message: Message) -> None:
+    """Сменить имя/название карточки. /setname ID Новое имя"""
+    from database.models import Review
+    from utils.reviews import specialist_key
+
+    parts = (message.text or "").split(maxsplit=2)
+    if len(parts) < 3 or not parts[1].isdigit():
+        await message.answer(
+            "Использование: <code>/setname ID Новое имя</code>", reply_markup=main_menu()
+        )
+        return
+    sid, new = int(parts[1]), parts[2].strip()
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await message.answer(f"Карточка #{sid} не найдена 🤔")
+            return
+        old = sp.name
+        old_key, new_key = specialist_key(old, sp.contact), specialist_key(new, sp.contact)
+        if old_key != new_key:  # переносим отзывы на новый ключ
+            revs = (await session.scalars(select(Review).where(Review.spec_key == old_key))).all()
+            for r in revs:
+                r.spec_key = new_key
+        sp.name = new
+        await session.commit()
+    await message.answer(
+        f"✅ Имя карточки #{sid}: «{html.escape(new)}» (было «{html.escape(old)}»).",
+        reply_markup=main_menu(),
+    )
+
+
+@router.message(Command("setdesc"))
+async def cmd_setdesc(message: Message) -> None:
+    """Сменить описание карточки. /setdesc ID текст (или «-» чтобы убрать)"""
+    parts = (message.text or "").split(maxsplit=2)
+    if len(parts) < 2 or not parts[1].isdigit():
+        await message.answer(
+            "Использование: <code>/setdesc ID Новое описание</code> "
+            "(или <code>/setdesc ID -</code> чтобы убрать).",
+            reply_markup=main_menu(),
+        )
+        return
+    sid = int(parts[1])
+    new = parts[2].strip() if len(parts) >= 3 else ""
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await message.answer(f"Карточка #{sid} не найдена 🤔")
+            return
+        sp.description = None if new in ("", "-") else new
+        name = sp.name
+        await session.commit()
+    await message.answer(
+        f"✅ Описание карточки «{html.escape(name)}» (#{sid}) обновлено.",
+        reply_markup=main_menu(),
+    )
+
+
+@router.message(Command("setphoto"))
+async def cmd_setphoto(message: Message, state: FSMContext) -> None:
+    """Добавить/сменить фото карточки. /setphoto ID — затем прислать фото."""
+    parts = (message.text or "").split()
+    if len(parts) < 2 or not parts[1].isdigit():
+        await message.answer(
+            "Использование: <code>/setphoto ID</code> — затем пришли фото "
+            "(или «-», чтобы убрать).",
+            reply_markup=main_menu(),
+        )
+        return
+    sid = int(parts[1])
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await message.answer(f"Карточка #{sid} не найдена 🤔")
+            return
+        name = sp.name
+    await state.set_state(AdminSetPhoto.waiting_photo)
+    await state.update_data(photo_sid=sid)
+    await message.answer(
+        f"Пришли фото для карточки «{html.escape(name)}» (#{sid}) одним сообщением.\n"
+        "Или отправь «-», чтобы убрать фото.",
+        reply_markup=cancel_menu(),
+    )
+
+
+@router.message(AdminSetPhoto.waiting_photo)
+async def setphoto_receive(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    sid = data.get("photo_sid")
+    if message.photo:
+        file_id = message.photo[-1].file_id  # самое крупное превью
+    elif message.text and message.text.strip() == "-":
+        file_id = None
+    else:
+        await message.answer("Пришли именно фото (картинкой) или «-», чтобы убрать.")
+        return
+    await state.clear()
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await message.answer(f"Карточка #{sid} не найдена 🤔", reply_markup=main_menu())
+            return
+        sp.photo_file_id = file_id
+        name = sp.name
+        await session.commit()
+    done = "добавлено" if file_id else "убрано"
+    await message.answer(
+        f"✅ Фото {done} для карточки «{html.escape(name)}» (#{sid}).",
         reply_markup=main_menu(),
     )
 

@@ -32,6 +32,7 @@ _LATER_COLUMNS = {
     "payment_id": "VARCHAR(100)",
     "plan": "VARCHAR(10) DEFAULT 'year'",
     "renewal_reminded": "BOOLEAN DEFAULT 0",
+    "photo_file_id": "TEXT",
 }
 
 # Колонки таблицы пользователей, которые могли появиться позже
