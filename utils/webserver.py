@@ -6,6 +6,7 @@ Mollie после оплаты дёргает POST /mollie-webhook с полем
 """
 import html as html_lib
 import logging
+import re
 from datetime import datetime
 
 from aiohttp import web
@@ -452,6 +453,21 @@ _SITE_GROUP = {
 }
 
 
+# Эмодзи и пиктограммы (для очистки текста в фиде каталога на сайте)
+_EMOJI_RE = re.compile(
+    "[\U0001F000-\U0001FAFF\U00002600-\U000027BF\U00002190-\U000021FF"
+    "\U00002300-\U000023FF\U00002B00-\U00002BFF\U0000FE00-\U0000FE0F\U0000200D]+",
+    flags=re.UNICODE,
+)
+
+
+def _clean(t: str) -> str:
+    """Убирает эмодзи и схлопывает лишние пробелы (переносы строк сохраняет)."""
+    t = _EMOJI_RE.sub("", t or "")
+    t = re.sub(r"[ \t]{2,}", " ", t)
+    return t.strip(" ·\t\n")
+
+
 async def _api_guide(request: web.Request) -> web.Response:
     """JSON-фид для кастомного виджета каталога на сайте (KG_DATA_URL).
 
@@ -462,9 +478,14 @@ async def _api_guide(request: web.Request) -> web.Response:
     rows = sorted(rows, key=lambda s: (0 if s.is_premium else 1, s.category, s.name))
     data = []
     for s in rows:
-        desc = " · ".join(p for p in [s.description, s.contact] if p)
+        descr = _clean(s.description or "")
+        # контакты — каждый с новой строки (разделители · или переносы)
+        cparts = [_clean(p) for p in re.split(r"\s*·\s*|\n+", s.contact or "")]
+        contact = "\n".join(p for p in cparts if p)
+        # описание и контакты — отдельными блоками (пустая строка между ними)
+        desc = "\n\n".join(p for p in [descr, contact] if p)
         data.append({
-            "name": s.name,
+            "name": _clean(s.name) or s.name,
             "desc": desc,
             "prov": "онлайн" if s.is_online else (s.province or ""),
             "cat": _SITE_GROUP.get(s.category, "Услуги"),
