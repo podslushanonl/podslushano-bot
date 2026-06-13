@@ -125,9 +125,15 @@ try:
 except ValueError:
     BTW_PERCENT = 21.0
 
+# Отправка счёта через Gmail (SMTP) — без DNS. Нужен App Password Google.
+GMAIL_ADDRESS: str = os.getenv("GMAIL_ADDRESS", "") or COMPANY_EMAIL
+GMAIL_APP_PASSWORD: str = os.getenv("GMAIL_APP_PASSWORD", "")
+
 
 def invoice_enabled() -> bool:
-    return bool(RESEND_API_KEY and INVOICE_FROM_EMAIL)
+    gmail = bool(GMAIL_ADDRESS and GMAIL_APP_PASSWORD)
+    resend = bool(RESEND_API_KEY and INVOICE_FROM_EMAIL)
+    return gmail or resend
 
 
 def privacy_url() -> str:

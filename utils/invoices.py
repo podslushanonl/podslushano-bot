@@ -5,6 +5,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import base64
 import io
 import logging
@@ -171,8 +172,38 @@ async def _send_email(to: str, subject: str, html: str, pdf: bytes, filename: st
         return False
 
 
+def _send_smtp_sync(to: str, subject: str, html: str, pdf: bytes, filename: str) -> None:
+    import smtplib
+    import ssl
+    from email.message import EmailMessage
+
+    msg = EmailMessage()
+    msg["From"] = f"{config.COMPANY_NAME} <{config.GMAIL_ADDRESS}>"
+    msg["To"] = to
+    msg["Subject"] = subject
+    msg.set_content("Счёт (factuur) во вложении.")
+    msg.add_alternative(html, subtype="html")
+    msg.add_attachment(pdf, maintype="application", subtype="pdf", filename=filename)
+    ctx = ssl.create_default_context()
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx, timeout=30) as s:
+        s.login(config.GMAIL_ADDRESS, config.GMAIL_APP_PASSWORD)
+        s.send_message(msg)
+
+
+async def _send_gmail(to: str, subject: str, html: str, pdf: bytes, filename: str) -> bool:
+    try:
+        await asyncio.to_thread(_send_smtp_sync, to, subject, html, pdf, filename)
+        return True
+    except Exception as e:  # noqa: BLE001
+        log.warning("Не удалось отправить счёт через Gmail: %s", e)
+        return False
+
+
 async def send_invoice(to_email: str, buyer_name: str, description: str, total_str: str) -> bool:
-    """Создаёт счёт-PDF и отправляет на e-mail. True — если ушло."""
+    """Создаёт счёт-PDF и отправляет на e-mail. True — если ушло.
+
+    Приоритет — Gmail (если настроен App Password), иначе Resend.
+    """
     if not config.invoice_enabled() or not to_email:
         return False
     try:
@@ -183,10 +214,14 @@ async def send_invoice(to_email: str, buyer_name: str, description: str, total_s
     btw = round(total - excl, 2)
     no = await _next_invoice_no()
     pdf = _build_pdf(no, buyer_name, to_email, description, excl, btw, total)
+    subject = f"Счёт {no} · Podslushano.nl"
+    filename = f"factuur-{no}.pdf"
     html = (
         f"<p>Здравствуйте!</p>"
         f"<p>Спасибо за размещение в гайде «Подслушано в Нидерландах». "
         f"Во вложении — счёт (factuur) №{no}.</p>"
         f"<p>С уважением,<br>{config.COMPANY_NAME}<br>{config.COMPANY_EMAIL}</p>"
     )
-    return await _send_email(to_email, f"Счёт {no} · Podslushano.nl", html, pdf, f"factuur-{no}.pdf")
+    if config.GMAIL_ADDRESS and config.GMAIL_APP_PASSWORD:
+        return await _send_gmail(to_email, subject, html, pdf, filename)
+    return await _send_email(to_email, subject, html, pdf, filename)
