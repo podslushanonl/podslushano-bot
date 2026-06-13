@@ -33,6 +33,12 @@ class SupportContact(StatesGroup):
     waiting_message = State()
 
 
+class AdminAnnounce(StatesGroup):
+    """Анонс в канал с кнопкой «Открыть бота»."""
+
+    waiting_text = State()
+
+
 class AdminAddSpecialist(StatesGroup):
     """Пошаговое добавление специалиста админом."""
 

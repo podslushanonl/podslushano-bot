@@ -155,6 +155,7 @@ async def _send_email(to: str, subject: str, html: str, pdf: bytes, filename: st
     body = {
         "from": config.INVOICE_FROM_EMAIL,
         "to": [to],
+        "reply_to": config.SUPPORT_EMAIL,  # ответы на счёт придут на читаемый адрес
         "subject": subject,
         "html": html,
         "attachments": [{"filename": filename, "content": base64.b64encode(pdf).decode()}],

@@ -39,6 +39,9 @@ SUPPORT_EMAIL: str = os.getenv("SUPPORT_EMAIL", "") or COMPANY_EMAIL
 # Необязательно: публичный Telegram для прямой связи (напр. @username или ссылка).
 SUPPORT_TELEGRAM: str = os.getenv("SUPPORT_TELEGRAM", "")
 
+# Канал для анонсов через команду /announce (напр. @mychannel или -100123...).
+ANNOUNCE_CHANNEL: str = os.getenv("ANNOUNCE_CHANNEL", "")
+
 
 def support_block() -> str:
     """Готовый блок с контактами поддержки для вставки в сообщения."""

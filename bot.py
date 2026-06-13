@@ -57,6 +57,7 @@ async def configure_profile(bot: Bot) -> None:
                         BotCommand(command="contact", description="Связаться с нами / возвраты"),
                         BotCommand(command="admin", description="Управление базой (админ)"),
                         BotCommand(command="broadcast", description="Рассылка-анонс (админ)"),
+                        BotCommand(command="announce", description="Пост в канал с кнопкой (админ)"),
                         BotCommand(command="stats", description="Статистика (админ)"),
                     ],
                     scope=BotCommandScopeChat(chat_id=admin_id),

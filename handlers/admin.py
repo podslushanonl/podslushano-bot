@@ -24,7 +24,7 @@ import config
 from database.db import get_session
 from database.models import BotUser, Specialist
 from keyboards.menus import cancel_menu, main_menu
-from states.forms import AdminAddSpecialist, AdminBroadcast, AdminFind
+from states.forms import AdminAddSpecialist, AdminAnnounce, AdminBroadcast, AdminFind
 from utils.ai import extract_specialist_query
 from utils.analytics import gather_stats
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
@@ -329,6 +329,90 @@ async def spec_decline(callback: CallbackQuery) -> None:
         except Exception:  # noqa: BLE001
             pass
     await callback.answer("Отклонено")
+
+
+# --- Анонс в канал с кнопкой «Открыть бота» ---------------------------------
+
+def _open_bot_kb(username: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(
+            text="🤖 Открыть бота", url=f"https://t.me/{username}")]]
+    )
+
+
+@router.message(Command("announce"))
+async def cmd_announce(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    if not config.ANNOUNCE_CHANNEL:
+        await message.answer(
+            "⚠️ Не задан канал для анонса.\n\n"
+            "1) Добавь бота в канал как <b>администратора</b> с правами "
+            "«Публиковать сообщения» и «Закреплять сообщения».\n"
+            "2) Добавь переменную <code>ANNOUNCE_CHANNEL</code> (например "
+            "<code>@username_канала</code> или <code>-100…</code>) в Railway."
+        )
+        return
+    await state.set_state(AdminAnnounce.waiting_text)
+    await message.answer(
+        "Пришли текст анонса (можно с форматированием и эмодзи). "
+        "Я добавлю под ним кнопку «🤖 Открыть бота» и опубликую в канал.",
+        reply_markup=cancel_menu(),
+    )
+
+
+@router.message(AdminAnnounce.waiting_text)
+async def announce_text(message: Message, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("Нужен текст сообщения 🙂")
+        return
+    await state.update_data(ann_text=message.html_text)
+    me = await message.bot.me()
+    await message.answer("Вот как будет выглядеть пост 👇")
+    await message.answer(
+        message.html_text, reply_markup=_open_bot_kb(me.username),
+        disable_web_page_preview=True,
+    )
+    kb = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="✅ Опубликовать и закрепить", callback_data="announce:yes"),
+        InlineKeyboardButton(text="❌ Отмена", callback_data="announce:no"),
+    ]])
+    await message.answer(f"Опубликовать в <code>{config.ANNOUNCE_CHANNEL}</code>?", reply_markup=kb)
+
+
+@router.callback_query(F.data == "announce:no")
+async def announce_no(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.message.answer("Отменил — ничего не опубликовал.")
+    await callback.answer()
+
+
+@router.callback_query(F.data == "announce:yes")
+async def announce_yes(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    await state.clear()
+    text = data.get("ann_text")
+    if not text:
+        await callback.answer("Текст не найден, начни заново: /announce", show_alert=True)
+        return
+    me = await callback.bot.me()
+    try:
+        msg = await callback.bot.send_message(
+            config.ANNOUNCE_CHANNEL, text,
+            reply_markup=_open_bot_kb(me.username), disable_web_page_preview=True,
+        )
+        try:
+            await callback.bot.pin_chat_message(config.ANNOUNCE_CHANNEL, msg.message_id)
+            note = " и закрепил 📌"
+        except Exception:  # noqa: BLE001
+            note = " (но закрепить не вышло — дай боту право «Закреплять сообщения»)"
+        await callback.message.answer(f"✅ Опубликовал в канал{note}")
+    except Exception as e:  # noqa: BLE001
+        await callback.message.answer(
+            f"❌ Не получилось опубликовать: {html.escape(str(e))}\n\n"
+            "Проверь: бот — администратор канала с правом «Публиковать сообщения», "
+            "и <code>ANNOUNCE_CHANNEL</code> указан верно."
+        )
+    await callback.answer()
 
 
 # --- Статистика -------------------------------------------------------------
