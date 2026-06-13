@@ -340,7 +340,7 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         ok = False
         try:
             from utils.invoices import send_invoice
-            ok = await send_invoice(inv_email, name, desc, info["price"])
+            ok, _ = await send_invoice(inv_email, name, desc, info["price"])
         except Exception as e:  # noqa: BLE001
             log.warning("Не удалось отправить счёт: %s", e)
         if ok:

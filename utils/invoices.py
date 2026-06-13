@@ -151,7 +151,7 @@ def _build_pdf(no: str, buyer: str, email: str, description: str,
     return buf.getvalue()
 
 
-async def _send_email(to: str, subject: str, html: str, pdf: bytes, filename: str) -> bool:
+async def _send_email(to: str, subject: str, html: str, pdf: bytes, filename: str) -> tuple[bool, str]:
     body = {
         "from": config.INVOICE_FROM_EMAIL,
         "to": [to],
@@ -164,12 +164,13 @@ async def _send_email(to: str, subject: str, html: str, pdf: bytes, filename: st
         async with aiohttp.ClientSession() as session:
             async with session.post("https://api.resend.com/emails", json=body, headers=headers) as r:
                 if r.status >= 300:
-                    log.warning("Resend error %s: %s", r.status, await r.text())
-                    return False
-                return True
+                    detail = f"Resend HTTP {r.status}: {await r.text()}"
+                    log.warning(detail)
+                    return False, detail
+                return True, ""
     except Exception as e:  # noqa: BLE001
-        log.warning("Не удалось отправить счёт: %s", e)
-        return False
+        log.warning("Не удалось отправить счёт через Resend: %s", e)
+        return False, f"Resend: {e}"
 
 
 def _send_smtp_sync(to: str, subject: str, html: str, pdf: bytes, filename: str) -> None:
@@ -190,26 +191,31 @@ def _send_smtp_sync(to: str, subject: str, html: str, pdf: bytes, filename: str)
         s.send_message(msg)
 
 
-async def _send_gmail(to: str, subject: str, html: str, pdf: bytes, filename: str) -> bool:
+async def _send_gmail(to: str, subject: str, html: str, pdf: bytes, filename: str) -> tuple[bool, str]:
     try:
         await asyncio.to_thread(_send_smtp_sync, to, subject, html, pdf, filename)
-        return True
+        return True, ""
     except Exception as e:  # noqa: BLE001
+        detail = f"Gmail SMTP: {type(e).__name__}: {e}"
         log.warning("Не удалось отправить счёт через Gmail: %s", e)
-        return False
+        return False, detail
 
 
-async def send_invoice(to_email: str, buyer_name: str, description: str, total_str: str) -> bool:
-    """Создаёт счёт-PDF и отправляет на e-mail. True — если ушло.
+async def send_invoice(to_email: str, buyer_name: str, description: str,
+                       total_str: str) -> tuple[bool, str]:
+    """Создаёт счёт-PDF и отправляет на e-mail.
 
-    Приоритет — Gmail (если настроен App Password), иначе Resend.
+    Возвращает (успех, причина_ошибки). Приоритет — Gmail (если настроен
+    App Password), иначе Resend.
     """
-    if not config.invoice_enabled() or not to_email:
-        return False
+    if not config.invoice_enabled():
+        return False, "не настроен ни Gmail (GMAIL_APP_PASSWORD), ни Resend"
+    if not to_email:
+        return False, "не указан e-mail получателя"
     try:
         total = float(total_str)
     except ValueError:
-        return False
+        return False, f"некорректная сумма: {total_str!r}"
     excl = round(total / (1 + config.BTW_PERCENT / 100), 2)
     btw = round(total - excl, 2)
     no = await _next_invoice_no()

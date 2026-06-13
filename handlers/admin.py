@@ -386,12 +386,11 @@ async def cmd_invoice(message: Message, state: FSMContext) -> None:
     info = config.plan_info(plan)
     from utils.invoices import send_invoice
     desc = f"Vermelding in Podslushano-gids: {name} ({info['title']})"
-    ok = await send_invoice(to_email, name, desc, info["price"])
-    await message.answer(
-        f"🧾 Счёт отправлен на {to_email}." if ok
-        else "❌ Не удалось отправить счёт. Проверь логи и настройки Resend "
-             "(verified-домен, корректный INVOICE_FROM_EMAIL)."
-    )
+    ok, detail = await send_invoice(to_email, name, desc, info["price"])
+    if ok:
+        await message.answer(f"🧾 Счёт отправлен на {to_email}.")
+    else:
+        await message.answer(f"❌ Не удалось отправить счёт.\nПричина: {html.escape(detail)}")
 
 
 # --- Рассылка-анонс ---------------------------------------------------------
