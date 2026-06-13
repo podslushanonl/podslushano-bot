@@ -34,6 +34,11 @@ _LATER_COLUMNS = {
     "renewal_reminded": "BOOLEAN DEFAULT 0",
 }
 
+# Колонки таблицы пользователей, которые могли появиться позже
+_USER_LATER_COLUMNS = {
+    "referred_by": "BIGINT",
+}
+
 
 async def init_db() -> None:
     """Создаёт таблицы, добавляет недостающие колонки и засевает специалистов."""
@@ -58,6 +63,14 @@ async def _migrate() -> None:
                 await conn.exec_driver_sql(
                     f"ALTER TABLE specialists ADD COLUMN {name} {ddl}"
                 )
+
+        def user_cols(sync_conn) -> set[str]:
+            return {c["name"] for c in inspect(sync_conn).get_columns("users")}
+
+        ucols = await conn.run_sync(user_cols)
+        for name, ddl in _USER_LATER_COLUMNS.items():
+            if name not in ucols:
+                await conn.exec_driver_sql(f"ALTER TABLE users ADD COLUMN {name} {ddl}")
 
 
 async def _seed_if_needed() -> None:

@@ -20,6 +20,7 @@ BTN_SALARY = "🧮 Калькулятор зарплаты"
 BTN_SELF_ADD = "➕ Добавить себя в гайд"
 BTN_STICKERS = "🎨 Наши стикеры"
 BTN_CONTACT = "✉️ Связаться с нами"
+BTN_SHARE = "📣 Поделиться ботом"
 BTN_CANCEL = "❌ Отмена"
 
 
@@ -39,7 +40,7 @@ def main_menu() -> ReplyKeyboardMarkup:
     # Кнопка стикерпака — только если задана ссылка в настройках
     if config.STICKER_PACK_URL:
         keyboard.append([KeyboardButton(text=BTN_STICKERS)])
-    keyboard.append([KeyboardButton(text=BTN_CONTACT)])
+    keyboard.append([KeyboardButton(text=BTN_CONTACT), KeyboardButton(text=BTN_SHARE)])
     return ReplyKeyboardMarkup(
         keyboard=keyboard,
         resize_keyboard=True,

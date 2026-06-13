@@ -1,12 +1,19 @@
 """Команда /start и показ главного меню."""
+import logging
+from datetime import datetime
+
 from aiogram import F, Router
 from aiogram.enums import ChatType
-from aiogram.filters import Command, CommandStart
+from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 import config
+from database.db import get_session
+from database.models import BotUser
 from keyboards.menus import BTN_CANCEL, BTN_STICKERS, main_menu, stickers_button
+
+log = logging.getLogger(__name__)
 
 router = Router()
 # Всё «личное» меню работает только в личных чатах, не в группах
@@ -84,9 +91,37 @@ def features_text(name: str) -> str:
     return text + _footer()
 
 
+async def _attribute_referral(user_id: int, payload: str | None) -> None:
+    """Если человек пришёл по реферальной ссылке (?start=ref_<id>) и он новичок —
+    запоминаем, кто его пригласил. Атрибутируем только что зарегистрированным."""
+    if not payload or not payload.startswith("ref_"):
+        return
+    try:
+        ref_id = int(payload[4:])
+    except ValueError:
+        return
+    if ref_id == user_id:
+        return
+    try:
+        async with get_session() as session:
+            u = await session.get(BotUser, user_id)
+            if u is None or u.referred_by is not None:
+                return
+            # только для свежих пользователей (пришли только что по ссылке)
+            if u.created_at and (datetime.utcnow() - u.created_at).total_seconds() > 600:
+                return
+            if await session.get(BotUser, ref_id) is None:
+                return  # реферер должен существовать
+            u.referred_by = ref_id
+            await session.commit()
+    except Exception as e:  # noqa: BLE001 — учёт не должен мешать старту
+        log.warning("Не удалось учесть реферала: %s", e)
+
+
 @router.message(CommandStart())
-async def cmd_start(message: Message, state: FSMContext) -> None:
+async def cmd_start(message: Message, state: FSMContext, command: CommandObject) -> None:
     await state.clear()
+    await _attribute_referral(message.from_user.id, command.args)
     name = message.from_user.first_name or "друг"
     await message.answer(welcome_text(name), reply_markup=main_menu())
 

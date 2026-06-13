@@ -86,7 +86,8 @@ async def salary_calc(callback: CallbackQuery, state: FSMContext) -> None:
         return
     await callback.message.answer(
         "🧮 <b>Расчёт зарплаты</b>\n\n" + result
-        + "\n\n💬 Нужен точный расчёт под твой случай? Нажми «🔍 Найти специалиста» (бухгалтер).",
+        + "\n\n💬 Нужен точный расчёт под твой случай? Нажми «🔍 Найти специалиста» (бухгалтер)."
+        + "\n💛 Пригодилось? Поделись ботом: /share",
         reply_markup=main_menu(),
     )
     await callback.answer()

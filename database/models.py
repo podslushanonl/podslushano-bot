@@ -111,4 +111,6 @@ class BotUser(Base):
     first_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
     # Заблокировал ли бота (тогда рассылку ему не шлём)
     is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Кто пригласил (Telegram-id реферера) — для роста по реферальным ссылкам
+    referred_by: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
