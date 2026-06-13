@@ -468,6 +468,45 @@ def _clean(t: str) -> str:
     return t.strip(" ·\t\n")
 
 
+# Платформы онлайн-записи → ссылка показывается словом «Записаться»
+_BOOKING_RE = re.compile(r"alteg\.io|altegio|yclients|dikidi|n-?bron|booking", re.I)
+
+
+def _contacts_html(contact: str | None) -> str:
+    """Готовые корректные ссылки контактов с понятными подписями (для сайта)."""
+    if not contact:
+        return ""
+    links = parse_contact_links(contact)
+    # сайт без http:// (www.…) parse не ловит — добавим вручную
+    if not any(l["type"] == "website" for l in links):
+        wm = re.search(r"\b(www\.[^\s·,)]+)", contact)
+        if wm:
+            links.append({"type": "website", "url": "https://" + wm.group(1).rstrip(".")})
+    parts = []
+    for l in links:
+        t, url = l["type"], l["url"]
+        if t == "whatsapp":
+            continue  # не добавляем новых кнопок — номер ниже как «Позвонить»
+        if t == "instagram":
+            lab = "Instagram"
+        elif t == "telegram":
+            lab = "Telegram"
+        elif t == "phone":
+            pm = re.search(r"\+?\d[\d\s\-]{7,}\d", contact)
+            lab = pm.group(0).strip() if pm else url.replace("tel:", "")
+        elif t == "email":
+            lab = url.replace("mailto:", "")
+        elif t == "website":
+            lab = "Записаться" if _BOOKING_RE.search(url) else "Сайт"
+        else:
+            lab = "Ссылка"
+        parts.append(
+            f'<a href="{html_lib.escape(url)}" target="_blank" rel="noopener">'
+            f"{html_lib.escape(lab)}</a>"
+        )
+    return " · ".join(parts)
+
+
 async def _api_guide(request: web.Request) -> web.Response:
     """JSON-фид для кастомного виджета каталога на сайте (KG_DATA_URL).
 
@@ -482,11 +521,21 @@ async def _api_guide(request: web.Request) -> web.Response:
         # контакты — в одну строку через · (как было), отдельно от описания
         cparts = [_clean(p) for p in re.split(r"\s*·\s*|\n+", s.contact or "")]
         contact = " · ".join(p for p in cparts if p)
-        # описание и контакты — отдельными блоками (пустая строка между ними)
+        # plain-версия (для поиска по карточкам)
         desc = "\n\n".join(p for p in [descr, contact] if p)
+        # готовый HTML: описание + корректные ссылки контактов
+        descr_html = html_lib.escape(descr).replace("\n", "<br>")
+        contacts_html = _contacts_html(s.contact)
+        if not contacts_html and contact:  # ссылок не нашли — покажем текст контактов
+            contacts_html = html_lib.escape(contact)
+        if descr_html and contacts_html:
+            rich = descr_html + "<br><br>" + contacts_html
+        else:
+            rich = descr_html or contacts_html
         data.append({
             "name": _clean(s.name) or s.name,
             "desc": desc,
+            "html": rich,
             "prov": "онлайн" if s.is_online else (s.province or ""),
             "cat": _SITE_GROUP.get(s.category, "Услуги"),
             "premium": bool(s.is_premium),
