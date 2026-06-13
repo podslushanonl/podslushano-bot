@@ -343,6 +343,42 @@ async def stats_btn(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
+@router.message(Command("invoice"))
+async def cmd_invoice(message: Message, state: FSMContext) -> None:
+    """/invoice <id> [email] — (пере)отправить счёт по специалисту."""
+    await state.clear()
+    parts = (message.text or "").split()
+    if len(parts) < 2 or not parts[1].isdigit():
+        await message.answer("Использование: <code>/invoice ID [email]</code>\n"
+                             "ID специалиста — из списка/карточки.")
+        return
+    if not config.invoice_enabled():
+        await message.answer("⚠️ Resend не настроен: задай RESEND_API_KEY и "
+                             "INVOICE_FROM_EMAIL в переменных окружения.")
+        return
+    spec_id = int(parts[1])
+    async with get_session() as session:
+        sp = await session.get(Specialist, spec_id)
+        if sp is None:
+            await message.answer(f"Специалист #{spec_id} не найден.")
+            return
+        to_email = parts[2] if len(parts) > 2 else (sp.invoice_email or "")
+        name, plan = sp.name, sp.plan or "year"
+    if not to_email:
+        await message.answer("У этого специалиста не сохранён e-mail. "
+                             "Укажи вручную: <code>/invoice ID email</code>")
+        return
+    info = config.plan_info(plan)
+    from utils.invoices import send_invoice
+    desc = f"Vermelding in Podslushano-gids: {name} ({info['title']})"
+    ok = await send_invoice(to_email, name, desc, info["price"])
+    await message.answer(
+        f"🧾 Счёт отправлен на {to_email}." if ok
+        else "❌ Не удалось отправить счёт. Проверь логи и настройки Resend "
+             "(verified-домен, корректный INVOICE_FROM_EMAIL)."
+    )
+
+
 # --- Рассылка-анонс ---------------------------------------------------------
 
 async def _users_count() -> int:

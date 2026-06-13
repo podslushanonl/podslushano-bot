@@ -337,13 +337,23 @@ async def on_payment_paid(bot, payment_id: str) -> None:
     # Счёт (factuur) на e-mail
     if inv_email:
         desc = f"{DESC_NEW if kind != 'renew' else DESC_RENEW}: {name} ({info['title']})"
+        ok = False
         try:
             from utils.invoices import send_invoice
             ok = await send_invoice(inv_email, name, desc, info["price"])
-            if ok and sub:
-                await _safe_send(bot, sub, f"🧾 Счёт отправлен на {inv_email}.")
         except Exception as e:  # noqa: BLE001
             log.warning("Не удалось отправить счёт: %s", e)
+        if ok:
+            if sub:
+                await _safe_send(bot, sub, f"🧾 Счёт отправлен на {inv_email}.")
+        else:
+            # Не молчим: счёт нужен, но не ушёл — зовём админа дослать вручную
+            for admin_id in config.ADMIN_IDS:
+                await _safe_send(
+                    bot, admin_id,
+                    f"⚠️ Счёт не отправлен «{name}» (e-mail: {inv_email}). "
+                    f"Проверь Resend и дошли вручную: /invoice {sp_id}",
+                )
 
     if kind == "renew":
         if sub:
