@@ -769,10 +769,13 @@ async def cmd_preview(message: Message) -> None:
         )
         return
     await message.answer(
-        "🌐 <b>Живой гайд</b> — открой в браузере, это предпросмотр для сайта "
-        "(данные подтягиваются из бота автоматически):\n\n"
+        "🌐 <b>Живой гайд</b> — открой в браузере (предпросмотр):\n"
         f"{base}/guide\n\n"
-        f"📦 Данные для сайта (JSON): {base}/api/specialists.json",
+        "🔌 <b>Подключение к сайту.</b> На странице каталога WordPress, в блоке "
+        "«Произвольный HTML», найди строку <code>var KG_DATA_URL='';</code> и замени на:\n"
+        f"<code>var KG_DATA_URL='{base}/api/guide.json';</code>\n\n"
+        "Сохрани через «Предпросмотр» — проверишь, не публикуя. Чтобы откатить — "
+        "верни пустые кавычки.",
         reply_markup=main_menu(),
         disable_web_page_preview=True,
     )
