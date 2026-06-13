@@ -173,8 +173,25 @@ async def _send_email(to: str, subject: str, html: str, pdf: bytes, filename: st
         return False, f"Resend: {e}"
 
 
-def _send_smtp_sync(to: str, subject: str, html: str, pdf: bytes, filename: str) -> None:
+def _ipv4_smtp_ssl(host: str, port: int, context, timeout: int):
+    """SMTP_SSL, принудительно подключающийся по IPv4.
+
+    На Railway у контейнера нет IPv6-маршрута, а smtp.gmail.com резолвится в т.ч.
+    в IPv6 → «[Errno 101] Network is unreachable». Берём только A-запись (IPv4).
+    """
     import smtplib
+    import socket
+
+    class _SMTP(smtplib.SMTP_SSL):
+        def _get_socket(self, h, p, t):  # noqa: ANN001
+            ipv4 = socket.getaddrinfo(h, p, socket.AF_INET, socket.SOCK_STREAM)[0][4][0]
+            sock = socket.create_connection((ipv4, p), t, self.source_address)
+            return self.context.wrap_socket(sock, server_hostname=self._host)
+
+    return _SMTP(host, port, context=context, timeout=timeout)
+
+
+def _send_smtp_sync(to: str, subject: str, html: str, pdf: bytes, filename: str) -> None:
     import ssl
     from email.message import EmailMessage
 
@@ -186,7 +203,7 @@ def _send_smtp_sync(to: str, subject: str, html: str, pdf: bytes, filename: str)
     msg.add_alternative(html, subtype="html")
     msg.add_attachment(pdf, maintype="application", subtype="pdf", filename=filename)
     ctx = ssl.create_default_context()
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=ctx, timeout=30) as s:
+    with _ipv4_smtp_ssl("smtp.gmail.com", 465, context=ctx, timeout=30) as s:
         s.login(config.GMAIL_ADDRESS, config.GMAIL_APP_PASSWORD)
         s.send_message(msg)
 
