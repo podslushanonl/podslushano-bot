@@ -36,7 +36,7 @@ async def configure_profile(bot: Bot) -> None:
                 BotCommand(command="letter", description="Разобрать письмо по фото"),
                 BotCommand(command="salary", description="Калькулятор netto-зарплаты"),
                 BotCommand(command="share", description="Поделиться ботом с друзьями"),
-                BotCommand(command="contact", description="Связаться с нами / возвраты"),
+                BotCommand(command="contact", description="Связаться с нами / поддержка"),
                 BotCommand(command="privacy", description="Конфиденциальность и условия"),
             ]
         )
@@ -61,7 +61,7 @@ async def configure_profile(bot: Bot) -> None:
                     [
                         BotCommand(command="start", description="Запустить бота и открыть меню"),
                         BotCommand(command="menu", description="Показать меню"),
-                        BotCommand(command="contact", description="Связаться с нами / возвраты"),
+                        BotCommand(command="contact", description="Связаться с нами / поддержка"),
                         BotCommand(command="admin", description="Управление базой (админ)"),
                         BotCommand(command="broadcast", description="Рассылка-анонс (админ)"),
                         BotCommand(command="announce", description="Пост в канал с кнопкой (админ)"),

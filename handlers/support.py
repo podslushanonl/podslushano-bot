@@ -28,8 +28,8 @@ router.message.filter(F.chat.type == ChatType.PRIVATE)
 async def contact_start(message: Message, state: FSMContext) -> None:
     await state.set_state(SupportContact.waiting_message)
     await message.answer(
-        "Опишите одним сообщением ваш вопрос или проблему (например, по возврату "
-        "средств) — я передам команде, и мы ответим 🙌\n\n"
+        "Опишите одним сообщением ваш вопрос или проблему — я передам команде, "
+        "и мы ответим 🙌\n\n"
         "Можно и напрямую:\n" + config.support_block(),
         reply_markup=cancel_menu(),
         disable_web_page_preview=True,
