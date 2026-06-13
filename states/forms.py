@@ -39,6 +39,12 @@ class LetterExplain(StatesGroup):
     waiting_photo = State()
 
 
+class SalaryCalc(StatesGroup):
+    """Калькулятор netto-зарплаты."""
+
+    waiting_amount = State()
+
+
 class AdminAnnounce(StatesGroup):
     """Анонс в канал с кнопкой «Открыть бота»."""
 

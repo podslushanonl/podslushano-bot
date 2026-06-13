@@ -349,6 +349,52 @@ async def ai_explain_letter(image_b64: str, media_type: str = "image/jpeg") -> s
     return _clean(_extract_text_and_sources(resp)[0]) or None
 
 
+async def ai_salary(gross_month: float, ruling30: bool) -> str | None:
+    """Считает примерную netto-зарплату в месяц через ИИ с веб-поиском.
+
+    ИИ берёт АКТУАЛЬНЫЕ ставки/льготы текущего года с belastingdienst.nl, поэтому
+    цифры не «протухают». Возвращает текст расчёта (с источником) или None.
+    """
+    if not ai_enabled():
+        return None
+    ruling = (
+        "Работник ПОЛЬЗУЕТСЯ льготой 30%-ruling (до 30% зарплаты не облагается, в пределах лимита)."
+        if ruling30 else "Без 30%-ruling."
+    )
+    system = (
+        "Ты — калькулятор чистой (netto) зарплаты в Нидерландах. По указанной БРУТТО "
+        "за месяц посчитай примерную МЕСЯЧНУЮ netto на основе АКТУАЛЬНЫХ официальных правил "
+        "текущего года: ставки box 1 (loonbelasting + premies), algemene heffingskorting и "
+        "arbeidskorting. Найди актуальные цифры года веб-поиском на belastingdienst.nl. "
+        "Предположения: наёмный сотрудник младше пенсионного возраста (AOW), без доп. вычетов; "
+        "зарплата указана без отпускных (vakantiegeld). " + ruling + "\n"
+        "Ответь по-русски кратко и понятно:\n"
+        "• Брутто/мес\n• Удержания (налог и взносы)\n• Налоговые льготы (heffingskortingen) — кратко\n"
+        "• ИТОГО netto/мес — выдели это число\n"
+        "В конце добавь строку: «Это оценка по правилам текущего года; точную сумму "
+        "считает работодатель/Belastingdienst.» Пиши обычным текстом, без разметки."
+    )
+    user = f"Брутто-зарплата: {gross_month:.0f} евро в месяц. Посчитай netto в месяц."
+    messages = [{"role": "user", "content": user}]
+    client = _get_client()
+    try:
+        kwargs = dict(model=config.AI_MODEL, max_tokens=900, system=system, messages=messages)
+        tools = _web_search_tool()
+        if tools:
+            kwargs["tools"] = tools
+        resp = await client.messages.create(**kwargs)
+    except Exception as e:  # noqa: BLE001 — пробуем без веб-поиска
+        log.warning("Калькулятор зарплаты с веб-поиском не сработал (%s), пробую без", e)
+        try:
+            resp = await client.messages.create(
+                model=config.AI_MODEL, max_tokens=900, system=system, messages=messages
+            )
+        except Exception as e2:  # noqa: BLE001
+            log.warning("Ошибка калькулятора зарплаты ИИ: %s", e2)
+            return None
+    return _finalize(resp)
+
+
 async def reply_with_ai(message, state) -> bool:
     """Отвечает на свободное сообщение через ИИ и помнит контекст диалога.
 

@@ -16,6 +16,7 @@ BTN_AD = "📢 Реклама / сотрудничество"
 BTN_CONTACTS = "🔍 Найти специалиста"
 BTN_GUIDE = "📚 Полезное о жизни в NL"
 BTN_LETTER = "📩 Разобрать письмо"
+BTN_SALARY = "🧮 Калькулятор зарплаты"
 BTN_SELF_ADD = "➕ Добавить себя в гайд"
 BTN_STICKERS = "🎨 Наши стикеры"
 BTN_CONTACT = "✉️ Связаться с нами"
@@ -29,7 +30,8 @@ def main_menu() -> ReplyKeyboardMarkup:
         [KeyboardButton(text=BTN_QUESTION), KeyboardButton(text=BTN_VIDEO)],
         [KeyboardButton(text=BTN_AD)],
         [KeyboardButton(text=BTN_CONTACTS)],
-        [KeyboardButton(text=BTN_GUIDE), KeyboardButton(text=BTN_LETTER)],
+        [KeyboardButton(text=BTN_GUIDE)],
+        [KeyboardButton(text=BTN_LETTER), KeyboardButton(text=BTN_SALARY)],
     ]
     # Кнопка платного само-добавления — только если подключена оплата
     if config.payments_enabled():
