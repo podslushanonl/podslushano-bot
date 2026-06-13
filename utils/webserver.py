@@ -16,6 +16,7 @@ from database.db import get_session
 from database.models import Specialist
 from handlers.selfadd import on_payment_paid
 from utils.contact_links import parse_contact_links
+from utils.reviews import rating_badge, ratings_for, specialist_key
 from utils.payments import get_payment
 
 log = logging.getLogger(__name__)
@@ -292,8 +293,11 @@ async def _active_specialists() -> list[Specialist]:
 async def _api_specialists(request: web.Request) -> web.Response:
     """JSON со всеми активными специалистами (для сайта). CORS открыт."""
     rows = await _active_specialists()
-    data = [
-        {
+    ratings = await ratings_for([specialist_key(s.name, s.contact) for s in rows])
+    data = []
+    for s in rows:
+        r = ratings.get(specialist_key(s.name, s.contact))
+        data.append({
             "name": s.name,
             "category": s.category,
             "city": s.city or "",
@@ -302,9 +306,9 @@ async def _api_specialists(request: web.Request) -> web.Response:
             "description": s.description or "",
             "contact": s.contact or "",
             "links": parse_contact_links(s.contact),
-        }
-        for s in rows
-    ]
+            "rating": r[0] if r else None,
+            "reviews": r[1] if r else 0,
+        })
     resp = web.json_response({"count": len(data), "specialists": data})
     resp.headers["Access-Control-Allow-Origin"] = "*"
     return resp
@@ -341,10 +345,12 @@ function flt(){{var v=document.getElementById('q').value.toLowerCase();
 </body></html>"""
 
 
-def _guide_card(s: Specialist) -> str:
+def _guide_card(s: Specialist, badge: str = "") -> str:
     where = "онлайн" if s.is_online else (s.city or s.province or "")
     name = html_lib.escape(s.name)
     head = name + (f" · {html_lib.escape(where)}" if where else "")
+    if badge:
+        head += f' <span class="rt">{html_lib.escape(badge)}</span>'
     desc = (
         f'<div class="ds">{html_lib.escape(s.description)}</div>' if s.description else ""
     )
@@ -358,13 +364,17 @@ def _guide_card(s: Specialist) -> str:
 
 async def _guide(request: web.Request) -> web.Response:
     rows = await _active_specialists()
+    ratings = await ratings_for([specialist_key(s.name, s.contact) for s in rows])
     groups: dict[str, list[Specialist]] = {}
     for s in rows:
         groups.setdefault(s.category, []).append(s)
     parts: list[str] = []
     for cat in sorted(groups):
         parts.append(f"<h2>{html_lib.escape(cat).capitalize()}</h2>")
-        parts.extend(_guide_card(s) for s in groups[cat])
+        parts.extend(
+            _guide_card(s, rating_badge(ratings.get(specialist_key(s.name, s.contact))))
+            for s in groups[cat]
+        )
     body = "".join(parts) or "<p>Пока пусто.</p>"
     logo = f'<img src="{config.LOGO_URL}" alt="logo"><br>' if config.LOGO_URL else ""
     return web.Response(

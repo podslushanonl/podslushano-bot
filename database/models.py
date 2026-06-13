@@ -72,6 +72,20 @@ class Meta(Base):
     value: Mapped[str] = mapped_column(String(100))
 
 
+class Review(Base):
+    """Отзыв и оценка специалиста. Привязка по стабильному ключу (имя+контакт),
+    чтобы оценки не терялись при пере-засеве базы (где меняются id)."""
+
+    __tablename__ = "reviews"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    spec_key: Mapped[str] = mapped_column(String(500), index=True)
+    user_id: Mapped[int] = mapped_column(BigInteger)
+    rating: Mapped[int] = mapped_column(Integer)  # 1..5
+    text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class BotUser(Base):
     """Пользователь бота — для рассылок-анонсов."""
 

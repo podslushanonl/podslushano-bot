@@ -49,6 +49,12 @@ class AdminBroadcast(StatesGroup):
     waiting_message = State()
 
 
+class ReviewForm(StatesGroup):
+    """Оставить отзыв специалисту: после оценки — необязательный текст."""
+
+    waiting_text = State()
+
+
 class SelfAddSpecialist(StatesGroup):
     """Само-добавление специалиста (платно): пошаговая анкета."""
 

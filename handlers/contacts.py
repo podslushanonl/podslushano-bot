@@ -18,9 +18,16 @@ import config
 from database.db import get_session
 from database.models import Specialist
 from keyboards.menus import BTN_CONTACTS, cancel_menu, main_menu
-from states.forms import ContactSearch
+from states.forms import ContactSearch, ReviewForm
 from utils.ai import extract_specialist_query, reply_with_ai
 from utils.contact_links import TELEGRAM_TYPES, parse_contact_links
+from utils.reviews import (
+    add_or_update_review,
+    rating_badge,
+    ratings_for,
+    set_review_text,
+    specialist_key,
+)
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city
 
 router = Router()
@@ -184,12 +191,14 @@ def _filter_relevant(specs: list, tokens: list[str]) -> list:
     return specs
 
 
-def _spec_text(spec: Specialist) -> str:
+def _spec_text(spec: Specialist, badge: str = "") -> str:
     """Текст карточки одного специалиста (данные экранируем для HTML)."""
     where = "онлайн" if spec.is_online else (spec.city or spec.province)
     text = f"<b>{html.escape(spec.name)}</b>"
     if where:
         text += f" · {html.escape(where)}"
+    if badge:
+        text += f"  {badge}"
     if spec.description:
         text += f"\n{html.escape(spec.description)}"
     if spec.contact:
@@ -197,19 +206,21 @@ def _spec_text(spec: Specialist) -> str:
     return text
 
 
-def _spec_kb(spec: Specialist) -> InlineKeyboardMarkup | None:
-    # В Telegram-кнопках только http/https (tel:/mailto: нельзя)
+def _spec_kb(spec: Specialist) -> InlineKeyboardMarkup:
+    # Кнопки-ссылки (только http/https) + кнопка «Оценить»
     links = [l for l in parse_contact_links(spec.contact) if l["type"] in TELEGRAM_TYPES]
-    if not links:
-        return None
     btns = [InlineKeyboardButton(text=l["label"], url=l["url"]) for l in links]
     rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
+    rows.append([InlineKeyboardButton(text="⭐ Оценить", callback_data=f"rate:{spec.id}")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 async def _send_results(message: Message, state: FSMContext, sections: list) -> None:
     """Отправляет результаты: заголовок секции + каждый специалист отдельной карточкой."""
     await state.clear()
+    # Подтягиваем рейтинги для всех специалистов одним запросом
+    all_specs = [s for _, specs in sections for s in specs]
+    ratings = await ratings_for([specialist_key(s.name, s.contact) for s in all_specs])
     seen: set[tuple[str, str]] = set()
     shown = 0
     overflow = 0
@@ -231,12 +242,13 @@ async def _send_results(message: Message, state: FSMContext, sections: list) -> 
             if shown >= MAX_RESULTS:
                 overflow += 1
                 continue
+            badge = rating_badge(ratings.get(specialist_key(s.name, s.contact)))
             try:
                 await message.answer(
-                    _spec_text(s), reply_markup=_spec_kb(s), disable_web_page_preview=True
+                    _spec_text(s, badge), reply_markup=_spec_kb(s), disable_web_page_preview=True
                 )
             except Exception:  # noqa: BLE001 — одна кривая карточка не рушит всю выдачу
-                await message.answer(_spec_text(s), disable_web_page_preview=True)
+                await message.answer(_spec_text(s, badge), disable_web_page_preview=True)
             shown += 1
     tail = "Если что-то ещё нужно — я тут 😉"
     if overflow:
@@ -403,3 +415,60 @@ async def _finish(message: Message, state: FSMContext, text: str) -> None:
     """Отправляет результат и возвращает в главное меню."""
     await state.clear()
     await message.answer(text, reply_markup=main_menu(), disable_web_page_preview=True)
+
+
+# --- Отзывы и рейтинг -------------------------------------------------------
+
+def _stars_kb(spec_id: int) -> InlineKeyboardMarkup:
+    btns = [
+        InlineKeyboardButton(text=f"{n}⭐", callback_data=f"rstar:{spec_id}:{n}")
+        for n in range(1, 6)
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=[btns])
+
+
+@router.callback_query(F.data.startswith("rate:"))
+async def rate_open(callback: CallbackQuery) -> None:
+    spec_id = int(callback.data.split(":", 1)[1])
+    await callback.message.answer("Оцени специалиста 👇", reply_markup=_stars_kb(spec_id))
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("rstar:"))
+async def rate_set(callback: CallbackQuery, state: FSMContext) -> None:
+    _, sid, n = callback.data.split(":")
+    rating = int(n)
+    async with get_session() as session:
+        sp = await session.get(Specialist, int(sid))
+    if sp is None:
+        await callback.answer("Карточка не найдена — попробуй поиск заново", show_alert=True)
+        return
+    key = specialist_key(sp.name, sp.contact)
+    await add_or_update_review(key, callback.from_user.id, rating, None)
+    await state.set_state(ReviewForm.waiting_text)
+    await state.update_data(review_key=key)
+    await callback.message.answer(
+        f"Спасибо за оценку {rating}⭐! Хочешь добавить пару слов об опыте? "
+        "Напиши отзыв или нажми «Пропустить».",
+        reply_markup=InlineKeyboardMarkup(
+            inline_keyboard=[[InlineKeyboardButton(text="Пропустить", callback_data="rskip")]]
+        ),
+    )
+    await callback.answer("Оценка сохранена ⭐")
+
+
+@router.callback_query(F.data == "rskip")
+async def rate_skip(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.message.answer("Готово, спасибо! 🙌", reply_markup=main_menu())
+    await callback.answer()
+
+
+@router.message(ReviewForm.waiting_text)
+async def rate_text(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    key = data.get("review_key")
+    if key and message.text:
+        await set_review_text(key, message.from_user.id, message.text.strip())
+    await state.clear()
+    await message.answer("Спасибо за отзыв! 🙌", reply_markup=main_menu())
