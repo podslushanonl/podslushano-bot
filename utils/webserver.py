@@ -479,9 +479,9 @@ async def _api_guide(request: web.Request) -> web.Response:
     data = []
     for s in rows:
         descr = _clean(s.description or "")
-        # контакты — каждый с новой строки (разделители · или переносы)
+        # контакты — в одну строку через · (как было), отдельно от описания
         cparts = [_clean(p) for p in re.split(r"\s*·\s*|\n+", s.contact or "")]
-        contact = "\n".join(p for p in cparts if p)
+        contact = " · ".join(p for p in cparts if p)
         # описание и контакты — отдельными блоками (пустая строка между ними)
         desc = "\n\n".join(p for p in [descr, contact] if p)
         data.append({
