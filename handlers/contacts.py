@@ -12,7 +12,7 @@ from aiogram import F, Router
 from aiogram.enums import ChatType
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-from sqlalchemy import or_, select
+from sqlalchemy import func, or_, select
 
 import config
 from database.db import get_session
@@ -47,74 +47,76 @@ CATEGORY_EMOJI = {
 POPULAR_CITIES = ["Amsterdam", "Rotterdam", "Den Haag", "Utrecht", "Eindhoven", "Groningen"]
 
 
-async def _active_categories() -> list[str]:
-    """Категории, в которых есть активные специалисты (в порядке из CATEGORIES)."""
+async def _active_category_counts() -> dict[str, int]:
+    """Сколько активных специалистов в каждой категории."""
     now = datetime.utcnow()
     async with get_session() as session:
         rows = (
-            await session.scalars(
-                select(Specialist.category)
+            await session.execute(
+                select(Specialist.category, func.count())
                 .where(
                     Specialist.status == "active",
                     or_(Specialist.paid_until.is_(None), Specialist.paid_until > now),
                 )
-                .distinct()
+                .group_by(Specialist.category)
             )
         ).all()
-    present = set(rows)
-    return [c for c in CATEGORIES if c in present]
+    return {cat: n for cat, n in rows}
 
 
-def _categories_kb(cats: list[str]) -> InlineKeyboardMarkup:
+def _categories_kb(counts: dict[str, int]) -> InlineKeyboardMarkup:
+    # Показываем популярные категории (≥2 специалистов), по убыванию количества.
+    cats = [c for c, n in sorted(counts.items(), key=lambda x: -x[1]) if n >= 2]
     btns = [
-        InlineKeyboardButton(text=f"{CATEGORY_EMOJI.get(c, '•')} {c}", callback_data=f"findcat:{c}")
-        for c in sorted(cats)
+        InlineKeyboardButton(text=f"{CATEGORY_EMOJI.get(c, '•')} {c}", callback_data=f"fcat|{c}")
+        for c in cats
     ]
     rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def _cities_kb() -> InlineKeyboardMarkup:
-    btns = [InlineKeyboardButton(text=c, callback_data=f"findcity:{c}") for c in POPULAR_CITIES]
+def _cities_kb(cat: str) -> InlineKeyboardMarkup:
+    # Категорию зашиваем прямо в кнопку — не зависим от состояния диалога.
+    btns = [InlineKeyboardButton(text=c, callback_data=f"fcity|{cat}|{c}") for c in POPULAR_CITIES]
     rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
-    rows.append([InlineKeyboardButton(text="🌐 Онлайн / вся страна", callback_data="findcity:online")])
+    rows.append([InlineKeyboardButton(text="🌐 Онлайн / вся страна", callback_data=f"fcity|{cat}|__online__")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 @router.message(F.text == BTN_CONTACTS)
 async def ask_query(message: Message, state: FSMContext) -> None:
     await state.set_state(ContactSearch.waiting_for_query)
-    cats = await _active_categories()
+    counts = await _active_category_counts()
     await message.answer(
         "Кого ищем? Напиши словами — например «стоматолог в Амстердаме» — "
         "или выбери категорию ниже 👇",
         reply_markup=cancel_menu(),
     )
-    await message.answer("📂 Выбери категорию:", reply_markup=_categories_kb(cats))
+    await message.answer(
+        "📂 Популярные категории (или просто напиши, кого ищешь):",
+        reply_markup=_categories_kb(counts),
+    )
 
 
-@router.callback_query(F.data.startswith("findcat:"))
+@router.callback_query(F.data.startswith("fcat|"))
 async def pick_category(callback: CallbackQuery, state: FSMContext) -> None:
-    cat = callback.data.split(":", 1)[1]
+    cat = callback.data.split("|", 1)[1]
     await state.set_state(ContactSearch.waiting_for_query)
     await state.update_data(pending_category=cat, pending_terms=[])
     await callback.message.answer(
         f"Ищем «{cat}» 👌 В каком городе? Напиши город или выбери 👇",
         reply_markup=cancel_menu(),
     )
-    await callback.message.answer("📍 Популярные города:", reply_markup=_cities_kb())
+    await callback.message.answer("📍 Города:", reply_markup=_cities_kb(cat))
     await callback.answer()
 
 
-@router.callback_query(F.data.startswith("findcity:"))
+@router.callback_query(F.data.startswith("fcity|"))
 async def pick_city(callback: CallbackQuery, state: FSMContext) -> None:
-    val = callback.data.split(":", 1)[1]
-    if val == "online":
-        data = await state.get_data()
-        cat = data.get("pending_category")
-        if not cat:
-            await callback.answer()
-            return
+    _, cat, val = callback.data.split("|", 2)
+    await state.set_state(ContactSearch.waiting_for_query)
+    await state.update_data(pending_category=cat, pending_terms=[])
+    if val == "__online__":
         now = datetime.utcnow()
         async with get_session() as session:
             online = (
@@ -133,9 +135,9 @@ async def pick_city(callback: CallbackQuery, state: FSMContext) -> None:
                 [("🌐 Онлайн-специалисты (по всей стране):", online)],
             )
         else:
-            await state.clear()
             await callback.message.answer(
-                "Пока нет онлайн-специалистов в этой категории 🙂", reply_markup=main_menu()
+                "Онлайн в этой категории пока нет — выбери город или напиши другой 👇",
+                reply_markup=_cities_kb(cat),
             )
         await callback.answer()
         return
