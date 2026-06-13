@@ -466,7 +466,7 @@ async def _api_guide(request: web.Request) -> web.Response:
         data.append({
             "name": s.name,
             "desc": desc,
-            "prov": "" if s.is_online else (s.province or ""),
+            "prov": "онлайн" if s.is_online else (s.province or ""),
             "cat": _SITE_GROUP.get(s.category, "Услуги"),
             "premium": bool(s.is_premium),
             "photo": _photo_url(s) or "",
