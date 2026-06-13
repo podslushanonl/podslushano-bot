@@ -590,7 +590,6 @@ async def reminder_loop(bot) -> None:
         try:
             await _send_renewal_reminders(bot)
             await _send_expiry_notices(bot)
-            await _send_review_requests(bot)  # отзыв через сутки после контакта
             await _hide_expired_grandfathered(bot)  # старый гайд: скрыть неоплаченные
             await check_seasonal(bot)  # сезонные дедлайны NL (страховка, налоги)
         except Exception as e:  # noqa: BLE001
@@ -655,52 +654,6 @@ async def _send_renewal_reminders(bot) -> None:
             bot, uid,
             f"⏳ Размещение «{name}» в гайде заканчивается {until:%d.%m.%Y}.\n"
             f"Продлить ({_price_str(plan)})?",
-            kb,
-        )
-
-
-async def _send_review_requests(bot) -> None:
-    """Через ~сутки после «Показать контакты» просит у пользователя отзыв.
-    Шлём один раз и только если он ещё не оценивал этого специалиста."""
-    from database.models import ContactIntent, Review
-    from utils.reviews import specialist_key
-
-    due = datetime.utcnow() - timedelta(hours=24)
-    async with get_session() as session:
-        rows = (
-            await session.scalars(
-                select(ContactIntent).where(
-                    ContactIntent.reminded.is_(False),
-                    ContactIntent.created_at <= due,
-                )
-            )
-        ).all()
-        items = [(r.user_id, r.spec_id, r.spec_name) for r in rows]
-        for r in rows:
-            r.reminded = True
-        await session.commit()
-
-    for uid, sid, name in items:
-        async with get_session() as session:
-            sp = await session.get(Specialist, sid)
-            if sp is None:
-                continue
-            key = specialist_key(sp.name, sp.contact)
-            already = await session.scalar(
-                select(Review.id).where(Review.spec_key == key, Review.user_id == uid)
-            )
-        if already:
-            continue  # уже оставлял отзыв — не беспокоим
-        kb = InlineKeyboardMarkup(
-            inline_keyboard=[[
-                InlineKeyboardButton(text=f"{n}⭐", callback_data=f"rstar:{sid}:{n}")
-                for n in range(1, 6)
-            ]]
-        )
-        await _safe_send(
-            bot, uid,
-            f"Вы недавно брали контакт «{html.escape(name)}». "
-            "Если обращались — оцените, как всё прошло 🙂 (это поможет другим)",
             kb,
         )
 

@@ -16,7 +16,7 @@ from sqlalchemy import func, or_, select
 
 import config
 from database.db import get_session
-from database.models import ContactIntent, Specialist
+from database.models import Specialist
 from keyboards.menus import BTN_CONTACTS, cancel_menu, main_menu
 from states.forms import ContactSearch, ReviewForm
 from utils.ai import extract_specialist_query, reply_with_ai
@@ -213,56 +213,13 @@ def _spec_text(spec: Specialist, badge: str = "",
     return text
 
 
-def _contact_links(spec: Specialist) -> list[dict]:
-    """Ссылки-контакты, допустимые в Telegram-кнопках (http/https)."""
-    return [l for l in parse_contact_links(spec.contact) if l["type"] in TELEGRAM_TYPES]
-
-
 def _spec_kb(spec: Specialist) -> InlineKeyboardMarkup:
-    # «Показать контакты» (через бота — чтобы потом спросить отзыв) + «Оценить»
-    rows = []
-    if _contact_links(spec):
-        rows.append([InlineKeyboardButton(
-            text="📞 Показать контакты", callback_data=f"contact:{spec.id}")])
-    rows.append([InlineKeyboardButton(text="⭐ Оценить", callback_data=f"rate:{spec.id}")])
-    return InlineKeyboardMarkup(inline_keyboard=rows)
-
-
-@router.callback_query(F.data.startswith("contact:"))
-async def contact_reveal(callback: CallbackQuery) -> None:
-    """Показывает контакты специалиста и запоминает намерение (для отзыва позже)."""
-    spec_id = int(callback.data.split(":", 1)[1])
-    async with get_session() as session:
-        sp = await session.get(Specialist, spec_id)
-    if sp is None:
-        await callback.answer("Карточка не найдена — попробуй поиск заново", show_alert=True)
-        return
-    links = _contact_links(sp)
+    # Кнопки-ссылки (только http/https) + кнопка «Оценить»
+    links = [l for l in parse_contact_links(spec.contact) if l["type"] in TELEGRAM_TYPES]
     btns = [InlineKeyboardButton(text=l["label"], url=l["url"]) for l in links]
     rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
-    # запоминаем намерение (без дублей среди ещё-не-спрошенных)
-    try:
-        async with get_session() as session:
-            exists = await session.scalar(
-                select(ContactIntent.id).where(
-                    ContactIntent.user_id == callback.from_user.id,
-                    ContactIntent.spec_id == spec_id,
-                    ContactIntent.reminded.is_(False),
-                )
-            )
-            if not exists:
-                session.add(ContactIntent(
-                    user_id=callback.from_user.id, spec_id=spec_id, spec_name=sp.name))
-                await session.commit()
-    except Exception:  # noqa: BLE001 — лог намерения не должен мешать показу контактов
-        pass
-    await log_event("contact", sp.category)
-    await callback.message.answer(
-        f"Контакты — <b>{html.escape(sp.name)}</b> 👇",
-        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
-        disable_web_page_preview=True,
-    )
-    await callback.answer()
+    rows.append([InlineKeyboardButton(text="⭐ Оценить", callback_data=f"rate:{spec.id}")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 async def _send_results(message: Message, state: FSMContext, sections: list) -> None:

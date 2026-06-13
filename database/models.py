@@ -69,20 +69,6 @@ class Specialist(Base):
     photo_file_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
-class ContactIntent(Base):
-    """Намерение связаться: пользователь нажал «Показать контакты» у специалиста.
-    Через сутки бот спросит у него отзыв (если ещё не оставлял)."""
-
-    __tablename__ = "contact_intents"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
-    spec_id: Mapped[int] = mapped_column(Integer)
-    spec_name: Mapped[str] = mapped_column(String(200))
-    reminded: Mapped[bool] = mapped_column(Boolean, default=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-
-
 class Meta(Base):
     """Служебная таблица «ключ-значение» (например, версия засева базы)."""
 
