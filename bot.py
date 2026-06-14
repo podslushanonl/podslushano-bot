@@ -10,8 +10,8 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 import config
 from database.db import init_db
 from handlers import (
-    admin, chat, contacts, errors, events, guides, letters, moderation, salary, selfadd,
-    share, start, submissions, support,
+    admin, afisha, chat, contacts, errors, events, guides, letters, moderation, salary,
+    selfadd, share, start, submissions, support,
 )
 from handlers.selfadd import reminder_loop
 from utils.limits import ThrottleMiddleware
@@ -34,6 +34,7 @@ async def configure_profile(bot: Bot) -> None:
                 BotCommand(command="help", description="Что я умею"),
                 BotCommand(command="guide", description="Полезное о жизни в Нидерландах"),
                 BotCommand(command="afisha", description="Чем заняться: афиша и идеи 🎉"),
+                BotCommand(command="afisha_add", description="Разместить мероприятие в афише 📅"),
                 BotCommand(command="letter", description="Разобрать письмо по фото"),
                 BotCommand(command="salary", description="Калькулятор netto-зарплаты"),
                 BotCommand(command="share", description="Поделиться ботом с друзьями"),
@@ -68,6 +69,7 @@ async def configure_profile(bot: Bot) -> None:
                         BotCommand(command="broadcast", description="Рассылка-анонс (админ)"),
                         BotCommand(command="announce", description="Пост в канал с кнопкой (админ)"),
                         BotCommand(command="afishapost", description="Афиша «Чем заняться» в канал (админ)"),
+                        BotCommand(command="afisha_export", description="Собрать афишу месяца для IG (админ)"),
                         BotCommand(command="stats", description="Статистика (админ)"),
                         BotCommand(command="reviews", description="Последние отзывы (админ)"),
                     ],
@@ -106,6 +108,7 @@ async def main() -> None:
     dp.include_router(share.router)  # 📣 поделиться ботом / рефералы
     dp.include_router(support.router)  # связь с командой / возвраты
     dp.include_router(admin.router)  # /admin — управление базой (только админы)
+    dp.include_router(afisha.router)  # 📅 платная «Афиша месяца» (мероприятия)
     dp.include_router(selfadd.router)  # платное само-добавление в гайд
     dp.include_router(submissions.router)
     dp.include_router(contacts.router)

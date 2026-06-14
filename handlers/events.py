@@ -48,7 +48,8 @@ async def events_start(message: Message, state: FSMContext) -> None:
     await state.set_state(EventsSearch.waiting_city)
     await message.answer(
         f"{s['emoji']} Покажу, чем заняться {s['phrase']} 🎉\n\n"
-        "В каком городе? Напиши или выбери 👇",
+        "В каком городе? Напиши или выбери 👇\n\n"
+        "<i>Организуете мероприятие? Разместите его в нашей афише: /afisha_add</i>",
         reply_markup=cancel_menu(),
     )
     await message.answer("📍 Города:", reply_markup=_cities_kb())

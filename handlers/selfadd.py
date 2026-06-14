@@ -295,8 +295,13 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         return
     status = payment.get("status")
     meta = payment.get("metadata") or {}
-    sid = meta.get("specialist_id")
     kind = meta.get("kind", "new")
+    # Платёж за мероприятие афиши — отдельный обработчик (своя таблица)
+    if kind == "afisha":
+        from handlers.afisha import on_afisha_payment_paid
+        await on_afisha_payment_paid(bot, payment_id, payment)
+        return
+    sid = meta.get("specialist_id")
     if not sid:
         return
 
