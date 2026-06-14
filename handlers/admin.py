@@ -36,7 +36,7 @@ from states.forms import (
 )
 from utils.ai import ai_afisha_channel, ai_enabled, extract_specialist_query
 from utils.season import current_season
-from utils.analytics import gather_stats
+from utils.analytics import _fmt_dt, gather_stats
 from utils.reviews import recent_reviews
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
 
@@ -66,6 +66,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="⏳ Старый гайд: дедлайн оплаты", callback_data="admin:legacydeadline")],
             [InlineKeyboardButton(text="📋 Старый гайд: список для рассылки", callback_data="admin:legacyexport")],
             [InlineKeyboardButton(text="📊 Статистика", callback_data="admin:stats")],
+            [InlineKeyboardButton(text="👥 Пользователи", callback_data="admin:users")],
             [InlineKeyboardButton(text="⭐ Отзывы", callback_data="admin:reviews")],
         ]
     )
@@ -655,6 +656,46 @@ async def cmd_stats(message: Message, state: FSMContext) -> None:
 @router.callback_query(F.data == "admin:stats")
 async def stats_btn(callback: CallbackQuery) -> None:
     await callback.message.answer(await gather_stats())
+    await callback.answer()
+
+
+# --- Пользователи: кто пользуется ботом и когда заходил последний раз ---------
+
+def _user_line(u: BotUser) -> str:
+    name = html.escape(u.first_name or "—")
+    who = f"@{html.escape(u.username)}" if u.username else f"id <code>{u.user_id}</code>"
+    flag = " 🚫" if u.is_blocked else ""
+    return f"• {name} ({who}) — {_fmt_dt(u.last_seen)}{flag}"
+
+
+async def _users_overview(limit: int = 30) -> str:
+    async with get_session() as session:
+        total = await session.scalar(select(func.count()).select_from(BotUser)) or 0
+        rows = (
+            await session.scalars(
+                select(BotUser).order_by(BotUser.last_seen.desc()).limit(limit)
+            )
+        ).all()
+    if not rows:
+        return "👥 Пока нет ни одного пользователя."
+    head = (
+        f"👥 <b>Пользователи бота: {total}</b>\n"
+        f"Последние {len(rows)} по активности (кто и когда заходил):\n\n"
+    )
+    return head + "\n".join(_user_line(u) for u in rows) + "\n\n🚫 — заблокировал(а) бота."
+
+
+@router.message(Command("users"))
+async def cmd_users(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    await message.answer(
+        await _users_overview(), reply_markup=main_menu(), disable_web_page_preview=True
+    )
+
+
+@router.callback_query(F.data == "admin:users")
+async def users_btn(callback: CallbackQuery) -> None:
+    await callback.message.answer(await _users_overview(), disable_web_page_preview=True)
     await callback.answer()
 
 

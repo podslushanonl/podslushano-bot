@@ -1,5 +1,6 @@
 """Простая аналитика: лог событий и сводка для админа."""
 import logging
+from datetime import datetime, timedelta
 
 from sqlalchemy import func, select
 
@@ -21,6 +22,22 @@ async def log_event(type_: str, key: str | None = None) -> None:
         log.warning("Не удалось записать событие %s: %s", type_, e)
 
 
+def _fmt_dt(dt: datetime | None) -> str:
+    """Человеческий формат времени: «14.06.2026 17:05 UTC (5 мин назад)»."""
+    if dt is None:
+        return "—"
+    secs = max((datetime.utcnow() - dt).total_seconds(), 0)
+    if secs < 120:
+        rel = "только что"
+    elif secs < 3600:
+        rel = f"{int(secs // 60)} мин назад"
+    elif secs < 86400:
+        rel = f"{int(secs // 3600)} ч назад"
+    else:
+        rel = f"{int(secs // 86400)} дн назад"
+    return f"{dt:%d.%m.%Y %H:%M} UTC ({rel})"
+
+
 async def gather_stats() -> str:
     """Собирает текстовую сводку статистики."""
     async with get_session() as session:
@@ -28,6 +45,20 @@ async def gather_stats() -> str:
         active_users = await session.scalar(
             select(func.count()).select_from(BotUser).where(BotUser.is_blocked.is_(False))
         ) or 0
+        # Активность по времени: когда вообще последний раз кто-то заходил +
+        # сколько уникальных пользователей было активно за сутки / неделю / месяц
+        now = datetime.utcnow()
+        last_active = await session.scalar(select(func.max(BotUser.last_seen)))
+
+        async def _active_since(days: int) -> int:
+            since = now - timedelta(days=days)
+            return await session.scalar(
+                select(func.count()).select_from(BotUser).where(BotUser.last_seen >= since)
+            ) or 0
+
+        dau = await _active_since(1)
+        wau = await _active_since(7)
+        mau = await _active_since(30)
         searches = await session.scalar(
             select(func.count()).select_from(Event).where(Event.type == "search")
         ) or 0
@@ -99,7 +130,9 @@ async def gather_stats() -> str:
     lines = [
         "📊 <b>Статистика бота</b>",
         "",
-        f"👥 Пользователей: <b>{users}</b> (активных: {active_users})",
+        f"👥 Пользователей: <b>{users}</b> (не блокировали бота: {active_users})",
+        f"🕒 Последняя активность: <b>{_fmt_dt(last_active)}</b>",
+        f"📈 Активны: за сутки <b>{dau}</b> · за неделю <b>{wau}</b> · за месяц <b>{mau}</b>",
         f"🔍 Поисков специалистов: <b>{searches}</b>",
         f"📇 Специалистов в гайде: <b>{specs_active}</b> (платных: {specs_paid})",
         f"⭐ Отзывов: <b>{reviews}</b>",
