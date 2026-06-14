@@ -59,6 +59,13 @@ class AdminAnnounce(StatesGroup):
     waiting_text = State()
 
 
+class AdminAfisha(StatesGroup):
+    """Афиша «Чем заняться» в канал: ждём город, потом подтверждение."""
+
+    waiting_city = State()
+    confirm = State()
+
+
 class AdminAddSpecialist(StatesGroup):
     """Пошаговое добавление специалиста админом."""
 

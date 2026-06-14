@@ -67,6 +67,7 @@ async def configure_profile(bot: Bot) -> None:
                         BotCommand(command="admin", description="Управление базой (админ)"),
                         BotCommand(command="broadcast", description="Рассылка-анонс (админ)"),
                         BotCommand(command="announce", description="Пост в канал с кнопкой (админ)"),
+                        BotCommand(command="afishapost", description="Афиша «Чем заняться» в канал (админ)"),
                         BotCommand(command="stats", description="Статистика (админ)"),
                         BotCommand(command="reviews", description="Последние отзывы (админ)"),
                     ],

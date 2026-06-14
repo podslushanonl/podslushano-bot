@@ -27,12 +27,14 @@ from database.models import BotUser, Specialist
 from keyboards.menus import cancel_menu, main_menu
 from states.forms import (
     AdminAddSpecialist,
+    AdminAfisha,
     AdminAnnounce,
     AdminBroadcast,
     AdminFind,
     AdminSetPhoto,
 )
-from utils.ai import extract_specialist_query
+from utils.ai import ai_enabled, ai_events, extract_specialist_query
+from utils.season import current_season
 from utils.analytics import gather_stats
 from utils.reviews import recent_reviews
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
@@ -59,6 +61,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="📋 Добавленные вручную", callback_data="admin:list")],
             [InlineKeyboardButton(text="🔎 Найти и удалить", callback_data="admin:find")],
             [InlineKeyboardButton(text="📣 Рассылка-анонс", callback_data="admin:broadcast")],
+            [InlineKeyboardButton(text="📅 Афиша в канал", callback_data="admin:afisha")],
             [InlineKeyboardButton(text="⏳ Старый гайд: дедлайн оплаты", callback_data="admin:legacydeadline")],
             [InlineKeyboardButton(text="📋 Старый гайд: список для рассылки", callback_data="admin:legacyexport")],
             [InlineKeyboardButton(text="📊 Статистика", callback_data="admin:stats")],
@@ -430,6 +433,139 @@ async def announce_yes(callback: CallbackQuery, state: FSMContext) -> None:
         except Exception:  # noqa: BLE001
             note = " (но закрепить не вышло — дай боту право «Закреплять сообщения»)"
         await callback.message.answer(f"✅ Опубликовал в канал{note}")
+    except Exception as e:  # noqa: BLE001
+        await callback.message.answer(
+            f"❌ Не получилось опубликовать: {html.escape(str(e))}\n\n"
+            "Проверь: бот — администратор канала с правом «Публиковать сообщения», "
+            "и <code>ANNOUNCE_CHANNEL</code> указан верно."
+        )
+    await callback.answer()
+
+
+# --- Афиша «Чем заняться» в канал -------------------------------------------
+
+AFISHA_CITIES = ["Amsterdam", "Rotterdam", "Den Haag", "Utrecht", "Eindhoven", "Groningen"]
+
+
+def _afisha_cities_kb() -> InlineKeyboardMarkup:
+    btns = [InlineKeyboardButton(text=c, callback_data=f"afpost|{c}") for c in AFISHA_CITIES]
+    rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
+    rows.append([InlineKeyboardButton(text="🌍 По всей стране", callback_data="afpost|__all__")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+@router.message(Command("afishapost"))
+async def cmd_afisha_post(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    if not config.ANNOUNCE_CHANNEL:
+        await message.answer(
+            "⚠️ Не задан канал для публикации.\n\n"
+            "1) Добавь бота в канал как <b>администратора</b> с правами "
+            "«Публиковать сообщения» и «Закреплять сообщения».\n"
+            "2) Добавь переменную <code>ANNOUNCE_CHANNEL</code> (например "
+            "<code>@username_канала</code> или <code>-100…</code>) в Railway."
+        )
+        return
+    if not ai_enabled():
+        await message.answer("ИИ-подбор событий сейчас недоступен 🙏 (не настроен ключ).")
+        return
+    await state.set_state(AdminAfisha.waiting_city)
+    s = current_season()
+    await message.answer(
+        f"{s['emoji']} <b>Афиша в канал «Чем заняться {s['phrase']}».</b>\n\n"
+        "По какому городу собрать подборку? Напиши город или выбери 👇\n"
+        "Я соберу афишу через ИИ, покажу предпросмотр и спрошу подтверждение.",
+        reply_markup=cancel_menu(),
+    )
+    await message.answer("📍 Города:", reply_markup=_afisha_cities_kb())
+
+
+@router.callback_query(F.data == "admin:afisha")
+async def afisha_btn(callback: CallbackQuery, state: FSMContext) -> None:
+    await cmd_afisha_post(callback.message, state)
+    await callback.answer()
+
+
+@router.callback_query(AdminAfisha.waiting_city, F.data.startswith("afpost|"))
+async def afisha_city_cb(callback: CallbackQuery, state: FSMContext) -> None:
+    city = callback.data.split("|", 1)[1]
+    await callback.answer()
+    await _afisha_draft(callback.message, state, city)
+
+
+@router.message(AdminAfisha.waiting_city, _not_command)
+async def afisha_city_msg(message: Message, state: FSMContext) -> None:
+    city = (message.text or "").strip()
+    if not city:
+        await message.answer("Напиши город текстом или выбери кнопкой 🙂")
+        return
+    await _afisha_draft(message, state, city)
+
+
+async def _afisha_draft(message: Message, state: FSMContext, city: str) -> None:
+    """Собирает афишу через ИИ, сохраняет черновик и показывает предпросмотр."""
+    s = current_season()
+    await message.bot.send_chat_action(message.chat.id, action="typing")
+    await message.answer("⏳ Собираю афишу через ИИ, это займёт несколько секунд…")
+    result = await ai_events(city, s["phrase"])
+    if not result:
+        await state.clear()
+        await message.answer(
+            "Не получилось собрать подборку 😔 Попробуй ещё раз (/afishapost) "
+            "или другой город.",
+            reply_markup=main_menu(),
+        )
+        return
+    where = "по всей стране" if city == "__all__" else city
+    title = f"{s['emoji']} Чем заняться {s['phrase']} · {where}"
+    text = title + "\n\n" + result
+    await state.update_data(afisha_text=text)
+    await state.set_state(AdminAfisha.confirm)
+    me = await message.bot.me()
+    await message.answer("Вот как будет выглядеть пост 👇")
+    await message.answer(
+        text, reply_markup=_open_bot_kb(me.username),
+        parse_mode=None, disable_web_page_preview=True,
+    )
+    kb = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="✅ Опубликовать и закрепить", callback_data="afpost:yes"),
+        InlineKeyboardButton(text="❌ Отмена", callback_data="afpost:no"),
+    ]])
+    await message.answer(
+        f"Опубликовать в <code>{config.ANNOUNCE_CHANNEL}</code>? "
+        "Если событий мало или текст не нравится — жми «Отмена» и собери заново.",
+        reply_markup=kb,
+    )
+
+
+@router.callback_query(F.data == "afpost:no")
+async def afisha_no(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.message.answer("Отменил — ничего не опубликовал.")
+    await callback.answer()
+
+
+@router.callback_query(F.data == "afpost:yes")
+async def afisha_yes(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    await state.clear()
+    text = data.get("afisha_text")
+    if not text:
+        await callback.answer("Текст не найден, собери заново: /afishapost", show_alert=True)
+        return
+    me = await callback.bot.me()
+    try:
+        msg = await callback.bot.send_message(
+            config.ANNOUNCE_CHANNEL, text,
+            reply_markup=_open_bot_kb(me.username),
+            parse_mode=None, disable_web_page_preview=True,
+        )
+        try:
+            await callback.bot.pin_chat_message(config.ANNOUNCE_CHANNEL, msg.message_id)
+            note = " и закрепил 📌"
+        except Exception:  # noqa: BLE001
+            note = " (но закрепить не вышло — дай боту право «Закреплять сообщения»)"
+        await callback.message.answer(f"✅ Опубликовал афишу в канал{note}")
     except Exception as e:  # noqa: BLE001
         await callback.message.answer(
             f"❌ Не получилось опубликовать: {html.escape(str(e))}\n\n"
