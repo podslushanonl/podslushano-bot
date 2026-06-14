@@ -34,7 +34,7 @@ from states.forms import (
     AdminFind,
     AdminSetPhoto,
 )
-from utils.ai import ai_enabled, ai_events, extract_specialist_query
+from utils.ai import ai_afisha_channel, ai_enabled, extract_specialist_query
 from utils.season import current_season
 from utils.analytics import gather_stats
 from utils.reviews import recent_reviews
@@ -483,6 +483,29 @@ def _afisha_cta(city: str) -> str:
     )
 
 
+# Лимит одного сообщения в Telegram — 4096 символов. Держим запас.
+_TG_LIMIT = 4096
+
+
+def _assemble_afisha(title: str, body: str, cta: str) -> str:
+    """Склеивает пост и, если он длиннее лимита Telegram, аккуратно подрезает
+    список событий по границе строки — заголовок и призыв всегда остаются."""
+    text = f"{title}\n\n{body}\n\n{cta}"
+    if len(text) <= _TG_LIMIT:
+        return text
+    # Сколько символов доступно под тело (минус заголовок, призыв и разделители)
+    budget = _TG_LIMIT - len(title) - len(cta) - len("\n\n\n\n")
+    lines: list[str] = []
+    used = 0
+    for line in body.splitlines():
+        if used + len(line) + 1 > budget:
+            break
+        lines.append(line)
+        used += len(line) + 1
+    body = "\n".join(lines).rstrip()
+    return f"{title}\n\n{body}\n\n{cta}"
+
+
 @router.message(Command("afishapost"))
 async def cmd_afisha_post(message: Message, state: FSMContext) -> None:
     await state.clear()
@@ -536,7 +559,7 @@ async def _afisha_draft(message: Message, state: FSMContext, city: str) -> None:
     s = current_season()
     await message.bot.send_chat_action(message.chat.id, action="typing")
     await message.answer("⏳ Собираю афишу через ИИ, это займёт несколько секунд…")
-    result = await ai_events(city, s["phrase"])
+    result = await ai_afisha_channel(city, s["phrase"])
     if not result:
         await state.clear()
         await message.answer(
@@ -547,7 +570,7 @@ async def _afisha_draft(message: Message, state: FSMContext, city: str) -> None:
         return
     where = "по всей стране" if city == "__all__" else city
     title = f"{s['emoji']} Чем заняться {s['phrase']} · {where}"
-    text = title + "\n\n" + _clean_afisha(result) + "\n\n" + _afisha_cta(city)
+    text = _assemble_afisha(title, _clean_afisha(result), _afisha_cta(city))
     await state.update_data(afisha_text=text)
     await state.set_state(AdminAfisha.confirm)
     me = await message.bot.me()
