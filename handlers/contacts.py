@@ -17,7 +17,7 @@ from sqlalchemy import func, or_, select
 import config
 from database.db import get_session
 from database.models import Specialist
-from keyboards.menus import BTN_CONTACTS, cancel_menu, main_menu
+from keyboards.menus import BTN_CONTACTS, cancel_menu, feedback_kb, main_menu
 from states.forms import ContactSearch, ReviewForm
 from utils.ai import extract_specialist_query, reply_with_ai
 from utils.analytics import log_event
@@ -318,7 +318,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
             "Хм, я не совсем понял, кто нужен 🤔 Я ищу по категориям: "
             f"{categories}.\n\n"
             "Напиши, например: <i>«юрист в Роттердаме»</i> — и я поищу.",
-            reply_markup=cancel_menu(),
+            reply_markup=feedback_kb(),
         )
         return
 
@@ -340,7 +340,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
         await state.update_data(pending_category=category, pending_terms=_query_tokens(text))
         await message.answer(
             f"Понял, ищем — <b>{category}</b> 👌 В каком городе ты находишься?",
-            reply_markup=cancel_menu(),
+            reply_markup=feedback_kb(),
         )
         return
 

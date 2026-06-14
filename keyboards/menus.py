@@ -57,6 +57,22 @@ def stickers_button() -> InlineKeyboardMarkup:
     )
 
 
+def feedback_button() -> InlineKeyboardButton:
+    """Кнопка «пожаловаться на неверный ответ».
+
+    Низкий порог сообщить об ошибке, когда бот ответил не по теме или не помог,
+    но никакого сбоя (исключения) не было — поэтому авто-краш-репорт молчит.
+    """
+    return InlineKeyboardButton(
+        text="🤔 Бот ответил не по теме?", callback_data="report_wrong"
+    )
+
+
+def feedback_kb() -> InlineKeyboardMarkup:
+    """Inline-клавиатура с одной кнопкой жалобы на ответ бота."""
+    return InlineKeyboardMarkup(inline_keyboard=[[feedback_button()]])
+
+
 def cancel_menu() -> ReplyKeyboardMarkup:
     """Клавиатура с одной кнопкой «Отмена» во время заполнения заявки."""
     return ReplyKeyboardMarkup(

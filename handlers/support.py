@@ -50,6 +50,27 @@ async def report_callback(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
 
+@router.callback_query(F.data == "report_wrong")
+async def report_wrong_callback(callback: CallbackQuery, state: FSMContext) -> None:
+    """«Бот ответил не по теме» — жалоба на неверный/неуместный ответ.
+
+    Сбоя не было (исключение не возникало), поэтому авто-краш-репорт молчит.
+    Захватываем сам ответ бота, на который жалуются, чтобы команда видела, что
+    именно пошло не так.
+    """
+    wrong = ""
+    if callback.message is not None:
+        wrong = callback.message.text or callback.message.caption or ""
+    await state.set_state(SupportContact.waiting_message)
+    await state.update_data(kind="wrong", wrong_answer=wrong[:1200])
+    await callback.message.answer(
+        "Жаль, что ответ не подошёл 🙏 Напиши одним сообщением, <b>что ты спрашивал</b> "
+        "и какого ответа ждал — это поможет мне стать умнее (можно приложить скриншот).",
+        reply_markup=cancel_menu(),
+    )
+    await callback.answer()
+
+
 async def _ask_bug(message: Message, state: FSMContext) -> None:
     await state.set_state(SupportContact.waiting_message)
     await state.update_data(kind="bug")
@@ -62,15 +83,23 @@ async def _ask_bug(message: Message, state: FSMContext) -> None:
 
 @router.message(SupportContact.waiting_message)
 async def contact_relay(message: Message, state: FSMContext) -> None:
-    kind = (await state.get_data()).get("kind", "support")
+    data = await state.get_data()
+    kind = data.get("kind", "support")
+    wrong_answer = data.get("wrong_answer")
     await state.clear()
     u = message.from_user
     uname = f"@{u.username}" if u and u.username else "—"
-    title = "🐞 <b>Сообщение об ошибке</b>" if kind == "bug" else "📨 <b>Обращение в поддержку</b>"
+    title = {
+        "bug": "🐞 <b>Сообщение об ошибке</b>",
+        "wrong": "🤔 <b>Бот ответил не по теме</b>",
+    }.get(kind, "📨 <b>Обращение в поддержку</b>")
     header = (
         f"{title}\n"
         f"От: {html.escape(u.full_name)} ({uname}, id <code>{u.id}</code>)"
     )
+    # Для жалобы на ответ прикладываем сам ответ бота — чтобы видеть, что не так
+    if kind == "wrong" and wrong_answer:
+        header += f"\n\n<b>Ответ, на который пожаловались:</b>\n<i>{html.escape(wrong_answer)}</i>"
     sent = False
     for admin_id in config.ADMIN_IDS:
         try:
