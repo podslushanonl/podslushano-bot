@@ -34,6 +34,7 @@ from states.forms import (
 )
 from utils.ai import extract_specialist_query
 from utils.analytics import gather_stats
+from utils.reviews import recent_reviews
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
 
 router = Router()
@@ -54,6 +55,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="⏳ Старый гайд: дедлайн оплаты", callback_data="admin:legacydeadline")],
             [InlineKeyboardButton(text="📋 Старый гайд: список для рассылки", callback_data="admin:legacyexport")],
             [InlineKeyboardButton(text="📊 Статистика", callback_data="admin:stats")],
+            [InlineKeyboardButton(text="⭐ Отзывы", callback_data="admin:reviews")],
         ]
     )
 
@@ -441,6 +443,44 @@ async def cmd_stats(message: Message, state: FSMContext) -> None:
 @router.callback_query(F.data == "admin:stats")
 async def stats_btn(callback: CallbackQuery) -> None:
     await callback.message.answer(await gather_stats())
+    await callback.answer()
+
+
+# --- Отзывы: кто и что оставил ----------------------------------------------
+
+def _fmt_review(r: dict) -> str:
+    stars = "⭐" * r["rating"]
+    name = html.escape(r.get("first_name") or "—")
+    who = f"@{r['username']}" if r.get("username") else f"id <code>{r['user_id']}</code>"
+    when = r["created_at"].strftime("%d.%m.%Y") if r.get("created_at") else ""
+    head = f"{stars} <b>{html.escape(r['spec_name'])}</b>"
+    meta = f"\n👤 {name} ({who})" + (f" · {when}" if when else "")
+    text = r.get("text")
+    body = f"\n<i>«{html.escape(text[:300])}»</i>" if text else "\n<i>(без текста, только оценка)</i>"
+    return head + meta + body
+
+
+async def _reviews_text() -> str:
+    items = await recent_reviews(12)
+    if not items:
+        return "⭐ Отзывов пока нет."
+    return (
+        "⭐ <b>Последние отзывы</b> (до 12)\n\n"
+        + "\n\n".join(_fmt_review(r) for r in items)
+    )
+
+
+@router.message(Command("reviews"))
+async def cmd_reviews(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    await message.answer(
+        await _reviews_text(), reply_markup=main_menu(), disable_web_page_preview=True
+    )
+
+
+@router.callback_query(F.data == "admin:reviews")
+async def reviews_btn(callback: CallbackQuery) -> None:
+    await callback.message.answer(await _reviews_text(), disable_web_page_preview=True)
     await callback.answer()
 
 
