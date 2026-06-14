@@ -2,7 +2,13 @@
 from aiogram import Bot, F, Router
 from aiogram.enums import ChatType
 from aiogram.fsm.context import FSMContext
-from aiogram.types import Message, User
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+    User,
+)
 
 from database.db import get_session
 from database.models import Submission
@@ -16,7 +22,9 @@ from keyboards.menus import (
     main_menu,
 )
 from states.forms import AdForm, QuestionForm, StoryForm, VideoForm
+from utils.ai import ai_enabled, ai_reply
 from utils.analytics import log_event
+from utils.limits import allow_ai
 from utils.notify import send_to_admins
 
 router = Router()
@@ -62,11 +70,10 @@ async def ask_story(message: Message, state: FSMContext) -> None:
 async def ask_question(message: Message, state: FSMContext) -> None:
     await state.set_state(QuestionForm.waiting_for_content)
     await message.answer(
-        "Давай спросим у сообщества! 📨 Напиши вопрос <b>с деталями</b> — так тебе "
-        "ответят по делу. Добавь контекст: город, свою ситуацию, что именно важно.\n\n"
-        "<i>🙅 Не очень: «Кто ездил в Гаагу?»\n"
-        "👍 Хорошо: «Едем в Гаагу с детьми 4 и 7 лет на выходные в июле — посоветуйте "
-        "тихие пляжи и места без толп?»</i>",
+        "Напиши свой вопрос — я постараюсь ответить сразу 🤖\n\n"
+        "А если захочешь именно <b>живой опыт подписчиков</b>, после ответа предложу "
+        "отправить вопрос в сообщество.\n\n"
+        "<i>Чем больше деталей (город, твоя ситуация) — тем точнее ответ.</i>",
         reply_markup=cancel_menu(),
     )
 
@@ -232,11 +239,20 @@ def _too_short_question(text: str) -> bool:
     return len(text.split()) < 6
 
 
-@router.message(QuestionForm.waiting_for_content)
-async def receive_question(message: Message, state: FSMContext) -> None:
-    text = (message.text or "").strip()
-    data = await state.get_data()
-    # Один раз мягко просим добавить деталей, если вопрос совсем короткий
+def _community_kb() -> InlineKeyboardMarkup:
+    """Кнопки после ответа ИИ: отправлять ли вопрос ещё и в сообщество."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🗣 Спросить ещё и у сообщества", callback_data="q:community")],
+            [InlineKeyboardButton(text="👍 Спасибо, всё понятно", callback_data="q:done")],
+        ]
+    )
+
+
+async def _question_to_community(
+    message: Message, state: FSMContext, data: dict, text: str
+) -> None:
+    """Отправляет вопрос в предложку (с одной мягкой просьбой добавить деталей)."""
     if text and _too_short_question(text) and not data.get("q_nudged"):
         await state.update_data(q_nudged=True)
         await message.answer(
@@ -249,6 +265,66 @@ async def receive_question(message: Message, state: FSMContext) -> None:
         )
         return
     await _save_and_notify(message, state, "question")
+
+
+@router.message(QuestionForm.waiting_for_content)
+async def receive_question(message: Message, state: FSMContext) -> None:
+    text = (message.text or "").strip()
+    _, file_id, _ = extract_content(message)
+    data = await state.get_data()
+
+    # Вопрос с вложением, без ИИ или от «исчерпавшего лимит» — сразу в сообщество
+    # (фото/видео ИИ не разберёт, а лимит бережём). Иначе пробуем ответить сами.
+    if file_id or not text or not ai_enabled() or not allow_ai(message.from_user.id):
+        await _question_to_community(message, state, data, text)
+        return
+
+    # Сначала отвечает ИИ: большинство «вопросов» — фактические, и человеку не
+    # нужно ждать сообщество. Только если ИИ не справился — уводим в предложку.
+    await message.bot.send_chat_action(message.chat.id, action="typing")
+    answer = await ai_reply(text)
+    if not answer:
+        await _question_to_community(message, state, data, text)
+        return
+
+    await log_event("ai")
+    await state.set_state(QuestionForm.deciding)
+    await state.update_data(q_text=text)
+    await message.answer(answer, reply_markup=main_menu(), parse_mode=None)
+    await message.answer(
+        "Это мой ответ 🤖 Если хочешь услышать <b>живой опыт подписчиков</b> — "
+        "отправлю твой вопрос в сообщество. Или этого достаточно?",
+        reply_markup=_community_kb(),
+    )
+
+
+@router.callback_query(F.data == "q:community")
+async def q_to_community(callback: CallbackQuery, state: FSMContext) -> None:
+    """Человек всё же хочет спросить сообщество — отправляем вопрос в предложку."""
+    data = await state.get_data()
+    text = data.get("q_text")
+    await state.clear()
+    await callback.message.edit_reply_markup(reply_markup=None)
+    if not text:
+        await callback.message.answer(
+            "Не нашёл твой вопрос 🙈 Напиши его заново через «❓ Задать вопрос».",
+            reply_markup=main_menu(),
+        )
+        await callback.answer()
+        return
+    await create_submission(callback.bot, callback.from_user, "question", text)
+    await callback.message.answer(THANKS["question"], reply_markup=main_menu())
+    await callback.answer("Отправил сообществу!")
+
+
+@router.callback_query(F.data == "q:done")
+async def q_done(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer(
+        "Отлично! Если будет ещё вопрос — просто напиши 🙌", reply_markup=main_menu()
+    )
+    await callback.answer()
 
 
 @router.message(VideoForm.waiting_for_content)

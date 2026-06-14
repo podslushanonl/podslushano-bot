@@ -8,6 +8,8 @@ class StoryForm(StatesGroup):
 
 class QuestionForm(StatesGroup):
     waiting_for_content = State()
+    # ИИ ответил сам — ждём решения: спросить ли ещё и у сообщества (предложка)
+    deciding = State()
 
 
 class VideoForm(StatesGroup):
