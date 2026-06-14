@@ -471,6 +471,58 @@ async def ai_events(city: str, season_phrase: str) -> str | None:
     return _finalize(resp)
 
 
+async def ai_afisha_channel(city: str, season_phrase: str) -> str | None:
+    """Афиша для публикации в Telegram-канал: ТОЛЬКО события, без блока «идеи»,
+    зато много — 10–20 реальных мероприятий. Компактно (строка-две на событие),
+    чтобы влезть в один пост. Берёт события веб-поиском (не выдумывает).
+    """
+    if not ai_enabled():
+        return None
+    nationwide = city == "__all__"
+    where = "по всей Нидерландам" if nationwide else f"в городе {city} и рядом"
+    today = date.today().strftime("%d.%m.%Y")
+    system = (
+        "Ты — местный гид по Нидерландам для русскоязычных. Собери НАСТОЯЩУЮ афишу "
+        f"мероприятий {season_phrase} {where} для поста в Telegram-канал. "
+        "ОБЯЗАТЕЛЬНО воспользуйся веб-поиском.\n\n"
+        "Дай ТОЛЬКО список событий (НИКАКИХ «идей», маршрутов и общих советов): "
+        "10–20 конкретных мероприятий на ближайшие дни и недели — концерты, "
+        "фестивали, выставки, ярмарки, спектакли, спортивные и городские события. "
+        "Ищи в местных афишах (uitagenda, сайт VVV города, iamsterdam.com, eventbrite, "
+        "ticketmaster, songkick) и на сайтах gemeente.\n\n"
+        "Формат каждого пункта — компактно, 1–2 строки: «Название — дата, место "
+        "(город)» и короткая (до ~10 слов) пометка, если уместно. Нумеруй по порядку. "
+        "Без длинных описаний — это лента афиши, а не статья.\n\n"
+        "Правила: по-русски, ОБЫЧНЫМ текстом без разметки и markdown (без ---, без #, "
+        "без **). НЕ выдумывай несуществующие события: бери только реальные из поиска. "
+        "Если для маленького города событий мало — добавь события ближайшего крупного "
+        "города и соседних, чтобы набрать список. Начинай сразу со списка, без "
+        "вступлений вроде «сейчас поищу» и без финальных выводов."
+    )
+    user = (
+        f"Собери афишу из 10–20 реальных мероприятий {season_phrase}. "
+        f"Где: {where}. Сегодня {today}."
+    )
+    messages = [{"role": "user", "content": user}]
+    client = _get_client()
+    try:
+        kwargs = dict(model=config.AI_CHAT_MODEL, max_tokens=2000, system=system, messages=messages)
+        tools = _web_search_tool()
+        if tools:
+            kwargs["tools"] = tools
+        resp = await client.messages.create(**kwargs)
+    except Exception as e:  # noqa: BLE001 — пробуем без веб-поиска
+        log.warning("Афиша для канала с веб-поиском не сработала (%s), пробую без", e)
+        try:
+            resp = await client.messages.create(
+                model=config.AI_CHAT_MODEL, max_tokens=2000, system=system, messages=messages
+            )
+        except Exception as e2:  # noqa: BLE001
+            log.warning("Ошибка ai_afisha_channel: %s", e2)
+            return None
+    return _finalize(resp)
+
+
 async def reply_with_ai(message, state) -> bool:
     """Отвечает на свободное сообщение через ИИ и помнит контекст диалога.
 
