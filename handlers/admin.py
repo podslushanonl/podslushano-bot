@@ -6,6 +6,7 @@
 """
 import asyncio
 import html
+import re
 from datetime import datetime, timedelta
 
 from aiogram import F, Router
@@ -454,6 +455,34 @@ def _afisha_cities_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
+def _clean_afisha(text: str) -> str:
+    """Готовит ИИ-афишу к публикации в канал: убирает markdown-разделители (---)
+    и служебную строку «🔗 Источник», чтобы пост выглядел чисто и нативно."""
+    lines = []
+    for line in text.splitlines():
+        stripped = line.strip()
+        if re.fullmatch(r"[-—–*_=]{3,}", stripped):  # горизонтальная черта markdown
+            continue
+        if stripped.startswith("🔗 Источник") or stripped.lower().startswith("источник"):
+            continue
+        lines.append(line)
+    out = re.sub(r"\n{3,}", "\n\n", "\n".join(lines)).strip()
+    return out
+
+
+def _afisha_cta(city: str) -> str:
+    """Нативный призыв в конце поста — со стрелкой на кнопку «Открыть бота» ниже."""
+    if city == "__all__":
+        return (
+            "🎉 А свежую афишу именно для своего города можно собрать в нашем боте — "
+            "события, концерты и идеи под рукой 👇🏼"
+        )
+    return (
+        f"🎉 Больше мероприятий в {city} и других городах ищи в нашем боте — "
+        "соберёт свежую афишу за пару секунд 👇🏼"
+    )
+
+
 @router.message(Command("afishapost"))
 async def cmd_afisha_post(message: Message, state: FSMContext) -> None:
     await state.clear()
@@ -518,7 +547,7 @@ async def _afisha_draft(message: Message, state: FSMContext, city: str) -> None:
         return
     where = "по всей стране" if city == "__all__" else city
     title = f"{s['emoji']} Чем заняться {s['phrase']} · {where}"
-    text = title + "\n\n" + result
+    text = title + "\n\n" + _clean_afisha(result) + "\n\n" + _afisha_cta(city)
     await state.update_data(afisha_text=text)
     await state.set_state(AdminAfisha.confirm)
     me = await message.bot.me()
@@ -527,12 +556,14 @@ async def _afisha_draft(message: Message, state: FSMContext, city: str) -> None:
         text, reply_markup=_open_bot_kb(me.username),
         parse_mode=None, disable_web_page_preview=True,
     )
-    kb = InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text="✅ Опубликовать и закрепить", callback_data="afpost:yes"),
-        InlineKeyboardButton(text="❌ Отмена", callback_data="afpost:no"),
-    ]])
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Опубликовать", callback_data="afpost:pub")],
+        [InlineKeyboardButton(text="📌 Опубликовать и закрепить", callback_data="afpost:pin")],
+        [InlineKeyboardButton(text="❌ Отмена", callback_data="afpost:no")],
+    ])
     await message.answer(
         f"Опубликовать в <code>{config.ANNOUNCE_CHANNEL}</code>? "
+        "Закреплять пост или нет — на твой выбор. "
         "Если событий мало или текст не нравится — жми «Отмена» и собери заново.",
         reply_markup=kb,
     )
@@ -545,8 +576,9 @@ async def afisha_no(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
 
-@router.callback_query(F.data == "afpost:yes")
-async def afisha_yes(callback: CallbackQuery, state: FSMContext) -> None:
+@router.callback_query(F.data.in_({"afpost:pub", "afpost:pin"}))
+async def afisha_publish(callback: CallbackQuery, state: FSMContext) -> None:
+    pin = callback.data == "afpost:pin"
     data = await state.get_data()
     await state.clear()
     text = data.get("afisha_text")
@@ -560,11 +592,13 @@ async def afisha_yes(callback: CallbackQuery, state: FSMContext) -> None:
             reply_markup=_open_bot_kb(me.username),
             parse_mode=None, disable_web_page_preview=True,
         )
-        try:
-            await callback.bot.pin_chat_message(config.ANNOUNCE_CHANNEL, msg.message_id)
-            note = " и закрепил 📌"
-        except Exception:  # noqa: BLE001
-            note = " (но закрепить не вышло — дай боту право «Закреплять сообщения»)"
+        note = ""
+        if pin:
+            try:
+                await callback.bot.pin_chat_message(config.ANNOUNCE_CHANNEL, msg.message_id)
+                note = " и закрепил 📌"
+            except Exception:  # noqa: BLE001
+                note = " (но закрепить не вышло — дай боту право «Закреплять сообщения»)"
         await callback.message.answer(f"✅ Опубликовал афишу в канал{note}")
     except Exception as e:  # noqa: BLE001
         await callback.message.answer(
