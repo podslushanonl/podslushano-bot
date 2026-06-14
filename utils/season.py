@@ -25,9 +25,9 @@ def current_season(today: date | None = None) -> dict:
 
 
 # Стабильная часть подписи кнопки — по ней матчим нажатие (эмодзи меняется по сезону)
-EVENTS_LABEL_CORE = "Чем заняться"
+EVENTS_LABEL_CORE = "Афиша"
 
 
 def events_button_label() -> str:
-    """Подпись кнопки меню: «☀️ Чем заняться» / «🍂 Чем заняться» и т.д."""
+    """Подпись кнопки меню: «☀️ Афиша» / «🍂 Афиша» и т.д."""
     return f"{current_season()['emoji']} {EVENTS_LABEL_CORE}"
