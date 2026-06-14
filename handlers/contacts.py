@@ -239,25 +239,67 @@ def _spec_text(spec: Specialist, badge: str = "",
     return text
 
 
-def _spec_kb(spec: Specialist) -> InlineKeyboardMarkup:
-    # Кнопки-ссылки (только http/https) + кнопка «Оценить»
+def _spec_card_kb(spec: Specialist, idx: int, total: int) -> InlineKeyboardMarkup:
+    """Карточка специалиста: кнопки-ссылки + «Оценить» + навигация ◀️ N/M ▶️."""
     links = [l for l in parse_contact_links(spec.contact) if l["type"] in TELEGRAM_TYPES]
     btns = [InlineKeyboardButton(text=l["label"], url=l["url"]) for l in links]
     rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
     rows.append([InlineKeyboardButton(text="⭐ Оценить", callback_data=f"rate:{spec.id}")])
+    if total > 1:
+        prev, nxt = (idx - 1) % total, (idx + 1) % total
+        rows.append([
+            InlineKeyboardButton(text="◀️", callback_data=f"spv:{prev}"),
+            InlineKeyboardButton(text=f"{idx + 1}/{total}", callback_data="spv_noop"),
+            InlineKeyboardButton(text="▶️", callback_data=f"spv:{nxt}"),
+        ])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
+async def _spec_show(msg: Message, state: FSMContext, idx: int, replace: bool) -> None:
+    """Показывает одну карточку специалиста из сохранённого списка (карусель).
+
+    replace=True — листание: удаляем старую карточку и шлём новую (так корректно
+    работает и для фото-карточек премиума, и для обычных текстовых).
+    """
+    data = await state.get_data()
+    ids = data.get("sp_ids") or []
+    labels = data.get("sp_labels") or []
+    if not ids:
+        await msg.answer("Список устарел — поищи заново 🙂", reply_markup=main_menu())
+        return
+    idx %= len(ids)
+    async with get_session() as session:
+        spec = await session.get(Specialist, ids[idx])
+    if spec is None:
+        await msg.answer("Эта карточка пропала — поищи заново 🙂", reply_markup=main_menu())
+        return
+    key = specialist_key(spec.name, spec.contact)
+    badge = rating_badge((await ratings_for([key])).get(key))
+    revs = (await texts_for([key])).get(key)
+    header = labels[idx] if idx < len(labels) else ""
+    text = (f"{header}\n\n" if header else "") + _spec_text(spec, badge, revs)
+    kb = _spec_card_kb(spec, idx, len(ids))
+    chat_id, bot = msg.chat.id, msg.bot
+    if replace:
+        try:
+            await msg.delete()
+        except Exception:  # noqa: BLE001 — старое сообщение могло исчезнуть
+            pass
+    if spec.photo_file_id and len(text) <= 1024:
+        try:
+            await bot.send_photo(chat_id, spec.photo_file_id, caption=text, reply_markup=kb)
+            return
+        except Exception:  # noqa: BLE001 — фото недоступно → текстом
+            pass
+    await bot.send_message(chat_id, text, reply_markup=kb, disable_web_page_preview=True)
+
+
 async def _send_results(message: Message, state: FSMContext, sections: list) -> None:
-    """Отправляет результаты: заголовок секции + каждый специалист отдельной карточкой."""
+    """Складывает результаты в карусель: одна карточка за раз с навигацией ◀️ ▶️."""
     await state.clear()
-    # Подтягиваем рейтинги для всех специалистов одним запросом
-    all_specs = [s for _, specs in sections for s in specs]
-    keys = [specialist_key(s.name, s.contact) for s in all_specs]
-    ratings = await ratings_for(keys)
-    review_texts = await texts_for(keys)
     seen: set[tuple[str, str]] = set()
-    shown = 0
+    ids: list[int] = []
+    labels: list[str] = []
     overflow = 0
     for header, specs in sections:
         uniq = []
@@ -267,38 +309,42 @@ async def _send_results(message: Message, state: FSMContext, sections: list) -> 
                 continue
             seen.add(key)
             uniq.append(s)
-        if not uniq:
-            continue
         uniq.sort(key=lambda s: 0 if s.is_premium else 1)  # премиум — вперёд
-        if shown >= MAX_RESULTS:
-            overflow += len(uniq)
-            continue
-        await message.answer(header)
         for s in uniq:
-            if shown >= MAX_RESULTS:
+            if len(ids) >= MAX_RESULTS:
                 overflow += 1
                 continue
-            key = specialist_key(s.name, s.contact)
-            badge = rating_badge(ratings.get(key))
-            revs = review_texts.get(key)
-            text = _spec_text(s, badge, revs)
-            try:
-                # Премиум с фото — показываем карточку с картинкой (подпись Telegram ≤ 1024)
-                if s.photo_file_id and len(text) <= 1024:
-                    await message.answer_photo(
-                        s.photo_file_id, caption=text, reply_markup=_spec_kb(s)
-                    )
-                else:
-                    await message.answer(
-                        text, reply_markup=_spec_kb(s), disable_web_page_preview=True
-                    )
-            except Exception:  # noqa: BLE001 — одна кривая карточка не рушит всю выдачу
-                await message.answer(text, disable_web_page_preview=True)
-            shown += 1
-    tail = "Если что-то ещё нужно — я тут 😉"
-    if overflow:
-        tail = f"…и ещё {overflow} — уточни город, покажу ближайших 🙂\n\n" + tail
-    await message.answer(tail, reply_markup=main_menu())
+            ids.append(s.id)
+            labels.append(header)
+    if not ids:
+        await message.answer(
+            "Никого не нашёл 🤔 Попробуй другой запрос или город.", reply_markup=main_menu()
+        )
+        return
+    await state.update_data(sp_ids=ids, sp_labels=labels)
+    note = f" (показываю первых {len(ids)} — уточни город, найду ближе)" if overflow else ""
+    await message.answer(
+        f"🔍 Нашёл подходящих: <b>{len(ids)}</b>{note}.\n"
+        "Листай карточки кнопками ◀️ ▶️ под карточкой 👇",
+        reply_markup=main_menu(),
+    )
+    await _spec_show(message, state, 0, replace=False)
+
+
+@router.callback_query(F.data.startswith("spv:"))
+async def spec_nav(callback: CallbackQuery, state: FSMContext) -> None:
+    try:
+        idx = int(callback.data.split(":")[1])
+    except (ValueError, IndexError):
+        await callback.answer()
+        return
+    await callback.answer()
+    await _spec_show(callback.message, state, idx, replace=True)
+
+
+@router.callback_query(F.data == "spv_noop")
+async def spec_noop(callback: CallbackQuery) -> None:
+    await callback.answer()
 
 
 @router.message(ContactSearch.waiting_for_query)
