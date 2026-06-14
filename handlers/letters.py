@@ -111,6 +111,10 @@ async def _explain(message: Message, file_id: str, media: str, uid: int | None =
         log.warning("Не удалось скачать фото письма: %s", e)
         await message.answer("Не получилось загрузить фото 😔 Попробуй ещё раз.", reply_markup=main_menu())
         return
+    # Явно сообщаем, что уже работаем — разбор идёт до минуты, иначе кажется, что
+    # бот «завис» (индикатор «печатает…» гаснет через пару секунд).
+    await message.answer("🔎 Уже разбираю письмо… Это займёт до минуты ⏳")
+    await message.bot.send_chat_action(message.chat.id, action="typing")
     result = await ai_explain_letter(image_b64, media)
     if not result:
         await message.answer(

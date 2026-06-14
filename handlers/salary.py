@@ -81,6 +81,9 @@ async def salary_calc(callback: CallbackQuery, state: FSMContext) -> None:
     # «query is too old». Поэтому answer() здесь, в начале, а не в конце.
     await callback.answer()
     await callback.message.edit_reply_markup(reply_markup=None)
+    # Явно сообщаем, что уже считаем — расчёт через ИИ занимает время, а индикатор
+    # «печатает…» гаснет через пару секунд, и кажется, что бот «завис».
+    await callback.message.answer("🔎 Уже считаю твою зарплату… Это займёт до минуты ⏳")
     await callback.bot.send_chat_action(callback.message.chat.id, action="typing")
     result = await ai_salary(float(gross), ruling)
     if not result:
