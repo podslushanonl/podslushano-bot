@@ -14,7 +14,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
-from keyboards.menus import BTN_LETTER, cancel_menu, main_menu
+from keyboards.menus import ANSWER_FOOTER, BTN_LETTER, cancel_menu, main_menu
 from states.forms import LetterExplain
 from utils.ai import ai_enabled, ai_explain_letter
 from utils.analytics import log_event
@@ -35,7 +35,6 @@ CONSENT = (
 )
 CTA = (
     "\n\n💬 Нужна помощь человека? Нажми «🔍 Найти специалиста» (юрист) или /contact."
-    "\n💛 Пригодилось? Поделись ботом с друзьями: /share"
 )
 
 
@@ -121,4 +120,6 @@ async def _explain(message: Message, file_id: str, media: str, uid: int | None =
         )
         return
     await log_event("letter", "explain")
-    await message.answer("📩 <b>Разбор письма</b>\n\n" + result + CTA, reply_markup=main_menu())
+    await message.answer(
+        "📩 <b>Разбор письма</b>\n\n" + result + CTA + ANSWER_FOOTER, reply_markup=main_menu()
+    )

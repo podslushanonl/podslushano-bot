@@ -13,6 +13,7 @@ from aiogram.types import (
 from database.db import get_session
 from database.models import Submission
 from keyboards.menus import (
+    ANSWER_FOOTER,
     BTN_AD,
     BTN_QUESTION,
     BTN_STORY,
@@ -290,7 +291,7 @@ async def receive_question(message: Message, state: FSMContext) -> None:
     await log_event("ai")
     await state.set_state(QuestionForm.deciding)
     await state.update_data(q_text=text)
-    await message.answer(answer, reply_markup=main_menu(), parse_mode=None)
+    await message.answer(answer + ANSWER_FOOTER, reply_markup=main_menu(), parse_mode=None)
     await message.answer(
         "Это мой ответ 🤖 Если хочешь услышать <b>живой опыт подписчиков</b> — "
         "отправлю твой вопрос в сообщество. Или этого достаточно?",

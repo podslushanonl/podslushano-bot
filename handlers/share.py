@@ -14,15 +14,10 @@ from sqlalchemy import func, select
 
 from database.db import get_session
 from database.models import BotUser
-from keyboards.menus import BTN_SHARE, main_menu
+from keyboards.menus import BTN_SHARE, SHARE_TEXT, main_menu
 
 router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
-
-SHARE_TEXT = (
-    "Нашёл крутого бота-помощника по жизни в Нидерландах 🇳🇱 "
-    "Ответит на вопрос, объяснит непонятное письмо по фото, найдёт специалиста. Советую 👇"
-)
 
 
 async def _invited_count(user_id: int) -> int:

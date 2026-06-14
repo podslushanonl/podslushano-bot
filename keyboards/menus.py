@@ -1,4 +1,6 @@
 """Кнопки и меню бота."""
+from urllib.parse import quote
+
 from aiogram.types import (
     InlineKeyboardButton,
     InlineKeyboardMarkup,
@@ -71,6 +73,33 @@ def feedback_button() -> InlineKeyboardButton:
 def feedback_kb() -> InlineKeyboardMarkup:
     """Inline-клавиатура с одной кнопкой жалобы на ответ бота."""
     return InlineKeyboardMarkup(inline_keyboard=[[feedback_button()]])
+
+
+# Текст-приглашение при шеринге бота (используется и в /share, и в кнопках под ответами)
+SHARE_TEXT = (
+    "Нашёл бота-помощника для русскоязычных в Нидерландах 🇳🇱 "
+    "Отвечает на вопросы о жизни тут, объясняет письма по фото, считает зарплату "
+    "и ищет специалистов — бесплатно. Советую 👇"
+)
+
+# Подпись под содержательными ответами: сохраняет ссылку на бота в пересланном
+# или заскриненном сообщении (виральность) — работает и в HTML, и в обычном тексте.
+ANSWER_FOOTER = f"\n\n— {config.bot_handle()} · помощник по жизни в Нидерландах 🇳🇱"
+
+
+def share_button(user_id: int) -> InlineKeyboardButton:
+    """Кнопка «Поделиться»: открывает диалог пересылки с ЛИЧНОЙ реферальной
+    ссылкой пользователя — так шеринг ещё и растит реферальную петлю."""
+    ref = f"https://t.me/{config.bot_username()}?start=ref_{user_id}"
+    url = f"https://t.me/share/url?url={quote(ref)}&text={quote(SHARE_TEXT)}"
+    return InlineKeyboardButton(text="📣 Поделиться ботом", url=url)
+
+
+def answer_kb(user_id: int) -> InlineKeyboardMarkup:
+    """Под ответом ИИ: «Поделиться» (реферальная ссылка) + «ответил не по теме»."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[share_button(user_id)], [feedback_button()]]
+    )
 
 
 def cancel_menu() -> ReplyKeyboardMarkup:

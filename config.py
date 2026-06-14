@@ -50,6 +50,17 @@ def support_block() -> str:
         lines.append(f"💬 Telegram: {SUPPORT_TELEGRAM}")
     return "\n".join(lines)
 
+
+def bot_username() -> str:
+    """@username бота без «@» — из BOT_URL (для реферальных ссылок и подписи)."""
+    return BOT_URL.rstrip("/").rsplit("/", 1)[-1] if BOT_URL else ""
+
+
+def bot_handle() -> str:
+    """@username бота — для подписи под ответами."""
+    u = bot_username()
+    return f"@{u}" if u else ""
+
 # --- Искусственный интеллект (Claude) ---------------------------------------
 # Ключ берётся в консоли Anthropic: https://console.anthropic.com/ → API Keys.
 # Если ключа нет — бот продолжит работать на правилах, просто без «живого» ИИ.

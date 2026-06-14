@@ -468,11 +468,13 @@ async def reply_with_ai(message, state) -> bool:
     )[-2 * HISTORY_LIMIT:]
     await state.clear()
     await state.update_data(ai_history=history)
-    from keyboards.menus import feedback_kb
-    # Главное меню остаётся снизу (reply-клавиатура «прилипает»), а под самим
-    # ответом вешаем кнопку-жалобу — чтобы можно было сообщить, если бот ответил
-    # не по теме (логическая ошибка без сбоя — авто-репорт её не ловит).
-    await message.answer(reply, reply_markup=feedback_kb(), parse_mode=None)
+    from keyboards.menus import ANSWER_FOOTER, answer_kb
+    # Главное меню остаётся снизу (reply-клавиатура «прилипает»), а под ответом —
+    # кнопки «Поделиться» (личная реферальная ссылка) и «ответил не по теме».
+    # Подпись в конце сохраняет ссылку на бота в пересланном/заскриненном ответе.
+    await message.answer(
+        reply + ANSWER_FOOTER, reply_markup=answer_kb(uid), parse_mode=None
+    )
     from utils.analytics import log_event
     await log_event("ai")
     return True
