@@ -45,6 +45,13 @@ router.callback_query.filter(F.from_user.id.in_(config.ADMIN_IDS))
 ONLINE_WORDS = {"онлайн", "online", "онлайн по всей стране", "по всей стране"}
 
 
+def _not_command(message: Message) -> bool:
+    """True, если сообщение НЕ команда. Вешаем на диалоги админки, которые ловят
+    свободный текст, чтобы они не «съедали» команды (/invoice и т.п.) — те должны
+    срабатывать в любом состоянии."""
+    return not (message.text or "").startswith("/")
+
+
 def _admin_panel() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
@@ -93,7 +100,7 @@ async def add_start(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
 
-@router.message(AdminAddSpecialist.name)
+@router.message(AdminAddSpecialist.name, _not_command)
 async def add_name(message: Message, state: FSMContext) -> None:
     if not message.text:
         await message.answer("Напиши имя/название текстом 🙂")
@@ -107,7 +114,7 @@ async def add_name(message: Message, state: FSMContext) -> None:
     )
 
 
-@router.message(AdminAddSpecialist.category)
+@router.message(AdminAddSpecialist.category, _not_command)
 async def add_category(message: Message, state: FSMContext) -> None:
     text = (message.text or "").strip()
     cat = detect_category(text)
@@ -128,7 +135,7 @@ async def add_category(message: Message, state: FSMContext) -> None:
     )
 
 
-@router.message(AdminAddSpecialist.location)
+@router.message(AdminAddSpecialist.location, _not_command)
 async def add_location(message: Message, state: FSMContext) -> None:
     loc = (message.text or "").strip()
     if not loc:
@@ -154,7 +161,7 @@ async def add_location(message: Message, state: FSMContext) -> None:
     )
 
 
-@router.message(AdminAddSpecialist.description)
+@router.message(AdminAddSpecialist.description, _not_command)
 async def add_description(message: Message, state: FSMContext) -> None:
     desc = (message.text or "").strip()
     await state.update_data(sp_description=None if desc == "-" else desc)
@@ -165,7 +172,7 @@ async def add_description(message: Message, state: FSMContext) -> None:
     )
 
 
-@router.message(AdminAddSpecialist.contact)
+@router.message(AdminAddSpecialist.contact, _not_command)
 async def add_contact(message: Message, state: FSMContext) -> None:
     if not message.text:
         await message.answer("Напиши контакты текстом 🙂")
@@ -235,7 +242,7 @@ async def find_start(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
 
-@router.message(AdminFind.waiting_query)
+@router.message(AdminFind.waiting_query, _not_command)
 async def find_run(message: Message, state: FSMContext) -> None:
     # Остаёмся в режиме поиска: можно искать и удалять подряд, выход — «❌ Отмена»
     query = (message.text or "").strip()
@@ -377,7 +384,7 @@ async def cmd_announce(message: Message, state: FSMContext) -> None:
     )
 
 
-@router.message(AdminAnnounce.waiting_text)
+@router.message(AdminAnnounce.waiting_text, _not_command)
 async def announce_text(message: Message, state: FSMContext) -> None:
     if not message.text:
         await message.answer("Нужен текст сообщения 🙂")
@@ -565,7 +572,7 @@ async def _broadcast_start(message: Message, state: FSMContext) -> None:
     )
 
 
-@router.message(AdminBroadcast.waiting_message)
+@router.message(AdminBroadcast.waiting_message, _not_command)
 async def broadcast_preview(message: Message, state: FSMContext) -> None:
     await state.update_data(bc_chat=message.chat.id, bc_msg=message.message_id)
     count = await _users_count()

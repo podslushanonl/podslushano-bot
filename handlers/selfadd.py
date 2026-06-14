@@ -24,7 +24,7 @@ import config
 from database.db import get_session
 from database.models import Meta, Specialist
 from keyboards.menus import BTN_SELF_ADD, cancel_menu, main_menu
-from states.forms import SelfAddSpecialist
+from states.forms import ClaimPay, SelfAddSpecialist
 from utils.ai import extract_specialist_query
 from utils.analytics import log_event
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
@@ -357,6 +357,15 @@ async def on_payment_paid(bot, payment_id: str) -> None:
                     f"⚠️ Счёт не отправлен «{name}» (e-mail: {inv_email}). "
                     f"Проверь Resend и дошли вручную: /invoice {sp_id}",
                 )
+    else:
+        # Оплата прошла, но e-mail для счёта не задан (напр. карточка добавлена
+        # админом). Сигналим, чтобы ни один платёж не остался без фактуры.
+        for admin_id in config.ADMIN_IDS:
+            await _safe_send(
+                bot, admin_id,
+                f"⚠️ Оплачено без e-mail для счёта: «{name}» (id {sp_id}). "
+                f"Счёт НЕ отправлен. Дошли вручную: <code>/invoice {sp_id} EMAIL</code>",
+            )
 
     if kind in ("renew", "claim"):
         if sub:
@@ -539,13 +548,12 @@ async def start_claim(message: Message, sid: int) -> None:
 
 
 @router.callback_query(F.data.startswith("claimplan:"))
-async def claim_plan(callback: CallbackQuery) -> None:
+async def claim_plan(callback: CallbackQuery, state: FSMContext) -> None:
     parts = callback.data.split(":")
     sid = int(parts[1])
     plan = parts[2] if len(parts) > 2 else "year_legacy"
     if plan not in ("year_legacy", "month_legacy"):
         plan = "year_legacy"
-    info = config.plan_info(plan)
     async with get_session() as session:
         sp = await session.get(Specialist, sid)
         if sp is None:
@@ -553,6 +561,39 @@ async def claim_plan(callback: CallbackQuery) -> None:
             return
         sp.submitter_user_id = callback.from_user.id  # привязываем карточку к плательщику
         sp.plan = plan
+        await session.commit()
+    # Спрашиваем e-mail для счёта ДО оплаты: иначе факту­ра не уйдёт (раньше так
+    # и было — старые карточки без e-mail оставались без счёта).
+    await state.set_state(ClaimPay.waiting_email)
+    await state.update_data(claim_sid=sid, claim_plan=plan)
+    await callback.message.answer(
+        f"Отлично, тариф: <b>{_price_str(plan)}</b> 🙌\n\n"
+        "Остался один шаг: на какой <b>e-mail</b> прислать счёт (factuur) после оплаты?\n"
+        "<i>Например: mail@example.com</i>",
+        reply_markup=cancel_menu(),
+    )
+    await callback.answer()
+
+
+@router.message(ClaimPay.waiting_email)
+async def claim_email(message: Message, state: FSMContext) -> None:
+    email = (message.text or "").strip()
+    if "@" not in email or "." not in email or " " in email:
+        await message.answer("Похоже, это не e-mail 🙂 Напиши адрес вида mail@example.com")
+        return
+    data = await state.get_data()
+    sid = data.get("claim_sid")
+    plan = data.get("claim_plan", "year_legacy")
+    await state.clear()
+    info = config.plan_info(plan)
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None:
+            await message.answer(
+                "Карточка не найдена 🤔 Напиши нам через /contact.", reply_markup=main_menu()
+            )
+            return
+        sp.invoice_email = email
         name = sp.name
         await session.commit()
     payment = await create_payment(
@@ -561,24 +602,25 @@ async def claim_plan(callback: CallbackQuery) -> None:
         info["price"],
     )
     if not payment or not payment.get("checkout_url"):
-        await callback.answer("Не удалось создать оплату, попробуй позже", show_alert=True)
+        await message.answer(
+            "Не удалось создать оплату, попробуй позже 🙏", reply_markup=main_menu()
+        )
         return
     async with get_session() as session:
         sp = await session.get(Specialist, sid)
         if sp:
             sp.payment_id = payment["id"]
             await session.commit()
-    await callback.message.answer(
-        f"Отлично! Тариф: <b>{_price_str(plan)}</b>.\n\n"
+    await message.answer(
+        f"Готово! Счёт пришлём на <b>{email}</b> после оплаты.\n\n"
         f'Оплачивая, ты соглашаешься с <a href="{config.terms_url()}">Условиями</a> '
         f'и <a href="{config.privacy_url()}">Политикой конфиденциальности</a>.',
         reply_markup=main_menu(),
         disable_web_page_preview=True,
     )
-    await callback.message.answer(
+    await message.answer(
         "👇 Кнопка для оплаты:", reply_markup=_pay_kb(payment["checkout_url"], plan)
     )
-    await callback.answer()
 
 
 # --- Фоновые напоминания о продлении ----------------------------------------

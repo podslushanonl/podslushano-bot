@@ -97,3 +97,9 @@ class SelfAddSpecialist(StatesGroup):
     contact = State()
     email = State()
     plan = State()
+
+
+class ClaimPay(StatesGroup):
+    """Оплата «старожилом» карточки из старого гайда: спрашиваем e-mail для счёта."""
+
+    waiting_email = State()
