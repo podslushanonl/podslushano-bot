@@ -38,6 +38,7 @@ _LATER_COLUMNS = {
 # Колонки таблицы пользователей, которые могли появиться позже
 _USER_LATER_COLUMNS = {
     "referred_by": "BIGINT",
+    "last_seen": "DATETIME",
 }
 
 
