@@ -116,5 +116,3 @@ class BotUser(Base):
     # Кто пригласил (Telegram-id реферера) — для роста по реферальным ссылкам
     referred_by: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
-    # Когда последний раз взаимодействовал с ботом (обновляется при активности)
-    last_seen: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
