@@ -10,7 +10,13 @@ from aiogram import F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    InputMediaPhoto,
+    Message,
+)
 from sqlalchemy import select
 
 from database.db import get_session
@@ -64,15 +70,70 @@ async def events_start(message: Message, state: FSMContext) -> None:
     )
 
 
-def _event_kb(ev: EventListing) -> InlineKeyboardMarkup | None:
-    """Кнопка «Билеты», если у мероприятия валидная ссылка."""
+def _ticket_url(ev: EventListing) -> str | None:
+    """Валидный http-URL мероприятия для кнопки «Билеты» (или None)."""
     link = (ev.link or "").strip()
     if not link or " " in link or "." not in link or link.startswith("@"):
         return None
-    url = link if link.startswith(("http://", "https://")) else f"https://{link}"
-    return InlineKeyboardMarkup(
-        inline_keyboard=[[InlineKeyboardButton(text="🎟 Билеты / подробнее", url=url)]]
-    )
+    return link if link.startswith(("http://", "https://")) else f"https://{link}"
+
+
+def _afisha_kb(month_key: str, idx: int, total: int, ev: EventListing) -> InlineKeyboardMarkup:
+    """Клавиатура карточки афиши: «Билеты» + навигация ◀️ N/M ▶️."""
+    rows: list[list[InlineKeyboardButton]] = []
+    url = _ticket_url(ev)
+    if url:
+        rows.append([InlineKeyboardButton(text="🎟 Билеты / подробнее", url=url)])
+    if total > 1:
+        prev, nxt = (idx - 1) % total, (idx + 1) % total
+        rows.append([
+            InlineKeyboardButton(text="◀️", callback_data=f"afv:{month_key}:{prev}"),
+            InlineKeyboardButton(text=f"{idx + 1}/{total}", callback_data="afv_noop"),
+            InlineKeyboardButton(text="▶️", callback_data=f"afv:{month_key}:{nxt}"),
+        ])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+async def _afisha_events(month_key: str) -> list[EventListing]:
+    async with get_session() as session:
+        return (
+            await session.scalars(
+                select(EventListing)
+                .where(EventListing.month_key == month_key, EventListing.status == "approved")
+                .order_by(EventListing.is_nationwide, EventListing.city, EventListing.id)
+            )
+        ).all()
+
+
+async def _afisha_show(msg: Message, month_key: str, idx: int, edit: bool) -> None:
+    """Показывает одну карточку афиши. edit=True — листание на месте (edit_media)."""
+    rows = await _afisha_events(month_key)
+    if not rows:
+        await msg.answer(
+            f"📅 Афиша на {_month_label(month_key)} пока готовится — загляни позже 🙌",
+            reply_markup=main_menu(),
+        )
+        return
+    idx %= len(rows)
+    ev = rows[idx]
+    caption = _card_text(ev)
+    kb = _afisha_kb(month_key, idx, len(rows), ev)
+    if edit and ev.photo_file_id:
+        try:
+            await msg.edit_media(
+                InputMediaPhoto(media=ev.photo_file_id, caption=caption, parse_mode="HTML"),
+                reply_markup=kb,
+            )
+            return
+        except Exception:  # noqa: BLE001 — не вышло отредактировать, пришлём заново
+            pass
+    if ev.photo_file_id:
+        try:
+            await msg.answer_photo(ev.photo_file_id, caption=caption, reply_markup=kb)
+            return
+        except Exception:  # noqa: BLE001 — постер недоступен → текстом
+            pass
+    await msg.answer(caption, reply_markup=kb, disable_web_page_preview=True)
 
 
 @router.callback_query(F.data == "ev_afisha")
@@ -80,37 +141,37 @@ async def events_afisha(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     await callback.answer()
     month_key = f"{date.today():%Y-%m}"
-    label = _month_label(month_key)
-    async with get_session() as session:
-        rows = (
-            await session.scalars(
-                select(EventListing)
-                .where(EventListing.month_key == month_key, EventListing.status == "approved")
-                .order_by(EventListing.is_nationwide, EventListing.city, EventListing.id)
-            )
-        ).all()
+    rows = await _afisha_events(month_key)
     if not rows:
         await callback.message.answer(
-            f"📅 Афиша на {label} пока готовится — загляни чуть позже 🙌\n\n"
+            f"📅 Афиша на {_month_label(month_key)} пока готовится — загляни чуть позже 🙌\n\n"
             "А пока можно поискать события в своём городе 👇",
             reply_markup=main_menu(),
         )
         return
     await log_event("afisha_view", month_key)
-    await callback.message.answer(f"📅 <b>Афиша · {label}</b>\n{len(rows)} мероприятий 👇")
-    for ev in rows:
-        kb = _event_kb(ev)
-        if ev.photo_file_id:
-            try:
-                await callback.message.answer_photo(
-                    ev.photo_file_id, caption=_card_text(ev), reply_markup=kb
-                )
-                continue
-            except Exception:  # noqa: BLE001 — постер мог стать недоступен
-                pass
-        await callback.message.answer(
-            _card_text(ev), reply_markup=kb, disable_web_page_preview=True
-        )
+    await callback.message.answer(
+        f"📅 <b>Афиша · {_month_label(month_key)}</b> — {len(rows)} меропр. "
+        "Листай кнопками ◀️ ▶️ под карточкой 👇",
+        reply_markup=main_menu(),
+    )
+    await _afisha_show(callback.message, month_key, 0, edit=False)
+
+
+@router.callback_query(F.data.startswith("afv:"))
+async def afisha_nav(callback: CallbackQuery) -> None:
+    try:
+        _, month_key, idx = callback.data.split(":")
+    except ValueError:
+        await callback.answer()
+        return
+    await callback.answer()
+    await _afisha_show(callback.message, month_key, int(idx), edit=True)
+
+
+@router.callback_query(F.data == "afv_noop")
+async def afisha_noop(callback: CallbackQuery) -> None:
+    await callback.answer()
 
 
 @router.callback_query(F.data == "ev_search")
