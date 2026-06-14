@@ -9,6 +9,7 @@ import logging
 import traceback
 
 from aiogram import Bot, Router
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import ErrorEvent, InlineKeyboardButton, InlineKeyboardMarkup
 
 import config
@@ -16,11 +17,31 @@ import config
 log = logging.getLogger(__name__)
 router = Router()
 
+# Безобидные «гонки интерфейса»: callback устарел, сообщение не изменилось или
+# уже удалено/недоступно. Пользователь обычно УЖЕ получил результат, поэтому
+# пугать его «что-то пошло не так» и спамить админов не нужно — просто логируем.
+_BENIGN_TELEGRAM = (
+    "query is too old",
+    "message is not modified",
+    "message to edit not found",
+    "message can't be edited",
+    "message to delete not found",
+    "message to be replied not found",
+    "message can't be deleted",
+)
+
 
 @router.errors()
 async def on_error(event: ErrorEvent, bot: Bot) -> None:
     exc = event.exception
     update = event.update
+
+    if isinstance(exc, TelegramBadRequest) and any(
+        s in str(exc).lower() for s in _BENIGN_TELEGRAM
+    ):
+        log.info("Безобидная ошибка Telegram (игнорируем): %s", exc)
+        return
+
     log.exception("Необработанная ошибка: %s", exc)
 
     # Кто и что делал (для письма админам и для ответа пользователю)

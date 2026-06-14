@@ -76,6 +76,10 @@ async def salary_calc(callback: CallbackQuery, state: FSMContext) -> None:
         )
         await callback.answer()
         return
+    # Подтверждаем нажатие СРАЗУ: расчёт через ИИ занимает время, а callback
+    # «живёт» у Telegram ~15 секунд. Если ответить уже после расчёта — будет
+    # «query is too old». Поэтому answer() здесь, в начале, а не в конце.
+    await callback.answer()
     await callback.message.edit_reply_markup(reply_markup=None)
     await callback.bot.send_chat_action(callback.message.chat.id, action="typing")
     result = await ai_salary(float(gross), ruling)
@@ -83,7 +87,6 @@ async def salary_calc(callback: CallbackQuery, state: FSMContext) -> None:
         await callback.message.answer(
             "Не получилось посчитать 😔 Попробуй позже.", reply_markup=main_menu()
         )
-        await callback.answer()
         return
     await log_event("salary", "ruling" if ruling else "normal")
     await callback.message.answer(
@@ -92,4 +95,3 @@ async def salary_calc(callback: CallbackQuery, state: FSMContext) -> None:
         + "\n💛 Пригодилось? Поделись ботом: /share",
         reply_markup=main_menu(),
     )
-    await callback.answer()

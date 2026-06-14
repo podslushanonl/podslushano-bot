@@ -80,10 +80,12 @@ async def letter_from_chat(callback: CallbackQuery, state: FSMContext) -> None:
         )
         await callback.answer()
         return
-    media = "image/jpeg" if data.get("chat_file_type") == "photo" else "image/jpeg"
+    media = "image/jpeg"
+    # Подтверждаем нажатие сразу: разбор письма через ИИ небыстрый, а callback
+    # «живёт» ~15 сек — иначе Telegram вернёт «query is too old».
+    await callback.answer()
     await callback.message.edit_reply_markup(reply_markup=None)
     await _explain(callback.message, file_id, media, uid=callback.from_user.id)
-    await callback.answer()
 
 
 def _file_from_message(message: Message) -> tuple[str | None, str]:
