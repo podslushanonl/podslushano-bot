@@ -15,7 +15,7 @@ from aiogram.enums import ChatType
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from handlers.contacts import process_query
+from handlers.contacts import is_howto_question, process_query
 from handlers.submissions import THANKS, create_submission, extract_content
 from keyboards.menus import main_menu
 from utils.ai import reply_with_ai
@@ -97,6 +97,13 @@ async def free_chat(message: Message, state: FSMContext) -> None:
         if _matches(low, BYE_WORDS):
             await message.answer(random.choice(BYE_REPLIES), reply_markup=main_menu())
             return
+
+    # «Как записаться к huisarts», «как оформить zorgtoeslag», «как открыть
+    # bankrekening» — это просьба объяснить ПРОЦЕСС. На неё отвечает ИИ по
+    # официальным источникам, а не поиск специалиста. Ловим до быстрого пути,
+    # иначе «huisarts» примется за профессию «врач» и бот спросит город.
+    if is_howto_question(text) and await reply_with_ai(message, state):
+        return
 
     # Запрос специалиста: либо явно названа профессия (быстрый путь без ИИ),
     # либо есть слова-намёки («нужен», «посоветуй», «ищу»…) — тогда категорию
