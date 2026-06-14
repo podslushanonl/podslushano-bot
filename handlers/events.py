@@ -78,6 +78,11 @@ async def _show_events(message: Message, state: FSMContext, city: str, uid: int)
         )
         return
     s = current_season()
+    where = "по всей стране" if city == "__all__" else city
+    where_in = "по всей стране" if city == "__all__" else f"в городе {city}"
+    # Явно сообщаем, что уже ищем — поиск идёт до минуты, иначе кажется, что бот
+    # «завис» и хочется жать кнопку города ещё раз.
+    await message.answer(f"🔎 Уже ищу мероприятия {where_in}… Это займёт до минуты ⏳")
     await message.bot.send_chat_action(message.chat.id, action="typing")
     result = await ai_events(city, s["phrase"])
     if not result:
@@ -87,7 +92,6 @@ async def _show_events(message: Message, state: FSMContext, city: str, uid: int)
         )
         return
     await log_event("events", "__all__" if city == "__all__" else city)
-    where = "по всей стране" if city == "__all__" else city
     title = f"{s['emoji']} Чем заняться {s['phrase']} · {where}"
     await message.answer(
         title + "\n\n" + result + ANSWER_FOOTER,
