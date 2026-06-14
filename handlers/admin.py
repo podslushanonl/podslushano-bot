@@ -488,21 +488,27 @@ _TG_LIMIT = 4096
 
 
 def _assemble_afisha(title: str, body: str, cta: str) -> str:
-    """Склеивает пост и, если он длиннее лимита Telegram, аккуратно подрезает
-    список событий по границе строки — заголовок и призыв всегда остаются."""
+    """Склеивает пост и, если он длиннее лимита Telegram, подрезает список по
+    границе ЦЕЛЫХ мероприятий (события разделены пустой строкой) — чтобы не
+    оставить событие без даты/ссылки. Заголовок и призыв всегда сохраняются."""
     text = f"{title}\n\n{body}\n\n{cta}"
     if len(text) <= _TG_LIMIT:
         return text
-    # Сколько символов доступно под тело (минус заголовок, призыв и разделители)
+    # Доступно под тело (минус заголовок, призыв и разделители)
     budget = _TG_LIMIT - len(title) - len(cta) - len("\n\n\n\n")
-    lines: list[str] = []
+    blocks = re.split(r"\n\s*\n", body)  # одно событие = один блок
+    kept: list[str] = []
     used = 0
-    for line in body.splitlines():
-        if used + len(line) + 1 > budget:
+    for block in blocks:
+        block = block.strip()
+        if not block:
+            continue
+        add = len(block) + (2 if kept else 0)  # «\n\n» между блоками
+        if used + add > budget:
             break
-        lines.append(line)
-        used += len(line) + 1
-    body = "\n".join(lines).rstrip()
+        kept.append(block)
+        used += add
+    body = "\n\n".join(kept)
     return f"{title}\n\n{body}\n\n{cta}"
 
 
