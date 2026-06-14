@@ -410,7 +410,7 @@ async def announce_text(message: Message, state: FSMContext) -> None:
 @router.callback_query(F.data == "announce:no")
 async def announce_no(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
-    await callback.message.answer("Отменил — ничего не опубликовал.")
+    await callback.message.answer("Отменил — ничего не опубликовал.", reply_markup=main_menu())
     await callback.answer()
 
 
@@ -433,12 +433,13 @@ async def announce_yes(callback: CallbackQuery, state: FSMContext) -> None:
             note = " и закрепил 📌"
         except Exception:  # noqa: BLE001
             note = " (но закрепить не вышло — дай боту право «Закреплять сообщения»)"
-        await callback.message.answer(f"✅ Опубликовал в канал{note}")
+        await callback.message.answer(f"✅ Опубликовал в канал{note}", reply_markup=main_menu())
     except Exception as e:  # noqa: BLE001
         await callback.message.answer(
             f"❌ Не получилось опубликовать: {html.escape(str(e))}\n\n"
             "Проверь: бот — администратор канала с правом «Публиковать сообщения», "
-            "и <code>ANNOUNCE_CHANNEL</code> указан верно."
+            "и <code>ANNOUNCE_CHANNEL</code> указан верно.",
+            reply_markup=main_menu(),
         )
     await callback.answer()
 
@@ -605,7 +606,7 @@ async def _afisha_draft(message: Message, state: FSMContext, city: str) -> None:
 @router.callback_query(F.data == "afpost:no")
 async def afisha_no(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
-    await callback.message.answer("Отменил — ничего не опубликовал.")
+    await callback.message.answer("Отменил — ничего не опубликовал.", reply_markup=main_menu())
     await callback.answer()
 
 
@@ -632,12 +633,13 @@ async def afisha_publish(callback: CallbackQuery, state: FSMContext) -> None:
                 note = " и закрепил 📌"
             except Exception:  # noqa: BLE001
                 note = " (но закрепить не вышло — дай боту право «Закреплять сообщения»)"
-        await callback.message.answer(f"✅ Опубликовал афишу в канал{note}")
+        await callback.message.answer(f"✅ Опубликовал афишу в канал{note}", reply_markup=main_menu())
     except Exception as e:  # noqa: BLE001
         await callback.message.answer(
             f"❌ Не получилось опубликовать: {html.escape(str(e))}\n\n"
             "Проверь: бот — администратор канала с правом «Публиковать сообщения», "
-            "и <code>ANNOUNCE_CHANNEL</code> указан верно."
+            "и <code>ANNOUNCE_CHANNEL</code> указан верно.",
+            reply_markup=main_menu(),
         )
     await callback.answer()
 
@@ -809,7 +811,9 @@ async def broadcast_send(callback: CallbackQuery, state: FSMContext) -> None:
         await callback.answer("Сообщение потерялось, начни заново", show_alert=True)
         return
     await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer("🚀 Рассылка запущена! Пришлю итог, когда закончу.")
+    await callback.message.answer(
+        "🚀 Рассылка запущена! Пришлю итог, когда закончу.", reply_markup=main_menu()
+    )
     asyncio.create_task(
         _do_broadcast(callback.bot, src_chat, src_msg, callback.from_user.id)
     )
