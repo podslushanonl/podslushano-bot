@@ -4,13 +4,18 @@
 идеи. Сезон определяется по дате автоматически («этим летом / этой осенью…»).
 """
 import logging
+from datetime import date
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from sqlalchemy import select
 
+from database.db import get_session
+from database.models import EventListing
+from handlers.afisha import _card_text, _month_label
 from keyboards.menus import ANSWER_FOOTER, cancel_menu, main_menu, share_button
 from states.forms import EventsSearch
 from utils.ai import ai_enabled, ai_events
@@ -41,18 +46,90 @@ def _is_events_button(message: Message) -> bool:
 @router.message(Command("afisha", "events"))
 @router.message(_is_events_button)
 async def events_start(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    s = current_season()
+    month_label = _month_label(f"{date.today():%Y-%m}")
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=f"📅 Афиша · {month_label.capitalize()}",
+                              callback_data="ev_afisha")],
+        [InlineKeyboardButton(text="🔎 Найти события в моём городе",
+                              callback_data="ev_search")],
+    ])
+    await message.answer(
+        f"{s['emoji']} <b>Чем заняться {s['phrase']}</b> 🎉\n\n"
+        "📅 <b>Афиша месяца</b> — наши проверенные мероприятия с постерами.\n"
+        "🔎 <b>Найти в городе</b> — подберу события под твой город.\n\n"
+        "<i>Организуете мероприятие? Разместите его в нашей афише: /afisha_add</i>",
+        reply_markup=kb,
+    )
+
+
+def _event_kb(ev: EventListing) -> InlineKeyboardMarkup | None:
+    """Кнопка «Билеты», если у мероприятия валидная ссылка."""
+    link = (ev.link or "").strip()
+    if not link or " " in link or "." not in link or link.startswith("@"):
+        return None
+    url = link if link.startswith(("http://", "https://")) else f"https://{link}"
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[InlineKeyboardButton(text="🎟 Билеты / подробнее", url=url)]]
+    )
+
+
+@router.callback_query(F.data == "ev_afisha")
+async def events_afisha(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.answer()
+    month_key = f"{date.today():%Y-%m}"
+    label = _month_label(month_key)
+    async with get_session() as session:
+        rows = (
+            await session.scalars(
+                select(EventListing)
+                .where(EventListing.month_key == month_key, EventListing.status == "approved")
+                .order_by(EventListing.is_nationwide, EventListing.city, EventListing.id)
+            )
+        ).all()
+    if not rows:
+        await callback.message.answer(
+            f"📅 Афиша на {label} пока готовится — загляни чуть позже 🙌\n\n"
+            "А пока можно поискать события в своём городе 👇",
+            reply_markup=main_menu(),
+        )
+        return
+    await log_event("afisha_view", month_key)
+    await callback.message.answer(f"📅 <b>Афиша · {label}</b>\n{len(rows)} мероприятий 👇")
+    for ev in rows:
+        kb = _event_kb(ev)
+        if ev.photo_file_id:
+            try:
+                await callback.message.answer_photo(
+                    ev.photo_file_id, caption=_card_text(ev), reply_markup=kb
+                )
+                continue
+            except Exception:  # noqa: BLE001 — постер мог стать недоступен
+                pass
+        await callback.message.answer(
+            _card_text(ev), reply_markup=kb, disable_web_page_preview=True
+        )
+
+
+@router.callback_query(F.data == "ev_search")
+async def events_search(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
     if not ai_enabled():
-        await message.answer("Раздел пока недоступен 🙏", reply_markup=main_menu())
+        await callback.message.answer(
+            "Поиск событий сейчас недоступен 🙏 Загляни в «📅 Афиша месяца» — "
+            "там наши мероприятия.",
+            reply_markup=main_menu(),
+        )
         return
     s = current_season()
     await state.set_state(EventsSearch.waiting_city)
-    await message.answer(
-        f"{s['emoji']} Покажу, чем заняться {s['phrase']} 🎉\n\n"
-        "В каком городе? Напиши или выбери 👇\n\n"
-        "<i>Организуете мероприятие? Разместите его в нашей афише: /afisha_add</i>",
+    await callback.message.answer(
+        f"{s['emoji']} В каком городе показать события? Напиши или выбери 👇",
         reply_markup=cancel_menu(),
     )
-    await message.answer("📍 Города:", reply_markup=_cities_kb())
+    await callback.message.answer("📍 Города:", reply_markup=_cities_kb())
 
 
 @router.callback_query(F.data.startswith("ev|"))
