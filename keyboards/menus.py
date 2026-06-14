@@ -9,6 +9,7 @@ from aiogram.types import (
 )
 
 import config
+from utils.season import events_button_label
 
 # Тексты пунктов главного меню (используются и для кнопок, и для распознавания)
 BTN_STORY = "📰 Прислать историю / сплетню"
@@ -34,6 +35,7 @@ def main_menu() -> ReplyKeyboardMarkup:
         [KeyboardButton(text=BTN_AD)],
         [KeyboardButton(text=BTN_CONTACTS)],
         [KeyboardButton(text=BTN_GUIDE)],
+        [KeyboardButton(text=events_button_label())],  # ☀️/🍂/❄️/🌷 Чем заняться
         [KeyboardButton(text=BTN_LETTER), KeyboardButton(text=BTN_SALARY)],
     ]
     # Кнопка платного само-добавления — только если подключена оплата

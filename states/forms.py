@@ -29,6 +29,12 @@ class ContactSearch(StatesGroup):
     waiting_for_query = State()
 
 
+class EventsSearch(StatesGroup):
+    """Раздел «Чем заняться»: ждём город для подборки событий и идей."""
+
+    waiting_city = State()
+
+
 class SupportContact(StatesGroup):
     """Обращение в поддержку: пользователь пишет, бот пересылает админам."""
 

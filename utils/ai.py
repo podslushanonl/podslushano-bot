@@ -425,6 +425,52 @@ async def ai_salary(gross_month: float, ruling30: bool) -> str | None:
     return _finalize(resp)
 
 
+async def ai_events(city: str, season_phrase: str) -> str | None:
+    """Подборка «чем заняться»: реальные события на ближайшие дни + сезонные идеи.
+
+    city == "__all__" — по всей стране (крупные события). season_phrase — «этим
+    летом» и т.п. Берёт события веб-поиском (не выдумывает). Возвращает текст с
+    источником или None.
+    """
+    if not ai_enabled():
+        return None
+    nationwide = city == "__all__"
+    where = "по всей Нидерландам" if nationwide else f"в городе {city} и рядом"
+    today = date.today().strftime("%d.%m.%Y")
+    system = (
+        "Ты — местный гид по Нидерландам для русскоязычных. Подскажи, чем заняться "
+        f"{season_phrase} {where}. ОБЯЗАТЕЛЬНО воспользуйся веб-поиском и дай два блока:\n"
+        "🎟 События — 3–6 конкретных мероприятий на ближайшие дни и выходные: название, "
+        "дату и место, и ссылку, если есть. Ищи в местных афишах (uitagenda, сайт VVV "
+        "города, iamsterdam.com, eventbrite, ticketmaster, songkick) и на сайте gemeente.\n"
+        "💡 Идеи — 3–5 сезонных идей чем заняться (пляжи, парки, маршруты, поездки рядом, "
+        "сезонные активности), привязанных к городу и сезону.\n\n"
+        "Правила: по-русски, тепло и кратко, ОБЫЧНЫМ текстом без разметки и markdown. "
+        "НЕ выдумывай несуществующие события — если для маленького города конкретики "
+        "мало, честно скажи и предложи афишу ближайшего крупного города. Начинай сразу "
+        "с подборки, без вступлений вроде «сейчас поищу»."
+    )
+    user = f"Чем заняться {season_phrase}? Где: {where}. Сегодня {today}."
+    messages = [{"role": "user", "content": user}]
+    client = _get_client()
+    try:
+        kwargs = dict(model=config.AI_CHAT_MODEL, max_tokens=1100, system=system, messages=messages)
+        tools = _web_search_tool()
+        if tools:
+            kwargs["tools"] = tools
+        resp = await client.messages.create(**kwargs)
+    except Exception as e:  # noqa: BLE001 — пробуем без веб-поиска
+        log.warning("Подборка событий с веб-поиском не сработала (%s), пробую без", e)
+        try:
+            resp = await client.messages.create(
+                model=config.AI_CHAT_MODEL, max_tokens=1100, system=system, messages=messages
+            )
+        except Exception as e2:  # noqa: BLE001
+            log.warning("Ошибка ai_events: %s", e2)
+            return None
+    return _finalize(resp)
+
+
 async def reply_with_ai(message, state) -> bool:
     """Отвечает на свободное сообщение через ИИ и помнит контекст диалога.
 
