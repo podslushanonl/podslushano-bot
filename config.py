@@ -102,6 +102,8 @@ LISTING_PRICE_YEAR_PREMIUM: str = os.getenv("LISTING_PRICE_YEAR_PREMIUM", "199.0
 # Лояльный тариф для «старожилов» — карточек из старого бессрочного контакт-гайда
 LISTING_PRICE_MONTH_LEGACY: str = os.getenv("LISTING_PRICE_MONTH_LEGACY", "4.99")
 LISTING_PRICE_YEAR_LEGACY: str = os.getenv("LISTING_PRICE_YEAR_LEGACY", "29.00")
+# Цена размещения одного мероприятия в афише месяца (строкой, как требует Mollie)
+AFISHA_PRICE: str = os.getenv("AFISHA_PRICE", "25.00")
 # Дедлайн оплаты для бессрочных карточек из старого гайда (после — скрываем из поиска)
 GRANDFATHER_DEADLINE: str = os.getenv("GRANDFATHER_DEADLINE", "2026-06-30")
 

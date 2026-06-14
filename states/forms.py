@@ -112,6 +112,19 @@ class SelfAddSpecialist(StatesGroup):
     plan = State()
 
 
+class AfishaSubmit(StatesGroup):
+    """Платная подача мероприятия в «Афишу месяца»: пошаговая анкета."""
+
+    title = State()
+    description = State()
+    date = State()
+    city = State()
+    link = State()
+    photo = State()
+    email = State()
+    month = State()
+
+
 class ClaimPay(StatesGroup):
     """Оплата «старожилом» карточки из старого гайда: спрашиваем e-mail для счёта."""
 

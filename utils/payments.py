@@ -29,11 +29,11 @@ async def create_payment(description: str, metadata: dict, amount: str) -> dict 
     {"id": "tr_...", "checkout_url": "https://..."} или None при ошибке.
     """
     sid = metadata.get("specialist_id")
-    redirect = (
-        f"{config.WEBHOOK_BASE_URL}/thanks?sid={sid}"
-        if config.WEBHOOK_BASE_URL
-        else (config.SITE_URL or "https://www.mollie.com")
-    )
+    if sid and config.WEBHOOK_BASE_URL:
+        redirect = f"{config.WEBHOOK_BASE_URL}/thanks?sid={sid}"
+    else:
+        # Платежи без карточки специалиста (напр. мероприятие афиши) — назад в бота
+        redirect = config.BOT_URL or config.SITE_URL or "https://www.mollie.com"
     body = {
         "amount": {"currency": config.LISTING_CURRENCY, "value": amount},
         "description": description,

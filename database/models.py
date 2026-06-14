@@ -116,3 +116,32 @@ class BotUser(Base):
     # Кто пригласил (Telegram-id реферера) — для роста по реферальным ссылкам
     referred_by: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class EventListing(Base):
+    """Платное мероприятие в «Афише месяца» (подаёт организатор, после оплаты и
+    проверки админом публикуется)."""
+
+    __tablename__ = "event_listings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    title: Mapped[str] = mapped_column(String(200))
+    description: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Ссылка на билеты / соцсети
+    link: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    # Постер мероприятия (Telegram file_id) — обязателен при подаче
+    photo_file_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Город проведения ("" + is_nationwide=True — по всей стране/онлайн)
+    city: Mapped[str] = mapped_column(String(100), default="")
+    is_nationwide: Mapped[bool] = mapped_column(Boolean, default=False)
+    # Дата или период проведения (свободным текстом, напр. «12–14 июля»)
+    event_date: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    # Месяц афиши в формате ГГГГ-ММ (напр. «2026-07»)
+    month_key: Mapped[str] = mapped_column(String(7), index=True)
+    # Кто подал (Telegram-id) и e-mail для счёта
+    submitter_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    invoice_email: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    # Статус: awaiting_payment | pending (оплачено, на проверке) | approved | rejected
+    status: Mapped[str] = mapped_column(String(20), default="awaiting_payment")
+    payment_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
