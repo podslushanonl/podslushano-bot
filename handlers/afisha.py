@@ -160,6 +160,24 @@ async def afisha_add_start(message: Message, state: FSMContext) -> None:
     )
 
 
+@router.message(Command("afisha_new"), F.from_user.id.in_(config.ADMIN_IDS))
+async def afisha_manual_start(message: Message, state: FSMContext) -> None:
+    """Ручное добавление мероприятия админом — без оплаты, сразу в афишу."""
+    await state.set_state(AfishaSubmit.title)
+    await state.update_data(af_manual=True)
+    await message.answer(
+        "🆕 <b>Ручное добавление в афишу</b> (без оплаты — сразу опубликуется).\n\n"
+        "Название мероприятия?",
+        reply_markup=cancel_menu(),
+    )
+
+
+@router.callback_query(F.data == "admin:afishanew", F.from_user.id.in_(config.ADMIN_IDS))
+async def afisha_manual_btn(callback: CallbackQuery, state: FSMContext) -> None:
+    await afisha_manual_start(callback.message, state)
+    await callback.answer()
+
+
 @router.message(AfishaSubmit.title)
 async def afisha_title(message: Message, state: FSMContext) -> None:
     if not message.text:
@@ -238,6 +256,14 @@ async def afisha_photo(message: Message, state: FSMContext) -> None:
         )
         return
     await state.update_data(af_photo=message.photo[-1].file_id)
+    data = await state.get_data()
+    if data.get("af_manual"):
+        # Ручное добавление админом — без e-mail и оплаты, сразу к выбору месяца
+        await state.set_state(AfishaSubmit.month)
+        await message.answer(
+            "Готово! В афишу какого месяца добавить мероприятие?", reply_markup=_month_kb()
+        )
+        return
     await state.set_state(AfishaSubmit.email)
     await message.answer(
         "Шаг 7/7. На какой <b>e-mail</b> прислать счёт (factuur) после оплаты?\n"
@@ -267,6 +293,7 @@ async def afisha_month(callback: CallbackQuery, state: FSMContext) -> None:
     if month_key not in valid:
         month_key = _next_month_key()
     data = await state.get_data()
+    manual = bool(data.get("af_manual"))
     async with get_session() as session:
         ev = EventListing(
             title=data["af_title"],
@@ -277,15 +304,24 @@ async def afisha_month(callback: CallbackQuery, state: FSMContext) -> None:
             is_nationwide=data.get("af_nationwide", False),
             event_date=data.get("af_date"),
             month_key=month_key,
-            submitter_user_id=callback.from_user.id,
+            submitter_user_id=None if manual else callback.from_user.id,
             invoice_email=data.get("af_email"),
-            status="awaiting_payment",
+            status="approved" if manual else "awaiting_payment",
         )
         session.add(ev)
         await session.commit()
         await session.refresh(ev)
         ev_id, title = ev.id, ev.title
     await state.clear()
+
+    if manual:
+        await callback.message.answer(
+            f"✅ Добавлено в афишу на <b>{_month_label(month_key)}</b>: «{html.escape(title)}».\n"
+            f"Собрать афишу месяца: <code>/afisha_export {month_key}</code>",
+            reply_markup=main_menu(),
+        )
+        await callback.answer()
+        return
 
     payment = await create_payment(
         f"{DESC}: {title}",

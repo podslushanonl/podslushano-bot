@@ -63,6 +63,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🔎 Найти и удалить", callback_data="admin:find")],
             [InlineKeyboardButton(text="📣 Рассылка-анонс", callback_data="admin:broadcast")],
             [InlineKeyboardButton(text="📅 Афиша в канал", callback_data="admin:afisha")],
+            [InlineKeyboardButton(text="🆕 В афишу месяца (вручную)", callback_data="admin:afishanew")],
             [InlineKeyboardButton(text="⏳ Старый гайд: дедлайн оплаты", callback_data="admin:legacydeadline")],
             [InlineKeyboardButton(text="📋 Старый гайд: список для рассылки", callback_data="admin:legacyexport")],
             [InlineKeyboardButton(text="📊 Статистика", callback_data="admin:stats")],
