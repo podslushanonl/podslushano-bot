@@ -176,7 +176,7 @@ async def ai_reply(
 
     async def _create(tools):
         kwargs = dict(
-            model=config.AI_MODEL,
+            model=config.AI_CHAT_MODEL,
             max_tokens=900,
             system=system,
             messages=messages,
@@ -368,7 +368,7 @@ async def ai_explain_letter(image_b64: str, media_type: str = "image/jpeg") -> s
     try:
         client = _get_client()
         resp = await client.messages.create(
-            model=config.AI_MODEL,
+            model=config.AI_CHAT_MODEL,
             max_tokens=900,
             system=LETTER_SYSTEM,
             messages=[{"role": "user", "content": content}],
@@ -408,7 +408,7 @@ async def ai_salary(gross_month: float, ruling30: bool) -> str | None:
     messages = [{"role": "user", "content": user}]
     client = _get_client()
     try:
-        kwargs = dict(model=config.AI_MODEL, max_tokens=900, system=system, messages=messages)
+        kwargs = dict(model=config.AI_CHAT_MODEL, max_tokens=900, system=system, messages=messages)
         tools = _web_search_tool()
         if tools:
             kwargs["tools"] = tools
@@ -417,7 +417,7 @@ async def ai_salary(gross_month: float, ruling30: bool) -> str | None:
         log.warning("Калькулятор зарплаты с веб-поиском не сработал (%s), пробую без", e)
         try:
             resp = await client.messages.create(
-                model=config.AI_MODEL, max_tokens=900, system=system, messages=messages
+                model=config.AI_CHAT_MODEL, max_tokens=900, system=system, messages=messages
             )
         except Exception as e2:  # noqa: BLE001
             log.warning("Ошибка калькулятора зарплаты ИИ: %s", e2)
