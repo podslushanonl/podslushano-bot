@@ -432,12 +432,11 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     if not category and not city_info:
         if await reply_with_ai(message, state):
             return
-        categories = ", ".join(CATEGORIES.keys())
         await state.set_state(ContactSearch.waiting_for_query)
         await message.answer(
-            "Хм, я не совсем понял, кто нужен 🤔 Я ищу по категориям: "
-            f"{categories}.\n\n"
-            "Напиши, например: <i>«юрист в Роттердаме»</i> — и я поищу.",
+            "Хм, я не совсем понял, кто нужен 🤔 Напиши профессию и город — "
+            "например: <i>«юрист в Роттердаме»</i>, <i>«фотограф в Гааге»</i>, "
+            "<i>«репетитор по математике»</i> — и я поищу.",
             reply_markup=feedback_kb(),
         )
         return

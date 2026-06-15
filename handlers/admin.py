@@ -1361,6 +1361,91 @@ async def guide_export_btn(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
+# --- Массовая переразметка категорий (новая таксономия) ---------------------
+
+def _suggest_category(sp: Specialist) -> str | None:
+    """Подбирает категорию по новой таксономии: сначала по имени (надёжно),
+    затем по имени+описанию. None — если не распознали (оставим как есть)."""
+    return (
+        detect_category(sp.name or "")
+        or detect_category(f"{sp.name or ''} {sp.description or ''}")
+        or None
+    )
+
+
+async def _recat_rows() -> list[tuple[int, str, str, str]]:
+    """Список (id, имя, было, станет) для карточек, где категория поменяется."""
+    async with get_session() as session:
+        specs = (
+            await session.scalars(
+                select(Specialist).where(Specialist.status != "rejected").order_by(Specialist.id)
+            )
+        ).all()
+    rows = []
+    for sp in specs:
+        sug = _suggest_category(sp)
+        if sug and sug in CATEGORIES and sug != sp.category:
+            rows.append((sp.id, sp.name, sp.category, sug))
+    return rows
+
+
+@router.message(Command("recategorize"))
+async def cmd_recategorize(message: Message, state: FSMContext) -> None:
+    """Предпросмотр массовой переразметки (CSV «было→станет»), без изменений."""
+    await state.clear()
+    import csv
+    import io
+
+    from aiogram.types import BufferedInputFile
+
+    rows = await _recat_rows()
+    if not rows:
+        await message.answer(
+            "Все категории уже соответствуют новой таксономии — менять нечего ✅",
+            reply_markup=main_menu(),
+        )
+        return
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["id", "Имя", "Было", "Станет"])
+    for rid, name, old, new in rows:
+        writer.writerow([rid, name, old, new])
+    data = buf.getvalue().encode("utf-8-sig")
+    doc = BufferedInputFile(data, filename="recategorize_preview.csv")
+    await message.answer_document(
+        doc,
+        caption=(
+            f"🔁 Предпросмотр переразметки: изменится <b>{len(rows)}</b> карточек.\n\n"
+            "Проверь CSV. Если ок — применить всё: /recategorize_apply\n"
+            "Отдельные карточки потом можно поправить: /setcategory ID категория"
+        ),
+    )
+
+
+@router.message(Command("recategorize_apply"))
+async def cmd_recategorize_apply(message: Message, state: FSMContext) -> None:
+    """Применяет переразметку (детерминированно, тот же расчёт, что в предпросмотре)."""
+    await state.clear()
+    rows = await _recat_rows()
+    if not rows:
+        await message.answer("Менять нечего ✅", reply_markup=main_menu())
+        return
+    ids = {rid: new for rid, _, _, new in rows}
+    applied = 0
+    async with get_session() as session:
+        for rid, new in ids.items():
+            sp = await session.get(Specialist, rid)
+            if sp and new in CATEGORIES and sp.category != new:
+                sp.category = new
+                applied += 1
+        await session.commit()
+    await message.answer(
+        f"✅ Переразметка применена: обновлено <b>{applied}</b> карточек.\n"
+        "Отзывы и рейтинги сохранены. Точечно правь: /setcategory ID категория",
+        reply_markup=main_menu(),
+    )
+
+
 async def _guide_export(message: Message) -> None:
     """CSV со ВСЕМИ специалистами в гайде — чтобы свериться перед рассылкой
     приглашений (кому уже не надо писать)."""
