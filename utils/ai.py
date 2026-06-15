@@ -24,7 +24,8 @@ log = logging.getLogger(__name__)
 _client = None
 
 # Сколько последних реплик помним в диалоге (пар «пользователь — бот»).
-HISTORY_LIMIT = 8
+# Меньше история — меньше входных токенов в каждом запросе (экономия).
+HISTORY_LIMIT = 4
 
 SYSTEM_PROMPT = (
     "Ты — дружелюбный и умный ассистент Telegram-бота сообщества "
@@ -368,7 +369,7 @@ async def ai_explain_letter(image_b64: str, media_type: str = "image/jpeg") -> s
     try:
         client = _get_client()
         resp = await client.messages.create(
-            model=config.AI_CHAT_MODEL,
+            model=config.AI_VISION_MODEL,
             max_tokens=900,
             system=LETTER_SYSTEM,
             messages=[{"role": "user", "content": content}],
