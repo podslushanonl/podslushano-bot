@@ -109,6 +109,8 @@ LISTING_PRICE_YEAR_LEGACY: str = os.getenv("LISTING_PRICE_YEAR_LEGACY", "29.00")
 AFISHA_PRICE: str = os.getenv("AFISHA_PRICE", "25.00")
 # Доска объявлений: цена «поднять наверх» (строкой, как требует Mollie)
 BOARD_BUMP_PRICE: str = os.getenv("BOARD_BUMP_PRICE", "4.99")
+# Доска: символическая плата за размещение жилья (анти-скам). "" / "0" = бесплатно.
+BOARD_HOUSING_PRICE: str = os.getenv("BOARD_HOUSING_PRICE", "2.99")
 # Дедлайн оплаты для бессрочных карточек из старого гайда (после — скрываем из поиска)
 GRANDFATHER_DEADLINE: str = os.getenv("GRANDFATHER_DEADLINE", "2026-06-30")
 
