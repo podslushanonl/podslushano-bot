@@ -41,6 +41,12 @@ class SupportContact(StatesGroup):
     waiting_message = State()
 
 
+class SupportReply(StatesGroup):
+    """Ответ админа пользователю на обращение/жалобу (бот пересылает)."""
+
+    waiting_text = State()
+
+
 class LetterExplain(StatesGroup):
     """Разбор официального письма по фото."""
 
