@@ -9,6 +9,7 @@
   чтобы человек никогда не оставался без ответа.
 """
 import random
+import re
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
@@ -72,6 +73,16 @@ def _matches(text: str, patterns: tuple[str, ...]) -> bool:
     return any(p in text for p in patterns)
 
 
+def _matches_word(text: str, patterns: tuple[str, ...]) -> bool:
+    """Совпадение по ЦЕЛОМУ слову/фразе (а не по подстроке).
+
+    Нужно для коротких приветствий вроде «ку», «хай», «hi» — иначе они ловятся
+    внутри обычных слов («автомой<b>ку</b>» → ложное приветствие)."""
+    return any(
+        re.search(rf"(?<!\w){re.escape(p)}(?!\w)", text) for p in patterns
+    )
+
+
 @router.message(F.text)
 async def free_chat(message: Message, state: FSMContext) -> None:
     """Любое текстовое сообщение вне меню и диалогов."""
@@ -81,20 +92,20 @@ async def free_chat(message: Message, state: FSMContext) -> None:
 
     # Короткие реплики-приветствия и вежливости
     if len(low) < 35:
-        if _matches(low, HOW_ARE_YOU):
+        if _matches_word(low, HOW_ARE_YOU):
             await message.answer(random.choice(HOW_ARE_YOU_REPLIES), reply_markup=main_menu())
             return
-        if _matches(low, GREETING_WORDS):
+        if _matches_word(low, GREETING_WORDS):
             await message.answer(
                 random.choice(GREETING_REPLIES).format(name=name)
                 + "\n\nЧем могу помочь? Выбери в меню или просто напиши 👇",
                 reply_markup=main_menu(),
             )
             return
-        if _matches(low, THANKS_WORDS):
+        if _matches_word(low, THANKS_WORDS):
             await message.answer(random.choice(THANKS_REPLIES), reply_markup=main_menu())
             return
-        if _matches(low, BYE_WORDS):
+        if _matches_word(low, BYE_WORDS):
             await message.answer(random.choice(BYE_REPLIES), reply_markup=main_menu())
             return
 
