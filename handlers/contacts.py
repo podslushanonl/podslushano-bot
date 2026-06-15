@@ -69,6 +69,24 @@ def is_howto_question(text: str) -> bool:
     return any(v in low for v in _HOWTO_VERBS)
 
 
+# Темы-процессы: про них чаще нужен совет/ссылка, а не «найти специалиста».
+# Например «курсы для inburgering онлайн» — это инфо-запрос, а не наём языковой школы.
+_INFO_TOPICS = (
+    "inburger", "инбюргер", "инбургер", "интеграционн экзам", "integratie",
+    "bsn", "digid", "zorgtoeslag", "huurtoeslag", "kinderopvangtoeslag", "toeslag",
+    "belastingdienst", "30% ruling", "30 ruling", "ind ", "verblijf", "вид на жительств",
+)
+
+
+def is_info_topic(text: str) -> bool:
+    """True, если запрос про известный процесс/тему (inburgering, BSN, toeslag…).
+
+    Такие вопросы лучше отдать ИИ (даст совет/ссылку), а не уводить в поиск
+    специалиста с вопросом «в каком городе?»."""
+    low = (text or "").lower()
+    return any(t in low for t in _INFO_TOPICS)
+
+
 # Эмодзи для красивых кнопок категорий
 CATEGORY_EMOJI = {
     "парикмахер": "💇", "мастер маникюра": "💅", "брови и ресницы": "👁",
@@ -440,6 +458,18 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     # поиск (пользователь внутри диалога «кого ищем / в каком городе»).
     if (
         is_howto_question(text)
+        and not data.get("pending_category")
+        and not data.get("pending_province")
+        and await reply_with_ai(message, state)
+    ):
+        return
+
+    # Инфо-темы (inburgering, BSN, toeslag…): даём совет/ссылку через ИИ, а не
+    # уводим в поиск специалиста — но только если не назван иной конкретный
+    # специалист (бухгалтер/юрист…) и мы не в середине активного поиска.
+    if (
+        is_info_topic(text)
+        and detect_category(text) in (None, "языковые курсы")
         and not data.get("pending_category")
         and not data.get("pending_province")
         and await reply_with_ai(message, state)

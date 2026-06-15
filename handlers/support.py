@@ -11,11 +11,16 @@ from aiogram import F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import (
+    CallbackQuery,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+    Message,
+)
 
 import config
 from keyboards.menus import BTN_CONTACT, cancel_menu, main_menu
-from states.forms import SupportContact
+from states.forms import SupportContact, SupportReply
 
 log = logging.getLogger(__name__)
 
@@ -100,10 +105,13 @@ async def contact_relay(message: Message, state: FSMContext) -> None:
     # Для жалобы на ответ прикладываем сам ответ бота — чтобы видеть, что не так
     if kind == "wrong" and wrong_answer:
         header += f"\n\n<b>Ответ, на который пожаловались:</b>\n<i>{html.escape(wrong_answer)}</i>"
+    reply_kb = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="✍️ Ответить", callback_data=f"supreply:{u.id}")
+    ]])
     sent = False
     for admin_id in config.ADMIN_IDS:
         try:
-            await message.bot.send_message(admin_id, header)
+            await message.bot.send_message(admin_id, header, reply_markup=reply_kb)
             await message.copy_to(admin_id)  # переносим текст/фото/файл как есть
             sent = True
         except Exception as e:  # noqa: BLE001
@@ -119,4 +127,45 @@ async def contact_relay(message: Message, state: FSMContext) -> None:
             + config.support_block(),
             reply_markup=main_menu(),
             disable_web_page_preview=True,
+        )
+
+
+# --- Ответ админа пользователю (на обращение/жалобу) ------------------------
+
+@router.callback_query(F.data.startswith("supreply:"), F.from_user.id.in_(config.ADMIN_IDS))
+async def support_reply_start(callback: CallbackQuery, state: FSMContext) -> None:
+    try:
+        uid = int(callback.data.split(":", 1)[1])
+    except (ValueError, IndexError):
+        await callback.answer()
+        return
+    await state.set_state(SupportReply.waiting_text)
+    await state.update_data(reply_to=uid)
+    await callback.message.answer(
+        f"Напиши ответ пользователю (id <code>{uid}</code>) — я перешлю его. "
+        "Можно текст, фото или файл.",
+        reply_markup=cancel_menu(),
+    )
+    await callback.answer()
+
+
+@router.message(SupportReply.waiting_text)
+async def support_reply_send(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    uid = data.get("reply_to")
+    await state.clear()
+    if not uid:
+        await message.answer("Не нашёл, кому отвечать 🤔", reply_markup=main_menu())
+        return
+    try:
+        await message.bot.send_message(
+            uid, "💬 <b>Ответ от команды «Подслушано»:</b>"
+        )
+        await message.copy_to(uid)  # переносим текст/фото/файл как есть
+        await message.answer("✅ Отправил пользователю.", reply_markup=main_menu())
+    except Exception as e:  # noqa: BLE001
+        await message.answer(
+            f"❌ Не удалось отправить (возможно, пользователь заблокировал бота): "
+            f"{html.escape(str(e))}",
+            reply_markup=main_menu(),
         )
