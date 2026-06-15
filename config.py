@@ -68,9 +68,12 @@ ANTHROPIC_API_KEY: str = os.getenv("ANTHROPIC_API_KEY", "")
 # Модель: Haiku — быстрая и дешёвая. Используется для служебной классификации
 # запросов (какой специалист/город), где важна не грамотность, а скорость/цена.
 AI_MODEL: str = os.getenv("AI_MODEL", "claude-haiku-4-5-20251001")
-# Модель для ОТВЕТОВ пользователям (свободный чат, разбор письма, калькулятор
-# зарплаты): грамотнее и аккуратнее по-русски. Можно переопределить через .env.
-AI_CHAT_MODEL: str = os.getenv("AI_CHAT_MODEL", "claude-sonnet-4-6")
+# Модель для ОТВЕТОВ пользователям (свободный чат, калькулятор зарплаты,
+# события/афиша): Haiku 4.5 — дёшево и достаточно для комьюнити-помощника.
+# Можно переопределить через .env.
+AI_CHAT_MODEL: str = os.getenv("AI_CHAT_MODEL", "claude-haiku-4-5-20251001")
+# Модель для разбора писем по фото (vision) — тут важнее качество, держим Sonnet.
+AI_VISION_MODEL: str = os.getenv("AI_VISION_MODEL", "claude-sonnet-4-6")
 
 # Веб-поиск для ИИ — даёт свежую информацию (актуальные цифры, правила, новости).
 # 1/true — включён (по умолчанию). 0/false — выключить.
@@ -79,9 +82,9 @@ AI_WEB_SEARCH: bool = os.getenv("AI_WEB_SEARCH", "1").strip().lower() in (
 )
 # Сколько поисков максимум за один ответ (защита от лишних расходов).
 try:
-    AI_WEB_MAX_USES: int = int(os.getenv("AI_WEB_MAX_USES", "4"))
+    AI_WEB_MAX_USES: int = int(os.getenv("AI_WEB_MAX_USES", "2"))
 except ValueError:
-    AI_WEB_MAX_USES = 4
+    AI_WEB_MAX_USES = 2
 
 # --- Стикеры ----------------------------------------------------------------
 # Ссылка на ваш стикерпак, например https://t.me/addstickers/ВашПак
