@@ -30,7 +30,7 @@ from utils.reviews import (
     specialist_key,
     texts_for,
 )
-from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city
+from utils.geo import CATEGORIES, NEIGHBORS, THEMES, detect_category, detect_city
 
 router = Router()
 # Поиск специалистов — только в личных чатах
@@ -71,14 +71,21 @@ def is_howto_question(text: str) -> bool:
 
 # Эмодзи для красивых кнопок категорий
 CATEGORY_EMOJI = {
-    "стоматолог": "🦷", "врач": "🩺", "психолог": "🧠", "юрист": "⚖️", "бухгалтер": "📊",
-    "риелтор": "🏠", "репетитор": "📚", "музыка": "🎵", "парикмахер": "💇", "мастер маникюра": "💅",
-    "косметолог": "✨", "массаж": "💆", "тату": "🖋", "фотограф": "📷", "дизайнер": "🎨",
-    "ремонт": "🔧", "мастер на час": "🛠", "клининг": "🧹", "кондитер": "🧁", "еда": "🍽",
-    "няня": "🍼", "аниматор": "🎈", "фитнес": "🏋", "гид": "🗺", "ведущий": "🎤", "стилист": "👗",
-    "автошкола": "🚗", "веб-разработчик": "💻", "творчество": "🎭", "автосервис": "🚙",
-    "нутрициолог": "🥗", "услуги": "🧩",
+    "парикмахер": "💇", "мастер маникюра": "💅", "брови и ресницы": "👁",
+    "перманентный макияж": "💉", "визажист": "💄", "косметолог": "✨", "эпиляция": "🪒",
+    "массаж": "💆", "тату и пирсинг": "🖋", "стилист": "👗",
+    "стоматолог": "🦷", "врач": "🩺", "психолог": "🧠", "коуч": "🌱", "нутрициолог": "🥗",
+    "фитнес": "🏋",
+    "юрист": "⚖️", "бухгалтер": "📊", "переводчик": "🌐", "риелтор": "🏠", "it и веб": "💻",
+    "маркетинг": "📣", "дизайнер": "🎨", "бизнес-консалтинг": "💼", "карьерный консультант": "📄",
+    "фотограф": "📷", "видеограф": "🎥", "ведущий": "🎤", "музыкант": "🎵", "декор": "🎈",
+    "аниматор": "🤡", "кондитер": "🧁", "кейтеринг": "🍽",
+    "ремонт": "🔧", "мастер на час": "🛠", "клининг": "🧹", "переезды": "📦",
+    "автосервис": "🚙", "автошкола": "🚗",
+    "репетитор": "📚", "языковые курсы": "🗣", "няня": "🍼", "детские занятия": "🧸",
+    "гид": "🗺", "творчество": "🎭",
 }
+THEME_LIST = list(THEMES.keys())
 POPULAR_CITIES = ["Amsterdam", "Rotterdam", "Den Haag", "Utrecht", "Eindhoven", "Groningen"]
 
 
@@ -99,14 +106,27 @@ async def _active_category_counts() -> dict[str, int]:
     return {cat: n for cat, n in rows}
 
 
-def _categories_kb(counts: dict[str, int]) -> InlineKeyboardMarkup:
-    # Показываем популярные категории (≥2 специалистов), по убыванию количества.
-    cats = [c for c, n in sorted(counts.items(), key=lambda x: -x[1]) if n >= 2]
-    btns = [
-        InlineKeyboardButton(text=f"{CATEGORY_EMOJI.get(c, '•')} {c}", callback_data=f"fcat|{c}")
-        for c in cats
+def _themes_kb() -> InlineKeyboardMarkup:
+    """Первый уровень просмотра — список тем."""
+    rows = [
+        [InlineKeyboardButton(text=name, callback_data=f"fth|{i}")]
+        for i, name in enumerate(THEME_LIST)
     ]
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def _theme_categories_kb(theme_idx: int, counts: dict[str, int]) -> InlineKeyboardMarkup:
+    """Второй уровень — категории внутри темы (со счётчиком, если есть)."""
+    cats = THEMES[THEME_LIST[theme_idx]]
+    populated = [c for c in cats if counts.get(c, 0) > 0]
+    show = populated or cats  # если в теме пока пусто — покажем все категории темы
+    btns = []
+    for c in show:
+        n = counts.get(c, 0)
+        label = f"{CATEGORY_EMOJI.get(c, '•')} {c}" + (f" ({n})" if n else "")
+        btns.append(InlineKeyboardButton(text=label, callback_data=f"fcat|{c}"))
     rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
+    rows.append([InlineKeyboardButton(text="⬅️ К темам", callback_data="fthemes")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -121,16 +141,35 @@ def _cities_kb(cat: str) -> InlineKeyboardMarkup:
 @router.message(F.text == BTN_CONTACTS)
 async def ask_query(message: Message, state: FSMContext) -> None:
     await state.set_state(ContactSearch.waiting_for_query)
-    counts = await _active_category_counts()
     await message.answer(
         "Кого ищем? Напиши словами — например «стоматолог в Амстердаме» — "
-        "или выбери категорию ниже 👇",
+        "или выбери из категорий ниже 👇",
         reply_markup=cancel_menu(),
     )
-    await message.answer(
-        "📂 Популярные категории (или просто напиши, кого ищешь):",
-        reply_markup=_categories_kb(counts),
+    await message.answer("📂 Выбери тему:", reply_markup=_themes_kb())
+
+
+@router.callback_query(F.data == "fthemes")
+async def back_to_themes(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.set_state(ContactSearch.waiting_for_query)
+    await callback.message.answer("📂 Выбери тему:", reply_markup=_themes_kb())
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("fth|"))
+async def pick_theme(callback: CallbackQuery, state: FSMContext) -> None:
+    try:
+        idx = int(callback.data.split("|", 1)[1])
+        name = THEME_LIST[idx]
+    except (ValueError, IndexError):
+        await callback.answer()
+        return
+    await state.set_state(ContactSearch.waiting_for_query)
+    counts = await _active_category_counts()
+    await callback.message.answer(
+        f"{name} — выбери категорию 👇", reply_markup=_theme_categories_kb(idx, counts)
     )
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("fcat|"))
