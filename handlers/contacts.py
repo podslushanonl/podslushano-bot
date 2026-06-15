@@ -518,6 +518,17 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     terms = _query_tokens(text)
     if data.get("pending_terms"):
         terms = list(dict.fromkeys(terms + data["pending_terms"]))
+
+    def _has_term_match(specs: list) -> bool:
+        return any(
+            any(t[:5] in f"{s.name} {s.description or ''} {s.category}".lower() for t in terms)
+            for s in specs
+        )
+
+    # «Широкое» совпадение: назвали конкретику (напр. «лазерная эпиляция»), но
+    # точно никто не подходит — покажем профиль категории, но честно об этом скажем.
+    loose = bool(terms) and not _has_term_match(online + in_province + in_neighbors)
+
     online = _filter_relevant(online, terms)
     in_province = _filter_relevant(in_province, terms)
     in_neighbors = _filter_relevant(in_neighbors, terms)
@@ -529,25 +540,29 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     )
     has_exact_city = any(city and s.city == city for s in in_province)
 
+    # Честный вводный заголовок: «нашёл!» только при точном совпадении; иначе —
+    # «точного нет, вот профиль рядом».
+    lead = (
+        "Точного мастера именно под ваш запрос не нашёл 🙏 Но вот специалисты "
+        "этого профиля — у них можно уточнить 👇"
+        if loose else random.choice(FOUND_PHRASES)
+    )
+
     sections: list = []
     if in_province:
         if has_exact_city:
-            header = f"{random.choice(FOUND_PHRASES)}\nВот кто есть в {city} и рядом ({province}):"
+            loc = f"Вот кто есть в {city} и рядом ({province}):"
         elif city.strip().lower() == province.strip().lower():
-            # Искали столицу/название провинции — показываем по провинции позитивно
-            header = f"{random.choice(FOUND_PHRASES)}\nВот специалисты в провинции {province}:"
+            loc = f"Вот специалисты в провинции {province}:"
         else:
-            header = (
-                f"{random.choice(FOUND_PHRASES)}\nВ самом {city} точных совпадений нет, "
+            loc = (
+                f"В самом {city} точных совпадений нет, "
                 f"но вот кто работает рядом — в провинции {province}:"
             )
-        sections.append((header, in_province))
+        sections.append((f"{lead}\n{loc}", in_province))
     elif in_neighbors:
         sections.append(
-            (
-                f"{random.choice(FOUND_PHRASES)}\nБлижайшие к {city} — в соседних провинциях:",
-                in_neighbors,
-            )
+            (f"{lead}\nБлижайшие к {city} — в соседних провинциях:", in_neighbors)
         )
 
     if online:
@@ -555,11 +570,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
             sections.append(("🌐 А ещё работают онлайн (по всей стране):", online))
         else:
             sections.append(
-                (
-                    f"{random.choice(FOUND_PHRASES)}\nРаботают по всей стране — "
-                    f"а значит, и в {city}:",
-                    online,
-                )
+                (f"{lead}\nРаботают по всей стране — а значит, и в {city}:", online)
             )
 
     if sections:
