@@ -61,6 +61,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="➕ Добавить специалиста", callback_data="admin:add")],
             [InlineKeyboardButton(text="📋 Добавленные вручную", callback_data="admin:list")],
             [InlineKeyboardButton(text="🔎 Найти и удалить", callback_data="admin:find")],
+            [InlineKeyboardButton(text="📇 Весь гайд (выгрузка)", callback_data="admin:guideexport")],
             [InlineKeyboardButton(text="📣 Рассылка-анонс", callback_data="admin:broadcast")],
             [InlineKeyboardButton(text="📅 Афиша в канал", callback_data="admin:afisha")],
             [InlineKeyboardButton(text="🆕 В афишу месяца (вручную)", callback_data="admin:afishanew")],
@@ -1346,6 +1347,58 @@ async def _legacy_set_deadline(message: Message) -> None:
         "(не удаляются: оплата вернёт карточку).\n\n"
         "Дальше выгрузи список со ссылками для рассылки: /legacy_export",
         reply_markup=main_menu(),
+    )
+
+
+@router.message(Command("guide_export"))
+async def cmd_guide_export(message: Message) -> None:
+    await _guide_export(message)
+
+
+@router.callback_query(F.data == "admin:guideexport")
+async def guide_export_btn(callback: CallbackQuery) -> None:
+    await _guide_export(callback.message)
+    await callback.answer()
+
+
+async def _guide_export(message: Message) -> None:
+    """CSV со ВСЕМИ специалистами в гайде — чтобы свериться перед рассылкой
+    приглашений (кому уже не надо писать)."""
+    import csv
+    import io
+
+    from aiogram.types import BufferedInputFile
+
+    async with get_session() as session:
+        rows = (
+            await session.scalars(
+                select(Specialist)
+                .where(Specialist.status != "rejected")
+                .order_by(Specialist.name)
+            )
+        ).all()
+    if not rows:
+        await message.answer("В гайде пока пусто.", reply_markup=main_menu())
+        return
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(["Имя", "Категория", "Город", "Контакт", "Источник", "Статус"])
+    for s in rows:
+        where = "онлайн" if s.is_online else (s.city or s.province or "")
+        src = {"seed": "старый гайд", "admin": "добавлен вручную", "self": "сам(а)"}.get(
+            s.source, s.source or ""
+        )
+        writer.writerow([s.name, s.category, where, s.contact or "", src, s.status])
+    data = buf.getvalue().encode("utf-8-sig")  # BOM — чтобы Excel открыл кириллицу
+    doc = BufferedInputFile(data, filename="guide_all.csv")
+    await message.answer_document(
+        doc,
+        caption=(
+            f"📇 Весь гайд: {len(rows)} специалистов.\n"
+            "Сверь со списком рассылки, чтобы не написать тем, кто уже есть.\n\n"
+            "Быстрая проверка одного человека: /admin → «🔎 Найти и удалить» → "
+            "введи имя (просто посмотри, удалять не нужно)."
+        ),
     )
 
 
