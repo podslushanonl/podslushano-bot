@@ -10,6 +10,7 @@ import logging
 from datetime import datetime, timedelta
 
 from aiogram import F, Router
+from aiogram.filters import Command
 from aiogram.enums import ChatType
 from aiogram.fsm.context import FSMContext
 from aiogram.types import (
@@ -101,6 +102,7 @@ def _pay_kb(checkout_url: str, plan: str) -> InlineKeyboardMarkup:
 
 # --- Анкета ------------------------------------------------------------------
 
+@router.message(Command("selfadd", "addme"))
 @router.message(F.text == BTN_SELF_ADD)
 async def self_start(message: Message, state: FSMContext) -> None:
     if not config.payments_enabled():
