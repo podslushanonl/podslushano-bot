@@ -301,6 +301,11 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         from handlers.afisha import on_afisha_payment_paid
         await on_afisha_payment_paid(bot, payment_id, payment)
         return
+    # Платёж за «поднятие» объявления на доске — отдельный обработчик
+    if kind == "bump":
+        from handlers.board import on_bump_paid
+        await on_bump_paid(bot, payment_id, payment)
+        return
     sid = meta.get("specialist_id")
     if not sid:
         return

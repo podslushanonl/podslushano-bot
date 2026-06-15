@@ -17,6 +17,7 @@ BTN_QUESTION = "❓ Задать вопрос (предложка)"
 BTN_VIDEO = "🎬 Прислать видео"
 BTN_AD = "📢 Реклама / сотрудничество"
 BTN_CONTACTS = "🔍 Найти специалиста"
+BTN_BOARD = "📋 Объявления"
 BTN_GUIDE = "📚 Полезное о жизни в NL"
 BTN_LETTER = "📩 Разобрать письмо"
 BTN_SALARY = "🧮 Калькулятор зарплаты"
@@ -34,6 +35,7 @@ def main_menu() -> ReplyKeyboardMarkup:
         [KeyboardButton(text=BTN_QUESTION), KeyboardButton(text=BTN_VIDEO)],
         [KeyboardButton(text=BTN_AD)],
         [KeyboardButton(text=BTN_CONTACTS)],
+        [KeyboardButton(text=BTN_BOARD)],
         [KeyboardButton(text=BTN_GUIDE)],
         [KeyboardButton(text=events_button_label())],  # ☀️/🍂/❄️/🌷 Чем заняться
         [KeyboardButton(text=BTN_LETTER), KeyboardButton(text=BTN_SALARY)],

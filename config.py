@@ -104,6 +104,8 @@ LISTING_PRICE_MONTH_LEGACY: str = os.getenv("LISTING_PRICE_MONTH_LEGACY", "4.99"
 LISTING_PRICE_YEAR_LEGACY: str = os.getenv("LISTING_PRICE_YEAR_LEGACY", "29.00")
 # Цена размещения одного мероприятия в афише месяца (строкой, как требует Mollie)
 AFISHA_PRICE: str = os.getenv("AFISHA_PRICE", "25.00")
+# Доска объявлений: цена «поднять наверх» (строкой, как требует Mollie)
+BOARD_BUMP_PRICE: str = os.getenv("BOARD_BUMP_PRICE", "4.99")
 # Дедлайн оплаты для бессрочных карточек из старого гайда (после — скрываем из поиска)
 GRANDFATHER_DEADLINE: str = os.getenv("GRANDFATHER_DEADLINE", "2026-06-30")
 
@@ -127,6 +129,10 @@ def _int_env(name: str, default: int) -> int:
 
 LISTING_DAYS_MONTH: int = _int_env("LISTING_DAYS_MONTH", 30)
 LISTING_DAYS_YEAR: int = _int_env("LISTING_DAYS_YEAR", 365)
+
+# Доска объявлений: срок жизни объявления и лимит активных у одного пользователя
+BOARD_LISTING_DAYS: int = _int_env("BOARD_LISTING_DAYS", 30)
+BOARD_MAX_ACTIVE: int = _int_env("BOARD_MAX_ACTIVE", 5)
 
 
 def plan_info(plan: str) -> dict:

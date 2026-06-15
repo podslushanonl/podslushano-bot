@@ -10,8 +10,8 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 import config
 from database.db import init_db
 from handlers import (
-    admin, afisha, chat, contacts, errors, events, guides, letters, moderation, salary,
-    selfadd, share, start, submissions, support,
+    admin, afisha, board, chat, contacts, errors, events, guides, letters, moderation,
+    salary, selfadd, share, start, submissions, support,
 )
 from handlers.selfadd import reminder_loop
 from utils.limits import ThrottleMiddleware
@@ -35,6 +35,7 @@ async def configure_profile(bot: Bot) -> None:
                 BotCommand(command="guide", description="Полезное о жизни в Нидерландах"),
                 BotCommand(command="afisha", description="Чем заняться: афиша и идеи 🎉"),
                 BotCommand(command="afisha_add", description="Разместить мероприятие в афише 📅"),
+                BotCommand(command="board", description="Доска объявлений 📋"),
                 BotCommand(command="letter", description="Разобрать письмо по фото"),
                 BotCommand(command="salary", description="Калькулятор netto-зарплаты"),
                 BotCommand(command="share", description="Поделиться ботом с друзьями"),
@@ -109,6 +110,7 @@ async def main() -> None:
     dp.include_router(share.router)  # 📣 поделиться ботом / рефералы
     dp.include_router(support.router)  # связь с командой / возвраты
     dp.include_router(admin.router)  # /admin — управление базой (только админы)
+    dp.include_router(board.router)  # 📋 доска объявлений
     dp.include_router(afisha.router)  # 📅 платная «Афиша месяца» (мероприятия)
     dp.include_router(selfadd.router)  # платное само-добавление в гайд
     dp.include_router(submissions.router)

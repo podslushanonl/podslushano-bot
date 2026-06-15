@@ -125,6 +125,23 @@ class AfishaSubmit(StatesGroup):
     month = State()
 
 
+class ListingForm(StatesGroup):
+    """Доска объявлений: подача объявления (бесплатно, с модерацией)."""
+
+    title = State()
+    description = State()
+    price = State()
+    city = State()
+    photo = State()
+    contact = State()
+
+
+class ListingBrowse(StatesGroup):
+    """Доска объявлений: ввод города при просмотре."""
+
+    waiting_city = State()
+
+
 class ClaimPay(StatesGroup):
     """Оплата «старожилом» карточки из старого гайда: спрашиваем e-mail для счёта."""
 
