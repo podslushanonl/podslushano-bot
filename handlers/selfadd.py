@@ -141,17 +141,33 @@ async def self_name(message: Message, state: FSMContext) -> None:
 @router.message(SelfAddSpecialist.category)
 async def self_category(message: Message, state: FSMContext) -> None:
     text = (message.text or "").strip()
-    cat = detect_category(text) or next((c for c in CATEGORIES if c.lower() == text.lower()), None)
-    if not cat:
-        await message.answer(
-            "Не распознал категорию 🤔 Напиши точнее, например «юрист».",
-            reply_markup=cancel_menu(),
-        )
+    if not text:
+        await message.answer("Напиши категорию текстом 🙂", reply_markup=cancel_menu())
         return
-    await state.update_data(sp_category=cat)
+    # 1) Пробуем сопоставить с существующей категорией (ключевые слова / точное имя)
+    cat = detect_category(text) or next((c for c in CATEGORIES if c.lower() == text.lower()), None)
+    # 2) Не вышло — пробуем ИИ (синонимы/опечатки), но только если он вернёт нашу
+    if not cat:
+        try:
+            extracted = await extract_specialist_query(
+                text, list(CATEGORIES.keys()), list(NEIGHBORS.keys())
+            )
+        except Exception:  # noqa: BLE001
+            extracted = {}
+        ai_cat = extracted.get("category")
+        if ai_cat and ai_cat in CATEGORIES:
+            cat = ai_cat
+    # 3) Ничего не подошло — НЕ блокируем клиента: принимаем его категорию как есть,
+    # пометим как новую (админу прилетит подсказка добавить её в список)
+    custom = False
+    if not cat:
+        cat = text.lower()[:50]
+        custom = True
+    await state.update_data(sp_category=cat, sp_custom_category=custom)
     await state.set_state(SelfAddSpecialist.location)
+    note = " (добавим как есть, мы проверим)" if custom else ""
     await message.answer(
-        f"Категория: <b>{cat}</b> ✅\n\n"
+        f"Категория: <b>{html.escape(cat)}</b> ✅{note}\n\n"
         "Шаг 3/6. Город? Или напиши <b>онлайн</b>, если работаешь по всей стране.",
         reply_markup=cancel_menu(),
     )
@@ -352,6 +368,7 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         sub, name, card = sp.submitter_user_id, sp.name, _card_text(sp)
         sp_id = sp.id
         inv_email = sp.invoice_email
+        new_cat = sp.category if sp.category not in CATEGORIES else None
     await log_event("payment", f"{kind}:{plan}")
 
     # Счёт (factuur) на e-mail
@@ -396,10 +413,15 @@ async def on_payment_paid(bot, payment_id: str) -> None:
                 await _safe_send(bot, sub, f"✅ Оплата получена! Размещение «{name}» продлено. Спасибо 🙌")
         return
 
+    cat_note = (
+        f"\n\n🆕 Новая категория «{html.escape(new_cat)}» — её нет в списке. Если "
+        f"нужна, заведи в utils/geo.py или поправь: <code>/setcategory {sp_id} категория</code>."
+        if new_cat else ""
+    )
     for admin_id in config.ADMIN_IDS:
         await _safe_send(
             bot, admin_id,
-            "💳 <b>Оплачено само-добавление</b> — нужна проверка:\n\n" + card,
+            "💳 <b>Оплачено само-добавление</b> — нужна проверка:\n\n" + card + cat_note,
             _review_kb(sp_id),
         )
     if sub:
