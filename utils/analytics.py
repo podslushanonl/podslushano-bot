@@ -31,6 +31,9 @@ async def gather_stats() -> str:
         searches = await session.scalar(
             select(func.count()).select_from(Event).where(Event.type == "search")
         ) or 0
+        search_miss_total = await session.scalar(
+            select(func.count()).select_from(Event).where(Event.type == "search_miss")
+        ) or 0
         payments = await session.scalar(
             select(func.count()).select_from(Event).where(Event.type == "payment")
         ) or 0
@@ -95,12 +98,22 @@ async def gather_stats() -> str:
                 select(Submission.type, func.count()).group_by(Submission.type)
             )
         ).all()
+        # Искали направления, которых НЕТ в нашем списке категорий (спрос «мимо»)
+        misses = (
+            await session.execute(
+                select(Event.key, func.count())
+                .where(Event.type == "search_miss", Event.key != "")
+                .group_by(Event.key)
+                .order_by(func.count().desc())
+                .limit(10)
+            )
+        ).all()
 
     lines = [
         "📊 <b>Статистика бота</b>",
         "",
         f"👥 Пользователей: <b>{users}</b> (активных: {active_users})",
-        f"🔍 Поисков специалистов: <b>{searches}</b>",
+        f"🔍 Поисков специалистов: <b>{searches}</b> (вне категорий: {search_miss_total})",
         f"📇 Специалистов в гайде: <b>{specs_active}</b> (платных: {specs_paid})",
         f"⭐ Отзывов: <b>{reviews}</b>",
         f"💳 Успешных оплат: <b>{payments}</b>",
@@ -121,6 +134,10 @@ async def gather_stats() -> str:
         lines.append("\n<b>🕳 Ищут, но нет в гайде:</b>")
         lines += [f"  • {k}: {c} запр." for k, c in gaps]
         lines.append("<i>↑ сюда стоит позвать специалистов</i>")
+    if misses:
+        lines.append("\n<b>🔎 Искали, но направления нет в списке:</b>")
+        lines += [f"  • {k}: {c}" for k, c in misses]
+        lines.append("<i>↑ спрос есть, а категории у нас нет — стоит завести</i>")
     if subs:
         lines.append("\n<b>Заявки:</b>")
         lines += [f"  • {_SUB_TITLES.get(t, t)}: {c}" for t, c in subs]

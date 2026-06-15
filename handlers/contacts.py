@@ -363,20 +363,28 @@ _SEARCH_STOPWORDS = {
 }
 
 
-def _names_unknown_profession(text: str, city: str, province: str | None) -> bool:
-    """True, если в тексте есть слово-направление, помимо города/служебных слов.
+def _extra_terms(text: str, city: str, province: str | None) -> list[str]:
+    """Слова-направления из запроса, помимо города/служебных слов.
 
-    Помогает отличить «грумер в Гааге» (названо направление, которого нет в
-    гайде) от просто «Гаага» (нужно спросить, кто нужен)."""
+    «грумер в Гааге» → ['грумер']; просто «Гаага» → []."""
     place = f"{city} {province or ''}".lower()
+    out: list[str] = []
     for w in re.findall(r"[а-яёa-z]+", text.lower()):
         if len(w) < 4 or w in _SEARCH_STOPWORDS:
             continue
         # отбрасываем слова, похожие на название города/провинции (с учётом склонений)
         if w in place or w[:4] in place:
             continue
-        return True
-    return False
+        out.append(w)
+    return out
+
+
+def _names_unknown_profession(text: str, city: str, province: str | None) -> bool:
+    """True, если в тексте есть слово-направление, помимо города/служебных слов.
+
+    Помогает отличить «грумер в Гааге» (названо направление, которого нет в
+    гайде) от просто «Гаага» (нужно спросить, кто нужен)."""
+    return bool(_extra_terms(text, city, province))
 
 
 async def process_query(message: Message, state: FSMContext, text: str) -> None:
@@ -441,6 +449,10 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
         # спрашивали «кто нужен?» — значит такого направления просто нет в гайде.
         asked_before = bool(data.get("pending_province"))
         if asked_before or _names_unknown_profession(text, city, province):
+            # Фиксируем спрос на направление, которого нет в нашем списке категорий
+            term = " ".join(_extra_terms(text, city, province)) or text.strip().lower()
+            if term:
+                await log_event("search_miss", term[:80])
             await state.clear()
             await message.answer(
                 f"К сожалению, по запросу «{html.escape(text.strip()[:80])}» в городе "
