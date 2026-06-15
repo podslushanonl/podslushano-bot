@@ -25,7 +25,7 @@ from sqlalchemy import func, or_, select
 import config
 from database.db import get_session
 from database.models import Listing, Meta
-from keyboards.menus import BTN_BOARD, cancel_menu, main_menu
+from keyboards.menus import BTN_BOARD, BTN_CONTACTS, BTN_SELF_ADD, cancel_menu, main_menu
 from states.forms import ListingBrowse, ListingForm
 from utils.analytics import log_event
 from utils.payments import create_payment
@@ -36,19 +36,27 @@ router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 DESC = "Omhoog plaatsen advertentie Podslushano-bord"
+DESC_LISTING = "Plaatsing woning-advertentie Podslushano-bord"
 
 ONLINE_WORDS = {"онлайн", "online", "по всей стране", "вся страна", "удалённо"}
 
+# Услуги намеренно НЕ на доске: они размещаются в платном контакт-гайде, чтобы
+# доска не каннибализировала гайд. Кнопка «Услуги» ведёт в гайд (см. svc_guide).
 CATEGORIES = [
     ("housing", "🏠 Жильё"),
     ("goods", "🛋 Вещи"),
     ("free", "🎁 Отдам даром"),
-    ("services", "🧰 Услуги"),
     ("jobs", "💼 Работа"),
     ("rides", "🚗 Попутчики"),
     ("other", "📦 Разное"),
 ]
 CATEGORY_LABELS = dict(CATEGORIES)
+
+
+def _housing_paid() -> bool:
+    """Платное ли размещение жилья (есть цена и подключена оплата)."""
+    price = (config.BOARD_HOUSING_PRICE or "").strip()
+    return config.payments_enabled() and price not in ("", "0", "0.00")
 
 POPULAR_CITIES = ["Amsterdam", "Rotterdam", "Den Haag", "Utrecht", "Eindhoven", "Groningen"]
 
@@ -67,7 +75,30 @@ def _category_kb(prefix: str) -> InlineKeyboardMarkup:
     btns = [InlineKeyboardButton(text=label, callback_data=f"{prefix}:{key}")
             for key, label in CATEGORIES]
     rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
+    # Услуги — отдельной кнопкой, ведёт в гайд специалистов (не на доску)
+    rows.append([InlineKeyboardButton(text="🧰 Услуги (в гайде)", callback_data=f"svcguide:{prefix}")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+@router.callback_query(F.data.startswith("svcguide:"))
+async def services_to_guide(callback: CallbackQuery, state: FSMContext) -> None:
+    """«Услуги» на доске нет — направляем в платный контакт-гайд."""
+    await state.clear()
+    prefix = callback.data.split(":", 1)[1]
+    if prefix == "ncat":  # хотел разместить услугу
+        await callback.message.answer(
+            "🧰 Услуги размещаются не на доске, а в нашем <b>проверенном гайде "
+            "специалистов</b> — там вас находят по городу и категории, с отзывами и "
+            f"рейтингом.\n\nДобавить себя: кнопка «{BTN_SELF_ADD}» в меню или /selfadd.",
+            reply_markup=main_menu(),
+        )
+    else:  # искал услугу
+        await callback.message.answer(
+            "🧰 Специалистов и услуги ищите в нашем гайде — там проверенные контакты "
+            f"с отзывами.\n\nНажмите «{BTN_CONTACTS}» в меню, чтобы найти 👍",
+            reply_markup=main_menu(),
+        )
+    await callback.answer()
 
 
 def _browse_city_kb(cat: str) -> InlineKeyboardMarkup:
@@ -176,8 +207,13 @@ async def new_category(callback: CallbackQuery, state: FSMContext) -> None:
         return
     await state.update_data(l_cat=cat)
     await state.set_state(ListingForm.title)
+    note = ""
+    if cat == "housing" and _housing_paid():
+        note = (f"\n\n💶 Размещение жилья — символические "
+                f"<b>{config.BOARD_HOUSING_PRICE} {config.LISTING_CURRENCY}</b> "
+                "(оплата в конце) — это отсеивает мошенников.")
     await callback.message.answer(
-        f"Категория: <b>{CATEGORY_LABELS[cat]}</b> ✅\n\n"
+        f"Категория: <b>{CATEGORY_LABELS[cat]}</b> ✅{note}\n\n"
         "Шаг 1. Короткий заголовок объявления?",
         reply_markup=cancel_menu(),
     )
@@ -303,28 +339,91 @@ async def new_publish(callback: CallbackQuery, state: FSMContext) -> None:
     if not data.get("l_title"):
         await callback.answer("Данные потерялись, начните заново", show_alert=True)
         return
+    paid = data["l_cat"] == "housing" and _housing_paid()
     async with get_session() as session:
         listing = Listing(
             category=data["l_cat"], title=data["l_title"], description=data.get("l_desc"),
             price=data.get("l_price"), city=data.get("l_city", ""),
             is_nationwide=data.get("l_nationwide", False), photo_file_id=data.get("l_photo"),
             contact=data.get("l_contact"), submitter_user_id=callback.from_user.id,
-            submitter_username=callback.from_user.username, status="pending",
+            submitter_username=callback.from_user.username,
+            status="awaiting_payment" if paid else "pending",
         )
         session.add(listing)
         await session.commit()
         await session.refresh(listing)
-        lid = listing.id
+        lid, title = listing.id, listing.title
+    await callback.answer()
+
+    if paid:
+        payment = await create_payment(
+            f"{DESC_LISTING}: {title}", {"listing_id": lid, "kind": "listing"},
+            config.BOARD_HOUSING_PRICE,
+        )
+        if not payment or not payment.get("checkout_url"):
+            await callback.message.answer(
+                "Не получилось создать ссылку на оплату 😔 Попробуйте позже.",
+                reply_markup=main_menu(),
+            )
+            return
+        async with get_session() as session:
+            l = await session.get(Listing, lid)
+            if l:
+                l.payment_id = payment["id"]
+                await session.commit()
+        await callback.message.answer(
+            f"Почти готово! Размещение жилья — "
+            f"<b>{config.BOARD_HOUSING_PRICE} {config.LISTING_CURRENCY}</b>. "
+            "После оплаты отправим на проверку и опубликуем ✅",
+            reply_markup=main_menu(),
+        )
+        await callback.message.answer(
+            "👇 Кнопка для оплаты:",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(
+                text=f"💳 Оплатить {config.BOARD_HOUSING_PRICE} {config.LISTING_CURRENCY}",
+                url=payment["checkout_url"])]]),
+        )
+        return
+
     await callback.message.answer(
         "Спасибо! 🙌 Объявление отправлено на проверку — опубликуем и я сообщу ✅",
         reply_markup=main_menu(),
     )
-    await callback.answer()
     async with get_session() as session:
         listing = await session.get(Listing, lid)
     for admin_id in config.ADMIN_IDS:
         await _safe_send(callback.bot, admin_id, "🆕 <b>Новое объявление на доску</b> — проверка:")
         await _send_admin_card(callback.bot, admin_id, listing)
+
+
+async def on_listing_paid(bot, payment_id: str, payment: dict) -> None:
+    """Оплачено платное размещение (жильё) → на проверку админам."""
+    status = payment.get("status")
+    meta = payment.get("metadata") or {}
+    lid = meta.get("listing_id")
+    if not lid or status != "paid":
+        return
+    async with get_session() as session:
+        if await session.get(Meta, f"pay:{payment_id}"):
+            return
+        listing = await session.get(Listing, int(lid))
+        if listing is None:
+            return
+        listing.status = "pending"
+        session.add(Meta(key=f"pay:{payment_id}", value="done"))
+        await session.commit()
+        sub = listing.submitter_user_id
+        lid_int = listing.id
+    await log_event("payment", "listing")
+    async with get_session() as session:
+        listing = await session.get(Listing, lid_int)
+    for admin_id in config.ADMIN_IDS:
+        await _safe_send(bot, admin_id, "🆕 <b>Оплаченное объявление (жильё)</b> — проверка:")
+        await _send_admin_card(bot, admin_id, listing)
+    if sub:
+        await _safe_send(bot, sub,
+                         "Оплата получена, спасибо! 🙌 Объявление на проверке — сообщу, "
+                         "как опубликуем ✅")
 
 
 async def _send_admin_card(bot, chat_id, listing: Listing) -> None:
