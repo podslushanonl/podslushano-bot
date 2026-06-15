@@ -17,7 +17,7 @@ from sqlalchemy import func, or_, select
 import config
 from database.db import get_session
 from database.models import Specialist
-from keyboards.menus import BTN_CONTACTS, cancel_menu, feedback_kb, main_menu
+from keyboards.menus import BTN_CONTACTS, BTN_SELF_ADD, cancel_menu, feedback_kb, main_menu
 from states.forms import ContactSearch, ReviewForm
 from utils.ai import extract_specialist_query, reply_with_ai
 from utils.analytics import log_event
@@ -318,7 +318,10 @@ async def _send_results(message: Message, state: FSMContext, sections: list) -> 
             labels.append(header)
     if not ids:
         await message.answer(
-            "Никого не нашёл 🤔 Попробуй другой запрос или город.", reply_markup=main_menu()
+            "К сожалению, по этому запросу у нас пока никого нет в гайде 😔\n\n"
+            f"Попробуйте другой город или направление. А ещё можно добавить себя или "
+            f"знакомого специалиста — кнопка «{BTN_SELF_ADD}» или /selfadd 🙌",
+            reply_markup=main_menu(),
         )
         return
     await state.update_data(sp_ids=ids, sp_labels=labels)
@@ -350,6 +353,30 @@ async def spec_noop(callback: CallbackQuery) -> None:
 @router.message(ContactSearch.waiting_for_query)
 async def receive_query(message: Message, state: FSMContext) -> None:
     await process_query(message, state, message.text or "")
+
+
+# Слова, которые сами по себе не означают «направление» (служебные/городские)
+_SEARCH_STOPWORDS = {
+    "ищу", "ищем", "нужен", "нужна", "нужно", "найти", "поиск", "рядом", "около",
+    "город", "городе", "районе", "район", "центр", "centre", "center", "пожалуйста",
+    "можно", "есть", "хочу", "мне", "нам", "для", "это", "что", "кто", "где",
+}
+
+
+def _names_unknown_profession(text: str, city: str, province: str | None) -> bool:
+    """True, если в тексте есть слово-направление, помимо города/служебных слов.
+
+    Помогает отличить «грумер в Гааге» (названо направление, которого нет в
+    гайде) от просто «Гаага» (нужно спросить, кто нужен)."""
+    place = f"{city} {province or ''}".lower()
+    for w in re.findall(r"[а-яёa-z]+", text.lower()):
+        if len(w) < 4 or w in _SEARCH_STOPWORDS:
+            continue
+        # отбрасываем слова, похожие на название города/провинции (с учётом склонений)
+        if w in place or w[:4] in place:
+            continue
+        return True
+    return False
 
 
 async def process_query(message: Message, state: FSMContext, text: str) -> None:
@@ -407,9 +434,23 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
         )
         return
 
-    # Город есть, а кто нужен — нет
+    # Город есть, а категорию не распознали
     if not category:
         city, province = city_info
+        # Пользователь уже называл направление (есть слово кроме города) ИЛИ мы уже
+        # спрашивали «кто нужен?» — значит такого направления просто нет в гайде.
+        asked_before = bool(data.get("pending_province"))
+        if asked_before or _names_unknown_profession(text, city, province):
+            await state.clear()
+            await message.answer(
+                f"К сожалению, по запросу «{html.escape(text.strip()[:80])}» в городе "
+                f"{html.escape(city)} у нас пока никого нет в гайде 😔\n\n"
+                f"Можно добавить себя или знакомого специалиста — кнопка «{BTN_SELF_ADD}» "
+                "или /selfadd. Или попробуйте другое направление либо город 🙂",
+                reply_markup=main_menu(),
+            )
+            return
+        # В сообщении был только город — спросим, кто нужен
         await state.set_state(ContactSearch.waiting_for_query)
         await state.update_data(pending_city=city, pending_province=province)
         await message.answer(
