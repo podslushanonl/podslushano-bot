@@ -247,6 +247,38 @@ async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
     plan = callback.data.split(":", 1)[1]
     if plan not in ("month", "year", "month_premium", "year_premium"):
         plan = "year"
+    # Премиум показывает фото — попросим его перед оплатой
+    if config.plan_info(plan)["premium"]:
+        await state.update_data(sp_plan=plan)
+        await state.set_state(SelfAddSpecialist.photo)
+        await callback.message.answer(
+            "🌟 <b>Премиум показывает фото</b> — пришли фото (логотип или твоё фото) "
+            "одним сообщением. Или напиши «-», чтобы пропустить.",
+            reply_markup=cancel_menu(),
+        )
+        await callback.answer()
+        return
+    await _create_listing_and_pay(callback.message, state, plan, None, callback.from_user.id)
+    await callback.answer()
+
+
+@router.message(SelfAddSpecialist.photo)
+async def self_photo(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    plan = data.get("sp_plan", "year_premium")
+    if message.photo:
+        photo_id = message.photo[-1].file_id
+    elif message.text and message.text.strip().lower() in ("-", "пропустить", "skip", "нет"):
+        photo_id = None
+    else:
+        await message.answer("Пришли фото картинкой или «-», чтобы пропустить 🙂")
+        return
+    await _create_listing_and_pay(message, state, plan, photo_id, message.from_user.id)
+
+
+async def _create_listing_and_pay(message, state: FSMContext, plan: str,
+                                  photo_file_id: str | None, uid: int) -> None:
+    """Создаёт карточку (awaiting_payment) и присылает ссылку на оплату."""
     info = config.plan_info(plan)
     data = await state.get_data()
     async with get_session() as session:
@@ -259,9 +291,10 @@ async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
             contact=data.get("sp_contact", ""),
             is_online=data.get("sp_online", False),
             is_premium=info["premium"],
+            photo_file_id=photo_file_id,
             status="awaiting_payment",
             source="self",
-            submitter_user_id=callback.from_user.id,
+            submitter_user_id=uid,
             invoice_email=data.get("sp_email"),
             plan=plan,
         )
@@ -277,11 +310,10 @@ async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
         info["price"],
     )
     if not payment or not payment.get("checkout_url"):
-        await callback.message.answer(
+        await message.answer(
             "Не получилось создать ссылку на оплату 😔 Попробуй позже или напиши нам.",
             reply_markup=main_menu(),
         )
-        await callback.answer()
         return
     async with get_session() as session:
         sp = await session.get(Specialist, sid)
@@ -289,7 +321,7 @@ async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
             sp.payment_id = payment["id"]
             await session.commit()
     # Возвращаем обычное меню (убираем клавиатуру «Отмена» из анкеты)
-    await callback.message.answer(
+    await message.answer(
         f"Почти готово! 🎉 Тариф: <b>{_price_str(plan)}</b>.\n\n"
         "После оплаты мы проверим анкету и опубликуем карточку — я напишу тебе ✅\n\n"
         f'Оплачивая, ты соглашаешься с <a href="{config.terms_url()}">Условиями</a> '
@@ -297,11 +329,10 @@ async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
         reply_markup=main_menu(),
         disable_web_page_preview=True,
     )
-    await callback.message.answer(
+    await message.answer(
         "👇 Кнопка для оплаты:",
         reply_markup=_pay_kb(payment["checkout_url"], plan),
     )
-    await callback.answer()
 
 
 # --- Подтверждение оплаты (вызывается из webhook) ---------------------------

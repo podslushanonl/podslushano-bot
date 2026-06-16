@@ -9,7 +9,7 @@ import logging
 import traceback
 
 from aiogram import Bot, Router
-from aiogram.exceptions import TelegramBadRequest
+from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError, TelegramRetryAfter
 from aiogram.types import ErrorEvent, InlineKeyboardButton, InlineKeyboardMarkup
 
 import config
@@ -35,6 +35,14 @@ _BENIGN_TELEGRAM = (
 async def on_error(event: ErrorEvent, bot: Bot) -> None:
     exc = event.exception
     update = event.update
+
+    # Транзиентные сетевые проблемы с Telegram (таймаут запроса, rate-limit):
+    # это не баг кода — сеть/перегрузка. Пытаться слать крэш-репорт и сообщение
+    # пользователю в этот момент бессмысленно (тоже не уйдёт). Просто логируем,
+    # polling сам переподключится.
+    if isinstance(exc, (TelegramNetworkError, TelegramRetryAfter)):
+        log.warning("Транзиентная сетевая ошибка Telegram (пропускаем): %s", exc)
+        return
 
     if isinstance(exc, TelegramBadRequest) and any(
         s in str(exc).lower() for s in _BENIGN_TELEGRAM
