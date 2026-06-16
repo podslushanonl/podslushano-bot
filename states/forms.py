@@ -116,6 +116,7 @@ class SelfAddSpecialist(StatesGroup):
     contact = State()
     email = State()
     plan = State()
+    photo = State()
 
 
 class AfishaSubmit(StatesGroup):
