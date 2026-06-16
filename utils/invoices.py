@@ -130,7 +130,7 @@ def _build_pdf(no: str, buyer: str, email: str, description: str,
     # Итоги
     y -= 12 * mm
     for label, val, bold in [
-        (f"Subtotaal (excl. BTW) / Без BTW", excl, False),
+        ("Subtotaal (excl. BTW) / Без BTW", excl, False),
         (f"BTW {config.BTW_PERCENT:.0f}%", btw, False),
         ("Totaal / Итого", total, True),
     ]:
