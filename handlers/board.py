@@ -173,8 +173,13 @@ async def board_menu_cb(callback: CallbackQuery, state: FSMContext) -> None:
 
 @router.callback_query(F.data == "board:new")
 async def new_start(callback: CallbackQuery, state: FSMContext) -> None:
+    await start_new_listing(callback.message, state, callback.from_user.id)
+    await callback.answer()
+
+
+async def start_new_listing(message: Message, state: FSMContext, uid: int) -> None:
+    """Начинает подачу объявления (из меню доски или по deep-link ?start=board)."""
     await state.clear()
-    uid = callback.from_user.id
     now = datetime.utcnow()
     async with get_session() as session:
         active = await session.scalar(
@@ -185,18 +190,16 @@ async def new_start(callback: CallbackQuery, state: FSMContext) -> None:
             )
         ) or 0
     if active >= config.BOARD_MAX_ACTIVE:
-        await callback.message.answer(
+        await message.answer(
             f"У вас уже {active} активных объявлений (максимум "
             f"{config.BOARD_MAX_ACTIVE}). Закройте лишнее в «🗂 Мои объявления» "
             "и попробуйте снова 🙂",
             reply_markup=main_menu(),
         )
-        await callback.answer()
         return
-    await callback.message.answer(
+    await message.answer(
         "➕ <b>Новое объявление.</b> Выберите категорию:", reply_markup=_category_kb("ncat")
     )
-    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("ncat:"))
