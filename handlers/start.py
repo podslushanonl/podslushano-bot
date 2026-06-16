@@ -126,6 +126,11 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from handlers.submissions import ask_question
         await ask_question(message, state)
         return
+    # Пришёл по кнопке «Разместить объявление» из поста в канале (?start=board)
+    if command.args == "board":
+        from handlers.board import start_new_listing
+        await start_new_listing(message, state, message.from_user.id)
+        return
     # Пришёл по личной ссылке оплаты карточки из старого гайда (?start=claim_<id>)
     if command.args and command.args.startswith("claim_"):
         try:

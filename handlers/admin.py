@@ -370,6 +370,15 @@ def _open_bot_kb(username: str) -> InlineKeyboardMarkup:
     )
 
 
+def _announce_kb(username: str) -> InlineKeyboardMarkup:
+    """Кнопки под анонсом: открыть бота + сразу разместить объявление (deep-link)."""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🤖 Открыть бота", url=f"https://t.me/{username}")],
+        [InlineKeyboardButton(text="📋 Разместить объявление",
+                              url=f"https://t.me/{username}?start=board")],
+    ])
+
+
 @router.message(Command("announce"))
 async def cmd_announce(message: Message, state: FSMContext) -> None:
     await state.clear()
@@ -399,7 +408,7 @@ async def announce_text(message: Message, state: FSMContext) -> None:
     me = await message.bot.me()
     await message.answer("Вот как будет выглядеть пост 👇")
     await message.answer(
-        message.html_text, reply_markup=_open_bot_kb(me.username),
+        message.html_text, reply_markup=_announce_kb(me.username),
         disable_web_page_preview=True,
     )
     kb = InlineKeyboardMarkup(inline_keyboard=[[
@@ -428,7 +437,7 @@ async def announce_yes(callback: CallbackQuery, state: FSMContext) -> None:
     try:
         msg = await callback.bot.send_message(
             config.ANNOUNCE_CHANNEL, text,
-            reply_markup=_open_bot_kb(me.username), disable_web_page_preview=True,
+            reply_markup=_announce_kb(me.username), disable_web_page_preview=True,
         )
         try:
             await callback.bot.pin_chat_message(config.ANNOUNCE_CHANNEL, msg.message_id)
