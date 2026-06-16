@@ -271,6 +271,30 @@ async def _thanks(request: web.Request) -> web.Response:
     return web.Response(text=_render(title, ico, body), content_type="text/html")
 
 
+_TRANSLIT = {
+    "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "е": "e", "ё": "e", "ж": "zh",
+    "з": "z", "и": "i", "й": "i", "к": "k", "л": "l", "м": "m", "н": "n", "о": "o",
+    "п": "p", "р": "r", "с": "s", "т": "t", "у": "u", "ф": "f", "х": "h", "ц": "ts",
+    "ч": "ch", "ш": "sh", "щ": "sch", "ъ": "", "ы": "y", "ь": "", "э": "e", "ю": "yu",
+    "я": "ya",
+}
+
+
+def _slugify(name: str) -> str:
+    """Чистый slug для коротких ссылок: «Fancy Beauty Space» → «fancy-beauty-space»,
+    «Стилист Анна» → «stilist-anna». Транслитерируем кириллицу, остальное чистим."""
+    out = []
+    for ch in (name or "").strip().lower():
+        if ch in _TRANSLIT:
+            out.append(_TRANSLIT[ch])
+        elif ch.isascii() and ch.isalnum():
+            out.append(ch)
+        elif ch in " _-/.,&":
+            out.append("-")
+    slug = re.sub(r"-+", "-", "".join(out)).strip("-")
+    return slug or "spec"
+
+
 async def _active_specialists() -> list[Specialist]:
     """Все активные (видимые) специалисты, без дублей одного человека."""
     now = datetime.utcnow()
@@ -304,6 +328,8 @@ async def _api_specialists(request: web.Request) -> web.Response:
     for s in rows:
         r = ratings.get(specialist_key(s.name, s.contact))
         data.append({
+            "id": s.id,
+            "slug": _slugify(s.name),
             "name": s.name,
             "category": s.category,
             "city": s.city or "",
@@ -393,6 +419,44 @@ async def _guide(request: web.Request) -> web.Response:
     return web.Response(
         text=_GUIDE_PAGE.format(logo=logo, body=body), content_type="text/html"
     )
+
+
+_CONTACT_PAGE = """<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1"><title>{title}</title>
+<style>
+ body{{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#eef2f8;margin:0;padding:24px;color:#222}}
+ .wrap{{max-width:440px;margin:0 auto}} .top{{text-align:center;margin-bottom:12px}} .top img{{max-width:150px}}
+ .card{{background:#fff;border-radius:14px;padding:16px 18px;box-shadow:0 6px 20px rgba(0,0,0,.07)}}
+ .ph{{width:100%;max-height:300px;object-fit:cover;border-radius:10px;margin-bottom:8px}}
+ .nm{{font-weight:700;font-size:18px}} .ds{{color:#555;margin:6px 0 10px;font-size:14px;line-height:1.5}}
+ .lnks a{{display:inline-block;margin:4px 6px 0 0;padding:8px 13px;background:#2aabee;color:#fff;
+  text-decoration:none;border-radius:10px;font-size:14px}}
+ .more{{display:block;text-align:center;margin-top:16px;color:#2aabee;text-decoration:none}}
+</style></head><body><div class="wrap"><div class="top">{logo}</div>{card}
+ <a class="more" href="{guide}">Все специалисты в гайде →</a></div></body></html>"""
+
+
+async def _contact_page(request: web.Request) -> web.Response:
+    """Чистая короткая страница одного контакта: /c/<slug> или /s/<id>."""
+    key = request.match_info.get("key", "")
+    rows = await _active_specialists()
+    target = None
+    if key.isdigit():
+        target = next((s for s in rows if s.id == int(key)), None)
+    if target is None:
+        target = next((s for s in rows if _slugify(s.name) == key.lower()), None)
+    logo = f'<img src="{config.LOGO_URL}" alt="logo">' if config.LOGO_URL else ""
+    guide = config.GUIDE_URL or "/guide"
+    if target is None:
+        body = '<div class="card"><div class="nm">Контакт не найден</div>' \
+               '<div class="ds">Возможно, он снят с публикации.</div></div>'
+        html_page = _CONTACT_PAGE.format(title="Контакт не найден", logo=logo, card=body, guide=guide)
+        return web.Response(text=html_page, content_type="text/html", status=404)
+    ratings = await ratings_for([specialist_key(target.name, target.contact)])
+    badge = rating_badge(ratings.get(specialist_key(target.name, target.contact)))
+    card = _guide_card(target, badge)
+    html_page = _CONTACT_PAGE.format(title=target.name, logo=logo, card=card, guide=guide)
+    return web.Response(text=html_page, content_type="text/html")
 
 
 async def _mollie_webhook(request: web.Request) -> web.Response:
@@ -533,6 +597,8 @@ async def _api_guide(request: web.Request) -> web.Response:
         else:
             rich = descr_html or contacts_html
         data.append({
+            "id": s.id,
+            "slug": _slugify(s.name),
             "name": _clean(s.name) or s.name,
             "desc": desc,
             "html": rich,
@@ -559,6 +625,8 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/sp-photo/{sid}", _sp_photo)
     app.router.add_get("/api/specialists.json", _api_specialists)
     app.router.add_get("/api/guide.json", _api_guide)
+    app.router.add_get("/c/{key}", _contact_page)   # короткая ссылка по slug
+    app.router.add_get("/s/{key}", _contact_page)   # короткая ссылка по id
     app.router.add_post("/mollie-webhook", _mollie_webhook)
 
     runner = web.AppRunner(app)
