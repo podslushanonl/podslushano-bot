@@ -19,7 +19,7 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 from handlers.contacts import is_howto_question, process_query
 from handlers.submissions import THANKS, create_submission, extract_content
 from keyboards.menus import main_menu
-from utils.ai import reply_with_ai
+from utils.ai import classify_intent, reply_with_ai
 from utils.geo import detect_category
 
 router = Router()
@@ -122,17 +122,25 @@ async def free_chat(message: Message, state: FSMContext) -> None:
         )
         return
 
-    # Запрос специалиста: либо явно названа профессия (быстрый путь без ИИ),
-    # либо есть слова-намёки («нужен», «посоветуй», «ищу»…) — тогда категорию
-    # и город разберёт ИИ внутри process_query (синонимы, опечатки). Если там
-    # окажется не про специалиста — process_query сам передаст вопрос ИИ.
-    if detect_category(text) or _matches(low, SEARCH_HINTS):
+    # Намерение определяет ИИ (понимает контекст и отрицания), а не простое
+    # совпадение слова. По умолчанию бот ОТВЕЧАЕТ/уточняет, а к поиску специалиста
+    # ведёт только при явном намерении «найти/нанять».
+    intent = await classify_intent(text)
+    if intent == "specialist":
         await process_query(message, state, text)
         return
-
-    # Умный ответ на свободный вопрос — отдаём модели Claude
-    if await reply_with_ai(message, state):
-        return
+    if intent in ("info", "chat"):
+        if await reply_with_ai(message, state):
+            return
+    else:
+        # ИИ недоступен — запасной режим по ключевым словам, консервативно:
+        # в поиск только при явном намёке или коротком запросе-профессии без вопроса.
+        is_question = "?" in text or len(text.split()) > 12
+        if _matches(low, SEARCH_HINTS) or (detect_category(text) and not is_question):
+            await process_query(message, state, text)
+            return
+        if await reply_with_ai(message, state):
+            return
 
     # ИИ выключен или не ответил — мягко уточняем, что сделать с сообщением
     await state.update_data(chat_text=text)
