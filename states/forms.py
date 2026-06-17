@@ -72,6 +72,13 @@ class AdminAfisha(StatesGroup):
     confirm = State()
 
 
+class AdminPost(StatesGroup):
+    """Генерация поста в канал по теме: ждём тему, потом подтверждение."""
+
+    waiting_topic = State()
+    confirm = State()
+
+
 class AdminAddSpecialist(StatesGroup):
     """Пошаговое добавление специалиста админом."""
 
