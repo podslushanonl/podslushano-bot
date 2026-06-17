@@ -1,9 +1,22 @@
-"""Отправка заявок администраторам в личку."""
+"""Отправка заявок администраторам в личку (или в общий модер-чат)."""
 from aiogram import Bot
 
 import config
-from database.models import Submission
+from database.db import get_session
+from database.models import Meta, Submission
 from keyboards.menus import moderation_buttons
+
+
+async def get_mod_chat() -> int | None:
+    """ID общего чата модерации (если задан через /setmodchat), иначе None."""
+    async with get_session() as session:
+        m = await session.get(Meta, "mod_chat")
+    if m and m.value:
+        try:
+            return int(m.value)
+        except ValueError:
+            return None
+    return None
 
 # Человекочитаемые названия типов заявок
 TYPE_TITLES = {
@@ -30,11 +43,13 @@ def _header(submission: Submission) -> str:
 
 
 async def send_to_admins(bot: Bot, submission: Submission) -> None:
-    """Рассылает заявку всем админам из ADMIN_IDS с кнопками модерации."""
+    """Шлёт заявку в общий модер-чат (если задан) или каждому админу в личку."""
     caption = _header(submission)
     keyboard = moderation_buttons(submission.id)
 
-    for admin_id in config.ADMIN_IDS:
+    mod_chat = await get_mod_chat()
+    targets = [mod_chat] if mod_chat else list(config.ADMIN_IDS)
+    for admin_id in targets:
         try:
             if submission.file_id and submission.file_type == "video":
                 await bot.send_video(

@@ -3,19 +3,49 @@ import html
 import logging
 
 from aiogram import F, Router
+from aiogram.enums import ChatType
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 import config
 from database.db import get_session
-from database.models import Submission
+from database.models import Meta, Submission
 from keyboards.menus import cancel_menu
 from states.forms import SupportReply
 
 log = logging.getLogger(__name__)
 
 router = Router()
+
+
+@router.message(Command("setmodchat"))
+async def set_mod_chat(message: Message) -> None:
+    """Запустить ВНУТРИ группы/канала: заявки начнут приходить сюда."""
+    if message.from_user is None or message.from_user.id not in config.ADMIN_IDS:
+        return
+    async with get_session() as session:
+        await session.merge(Meta(key="mod_chat", value=str(message.chat.id)))
+        await session.commit()
+    await message.answer(
+        f"✅ Готово! Заявки (вопросы/истории/видео/реклама) теперь приходят сюда "
+        f"(chat id <code>{message.chat.id}</code>).\n\n"
+        "Бот должен оставаться <b>администратором</b> этого чата. Чтобы кнопка "
+        "«✍️ Ответить автору» работала в группе — отключите боту приватность в "
+        "@BotFather (/setprivacy → Disable). Вернуть заявки в личку: /modchat_off"
+    )
+
+
+@router.message(Command("modchat_off"))
+async def mod_chat_off(message: Message) -> None:
+    if message.from_user is None or message.from_user.id not in config.ADMIN_IDS:
+        return
+    async with get_session() as session:
+        m = await session.get(Meta, "mod_chat")
+        if m:
+            await session.delete(m)
+            await session.commit()
+    await message.answer("↩️ Заявки снова будут приходить админам в личку.")
 
 # Что показываем пользователю, когда его заявку одобрили/отклонили
 USER_APPROVED = {
@@ -125,12 +155,31 @@ async def sub_reply_start(callback: CallbackQuery, state: FSMContext) -> None:
         return
     await state.set_state(SupportReply.waiting_text)
     await state.update_data(reply_to=sub.user_id)
+    # В группе reply-клавиатуру не шлём (она для всех); в личке — удобно.
+    kb = cancel_menu() if callback.message.chat.type == ChatType.PRIVATE else None
     await callback.message.answer(
         f"Напиши ответ автору заявки №{sid} — я перешлю его. "
         "Можно текст, фото или файл.",
-        reply_markup=cancel_menu(),
+        reply_markup=kb,
     )
     await callback.answer()
+
+
+@router.message(SupportReply.waiting_text, F.chat.type != ChatType.PRIVATE)
+async def mod_reply_send(message: Message, state: FSMContext) -> None:
+    """Ответ админа автору заявки из ГРУППЫ (в личке это делает support.py)."""
+    data = await state.get_data()
+    uid = data.get("reply_to")
+    await state.clear()
+    if not uid:
+        await message.answer("Не нашёл, кому отвечать 🤔")
+        return
+    try:
+        await message.bot.send_message(uid, "💬 <b>Ответ от команды «Подслушано»:</b>")
+        await message.copy_to(uid)
+        await message.answer("✅ Отправил пользователю.")
+    except Exception as e:  # noqa: BLE001
+        await message.answer(f"❌ Не удалось отправить: {html.escape(str(e))}")
 
 
 async def _handle(callback: CallbackQuery, status: str) -> None:
