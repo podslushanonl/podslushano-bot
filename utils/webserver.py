@@ -94,12 +94,13 @@ _PRIVACY_RU = """
  <li>имя/имя пользователя и ваш Telegram-ID;</li>
  <li>содержимое, которое вы отправляете (истории, вопросы, видео, заявки на
   рекламу и размещение) и ваши контактные данные;</li>
+ <li>объявления на доске (заголовок, описание, фото, цена, город, контакт);</li>
  <li>для платных размещений — данные специалиста/бизнеса и статус оплаты.
   Платежи проходят через Mollie; данные банковских карт мы не храним.</li>
 </ul>
 <h2>Зачем</h2>
 <ul>
- <li>показ специалистов в гайде;</li>
+ <li>показ специалистов в гайде и объявлений на доске;</li>
  <li>модерация и связь с вами;</li>
  <li>обработка оплаты за размещение.</li>
 </ul>
@@ -131,12 +132,13 @@ _PRIVACY_NL = """
  <li>je naam/gebruikersnaam en Telegram-ID;</li>
  <li>inhoud die je instuurt (verhalen, vragen, video's, advertentie- en
   vermeldingsaanvragen) en je contactgegevens;</li>
+ <li>advertenties op het prikbord (titel, omschrijving, foto, prijs, plaats, contact);</li>
  <li>bij betaalde vermeldingen: bedrijfs- en contactinformatie en de betaalstatus.
   Betalingen verlopen via Mollie; wij slaan geen kaartgegevens op.</li>
 </ul>
 <h2>Waarvoor</h2>
 <ul>
- <li>het tonen van specialisten in de gids;</li>
+ <li>het tonen van specialisten in de gids en advertenties op het prikbord;</li>
  <li>moderatie en communicatie;</li>
  <li>het verwerken van betalingen voor vermeldingen.</li>
 </ul>

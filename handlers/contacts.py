@@ -7,6 +7,7 @@ import html
 import random
 import re
 from datetime import datetime
+from urllib.parse import quote
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
@@ -297,11 +298,16 @@ def _spec_text(spec: Specialist, badge: str = "",
 
 
 def _spec_card_kb(spec: Specialist, idx: int, total: int) -> InlineKeyboardMarkup:
-    """Карточка специалиста: кнопки-ссылки + «Оценить» + навигация ◀️ N/M ▶️."""
+    """Карточка специалиста: кнопки-ссылки + «Оценить»/«Поделиться» + навигация ◀️ N/M ▶️."""
     links = [l for l in parse_contact_links(spec.contact) if l["type"] in TELEGRAM_TYPES]
     btns = [InlineKeyboardButton(text=l["label"], url=l["url"]) for l in links]
     rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
-    rows.append([InlineKeyboardButton(text="⭐ Оценить", callback_data=f"rate:{spec.id}")])
+    actions = [InlineKeyboardButton(text="⭐ Оценить", callback_data=f"rate:{spec.id}")]
+    # «Поделиться» — короткая чистая ссылка на карточку (страница /s/<id> у бота)
+    if config.WEBHOOK_BASE_URL:
+        share = f"https://t.me/share/url?url={quote(config.WEBHOOK_BASE_URL + '/s/' + str(spec.id))}&text={quote(spec.name)}"
+        actions.append(InlineKeyboardButton(text="📤 Поделиться", url=share))
+    rows.append(actions)
     if total > 1:
         prev, nxt = (idx - 1) % total, (idx + 1) % total
         rows.append([
