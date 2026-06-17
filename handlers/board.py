@@ -507,10 +507,9 @@ async def browse_category(callback: CallbackQuery, state: FSMContext) -> None:
     if cat not in CATEGORY_LABELS:
         await callback.answer()
         return
-    await callback.message.answer(
-        f"{CATEGORY_LABELS[cat]} — в каком городе?", reply_markup=_browse_city_kb(cat)
-    )
+    # Город не спрашиваем — он указан в каждой карточке. Показываем всё по категории.
     await callback.answer()
+    await _browse_collect(callback.message, state, cat, "")
 
 
 @router.callback_query(F.data.startswith("bcityx:"))
