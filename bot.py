@@ -69,6 +69,7 @@ async def configure_profile(bot: Bot) -> None:
                         BotCommand(command="admin", description="Управление базой (админ)"),
                         BotCommand(command="broadcast", description="Рассылка-анонс (админ)"),
                         BotCommand(command="announce", description="Пост в канал с кнопкой (админ)"),
+                        BotCommand(command="post", description="Пост в канал по теме (ИИ, админ)"),
                         BotCommand(command="afishapost", description="Афиша «Чем заняться» в канал (админ)"),
                         BotCommand(command="afisha_new", description="Добавить в афишу вручную (админ)"),
                         BotCommand(command="afisha_export", description="Собрать афишу месяца для IG (админ)"),

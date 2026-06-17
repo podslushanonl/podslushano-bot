@@ -32,9 +32,10 @@ from states.forms import (
     AdminAnnounce,
     AdminBroadcast,
     AdminFind,
+    AdminPost,
     AdminSetPhoto,
 )
-from utils.ai import ai_afisha_channel, ai_enabled, extract_specialist_query
+from utils.ai import ai_afisha_channel, ai_channel_post, ai_enabled, extract_specialist_query
 from utils.season import current_season
 from utils.analytics import gather_stats
 from utils.reviews import recent_reviews
@@ -63,6 +64,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🔎 Найти и удалить", callback_data="admin:find")],
             [InlineKeyboardButton(text="📇 Весь гайд (выгрузка)", callback_data="admin:guideexport")],
             [InlineKeyboardButton(text="📣 Рассылка-анонс", callback_data="admin:broadcast")],
+            [InlineKeyboardButton(text="📝 Пост в канал по теме", callback_data="admin:post")],
             [InlineKeyboardButton(text="📅 Афиша в канал", callback_data="admin:afisha")],
             [InlineKeyboardButton(text="🆕 В афишу месяца (вручную)", callback_data="admin:afishanew")],
             [InlineKeyboardButton(text="⏳ Старый гайд: дедлайн оплаты", callback_data="admin:legacydeadline")],
@@ -650,6 +652,142 @@ async def afisha_publish(callback: CallbackQuery, state: FSMContext) -> None:
             f"❌ Не получилось опубликовать: {html.escape(str(e))}\n\n"
             "Проверь: бот — администратор канала с правом «Публиковать сообщения», "
             "и <code>ANNOUNCE_CHANNEL</code> указан верно.",
+            reply_markup=main_menu(),
+        )
+    await callback.answer()
+
+
+# --- Пост в канал по теме (ИИ генерит структурный пост) ---------------------
+
+async def _post_send(target, text: str, reply_markup=None) -> None:
+    """Шлёт пост: пробуем HTML (жирные подзаголовки), при ошибке — чистый текст."""
+    try:
+        await target.answer(text, reply_markup=reply_markup, disable_web_page_preview=True)
+    except Exception:  # noqa: BLE001 — кривой HTML от модели → шлём без разметки
+        import re as _re
+        plain = _re.sub(r"<[^>]+>", "", text)
+        await target.answer(plain, reply_markup=reply_markup, disable_web_page_preview=True)
+
+
+def _post_confirm_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Опубликовать", callback_data="post:pub")],
+        [InlineKeyboardButton(text="📌 Опубликовать и закрепить", callback_data="post:pin")],
+        [InlineKeyboardButton(text="🔁 Переписать", callback_data="post:redo")],
+        [InlineKeyboardButton(text="❌ Отмена", callback_data="post:no")],
+    ])
+
+
+@router.message(Command("post"))
+async def cmd_post(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    if not config.ANNOUNCE_CHANNEL:
+        await message.answer(
+            "⚠️ Не задан канал для публикации (ANNOUNCE_CHANNEL). Добавь бота в канал "
+            "админом и задай переменную."
+        )
+        return
+    if not ai_enabled():
+        await message.answer("ИИ сейчас недоступен 🙏 (не настроен ключ или нет баланса).")
+        return
+    await state.set_state(AdminPost.waiting_topic)
+    await message.answer(
+        "📝 <b>Пост в канал.</b> Напиши тему — я подготовлю структурный пост "
+        "(факты, ссылки), покажу предпросмотр, потом опубликуем.\n\n"
+        "<i>Например: «как получить BSN», «красивые места рядом с Утрехтом осенью», "
+        "«голландская кухня: что попробовать», «лайфхаки для новоприбывших».</i>",
+        reply_markup=cancel_menu(),
+    )
+
+
+@router.callback_query(F.data == "admin:post")
+async def post_btn(callback: CallbackQuery, state: FSMContext) -> None:
+    await cmd_post(callback.message, state)
+    await callback.answer()
+
+
+@router.message(AdminPost.waiting_topic, _not_command)
+async def post_topic(message: Message, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("Напиши тему текстом 🙂")
+        return
+    await _post_generate(message, state, message.text.strip())
+
+
+async def _post_generate(message: Message, state: FSMContext, topic: str) -> None:
+    await state.update_data(post_topic=topic)
+    await message.answer("✍️ Готовлю пост через ИИ, это займёт несколько секунд…")
+    await message.bot.send_chat_action(message.chat.id, action="typing")
+    text = await ai_channel_post(topic)
+    if not text:
+        await state.clear()
+        await message.answer(
+            "Не получилось сгенерировать пост 😔 Попробуй ещё раз (/post) или другую тему.",
+            reply_markup=main_menu(),
+        )
+        return
+    await state.update_data(post_text=text)
+    await state.set_state(AdminPost.confirm)
+    await message.answer("Вот предпросмотр поста 👇")
+    await _post_send(message, text)
+    await message.answer(
+        f"Опубликовать в <code>{config.ANNOUNCE_CHANNEL}</code>? "
+        "Можно переписать на ту же тему или отменить.",
+        reply_markup=_post_confirm_kb(),
+    )
+
+
+@router.callback_query(F.data == "post:redo")
+async def post_redo(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    topic = data.get("post_topic")
+    await callback.answer("Переписываю…")
+    if not topic:
+        await callback.message.answer("Тема потерялась, начни заново: /post",
+                                      reply_markup=main_menu())
+        return
+    await _post_generate(callback.message, state, topic)
+
+
+@router.callback_query(F.data == "post:no")
+async def post_no(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.message.answer("Отменил — пост не опубликован.", reply_markup=main_menu())
+    await callback.answer()
+
+
+@router.callback_query(F.data.in_({"post:pub", "post:pin"}))
+async def post_publish(callback: CallbackQuery, state: FSMContext) -> None:
+    pin = callback.data == "post:pin"
+    data = await state.get_data()
+    await state.clear()
+    text = data.get("post_text")
+    if not text:
+        await callback.answer("Текст не найден, начни заново: /post", show_alert=True)
+        return
+    try:
+        try:
+            msg = await callback.bot.send_message(
+                config.ANNOUNCE_CHANNEL, text, disable_web_page_preview=True
+            )
+        except Exception:  # noqa: BLE001 — кривой HTML → без разметки
+            import re as _re
+            msg = await callback.bot.send_message(
+                config.ANNOUNCE_CHANNEL, _re.sub(r"<[^>]+>", "", text),
+                disable_web_page_preview=True,
+            )
+        note = ""
+        if pin:
+            try:
+                await callback.bot.pin_chat_message(config.ANNOUNCE_CHANNEL, msg.message_id)
+                note = " и закрепил 📌"
+            except Exception:  # noqa: BLE001
+                note = " (но закрепить не вышло — дай боту право «Закреплять сообщения»)"
+        await callback.message.answer(f"✅ Опубликовал пост в канал{note}", reply_markup=main_menu())
+    except Exception as e:  # noqa: BLE001
+        await callback.message.answer(
+            f"❌ Не получилось опубликовать: {html.escape(str(e))}\n\n"
+            "Проверь, что бот — админ канала с правом «Публиковать сообщения».",
             reply_markup=main_menu(),
         )
     await callback.answer()

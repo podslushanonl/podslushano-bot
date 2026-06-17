@@ -359,6 +359,54 @@ _INTENT_SYSTEM = (
 )
 
 
+_POST_SYSTEM = (
+    "Ты — редактор Telegram-канала сообщества русскоязычных в Нидерландах. Пишешь "
+    "как человек, который ДАВНО живёт в NL и хорошо знает тему: экспертно, чётко, "
+    "по делу. ОБЯЗАТЕЛЬНО используй веб-поиск для фактов, цифр, адресов и ссылок — "
+    "ничего не выдумывай.\n\n"
+    "Задача: написать ОДИН готовый пост для канала на заданную тему.\n\n"
+    "Тон и стиль:\n"
+    "- чётко, структурно, без воды, без фамильярности, сленга и грубостей;\n"
+    "- нейтрально-уважительно, без обращения «ты», как полезная редакционная заметка;\n"
+    "- конкретика: факты, шаги, цифры, официальные источники, где уместно.\n\n"
+    "Формат:\n"
+    "- цепляющий заголовок первой строкой в <b>…</b>;\n"
+    "- 2–4 смысловых блока с короткими подзаголовками в <b>…</b> и списками («• …»);\n"
+    "- умеренно эмодзи (по смыслу, не больше одного на блок);\n"
+    "- в конце — короткий практичный вывод/совет.\n\n"
+    "Технически: по-русски. Разметка ТОЛЬКО тегами <b> и <i> (для Telegram); никаких "
+    "#, *, markdown и других тегов. Ссылки — обычным текстом (https://…). Уложись в "
+    "~3500 символов. Начинай сразу с поста, без преамбул вроде «вот пост»."
+)
+
+
+async def ai_channel_post(topic: str) -> str | None:
+    """Готовый структурный пост для канала по теме (экспертный тон, веб-поиск)."""
+    if not ai_enabled() or not (topic or "").strip():
+        return None
+    messages = [{"role": "user", "content": f"Тема поста: {topic.strip()}"}]
+    client = _get_client()
+    try:
+        kwargs = dict(model=config.AI_POST_MODEL, max_tokens=2000, system=_POST_SYSTEM,
+                      messages=messages)
+        tools = _web_search_tool()
+        if tools:
+            kwargs["tools"] = tools
+        resp = await client.messages.create(**kwargs)
+    except Exception as e:  # noqa: BLE001 — пробуем без веб-поиска
+        log.warning("Пост с веб-поиском не сработал (%s), пробую без", e)
+        try:
+            resp = await client.messages.create(
+                model=config.AI_POST_MODEL, max_tokens=2000, system=_POST_SYSTEM,
+                messages=messages,
+            )
+        except Exception as e2:  # noqa: BLE001
+            log.warning("Ошибка ai_channel_post: %s", e2)
+            return None
+    text = _extract_text_and_sources(resp)[0].strip()
+    return text or None
+
+
 async def classify_intent(text: str) -> str:
     """Намерение свободного сообщения: 'specialist' | 'info' | 'chat'.
 

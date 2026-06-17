@@ -75,6 +75,8 @@ AI_MODEL: str = os.getenv("AI_MODEL", "claude-haiku-4-5-20251001")
 AI_CHAT_MODEL: str = os.getenv("AI_CHAT_MODEL", "claude-haiku-4-5-20251001")
 # Модель для разбора писем по фото (vision) — тут важнее качество, держим Sonnet.
 AI_VISION_MODEL: str = os.getenv("AI_VISION_MODEL", "claude-sonnet-4-6")
+# Модель для генерации постов в канал (/post) — качество важнее цены, постов мало.
+AI_POST_MODEL: str = os.getenv("AI_POST_MODEL", "claude-sonnet-4-6")
 
 # Веб-поиск для ИИ — даёт свежую информацию (актуальные цифры, правила, новости).
 # 1/true — включён (по умолчанию). 0/false — выключить.
