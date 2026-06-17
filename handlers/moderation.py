@@ -4,11 +4,14 @@ import logging
 
 from aiogram import F, Router
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 import config
 from database.db import get_session
 from database.models import Submission
+from keyboards.menus import cancel_menu
+from states.forms import SupportReply
 
 log = logging.getLogger(__name__)
 
@@ -102,6 +105,32 @@ async def approve(callback: CallbackQuery) -> None:
 @router.callback_query(F.data.startswith("reject:"))
 async def reject(callback: CallbackQuery) -> None:
     await _handle(callback, "rejected")
+
+
+@router.callback_query(F.data.startswith("subreply:"))
+async def sub_reply_start(callback: CallbackQuery, state: FSMContext) -> None:
+    """«Ответить автору» под заявкой — админ пишет, бот пересылает автору."""
+    if callback.from_user.id not in config.ADMIN_IDS:
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+    try:
+        sid = int(callback.data.split(":", 1)[1])
+    except (ValueError, IndexError):
+        await callback.answer()
+        return
+    async with get_session() as session:
+        sub = await session.get(Submission, sid)
+    if sub is None:
+        await callback.answer("Заявка не найдена", show_alert=True)
+        return
+    await state.set_state(SupportReply.waiting_text)
+    await state.update_data(reply_to=sub.user_id)
+    await callback.message.answer(
+        f"Напиши ответ автору заявки №{sid} — я перешлю его. "
+        "Можно текст, фото или файл.",
+        reply_markup=cancel_menu(),
+    )
+    await callback.answer()
 
 
 async def _handle(callback: CallbackQuery, status: str) -> None:

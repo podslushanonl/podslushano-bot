@@ -17,6 +17,7 @@ from keyboards.menus import (
     BTN_AD,
     BTN_QUESTION,
     BTN_STORY,
+    BTN_SUBMIT,
     BTN_VIDEO,
     ad_format_menu,
     cancel_menu,
@@ -71,10 +72,15 @@ async def ask_story(message: Message, state: FSMContext) -> None:
 async def ask_question(message: Message, state: FSMContext) -> None:
     await state.set_state(QuestionForm.waiting_for_content)
     await message.answer(
-        "Напиши свой вопрос — я постараюсь ответить сразу 🤖\n\n"
-        "А если захочешь именно <b>живой опыт подписчиков</b>, после ответа предложу "
-        "отправить вопрос в сообщество.\n\n"
-        "<i>Чем больше деталей (город, твоя ситуация) — тем точнее ответ.</i>",
+        "Опиши свой вопрос <b>подробно</b> — одним сообщением 🙏\n\n"
+        "Чтобы и я, и подписчики могли реально помочь, добавь:\n"
+        "• 📍 город / провинцию\n"
+        "• 🧩 твою ситуацию и контекст\n"
+        "• ❓ что именно хочешь узнать\n\n"
+        "<i>Не «посоветуйте врача», а: «Ищу русскоязычного терапевта в Утрехте, "
+        "недавно переехали, нужна запись по страховке — к кому обращались?»</i>\n\n"
+        "Короткие вопросы из 2–3 слов почти никто не комментирует — пара предложений "
+        "сильно повышают шанс на хороший ответ 👍",
         reply_markup=cancel_menu(),
     )
 
@@ -88,6 +94,37 @@ async def ask_video(message: Message, state: FSMContext) -> None:
         "<i>Например: рилс про переезд, лайфхаки или обзор города</i>",
         reply_markup=cancel_menu(),
     )
+
+
+# --- Объединённая кнопка «Спросить / поделиться» -----------------------------
+
+@router.message(F.text == BTN_SUBMIT)
+async def submit_menu(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="❓ Задать вопрос (предложка)", callback_data="submit:question")],
+        [InlineKeyboardButton(text="📰 История / сплетня (анонимно)", callback_data="submit:story")],
+        [InlineKeyboardButton(text="🎬 Прислать видео", callback_data="submit:video")],
+    ])
+    await message.answer("Что хочешь отправить? Выбери 👇", reply_markup=kb)
+
+
+@router.callback_query(F.data == "submit:question")
+async def submit_question(callback: CallbackQuery, state: FSMContext) -> None:
+    await ask_question(callback.message, state)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "submit:story")
+async def submit_story(callback: CallbackQuery, state: FSMContext) -> None:
+    await ask_story(callback.message, state)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "submit:video")
+async def submit_video(callback: CallbackQuery, state: FSMContext) -> None:
+    await ask_video(callback.message, state)
+    await callback.answer()
 
 
 # --- Реклама: пошаговая анкета ----------------------------------------------
