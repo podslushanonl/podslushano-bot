@@ -109,11 +109,17 @@ async def free_chat(message: Message, state: FSMContext) -> None:
             await message.answer(random.choice(BYE_REPLIES), reply_markup=main_menu())
             return
 
-    # «Как записаться к huisarts», «как оформить zorgtoeslag», «как открыть
-    # bankrekening» — это просьба объяснить ПРОЦЕСС. На неё отвечает ИИ по
-    # официальным источникам, а не поиск специалиста. Ловим до быстрого пути,
-    # иначе «huisarts» примется за профессию «врач» и бот спросит город.
-    if is_howto_question(text) and await reply_with_ai(message, state):
+    # «Что делать если…», «как оформить…», «не ищу бухгалтера, нужен совет» —
+    # это просьба совета/инструкции, а НЕ поиск специалиста. Отдаём ИИ и НЕ
+    # уводим в гайд, даже если ИИ временно недоступен (иначе бот зациклится на
+    # «ищем бухгалтера, в каком городе?»).
+    if is_howto_question(text):
+        if await reply_with_ai(message, state):
+            return
+        await message.answer(
+            "Сейчас не получилось ответить 🙏 Попробуй, пожалуйста, чуть позже.",
+            reply_markup=main_menu(),
+        )
         return
 
     # Запрос специалиста: либо явно названа профессия (быстрый путь без ИИ),
