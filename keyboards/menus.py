@@ -15,6 +15,7 @@ from utils.season import events_button_label
 BTN_STORY = "📰 Прислать историю / сплетню"
 BTN_QUESTION = "❓ Задать вопрос (предложка)"
 BTN_VIDEO = "🎬 Прислать видео"
+BTN_SUBMIT = "✍️ Спросить / поделиться"
 BTN_AD = "📢 Реклама / сотрудничество"
 BTN_CONTACTS = "🔍 Найти специалиста"
 BTN_BOARD = "📋 Объявления"
@@ -31,8 +32,7 @@ BTN_CANCEL = "❌ Отмена"
 def main_menu() -> ReplyKeyboardMarkup:
     """Главное меню с кнопками внизу экрана."""
     keyboard = [
-        [KeyboardButton(text=BTN_STORY)],
-        [KeyboardButton(text=BTN_QUESTION), KeyboardButton(text=BTN_VIDEO)],
+        [KeyboardButton(text=BTN_SUBMIT)],
         [KeyboardButton(text=BTN_AD)],
         [KeyboardButton(text=BTN_CONTACTS)],
         [KeyboardButton(text=BTN_BOARD)],
@@ -139,7 +139,7 @@ def ad_format_menu() -> ReplyKeyboardMarkup:
 
 
 def moderation_buttons(submission_id: int) -> InlineKeyboardMarkup:
-    """Кнопки «Одобрить / Отклонить» под заявкой в личке у админа."""
+    """Кнопки «Одобрить / Отклонить / Ответить» под заявкой в личке у админа."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -149,6 +149,8 @@ def moderation_buttons(submission_id: int) -> InlineKeyboardMarkup:
                 InlineKeyboardButton(
                     text="❌ Отклонить", callback_data=f"reject:{submission_id}"
                 ),
-            ]
+            ],
+            [InlineKeyboardButton(
+                text="✍️ Ответить автору", callback_data=f"subreply:{submission_id}")],
         ]
     )

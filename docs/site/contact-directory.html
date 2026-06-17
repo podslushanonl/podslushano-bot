@@ -1,0 +1,553 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@900&family=Onest:wght@300;400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+#kg{background:#eeeeee;font-family:'Onest',sans-serif;color:#2c2825;cursor:none}
+#kg-noise{position:fixed;inset:0;pointer-events:none;z-index:9989;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");background-size:200px;animation:ns 8s steps(2) infinite}
+@keyframes ns{0%{background-position:0 0}25%{background-position:-50px 30px}50%{background-position:20px -40px}100%{background-position:0 0}}
+.kg-glow{position:fixed;width:300px;height:300px;border-radius:50%;pointer-events:none;z-index:9990;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(252,151,64,.06) 0%,transparent 70%)}
+.kg-inv{position:fixed;width:40px;height:40px;border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;background:#fff;transition:width .3s,height .3s}
+.kg-inv.big{width:80px;height:80px}
+.kg-hero{padding:4rem 6vw 2rem;border-bottom:1px solid rgba(0,0,0,.06)}
+.kg-title{font-family:'Rubik',sans-serif;font-size:clamp(2rem,5vw,5rem);font-weight:900;letter-spacing:-2px;color:#2c2825;line-height:.82;overflow:hidden;white-space:nowrap}
+.kg-title span{display:inline;transform:translateY(110%);animation:rise 1s cubic-bezier(.16,1,.3,1) .1s both}
+@keyframes rise{to{transform:translateY(0)}}
+.kg-sub{font-size:.85rem;color:#666;margin-top:1.2rem;max-width:520px;line-height:1.7;opacity:0;animation:fadein .8s .5s both}
+@keyframes fadein{to{opacity:1}}
+.kg-shuffle-char{display:inline;transition:color .1s}
+.kg-search-wrap{padding:1.2rem 6vw;border-bottom:1px solid rgba(0,0,0,.06);position:sticky;top:0;background:#eeeeee;z-index:20}
+.kg-search{display:flex;align-items:center;gap:.8rem;background:#fff;border-radius:50px;padding:.8rem 1.4rem;border:1px solid rgba(0,0,0,.1);transition:border-color .3s,box-shadow .3s}
+.kg-search:focus-within{border-color:#fc9740;box-shadow:0 0 0 3px rgba(252,151,64,.1)}
+.kg-search input{border:none;outline:none;font-family:'Onest',sans-serif;font-size:.9rem;color:#2c2825;flex:1;background:transparent}
+.kg-search svg{color:#bbb;flex-shrink:0}
+.kg-clear{background:none;border:none;color:#bbb;cursor:pointer;font-size:1rem;display:none;padding:0}
+.kg-cats{padding:.8rem 6vw;border-bottom:1px solid rgba(0,0,0,.06);display:flex;gap:.4rem;overflow-x:auto;scrollbar-width:none}
+.kg-cats::-webkit-scrollbar{display:none}
+.kg-pill{flex-shrink:0;padding:.4rem 1rem;border-radius:50px;font-size:.5rem;letter-spacing:2px;text-transform:uppercase;border:1px solid rgba(0,0,0,.1);color:#666;cursor:pointer;transition:all .2s;white-space:nowrap}
+.kg-pill:hover,.kg-pill.on{background:#2c2825;color:#fff;border-color:#2c2825}
+.kg-pill.on{background:#fc9740;border-color:#fc9740}
+.kg-provs-wrap{padding:2rem 0 1.5rem;border-bottom:1px solid rgba(0,0,0,.06);overflow:hidden}
+.kg-provs-label{font-size:.45rem;letter-spacing:4px;text-transform:uppercase;color:#aaa;margin-bottom:1.2rem;padding:0 6vw;display:block}
+.kg-carousel{display:flex;gap:1.2rem;overflow-x:auto;scrollbar-width:none;padding:1rem 6vw 1.5rem;scroll-snap-type:x mandatory}
+.kg-carousel::-webkit-scrollbar{display:none}
+.kg-prov-circle{flex:0 0 110px;height:110px;border-radius:50%;background:#fff;border:1.5px solid rgba(0,0,0,.08);display:flex;align-items:center;justify-content:center;cursor:pointer;scroll-snap-align:start;flex-shrink:0;position:relative;transition:transform .5s cubic-bezier(.34,1.8,.64,1),box-shadow .4s,border-color .3s;box-shadow:0 6px 20px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8)}
+.kg-prov-circle:hover{transform:translateY(-6px) scale(1.06);box-shadow:0 16px 40px rgba(0,0,0,.1),inset 0 1px 0 rgba(255,255,255,.9)}
+.kg-prov-circle.on{background:#fc9740;border-color:#fc9740;transform:translateY(-8px) scale(1.1);box-shadow:0 20px 50px rgba(252,151,64,.3)}
+.kg-prov-circle.on .kg-prov-label{color:#fff}
+.kg-prov-circle.all-prov{background:linear-gradient(135deg,#2c2825,#444);border-color:#2c2825}
+.kg-prov-circle.all-prov .kg-prov-label{color:#fff}
+.kg-prov-circle.all-prov.on{background:linear-gradient(135deg,#fc9740,#ff6b35);border-color:#fc9740;box-shadow:0 20px 50px rgba(252,151,64,.35)}
+.kg-prov-label{font-family:'Rubik',sans-serif;font-size:.55rem;font-weight:900;color:#2c2825;text-align:center;line-height:1.2;padding:0 .5rem;letter-spacing:-.2px;transition:color .3s;pointer-events:none}
+.kg-story{background:#2c2825;padding:1.5rem 6vw;display:none;border-bottom:1px solid rgba(0,0,0,.1);position:relative}
+.kg-story.on{display:block}
+.kg-story-name{font-family:'Rubik',sans-serif;font-size:1.1rem;font-weight:900;color:#fff;margin-bottom:.5rem}
+.kg-story-text{font-size:.8rem;color:rgba(255,255,255,.6);line-height:1.7;max-width:600px}
+.kg-story-link{display:none;margin-top:.8rem;font-size:.45rem;letter-spacing:3px;text-transform:uppercase;color:#fc9740;text-decoration:none}
+.kg-story-close{position:absolute;top:1rem;right:1.5rem;background:none;border:none;color:rgba(255,255,255,.3);cursor:pointer;font-size:.45rem;letter-spacing:3px;text-transform:uppercase}
+.kg-featured{padding:2rem 6vw;border-bottom:1px solid rgba(0,0,0,.06);display:none}
+.kg-featured-title{font-size:.45rem;letter-spacing:4px;text-transform:uppercase;color:#aaa;margin-bottom:1.2rem}
+.kg-featured-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px}
+.kg-feat-card{background:#fff;border-radius:16px;padding:1.2rem;border:1px solid rgba(0,0,0,.06);transition:transform .3s,box-shadow .3s;cursor:pointer;position:relative;overflow:hidden;text-decoration:none;display:block}
+.kg-feat-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.08)}
+.kg-feat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:16px 16px 0 0;background:var(--c)}
+.kg-feat-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-size:.9rem;font-weight:900;color:#fff;margin-bottom:.8rem;background:var(--c);overflow:hidden}
+.kg-feat-name{font-family:'Rubik',sans-serif;font-size:.85rem;font-weight:900;color:#2c2825;line-height:1.2;margin-bottom:.3rem}
+.kg-feat-cat{font-size:.42rem;letter-spacing:3px;text-transform:uppercase;color:#fc9740}
+.kg-feat-prov{font-size:.42rem;letter-spacing:2px;text-transform:uppercase;color:#aaa;margin-top:.2rem}
+.kg-count{padding:.6rem 6vw;font-size:.45rem;letter-spacing:3px;text-transform:uppercase;color:#aaa}
+.kg-status{padding:3rem 6vw;text-align:center;font-size:.8rem;color:#aaa}
+.kg-list{display:flex;flex-direction:column;gap:1px}
+.kg-item{background:#eeeeee;padding:.6rem 6vw;transition:background .3s;position:relative;overflow:hidden;opacity:0;transform:translateY(20px);transition:opacity .5s,transform .5s,background .3s}
+.kg-item.revealed{opacity:1;transform:translateY(0)}
+.kg-item:hover{background:#fff}
+.kg-item::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;background:#fc9740;transform:scaleY(0);transform-origin:top;transition:transform .4s cubic-bezier(.16,1,.3,1)}
+.kg-item:hover::before{transform:scaleY(1)}
+.kg-item-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.6rem;margin-bottom:.4rem}
+.kg-item-left{display:flex;align-items:flex-start;gap:.8rem;flex:1}
+.kg-item-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Rubik',sans-serif;font-size:.8rem;font-weight:900;color:#fff;flex-shrink:0;overflow:hidden}
+.kg-item-name{font-family:'Rubik',sans-serif;font-size:.9rem;font-weight:900;color:#2c2825;line-height:1.1;margin-bottom:.1rem}
+.kg-item-meta{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+.kg-item-cat{font-size:.42rem;letter-spacing:3px;text-transform:uppercase;color:#fc9740}
+.kg-item-prov{font-size:.42rem;letter-spacing:2px;text-transform:uppercase;color:#aaa}
+.kg-item--top{background:linear-gradient(90deg,rgba(252,151,64,.10),rgba(252,151,64,0) 55%)}
+.kg-item--top:hover{background:linear-gradient(90deg,rgba(252,151,64,.16),#fff 60%)}
+.kg-item--top::before{transform:scaleY(1)}
+.kg-item-top{display:inline-block;font-size:.42rem;letter-spacing:2px;text-transform:uppercase;color:#fff;background:#fc9740;padding:.2rem .5rem;border-radius:50px;font-weight:700}
+.kg-item-desc{font-size:.72rem;color:#444;line-height:1.5;margin-top:.3rem}
+.kg-item-desc a{color:#fc9740;text-decoration:none;font-weight:500}
+.kg-item-desc a:hover{text-decoration:underline}
+.kg-item-share{width:32px;height:32px;border-radius:50%;border:1px solid rgba(0,0,0,.1);background:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .2s;color:#aaa;flex-shrink:0}
+.kg-item-share:hover{background:#fc9740;border-color:#fc9740;color:#fff}
+.kg-emergency{background:#1a1510;padding:3rem 6vw;margin-top:2px;border-radius:20px 20px 0 0;position:relative;overflow:hidden}
+.kg-emergency::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E");background-size:150px;pointer-events:none;animation:ns 6s steps(2) infinite}
+.kg-em-title{font-family:'Rubik',sans-serif;font-size:1.5rem;font-weight:900;color:#fff;letter-spacing:-1px;margin-bottom:1.5rem;position:relative;z-index:1}
+.kg-em-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;position:relative;z-index:1}
+.kg-em-item{background:rgba(0,0,0,.3);padding:1.2rem;border-radius:14px;cursor:none;pointer-events:none}
+.kg-em-num{font-family:'Rubik',sans-serif;font-size:1.4rem;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1}
+.kg-em-name{font-size:.5rem;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-top:.4rem}
+.kg-share-popup{position:fixed;background:#fff;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.15);padding:1rem;z-index:100;display:none;min-width:190px}
+.kg-share-popup.on{display:block}
+.kg-sp-title{font-size:.42rem;letter-spacing:3px;text-transform:uppercase;color:#aaa;margin-bottom:.8rem}
+.kg-sp-item{display:flex;align-items:center;gap:.8rem;padding:.5rem .7rem;border-radius:10px;cursor:pointer;transition:background .2s;font-size:.8rem;color:#2c2825;text-decoration:none}
+.kg-sp-item:hover{background:#f5f5f5}
+@media(max-width:600px){.kg-featured-grid{grid-template-columns:1fr 1fr}.kg-em-grid{grid-template-columns:1fr 1fr}}
+</style>
+
+<div id="kg-noise"></div>
+<div class="kg-glow" id="kg-glow"></div>
+<div class="kg-inv" id="kg-inv"></div>
+
+<div class="kg-share-popup" id="kg-sp">
+  <div class="kg-sp-title">Поделиться</div>
+  <a class="kg-sp-item" id="sp-wa" href="#" target="_blank">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>WhatsApp
+  </a>
+  <a class="kg-sp-item" id="sp-tg" href="#" target="_blank">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="#229ED9"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>Telegram
+  </a>
+  <div class="kg-sp-item" id="sp-copy">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Скопировать
+  </div>
+</div>
+
+<div id="kg">
+<section class="kg-hero">
+  <div class="kg-title"><span>КонтактGuide</span></div>
+  <div class="kg-sub">Проверенные русскоязычные специалисты в Нидерландах — по провинциям и категориям.</div>
+</section>
+<div class="kg-search-wrap">
+  <div class="kg-search">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="kg-input" placeholder="Стоматолог, юрист, Eindhoven..." type="text"/>
+    <button class="kg-clear" id="kg-clear">✕</button>
+  </div>
+</div>
+<div class="kg-cats" id="kg-cats">
+  <div class="kg-pill on" data-cat="all">Все категории</div>
+  <div class="kg-pill" data-cat="Дом">Дом</div>
+  <div class="kg-pill" data-cat="Образование">Образование</div>
+  <div class="kg-pill" data-cat="Вкус">Вкус</div>
+  <div class="kg-pill" data-cat="Бьюти">Бьюти-уход</div>
+  <div class="kg-pill" data-cat="Здоровье">Здоровье</div>
+  <div class="kg-pill" data-cat="Впечатления">Впечатления</div>
+  <div class="kg-pill" data-cat="Услуги">Услуги</div>
+  <div class="kg-pill" data-cat="Дети">Дети</div>
+</div>
+<div class="kg-provs-wrap">
+  <span class="kg-provs-label">Выбери провинцию</span>
+  <div class="kg-carousel" id="kg-carousel"></div>
+</div>
+<div class="kg-story" id="kg-story">
+  <button class="kg-story-close" id="kg-story-close">закрыть ×</button>
+  <div class="kg-story-name" id="kg-story-name"></div>
+  <div class="kg-story-text" id="kg-story-text"></div>
+  <a class="kg-story-link" id="kg-story-link" href="#" target="_blank">Читать историю провинции →</a>
+</div>
+<div class="kg-featured" id="kg-featured">
+  <div class="kg-featured-title">Может, вы искали этого специалиста?</div>
+  <div class="kg-featured-grid" id="kg-featured-grid"></div>
+</div>
+<div class="kg-count" id="kg-count"></div>
+<div class="kg-status" id="kg-status">Выбери провинцию или начни поиск</div>
+<div class="kg-list" id="kg-list"></div>
+<div class="kg-emergency">
+  <div class="kg-em-title">Экстренные номера</div>
+  <div class="kg-em-grid">
+    <div class="kg-em-item"><div class="kg-em-num">112</div><div class="kg-em-name">Полиция · Скорая · Пожар</div></div>
+    <div class="kg-em-item"><div class="kg-em-num">0900-8844</div><div class="kg-em-name">Полиция (не срочно)</div></div>
+    <div class="kg-em-item"><div class="kg-em-num">0800-9009</div><div class="kg-em-name">Газ и электричество</div></div>
+    <div class="kg-em-item"><div class="kg-em-num">0900-9394</div><div class="kg-em-name">Вода (аварии)</div></div>
+    <div class="kg-em-item"><div class="kg-em-num">116000</div><div class="kg-em-name">Пропавшие дети</div></div>
+    <div class="kg-em-item"><div class="kg-em-num">0800-0010</div><div class="kg-em-name">Veilig Thuis</div></div>
+    <div class="kg-em-item"><div class="kg-em-num">113</div><div class="kg-em-name">Телефон доверия</div></div>
+    <div class="kg-em-item"><div class="kg-em-num">0900-9290</div><div class="kg-em-name">ANWB Дорожная помощь</div></div>
+  </div>
+</div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  (function(){
+    var sp=document.getElementById('kg-sp');
+    if(sp&&sp.parentElement!==document.body){try{document.body.appendChild(sp);}catch(e){}}
+  })();
+
+  const glow=document.getElementById('kg-glow'),inv=document.getElementById('kg-inv');
+  let cx=0,cy=0,gx=0,gy=0;
+  document.addEventListener('mousemove',function(e){cx=e.clientX;cy=e.clientY;inv.style.left=cx+'px';inv.style.top=cy+'px';});
+  (function ag(){gx+=(cx-gx)*.08;gy+=(cy-gy)*.08;glow.style.left=gx+'px';glow.style.top=gy+'px';requestAnimationFrame(ag);})();
+
+  var titleEl=document.querySelector('.kg-title span');
+  if(titleEl){
+    var orig='КонтактGuide';
+    var chars='АБВГДЕЖЗИКЛМНОПРСТabcdefghijklmnop0123456789';
+    titleEl.innerHTML=orig.split('').map(function(c){return'<span class="kg-shuffle-char">'+c+'</span>';}).join('');
+    titleEl.parentElement.addEventListener('mouseenter',function(){
+      titleEl.querySelectorAll('.kg-shuffle-char').forEach(function(span,i){
+        var o=orig[i];var count=0;
+        var iv=setInterval(function(){span.textContent=chars[Math.floor(Math.random()*chars.length)];count++;if(count>8){clearInterval(iv);span.textContent=o;}},40);
+      });
+    });
+  }
+
+  document.querySelectorAll('a,button,.kg-prov-circle,.kg-item,.kg-feat-card').forEach(function(el){
+    el.addEventListener('mouseenter',function(){inv.classList.add('big');});
+    el.addEventListener('mouseleave',function(){inv.classList.remove('big');});
+  });
+
+  var KG_DATA_URL='https://worker-production-ad76.up.railway.app/api/guide.json';
+
+  var PROVINCES=[
+    {name:'Все провинции',slug:null,story:null,history:null,all:true},
+    {name:'Noord-Holland',slug:'province-directory-noord-holland',story:'Самая населённая провинция. Амстердам — столица страны, каналы, музеи мирового уровня.',history:'/history-province-noord-holland-netherlands/'},
+    {name:'Zuid-Holland',slug:'province-directory-zuid-holland',story:'Роттердам — крупнейший порт Европы. Гаага — политическая столица.',history:'/history-province-zuid-holland-netherlands/'},
+    {name:'Utrecht',slug:'province-directory-utrecht',story:'Историческое сердце Нидерландов. Один из старейших городов с собором Домкерк.',history:'/history-province-utrecht-netherlands/'},
+    {name:'Noord-Brabant',slug:'province-directory-noord-brabant',story:'Южная провинция. Карнавал, пивоварни, высокотехнологичный Эйндховен.',history:'/history-province-noord-brabant-netherlands/'},
+    {name:'Gelderland',slug:'province-directory-gelderland',story:'Крупнейшая провинция по площади. Нацпарки, реки Рейн и Ваал.',history:'/history-province-gelderland-netherlands/'},
+    {name:'Zeeland',slug:'province-directory-zeeland',story:'Острова и море. Устрицы, самый солнечный регион Нидерландов.',history:'/history-province-zeeland-netherlands/'},
+    {name:'Limburg',slug:'province-directory-limburg',story:'Единственная провинция с холмами. Граничит с Бельгией и Германией.',history:'/history-province-limburg-netherlands/'},
+    {name:'Friesland',slug:'province-directory-friesland',story:'Свой язык, озёра, мельницы и марафон Elfstedentocht.',history:'/history-province-friesland-netherlands/'},
+    {name:'Groningen',slug:'province-directory-groningen',story:'Север страны. Студенческий город, добыча газа, чистый воздух.',history:'/history-province-groningen-netherlands/'},
+    {name:'Overijssel',slug:'province-directory-overijssel',story:'Исторические города — Зволле, Девентер. Красивые реки.',history:'/history-province-overijssel-netherlands/'},
+    {name:'Drenthe',slug:'province-directory-drenthe',story:'Самая малонаселённая провинция. Доисторические мегалиты, природа.',history:'/history-province-drenthe-netherlands/'},
+    {name:'Flevoland',slug:'province-directory-flevoland',story:'Самая молодая провинция — создана на осушенных землях в XX веке.',history:'/history-province-flevoland-netherlands/'},
+  ];
+
+  var CAT_COLORS={'Здоровье':'#2d6a4f','Бьюти':'#9b2335','Дом':'#2c4a7c','Образование':'#5c3317','Вкус':'#7c4a00','Впечатления':'#3a2d7c','Услуги':'#2c2825','Дети':'#5c2d7c'};
+
+  var carousel=document.getElementById('kg-carousel');
+  PROVINCES.forEach(function(p,i){
+    var el=document.createElement('div');
+    el.className='kg-prov-circle'+(p.all?' all-prov':'');
+    el.dataset.idx=i;
+    el.innerHTML='<span class="kg-prov-label">'+p.name+'</span>';
+    carousel.appendChild(el);
+  });
+
+  var activeCat='all',searchVal='',allData=[],loadedCount=0;
+
+  function detectCat(t){
+    t=t.toLowerCase();
+    if(/стоматолог|врач|психолог|педиатр|медиц|здоров|терапевт/.test(t))return'Здоровье';
+    if(/юрист|адвокат|нотариус|налог|бухгалт|иммигр/.test(t))return'Услуги';
+    if(/красот|маникюр|педикюр|бровист|парикмах|косметолог|массаж|тату|нейл/.test(t))return'Бьюти';
+    if(/ремонт|сантехник|электрик|плотник|строит|уборк/.test(t))return'Дом';
+    if(/репетитор|обучен|курс|школ|образован|логопед/.test(t))return'Образование';
+    if(/ресторан|кейтер|торт|повар|кулинар|кондитер/.test(t))return'Вкус';
+    if(/дети|няня|детск|ясли|садик|аниматор/.test(t))return'Дети';
+    if(/тренер|спорт|фитнес|йога|танц|фотограф|экскурс/.test(t))return'Впечатления';
+    return'Услуги';
+  }
+
+  function kgEsc(t){return String(t==null?'':t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function kgLinkify(t){
+    var s=kgEsc(t);
+    s=s.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
+    s=s.replace(/(^|[\s>])(\+?\d[\d\s\-()]{7,}\d)/g,function(m,pre,num){return pre+'<a href="tel:'+num.replace(/[^\d+]/g,'')+'">'+num+'</a>';});
+    s=s.replace(/(^|[\s>])@([A-Za-z0-9_]{4,})/g,'$1<a href="https://t.me/$2" target="_blank" rel="noopener">@$2</a>');
+    s=s.replace(/\n/g,'<br>');
+    return s;
+  }
+  function kgNormalize(data){
+    var out=[];
+    function push(name,desc,prov,cat,photo,html,premium,slug){
+      if(!name)return;
+      desc=String(desc==null?'':desc).trim();
+      out.push({name:String(name).trim(),desc:desc,descHtml:(html||kgLinkify(desc)),prov:String(prov||'').trim(),cat:cat||detectCat(name+' '+desc),link:'',photo:photo||'',premium:!!premium,slug:slug||''});
+    }
+    function fromItem(it,prov){
+      if(typeof it==='string'){push(it,'',prov);return;}
+      if(!it||typeof it!=='object')return;
+      var name=it.name||it.title||it['имя']||it['Имя']||it['название'];
+      var desc=it.desc||it.description||it.info||it.contact||it.contacts||it['описание']||it['контакты']||'';
+      if(Array.isArray(desc))desc=desc.join(' · ');
+      var prov2=it.prov||it.province||it['провинция']||prov;
+      var cat=it.cat||it.category||it['категория'];
+      var photo=it.photo||it.image||it.avatar||'';
+      var html=it.html||it.descHtml||'';
+      var premium=it.premium||it.top||it.is_premium||false;
+      var slug=it.slug||'';
+      if(name){push(name,desc,prov2,cat,photo,html,premium,slug);}
+      else{Object.keys(it).forEach(function(k){if(typeof it[k]==='string')push(k,it[k],prov);});}
+    }
+    if(Array.isArray(data)){
+      data.forEach(function(it){
+        if(it&&typeof it==='object'&&(it.contacts||it.items||it.specialists)){
+          var prov=it.province||it.prov||it.name||'';
+          (it.contacts||it.items||it.specialists).forEach(function(c){fromItem(c,prov);});
+        } else fromItem(it,'');
+      });
+    } else if(data&&typeof data==='object'){
+      Object.keys(data).forEach(function(prov){
+        var v=data[prov];
+        if(Array.isArray(v))v.forEach(function(c){fromItem(c,prov);});
+        else if(v&&typeof v==='object')Object.keys(v).forEach(function(k){push(k,v[k],prov);});
+      });
+    }
+    return out;
+  }
+  var kgAll=null,kgAllLoading=false,kgAllCbs=[];
+  function loadAllFromWP(done){
+    var toLoad=PROVINCES.filter(function(p){return!p.all;});
+    var acc=[],n=0;
+    toLoad.forEach(function(p){loadProvince(p,function(d){acc=acc.concat(d);n++;if(n===toLoad.length)done(acc);});});
+  }
+  function loadAllContacts(cb){
+    if(kgAll){cb(kgAll);return;}
+    kgAllCbs.push(cb);
+    if(kgAllLoading)return;
+    kgAllLoading=true;
+    function done(list){kgAll=list||[];kgAllLoading=false;var cbs=kgAllCbs;kgAllCbs=[];cbs.forEach(function(f){f(kgAll);});}
+    if(KG_DATA_URL){
+      fetch(KG_DATA_URL,{cache:'no-store'})
+        .then(function(r){return r.ok?r.text():Promise.reject(new Error('gh'));})
+        .then(function(t){done(kgNormalize(JSON.parse(t)));})
+        .catch(function(){loadAllFromWP(done);});
+    } else loadAllFromWP(done);
+  }
+
+  function parseCoBlocks(html,provName,link){
+    var tmp=document.createElement('div');tmp.innerHTML=html;
+    var results=[];
+    tmp.querySelectorAll('.wp-block-coblocks-accordion-item').forEach(function(item){
+      var title=item.querySelector('.wp-block-coblocks-accordion-item__title,.wp-block-coblocks-accordion-item__button');
+      var body=item.querySelector('.wp-block-coblocks-accordion-item__content');
+      if(title&&title.textContent.trim().length>1){
+        var t=title.textContent.trim();
+        var bHtml=body?body.innerHTML:'';
+        var bText=body?body.textContent.trim():'';
+        var cleanHtml=bHtml.replace(/<p[^>]*>\s*<\/p>/gi,'').replace(/\s{2,}/g,' ').trim();
+        results.push({name:t,desc:bText,descHtml:cleanHtml,prov:provName,link:link,cat:detectCat(t+' '+bText)});
+      }
+    });
+    if(!results.length){
+      tmp.querySelectorAll('details').forEach(function(d){
+        var s=d.querySelector('summary');
+        if(s){
+          var t=s.textContent.trim();
+          var bHtml=d.innerHTML.replace(s.outerHTML,'');
+          var bText=d.textContent.replace(t,'').trim();
+          if(t.length>1)results.push({name:t,desc:bText,descHtml:bHtml,prov:provName,link:link,cat:detectCat(t+' '+bText)});
+        }
+      });
+    }
+    if(!results.length){
+      tmp.querySelectorAll('p').forEach(function(p){
+        var strong=p.querySelector('strong');
+        if(strong&&strong.textContent.trim().length>2){
+          var t=strong.textContent.trim();
+          var b=p.textContent.replace(t,'').trim();
+          results.push({name:t,desc:b,descHtml:b,prov:provName,link:link,cat:detectCat(t+' '+b)});
+        }
+      });
+    }
+    return results;
+  }
+
+  function loadProvince(prov,cb){
+    fetch('/wp-json/wp/v2/posts?slug='+prov.slug+'&_fields=content,link&per_page=1')
+      .then(function(r){return r.json();})
+      .then(function(posts){
+        if(posts&&posts.length)return posts[0];
+        return fetch('/wp-json/wp/v2/pages?slug='+prov.slug+'&_fields=content,link&per_page=1')
+          .then(function(r){return r.json();}).then(function(pages){return pages&&pages.length?pages[0]:null;});
+      })
+      .then(function(post){cb(post?parseCoBlocks(post.content.rendered,prov.name,post.link):[]);})
+      .catch(function(){cb([]);});
+  }
+
+  function setStatus(msg){
+    document.getElementById('kg-status').textContent=msg;
+    document.getElementById('kg-status').style.display='block';
+  }
+
+  function showFeatured(data){
+    if(!data.length){document.getElementById('kg-featured').style.display='none';return;}
+    var now=new Date();
+    var seed=now.getFullYear()*100+now.getMonth();
+    function sr(s){var x=Math.sin(s)*10000;return x-Math.floor(x);}
+    var shuffled=data.slice().sort(function(a,b){return sr(seed+data.indexOf(a))-sr(seed+data.indexOf(b));});
+    var feat=shuffled.slice(0,6);
+    document.getElementById('kg-featured').style.display='block';
+    document.getElementById('kg-featured-grid').innerHTML=feat.map(function(s){
+      var col=CAT_COLORS[s.cat]||'#2c2825';
+      var safeN=s.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      return'<div class="kg-feat-card" style="--c:'+col+'" onclick="kgSelectSpec(\''+s.prov+'\',\''+safeN+'\')">'
+        +'<div class="kg-feat-av">'+(s.photo?'<img src="'+s.photo+'" alt="" loading="lazy" style="width:100%;height:100%;border-radius:50%;object-fit:cover">':s.name.charAt(0).toUpperCase())+'</div>'
+        +'<div class="kg-feat-name">'+s.name+'</div>'
+        +'<div class="kg-feat-cat">'+s.cat+'</div>'
+        +'<div class="kg-feat-prov">'+s.prov+'</div>'
+        +'</div>';
+    }).join('');
+  }
+
+  var revealObs=new IntersectionObserver(function(entries){
+    entries.forEach(function(e,i){if(e.isIntersecting)setTimeout(function(){e.target.classList.add('revealed');},i*40);});
+  },{threshold:.1});
+
+  function render(){
+    var f=allData.filter(function(s){
+      var cOk=activeCat==='all'||s.cat===activeCat;
+      var sOk=!searchVal||[s.name,s.desc,s.prov,s.cat].some(function(v){return v.toLowerCase().includes(searchVal);});
+      return cOk&&sOk;
+    });
+    var count=document.getElementById('kg-count');
+    var status=document.getElementById('kg-status');
+    var list=document.getElementById('kg-list');
+    if(!f.length){setStatus('Ничего не найдено');list.innerHTML='';count.textContent='';return;}
+    status.style.display='none';
+    count.textContent='показано '+f.length+' специалистов';
+    list.innerHTML=f.map(function(s){
+      var col=CAT_COLORS[s.cat]||'#2c2825';
+      return'<div class="kg-item'+(s.premium?' kg-item--top':'')+'" data-slug="'+(s.slug||'')+'">'
+        +'<div class="kg-item-head">'
+          +'<div class="kg-item-left">'
+            +'<div class="kg-item-av" style="background:'+col+'">'+(s.photo?'<img src="'+s.photo+'" alt="" loading="lazy" style="width:100%;height:100%;border-radius:50%;object-fit:cover">':s.name.charAt(0).toUpperCase())+'</div>'
+            +'<div><div class="kg-item-name">'+s.name+'</div>'
+            +'<div class="kg-item-meta">'+(s.premium?'<span class="kg-item-top">ТОП</span>':'')+'<span class="kg-item-cat">'+s.cat+'</span><span class="kg-item-prov">'+s.prov+'</span></div></div>'
+          +'</div>'
+          +'<button class="kg-item-share" data-slug="'+(s.slug||'')+'" data-name="'+s.name.replace(/"/g,'&quot;')+'" data-cat="'+s.cat+'" data-prov="'+(s.prov||'')+'" data-desc="'+(s.desc||'').replace(/"/g,'&quot;').slice(0,500)+'">'
+            +'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>'
+          +'</button>'
+        +'</div>'
+        +'<div class="kg-item-desc">'+(s.descHtml||s.desc||'')+'</div>'
+        +'</div>';
+    }).join('');
+    list.querySelectorAll('.kg-item-share').forEach(function(btn){
+      btn.addEventListener('click',function(e){e.stopPropagation();showShare(btn,btn.dataset.name,btn.dataset.cat,btn.dataset.desc,btn.dataset.prov||'');});
+    });
+    setTimeout(function(){list.querySelectorAll('.kg-item').forEach(function(el){revealObs.observe(el);});},50);
+  }
+
+  function openProvince(prov){
+    document.querySelectorAll('.kg-prov-circle').forEach(function(c){c.classList.remove('on');});
+    var circle=document.querySelector('.kg-prov-circle[data-idx="'+PROVINCES.indexOf(prov)+'"]');
+    if(circle){circle.classList.add('on');circle.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}
+    if(prov.story){
+      document.getElementById('kg-story-name').textContent=prov.name;
+      document.getElementById('kg-story-text').textContent=prov.story;
+      var lnk=document.getElementById('kg-story-link');
+      lnk.href=prov.history||'#';lnk.style.display=prov.history?'inline-block':'none';
+      document.getElementById('kg-story').classList.add('on');
+    } else document.getElementById('kg-story').classList.remove('on');
+    allData=[];document.getElementById('kg-list').innerHTML='';document.getElementById('kg-count').textContent='';
+    if(prov.all){
+      setStatus('Загрузка всех провинций...');
+      loadAllContacts(function(list){allData=list;showFeatured(allData);render();});
+    } else {
+      setStatus('Загрузка...');
+      loadAllContacts(function(list){
+        var nm=prov.name.toLowerCase();
+        allData=list.filter(function(s){var pv=(s.prov||'').toLowerCase();if(pv==='онлайн'||pv==='online')return true;return pv===nm||pv.indexOf(nm)>-1||(pv&&nm.indexOf(pv)>-1);});
+        showFeatured(allData);render();
+      });
+    }
+  }
+
+  carousel.addEventListener('click',function(e){
+    var circle=e.target.closest('.kg-prov-circle');if(!circle)return;
+    var idx=parseInt(circle.dataset.idx);
+    var prov=PROVINCES[idx];
+    if(circle.classList.contains('on')){
+      circle.classList.remove('on');allData=[];
+      document.getElementById('kg-story').classList.remove('on');
+      document.getElementById('kg-featured').style.display='none';
+      setStatus('Выбери провинцию или начни поиск');
+      document.getElementById('kg-list').innerHTML='';document.getElementById('kg-count').textContent='';
+      return;
+    }
+    openProvince(prov);
+  });
+
+  document.getElementById('kg-story-close').addEventListener('click',function(){document.getElementById('kg-story').classList.remove('on');});
+
+  document.getElementById('kg-cats').addEventListener('click',function(e){
+    var p=e.target.closest('.kg-pill');if(!p)return;
+    document.querySelectorAll('.kg-pill').forEach(function(x){x.classList.remove('on');});
+    p.classList.add('on');activeCat=p.dataset.cat;render();
+  });
+
+  document.getElementById('kg-input').addEventListener('input',function(e){
+    searchVal=e.target.value.toLowerCase();
+    document.getElementById('kg-clear').style.display=searchVal?'block':'none';
+    if(searchVal&&!allData.length){
+      setStatus('Загрузка для поиска...');
+      loadAllContacts(function(list){allData=list;render();});
+    } else render();
+  });
+  document.getElementById('kg-clear').addEventListener('click',function(){
+    document.getElementById('kg-input').value='';searchVal='';
+    document.getElementById('kg-clear').style.display='none';render();
+  });
+
+  function copyText(t,done){
+    function fallback(){
+      var ta=document.createElement('textarea');ta.value=t;ta.style.position='fixed';ta.style.left='-9999px';
+      document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');}catch(e){}
+      ta.remove();if(done)done();
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done||function(){}).catch(fallback);}
+    else fallback();
+  }
+  function showShare(btn,name,cat,desc,prov){
+    var popup=document.getElementById('kg-sp');
+    var slug=btn.dataset.slug||'';
+    var url=window.location.href.split('#')[0]+(slug?('#c='+slug):('#sp='+encodeURIComponent(name)));
+    var card=name+' — '+cat+(prov?' · '+prov:'')+(desc?'\n'+desc:'')+'\n'+url;
+    document.getElementById('sp-wa').href='https://wa.me/?text='+encodeURIComponent(card);
+    document.getElementById('sp-tg').href='https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(name+(desc?' — '+desc:''));
+    document.getElementById('sp-copy').onclick=function(){copyText(card,function(){popup.classList.remove('on');});};
+    var r=btn.getBoundingClientRect();
+    var pTop=r.bottom+8;
+    if(pTop+210>window.innerHeight)pTop=Math.max(8,r.top-210);
+    popup.style.top=pTop+'px';
+    popup.style.left=Math.max(8,Math.min(r.left,window.innerWidth-200))+'px';
+    popup.classList.toggle('on');
+  }
+  document.addEventListener('click',function(e){if(!document.getElementById('kg-sp').contains(e.target))document.getElementById('kg-sp').classList.remove('on');});
+
+  window.kgSelectSpec=function(provName,specName){
+    var prov=PROVINCES.find(function(p){return p.name===provName;});
+    if(!prov)return;
+    openProvince(prov);
+    setTimeout(function(){
+      document.querySelectorAll('.kg-item').forEach(function(item){
+        var nm=item.querySelector('.kg-item-name');
+        if(nm&&nm.textContent.trim()===specName){
+          item.scrollIntoView({behavior:'smooth',block:'center'});
+          item.style.outline='2px solid #fc9740';
+          setTimeout(function(){item.style.outline='';},2000);
+        }
+      });
+    },1800);
+  };
+
+  // Открытие конкретного контакта по ссылке (#c=slug или #sp=Имя) из кнопки «Поделиться»
+  (function(){
+    var h=location.hash||'';
+    var mc=h.match(/#c=(.+)$/), ms=h.match(/#sp=(.+)$/);
+    if(!mc&&!ms)return;
+    var bySlug=mc?decodeURIComponent(mc[1]).trim().toLowerCase():null;
+    var byName=ms?decodeURIComponent(ms[1]).trim():null;
+    openProvince(PROVINCES[0]);
+    var tries=0,iv=setInterval(function(){
+      var items=document.querySelectorAll('#kg-list .kg-item');
+      if(items.length){
+        for(var i=0;i<items.length;i++){
+          var it=items[i];var nm=it.querySelector('.kg-item-name');
+          var ok=(bySlug&&(it.dataset.slug||'').toLowerCase()===bySlug)||(byName&&nm&&nm.textContent.trim()===byName);
+          if(ok){
+            it.scrollIntoView({behavior:'smooth',block:'center'});
+            it.style.outline='2px solid #fc9740';
+            setTimeout(function(){it.style.outline='';},2500);
+            break;
+          }
+        }
+        clearInterval(iv);
+      }
+      if(++tries>50)clearInterval(iv);
+    },150);
+  })();
+});
+</script>
