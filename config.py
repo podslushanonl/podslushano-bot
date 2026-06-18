@@ -83,6 +83,9 @@ UNSPLASH_ACCESS_KEY: str = os.getenv("UNSPLASH_ACCESS_KEY", "")
 # Вебхук Make для авто-публикации Instagram-каруселей (бот шлёт туда JSON со
 # слайдами и подписью, Make рисует слайды и публикует). Пусто = функция выключена.
 MAKE_WEBHOOK_URL: str = os.getenv("MAKE_WEBHOOK_URL", "")
+# Cloudinary: бот сам рисует слайды (фото + текст) через URL-трансформации.
+# Нужен только Cloud name из дашборда Cloudinary. Пусто = слайды без текста (сырые фото).
+CLOUDINARY_CLOUD_NAME: str = os.getenv("CLOUDINARY_CLOUD_NAME", "")
 
 # Веб-поиск для ИИ — даёт свежую информацию (актуальные цифры, правила, новости).
 # 1/true — включён (по умолчанию). 0/false — выключить.
