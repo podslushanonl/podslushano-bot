@@ -463,6 +463,44 @@ def _clean_post(text: str) -> tuple[str, str]:
     return joined.strip(), image_query
 
 
+async def pick_best_photo(description: str, urls: list[str]) -> str | None:
+    """ИИ СМОТРИТ на фото-кандидаты и выбирает то, что реально подходит теме
+    слайда. Возвращает выбранный URL или None (если ни одно не подходит / ошибка)."""
+    urls = [u for u in (urls or []) if u]
+    if not ai_enabled() or not urls:
+        return None
+    if len(urls) == 1:
+        return urls[0]
+    content: list[dict] = [{
+        "type": "text",
+        "text": (
+            f"Это фото-кандидаты для слайда поста про Нидерланды. Тема слайда: "
+            f"«{description}». Выбери ОДНО фото, которое реально показывает это "
+            f"место/объект/сюжет из Нидерландов по теме и при этом красиво "
+            f"выглядит. Ответь ТОЛЬКО числом — порядковым номером фото "
+            f"(1–{len(urls)}); ответь 0, если ни одно не подходит."
+        ),
+    }]
+    for i, u in enumerate(urls, 1):
+        content.append({"type": "text", "text": f"Фото {i}:"})
+        content.append({"type": "image", "source": {"type": "url", "url": u}})
+    try:
+        resp = await _get_client().messages.create(
+            model=config.AI_CHAT_MODEL,
+            max_tokens=8,
+            messages=[{"role": "user", "content": content}],
+        )
+        txt = _extract_text_and_sources(resp)[0]
+        m = re.search(r"\d+", txt)
+        idx = int(m.group()) if m else 0
+        if 1 <= idx <= len(urls):
+            return urls[idx - 1]
+        return None
+    except Exception as e:  # noqa: BLE001
+        log.warning("pick_best_photo error: %s", e)
+        return None
+
+
 async def ai_channel_post(
     topic: str, base_text: str | None = None, instruction: str | None = None
 ) -> tuple[str, str] | None:

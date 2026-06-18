@@ -43,6 +43,7 @@ from utils.ai import (
     ai_enabled,
     ai_instagram_carousel,
     extract_specialist_query,
+    pick_best_photo,
 )
 from utils.make import make_enabled, send_to_make
 from utils.slides import make_cta_url, make_slide_url, slides_enabled
@@ -950,20 +951,22 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
     Если рендер недоступен, image_url = сырое фото."""
     used: set[str] = set()
 
-    async def pick(query: str) -> str:
-        """Самое релевантное фото по запросу, БЕЗ повторов между слайдами."""
+    async def pick(query: str, desc: str) -> str:
+        """Кандидаты со стока → ИИ-vision выбирает самый подходящий теме слайда.
+        Без повторов между слайдами."""
         if not stock_enabled():
             return ""
-        cands = await fetch_stock_candidates(_nl_query(query or topic), "portrait", 10)
-        for u in cands:
-            if u not in used:
-                used.add(u)
-                return u
-        return cands[0] if cands else ""
+        cands = [u for u in await fetch_stock_candidates(_nl_query(query or topic), "portrait", 6)
+                 if u not in used]
+        if not cands:
+            return ""
+        chosen = await pick_best_photo(desc, cands) or cands[0]
+        used.add(chosen)
+        return chosen
 
-    cover_q = data.get("cover_img_query") or ""
-    cover_photo = await pick(cover_q)
     headline = data.get("headline", "")
+    cover_q = data.get("cover_img_query") or ""
+    cover_photo = await pick(cover_q, f"{headline}. {topic}")
     cover_slide = await make_slide_url(cover_photo, headline, "", "cover") or cover_photo
 
     slides_out = [{
@@ -979,7 +982,7 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
         q = (s.get("img_query") or "").strip()
         title = (s.get("title") or "").strip()
         body = (s.get("body") or "").strip()
-        photo = await pick(q)
+        photo = await pick(q, f"{title}. {body}")
         slide = await make_slide_url(photo, title, body, "content") or photo
         slides_out.append({
             "index": i,
@@ -993,7 +996,7 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
 
     # Финальный слайд — фиксированный фирменный CTA. Берём ОТДЕЛЬНОЕ фото
     # (не повтор обложки) — общий красивый вид Нидерландов.
-    cta_photo = await pick("netherlands landscape scenic")
+    cta_photo = await pick("netherlands landscape scenic", "красивый общий вид Нидерландов")
     cta_slide = await make_cta_url(cta_photo or cover_photo) or (cta_photo or cover_photo)
     slides_out.append({
         "index": len(slides_out) + 1,
@@ -1052,7 +1055,7 @@ def _ig_preview_text(payload: dict) -> str:
 
 async def _ig_generate(message: Message, state: FSMContext, topic: str) -> None:
     await state.update_data(ig_topic=topic)
-    await message.answer("✍️ Готовлю карусель через ИИ и подбираю фото, это займёт ~минуту…")
+    await message.answer("✍️ Готовлю карусель: текст, подбор и ИИ-проверка фото — займёт минуту-полторы…")
     await message.bot.send_chat_action(message.chat.id, action="typing")
     data = await ai_instagram_carousel(topic)
     if not data:
