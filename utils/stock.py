@@ -39,7 +39,7 @@ async def _pexels(query: str, orientation: str = "landscape") -> str | None:
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 "https://api.pexels.com/v1/search",
-                params={"query": query, "per_page": "1", "orientation": orientation},
+                params={"query": query, "per_page": "15", "orientation": orientation},
                 headers={"Authorization": config.PEXELS_API_KEY},
                 timeout=aiohttp.ClientTimeout(total=15),
             ) as r:
@@ -50,7 +50,10 @@ async def _pexels(query: str, orientation: str = "landscape") -> str | None:
         photos = data.get("photos") or []
         if not photos:
             return None
-        src = photos[0].get("src") or {}
+        # Среди самых релевантных (топ-6) берём кадр с наибольшим разрешением —
+        # обычно это более качественное и «открыточное» фото.
+        best = max(photos[:6], key=lambda p: (p.get("width", 0) * p.get("height", 0)))
+        src = best.get("src") or {}
         return (src.get("large2x") or src.get("large") or src.get("original")
                 or src.get("medium"))
     except Exception as e:  # noqa: BLE001
@@ -63,7 +66,7 @@ async def _unsplash(query: str, orientation: str = "landscape") -> str | None:
         async with aiohttp.ClientSession() as session:
             async with session.get(
                 "https://api.unsplash.com/search/photos",
-                params={"query": query, "per_page": "1", "orientation": orientation},
+                params={"query": query, "per_page": "15", "orientation": orientation},
                 headers={"Authorization": f"Client-ID {config.UNSPLASH_ACCESS_KEY}"},
                 timeout=aiohttp.ClientTimeout(total=15),
             ) as r:
@@ -74,7 +77,8 @@ async def _unsplash(query: str, orientation: str = "landscape") -> str | None:
         results = data.get("results") or []
         if not results:
             return None
-        urls = results[0].get("urls") or {}
+        best = max(results[:6], key=lambda p: (p.get("width", 0) * p.get("height", 0)))
+        urls = best.get("urls") or {}
         return urls.get("full") or urls.get("regular") or urls.get("small")
     except Exception as e:  # noqa: BLE001
         log.warning("Unsplash error: %s", e)
