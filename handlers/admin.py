@@ -45,7 +45,7 @@ from utils.ai import (
     extract_specialist_query,
 )
 from utils.make import make_enabled, send_to_make
-from utils.slides import make_slide_url, slides_enabled
+from utils.slides import make_cta_url, make_slide_url, slides_enabled
 from utils.stock import fetch_stock_photo, stock_enabled
 from utils.season import current_season
 from utils.analytics import gather_stats
@@ -982,23 +982,17 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
             "img_query": q,
         })
 
-    # Финальный слайд с призывом (CTA)
-    cta = data.get("cta") or {}
-    cta_title = (cta.get("title") or "ПОНРАВИЛОСЬ?").strip()
-    cta_body = (cta.get("body") or "Сохрани пост и подпишись 🔥").strip()
-    cta_q = (cta.get("img_query") or cover_q or "").strip()
-    cta_photo = ""
-    if stock_enabled():
-        cta_photo = await fetch_stock_photo(_nl_query(cta_q or topic), "portrait") or ""
-    cta_slide = await make_slide_url(cta_photo, cta_title, cta_body, "content") or cta_photo
+    # Финальный слайд — фиксированный фирменный CTA (всегда одинаковый дизайн).
+    # Фон берём с обложки карусели, чтобы CTA визуально склеивался с постом.
+    cta_slide = await make_cta_url(cover_photo) or cover_photo
     slides_out.append({
         "index": len(slides_out) + 1,
         "role": "cta",
-        "title": cta_title,
-        "body": cta_body,
+        "title": "Фирменный CTA (подписка)",
+        "body": "",
         "image_url": cta_slide,
-        "photo_url": cta_photo,
-        "img_query": cta_q,
+        "photo_url": cover_photo,
+        "img_query": "",
     })
 
     hashtag = data.get("hashtag", "")
