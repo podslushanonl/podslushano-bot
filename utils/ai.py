@@ -377,19 +377,24 @@ _POST_SYSTEM = (
     "ненавязчивый призыв поставить реакцию 🔥, если пост был полезен "
     "(по теме поста, без фамильярности и панибратства).\n\n"
     "Технически: по-русски. Разметка ТОЛЬКО тегами <b> и <i> (для Telegram); никаких "
-    "#, *, markdown и других тегов. Ссылки — обычным текстом (https://…). Уложись в "
-    "~3500 символов. Начинай сразу с поста, без преамбул вроде «вот пост»."
+    "#, *, markdown и других тегов. Ссылки — обычным текстом (https://…). Пост идёт "
+    "С ФОТО, поэтому уложись в ~900 символов (это подпись к фото). Начинай сразу с "
+    "поста, без преамбул.\n\n"
+    "В САМОМ КОНЦЕ отдельной строкой добавь: «IMG_QUERY: <2–4 английских ключевых "
+    "слова для подбора тематического стокового фото>». Эта строка — служебная, не "
+    "часть поста."
 )
 
 
-async def ai_channel_post(topic: str) -> str | None:
-    """Готовый структурный пост для канала по теме (экспертный тон, веб-поиск)."""
+async def ai_channel_post(topic: str) -> tuple[str, str] | None:
+    """Готовый структурный пост для канала по теме. Возвращает (текст, image_query)
+    или None. image_query — англ. ключевые слова для подбора фото из стока."""
     if not ai_enabled() or not (topic or "").strip():
         return None
     messages = [{"role": "user", "content": f"Тема поста: {topic.strip()}"}]
     client = _get_client()
     try:
-        kwargs = dict(model=config.AI_POST_MODEL, max_tokens=2000, system=_POST_SYSTEM,
+        kwargs = dict(model=config.AI_POST_MODEL, max_tokens=1400, system=_POST_SYSTEM,
                       messages=messages)
         tools = _web_search_tool()
         if tools:
@@ -399,14 +404,26 @@ async def ai_channel_post(topic: str) -> str | None:
         log.warning("Пост с веб-поиском не сработал (%s), пробую без", e)
         try:
             resp = await client.messages.create(
-                model=config.AI_POST_MODEL, max_tokens=2000, system=_POST_SYSTEM,
+                model=config.AI_POST_MODEL, max_tokens=1400, system=_POST_SYSTEM,
                 messages=messages,
             )
         except Exception as e2:  # noqa: BLE001
             log.warning("Ошибка ai_channel_post: %s", e2)
             return None
     text = _extract_text_and_sources(resp)[0].strip()
-    return text or None
+    if not text:
+        return None
+    # Вытаскиваем служебную строку IMG_QUERY и убираем её из текста поста
+    image_query = ""
+    lines = text.splitlines()
+    for i, ln in enumerate(lines):
+        m = re.match(r"\s*IMG_QUERY:\s*(.+)", ln, re.IGNORECASE)
+        if m:
+            image_query = m.group(1).strip().strip('"').strip()
+            del lines[i]
+            break
+    text = "\n".join(lines).strip()
+    return text, image_query
 
 
 async def classify_intent(text: str) -> str:

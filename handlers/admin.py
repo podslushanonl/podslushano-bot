@@ -36,6 +36,7 @@ from states.forms import (
     AdminSetPhoto,
 )
 from utils.ai import ai_afisha_channel, ai_channel_post, ai_enabled, extract_specialist_query
+from utils.stock import fetch_stock_photo, stock_enabled
 from utils.season import current_season
 from utils.analytics import gather_stats
 from utils.reviews import recent_reviews
@@ -659,14 +660,45 @@ async def afisha_publish(callback: CallbackQuery, state: FSMContext) -> None:
 
 # --- Пост в канал по теме (ИИ генерит структурный пост) ---------------------
 
-async def _post_send(target, text: str, reply_markup=None) -> None:
-    """Шлёт пост: пробуем HTML (жирные подзаголовки), при ошибке — чистый текст."""
+CAPTION_LIMIT = 1024  # лимит подписи к фото в Telegram
+
+
+async def _send_post(bot, chat_id, text: str, photo_url: str | None, reply_markup=None):
+    """Публикует пост: фото + текст (подпись если ≤1024, иначе фото отдельно).
+
+    При кривом HTML от модели падаем на чистый текст. Если фото нет/не
+    отправилось — шлём пост обычным сообщением. Возвращает Message поста
+    (для закрепления) или None.
+    """
+    plain = re.sub(r"<[^>]+>", "", text)
+    # 1) Фото + подпись одним сообщением (когда текст помещается в подпись)
+    if photo_url and len(text) <= CAPTION_LIMIT:
+        try:
+            return await bot.send_photo(
+                chat_id, photo_url, caption=text, reply_markup=reply_markup
+            )
+        except Exception:  # noqa: BLE001 — кривой HTML → подпись без разметки
+            try:
+                return await bot.send_photo(
+                    chat_id, photo_url, caption=plain, reply_markup=reply_markup
+                )
+            except Exception:  # noqa: BLE001 — фото не отправилось → текст ниже
+                photo_url = None
+    # 2) Фото отдельно (длинный текст), затем текст сообщением
+    if photo_url:
+        try:
+            await bot.send_photo(chat_id, photo_url)
+        except Exception:  # noqa: BLE001 — не вышло с фото, продолжаем текстом
+            pass
+    # 3) Текст сообщением (с фолбэком на чистый текст)
     try:
-        await target.answer(text, reply_markup=reply_markup, disable_web_page_preview=True)
-    except Exception:  # noqa: BLE001 — кривой HTML от модели → шлём без разметки
-        import re as _re
-        plain = _re.sub(r"<[^>]+>", "", text)
-        await target.answer(plain, reply_markup=reply_markup, disable_web_page_preview=True)
+        return await bot.send_message(
+            chat_id, text, reply_markup=reply_markup, disable_web_page_preview=True
+        )
+    except Exception:  # noqa: BLE001
+        return await bot.send_message(
+            chat_id, plain, reply_markup=reply_markup, disable_web_page_preview=True
+        )
 
 
 def _post_confirm_kb() -> InlineKeyboardMarkup:
@@ -718,21 +750,31 @@ async def _post_generate(message: Message, state: FSMContext, topic: str) -> Non
     await state.update_data(post_topic=topic)
     await message.answer("✍️ Готовлю пост через ИИ, это займёт несколько секунд…")
     await message.bot.send_chat_action(message.chat.id, action="typing")
-    text = await ai_channel_post(topic)
-    if not text:
+    result = await ai_channel_post(topic)
+    if not result or not result[0]:
         await state.clear()
         await message.answer(
             "Не получилось сгенерировать пост 😔 Попробуй ещё раз (/post) или другую тему.",
             reply_markup=main_menu(),
         )
         return
-    await state.update_data(post_text=text)
+    text, img_query = result
+    photo_url = None
+    if stock_enabled():
+        photo_url = await fetch_stock_photo(img_query or topic)
+    await state.update_data(post_text=text, post_photo=photo_url)
     await state.set_state(AdminPost.confirm)
     await message.answer("Вот предпросмотр поста 👇")
-    await _post_send(message, text)
+    await _send_post(message.bot, message.chat.id, text, photo_url)
+    hint = ""
+    if stock_enabled() and not photo_url:
+        hint = "\n\n⚠️ Фото по теме не нашлось — опубликую без картинки."
+    elif not stock_enabled():
+        hint = ("\n\n💡 Чтобы к постам добавлялись фото, задай переменную "
+                "<code>PEXELS_API_KEY</code> (или <code>UNSPLASH_ACCESS_KEY</code>).")
     await message.answer(
         f"Опубликовать в <code>{config.ANNOUNCE_CHANNEL}</code>? "
-        "Можно переписать на ту же тему или отменить.",
+        f"Можно переписать на ту же тему или отменить.{hint}",
         reply_markup=_post_confirm_kb(),
     )
 
@@ -762,22 +804,14 @@ async def post_publish(callback: CallbackQuery, state: FSMContext) -> None:
     data = await state.get_data()
     await state.clear()
     text = data.get("post_text")
+    photo_url = data.get("post_photo")
     if not text:
         await callback.answer("Текст не найден, начни заново: /post", show_alert=True)
         return
     try:
-        try:
-            msg = await callback.bot.send_message(
-                config.ANNOUNCE_CHANNEL, text, disable_web_page_preview=True
-            )
-        except Exception:  # noqa: BLE001 — кривой HTML → без разметки
-            import re as _re
-            msg = await callback.bot.send_message(
-                config.ANNOUNCE_CHANNEL, _re.sub(r"<[^>]+>", "", text),
-                disable_web_page_preview=True,
-            )
+        msg = await _send_post(callback.bot, config.ANNOUNCE_CHANNEL, text, photo_url)
         note = ""
-        if pin:
+        if pin and msg:
             try:
                 await callback.bot.pin_chat_message(config.ANNOUNCE_CHANNEL, msg.message_id)
                 note = " и закрепил 📌"

@@ -77,6 +77,9 @@ AI_CHAT_MODEL: str = os.getenv("AI_CHAT_MODEL", "claude-haiku-4-5-20251001")
 AI_VISION_MODEL: str = os.getenv("AI_VISION_MODEL", "claude-sonnet-4-6")
 # Модель для генерации постов в канал (/post) — качество важнее цены, постов мало.
 AI_POST_MODEL: str = os.getenv("AI_POST_MODEL", "claude-sonnet-4-6")
+# Фотосток для картинок к постам: достаточно одного ключа (Pexels проще). Пусто = без фото.
+PEXELS_API_KEY: str = os.getenv("PEXELS_API_KEY", "")
+UNSPLASH_ACCESS_KEY: str = os.getenv("UNSPLASH_ACCESS_KEY", "")
 
 # Веб-поиск для ИИ — даёт свежую информацию (актуальные цифры, правила, новости).
 # 1/true — включён (по умолчанию). 0/false — выключить.
