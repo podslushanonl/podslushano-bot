@@ -364,26 +364,62 @@ _POST_SYSTEM = (
     "как человек, который ДАВНО живёт в NL и хорошо знает тему: экспертно, чётко, "
     "по делу. ОБЯЗАТЕЛЬНО используй веб-поиск для фактов, цифр, адресов и ссылок — "
     "ничего не выдумывай.\n\n"
-    "Задача: написать ОДИН готовый пост для канала на заданную тему.\n\n"
+    "Задача: написать ОДИН готовый пост для канала на заданную тему. На любую тему, "
+    "которую задаёт редактор (места, события, приезд гостей/звёзд, документы, быт, "
+    "кухня, лайфхаки), — пиши пост, не отказывайся и не предлагай обратиться "
+    "куда-то ещё.\n\n"
     "Тон и стиль:\n"
     "- чётко, структурно, без воды, без фамильярности, сленга и грубостей;\n"
     "- нейтрально-уважительно, без обращения «ты», как полезная редакционная заметка;\n"
     "- конкретика: факты, шаги, цифры, официальные источники, где уместно.\n\n"
     "Формат:\n"
-    "- цепляющий заголовок первой строкой в <b>…</b>;\n"
+    "- цепляющий заголовок ПЕРВОЙ строкой в <b>…</b>;\n"
     "- 2–4 смысловых блока с короткими подзаголовками в <b>…</b> и списками («• …»);\n"
     "- умеренно эмодзи (по смыслу, не больше одного на блок);\n"
     "- в конце — короткий практичный вывод/совет, а затем отдельной строкой "
     "ненавязчивый призыв поставить реакцию 🔥, если пост был полезен "
     "(по теме поста, без фамильярности и панибратства).\n\n"
+    "СТРОГО ЗАПРЕЩЕНО:\n"
+    "- описывать свои действия и процесс («сейчас поищу», «у меня достаточно "
+    "данных», «составляю пост», «на основе найденной информации», «отлично» и т.п.) "
+    "— выдавай ТОЛЬКО готовый пост, как будто его написал человек;\n"
+    "- любые вступления и комментарии до заголовка — начинай СРАЗУ с заголовка "
+    "в <b>…</b>;\n"
+    "- разделительные линии (---, ***, ===, ___) и горизонтальные черты.\n\n"
     "Технически: по-русски. Разметка ТОЛЬКО тегами <b> и <i> (для Telegram); никаких "
     "#, *, markdown и других тегов. Ссылки — обычным текстом (https://…). Пост идёт "
-    "С ФОТО, поэтому уложись в ~900 символов (это подпись к фото). Начинай сразу с "
-    "поста, без преамбул.\n\n"
+    "С ФОТО, поэтому уложись в ~900 символов (это подпись к фото).\n\n"
     "В САМОМ КОНЦЕ отдельной строкой добавь: «IMG_QUERY: <2–4 английских ключевых "
     "слова для подбора тематического стокового фото>». Эта строка — служебная, не "
     "часть поста."
 )
+
+
+def _clean_post(text: str) -> tuple[str, str]:
+    """Чистит сгенерированный пост и вынимает служебную строку IMG_QUERY.
+
+    Убирает преамбулу-болталку модели до заголовка, разделительные линии и
+    строку IMG_QUERY. Возвращает (текст_поста, image_query)."""
+    image_query = ""
+    lines = text.splitlines()
+    cleaned: list[str] = []
+    for ln in lines:
+        # Служебная строка с ключевыми словами для фото (может прийти с тегами)
+        bare = re.sub(r"<[^>]+>", "", ln).strip()
+        m = re.match(r"IMG_QUERY:\s*(.+)", bare, re.IGNORECASE)
+        if m:
+            image_query = m.group(1).strip().strip('"').strip()
+            continue
+        # Разделительные линии вида ---, ***, ===, ___, длинные тире
+        if re.fullmatch(r"[\-\*=_—–\s]{3,}", ln.strip()):
+            continue
+        cleaned.append(ln)
+    # Срезаем преамбулу: если есть заголовок в <b>, всё до него — это болтовня
+    joined = "\n".join(cleaned)
+    idx = joined.find("<b>")
+    if idx > 0:
+        joined = joined[idx:]
+    return joined.strip(), image_query
 
 
 async def ai_channel_post(topic: str) -> tuple[str, str] | None:
@@ -413,17 +449,35 @@ async def ai_channel_post(topic: str) -> tuple[str, str] | None:
     text = _extract_text_and_sources(resp)[0].strip()
     if not text:
         return None
-    # Вытаскиваем служебную строку IMG_QUERY и убираем её из текста поста
-    image_query = ""
-    lines = text.splitlines()
-    for i, ln in enumerate(lines):
-        m = re.match(r"\s*IMG_QUERY:\s*(.+)", ln, re.IGNORECASE)
-        if m:
-            image_query = m.group(1).strip().strip('"').strip()
-            del lines[i]
-            break
-    text = "\n".join(lines).strip()
+    text, image_query = _clean_post(text)
+    if not text:
+        return None
+    # Фото ищем по АНГЛИЙСКИМ ключевым словам. Если модель их не дала — генерим
+    # отдельно (сток плохо ищет по русскому запросу темы).
+    if not image_query:
+        image_query = await ai_image_keywords(topic)
     return text, image_query
+
+
+async def ai_image_keywords(topic: str) -> str:
+    """2–4 английских ключевых слова для подбора стокового фото по теме."""
+    if not ai_enabled() or not (topic or "").strip():
+        return ""
+    try:
+        resp = await _get_client().messages.create(
+            model=config.AI_CHAT_MODEL,
+            max_tokens=30,
+            system=(
+                "Return 2-4 English keywords to find a relevant stock photo for the "
+                "given topic. Answer with ONLY the keywords, nothing else."
+            ),
+            messages=[{"role": "user", "content": topic.strip()}],
+        )
+        kw = _extract_text_and_sources(resp)[0]
+        return re.sub(r"<[^>]+>", "", kw).strip().strip('"').strip()
+    except Exception as e:  # noqa: BLE001
+        log.warning("ai_image_keywords error: %s", e)
+        return ""
 
 
 async def classify_intent(text: str) -> str:
