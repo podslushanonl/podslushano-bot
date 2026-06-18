@@ -461,6 +461,19 @@ async def _contact_page(request: web.Request) -> web.Response:
     return web.Response(text=html_page, content_type="text/html")
 
 
+async def _ig_slide(request: web.Request) -> web.Response:
+    """Отдаёт готовый слайд Instagram-карусели (нарисован ботом, лежит в памяти)."""
+    from utils.slides import get_slide
+    sid = request.match_info.get("sid", "").removesuffix(".jpg")
+    data = get_slide(sid)
+    if not data:
+        return web.Response(status=404, text="not found")
+    resp = web.Response(body=data, content_type="image/jpeg")
+    resp.headers["Cache-Control"] = "public, max-age=86400"
+    resp.headers["Access-Control-Allow-Origin"] = "*"
+    return resp
+
+
 async def _mollie_webhook(request: web.Request) -> web.Response:
     try:
         data = await request.post()
@@ -625,6 +638,7 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/terms", _terms)
     app.router.add_get("/guide", _guide)
     app.router.add_get("/sp-photo/{sid}", _sp_photo)
+    app.router.add_get("/ig-slide/{sid}", _ig_slide)
     app.router.add_get("/api/specialists.json", _api_specialists)
     app.router.add_get("/api/guide.json", _api_guide)
     app.router.add_get("/c/{key}", _contact_page)   # короткая ссылка по slug
