@@ -46,7 +46,7 @@ from utils.ai import (
 )
 from utils.make import make_enabled, send_to_make
 from utils.slides import make_cta_url, make_slide_url, slides_enabled
-from utils.stock import fetch_stock_photo, stock_enabled
+from utils.stock import fetch_stock_candidates, fetch_stock_photo, stock_enabled
 from utils.season import current_season
 from utils.analytics import gather_stats
 from utils.reviews import recent_reviews
@@ -948,10 +948,21 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
 
     image_url — ГОТОВЫЙ слайд (если рендер доступен), сырое фото — в photo_url.
     Если рендер недоступен, image_url = сырое фото."""
+    used: set[str] = set()
+
+    async def pick(query: str) -> str:
+        """Самое релевантное фото по запросу, БЕЗ повторов между слайдами."""
+        if not stock_enabled():
+            return ""
+        cands = await fetch_stock_candidates(_nl_query(query or topic), "portrait", 10)
+        for u in cands:
+            if u not in used:
+                used.add(u)
+                return u
+        return cands[0] if cands else ""
+
     cover_q = data.get("cover_img_query") or ""
-    cover_photo = ""
-    if stock_enabled():
-        cover_photo = await fetch_stock_photo(_nl_query(cover_q or topic), "portrait") or ""
+    cover_photo = await pick(cover_q)
     headline = data.get("headline", "")
     cover_slide = await make_slide_url(cover_photo, headline, "", "cover") or cover_photo
 
@@ -965,12 +976,10 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
         "img_query": cover_q,
     }]
     for i, s in enumerate(data.get("slides", []), start=2):
-        q = (s.get("img_query") or cover_q or "").strip()
+        q = (s.get("img_query") or "").strip()
         title = (s.get("title") or "").strip()
         body = (s.get("body") or "").strip()
-        photo = ""
-        if stock_enabled():
-            photo = await fetch_stock_photo(_nl_query(q or topic), "portrait") or ""
+        photo = await pick(q)
         slide = await make_slide_url(photo, title, body, "content") or photo
         slides_out.append({
             "index": i,
@@ -982,16 +991,17 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
             "img_query": q,
         })
 
-    # Финальный слайд — фиксированный фирменный CTA (всегда одинаковый дизайн).
-    # Фон берём с обложки карусели, чтобы CTA визуально склеивался с постом.
-    cta_slide = await make_cta_url(cover_photo) or cover_photo
+    # Финальный слайд — фиксированный фирменный CTA. Берём ОТДЕЛЬНОЕ фото
+    # (не повтор обложки) — общий красивый вид Нидерландов.
+    cta_photo = await pick("netherlands landscape scenic")
+    cta_slide = await make_cta_url(cta_photo or cover_photo) or (cta_photo or cover_photo)
     slides_out.append({
         "index": len(slides_out) + 1,
         "role": "cta",
         "title": "Фирменный CTA (подписка)",
         "body": "",
         "image_url": cta_slide,
-        "photo_url": cover_photo,
+        "photo_url": cta_photo,
         "img_query": "",
     })
 

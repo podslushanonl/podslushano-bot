@@ -250,7 +250,7 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
     """Фиксированный фирменный CTA-слайд: фото сверху + оранжевый снизу,
     жирный заголовок (Mont Heavy), текст (Evolventa), маскот-лосёнок справа."""
     base = _cover_crop(photo) if photo is not None else Image.new("RGB", (W, H), (150, 168, 150))
-    base = ImageEnhance.Brightness(base).enhance(0.92)
+    base = ImageEnhance.Brightness(base).enhance(0.97)
     img = base.convert("RGBA")
 
     def _vgrad(y0, y1, amax):
@@ -260,13 +260,10 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
             g.putpixel((0, y), a)
         return g.resize((W, H))
 
-    # 1) нейтральная тёмная подложка под текст — читаемость на любом фото
-    scrim = Image.new("RGBA", (W, H), (0, 0, 0, 255))
-    scrim.putalpha(_vgrad(int(H * 0.32), int(H * 0.58), 215))
-    img.alpha_composite(scrim)
-    # 2) фирменный оранжевый снизу
+    # Один фирменный оранжевый слой: фото плавно переходит в сплошной оранжевый,
+    # на котором лежит весь текст. Без грязных перекрытий «чёрное+оранжевое».
     orange = Image.new("RGBA", (W, H), CTA_ORANGE + (255,))
-    orange.putalpha(_vgrad(int(H * 0.64), int(H * 0.86), 255))
+    orange.putalpha(_vgrad(int(H * 0.38), int(H * 0.58), 255))
     img.alpha_composite(orange)
 
     # маскот снизу справа, на мягкой тени
@@ -286,26 +283,26 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
     def shadow_text(xy, txt, f, fill):
         x, y = xy
         s = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        ImageDraw.Draw(s).text((x, y), txt, font=f, fill=(0, 0, 0, 200))
-        img.alpha_composite(s.filter(ImageFilter.GaussianBlur(6)))
+        ImageDraw.Draw(s).text((x, y), txt, font=f, fill=(0, 0, 0, 110))
+        img.alpha_composite(s.filter(ImageFilter.GaussianBlur(4)))
         ImageDraw.Draw(img).text((x, y), txt, font=f, fill=fill)
 
     x = 80
-    ImageDraw.Draw(img).rectangle([x, 600, x + 72, 608], fill=CTA_ORANGE)
-    y = 636
-    hf = _ttf(_MONT_HEAVY, 74)
+    ImageDraw.Draw(img).rectangle([x, 724, x + 72, 732], fill=WHITE)
+    y = 760
+    hf = _ttf(_MONT_HEAVY, 72)
     for ln in CTA_HEADLINE:
         shadow_text((x, y), ln, hf, WHITE)
-        y += 84
-    y = 824
-    sf = _ttf(_EVOLVENTA, 34)
+        y += 82
+    y = 940
+    sf = _ttf(_EVOLVENTA, 33)
     for ln in CTA_SUB:
         shadow_text((x, y), ln, sf, SOFT)
-        y += 48
-    y = 948
-    bf = _ttf(_EVOLVENTA_B, 30)
+        y += 46
+    y = 1062
+    bf = _ttf(_EVOLVENTA_B, 29)
     shadow_text((x, y), CTA_IG, bf, WHITE)
-    shadow_text((x, y + 48), CTA_TG, bf, WHITE)
+    shadow_text((x, y + 46), CTA_TG, bf, WHITE)
     return img.convert("RGB")
 
 
