@@ -33,6 +33,19 @@ _OSWALD = os.path.join(_FONT_DIR, "Oswald.ttf")
 _MONT = os.path.join(_FONT_DIR, "Montserrat.ttf")
 _FALLBACK = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
 
+# Фирменные шрифты и маскот для финального CTA-слайда
+_MONT_HEAVY = os.path.join(_FONT_DIR, "Mont-Heavy.otf")
+_EVOLVENTA = os.path.join(_FONT_DIR, "Evolventa-Regular.otf")
+_EVOLVENTA_B = os.path.join(_FONT_DIR, "Evolventa-Bold.otf")
+_DEER = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "mascot", "deer.png")
+CTA_ORANGE = (232, 112, 28)
+SOFT = (255, 238, 222)
+# Фиксированный текст CTA (всегда одинаковый)
+CTA_HEADLINE = ["НИДЕРЛАНДЫ", "КАК ОНИ ЕСТЬ"]
+CTA_SUB = ["Показываем страну изнутри,", "без глянца и прикрас."]
+CTA_IG = "Instagram  @podslushano.nl"
+CTA_TG = "Telegram  @podslushanovnl"
+
 # Простейшее хранилище готовых картинок: id -> jpeg-байты (живут до перезапуска)
 _STORE: "OrderedDict[str, bytes]" = OrderedDict()
 _STORE_MAX = 120
@@ -222,5 +235,77 @@ async def make_slide_url(photo_url: str, title: str, body: str, role: str) -> st
             img = render_content(photo, title, body)
     except Exception as e:  # noqa: BLE001
         log.warning("slides: ошибка рендера: %s", e)
+        return None
+    return _public_url(_store(img))
+
+
+def _ttf(path: str, size: int):
+    try:
+        return ImageFont.truetype(path, size)
+    except Exception:  # noqa: BLE001
+        return ImageFont.truetype(_FALLBACK, size)
+
+
+def render_cta(photo: Image.Image | None) -> Image.Image:
+    """Фиксированный фирменный CTA-слайд: фото сверху + оранжевый снизу,
+    жирный заголовок (Mont Heavy), текст (Evolventa), маскот-лосёнок справа."""
+    base = _cover_crop(photo) if photo is not None else Image.new("RGB", (W, H), (150, 168, 150))
+    ov = Image.new("RGB", (W, H), CTA_ORANGE)
+    m = Image.new("L", (1, H))
+    start, span = 0.60, 0.17
+    for y in range(H):
+        a = 0 if y < int(H * start) else int(255 * min(1, ((y - H * start) / (H * span))))
+        m.putpixel((0, y), a)
+    img = Image.composite(ov, base, m.resize((W, H))).convert("RGBA")
+    # маскот снизу справа, на мягкой тени
+    try:
+        deer = Image.open(_DEER).convert("RGBA")
+        dh = 372
+        dw = int(deer.width * dh / deer.height)
+        deer = deer.resize((dw, dh))
+        dx, dy = W - dw - 70, H - dh - 40
+        sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        ImageDraw.Draw(sh).ellipse([dx + 24, dy + dh - 34, dx + dw - 24, dy + dh + 24], fill=(0, 0, 0, 80))
+        img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(16)))
+        img.alpha_composite(deer, (dx, dy))
+    except Exception as e:  # noqa: BLE001 — без маскота тоже соберём
+        log.warning("slides: маскот не вставился: %s", e)
+
+    def shadow_text(xy, txt, f, fill):
+        x, y = xy
+        s = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        ImageDraw.Draw(s).text((x, y), txt, font=f, fill=(0, 0, 0, 150))
+        img.alpha_composite(s.filter(ImageFilter.GaussianBlur(5)))
+        ImageDraw.Draw(img).text((x, y), txt, font=f, fill=fill)
+
+    x, y = 80, 600
+    ImageDraw.Draw(img).rectangle([x, y, x + 72, y + 8], fill=CTA_ORANGE)
+    y += 36
+    hf = _ttf(_MONT_HEAVY, 74)
+    for ln in CTA_HEADLINE:
+        shadow_text((x, y), ln, hf, WHITE)
+        y += 84
+    y += 16
+    sf = _ttf(_EVOLVENTA, 34)
+    for ln in CTA_SUB:
+        shadow_text((x, y), ln, sf, SOFT)
+        y += 48
+    y += 22
+    bf = _ttf(_EVOLVENTA_B, 30)
+    shadow_text((x, y), CTA_IG, bf, WHITE)
+    shadow_text((x, y + 48), CTA_TG, bf, WHITE)
+    return img.convert("RGB")
+
+
+async def make_cta_url(photo_url: str | None) -> str | None:
+    """Рисует фиксированный CTA на фоне переданного фото (или без него),
+    кладёт в память и возвращает публичный URL."""
+    if not slides_enabled():
+        return None
+    photo = await _fetch_image(photo_url) if photo_url else None
+    try:
+        img = render_cta(photo)
+    except Exception as e:  # noqa: BLE001
+        log.warning("slides: ошибка рендера CTA: %s", e)
         return None
     return _public_url(_store(img))
