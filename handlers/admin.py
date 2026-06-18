@@ -18,6 +18,7 @@ from aiogram.types import (
     CallbackQuery,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
+    InputMediaPhoto,
     Message,
 )
 from sqlalchemy import func, or_, select
@@ -974,12 +975,25 @@ async def _ig_generate(message: Message, state: FSMContext, topic: str) -> None:
     payload = await _ig_build_payload(topic, data)
     await state.update_data(ig_payload=payload)
     await state.set_state(AdminIG.confirm)
-    # Превью обложки (если фото нашлось) + текст карусели
-    cover = payload["slides"][0]["image_url"]
+    # Превью: показываем ВСЕ фото слайдов альбомом (по порядку), затем текст
+    urls = payload["image_urls"][:10]  # альбом Telegram — максимум 10 фото
     preview = _ig_preview_text(payload)
-    if cover:
+    if len(urls) >= 2:
+        media = [
+            InputMediaPhoto(media=u, caption=("🖼 Фото слайдов по порядку" if i == 0 else None))
+            for i, u in enumerate(urls)
+        ]
         try:
-            await message.bot.send_photo(message.chat.id, cover, caption="🖼 Обложка (фото 1-го слайда)")
+            await message.bot.send_media_group(message.chat.id, media=media)
+        except Exception:  # noqa: BLE001 — битый URL ломает весь альбом → шлём хотя бы обложку
+            if urls:
+                try:
+                    await message.bot.send_photo(message.chat.id, urls[0], caption="🖼 Обложка")
+                except Exception:  # noqa: BLE001
+                    pass
+    elif urls:
+        try:
+            await message.bot.send_photo(message.chat.id, urls[0], caption="🖼 Обложка")
         except Exception:  # noqa: BLE001
             pass
     # Текст может быть длинным — шлём отдельным сообщением (с фолбэком без HTML)
@@ -1024,7 +1038,7 @@ async def ig_send(callback: CallbackQuery, state: FSMContext) -> None:
         await callback.answer("Данные не найдены, начни заново: /ig", show_alert=True)
         return
     await callback.answer("Отправляю в Make…")
-    ok = await send_to_make(payload)
+    ok, detail = await send_to_make(payload)
     if ok:
         await callback.message.answer(
             "✅ Отправил карусель в Make — он соберёт слайды и опубликует в Instagram.\n"
@@ -1033,8 +1047,10 @@ async def ig_send(callback: CallbackQuery, state: FSMContext) -> None:
         )
     else:
         await callback.message.answer(
-            "❌ Не получилось отправить в Make. Проверь, что <code>MAKE_WEBHOOK_URL</code> "
-            "задан верно и сценарий включён.",
+            "❌ Не получилось отправить в Make.\n"
+            f"<b>Причина:</b> {html.escape(detail or 'неизвестно')}\n\n"
+            "Проверь, что <code>MAKE_WEBHOOK_URL</code> задан верно (без лишних пробелов) "
+            "и в Make нажата кнопка запуска вебхука (Run once / сценарий включён).",
             reply_markup=main_menu(),
         )
 
