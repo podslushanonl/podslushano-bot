@@ -947,14 +947,34 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
             "img_query": q,
         })
 
-    hashtags = data.get("hashtags", [])
+    # Финальный слайд с призывом (CTA)
+    cta = data.get("cta") or {}
+    cta_title = (cta.get("title") or "ПОНРАВИЛОСЬ?").strip()
+    cta_body = (cta.get("body") or "Сохрани пост и подпишись 🔥").strip()
+    cta_q = (cta.get("img_query") or cover_q or "").strip()
+    cta_photo = ""
+    if stock_enabled():
+        cta_photo = await fetch_stock_photo(_nl_query(cta_q or topic), "portrait") or ""
+    cta_slide = await make_slide_url(cta_photo, cta_title, cta_body, "content") or cta_photo
+    slides_out.append({
+        "index": len(slides_out) + 1,
+        "role": "cta",
+        "title": cta_title,
+        "body": cta_body,
+        "image_url": cta_slide,
+        "photo_url": cta_photo,
+        "img_query": cta_q,
+    })
+
+    hashtag = data.get("hashtag", "")
+    hashtags = [hashtag] if hashtag else []
     return {
         "type": data.get("type", "carousel"),
         "topic": topic,
         "headline": data.get("headline", ""),
         "caption": data.get("caption", ""),
         "hashtags": hashtags,
-        "hashtags_text": " ".join(hashtags),
+        "hashtags_text": hashtag,
         "slides": slides_out,
         "slides_count": len(slides_out),
         "image_urls": [s["image_url"] for s in slides_out if s["image_url"]],
@@ -972,7 +992,8 @@ def _ig_preview_text(payload: dict) -> str:
     for s in payload["slides"][1:]:
         title = html.escape(s["title"]) if s["title"] else ""
         body = html.escape(s["body"]) if s["body"] else ""
-        piece = f"<b>Слайд {s['index']}:</b>"
+        label = "CTA" if s.get("role") == "cta" else f"Слайд {s['index']}"
+        piece = f"<b>{label}:</b>"
         if title:
             piece += f" {title}"
         if body:

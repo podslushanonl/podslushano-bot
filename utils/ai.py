@@ -371,7 +371,11 @@ _POST_SYSTEM = (
     "Тон и стиль:\n"
     "- чётко, структурно, без воды, без фамильярности, сленга и грубостей;\n"
     "- нейтрально-уважительно, без обращения «ты», как полезная редакционная заметка;\n"
-    "- конкретика: факты, шаги, цифры, официальные источники, где уместно.\n\n"
+    "- конкретика: факты, шаги, цифры, официальные источники, где уместно;\n"
+    "- все названия мест, городов, провинций, госучреждений, организаций пиши на "
+    "ЯЗЫКЕ ОРИГИНАЛА (нидерландском/английском), НЕ транслитерируй на русский: "
+    "Schiermonnikoog, Waddenzee, Gelderland, Den Haag, Belastingdienst, Gemeente, "
+    "DigiD. Можно дать краткий перевод в скобках при первом упоминании.\n\n"
     "Формат:\n"
     "- цепляющий заголовок ПЕРВОЙ строкой в <b>…</b>;\n"
     "- 2–3 смысловых блока с короткими подзаголовками в <b>…</b> и списками («• …»);\n"
@@ -499,26 +503,41 @@ _IG_SYSTEM = (
     '  "slides": [ {"title": "короткий заголовок слайда (до 40 знаков)", '
     '"body": "1-3 коротких предложения по сути (до 180 знаков)", '
     '"img_query": "2-4 english keywords for this slide photo"} ],\n'
+    '  "cta": {"title": "короткий призыв (до 40 знаков), напр. ПОНРАВИЛОСЬ?", '
+    '"body": "что сделать: сохранить пост, подписаться, написать в комментариях '
+    '(до 160 знаков)", "img_query": "2-4 english keywords for cta photo"},\n'
     '  "caption": "подпись под постом в Instagram: 2-4 предложения сути + в конце '
     'ненавязчивый призыв сохранить/поставить лайк. Без ссылок (в Instagram они не '
     'кликаются), эмодзи умеренно",\n'
-    '  "hashtags": ["#нидерланды", "#netherlands", "..."]\n'
+    '  "hashtag": "#pnl_места"\n'
     "}\n\n"
     "Правила:\n"
-    "- carousel: 1 обложка (headline) + 4–6 слайдов в массиве slides (итого 5–7 "
-    "слайдов). Для короткой новости/одного факта используй type=single и slides=[].\n"
+    "- carousel: 1 обложка (headline) + 4–6 слайдов в массиве slides + 1 финальный "
+    "слайд cta (итого 6–8). Для короткой новости/одного факта используй type=single, "
+    "slides=[] (но cta всё равно заполни).\n"
     "- ВЕСЬ текст — обычный, БЕЗ HTML, markdown, символов #, * и звёздочек "
     "(он ляжет прямо на картинку и в подпись).\n"
     "- по-русски; заголовки и тексты слайдов короткие и читаемые на телефоне;\n"
+    "- ВАЖНО: все названия мест, городов, провинций, госучреждений, организаций и "
+    "брендов пиши на ЯЗЫКЕ ОРИГИНАЛА (нидерландском/английском), НЕ транслитерируй "
+    "на русский: пиши Schiermonnikoog (не «Схермонникоог»), Waddenzee, Gelderland, "
+    "Den Haag, Belastingdienst, Gemeente, DigiD. Можно дать краткий перевод в "
+    "скобках при первом упоминании, если без него непонятно;\n"
     "- каждый слайд — про ОДИН пункт/мысль, конкретика и польза;\n"
     "- img_query — КОНКРЕТНЫЙ визуальный запрос на английском (реальное место, "
     "объект или сцена из этого слайда), а не абстракция. Если в слайде есть "
     "название места/города в Нидерландах — добавь его и страну (напр. "
     "'Amelisweerd forest Utrecht Netherlands', 'Biesbosch national park boat'). "
     "Так фото со стока будет точно по теме;\n"
-    "- hashtags: 8–15 штук, релевантные, можно смесь рус/eng/nl, без пробелов внутри.\n"
+    "- hashtag: РОВНО ОДИН хэштег. Выбери #pnl_места — если пост про места, города, "
+    "достопримечательности, природу, путешествия по NL; иначе #pnl_нидерланды.\n"
     "- НЕ описывай свои действия и процесс — верни только JSON."
 )
+
+
+# Разрешённые хэштеги (всегда ровно один под постом)
+IG_HASHTAGS = {"#pnl_места", "#pnl_нидерланды"}
+IG_HASHTAG_DEFAULT = "#pnl_нидерланды"
 
 
 async def ai_instagram_carousel(topic: str) -> dict | None:
@@ -557,10 +576,23 @@ async def ai_instagram_carousel(topic: str) -> dict | None:
     data["slides"] = [s for s in slides if isinstance(s, dict) and (s.get("title") or s.get("body"))]
     if data["type"] == "carousel" and not data["slides"]:
         data["type"] = "single"
-    hashtags = data.get("hashtags")
-    if isinstance(hashtags, str):
-        hashtags = hashtags.split()
-    data["hashtags"] = [h for h in (hashtags or []) if isinstance(h, str)]
+    # Ровно один разрешённый хэштег
+    raw = data.get("hashtag") or data.get("hashtags")
+    if isinstance(raw, list):
+        raw = raw[0] if raw else ""
+    tag = (raw or "").strip().split()[0] if (raw or "").strip() else ""
+    if not tag.startswith("#"):
+        tag = "#" + tag if tag else ""
+    data["hashtag"] = tag if tag in IG_HASHTAGS else IG_HASHTAG_DEFAULT
+    # CTA-слайд (финальный призов): нормализуем
+    cta = data.get("cta")
+    if not (isinstance(cta, dict) and (cta.get("title") or cta.get("body"))):
+        cta = {
+            "title": "ПОНРАВИЛОСЬ?",
+            "body": "Сохрани пост, чтобы не потерять, и подпишись — у нас ещё много полезного о жизни в Нидерландах.",
+            "img_query": data.get("cover_img_query") or "",
+        }
+    data["cta"] = cta
     if not data.get("cover_img_query"):
         data["cover_img_query"] = await ai_image_keywords(topic)
     return data
