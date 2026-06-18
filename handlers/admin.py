@@ -979,8 +979,8 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
         "slides": slides_out,
         "slides_count": len(slides_out),
         "image_urls": urls,
-        # Для модуля Instagram в Make (поле Files: массив объектов {url, media_type})
-        "files": [{"url": u, "media_type": "IMAGE"} for u in urls],
+        # Для модуля Instagram в Make (поле Files: массив объектов {image_url, media_type})
+        "files": [{"image_url": u, "media_type": "IMAGE"} for u in urls],
     }
 
 
