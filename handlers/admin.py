@@ -44,6 +44,7 @@ from utils.ai import (
     ai_instagram_carousel,
     extract_specialist_query,
 )
+from utils.cloudinary import cloudinary_enabled, render_slide_url
 from utils.make import make_enabled, send_to_make
 from utils.stock import fetch_stock_photo, stock_enabled
 from utils.season import current_season
@@ -866,6 +867,12 @@ async def cmd_ig(message: Message, state: FSMContext) -> None:
             "⚠️ Не задан ключ фотостока (<code>PEXELS_API_KEY</code>) — слайды уйдут без "
             "реальных фото. Лучше сначала задать ключ."
         )
+    if not cloudinary_enabled():
+        await message.answer(
+            "⚠️ Не задан <code>CLOUDINARY_CLOUD_NAME</code> — слайды уйдут как сырые фото "
+            "БЕЗ наложенного текста. Добавь Cloud name из Cloudinary, чтобы бот рисовал "
+            "слайды с заголовком и текстом."
+        )
     await state.set_state(AdminIG.waiting_topic)
     await message.answer(
         "📸 <b>Instagram-карусель.</b> Напиши тему — я подготовлю заголовок-хук, "
@@ -902,31 +909,41 @@ def _nl_query(q: str) -> str:
 
 
 async def _ig_build_payload(topic: str, data: dict) -> dict:
-    """Собирает JSON для Make: подбирает реальные фото (4:5) к каждому слайду."""
+    """Собирает JSON для Make: подбирает реальные фото (4:5) к каждому слайду.
+
+    Если подключён Cloudinary — image_url это уже ГОТОВЫЙ слайд (фото + текст
+    1080×1350), а сырое фото лежит в photo_url. Без Cloudinary image_url = фото."""
     cover_q = data.get("cover_img_query") or ""
-    cover_url = ""
+    cover_photo = ""
     if stock_enabled():
-        cover_url = await fetch_stock_photo(_nl_query(cover_q or topic), "portrait") or ""
+        cover_photo = await fetch_stock_photo(_nl_query(cover_q or topic), "portrait") or ""
+    headline = data.get("headline", "")
+    cover_slide = render_slide_url(cover_photo, headline, "", "cover") or cover_photo
 
     slides_out = [{
         "index": 1,
         "role": "cover",
-        "title": data.get("headline", ""),
+        "title": headline,
         "body": "",
-        "image_url": cover_url,
+        "image_url": cover_slide,
+        "photo_url": cover_photo,
         "img_query": cover_q,
     }]
     for i, s in enumerate(data.get("slides", []), start=2):
         q = (s.get("img_query") or cover_q or "").strip()
-        url = ""
+        title = (s.get("title") or "").strip()
+        body = (s.get("body") or "").strip()
+        photo = ""
         if stock_enabled():
-            url = await fetch_stock_photo(_nl_query(q or topic), "portrait") or ""
+            photo = await fetch_stock_photo(_nl_query(q or topic), "portrait") or ""
+        slide = render_slide_url(photo, title, body, "content") or photo
         slides_out.append({
             "index": i,
             "role": "content",
-            "title": (s.get("title") or "").strip(),
-            "body": (s.get("body") or "").strip(),
-            "image_url": url,
+            "title": title,
+            "body": body,
+            "image_url": slide,
+            "photo_url": photo,
             "img_query": q,
         })
 
