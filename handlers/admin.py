@@ -968,6 +968,7 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
 
     hashtag = data.get("hashtag", "")
     hashtags = [hashtag] if hashtag else []
+    urls = [s["image_url"] for s in slides_out if s["image_url"]]
     return {
         "type": data.get("type", "carousel"),
         "topic": topic,
@@ -977,7 +978,9 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
         "hashtags_text": hashtag,
         "slides": slides_out,
         "slides_count": len(slides_out),
-        "image_urls": [s["image_url"] for s in slides_out if s["image_url"]],
+        "image_urls": urls,
+        # Для модуля Instagram в Make (поле Files ждёт массив объектов {url})
+        "files": [{"url": u} for u in urls],
     }
 
 
