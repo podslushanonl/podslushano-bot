@@ -1,10 +1,12 @@
-"""Подбор реального тематического фото из фотостока (Pexels / Unsplash).
+"""Подбор реального тематического фото из фотостоков (Pexels / Unsplash / Pixabay).
 
 Используется для картинок к постам в канал (/post) и слайдам Instagram-каруселей
-(/ig). Нужен один бесплатный API-ключ: PEXELS_API_KEY (проще) или
-UNSPLASH_ACCESS_KEY. Возвращает URL картинки или None.
+(/ig). Достаточно одного бесплатного ключа: PEXELS_API_KEY (проще), либо
+UNSPLASH_ACCESS_KEY, либо PIXABAY_API_KEY. Чем больше ключей — тем разнообразнее
+выдача (разные ракурсы). Возвращает URL картинки или None.
 """
 import logging
+from itertools import zip_longest
 
 import aiohttp
 
@@ -14,23 +16,31 @@ log = logging.getLogger(__name__)
 
 
 def stock_enabled() -> bool:
-    return bool(config.PEXELS_API_KEY or config.UNSPLASH_ACCESS_KEY)
+    return bool(config.PEXELS_API_KEY or config.UNSPLASH_ACCESS_KEY
+                or config.PIXABAY_API_KEY)
 
 
 async def fetch_stock_candidates(query: str, orientation: str = "landscape",
                                  n: int = 8) -> list[str]:
-    """Список URL фото по запросу, в порядке РЕЛЕВАНТНОСТИ (для выбора/дедупа)."""
+    """URL фото по запросу из ВСЕХ доступных стоков, ПЕРЕМЕШАННО (разнообразие)."""
     query = (query or "").strip()
     if not query:
         return []
-    urls: list[str] = []
+    per = max(n, 6)
+    lists: list[list[str]] = []
     if config.PEXELS_API_KEY:
-        urls += await _pexels_list(query, orientation, n)
-    if len(urls) < n and config.UNSPLASH_ACCESS_KEY:
-        urls += await _unsplash_list(query, orientation, n)
+        lists.append(await _pexels_list(query, orientation, per))
+    if config.UNSPLASH_ACCESS_KEY:
+        lists.append(await _unsplash_list(query, orientation, per))
+    if config.PIXABAY_API_KEY:
+        lists.append(await _pixabay_list(query, orientation, per))
+    # перемешиваем по одному из каждого источника — чтобы вверху были разные стоки
+    merged: list[str] = []
+    for trio in zip_longest(*lists):
+        merged.extend([u for u in trio if u])
     seen: set[str] = set()
     out: list[str] = []
-    for u in urls:
+    for u in merged:
         if u and u not in seen:
             seen.add(u)
             out.append(u)
@@ -89,4 +99,32 @@ async def _unsplash_list(query: str, orientation: str = "landscape", n: int = 8)
         return [u for u in out if u]
     except Exception as e:  # noqa: BLE001
         log.warning("Unsplash error: %s", e)
+        return []
+
+
+async def _pixabay_list(query: str, orientation: str = "landscape", n: int = 8) -> list[str]:
+    orient = "vertical" if orientation == "portrait" else "horizontal"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                "https://pixabay.com/api/",
+                params={
+                    "key": config.PIXABAY_API_KEY,
+                    "q": query,
+                    "image_type": "photo",
+                    "orientation": orient,
+                    "per_page": str(max(n, 10)),
+                    "safesearch": "true",
+                },
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as r:
+                if r.status >= 300:
+                    log.warning("Pixabay HTTP %s", r.status)
+                    return []
+                data = await r.json()
+        hits = data.get("hits") or []
+        return [h.get("largeImageURL") or h.get("webformatURL") for h in hits
+                if h.get("largeImageURL") or h.get("webformatURL")]
+    except Exception as e:  # noqa: BLE001
+        log.warning("Pixabay error: %s", e)
         return []
