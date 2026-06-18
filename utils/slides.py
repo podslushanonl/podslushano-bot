@@ -16,7 +16,7 @@ import uuid
 from collections import OrderedDict
 
 import aiohttp
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 
 import config
 
@@ -250,22 +250,34 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
     """Фиксированный фирменный CTA-слайд: фото сверху + оранжевый снизу,
     жирный заголовок (Mont Heavy), текст (Evolventa), маскот-лосёнок справа."""
     base = _cover_crop(photo) if photo is not None else Image.new("RGB", (W, H), (150, 168, 150))
-    ov = Image.new("RGB", (W, H), CTA_ORANGE)
-    m = Image.new("L", (1, H))
-    start, span = 0.60, 0.17
-    for y in range(H):
-        a = 0 if y < int(H * start) else int(255 * min(1, ((y - H * start) / (H * span))))
-        m.putpixel((0, y), a)
-    img = Image.composite(ov, base, m.resize((W, H))).convert("RGBA")
+    base = ImageEnhance.Brightness(base).enhance(0.92)
+    img = base.convert("RGBA")
+
+    def _vgrad(y0, y1, amax):
+        g = Image.new("L", (1, H), 0)
+        for y in range(H):
+            a = 0 if y < y0 else (amax if y >= y1 else int(amax * (y - y0) / (y1 - y0)))
+            g.putpixel((0, y), a)
+        return g.resize((W, H))
+
+    # 1) нейтральная тёмная подложка под текст — читаемость на любом фото
+    scrim = Image.new("RGBA", (W, H), (0, 0, 0, 255))
+    scrim.putalpha(_vgrad(int(H * 0.32), int(H * 0.58), 215))
+    img.alpha_composite(scrim)
+    # 2) фирменный оранжевый снизу
+    orange = Image.new("RGBA", (W, H), CTA_ORANGE + (255,))
+    orange.putalpha(_vgrad(int(H * 0.64), int(H * 0.86), 255))
+    img.alpha_composite(orange)
+
     # маскот снизу справа, на мягкой тени
     try:
         deer = Image.open(_DEER).convert("RGBA")
-        dh = 372
+        dh = 350
         dw = int(deer.width * dh / deer.height)
         deer = deer.resize((dw, dh))
-        dx, dy = W - dw - 70, H - dh - 40
+        dx, dy = W - dw - 55, H - dh - 28
         sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        ImageDraw.Draw(sh).ellipse([dx + 24, dy + dh - 34, dx + dw - 24, dy + dh + 24], fill=(0, 0, 0, 80))
+        ImageDraw.Draw(sh).ellipse([dx + 24, dy + dh - 32, dx + dw - 24, dy + dh + 22], fill=(0, 0, 0, 80))
         img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(16)))
         img.alpha_composite(deer, (dx, dy))
     except Exception as e:  # noqa: BLE001 — без маскота тоже соберём
@@ -274,23 +286,23 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
     def shadow_text(xy, txt, f, fill):
         x, y = xy
         s = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        ImageDraw.Draw(s).text((x, y), txt, font=f, fill=(0, 0, 0, 150))
-        img.alpha_composite(s.filter(ImageFilter.GaussianBlur(5)))
+        ImageDraw.Draw(s).text((x, y), txt, font=f, fill=(0, 0, 0, 200))
+        img.alpha_composite(s.filter(ImageFilter.GaussianBlur(6)))
         ImageDraw.Draw(img).text((x, y), txt, font=f, fill=fill)
 
-    x, y = 80, 600
-    ImageDraw.Draw(img).rectangle([x, y, x + 72, y + 8], fill=CTA_ORANGE)
-    y += 36
+    x = 80
+    ImageDraw.Draw(img).rectangle([x, 600, x + 72, 608], fill=CTA_ORANGE)
+    y = 636
     hf = _ttf(_MONT_HEAVY, 74)
     for ln in CTA_HEADLINE:
         shadow_text((x, y), ln, hf, WHITE)
         y += 84
-    y += 16
+    y = 824
     sf = _ttf(_EVOLVENTA, 34)
     for ln in CTA_SUB:
         shadow_text((x, y), ln, sf, SOFT)
         y += 48
-    y += 22
+    y = 948
     bf = _ttf(_EVOLVENTA_B, 30)
     shadow_text((x, y), CTA_IG, bf, WHITE)
     shadow_text((x, y + 48), CTA_TG, bf, WHITE)
