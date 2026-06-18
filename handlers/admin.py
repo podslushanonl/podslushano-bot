@@ -718,7 +718,8 @@ def _post_confirm_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✅ Опубликовать", callback_data="post:pub")],
         [InlineKeyboardButton(text="📌 Опубликовать и закрепить", callback_data="post:pin")],
-        [InlineKeyboardButton(text="🔁 Переписать", callback_data="post:redo")],
+        [InlineKeyboardButton(text="✏️ Внести правки", callback_data="post:edit")],
+        [InlineKeyboardButton(text="🔁 Переписать заново", callback_data="post:redo")],
         [InlineKeyboardButton(text="❌ Отмена", callback_data="post:no")],
     ])
 
@@ -759,11 +760,13 @@ async def post_topic(message: Message, state: FSMContext) -> None:
     await _post_generate(message, state, message.text.strip())
 
 
-async def _post_generate(message: Message, state: FSMContext, topic: str) -> None:
+async def _post_generate(message: Message, state: FSMContext, topic: str,
+                         base_text: str | None = None, instruction: str | None = None) -> None:
     await state.update_data(post_topic=topic)
-    await message.answer("✍️ Готовлю пост через ИИ, это займёт несколько секунд…")
+    note = "✏️ Вношу правки…" if instruction else "✍️ Готовлю пост через ИИ, это займёт несколько секунд…"
+    await message.answer(note)
     await message.bot.send_chat_action(message.chat.id, action="typing")
-    result = await ai_channel_post(topic)
+    result = await ai_channel_post(topic, base_text=base_text, instruction=instruction)
     if not result or not result[0]:
         await state.clear()
         await message.answer(
@@ -802,6 +805,38 @@ async def post_redo(callback: CallbackQuery, state: FSMContext) -> None:
                                       reply_markup=main_menu())
         return
     await _post_generate(callback.message, state, topic)
+
+
+@router.callback_query(F.data == "post:edit")
+async def post_edit(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    if not data.get("post_text"):
+        await callback.answer("Пост потерялся, начни заново: /post", show_alert=True)
+        return
+    await state.set_state(AdminPost.editing)
+    await callback.message.answer(
+        "✏️ Напиши, что изменить в посте — я поправлю и покажу заново.\n\n"
+        "<i>Например: «сделай короче», «добавь про цены и часы работы», "
+        "«убери последний абзац», «больше про детей», «смени заголовок».</i>",
+        reply_markup=cancel_menu(),
+    )
+    await callback.answer()
+
+
+@router.message(AdminPost.editing, _not_command)
+async def post_edit_apply(message: Message, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("Напиши правку текстом 🙂")
+        return
+    data = await state.get_data()
+    topic = data.get("post_topic", "")
+    base_text = data.get("post_text", "")
+    if not base_text:
+        await state.clear()
+        await message.answer("Пост потерялся, начни заново: /post", reply_markup=main_menu())
+        return
+    await _post_generate(message, state, topic, base_text=base_text,
+                         instruction=message.text.strip())
 
 
 @router.callback_query(F.data == "post:no")

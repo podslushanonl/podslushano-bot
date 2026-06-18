@@ -73,10 +73,11 @@ class AdminAfisha(StatesGroup):
 
 
 class AdminPost(StatesGroup):
-    """Генерация поста в канал по теме: ждём тему, потом подтверждение."""
+    """Генерация поста в канал по теме: ждём тему, потом подтверждение/правки."""
 
     waiting_topic = State()
     confirm = State()
+    editing = State()
 
 
 class AdminIG(StatesGroup):
