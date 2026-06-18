@@ -32,10 +32,18 @@ from states.forms import (
     AdminAnnounce,
     AdminBroadcast,
     AdminFind,
+    AdminIG,
     AdminPost,
     AdminSetPhoto,
 )
-from utils.ai import ai_afisha_channel, ai_channel_post, ai_enabled, extract_specialist_query
+from utils.ai import (
+    ai_afisha_channel,
+    ai_channel_post,
+    ai_enabled,
+    ai_instagram_carousel,
+    extract_specialist_query,
+)
+from utils.make import make_enabled, send_to_make
 from utils.stock import fetch_stock_photo, stock_enabled
 from utils.season import current_season
 from utils.analytics import gather_stats
@@ -66,6 +74,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="📇 Весь гайд (выгрузка)", callback_data="admin:guideexport")],
             [InlineKeyboardButton(text="📣 Рассылка-анонс", callback_data="admin:broadcast")],
             [InlineKeyboardButton(text="📝 Пост в канал по теме", callback_data="admin:post")],
+            [InlineKeyboardButton(text="📸 Instagram-карусель (Make)", callback_data="admin:ig")],
             [InlineKeyboardButton(text="📅 Афиша в канал", callback_data="admin:afisha")],
             [InlineKeyboardButton(text="🆕 В афишу месяца (вручную)", callback_data="admin:afishanew")],
             [InlineKeyboardButton(text="⏳ Старый гайд: дедлайн оплаты", callback_data="admin:legacydeadline")],
@@ -827,6 +836,207 @@ async def post_publish(callback: CallbackQuery, state: FSMContext) -> None:
             reply_markup=main_menu(),
         )
     await callback.answer()
+
+
+# --- Instagram-карусель через Make ------------------------------------------
+
+def _ig_confirm_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🚀 Отправить в Make (опубликовать)", callback_data="ig:send")],
+        [InlineKeyboardButton(text="🔁 Переписать", callback_data="ig:redo")],
+        [InlineKeyboardButton(text="❌ Отмена", callback_data="ig:no")],
+    ])
+
+
+@router.message(Command("ig"))
+async def cmd_ig(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    if not make_enabled():
+        await message.answer(
+            "⚠️ Не задан вебхук Make (<code>MAKE_WEBHOOK_URL</code>). Добавь переменную "
+            "с адресом своего вебхука Make — туда бот будет слать карусели для Instagram."
+        )
+        return
+    if not ai_enabled():
+        await message.answer("ИИ сейчас недоступен 🙏 (не настроен ключ или нет баланса).")
+        return
+    if not stock_enabled():
+        await message.answer(
+            "⚠️ Не задан ключ фотостока (<code>PEXELS_API_KEY</code>) — слайды уйдут без "
+            "реальных фото. Лучше сначала задать ключ."
+        )
+    await state.set_state(AdminIG.waiting_topic)
+    await message.answer(
+        "📸 <b>Instagram-карусель.</b> Напиши тему — я подготовлю заголовок-хук, "
+        "слайды с текстом и подберу к каждому реальное фото (4:5), покажу "
+        "предпросмотр, потом отправлю в Make на публикацию.\n\n"
+        "<i>Например: «5 ошибок новичков с налогами в NL», «как получить BSN», "
+        "«красивые осенние места рядом с Утрехтом», «голландская кухня: что попробовать».</i>",
+        reply_markup=cancel_menu(),
+    )
+
+
+@router.callback_query(F.data == "admin:ig")
+async def ig_btn(callback: CallbackQuery, state: FSMContext) -> None:
+    await cmd_ig(callback.message, state)
+    await callback.answer()
+
+
+@router.message(AdminIG.waiting_topic, _not_command)
+async def ig_topic(message: Message, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("Напиши тему текстом 🙂")
+        return
+    await _ig_generate(message, state, message.text.strip())
+
+
+async def _ig_build_payload(topic: str, data: dict) -> dict:
+    """Собирает JSON для Make: подбирает реальные фото (4:5) к каждому слайду."""
+    cover_q = data.get("cover_img_query") or ""
+    cover_url = ""
+    if stock_enabled():
+        cover_url = await fetch_stock_photo(cover_q or topic, "portrait") or ""
+
+    slides_out = [{
+        "index": 1,
+        "role": "cover",
+        "title": data.get("headline", ""),
+        "body": "",
+        "image_url": cover_url,
+        "img_query": cover_q,
+    }]
+    for i, s in enumerate(data.get("slides", []), start=2):
+        q = (s.get("img_query") or cover_q or "").strip()
+        url = ""
+        if stock_enabled():
+            url = await fetch_stock_photo(q or topic, "portrait") or ""
+        slides_out.append({
+            "index": i,
+            "role": "content",
+            "title": (s.get("title") or "").strip(),
+            "body": (s.get("body") or "").strip(),
+            "image_url": url,
+            "img_query": q,
+        })
+
+    hashtags = data.get("hashtags", [])
+    return {
+        "type": data.get("type", "carousel"),
+        "topic": topic,
+        "headline": data.get("headline", ""),
+        "caption": data.get("caption", ""),
+        "hashtags": hashtags,
+        "hashtags_text": " ".join(hashtags),
+        "slides": slides_out,
+        "slides_count": len(slides_out),
+        "image_urls": [s["image_url"] for s in slides_out if s["image_url"]],
+    }
+
+
+def _ig_preview_text(payload: dict) -> str:
+    kind = "карусель" if payload["type"] == "carousel" else "одиночный пост"
+    found = len(payload["image_urls"])
+    lines = [
+        f"📸 <b>Instagram — {kind}</b> ({payload['slides_count']} слайд., фото найдено: {found})",
+        "",
+        f"<b>Слайд 1 (обложка):</b> {html.escape(payload['headline'])}",
+    ]
+    for s in payload["slides"][1:]:
+        title = html.escape(s["title"]) if s["title"] else ""
+        body = html.escape(s["body"]) if s["body"] else ""
+        piece = f"<b>Слайд {s['index']}:</b>"
+        if title:
+            piece += f" {title}"
+        if body:
+            piece += f"\n{body}"
+        lines.append(piece)
+    lines.append("")
+    lines.append("<b>Подпись:</b>")
+    lines.append(html.escape(payload.get("caption", "")))
+    if payload.get("hashtags_text"):
+        lines.append("")
+        lines.append(html.escape(payload["hashtags_text"]))
+    return "\n".join(lines)
+
+
+async def _ig_generate(message: Message, state: FSMContext, topic: str) -> None:
+    await state.update_data(ig_topic=topic)
+    await message.answer("✍️ Готовлю карусель через ИИ и подбираю фото, это займёт ~минуту…")
+    await message.bot.send_chat_action(message.chat.id, action="typing")
+    data = await ai_instagram_carousel(topic)
+    if not data:
+        await state.clear()
+        await message.answer(
+            "Не получилось сгенерировать карусель 😔 Попробуй ещё раз (/ig) или другую тему.",
+            reply_markup=main_menu(),
+        )
+        return
+    payload = await _ig_build_payload(topic, data)
+    await state.update_data(ig_payload=payload)
+    await state.set_state(AdminIG.confirm)
+    # Превью обложки (если фото нашлось) + текст карусели
+    cover = payload["slides"][0]["image_url"]
+    preview = _ig_preview_text(payload)
+    if cover:
+        try:
+            await message.bot.send_photo(message.chat.id, cover, caption="🖼 Обложка (фото 1-го слайда)")
+        except Exception:  # noqa: BLE001
+            pass
+    # Текст может быть длинным — шлём отдельным сообщением (с фолбэком без HTML)
+    try:
+        await message.answer(preview, disable_web_page_preview=True)
+    except Exception:  # noqa: BLE001
+        await message.answer(re.sub(r"<[^>]+>", "", preview), disable_web_page_preview=True)
+    note = ""
+    if stock_enabled() and len(payload["image_urls"]) < payload["slides_count"]:
+        note = "\n\n⚠️ К части слайдов фото не нашлось — Make подставит свой фон/шаблон."
+    await message.answer(
+        "Отправить в Make на публикацию в Instagram?" + note,
+        reply_markup=_ig_confirm_kb(),
+    )
+
+
+@router.callback_query(F.data == "ig:redo")
+async def ig_redo(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    topic = data.get("ig_topic")
+    await callback.answer("Переписываю…")
+    if not topic:
+        await callback.message.answer("Тема потерялась, начни заново: /ig",
+                                      reply_markup=main_menu())
+        return
+    await _ig_generate(callback.message, state, topic)
+
+
+@router.callback_query(F.data == "ig:no")
+async def ig_no(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.message.answer("Отменил — в Instagram ничего не ушло.", reply_markup=main_menu())
+    await callback.answer()
+
+
+@router.callback_query(F.data == "ig:send")
+async def ig_send(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    await state.clear()
+    payload = data.get("ig_payload")
+    if not payload:
+        await callback.answer("Данные не найдены, начни заново: /ig", show_alert=True)
+        return
+    await callback.answer("Отправляю в Make…")
+    ok = await send_to_make(payload)
+    if ok:
+        await callback.message.answer(
+            "✅ Отправил карусель в Make — он соберёт слайды и опубликует в Instagram.\n"
+            "<i>Проверь сценарий в Make, если пост не появится через пару минут.</i>",
+            reply_markup=main_menu(),
+        )
+    else:
+        await callback.message.answer(
+            "❌ Не получилось отправить в Make. Проверь, что <code>MAKE_WEBHOOK_URL</code> "
+            "задан верно и сценарий включён.",
+            reply_markup=main_menu(),
+        )
 
 
 # --- Статистика -------------------------------------------------------------

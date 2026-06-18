@@ -79,6 +79,13 @@ class AdminPost(StatesGroup):
     confirm = State()
 
 
+class AdminIG(StatesGroup):
+    """Instagram-карусель через Make: ждём тему, потом подтверждение отправки."""
+
+    waiting_topic = State()
+    confirm = State()
+
+
 class AdminAddSpecialist(StatesGroup):
     """Пошаговое добавление специалиста админом."""
 

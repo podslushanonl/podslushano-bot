@@ -485,6 +485,83 @@ async def ai_image_keywords(topic: str) -> str:
         return ""
 
 
+_IG_SYSTEM = (
+    "Ты — редактор Instagram-аккаунта сообщества русскоязычных в Нидерландах. "
+    "Готовишь материал для поста-карусели (формат 4:5). Пишешь экспертно, чётко, "
+    "по делу, без фамильярности, сленга и грубостей, как человек, который давно "
+    "живёт в NL. ОБЯЗАТЕЛЬНО используй веб-поиск для фактов, цифр, адресов и "
+    "ссылок — ничего не выдумывай.\n\n"
+    "Верни СТРОГО ОДИН JSON-объект (без markdown, без пояснений) такой структуры:\n"
+    "{\n"
+    '  "type": "carousel" | "single",\n'
+    '  "headline": "цепляющий заголовок для 1-го слайда (хук, до 60 знаков)",\n'
+    '  "cover_img_query": "2-4 english keywords for the cover photo",\n'
+    '  "slides": [ {"title": "короткий заголовок слайда (до 40 знаков)", '
+    '"body": "1-3 коротких предложения по сути (до 180 знаков)", '
+    '"img_query": "2-4 english keywords for this slide photo"} ],\n'
+    '  "caption": "подпись под постом в Instagram: 2-4 предложения сути + в конце '
+    'ненавязчивый призыв сохранить/поставить лайк. Без ссылок (в Instagram они не '
+    'кликаются), эмодзи умеренно",\n'
+    '  "hashtags": ["#нидерланды", "#netherlands", "..."]\n'
+    "}\n\n"
+    "Правила:\n"
+    "- carousel: 1 обложка (headline) + 4–6 слайдов в массиве slides (итого 5–7 "
+    "слайдов). Для короткой новости/одного факта используй type=single и slides=[].\n"
+    "- ВЕСЬ текст — обычный, БЕЗ HTML, markdown, символов #, * и звёздочек "
+    "(он ляжет прямо на картинку и в подпись).\n"
+    "- по-русски; заголовки и тексты слайдов короткие и читаемые на телефоне;\n"
+    "- каждый слайд — про ОДИН пункт/мысль, конкретика и польза;\n"
+    "- img_query всегда на английском, релевантный содержанию слайда;\n"
+    "- hashtags: 8–15 штук, релевантные, можно смесь рус/eng/nl, без пробелов внутри.\n"
+    "- НЕ описывай свои действия и процесс — верни только JSON."
+)
+
+
+async def ai_instagram_carousel(topic: str) -> dict | None:
+    """Контент для Instagram-карусели по теме. Возвращает dict со структурой
+    _IG_SYSTEM (type/headline/cover_img_query/slides/caption/hashtags) или None.
+    Фото НЕ подбирает — только текст и англ. запросы (img_query) для фото."""
+    if not ai_enabled() or not (topic or "").strip():
+        return None
+    messages = [{"role": "user", "content": f"Тема поста: {topic.strip()}"}]
+    client = _get_client()
+    try:
+        kwargs = dict(model=config.AI_POST_MODEL, max_tokens=2000, system=_IG_SYSTEM,
+                      messages=messages)
+        tools = _web_search_tool()
+        if tools:
+            kwargs["tools"] = tools
+        resp = await client.messages.create(**kwargs)
+    except Exception as e:  # noqa: BLE001 — пробуем без веб-поиска
+        log.warning("IG-карусель с веб-поиском не сработала (%s), пробую без", e)
+        try:
+            resp = await client.messages.create(
+                model=config.AI_POST_MODEL, max_tokens=2000, system=_IG_SYSTEM,
+                messages=messages,
+            )
+        except Exception as e2:  # noqa: BLE001
+            log.warning("Ошибка ai_instagram_carousel: %s", e2)
+            return None
+    data = _parse_json(_extract_text_and_sources(resp)[0])
+    if not data or not data.get("headline"):
+        return None
+    # Нормализуем
+    data["type"] = "single" if data.get("type") == "single" else "carousel"
+    slides = data.get("slides")
+    if not isinstance(slides, list):
+        slides = []
+    data["slides"] = [s for s in slides if isinstance(s, dict) and (s.get("title") or s.get("body"))]
+    if data["type"] == "carousel" and not data["slides"]:
+        data["type"] = "single"
+    hashtags = data.get("hashtags")
+    if isinstance(hashtags, str):
+        hashtags = hashtags.split()
+    data["hashtags"] = [h for h in (hashtags or []) if isinstance(h, str)]
+    if not data.get("cover_img_query"):
+        data["cover_img_query"] = await ai_image_keywords(topic)
+    return data
+
+
 async def classify_intent(text: str) -> str:
     """Намерение свободного сообщения: 'specialist' | 'info' | 'chat'.
 
