@@ -952,15 +952,21 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
     used: set[str] = set()
 
     async def pick(query: str, desc: str) -> str:
-        """Кандидаты со стока → ИИ-vision выбирает самый подходящий теме слайда.
-        Без повторов между слайдами."""
+        """Кандидаты из всех стоков (+ вариант «с воздуха») → ИИ-vision выбирает
+        самый подходящий и интересный кадр. Без повторов между слайдами."""
         if not stock_enabled():
             return ""
-        cands = [u for u in await fetch_stock_candidates(_nl_query(query or topic), "portrait", 6)
-                 if u not in used]
-        if not cands:
+        base = await fetch_stock_candidates(_nl_query(query or topic), "portrait", 6)
+        aerial = await fetch_stock_candidates(
+            _nl_query(f"{query or topic} aerial drone view"), "portrait", 4)
+        pool, seen = [], set()
+        for u in base + aerial:
+            if u and u not in seen and u not in used:
+                seen.add(u)
+                pool.append(u)
+        if not pool:
             return ""
-        chosen = await pick_best_photo(desc, cands) or cands[0]
+        chosen = await pick_best_photo(desc, pool[:8]) or pool[0]
         used.add(chosen)
         return chosen
 

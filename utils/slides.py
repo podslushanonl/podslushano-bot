@@ -260,19 +260,19 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
             g.putpixel((0, y), a)
         return g.resize((W, H))
 
-    # Один фирменный оранжевый слой: фото плавно переходит в сплошной оранжевый,
-    # на котором лежит весь текст. Без грязных перекрытий «чёрное+оранжевое».
+    # Один фирменный оранжевый слой снизу: фото занимает бОльшую часть кадра и
+    # плавно переходит в сплошной оранжевый, на котором лежит текст.
     orange = Image.new("RGBA", (W, H), CTA_ORANGE + (255,))
-    orange.putalpha(_vgrad(int(H * 0.38), int(H * 0.58), 255))
+    orange.putalpha(_vgrad(int(H * 0.54), int(H * 0.66), 255))
     img.alpha_composite(orange)
 
     # маскот снизу справа, на мягкой тени
     try:
         deer = Image.open(_DEER).convert("RGBA")
-        dh = 350
+        dh = 300
         dw = int(deer.width * dh / deer.height)
         deer = deer.resize((dw, dh))
-        dx, dy = W - dw - 55, H - dh - 28
+        dx, dy = W - dw - 55, H - dh - 26
         sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
         ImageDraw.Draw(sh).ellipse([dx + 24, dy + dh - 32, dx + dw - 24, dy + dh + 22], fill=(0, 0, 0, 80))
         img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(16)))
@@ -288,18 +288,18 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
         ImageDraw.Draw(img).text((x, y), txt, font=f, fill=fill)
 
     x = 80
-    ImageDraw.Draw(img).rectangle([x, 724, x + 72, 732], fill=WHITE)
-    y = 760
+    ImageDraw.Draw(img).rectangle([x, 872, x + 72, 880], fill=WHITE)
+    y = 908
     hf = _ttf(_MONT_HEAVY, 72)
     for ln in CTA_HEADLINE:
         shadow_text((x, y), ln, hf, WHITE)
         y += 82
-    y = 940
+    y = 1086
     sf = _ttf(_EVOLVENTA, 33)
     for ln in CTA_SUB:
         shadow_text((x, y), ln, sf, SOFT)
         y += 46
-    y = 1062
+    y = 1198
     bf = _ttf(_EVOLVENTA_B, 29)
     shadow_text((x, y), CTA_IG, bf, WHITE)
     shadow_text((x, y + 46), CTA_TG, bf, WHITE)

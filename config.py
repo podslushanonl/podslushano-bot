@@ -80,6 +80,7 @@ AI_POST_MODEL: str = os.getenv("AI_POST_MODEL", "claude-sonnet-4-6")
 # Фотосток для картинок к постам: достаточно одного ключа (Pexels проще). Пусто = без фото.
 PEXELS_API_KEY: str = os.getenv("PEXELS_API_KEY", "")
 UNSPLASH_ACCESS_KEY: str = os.getenv("UNSPLASH_ACCESS_KEY", "")
+PIXABAY_API_KEY: str = os.getenv("PIXABAY_API_KEY", "")
 # Вебхук Make для авто-публикации Instagram-каруселей (бот шлёт туда JSON с
 # готовыми слайдами и подписью, Make публикует). Пусто = функция выключена.
 MAKE_WEBHOOK_URL: str = os.getenv("MAKE_WEBHOOK_URL", "")
