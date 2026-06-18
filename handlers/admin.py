@@ -671,8 +671,10 @@ async def _send_post(bot, chat_id, text: str, photo_url: str | None, reply_marku
     (для закрепления) или None.
     """
     plain = re.sub(r"<[^>]+>", "", text)
+    # Лимит подписи Telegram считается по видимому тексту (без HTML-тегов)
+    visible_len = len(plain)
     # 1) Фото + подпись одним сообщением (когда текст помещается в подпись)
-    if photo_url and len(text) <= CAPTION_LIMIT:
+    if photo_url and visible_len <= CAPTION_LIMIT:
         try:
             return await bot.send_photo(
                 chat_id, photo_url, caption=text, reply_markup=reply_markup
