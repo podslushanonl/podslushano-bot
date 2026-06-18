@@ -891,12 +891,22 @@ async def ig_topic(message: Message, state: FSMContext) -> None:
     await _ig_generate(message, state, message.text.strip())
 
 
+def _nl_query(q: str) -> str:
+    """Привязывает запрос фото к Нидерландам, чтобы сток не отдавал чужие страны
+    (горы, тропики и т.п.) для абстрактных тем."""
+    q = (q or "").strip()
+    low = q.lower()
+    if any(w in low for w in ("netherland", "holland", "dutch")):
+        return q
+    return f"{q} Netherlands".strip()
+
+
 async def _ig_build_payload(topic: str, data: dict) -> dict:
     """Собирает JSON для Make: подбирает реальные фото (4:5) к каждому слайду."""
     cover_q = data.get("cover_img_query") or ""
     cover_url = ""
     if stock_enabled():
-        cover_url = await fetch_stock_photo(cover_q or topic, "portrait") or ""
+        cover_url = await fetch_stock_photo(_nl_query(cover_q or topic), "portrait") or ""
 
     slides_out = [{
         "index": 1,
@@ -910,7 +920,7 @@ async def _ig_build_payload(topic: str, data: dict) -> dict:
         q = (s.get("img_query") or cover_q or "").strip()
         url = ""
         if stock_enabled():
-            url = await fetch_stock_photo(q or topic, "portrait") or ""
+            url = await fetch_stock_photo(_nl_query(q or topic), "portrait") or ""
         slides_out.append({
             "index": i,
             "role": "content",
