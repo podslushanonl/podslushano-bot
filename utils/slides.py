@@ -38,6 +38,7 @@ _MONT_HEAVY = os.path.join(_FONT_DIR, "Mont-Heavy.otf")
 _EVOLVENTA = os.path.join(_FONT_DIR, "Evolventa-Regular.otf")
 _EVOLVENTA_B = os.path.join(_FONT_DIR, "Evolventa-Bold.otf")
 _DEER = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "mascot", "deer.png")
+_CTA_BG = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "cta_bg.jpg")
 CTA_ORANGE = (232, 112, 28)
 SOFT = (255, 238, 222)
 # Фиксированный текст CTA (всегда одинаковый)
@@ -285,6 +286,12 @@ def _ttf(path: str, size: int):
 def render_cta(photo: Image.Image | None) -> Image.Image:
     """Фиксированный фирменный CTA-слайд: фото сверху + оранжевый снизу,
     жирный заголовок (Mont Heavy), текст (Evolventa), маскот-лосёнок справа."""
+    # Фон CTA — фиксированный фирменный кадр (всегда один и тот же), не авто-подбор.
+    if photo is None and os.path.exists(_CTA_BG):
+        try:
+            photo = Image.open(_CTA_BG)
+        except Exception:  # noqa: BLE001
+            photo = None
     base = _cover_crop(photo) if photo is not None else Image.new("RGB", (W, H), (150, 168, 150))
     base = ImageEnhance.Brightness(base).enhance(0.97)
     img = base.convert("RGBA")
