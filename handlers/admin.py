@@ -6,6 +6,7 @@
 """
 import asyncio
 import html
+import json
 import re
 from datetime import datetime, timedelta
 
@@ -881,7 +882,8 @@ async def post_publish(callback: CallbackQuery, state: FSMContext) -> None:
 def _ig_confirm_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="🚀 Отправить в Make (опубликовать)", callback_data="ig:send")],
-        [InlineKeyboardButton(text="🔁 Переписать", callback_data="ig:redo")],
+        [InlineKeyboardButton(text="✏️ Внести правки", callback_data="ig:edit")],
+        [InlineKeyboardButton(text="🔁 Переписать заново", callback_data="ig:redo")],
         [InlineKeyboardButton(text="❌ Отмена", callback_data="ig:no")],
     ])
 
@@ -1059,11 +1061,15 @@ def _ig_preview_text(payload: dict) -> str:
     return "\n".join(lines)
 
 
-async def _ig_generate(message: Message, state: FSMContext, topic: str) -> None:
+async def _ig_generate(message: Message, state: FSMContext, topic: str,
+                       instruction: str | None = None) -> None:
     await state.update_data(ig_topic=topic)
-    await message.answer("✍️ Готовлю карусель: текст, подбор и ИИ-проверка фото — займёт минуту-полторы…")
+    base_json = (await state.get_data()).get("ig_data") if instruction else None
+    note = "✏️ Вношу правки и пересобираю карусель…" if instruction else \
+        "✍️ Готовлю карусель: текст, подбор и ИИ-проверка фото — займёт минуту-полторы…"
+    await message.answer(note)
     await message.bot.send_chat_action(message.chat.id, action="typing")
-    data = await ai_instagram_carousel(topic)
+    data = await ai_instagram_carousel(topic, base_json=base_json, instruction=instruction)
     if not data:
         await state.clear()
         await message.answer(
@@ -1072,7 +1078,7 @@ async def _ig_generate(message: Message, state: FSMContext, topic: str) -> None:
         )
         return
     payload = await _ig_build_payload(topic, data)
-    await state.update_data(ig_payload=payload)
+    await state.update_data(ig_payload=payload, ig_data=json.dumps(data, ensure_ascii=False))
     await state.set_state(AdminIG.confirm)
     # Превью: показываем ВСЕ фото слайдов альбомом (по порядку), затем текст
     urls = payload["image_urls"][:10]  # альбом Telegram — максимум 10 фото
@@ -1119,6 +1125,36 @@ async def ig_redo(callback: CallbackQuery, state: FSMContext) -> None:
                                       reply_markup=main_menu())
         return
     await _ig_generate(callback.message, state, topic)
+
+
+@router.callback_query(F.data == "ig:edit")
+async def ig_edit(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    if not data.get("ig_data"):
+        await callback.answer("Карусель потерялась, начни заново: /ig", show_alert=True)
+        return
+    await state.set_state(AdminIG.editing)
+    await callback.message.answer(
+        "✏️ Напиши, что изменить в тексте карусели — поправлю и пересоберу.\n\n"
+        "<i>Например: «исправь грамматику и убери тире», «слайд 3 перепиши проще», "
+        "«заголовок короче», «добавь слайд про цены», «тон живее».</i>",
+        reply_markup=cancel_menu(),
+    )
+    await callback.answer()
+
+
+@router.message(AdminIG.editing, _not_command)
+async def ig_edit_apply(message: Message, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("Напиши правку текстом 🙂")
+        return
+    data = await state.get_data()
+    topic = data.get("ig_topic", "")
+    if not data.get("ig_data"):
+        await state.clear()
+        await message.answer("Карусель потерялась, начни заново: /ig", reply_markup=main_menu())
+        return
+    await _ig_generate(message, state, topic, instruction=message.text.strip())
 
 
 @router.callback_query(F.data == "ig:no")

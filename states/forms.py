@@ -81,10 +81,11 @@ class AdminPost(StatesGroup):
 
 
 class AdminIG(StatesGroup):
-    """Instagram-карусель через Make: ждём тему, потом подтверждение отправки."""
+    """Instagram-карусель через Make: тема, подтверждение, правки."""
 
     waiting_topic = State()
     confirm = State()
+    editing = State()
 
 
 class AdminAddSpecialist(StatesGroup):
