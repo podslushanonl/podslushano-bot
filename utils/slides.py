@@ -302,18 +302,18 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
     orange.putalpha(_vgrad(cut - 8, cut, 255))
     img.alpha_composite(orange)
 
-    # маскот снизу справа: кремовая обводка-стикер + лёгкая тень
+    # маскот справа, вровень с текстом, целиком внутри оранжевой плашки
     try:
         deer = Image.open(_DEER).convert("RGBA")
-        dh = 380
+        dh = 470
         dw = int(deer.width * dh / deer.height)
         deer = deer.resize((dw, dh))
-        dx, dy = W - dw - 45, H - dh - 28
+        dx, dy = W - dw - 55, cut + 14
         alpha = deer.getchannel("A")
         grown = alpha.filter(ImageFilter.MaxFilter(13))
         sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        ImageDraw.Draw(sh).ellipse([dx + 28, dy + dh - 30, dx + dw - 28, dy + dh + 24], fill=(0, 0, 0, 70))
-        img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(16)))
+        ImageDraw.Draw(sh).ellipse([dx + 30, dy + dh - 28, dx + dw - 30, dy + dh + 22], fill=(0, 0, 0, 60))
+        img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(15)))
         outline = Image.new("RGBA", (dw, dh), (250, 242, 228, 255))
         outline.putalpha(grown)
         img.alpha_composite(outline, (dx, dy))
