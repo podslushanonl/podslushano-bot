@@ -260,22 +260,27 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
             g.putpixel((0, y), a)
         return g.resize((W, H))
 
-    # Один фирменный оранжевый слой снизу: фото занимает бОльшую часть кадра и
-    # плавно переходит в сплошной оранжевый, на котором лежит текст.
+    # Чёткий срез фото→оранжевый (как в эталоне), без грязного градиента.
+    cut = int(H * 0.56)
     orange = Image.new("RGBA", (W, H), CTA_ORANGE + (255,))
-    orange.putalpha(_vgrad(int(H * 0.54), int(H * 0.66), 255))
+    orange.putalpha(_vgrad(cut - 8, cut, 255))
     img.alpha_composite(orange)
 
-    # маскот снизу справа, на мягкой тени
+    # маскот снизу справа: кремовая обводка-стикер + лёгкая тень
     try:
         deer = Image.open(_DEER).convert("RGBA")
-        dh = 300
+        dh = 380
         dw = int(deer.width * dh / deer.height)
         deer = deer.resize((dw, dh))
-        dx, dy = W - dw - 55, H - dh - 26
+        dx, dy = W - dw - 45, H - dh - 28
+        alpha = deer.getchannel("A")
+        grown = alpha.filter(ImageFilter.MaxFilter(13))
         sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        ImageDraw.Draw(sh).ellipse([dx + 24, dy + dh - 32, dx + dw - 24, dy + dh + 22], fill=(0, 0, 0, 80))
+        ImageDraw.Draw(sh).ellipse([dx + 28, dy + dh - 30, dx + dw - 28, dy + dh + 24], fill=(0, 0, 0, 70))
         img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(16)))
+        outline = Image.new("RGBA", (dw, dh), (250, 242, 228, 255))
+        outline.putalpha(grown)
+        img.alpha_composite(outline, (dx, dy))
         img.alpha_composite(deer, (dx, dy))
     except Exception as e:  # noqa: BLE001 — без маскота тоже соберём
         log.warning("slides: маскот не вставился: %s", e)
@@ -283,26 +288,30 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
     def shadow_text(xy, txt, f, fill):
         x, y = xy
         s = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        ImageDraw.Draw(s).text((x, y), txt, font=f, fill=(0, 0, 0, 110))
+        ImageDraw.Draw(s).text((x, y), txt, font=f, fill=(0, 0, 0, 90))
         img.alpha_composite(s.filter(ImageFilter.GaussianBlur(4)))
         ImageDraw.Draw(img).text((x, y), txt, font=f, fill=fill)
 
     x = 80
-    ImageDraw.Draw(img).rectangle([x, 872, x + 72, 880], fill=WHITE)
-    y = 908
-    hf = _ttf(_MONT_HEAVY, 72)
+    y = 804
+    hf = _ttf(_MONT_HEAVY, 70)
     for ln in CTA_HEADLINE:
         shadow_text((x, y), ln, hf, WHITE)
-        y += 82
-    y = 1086
-    sf = _ttf(_EVOLVENTA, 33)
+        y += 80
+    y = 980
+    sf = _ttf(_EVOLVENTA, 32)
     for ln in CTA_SUB:
         shadow_text((x, y), ln, sf, SOFT)
-        y += 46
-    y = 1198
-    bf = _ttf(_EVOLVENTA_B, 29)
-    shadow_text((x, y), CTA_IG, bf, WHITE)
-    shadow_text((x, y + 46), CTA_TG, bf, WHITE)
+        y += 44
+    # контакты: подпись (кремовая) + ник (белый жирный)
+    y = 1112
+    lf = _ttf(_EVOLVENTA, 29)
+    vf = _ttf(_EVOLVENTA_B, 29)
+    for label, value in (("Instagram", "@podslushano.nl"), ("Telegram", "@podslushanovnl")):
+        shadow_text((x, y), label, lf, SOFT)
+        lw = ImageDraw.Draw(img).textlength(label, font=lf)
+        shadow_text((x + lw + 18, y), value, vf, WHITE)
+        y += 48
     return img.convert("RGB")
 
 
