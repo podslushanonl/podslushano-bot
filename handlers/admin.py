@@ -1002,17 +1002,16 @@ async def _ig_build_payload(topic: str, data: dict, avoid: set[str] | None = Non
             "img_query": q,
         })
 
-    # Финальный слайд — фиксированный фирменный CTA. Берём ОТДЕЛЬНОЕ фото
-    # (не повтор обложки) — общий красивый вид Нидерландов.
-    cta_photo = await pick("netherlands landscape scenic", "красивый общий вид Нидерландов")
-    cta_slide = await make_cta_url(cta_photo or cover_photo) or (cta_photo or cover_photo)
+    # Финальный слайд — фиксированный фирменный CTA с ПОСТОЯННЫМ фоном
+    # (assets/cta_bg.jpg), а не случайным авто-подбором.
+    cta_slide = await make_cta_url(None) or ""
     slides_out.append({
         "index": len(slides_out) + 1,
         "role": "cta",
         "title": "Фирменный CTA (подписка)",
         "body": "",
         "image_url": cta_slide,
-        "photo_url": cta_photo,
+        "photo_url": "",
         "img_query": "",
     })
 
