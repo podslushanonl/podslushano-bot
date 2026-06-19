@@ -289,30 +289,32 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
     base = ImageEnhance.Brightness(base).enhance(0.97)
     img = base.convert("RGBA")
 
-    def _vgrad(y0, y1, amax):
-        g = Image.new("L", (1, H), 0)
-        for y in range(H):
-            a = 0 if y < y0 else (amax if y >= y1 else int(amax * (y - y0) / (y1 - y0)))
-            g.putpixel((0, y), a)
-        return g.resize((W, H))
-
-    # Чёткий срез фото→оранжевый (как в эталоне), без грязного градиента.
-    cut = int(H * 0.56)
+    # КОСОЙ срез фото→оранжевый (как в эталоне): слева ниже, справа выше.
+    cut_l, cut_r = int(H * 0.60), int(H * 0.53)
+    mask = Image.new("L", (W, H), 0)
+    ImageDraw.Draw(mask).polygon([(0, cut_l), (W, cut_r), (W, H), (0, H)], fill=255)
+    mask = mask.filter(ImageFilter.GaussianBlur(1))
     orange = Image.new("RGBA", (W, H), CTA_ORANGE + (255,))
-    orange.putalpha(_vgrad(cut - 8, cut, 255))
+    orange.putalpha(mask)
     img.alpha_composite(orange)
 
-    # маскот справа, вровень с текстом, целиком внутри оранжевой плашки
+    # маскот справа, вровень с текстом, целиком внутри оранжевой плашки.
+    # Кропнутый PNG дополняем прозрачными полями, чтобы кремовая обводка и рога
+    # не обрезались по краям.
     try:
         deer = Image.open(_DEER).convert("RGBA")
-        dh = 470
+        dh = 460
         dw = int(deer.width * dh / deer.height)
         deer = deer.resize((dw, dh))
-        dx, dy = W - dw - 55, cut + 14
-        alpha = deer.getchannel("A")
-        grown = alpha.filter(ImageFilter.MaxFilter(13))
+        pad = 26
+        canvas = Image.new("RGBA", (dw + 2 * pad, dh + 2 * pad), (0, 0, 0, 0))
+        canvas.alpha_composite(deer, (pad, pad))
+        deer = canvas
+        dw, dh = deer.size
+        dx, dy = W - dw - 40, cut_r + 6
+        grown = deer.getchannel("A").filter(ImageFilter.MaxFilter(15))
         sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-        ImageDraw.Draw(sh).ellipse([dx + 30, dy + dh - 28, dx + dw - 30, dy + dh + 22], fill=(0, 0, 0, 60))
+        ImageDraw.Draw(sh).ellipse([dx + 40, dy + dh - 40, dx + dw - 40, dy + dh + 16], fill=(0, 0, 0, 55))
         img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(15)))
         outline = Image.new("RGBA", (dw, dh), (250, 242, 228, 255))
         outline.putalpha(grown)
@@ -329,18 +331,18 @@ def render_cta(photo: Image.Image | None) -> Image.Image:
         ImageDraw.Draw(img).text((x, y), txt, font=f, fill=fill)
 
     x = 80
-    y = 804
+    y = 838
     hf = _ttf(_MONT_HEAVY, 70)
     for ln in CTA_HEADLINE:
         shadow_text((x, y), ln, hf, WHITE)
         y += 80
-    y = 980
+    y = 1014
     sf = _ttf(_EVOLVENTA, 32)
     for ln in CTA_SUB:
         shadow_text((x, y), ln, sf, SOFT)
         y += 44
     # контакты: подпись (кремовая) + ник (белый жирный)
-    y = 1112
+    y = 1150
     lf = _ttf(_EVOLVENTA, 29)
     vf = _ttf(_EVOLVENTA_B, 29)
     for label, value in (("Instagram", "@podslushano.nl"), ("Telegram", "@podslushanovnl")):
