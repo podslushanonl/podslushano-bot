@@ -76,12 +76,48 @@ def _mont(size: int, weight: int = 600):
     return _font(_MONT, size, weight)
 
 
+def _energy_offset(im: Image.Image, win: int, vertical: bool) -> int:
+    """Где главное «содержание» кадра: окно длиной win с максимумом краёв/деталей.
+    vertical=False — двигаем окно по X (широкое фото), True — по Y (высокое)."""
+    try:
+        edges = im.convert("L").filter(ImageFilter.FIND_EDGES)
+        if vertical:
+            edges = edges.transpose(Image.ROTATE_90)  # строки → столбцы
+        full = edges.width
+        sw = 240
+        ratio = sw / full
+        small = edges.resize((sw, 1))  # сжимаем по высоте до 1 строки = сумма энергии столбцов
+        cols = list(small.getdata())
+        wwin = max(1, int(win * ratio))
+        if wwin >= len(cols):
+            return 0
+        pref = [0]
+        for c in cols:
+            pref.append(pref[-1] + c)
+        best_i, best = 0, -1
+        for i in range(0, len(cols) - wwin + 1):
+            s = pref[i + wwin] - pref[i]
+            if s > best:
+                best, best_i = s, i
+        return int(best_i / ratio)
+    except Exception:  # noqa: BLE001 — при сбое берём центр
+        return -1
+
+
 def _cover_crop(src: Image.Image) -> Image.Image:
+    """Кадрирует под 1080×1350, оставляя самую «насыщенную» часть кадра
+    (а не слепой центр), чтобы не отрезать главный объект."""
     im = src.convert("RGB")
     r = max(W / im.width, H / im.height)
     im = im.resize((max(W, int(im.width * r)), max(H, int(im.height * r))))
-    x = (im.width - W) // 2
-    y = (im.height - H) // 2
+    if im.width > W:  # широкое → выбираем окно по горизонтали
+        off = _energy_offset(im, W, vertical=False)
+        x = (im.width - W) // 2 if off < 0 else min(max(0, off), im.width - W)
+        y = 0
+    else:  # высокое → выбираем окно по вертикали
+        off = _energy_offset(im, H, vertical=True)
+        x = 0
+        y = (im.height - H) // 2 if off < 0 else min(max(0, off), im.height - H)
     return im.crop((x, y, x + W, y + H))
 
 
