@@ -945,13 +945,13 @@ def _nl_query(q: str) -> str:
     return f"{q} Netherlands".strip()
 
 
-async def _ig_build_payload(topic: str, data: dict) -> dict:
+async def _ig_build_payload(topic: str, data: dict, avoid: set[str] | None = None) -> dict:
     """Собирает JSON для Make: подбирает реальное фото (4:5) к каждому слайду и
     рисует готовый слайд (фото + текст 1080×1350).
 
     image_url — ГОТОВЫЙ слайд (если рендер доступен), сырое фото — в photo_url.
-    Если рендер недоступен, image_url = сырое фото."""
-    used: set[str] = set()
+    avoid — фото из прошлой версии (чтобы при правках реально подменились новыми)."""
+    used: set[str] = set(avoid or set())
 
     async def pick(query: str, desc: str) -> str:
         """Кандидаты из всех стоков (+ вариант «с воздуха») → ИИ-vision выбирает
@@ -1077,8 +1077,12 @@ async def _ig_generate(message: Message, state: FSMContext, topic: str,
             reply_markup=main_menu(),
         )
         return
-    payload = await _ig_build_payload(topic, data)
-    await state.update_data(ig_payload=payload, ig_data=json.dumps(data, ensure_ascii=False))
+    # при правках исключаем фото прошлой версии, чтобы они реально сменились
+    avoid = set((await state.get_data()).get("ig_used_photos") or []) if instruction else None
+    payload = await _ig_build_payload(topic, data, avoid=avoid)
+    photos_now = [s.get("photo_url") for s in payload["slides"] if s.get("photo_url")]
+    await state.update_data(ig_payload=payload, ig_data=json.dumps(data, ensure_ascii=False),
+                            ig_used_photos=photos_now)
     await state.set_state(AdminIG.confirm)
     # Превью: показываем ВСЕ фото слайдов альбомом (по порядку), затем текст
     urls = payload["image_urls"][:10]  # альбом Telegram — максимум 10 фото
@@ -1164,29 +1168,47 @@ async def ig_no(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
 
+def _ig_sent_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🔁 Отправить ещё раз", callback_data="ig:send")],
+        [InlineKeyboardButton(text="✅ Готово", callback_data="ig:done")],
+    ])
+
+
+@router.callback_query(F.data == "ig:done")
+async def ig_done(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.message.answer("Готово 👍", reply_markup=main_menu())
+    await callback.answer()
+
+
 @router.callback_query(F.data == "ig:send")
 async def ig_send(callback: CallbackQuery, state: FSMContext) -> None:
+    # НЕ очищаем состояние: если Make/Instagram не опубликовал — можно отправить ещё раз
     data = await state.get_data()
-    await state.clear()
     payload = data.get("ig_payload")
     if not payload:
         await callback.answer("Данные не найдены, начни заново: /ig", show_alert=True)
+        return
+    if not payload.get("image_urls"):
+        await callback.answer("Нет готовых картинок — нечего публиковать. Перегенерируй /ig",
+                              show_alert=True)
         return
     await callback.answer("Отправляю в Make…")
     ok, detail = await send_to_make(payload)
     if ok:
         await callback.message.answer(
             "✅ Отправил карусель в Make — он соберёт слайды и опубликует в Instagram.\n"
-            "<i>Проверь сценарий в Make, если пост не появится через пару минут.</i>",
-            reply_markup=main_menu(),
+            "<i>Если пост не появился в Instagram через пару минут — нажми «Отправить ещё раз».</i>",
+            reply_markup=_ig_sent_kb(),
         )
     else:
         await callback.message.answer(
             "❌ Не получилось отправить в Make.\n"
             f"<b>Причина:</b> {html.escape(detail or 'неизвестно')}\n\n"
-            "Проверь, что <code>MAKE_WEBHOOK_URL</code> задан верно (без лишних пробелов) "
-            "и в Make нажата кнопка запуска вебхука (Run once / сценарий включён).",
-            reply_markup=main_menu(),
+            "Проверь, что <code>MAKE_WEBHOOK_URL</code> задан верно и сценарий включён, "
+            "потом нажми «Отправить ещё раз».",
+            reply_markup=_ig_sent_kb(),
         )
 
 
