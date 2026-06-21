@@ -7,6 +7,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
+# ffmpeg нужен для видео-кружков (video note) в канал
+RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 # Сначала зависимости — чтобы слой кэшировался и пересборка была быстрой
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

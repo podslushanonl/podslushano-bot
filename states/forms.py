@@ -88,6 +88,13 @@ class AdminIG(StatesGroup):
     editing = State()
 
 
+class AdminCircle(StatesGroup):
+    """Видео-кружок в канал: ждём видео, потом подтверждение публикации."""
+
+    waiting_video = State()
+    confirm = State()
+
+
 class AdminAddSpecialist(StatesGroup):
     """Пошаговое добавление специалиста админом."""
 

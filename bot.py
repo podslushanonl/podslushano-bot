@@ -71,6 +71,7 @@ async def configure_profile(bot: Bot) -> None:
                         BotCommand(command="announce", description="Пост в канал с кнопкой (админ)"),
                         BotCommand(command="post", description="Пост в канал по теме (ИИ, админ)"),
                         BotCommand(command="setpostbutton", description="Текст кнопки под постом (админ)"),
+                        BotCommand(command="circle", description="Видео-кружок в канал (админ)"),
                         BotCommand(command="ig", description="Instagram-карусель через Make (ИИ, админ)"),
                         BotCommand(command="afishapost", description="Афиша «Чем заняться» в канал (админ)"),
                         BotCommand(command="afisha_new", description="Добавить в афишу вручную (админ)"),
