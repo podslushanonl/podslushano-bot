@@ -26,7 +26,7 @@ from sqlalchemy import func, or_, select
 
 import config
 from database.db import get_session
-from database.models import BotUser, Specialist
+from database.models import BotUser, Meta, Specialist
 from keyboards.menus import cancel_menu, main_menu
 from states.forms import (
     AdminAddSpecialist,
@@ -716,6 +716,50 @@ async def _send_post(bot, chat_id, text: str, photo_url: str | None, reply_marku
         )
 
 
+_POST_BTN_DEFAULT = "🤖 Открыть бота"
+_POST_BTN_OFF = {"off", "нет", "выкл", "-", "—"}
+
+
+async def _post_button_kb(bot) -> InlineKeyboardMarkup | None:
+    """Кнопка под постом в канале (ссылка на бота). Текст настраивается через
+    /setpostbutton; «off» — без кнопки."""
+    async with get_session() as session:
+        m = await session.get(Meta, "post_btn")
+    label = (m.value if m else _POST_BTN_DEFAULT).strip()
+    if not label or label.lower() in _POST_BTN_OFF:
+        return None
+    me = await bot.get_me()
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text=label, url=f"https://t.me/{me.username}")
+    ]])
+
+
+@router.message(Command("setpostbutton"))
+async def set_post_button(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    arg = (message.text or "").partition(" ")[2].strip()
+    if not arg:
+        async with get_session() as session:
+            m = await session.get(Meta, "post_btn")
+        cur = (m.value if m else _POST_BTN_DEFAULT)
+        await message.answer(
+            "✏️ <b>Кнопка под постом в канале.</b>\n"
+            f"Сейчас: <code>{html.escape(cur)}</code>\n\n"
+            "Чтобы изменить: <code>/setpostbutton Текст кнопки</code>\n"
+            "Убрать кнопку: <code>/setpostbutton off</code>",
+            reply_markup=main_menu(),
+        )
+        return
+    async with get_session() as session:
+        await session.merge(Meta(key="post_btn", value=arg[:60]))
+        await session.commit()
+    if arg.lower() in _POST_BTN_OFF:
+        await message.answer("Ок, посты буду публиковать без кнопки.", reply_markup=main_menu())
+    else:
+        await message.answer(f"Готово. Кнопка под постом: <b>{html.escape(arg[:60])}</b>",
+                             reply_markup=main_menu())
+
+
 def _post_confirm_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="✅ Опубликовать", callback_data="post:pub")],
@@ -783,7 +827,8 @@ async def _post_generate(message: Message, state: FSMContext, topic: str,
     await state.update_data(post_text=text, post_photo=photo_url)
     await state.set_state(AdminPost.confirm)
     await message.answer("Вот предпросмотр поста 👇")
-    await _send_post(message.bot, message.chat.id, text, photo_url)
+    await _send_post(message.bot, message.chat.id, text, photo_url,
+                     reply_markup=await _post_button_kb(message.bot))
     hint = ""
     if stock_enabled() and not photo_url:
         hint = "\n\n⚠️ Фото по теме не нашлось — опубликую без картинки."
@@ -859,7 +904,8 @@ async def post_publish(callback: CallbackQuery, state: FSMContext) -> None:
         await callback.answer("Текст не найден, начни заново: /post", show_alert=True)
         return
     try:
-        msg = await _send_post(callback.bot, config.ANNOUNCE_CHANNEL, text, photo_url)
+        msg = await _send_post(callback.bot, config.ANNOUNCE_CHANNEL, text, photo_url,
+                               reply_markup=await _post_button_kb(callback.bot))
         note = ""
         if pin and msg:
             try:
