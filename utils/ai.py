@@ -105,23 +105,40 @@ def _get_client():
     return _client
 
 
-def _web_search_tool() -> list | None:
-    """Инструмент веб-поиска (если включён) — даёт ИИ доступ к свежим данным."""
+# Доверенные источники для постов: госсайты NL и главные сайты страны
+# (без форумов и блогов). Используется в /post и /ig.
+OFFICIAL_SOURCES = [
+    "rijksoverheid.nl", "government.nl", "belastingdienst.nl", "toeslagen.nl",
+    "ind.nl", "uwv.nl", "duo.nl", "svb.nl", "kvk.nl", "cbs.nl", "rdw.nl",
+    "politie.nl", "digid.nl", "werk.nl", "rivm.nl", "ggd.nl", "knmi.nl",
+    "ns.nl", "9292.nl", "prorail.nl", "ocw.nl",
+    "amsterdam.nl", "rotterdam.nl", "denhaag.nl", "utrecht.nl", "eindhoven.nl",
+    "nos.nl", "nu.nl", "nltimes.nl", "dutchnews.nl", "iamexpat.nl",
+    "holland.com", "iamsterdam.com", "visitbrabant.com",
+]
+
+
+def _web_search_tool(allowed_domains: list | None = None) -> list | None:
+    """Инструмент веб-поиска (если включён) — даёт ИИ доступ к свежим данным.
+
+    allowed_domains — белый список доменов (для постов: только госсайты и
+    главные сайты страны, без форумов)."""
     if not config.AI_WEB_SEARCH:
         return None
-    return [
-        {
-            "type": "web_search_20250305",
-            "name": "web_search",
-            "max_uses": config.AI_WEB_MAX_USES,
-            # Подсказываем местоположение — результаты релевантнее для NL
-            "user_location": {
-                "type": "approximate",
-                "country": "NL",
-                "timezone": "Europe/Amsterdam",
-            },
-        }
-    ]
+    tool = {
+        "type": "web_search_20250305",
+        "name": "web_search",
+        "max_uses": config.AI_WEB_MAX_USES,
+        # Подсказываем местоположение — результаты релевантнее для NL
+        "user_location": {
+            "type": "approximate",
+            "country": "NL",
+            "timezone": "Europe/Amsterdam",
+        },
+    }
+    if allowed_domains:
+        tool["allowed_domains"] = allowed_domains
+    return [tool]
 
 
 def _extract_text_and_sources(response) -> tuple[str, list[str]]:
@@ -384,7 +401,9 @@ _POST_SYSTEM = (
     "Ты — редактор Telegram-канала сообщества русскоязычных в Нидерландах. Пишешь "
     "как человек, который ДАВНО живёт в NL и хорошо знает тему: экспертно, чётко, "
     "по делу. ОБЯЗАТЕЛЬНО используй веб-поиск для фактов, цифр, адресов и ссылок — "
-    "ничего не выдумывай.\n\n"
+    "ничего не выдумывай. Опирайся ТОЛЬКО на официальные источники: госсайты NL "
+    "(rijksoverheid.nl, belastingdienst.nl, ind.nl, gemeente и т.п.) и крупные "
+    "сайты страны и новости. НЕ бери информацию с форумов, блогов и отзовиков.\n\n"
     "Задача: написать ОДИН готовый пост для канала на заданную тему. На любую тему, "
     "которую задаёт редактор (места, события, приезд гостей/звёзд, документы, быт, "
     "кухня, лайфхаки), — пиши пост, не отказывайся и не предлагай обратиться "
@@ -533,7 +552,7 @@ async def ai_channel_post(
     try:
         kwargs = dict(model=config.AI_POST_MODEL, max_tokens=1400, system=_POST_SYSTEM,
                       messages=messages)
-        tools = _web_search_tool()
+        tools = _web_search_tool(OFFICIAL_SOURCES)
         if tools:
             kwargs["tools"] = tools
         resp = await client.messages.create(**kwargs)
@@ -586,7 +605,9 @@ _IG_SYSTEM = (
     "Готовишь материал для поста-карусели (формат 4:5). Пишешь экспертно, чётко, "
     "по делу, без фамильярности, сленга и грубостей, как человек, который давно "
     "живёт в NL. ОБЯЗАТЕЛЬНО используй веб-поиск для фактов, цифр, адресов и "
-    "ссылок — ничего не выдумывай.\n\n"
+    "ссылок — ничего не выдумывай. Опирайся ТОЛЬКО на официальные источники: "
+    "госсайты NL (rijksoverheid.nl, belastingdienst.nl, ind.nl, gemeente и т.п.) "
+    "и крупные сайты страны и новости. НЕ бери инфо с форумов, блогов и отзовиков.\n\n"
     "Верни СТРОГО ОДИН JSON-объект (без markdown, без пояснений) такой структуры:\n"
     "{\n"
     '  "type": "carousel" | "single",\n'
@@ -663,7 +684,7 @@ async def ai_instagram_carousel(topic: str, base_json: str | None = None,
     try:
         kwargs = dict(model=config.AI_POST_MODEL, max_tokens=2000, system=_IG_SYSTEM,
                       messages=messages)
-        tools = _web_search_tool()
+        tools = _web_search_tool(OFFICIAL_SOURCES)
         if tools:
             kwargs["tools"] = tools
         resp = await client.messages.create(**kwargs)

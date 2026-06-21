@@ -7,7 +7,9 @@
 import asyncio
 import html
 import json
+import os
 import re
+import tempfile
 from datetime import datetime, timedelta
 
 from aiogram import F, Router
@@ -17,6 +19,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import (
     CallbackQuery,
+    FSInputFile,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     InputMediaPhoto,
@@ -33,6 +36,7 @@ from states.forms import (
     AdminAfisha,
     AdminAnnounce,
     AdminBroadcast,
+    AdminCircle,
     AdminFind,
     AdminIG,
     AdminPost,
@@ -49,6 +53,7 @@ from utils.ai import (
 from utils.make import make_enabled, send_to_make
 from utils.slides import make_cta_url, make_slide_url, slides_enabled
 from utils.stock import fetch_stock_candidates, fetch_stock_photo, stock_enabled
+from utils.video import ffmpeg_available, make_circle
 from utils.season import current_season
 from utils.analytics import gather_stats
 from utils.reviews import recent_reviews
@@ -918,6 +923,122 @@ async def post_publish(callback: CallbackQuery, state: FSMContext) -> None:
         await callback.message.answer(
             f"❌ Не получилось опубликовать: {html.escape(str(e))}\n\n"
             "Проверь, что бот — админ канала с правом «Публиковать сообщения».",
+            reply_markup=main_menu(),
+        )
+    await callback.answer()
+
+
+# --- Видео-кружок (video note) в канал --------------------------------------
+
+def _circle_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Опубликовать в канал", callback_data="circle:pub")],
+        [InlineKeyboardButton(text="❌ Отмена", callback_data="circle:no")],
+    ])
+
+
+@router.message(Command("circle"))
+async def cmd_circle(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    if not config.ANNOUNCE_CHANNEL:
+        await message.answer("⚠️ Не задан канал (ANNOUNCE_CHANNEL).")
+        return
+    if not ffmpeg_available():
+        await message.answer("⚠️ ffmpeg на сервере недоступен — кружок не сделать. "
+                             "Нужен передеплой образа с ffmpeg.")
+        return
+    await state.set_state(AdminCircle.waiting_video)
+    await message.answer(
+        "🎥 Пришли видео (до 60 сек и до 20 МБ). Я обрежу его в круг и опубликую "
+        "кружком в канал. Можно прислать и готовый кружок — опубликую как есть.",
+        reply_markup=cancel_menu(),
+    )
+
+
+async def _circle_preview(message: Message, state: FSMContext,
+                          note_id: str | None, path: str | None) -> None:
+    await state.set_state(AdminCircle.confirm)
+    await state.update_data(circle_note_id=note_id, circle_path=path)
+    try:
+        if note_id:
+            await message.bot.send_video_note(message.chat.id, note_id)
+        else:
+            await message.bot.send_video_note(message.chat.id, FSInputFile(path), length=480)
+    except Exception as e:  # noqa: BLE001
+        await state.clear()
+        await message.answer(f"Не вышло показать кружок: {html.escape(str(e))}",
+                             reply_markup=main_menu())
+        return
+    await message.answer(
+        f"Опубликовать кружок в <code>{config.ANNOUNCE_CHANNEL}</code>?",
+        reply_markup=_circle_kb(),
+    )
+
+
+@router.message(AdminCircle.waiting_video, F.video_note)
+async def circle_from_note(message: Message, state: FSMContext) -> None:
+    await _circle_preview(message, state, message.video_note.file_id, None)
+
+
+@router.message(AdminCircle.waiting_video, F.video | F.document)
+async def circle_from_video(message: Message, state: FSMContext) -> None:
+    vid = message.video
+    if not vid and message.document and (message.document.mime_type or "").startswith("video"):
+        vid = message.document
+    if not vid:
+        await message.answer("Пришли именно видео 🙂")
+        return
+    if (vid.file_size or 0) > 20 * 1024 * 1024:
+        await message.answer("Видео больше 20 МБ — бот не может его скачать. "
+                             "Пришли покороче или полегче (до 20 МБ).")
+        return
+    await message.answer("⏳ Делаю кружок, секунду…")
+    await message.bot.send_chat_action(message.chat.id, action="upload_video_note")
+    tmpdir = tempfile.mkdtemp(prefix="circle_")
+    in_path = os.path.join(tmpdir, "in.mp4")
+    out_path = os.path.join(tmpdir, "out.mp4")
+    try:
+        await message.bot.download(vid, destination=in_path)
+    except Exception as e:  # noqa: BLE001
+        await message.answer(f"Не смог скачать видео: {html.escape(str(e))}",
+                             reply_markup=main_menu())
+        await state.clear()
+        return
+    ok = await make_circle(in_path, out_path)
+    if not ok:
+        await state.clear()
+        await message.answer("Не получилось обработать видео 😔 Попробуй другое "
+                             "(mp4, до 60 сек).", reply_markup=main_menu())
+        return
+    await _circle_preview(message, state, None, out_path)
+
+
+@router.callback_query(F.data == "circle:no")
+async def circle_no(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.message.answer("Отменил — кружок не опубликован.", reply_markup=main_menu())
+    await callback.answer()
+
+
+@router.callback_query(F.data == "circle:pub")
+async def circle_pub(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    await state.clear()
+    note_id = data.get("circle_note_id")
+    path = data.get("circle_path")
+    try:
+        if note_id:
+            await callback.bot.send_video_note(config.ANNOUNCE_CHANNEL, note_id)
+        elif path and os.path.exists(path):
+            await callback.bot.send_video_note(config.ANNOUNCE_CHANNEL, FSInputFile(path), length=480)
+        else:
+            await callback.answer("Видео потерялось, начни заново: /circle", show_alert=True)
+            return
+        await callback.message.answer("✅ Опубликовал кружок в канал.", reply_markup=main_menu())
+    except Exception as e:  # noqa: BLE001
+        await callback.message.answer(
+            f"❌ Не получилось опубликовать: {html.escape(str(e))}\n\n"
+            "Проверь, что бот — админ канала с правом публикации.",
             reply_markup=main_menu(),
         )
     await callback.answer()
