@@ -579,6 +579,52 @@ async def ai_channel_post(
     return text, image_query
 
 
+async def ai_post_from_source(
+    url: str, title: str, body: str
+) -> tuple[str, str] | None:
+    """Пост для канала на основе КОНКРЕТНОЙ страницы (по ссылке).
+
+    title/body — заголовок и текст уже скачанной страницы. Модель пересказывает
+    суть своими словами по правилам _POST_SYSTEM, без веб-поиска (материал уже
+    на руках) и не выдумывает фактов. В конце добавляем ссылку на источник.
+    Возвращает (текст, image_query) или None."""
+    if not ai_enabled() or not (body or "").strip():
+        return None
+    content = (
+        f"Источник (ссылка): {url}\n"
+        f"Заголовок страницы: {title or '—'}\n\n"
+        f"Текст страницы:\n{body.strip()[:12000]}\n\n"
+        "Напиши пост для нашего канала СТРОГО на основе этого материала: перескажи "
+        "суть простым человеческим языком по правилам выше. Не добавляй фактов, "
+        "которых нет в тексте, и не выдумывай цифры/даты. Если материал — новость "
+        "или статья, передай главное и почему это важно нашим читателям в "
+        "Нидерландах."
+    )
+    messages = [{"role": "user", "content": content}]
+    client = _get_client()
+    try:
+        # Веб-поиск НЕ нужен — содержимое страницы уже передано модели.
+        resp = await client.messages.create(
+            model=config.AI_POST_MODEL, max_tokens=1400, system=_POST_SYSTEM,
+            messages=messages,
+        )
+    except Exception as e:  # noqa: BLE001
+        log.warning("Ошибка ai_post_from_source: %s", e)
+        return None
+    text = _extract_text_and_sources(resp)[0].strip()
+    if not text:
+        return None
+    text, image_query = _clean_post(text)
+    if not text:
+        return None
+    # Добавляем ссылку на источник, если модель её сама не вставила.
+    if url and url not in text:
+        text = f"{text}\n\n🔗 Источник: {url}"
+    if not image_query:
+        image_query = await ai_image_keywords(title or url)
+    return text, image_query
+
+
 async def ai_image_keywords(topic: str) -> str:
     """2–4 английских ключевых слова для подбора стокового фото по теме."""
     if not ai_enabled() or not (topic or "").strip():
