@@ -47,9 +47,11 @@ from utils.ai import (
     ai_channel_post,
     ai_enabled,
     ai_instagram_carousel,
+    ai_post_from_source,
     extract_specialist_query,
     pick_best_photo,
 )
+from utils.webpage import fetch_page_text
 from utils.make import make_enabled, send_to_make
 from utils.slides import make_cta_url, make_slide_url, slides_enabled
 from utils.stock import fetch_stock_candidates, fetch_stock_photo, stock_enabled
@@ -789,10 +791,12 @@ async def cmd_post(message: Message, state: FSMContext) -> None:
         return
     await state.set_state(AdminPost.waiting_topic)
     await message.answer(
-        "📝 <b>Пост в канал.</b> Напиши тему — я подготовлю структурный пост "
-        "(факты, ссылки), покажу предпросмотр, потом опубликуем.\n\n"
-        "<i>Например: «как получить BSN», «красивые места рядом с Утрехтом осенью», "
-        "«голландская кухня: что попробовать», «лайфхаки для новоприбывших».</i>",
+        "📝 <b>Пост в канал.</b> Напиши тему — или просто пришли <b>ссылку на сайт</b>, "
+        "и я сделаю пост по этой странице. Покажу предпросмотр, потом опубликуем.\n\n"
+        "<i>Тема: «как получить BSN», «красивые места рядом с Утрехтом осенью», "
+        "«голландская кухня: что попробовать».\n"
+        "Ссылка: https://nltimes.nl/… — перескажу статью своими словами и дам "
+        "ссылку на источник.</i>",
         reply_markup=cancel_menu(),
     )
 
@@ -811,9 +815,46 @@ async def post_topic(message: Message, state: FSMContext) -> None:
     await _post_generate(message, state, message.text.strip())
 
 
+_URL_RE = re.compile(r"https?://[^\s<>]+", re.IGNORECASE)
+
+
+def _extract_url(text: str) -> str | None:
+    """Достаёт первую ссылку из сообщения (или None). Срезает хвостовую пунктуацию."""
+    m = _URL_RE.search(text or "")
+    if not m:
+        return None
+    return m.group(0).rstrip(".,);:!?»\"'")
+
+
 async def _post_generate(message: Message, state: FSMContext, topic: str,
                          base_text: str | None = None, instruction: str | None = None) -> None:
     await state.update_data(post_topic=topic)
+    # Правки существующего поста идут по тексту, ссылку повторно не открываем.
+    source_url = None if (base_text and instruction) else _extract_url(topic)
+    if source_url:
+        await message.answer("🔗 Открываю ссылку и читаю страницу…")
+        await message.bot.send_chat_action(message.chat.id, action="typing")
+        page = await fetch_page_text(source_url)
+        if not page:
+            await state.clear()
+            await message.answer(
+                "Не смог открыть эту ссылку или на странице нет текста 😔 "
+                "Проверь адрес или пришли тему словами (/post).",
+                reply_markup=main_menu(),
+            )
+            return
+        await message.answer("✍️ Пишу пост по странице, это займёт несколько секунд…")
+        await message.bot.send_chat_action(message.chat.id, action="typing")
+        result = await ai_post_from_source(source_url, page[0], page[1])
+        if not result or not result[0]:
+            await state.clear()
+            await message.answer(
+                "Не получилось собрать пост по ссылке 😔 Попробуй ещё раз (/post).",
+                reply_markup=main_menu(),
+            )
+            return
+        await _post_preview(message, state, result, topic)
+        return
     note = "✏️ Вношу правки…" if instruction else "✍️ Готовлю пост через ИИ, это займёт несколько секунд…"
     await message.answer(note)
     await message.bot.send_chat_action(message.chat.id, action="typing")
@@ -825,6 +866,14 @@ async def _post_generate(message: Message, state: FSMContext, topic: str,
             reply_markup=main_menu(),
         )
         return
+    await _post_preview(message, state, result, topic)
+
+
+async def _post_preview(message: Message, state: FSMContext,
+                        result: tuple[str, str], topic: str) -> None:
+    """Показывает предпросмотр поста (с фото) и кнопки публикации/правок.
+
+    Общий финал для постов по теме и по ссылке."""
     text, img_query = result
     photo_url = None
     if stock_enabled():
@@ -842,7 +891,7 @@ async def _post_generate(message: Message, state: FSMContext, topic: str,
                 "<code>PEXELS_API_KEY</code> (или <code>UNSPLASH_ACCESS_KEY</code>).")
     await message.answer(
         f"Опубликовать в <code>{config.ANNOUNCE_CHANNEL}</code>? "
-        f"Можно переписать на ту же тему или отменить.{hint}",
+        f"Можно переписать заново или отменить.{hint}",
         reply_markup=_post_confirm_kb(),
     )
 
