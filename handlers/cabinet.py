@@ -138,7 +138,7 @@ async def cabinet_open(message: Message, state: FSMContext) -> None:
 
     if not cards:
         await message.answer(
-            "👤 <b>Мой кабинет</b>\n\nУ тебя пока нет карточек в гайде.\n\n"
+            "👤 <b>Личный кабинет</b>\n\nУ тебя пока нет карточек в гайде.\n\n"
             "Если ты уже есть в нашем гайде — привяжи свою карточку к аккаунту "
             "(после подтверждения сможешь её редактировать и продлевать). "
             "Или добавь себя через меню «➕ Добавить себя в гайд».",
@@ -147,7 +147,7 @@ async def cabinet_open(message: Message, state: FSMContext) -> None:
         return
 
     await message.answer(
-        f"👤 <b>Мой кабинет</b>\n\nТвои карточки в гайде ({len(cards)}). "
+        f"👤 <b>Личный кабинет</b>\n\nТвои карточки в гайде ({len(cards)}). "
         "Любая правка карточки публикуется после проверки модератором.",
     )
     for _sid, text, kb in cards:
@@ -525,7 +525,7 @@ async def claim_approve(callback: CallbackQuery) -> None:
     await _safe_send(
         callback.bot, requester,
         f"✅ Карточка «{name}» привязана к твоему аккаунту. "
-        "Управляй ей в «👤 Мой кабинет специалиста».",
+        "Управляй ей в «👤 Личный кабинет».",
     )
     await callback.answer("Подтверждено")
 
