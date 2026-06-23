@@ -491,18 +491,39 @@ async def claim_approve(callback: CallbackQuery) -> None:
             await callback.answer("Уже обработано", show_alert=True)
             return
         sp = await session.get(Specialist, claim.specialist_id)
+        requester = claim.user_id
         if sp is None:
             claim.status = "rejected"
             await session.commit()
             await callback.answer("Карточка не найдена", show_alert=True)
             return
-        sp.submitter_user_id = claim.user_id
-        claim.status = "approved"
-        await session.commit()
-        owner, name = claim.user_id, sp.name
+        # Карточку мог уже привязать другой одобренной заявкой — не переназначаем
+        already = sp.submitter_user_id is not None and sp.submitter_user_id != requester
+        if already:
+            claim.status = "rejected"
+            await session.commit()
+            name = sp.name
+        else:
+            sp.submitter_user_id = requester
+            # Переводим из seed в управляемую владельцем: иначе карточку удалит
+            # пересев гайда и её обойдут напоминания/продление (они смотрят source=self)
+            sp.source = "self"
+            claim.status = "approved"
+            await session.commit()
+            name = sp.name
+    if already:
+        await _mark_done(
+            callback, "⚠️ Карточка уже привязана к другому аккаунту — заявка отклонена.")
+        await _safe_send(
+            callback.bot, requester,
+            "❌ Эту карточку уже привязал другой пользователь. "
+            "Если это ошибка — напиши нам через «✉️ Связаться с нами».",
+        )
+        await callback.answer("Уже привязана")
+        return
     await _mark_done(callback, "✅ Привязка подтверждена.")
     await _safe_send(
-        callback.bot, owner,
+        callback.bot, requester,
         f"✅ Карточка «{name}» привязана к твоему аккаунту. "
         "Управляй ей в «👤 Мой кабинет специалиста».",
     )
