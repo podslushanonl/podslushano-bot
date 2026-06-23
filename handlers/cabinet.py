@@ -125,6 +125,8 @@ async def _safe_send(bot, chat_id, text, reply_markup=None) -> None:
 
 @router.message(Command("cabinet"))
 @router.message(F.text == BTN_CABINET)
+@router.message(F.text == "👤 Мой кабинет специалиста")  # старая надпись: у кого
+# ещё закеширована прежняя клавиатура — кабинет всё равно откроется (до /start)
 async def cabinet_open(message: Message, state: FSMContext) -> None:
     await state.clear()
     uid = message.from_user.id
