@@ -125,6 +125,8 @@ async def _safe_send(bot, chat_id, text, reply_markup=None) -> None:
 
 @router.message(Command("cabinet"))
 @router.message(F.text == BTN_CABINET)
+@router.message(F.text == "👤 Мой кабинет специалиста")  # старая надпись: у кого
+# ещё закеширована прежняя клавиатура — кабинет всё равно откроется (до /start)
 async def cabinet_open(message: Message, state: FSMContext) -> None:
     await state.clear()
     uid = message.from_user.id
@@ -138,7 +140,7 @@ async def cabinet_open(message: Message, state: FSMContext) -> None:
 
     if not cards:
         await message.answer(
-            "👤 <b>Мой кабинет</b>\n\nУ тебя пока нет карточек в гайде.\n\n"
+            "👤 <b>Личный кабинет</b>\n\nУ тебя пока нет карточек в гайде.\n\n"
             "Если ты уже есть в нашем гайде — привяжи свою карточку к аккаунту "
             "(после подтверждения сможешь её редактировать и продлевать). "
             "Или добавь себя через меню «➕ Добавить себя в гайд».",
@@ -147,7 +149,7 @@ async def cabinet_open(message: Message, state: FSMContext) -> None:
         return
 
     await message.answer(
-        f"👤 <b>Мой кабинет</b>\n\nТвои карточки в гайде ({len(cards)}). "
+        f"👤 <b>Личный кабинет</b>\n\nТвои карточки в гайде ({len(cards)}). "
         "Любая правка карточки публикуется после проверки модератором.",
     )
     for _sid, text, kb in cards:
@@ -491,20 +493,49 @@ async def claim_approve(callback: CallbackQuery) -> None:
             await callback.answer("Уже обработано", show_alert=True)
             return
         sp = await session.get(Specialist, claim.specialist_id)
+        requester = claim.user_id
         if sp is None:
             claim.status = "rejected"
             await session.commit()
             await callback.answer("Карточка не найдена", show_alert=True)
             return
-        sp.submitter_user_id = claim.user_id
-        claim.status = "approved"
-        await session.commit()
-        owner, name = claim.user_id, sp.name
+        # Карточку мог уже привязать другой одобренной заявкой — не переназначаем
+        already = sp.submitter_user_id is not None and sp.submitter_user_id != requester
+        if already:
+            claim.status = "rejected"
+            await session.commit()
+            name = sp.name
+        else:
+            sp.submitter_user_id = requester
+            # Переводим из seed в управляемую владельцем: иначе карточку удалит
+            # пересев гайда и её обойдут напоминания/продление (они смотрят source=self).
+            # Старую (seed) карточку держим в грандфазере: бесплатна до общего
+            # дедлайна, затем self-напоминания/истечение попросят продлить по
+            # лояльной цене (year_legacy) — иначе она выпала бы из биллинга.
+            if sp.source == "seed":
+                sp.paid_until = config.grandfather_deadline()
+                sp.plan = "year_legacy"
+                sp.renewal_reminded = False
+                sp.status = "active"
+            sp.source = "self"
+            claim.status = "approved"
+            await session.commit()
+            name = sp.name
+    if already:
+        await _mark_done(
+            callback, "⚠️ Карточка уже привязана к другому аккаунту — заявка отклонена.")
+        await _safe_send(
+            callback.bot, requester,
+            "❌ Эту карточку уже привязал другой пользователь. "
+            "Если это ошибка — напиши нам через «✉️ Связаться с нами».",
+        )
+        await callback.answer("Уже привязана")
+        return
     await _mark_done(callback, "✅ Привязка подтверждена.")
     await _safe_send(
-        callback.bot, owner,
+        callback.bot, requester,
         f"✅ Карточка «{name}» привязана к твоему аккаунту. "
-        "Управляй ей в «👤 Мой кабинет специалиста».",
+        "Управляй ей в «👤 Личный кабинет».",
     )
     await callback.answer("Подтверждено")
 
