@@ -508,7 +508,15 @@ async def claim_approve(callback: CallbackQuery) -> None:
         else:
             sp.submitter_user_id = requester
             # Переводим из seed в управляемую владельцем: иначе карточку удалит
-            # пересев гайда и её обойдут напоминания/продление (они смотрят source=self)
+            # пересев гайда и её обойдут напоминания/продление (они смотрят source=self).
+            # Старую (seed) карточку держим в грандфазере: бесплатна до общего
+            # дедлайна, затем self-напоминания/истечение попросят продлить по
+            # лояльной цене (year_legacy) — иначе она выпала бы из биллинга.
+            if sp.source == "seed":
+                sp.paid_until = config.grandfather_deadline()
+                sp.plan = "year_legacy"
+                sp.renewal_reminded = False
+                sp.status = "active"
             sp.source = "self"
             claim.status = "approved"
             await session.commit()
