@@ -86,128 +86,326 @@ def _switch(page: str, lang: str) -> str:
 
 _PRIVACY_RU = """
 <h1>Политика конфиденциальности</h1>
-<p class="upd">Обновлено: 12.06.2026</p>
-<p>Этот документ объясняет, как Telegram-бот сообщества «Подслушано в
-Нидерландах» (@podslushano_nl_bot) обрабатывает ваши данные.</p>
-<h2>Какие данные мы собираем</h2>
+<p class="upd">Обновлено: 23.06.2026</p>
+<p>Эта политика объясняет, как сервис «Подслушано в Нидерландах»
+(Telegram-бот @podslushano_nl_bot) обрабатывает персональные данные.
+Ответственный за обработку (verwerkingsverantwoordelijke) — компания,
+указанная в реквизитах внизу страницы.</p>
+
+<h2>Какие данные мы обрабатываем</h2>
 <ul>
- <li>имя/имя пользователя и ваш Telegram-ID;</li>
- <li>содержимое, которое вы отправляете (истории, вопросы, видео, заявки на
-  рекламу и размещение) и ваши контактные данные;</li>
- <li>объявления на доске (заголовок, описание, фото, цена, город, контакт);</li>
- <li>для платных размещений — данные специалиста/бизнеса и статус оплаты.
-  Платежи проходят через Mollie; данные банковских карт мы не храним.</li>
+ <li>данные Telegram: ваш ID, имя и имя пользователя;</li>
+ <li>содержимое, которое вы присылаете: истории, вопросы, видео, заявки на
+  рекламу и размещение, а также указанные вами контакты;</li>
+ <li>объявления на доске: заголовок, описание, фото, цена, город, контакт;</li>
+ <li>карточки специалистов/бизнеса: данные специалиста, контакты, e-mail для
+  счёта и статус оплаты;</li>
+ <li>отзывы и оценки, которые вы оставляете;</li>
+ <li>данные об оплате: статус и идентификатор платежа. Платежи проходят через
+  Mollie; данные банковских карт мы не получаем и не храним;</li>
+ <li>технические и аналитические события (например, факт поиска или заявки).</li>
 </ul>
-<h2>Зачем</h2>
+
+<h2>Цели и правовые основания (GDPR/AVG)</h2>
 <ul>
- <li>показ специалистов в гайде и объявлений на доске;</li>
- <li>модерация и связь с вами;</li>
- <li>обработка оплаты за размещение.</li>
+ <li>показ специалистов, объявлений и афиши — исполнение договора (ст. 6(1)(b));</li>
+ <li>модерация, безопасность и связь с вами — законный интерес (ст. 6(1)(f));</li>
+ <li>обработка оплаты и выставление счёта — исполнение договора и юридическая
+  обязанность по налоговому учёту (ст. 6(1)(b), 6(1)(c));</li>
+ <li>ответы ИИ-ассистента — законный интерес/ваше согласие (ст. 6(1)(a),(f));</li>
+ <li>анонсы и рассылки — ваше согласие, его можно отозвать в любой момент;</li>
+ <li>аналитика для улучшения сервиса — законный интерес.</li>
 </ul>
-<h2>Основание обработки</h2>
-<p>Ваше согласие и исполнение договора (GDPR/AVG).</p>
-<h2>Передача третьим лицам</h2>
-<p>Только по необходимости: Mollie (платежи), Telegram (мессенджер) и наш
-хостинг (Railway, серверы в ЕС). Мы не продаём ваши данные.</p>
+
+<h2>Кому мы передаём данные (процессоры)</h2>
+<p>Только тем, кто нужен для работы сервиса, по договорам обработки:</p>
+<ul>
+ <li>Telegram — мессенджер, через который работает бот;</li>
+ <li>Mollie — обработка платежей;</li>
+ <li>Anthropic — ИИ-ассистент (обработка ваших вопросов для ответа);</li>
+ <li>Resend и/или Google (Gmail) — отправка счетов на e-mail;</li>
+ <li>Railway — хостинг (серверы в ЕС);</li>
+ <li>Google (Places) — фотографии мест для постов; ваши персональные данные
+  при этом не передаются.</li>
+</ul>
+<p>Мы не продаём ваши данные и не используем их для рекламы третьих лиц.</p>
+
+<h2>Передача за пределы ЕЭЗ</h2>
+<p>Часть сервисов (например, Anthropic) находится в США. Передача защищена
+стандартными договорными условиями ЕС (SCC) и дополнительными мерами.</p>
+
+<h2>Сроки хранения</h2>
+<ul>
+ <li>заявки и переписка для модерации — до 12 месяцев;</li>
+ <li>активные карточки и объявления — пока они размещены, затем разумный срок;</li>
+ <li>счета и данные о платежах — 7 лет (налоговое требование Нидерландов);</li>
+ <li>отзывы — пока актуальны или до вашего запроса об удалении;</li>
+ <li>аналитика — в обезличенном виде.</li>
+</ul>
+
+<h2>Ваши права</h2>
+<p>Вы вправе: получить доступ к своим данным, исправить их, удалить, ограничить
+обработку, на переносимость, возразить против обработки и отозвать согласие.
+Чтобы воспользоваться — напишите боту или нам на почту (реквизиты внизу).</p>
+<p>Вы также можете подать жалобу в надзорный орган — Autoriteit Persoonsgegevens
+(<a href="https://autoriteitpersoonsgegevens.nl">autoriteitpersoonsgegevens.nl</a>).</p>
+
+<h2>Автоматические решения</h2>
+<p>Мы не принимаем юридически значимых решений автоматически и не занимаемся
+профилированием.</p>
+
+<h2>Дети</h2>
+<p>Сервис не предназначен для лиц младше 16 лет. Если вам меньше 16, пользуйтесь
+сервисом только с согласия родителя или опекуна.</p>
+
 <h2>ИИ-ассистент</h2>
-<p>Свободные вопросы могут обрабатываться сервисом ИИ (Anthropic) для
-формирования ответа. Не отправляйте в чат чувствительные персональные данные.</p>
-<p>Если вы добровольно присылаете фото письма/документа для разбора, оно
-передаётся ИИ-сервису (Anthropic) только для формирования ответа и
-<b>не сохраняется</b> нами. Не присылайте чужие документы без согласия их
-владельца. Разбор носит справочный характер и не является юридической
-консультацией.</p>
-<h2>Хранение и ваши права</h2>
-<p>Мы храним данные столько, сколько необходимо. Вы вправе запросить доступ,
-исправление и удаление. Напишите боту или нам на почту — и мы удалим ваши данные.</p>
+<p>Свободные вопросы и присланные фото документов обрабатываются ИИ-сервисом
+(Anthropic) только для формирования ответа и <b>не сохраняются</b> нами. Не
+присылайте чувствительные или чужие персональные данные без согласия. Ответы
+носят справочный характер и не являются юридической консультацией.</p>
+
+<h2>Cookies и безопасность</h2>
+<p>На наших страницах нет рекламных или трекинговых cookies. Мы принимаем
+разумные технические и организационные меры для защиты данных.</p>
+
+<h2>Изменения</h2>
+<p>Мы можем обновлять эту политику; актуальная дата указана сверху.</p>
 """
 
 _PRIVACY_NL = """
 <h1>Privacyverklaring</h1>
-<p class="upd">Laatst bijgewerkt: 12-06-2026</p>
-<p>Deze verklaring legt uit hoe de Telegram-bot van Podslushano.nl
-(@podslushano_nl_bot) met je gegevens omgaat.</p>
+<p class="upd">Laatst bijgewerkt: 23-06-2026</p>
+<p>Deze verklaring legt uit hoe de dienst «Podslushano in Nederland»
+(Telegram-bot @podslushano_nl_bot) persoonsgegevens verwerkt. De
+verwerkingsverantwoordelijke is het bedrijf vermeld in de bedrijfsgegevens
+onderaan deze pagina.</p>
+
 <h2>Welke gegevens we verwerken</h2>
 <ul>
- <li>je naam/gebruikersnaam en Telegram-ID;</li>
- <li>inhoud die je instuurt (verhalen, vragen, video's, advertentie- en
-  vermeldingsaanvragen) en je contactgegevens;</li>
- <li>advertenties op het prikbord (titel, omschrijving, foto, prijs, plaats, contact);</li>
- <li>bij betaalde vermeldingen: bedrijfs- en contactinformatie en de betaalstatus.
-  Betalingen verlopen via Mollie; wij slaan geen kaartgegevens op.</li>
+ <li>Telegram-gegevens: je ID, naam en gebruikersnaam;</li>
+ <li>inhoud die je instuurt: verhalen, vragen, video's, advertentie- en
+  vermeldingsaanvragen en de door jou opgegeven contactgegevens;</li>
+ <li>advertenties op het prikbord: titel, omschrijving, foto, prijs, plaats, contact;</li>
+ <li>vermeldingen van specialisten/bedrijven: gegevens, contact, factuur-e-mail
+  en betaalstatus;</li>
+ <li>beoordelingen en waarderingen die je achterlaat;</li>
+ <li>betaalgegevens: status en betaal-ID. Betalingen lopen via Mollie; wij
+  ontvangen of bewaren geen kaartgegevens;</li>
+ <li>technische en analytische gebeurtenissen (zoals een zoekopdracht of aanvraag).</li>
 </ul>
-<h2>Waarvoor</h2>
+
+<h2>Doelen en grondslagen (AVG/GDPR)</h2>
 <ul>
- <li>het tonen van specialisten in de gids en advertenties op het prikbord;</li>
- <li>moderatie en communicatie;</li>
- <li>het verwerken van betalingen voor vermeldingen.</li>
+ <li>tonen van specialisten, advertenties en agenda — uitvoering overeenkomst (art. 6(1)(b));</li>
+ <li>moderatie, veiligheid en communicatie — gerechtvaardigd belang (art. 6(1)(f));</li>
+ <li>betalingen en facturen — uitvoering overeenkomst en wettelijke (fiscale)
+  verplichting (art. 6(1)(b), 6(1)(c));</li>
+ <li>antwoorden van de AI-assistent — gerechtvaardigd belang/toestemming (art. 6(1)(a),(f));</li>
+ <li>aankondigingen en mailings — je toestemming, die je altijd kunt intrekken;</li>
+ <li>analyse ter verbetering van de dienst — gerechtvaardigd belang.</li>
 </ul>
-<h2>Grondslag</h2>
-<p>Toestemming en de uitvoering van de overeenkomst (AVG/GDPR).</p>
-<h2>Delen met derden</h2>
-<p>Alleen waar nodig: Mollie (betalingen), Telegram (berichtenplatform) en onze
-hosting (Railway, servers in de EU). We verkopen je gegevens niet.</p>
+
+<h2>Met wie we gegevens delen (verwerkers)</h2>
+<p>Alleen waar nodig voor de dienst, op basis van verwerkersovereenkomsten:</p>
+<ul>
+ <li>Telegram — het berichtenplatform van de bot;</li>
+ <li>Mollie — betalingsverwerking;</li>
+ <li>Anthropic — AI-assistent (verwerkt je vragen om te antwoorden);</li>
+ <li>Resend en/of Google (Gmail) — verzenden van facturen per e-mail;</li>
+ <li>Railway — hosting (servers in de EU);</li>
+ <li>Google (Places) — foto's van locaties voor posts; je persoonsgegevens
+  worden hierbij niet gedeeld.</li>
+</ul>
+<p>We verkopen je gegevens niet en gebruiken ze niet voor advertenties van derden.</p>
+
+<h2>Doorgifte buiten de EER</h2>
+<p>Sommige diensten (zoals Anthropic) bevinden zich in de VS. Doorgifte is
+beschermd met EU-modelcontractbepalingen (SCC) en aanvullende maatregelen.</p>
+
+<h2>Bewaartermijnen</h2>
+<ul>
+ <li>aanvragen en correspondentie voor moderatie — tot 12 maanden;</li>
+ <li>actieve vermeldingen en advertenties — zolang ze geplaatst zijn, daarna een
+  redelijke termijn;</li>
+ <li>facturen en betaalgegevens — 7 jaar (Nederlandse fiscale bewaarplicht);</li>
+ <li>beoordelingen — zolang relevant of tot je verzoek om verwijdering;</li>
+ <li>analyse — in geanonimiseerde vorm.</li>
+</ul>
+
+<h2>Je rechten</h2>
+<p>Je hebt recht op inzage, correctie, verwijdering, beperking van de verwerking,
+dataportabiliteit, bezwaar en het intrekken van toestemming. Stuur hiervoor een
+bericht in de bot of mail ons (gegevens onderaan).</p>
+<p>Je kunt ook een klacht indienen bij de Autoriteit Persoonsgegevens
+(<a href="https://autoriteitpersoonsgegevens.nl">autoriteitpersoonsgegevens.nl</a>).</p>
+
+<h2>Geautomatiseerde besluiten</h2>
+<p>We nemen geen besluiten met rechtsgevolg op puur geautomatiseerde wijze en doen
+niet aan profilering.</p>
+
+<h2>Kinderen</h2>
+<p>De dienst is niet bedoeld voor personen jonger dan 16 jaar. Ben je jonger dan
+16, gebruik de dienst dan alleen met toestemming van een ouder of voogd.</p>
+
 <h2>AI-assistent</h2>
-<p>Vrije vragen kunnen worden verwerkt door een AI-dienst (Anthropic) om te
-antwoorden. Deel geen gevoelige persoonsgegevens in de chat.</p>
-<h2>Bewaren en je rechten</h2>
-<p>We bewaren gegevens zolang dat nodig is. Je hebt recht op inzage, correctie en
-verwijdering. Stuur een bericht in de bot of mail ons.</p>
+<p>Vrije vragen en ingestuurde foto's van documenten worden door een AI-dienst
+(Anthropic) uitsluitend verwerkt om te antwoorden en worden door ons <b>niet
+bewaard</b>. Deel geen gevoelige of andermans persoonsgegevens zonder toestemming.
+Antwoorden zijn informatief en vormen geen juridisch advies.</p>
+
+<h2>Cookies en beveiliging</h2>
+<p>Onze pagina's gebruiken geen reclame- of trackingcookies. We nemen redelijke
+technische en organisatorische maatregelen om gegevens te beschermen.</p>
+
+<h2>Wijzigingen</h2>
+<p>We kunnen deze verklaring bijwerken; de actuele datum staat bovenaan.</p>
 """
 
 _TERMS_RU = """
-<h1>Условия размещения в гайде</h1>
-<p class="upd">Обновлено: 12.06.2026</p>
-<h2>Услуга</h2>
-<p>Размещение вашей карточки (специалист или бизнес) в гайде «Подслушано в
-Нидерландах» через Telegram-бот.</p>
-<h2>Тарифы и срок</h2>
-<p>Цена и период указаны в боте (месяц или год). Размещение действует выбранный
-период и затем прекращается, если вы не продлите его новой оплатой. Перед
-окончанием мы пришлём напоминание.</p>
-<h2>Проверка</h2>
-<p>Каждая заявка проверяется нами до публикации. Мы вправе отклонить или удалить
-карточку — например, при неверном или неуместном содержании.</p>
-<h2>Оплата</h2>
-<p>Оплата проходит безопасно через Mollie (в т.ч. iDEAL).</p>
+<h1>Условия использования</h1>
+<p class="upd">Обновлено: 23.06.2026</p>
+<p>Эти условия регулируют пользование сервисом «Подслушано в Нидерландах»
+(Telegram-бот @podslushano_nl_bot), который предоставляет компания, указанная в
+реквизитах внизу страницы.</p>
+
+<h2>Услуги</h2>
+<p>Гайд специалистов, доска объявлений, афиша мероприятий, отзывы, ИИ-ассистент и
+личный кабинет специалиста для управления карточкой и подпиской.</p>
+
+<h2>Правила использования</h2>
+<ul>
+ <li>указывайте достоверные данные и только те контакты, на которые имеете право;</li>
+ <li>запрещены незаконный, оскорбительный, мошеннический контент и спам;</li>
+ <li>не публикуйте чужие персональные данные без согласия владельца.</li>
+</ul>
+<p>Мы вправе проверять, отклонять, скрывать или удалять контент и ограничивать
+доступ при нарушении правил.</p>
+
+<h2>Размещение специалистов и кабинет</h2>
+<p>Размещение карточки платное; цена и срок (месяц или год) указаны в боте и
+включают BTW. Каждая заявка проходит проверку до публикации. Размещение
+действует выбранный период и прекращается без продления новой оплатой; перед
+окончанием мы пришлём напоминание. В личном кабинете специалист управляет своей
+карточкой и подпиской; <b>каждая правка карточки вступает в силу только после
+одобрения модератором</b>.</p>
+
+<h2>Доска и афиша</h2>
+<p>Объявления и мероприятия проходят модерацию. Часть опций (например, «поднять»
+объявление или размещение в афише) платная — условия показаны в боте.</p>
+
+<h2>Отзывы</h2>
+<p>Отзывы должны быть честными и основанными на личном опыте. Мы можем удалять
+фейковые, оскорбительные или вводящие в заблуждение отзывы.</p>
+
+<h2>Оплата и счета</h2>
+<p>Оплата проходит через Mollie (в т.ч. iDEAL, карты). Цены включают BTW 21%;
+после оплаты мы присылаем счёт с разбивкой BTW на e-mail.</p>
+
 <h2>Право на отказ и возвраты</h2>
 <p>У бизнес-клиентов нет законного «права на отказ». У потребителей есть 14 дней
-на отказ; соглашаясь и запуская услугу сразу, вы даёте согласие на немедленное
-исполнение. Если заявку отклонили — мы возвращаем сумму.</p>
+на отказ от договора; соглашаясь и запуская услугу сразу, вы даёте согласие на
+немедленное исполнение. Если заявку отклонили — мы возвращаем сумму.</p>
+
+<h2>Интеллектуальная собственность</h2>
+<p>Бренд, оформление и материалы сервиса принадлежат нам. Присылая контент, вы
+разрешаете показывать его в рамках сервиса; ответственность за этот контент
+остаётся на вас.</p>
+
 <h2>Ответственность</h2>
-<p>Рекламодатель отвечает за достоверность предоставленных данных. Гайд носит
-информационный характер; мы не являемся стороной договорённостей между
-пользователями и специалистами.</p>
-<h2>Применимое право</h2>
-<p>К настоящим условиям применяется право Нидерландов.</p>
+<p>Гайд и материалы носят информационный характер; мы не являемся стороной
+договорённостей между пользователями и специалистами и не гарантируем результат.
+Ответы ИИ — справочные и не заменяют профессиональную консультацию. Наша
+ответственность ограничена суммой, которую вы оплатили за соответствующую услугу.</p>
+
+<h2>Прекращение</h2>
+<p>Мы можем приостановить или прекратить доступ при нарушении этих условий.</p>
+
+<h2>Конфиденциальность</h2>
+<p>Обработка персональных данных описана в нашей Политике конфиденциальности.</p>
+
+<h2>Применимое право и споры</h2>
+<p>Применяется право Нидерландов; споры рассматривает компетентный суд
+Нидерландов. Жалобу можно направить нам на почту. Потребители из ЕС также могут
+использовать платформу ЕС для разрешения споров онлайн (ODR):
+<a href="https://ec.europa.eu/consumers/odr">ec.europa.eu/consumers/odr</a>.</p>
+
+<h2>Изменения</h2>
+<p>Мы можем обновлять эти условия; актуальная дата указана сверху.</p>
 """
 
 _TERMS_NL = """
-<h1>Algemene voorwaarden — vermelding in de gids</h1>
-<p class="upd">Laatst bijgewerkt: 12-06-2026</p>
-<h2>Dienst</h2>
-<p>Plaatsing van jouw vermelding (specialist of bedrijf) in de Podslushano-gids
-via de Telegram-bot.</p>
-<h2>Tarieven en looptijd</h2>
-<p>De prijs en periode worden in de bot getoond (maandelijks of jaarlijks). De
-vermelding is geldig voor de gekozen periode en verloopt daarna, tenzij je
-verlengt via een nieuwe betaling. Vóór het einde sturen we een herinnering.</p>
-<h2>Beoordeling</h2>
-<p>Elke aanvraag wordt vóór publicatie door ons gecontroleerd. We kunnen een
-vermelding weigeren of verwijderen, bijvoorbeeld bij onjuiste of ongepaste inhoud.</p>
-<h2>Betaling</h2>
-<p>Betalingen verlopen veilig via Mollie (o.a. iDEAL).</p>
+<h1>Algemene voorwaarden</h1>
+<p class="upd">Laatst bijgewerkt: 23-06-2026</p>
+<p>Deze voorwaarden gelden voor het gebruik van de dienst «Podslushano in
+Nederland» (Telegram-bot @podslushano_nl_bot), aangeboden door het bedrijf
+vermeld in de bedrijfsgegevens onderaan deze pagina.</p>
+
+<h2>Diensten</h2>
+<p>Specialistengids, prikbord, evenementenagenda, beoordelingen, AI-assistent en
+een persoonlijk account voor specialisten om hun vermelding en abonnement te
+beheren.</p>
+
+<h2>Gebruiksregels</h2>
+<ul>
+ <li>verstrek juiste gegevens en alleen contactgegevens waarover je mag beschikken;</li>
+ <li>onwettige, beledigende of frauduleuze inhoud en spam zijn verboden;</li>
+ <li>plaats geen persoonsgegevens van anderen zonder hun toestemming.</li>
+</ul>
+<p>We mogen inhoud controleren, weigeren, verbergen of verwijderen en toegang
+beperken bij overtreding.</p>
+
+<h2>Vermeldingen en account</h2>
+<p>Een vermelding is betaald; prijs en looptijd (maand of jaar) staan in de bot en
+zijn inclusief btw. Elke aanvraag wordt vóór publicatie gecontroleerd. De
+vermelding geldt voor de gekozen periode en stopt zonder verlenging via een nieuwe
+betaling; vóór het einde sturen we een herinnering. In het account beheert de
+specialist zijn vermelding en abonnement; <b>elke wijziging van de vermelding
+wordt pas actief na goedkeuring door een moderator</b>.</p>
+
+<h2>Prikbord en agenda</h2>
+<p>Advertenties en evenementen worden gemodereerd. Sommige opties (zoals een
+advertentie «omhoog» of plaatsing in de agenda) zijn betaald — de voorwaarden
+staan in de bot.</p>
+
+<h2>Beoordelingen</h2>
+<p>Beoordelingen moeten eerlijk zijn en op eigen ervaring gebaseerd. We kunnen
+valse, beledigende of misleidende beoordelingen verwijderen.</p>
+
+<h2>Betaling en facturen</h2>
+<p>Betalingen verlopen via Mollie (o.a. iDEAL, kaart). Prijzen zijn inclusief 21%
+btw; na betaling sturen we een factuur met btw-specificatie per e-mail.</p>
+
 <h2>Herroeping en restitutie</h2>
 <p>Zakelijke klanten hebben geen wettelijk herroepingsrecht. Consumenten hebben in
 beginsel 14 dagen herroepingsrecht; door akkoord te gaan en de dienst direct te
-laten ingaan, stem je in met onmiddellijke uitvoering. Wordt je aanvraag
-afgewezen, dan betalen we het bedrag terug.</p>
-<h2>Verantwoordelijkheid</h2>
-<p>De adverteerder is verantwoordelijk voor de juistheid van de aangeleverde
-gegevens. De gids is informatief; wij zijn geen partij bij afspraken tussen
-gebruikers en specialisten.</p>
-<h2>Toepasselijk recht</h2>
-<p>Op deze voorwaarden is Nederlands recht van toepassing.</p>
+laten ingaan, stem je in met onmiddellijke uitvoering. Wordt je aanvraag afgewezen,
+dan betalen we het bedrag terug.</p>
+
+<h2>Intellectueel eigendom</h2>
+<p>Het merk, de vormgeving en materialen van de dienst zijn van ons. Door inhoud in
+te sturen geef je ons toestemming die binnen de dienst te tonen; je blijft zelf
+verantwoordelijk voor die inhoud.</p>
+
+<h2>Aansprakelijkheid</h2>
+<p>De gids en materialen zijn informatief; wij zijn geen partij bij afspraken
+tussen gebruikers en specialisten en garanderen geen resultaat. AI-antwoorden zijn
+informatief en vervangen geen professioneel advies. Onze aansprakelijkheid is
+beperkt tot het bedrag dat je voor de betreffende dienst hebt betaald.</p>
+
+<h2>Beëindiging</h2>
+<p>We kunnen toegang opschorten of beëindigen bij overtreding van deze voorwaarden.</p>
+
+<h2>Privacy</h2>
+<p>De verwerking van persoonsgegevens staat in onze Privacyverklaring.</p>
+
+<h2>Toepasselijk recht en geschillen</h2>
+<p>Nederlands recht is van toepassing; geschillen worden voorgelegd aan de bevoegde
+Nederlandse rechter. Een klacht kun je ons mailen. EU-consumenten kunnen ook het
+EU-platform voor onlinegeschillenbeslechting (ODR) gebruiken:
+<a href="https://ec.europa.eu/consumers/odr">ec.europa.eu/consumers/odr</a>.</p>
+
+<h2>Wijzigingen</h2>
+<p>We kunnen deze voorwaarden bijwerken; de actuele datum staat bovenaan.</p>
 """
 
 
