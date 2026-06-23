@@ -176,3 +176,15 @@ class ClaimPay(StatesGroup):
     """Оплата «старожилом» карточки из старого гайда: спрашиваем e-mail для счёта."""
 
     waiting_email = State()
+
+
+class CabinetEdit(StatesGroup):
+    """Личный кабинет: специалист вводит новое значение поля (уйдёт на модерацию)."""
+
+    waiting_value = State()
+
+
+class CabinetClaim(StatesGroup):
+    """Личный кабинет: поиск своей карточки в гайде для привязки (с одобрением)."""
+
+    waiting_query = State()

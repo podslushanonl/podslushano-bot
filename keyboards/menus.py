@@ -23,6 +23,7 @@ BTN_GUIDE = "📚 Полезное о жизни в NL"
 BTN_LETTER = "📩 Разобрать письмо"
 BTN_SALARY = "🧮 Калькулятор зарплаты"
 BTN_SELF_ADD = "➕ Добавить себя в гайд"
+BTN_CABINET = "👤 Мой кабинет специалиста"
 BTN_STICKERS = "🎨 Наши стикеры"
 BTN_CONTACT = "✉️ Связаться с нами"
 BTN_SHARE = "📣 Поделиться ботом"
@@ -43,6 +44,7 @@ def main_menu() -> ReplyKeyboardMarkup:
     # Кнопка платного само-добавления — только если подключена оплата
     if config.payments_enabled():
         keyboard.append([KeyboardButton(text=BTN_SELF_ADD)])
+        keyboard.append([KeyboardButton(text=BTN_CABINET)])
     # Кнопка стикерпака — только если задана ссылка в настройках
     if config.STICKER_PACK_URL:
         keyboard.append([KeyboardButton(text=BTN_STICKERS)])

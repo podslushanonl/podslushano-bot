@@ -77,10 +77,9 @@ AI_CHAT_MODEL: str = os.getenv("AI_CHAT_MODEL", "claude-haiku-4-5-20251001")
 AI_VISION_MODEL: str = os.getenv("AI_VISION_MODEL", "claude-sonnet-4-6")
 # Модель для генерации постов в канал (/post) — качество важнее цены, постов мало.
 AI_POST_MODEL: str = os.getenv("AI_POST_MODEL", "claude-sonnet-4-6")
-# Фотосток для картинок к постам: достаточно одного ключа (Pexels проще). Пусто = без фото.
-PEXELS_API_KEY: str = os.getenv("PEXELS_API_KEY", "")
-UNSPLASH_ACCESS_KEY: str = os.getenv("UNSPLASH_ACCESS_KEY", "")
-PIXABAY_API_KEY: str = os.getenv("PIXABAY_API_KEY", "")
+# Google Places API (New) — реальные фото КОНКРЕТНЫХ мест для постов (/post) и
+# каруселей (/ig). Нужен ключ с включённым Places API и биллингом. Пусто = без фото.
+GOOGLE_MAPS_API_KEY: str = os.getenv("GOOGLE_MAPS_API_KEY", "")
 # Вебхук Make для авто-публикации Instagram-каруселей (бот шлёт туда JSON с
 # готовыми слайдами и подписью, Make публикует). Пусто = функция выключена.
 MAKE_WEBHOOK_URL: str = os.getenv("MAKE_WEBHOOK_URL", "")

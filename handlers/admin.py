@@ -54,7 +54,7 @@ from utils.ai import (
 from utils.webpage import fetch_page_text
 from utils.make import make_enabled, send_to_make
 from utils.slides import make_cta_url, make_slide_url, slides_enabled
-from utils.stock import fetch_stock_candidates, fetch_stock_photo, stock_enabled
+from utils.places import fetch_place_candidates, fetch_place_photo, places_enabled
 from utils.video import ffmpeg_available, make_circle
 from utils.season import current_season
 from utils.analytics import gather_stats
@@ -876,19 +876,19 @@ async def _post_preview(message: Message, state: FSMContext,
     Общий финал для постов по теме и по ссылке."""
     text, img_query = result
     photo_url = None
-    if stock_enabled():
-        photo_url = await fetch_stock_photo(img_query or topic)
+    if places_enabled():
+        photo_url = await fetch_place_photo(img_query or topic)
     await state.update_data(post_text=text, post_photo=photo_url)
     await state.set_state(AdminPost.confirm)
     await message.answer("Вот предпросмотр поста 👇")
     await _send_post(message.bot, message.chat.id, text, photo_url,
                      reply_markup=await _post_button_kb(message.bot))
     hint = ""
-    if stock_enabled() and not photo_url:
+    if places_enabled() and not photo_url:
         hint = "\n\n⚠️ Фото по теме не нашлось — опубликую без картинки."
-    elif not stock_enabled():
-        hint = ("\n\n💡 Чтобы к постам добавлялись фото, задай переменную "
-                "<code>PEXELS_API_KEY</code> (или <code>UNSPLASH_ACCESS_KEY</code>).")
+    elif not places_enabled():
+        hint = ("\n\n💡 Чтобы к постам добавлялись реальные фото мест, задай "
+                "переменную <code>GOOGLE_MAPS_API_KEY</code> (Google Places API).")
     await message.answer(
         f"Опубликовать в <code>{config.ANNOUNCE_CHANNEL}</code>? "
         f"Можно переписать заново или отменить.{hint}",
@@ -1116,9 +1116,9 @@ async def cmd_ig(message: Message, state: FSMContext) -> None:
     if not ai_enabled():
         await message.answer("ИИ сейчас недоступен 🙏 (не настроен ключ или нет баланса).")
         return
-    if not stock_enabled():
+    if not places_enabled():
         await message.answer(
-            "⚠️ Не задан ключ фотостока (<code>PEXELS_API_KEY</code>) — слайды уйдут без "
+            "⚠️ Не задан <code>GOOGLE_MAPS_API_KEY</code> (Google Places) — слайды уйдут без "
             "реальных фото. Лучше сначала задать ключ."
         )
     if not slides_enabled():
@@ -1172,10 +1172,10 @@ async def _ig_build_payload(topic: str, data: dict, avoid: set[str] | None = Non
     async def pick(query: str, desc: str) -> str:
         """Кандидаты из всех стоков (+ вариант «с воздуха») → ИИ-vision выбирает
         самый подходящий и интересный кадр. Без повторов между слайдами."""
-        if not stock_enabled():
+        if not places_enabled():
             return ""
-        base = await fetch_stock_candidates(_nl_query(query or topic), "portrait", 6)
-        aerial = await fetch_stock_candidates(
+        base = await fetch_place_candidates(_nl_query(query or topic), "portrait", 6)
+        aerial = await fetch_place_candidates(
             _nl_query(f"{query or topic} aerial drone view"), "portrait", 4)
         pool, seen = [], set()
         for u in base + aerial:
@@ -1326,7 +1326,7 @@ async def _ig_generate(message: Message, state: FSMContext, topic: str,
     except Exception:  # noqa: BLE001
         await message.answer(re.sub(r"<[^>]+>", "", preview), disable_web_page_preview=True)
     note = ""
-    if stock_enabled() and len(payload["image_urls"]) < payload["slides_count"]:
+    if places_enabled() and len(payload["image_urls"]) < payload["slides_count"]:
         note = "\n\n⚠️ К части слайдов фото не нашлось — Make подставит свой фон/шаблон."
     await message.answer(
         "Отправить в Make на публикацию в Instagram?" + note,

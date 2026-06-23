@@ -69,6 +69,39 @@ class Specialist(Base):
     photo_file_id: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
+class SpecialistEdit(Base):
+    """Предложенная специалистом правка своей карточки — ждёт одобрения модератора."""
+
+    __tablename__ = "specialist_edits"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    specialist_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(BigInteger)
+    # Какое поле меняем: name | category | city | description | contact | photo
+    field: Mapped[str] = mapped_column(String(30))
+    # Новое значение (для photo — Telegram file_id)
+    new_value: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Статус: pending | approved | rejected
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class SpecialistClaim(Base):
+    """Заявка специалиста на привязку к себе карточки из гайда — ждёт одобрения."""
+
+    __tablename__ = "specialist_claims"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    specialist_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(BigInteger)
+    username: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Необязательное пояснение от заявителя (подтверждение, что это его карточка)
+    note: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Статус: pending | approved | rejected
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class Meta(Base):
     """Служебная таблица «ключ-значение» (например, версия засева базы)."""
 

@@ -10,8 +10,8 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 import config
 from database.db import init_db
 from handlers import (
-    admin, afisha, board, chat, contacts, errors, events, guides, letters, moderation,
-    salary, selfadd, share, start, submissions, support,
+    admin, afisha, board, cabinet, chat, contacts, errors, events, guides, letters,
+    moderation, salary, selfadd, share, start, submissions, support,
 )
 from handlers.selfadd import reminder_loop
 from utils.limits import ThrottleMiddleware
@@ -119,6 +119,7 @@ async def main() -> None:
     dp.include_router(board.router)  # 📋 доска объявлений
     dp.include_router(afisha.router)  # 📅 платная «Афиша месяца» (мероприятия)
     dp.include_router(selfadd.router)  # платное само-добавление в гайд
+    dp.include_router(cabinet.router)  # 👤 личный кабинет специалиста (с модерацией правок)
     dp.include_router(submissions.router)
     dp.include_router(contacts.router)
     dp.include_router(moderation.router)
