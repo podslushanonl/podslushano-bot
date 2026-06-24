@@ -171,6 +171,23 @@ def plan_info(plan: str) -> dict:
     if premium:
         title += " 🌟 Премиум"
     return {"plan": plan, "price": price, "days": days, "title": title, "premium": premium}
+
+
+# --- Реферальная программа в гайде ------------------------------------------
+# Скидка приглашённому специалисту на ГОДОВОЕ размещение (Стандарт/Премиум).
+REFERRAL_DISCOUNT: float = 0.20
+# Награда пригласившему: бонусный Премиум на столько дней.
+REFERRAL_PREMIUM_DAYS: int = _int_env("REFERRAL_PREMIUM_DAYS", 90)
+
+
+def discounted_price(price: str, discount: float = REFERRAL_DISCOUNT) -> str:
+    """Цена со скидкой строкой '12.34' (как требует Mollie)."""
+    try:
+        return f"{float(price) * (1 - discount):.2f}"
+    except ValueError:
+        return price
+
+
 # Публичный адрес сервиса для webhook оплаты. Railway генерирует домен —
 # берём его автоматически, либо можно задать WEBHOOK_BASE_URL вручную.
 _railway_domain = os.getenv("RAILWAY_PUBLIC_DOMAIN", "")

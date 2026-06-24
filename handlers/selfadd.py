@@ -92,11 +92,11 @@ def _review_kb(spec_id: int) -> InlineKeyboardMarkup:
     )
 
 
-def _pay_kb(checkout_url: str, plan: str) -> InlineKeyboardMarkup:
-    info = config.plan_info(plan)
+def _pay_kb(checkout_url: str, plan: str, amount: str | None = None) -> InlineKeyboardMarkup:
+    price = amount or config.plan_info(plan)["price"]
     return InlineKeyboardMarkup(
         inline_keyboard=[[InlineKeyboardButton(
-            text=f"💳 Оплатить {info['price']} {config.LISTING_CURRENCY}", url=checkout_url)]]
+            text=f"💳 Оплатить {price} {config.LISTING_CURRENCY}", url=checkout_url)]]
     )
 
 
@@ -282,6 +282,9 @@ async def _create_listing_and_pay(message, state: FSMContext, plan: str,
     info = config.plan_info(plan)
     data = await state.get_data()
     async with get_session() as session:
+        # Пришёл ли пользователь по реф-ссылке специалиста (?start=spref_<id>)
+        ref_meta = await session.get(Meta, f"spref:{uid}")
+        ref_sid = int(ref_meta.value) if ref_meta and ref_meta.value.isdigit() else None
         sp = Specialist(
             name=data["sp_name"],
             category=data["sp_category"],
@@ -297,6 +300,7 @@ async def _create_listing_and_pay(message, state: FSMContext, plan: str,
             submitter_user_id=uid,
             invoice_email=data.get("sp_email"),
             plan=plan,
+            referred_by_specialist_id=ref_sid,
         )
         session.add(sp)
         await session.commit()
@@ -304,10 +308,14 @@ async def _create_listing_and_pay(message, state: FSMContext, plan: str,
         sid, name = sp.id, sp.name
     await state.clear()
 
+    # Скидка -20% приглашённому на ГОДОВОЕ размещение (Стандарт/Премиум)
+    referral_year = bool(ref_sid) and plan in ("year", "year_premium")
+    amount = config.discounted_price(info["price"]) if referral_year else info["price"]
+
     payment = await create_payment(
         f"{DESC_NEW}: {name}",
         {"specialist_id": sid, "kind": "new", "plan": plan},
-        info["price"],
+        amount,
     )
     if not payment or not payment.get("checkout_url"):
         await message.answer(
@@ -321,8 +329,13 @@ async def _create_listing_and_pay(message, state: FSMContext, plan: str,
             sp.payment_id = payment["id"]
             await session.commit()
     # Возвращаем обычное меню (убираем клавиатуру «Отмена» из анкеты)
+    tariff = (
+        f"<s>{info['price']}</s> → <b>{amount} {config.LISTING_CURRENCY}</b> "
+        f"(−20% по приглашению, {info['title']})"
+        if referral_year else f"<b>{_price_str(plan)}</b>"
+    )
     await message.answer(
-        f"Почти готово! 🎉 Тариф: <b>{_price_str(plan)}</b>.\n\n"
+        f"Почти готово! 🎉 Тариф: {tariff}.\n\n"
         "После оплаты мы проверим анкету и опубликуем карточку — я напишу тебе ✅\n\n"
         f'Оплачивая, ты соглашаешься с <a href="{config.terms_url()}">Условиями</a> '
         f'и <a href="{config.privacy_url()}">Политикой конфиденциальности</a>.',
@@ -331,7 +344,7 @@ async def _create_listing_and_pay(message, state: FSMContext, plan: str,
     )
     await message.answer(
         "👇 Кнопка для оплаты:",
-        reply_markup=_pay_kb(payment["checkout_url"], plan),
+        reply_markup=_pay_kb(payment["checkout_url"], plan, amount),
     )
 
 
@@ -399,8 +412,12 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         sub, name, card = sp.submitter_user_id, sp.name, _card_text(sp)
         sp_id = sp.id
         inv_email = sp.invoice_email
+        referred_by = sp.referred_by_specialist_id
         new_cat = sp.category if sp.category not in CATEGORIES else None
     await log_event("payment", f"{kind}:{plan}")
+
+    # Сумма для счёта — фактически оплаченная (учитывает реф-скидку), а не по тарифу
+    paid_amount = (payment.get("amount") or {}).get("value") or info["price"]
 
     # Счёт (factuur) на e-mail
     if inv_email:
@@ -408,7 +425,7 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         ok = False
         try:
             from utils.invoices import send_invoice
-            ok, _ = await send_invoice(inv_email, name, desc, info["price"])
+            ok, _ = await send_invoice(inv_email, name, desc, paid_amount)
         except Exception as e:  # noqa: BLE001
             log.warning("Не удалось отправить счёт: %s", e)
         if ok:
@@ -462,12 +479,90 @@ async def on_payment_paid(bot, payment_id: str) -> None:
             "я напишу, как только всё готово ✅",
         )
 
+    # Реферальная награда: пригласивший получает бонусный Премиум на 3 месяца
+    if referred_by:
+        await _reward_referrer(bot, int(referred_by), sp_id, sub)
+
 
 async def _safe_send(bot, chat_id, text, reply_markup=None) -> None:
     try:
         await bot.send_message(chat_id, text, reply_markup=reply_markup)
     except Exception as e:  # noqa: BLE001
         log.warning("Не удалось отправить сообщение %s: %s", chat_id, e)
+
+
+# --- Реферальная программа в гайде ------------------------------------------
+
+async def start_specialist_referral(message: Message, ref_sid: int) -> None:
+    """Пользователь пришёл по реф-ссылке специалиста ref_sid. Запоминаем это:
+    при само-добавлении он получит -20% на годовое размещение, а реферер — премиум."""
+    uid = message.from_user.id
+    async with get_session() as session:
+        ref = await session.get(Specialist, ref_sid)
+        # ссылка должна вести на реальную карточку и нельзя пригласить самого себя
+        valid = bool(ref and ref.submitter_user_id != uid)
+        if valid:
+            await session.merge(Meta(key=f"spref:{uid}", value=str(ref_sid)))
+            await session.commit()
+    name = message.from_user.first_name or "друг"
+    if valid:
+        await message.answer(
+            f"Привет, {name}! 👋 Тебя пригласили в наш гайд специалистов.\n\n"
+            "Как приглашённому — скидка <b>−20% на годовое размещение</b> "
+            "(Стандарт или Премиум). Она применится сама на шаге оплаты.\n\n"
+            "Нажми «➕ Добавить себя в гайд», чтобы разместиться 👇",
+            reply_markup=main_menu(),
+        )
+    else:
+        await message.answer(f"Привет, {name}! 👋", reply_markup=main_menu())
+
+
+async def _reward_referrer(bot, referrer_sid: int, referred_sid: int,
+                           referred_uid: int | None) -> None:
+    """Начисляет пригласившему бонусный Премиум на REFERRAL_PREMIUM_DAYS дней."""
+    async with get_session() as session:
+        if await session.get(Meta, f"sprefdone:{referred_sid}"):
+            return  # за эту карточку реферера уже наградили
+        ref = await session.get(Specialist, referrer_sid)
+        if ref is None or (referred_uid and ref.submitter_user_id == referred_uid):
+            session.add(Meta(key=f"sprefdone:{referred_sid}", value="skip"))
+            await session.commit()
+            return
+        now = datetime.utcnow()
+        base = ref.premium_until if ref.premium_until and ref.premium_until > now else now
+        ref.premium_until = base + timedelta(days=config.REFERRAL_PREMIUM_DAYS)
+        ref.is_premium = True
+        session.add(Meta(key=f"sprefdone:{referred_sid}", value="done"))
+        await session.commit()
+        owner, rname, until = ref.submitter_user_id, ref.name, ref.premium_until
+    if owner:
+        await _safe_send(
+            bot, owner,
+            f"🎉 По твоей ссылке в гайд добавился специалист! Карточка «{rname}» "
+            f"получает Премиум до {until:%d.%m.%Y} — выше в выдаче и с бейджем. "
+            "Спасибо, что приводишь своих 🧡",
+        )
+
+
+async def _revert_expired_premium(bot) -> None:
+    """Снимает бонусный Премиум, когда его срок (premium_until) истёк.
+    Не трогает карточки на премиум-тарифе (за них платят отдельно)."""
+    now = datetime.utcnow()
+    async with get_session() as session:
+        rows = (
+            await session.scalars(
+                select(Specialist).where(
+                    Specialist.premium_until.is_not(None),
+                    Specialist.premium_until <= now,
+                    Specialist.is_premium.is_(True),
+                    Specialist.plan.notlike("%premium%"),
+                )
+            )
+        ).all()
+        for s in rows:
+            s.is_premium = False
+            s.premium_until = None
+        await session.commit()
 
 
 async def _on_payment_failed(bot, sid: int, payment_id: str, kind: str, status: str) -> None:
@@ -703,6 +798,7 @@ async def reminder_loop(bot) -> None:
             await _send_renewal_reminders(bot)
             await _send_expiry_notices(bot)
             await _hide_expired_grandfathered(bot)  # старый гайд: скрыть неоплаченные
+            await _revert_expired_premium(bot)  # снять бонусный премиум, когда истёк
             await check_seasonal(bot)  # сезонные дедлайны NL (страховка, налоги)
         except Exception as e:  # noqa: BLE001
             log.warning("Ошибка в фоновых напоминаниях: %s", e)

@@ -33,6 +33,8 @@ _LATER_COLUMNS = {
     "plan": "VARCHAR(10) DEFAULT 'year'",
     "renewal_reminded": "BOOLEAN DEFAULT 0",
     "photo_file_id": "TEXT",
+    "premium_until": "DATETIME",
+    "referred_by_specialist_id": "INTEGER",
 }
 
 # Колонки таблицы пользователей, которые могли появиться позже
