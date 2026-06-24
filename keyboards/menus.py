@@ -15,7 +15,7 @@ from utils.season import events_button_label
 BTN_STORY = "📰 Прислать историю / сплетню"
 BTN_QUESTION = "❓ Задать вопрос (предложка)"
 BTN_VIDEO = "🎬 Прислать видео"
-BTN_SUBMIT = "✍️ Спросить / поделиться"
+BTN_SUBMIT = "✍️ Написать в предложку"
 BTN_AD = "📢 Реклама / сотрудничество"
 BTN_CONTACTS = "🔍 Найти специалиста"
 BTN_BOARD = "📋 Объявления"
