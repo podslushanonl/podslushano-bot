@@ -99,6 +99,8 @@ async def ask_video(message: Message, state: FSMContext) -> None:
 # --- Объединённая кнопка «Спросить / поделиться» -----------------------------
 
 @router.message(F.text == BTN_SUBMIT)
+@router.message(F.text == "✍️ Спросить / поделиться")  # старая надпись: пока у
+# пользователя не обновилось меню (до /start), кнопка всё равно работает
 async def submit_menu(message: Message, state: FSMContext) -> None:
     await state.clear()
     kb = InlineKeyboardMarkup(inline_keyboard=[
