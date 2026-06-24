@@ -67,6 +67,10 @@ class Specialist(Base):
     renewal_reminded: Mapped[bool] = mapped_column(Boolean, default=False)
     # Фото карточки (Telegram file_id) — для премиум-размещения
     photo_file_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Бонусный премиум до этого момента (реферальная награда). None = не бонусный.
+    premium_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Кто привёл этого специалиста (id карточки реферера) — для реф-программы
+    referred_by_specialist_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
 class SpecialistEdit(Base):

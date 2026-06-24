@@ -35,13 +35,14 @@ def main_menu() -> ReplyKeyboardMarkup:
     keyboard = [
         [KeyboardButton(text=BTN_SUBMIT)],
         [KeyboardButton(text=BTN_AD)],
-        [KeyboardButton(text=BTN_CONTACTS)],
         [KeyboardButton(text=BTN_BOARD)],
         [KeyboardButton(text=BTN_GUIDE)],
         [KeyboardButton(text=events_button_label())],  # ☀️/🍂/❄️/🌷 Чем заняться
         [KeyboardButton(text=BTN_LETTER), KeyboardButton(text=BTN_SALARY)],
+        # --- Блок гайда специалистов: найти / добавить себя / кабинет рядом ---
+        [KeyboardButton(text=BTN_CONTACTS)],
     ]
-    # Кнопка платного само-добавления — только если подключена оплата
+    # Кнопки для специалистов — сразу под поиском, единым блоком (только при оплате)
     if config.payments_enabled():
         keyboard.append([KeyboardButton(text=BTN_SELF_ADD)])
         keyboard.append([KeyboardButton(text=BTN_CABINET)])

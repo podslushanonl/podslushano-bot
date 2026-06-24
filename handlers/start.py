@@ -141,6 +141,16 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
             from handlers.selfadd import start_claim
             await start_claim(message, sid)
             return
+    # Пришёл по реф-ссылке специалиста (?start=spref_<id> — кто-то его привёл в гайд)
+    if command.args and command.args.startswith("spref_"):
+        try:
+            ref_sid = int(command.args[6:])
+        except ValueError:
+            ref_sid = 0
+        if ref_sid:
+            from handlers.selfadd import start_specialist_referral
+            await start_specialist_referral(message, ref_sid)
+            return
     await _attribute_referral(message.from_user.id, command.args)
     name = message.from_user.first_name or "друг"
     await message.answer(welcome_text(name), reply_markup=main_menu())

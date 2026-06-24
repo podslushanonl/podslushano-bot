@@ -82,10 +82,14 @@ def _card_text(sp: Specialist) -> str:
 
 
 def _card_kb(sp: Specialist) -> InlineKeyboardMarkup:
-    rows = [[
-        InlineKeyboardButton(text="✏️ Изменить", callback_data=f"cab:edit:{sp.id}"),
-        InlineKeyboardButton(text="🔁 Продлить", callback_data=f"specrenew:{sp.id}"),
-    ]]
+    rows = [
+        [
+            InlineKeyboardButton(text="✏️ Изменить", callback_data=f"cab:edit:{sp.id}"),
+            InlineKeyboardButton(text="🔁 Продлить", callback_data=f"specrenew:{sp.id}"),
+        ],
+        [InlineKeyboardButton(text="🎁 Пригласить специалиста",
+                              callback_data=f"cab:ref:{sp.id}")],
+    ]
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
@@ -166,6 +170,27 @@ async def cabinet_close(callback: CallbackQuery) -> None:
         await callback.message.delete()
     except Exception:  # noqa: BLE001
         pass
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("cab:ref:"))
+async def cabinet_referral(callback: CallbackQuery) -> None:
+    """Личная реф-ссылка специалиста: пригласит коллегу — получит Премиум на 3 мес."""
+    sid = int(callback.data.split(":")[2])
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+        if sp is None or sp.submitter_user_id != callback.from_user.id:
+            await callback.answer("Это не твоя карточка", show_alert=True)
+            return
+    link = f"https://t.me/{config.bot_username()}?start=spref_{sid}"
+    await callback.message.answer(
+        "🎁 <b>Приглашай специалистов в гайд</b>\n\n"
+        "Отправь свою ссылку коллеге. Когда он разместится:\n"
+        "• ему — <b>−20%</b> на годовое размещение (Стандарт/Премиум),\n"
+        "• тебе — <b>Премиум на 3 месяца</b> (выше в выдаче и с бейджем).\n\n"
+        f"Твоя ссылка:\n{link}",
+        disable_web_page_preview=True,
+    )
     await callback.answer()
 
 
