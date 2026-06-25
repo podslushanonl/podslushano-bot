@@ -115,6 +115,23 @@ class Meta(Base):
     value: Mapped[str] = mapped_column(String(100))
 
 
+class AdBooking(Base):
+    """Бронь рекламного слота на дату (с сайта) или закрытая дата (админом)."""
+
+    __tablename__ = "ad_bookings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # Дата размещения в формате ГГГГ-ММ-ДД
+    date: Mapped[str] = mapped_column(String(10), index=True)
+    # Формат: expert | promo | afisha | afisha_plus | closed (закрыто админом)
+    fmt: Mapped[str] = mapped_column(String(20), default="closed")
+    # Статус: pending (ждёт оплаты) | paid | closed (бронь админа) | canceled
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    email: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    payment_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class Event(Base):
     """Событие для аналитики: поиск, заявка, оплата и т.п."""
 

@@ -826,6 +826,104 @@ async def _api_guide(request: web.Request) -> web.Response:
     return resp
 
 
+_ADS_CSS = """
+:root{--accent:#e8722a;--accent-soft:#fbe9da;--ink:#26303a;--muted:#6b7682;
+--bg:#fbf4ee;--card:#fff;--line:#ede3d9;--radius:18px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
+font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.55}
+.wrap{max-width:1080px;margin:0 auto;padding:40px 18px 60px}
+h1{font-size:30px;text-align:center;margin:0 0 8px}
+.sub{text-align:center;color:var(--accent);font-weight:600;margin-bottom:28px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+padding:22px;position:relative}
+.card.flag{border-color:var(--accent);box-shadow:0 10px 30px rgba(232,114,42,.10)}
+.badge{position:absolute;top:-12px;left:22px;background:var(--accent);color:#fff;
+font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px}
+.head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.title{font-size:20px;font-weight:800;margin:0}
+.price{font-size:21px;font-weight:800;color:var(--accent);white-space:nowrap}
+.lead{color:var(--muted);margin:8px 0 0}
+.book{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+padding:24px;margin-top:30px}
+.book h2{margin:0 0 14px;font-size:22px}
+label{display:block;font-weight:700;margin:14px 0 6px}
+select,input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;
+font-size:16px;background:#fff;color:var(--ink)}
+button{margin-top:20px;width:100%;background:var(--accent);color:#fff;border:0;
+padding:14px;border-radius:12px;font-weight:700;font-size:16px;cursor:pointer}
+.err{background:#fde8e8;color:#a12;padding:10px 14px;border-radius:10px;margin-top:14px}
+.note{color:var(--muted);font-size:13px;margin-top:12px;text-align:center}
+"""
+
+
+def _ads_html(free_opts: list, error: str = "") -> str:
+    cards = []
+    for key, f in config.AD_FORMATS.items():
+        badge = f'<span class="badge">{f["badge"]}</span>' if f.get("badge") else ""
+        flag = " flag" if key == "expert" else ""
+        cards.append(
+            f'<div class="card{flag}">{badge}<div class="head">'
+            f'<h3 class="title">{html_lib.escape(f["name"])}</h3>'
+            f'<div class="price">€{f["price"]}</div></div>'
+            f'<p class="lead">{html_lib.escape(f["lead"])}</p></div>'
+        )
+    fmt_opts = "".join(
+        f'<option value="{k}">{html_lib.escape(f["name"])} — €{f["price"]}</option>'
+        for k, f in config.AD_FORMATS.items()
+    )
+    if free_opts:
+        date_opts = "".join(f'<option value="{v}">{html_lib.escape(lbl)}</option>'
+                            for v, lbl in free_opts)
+        form = (
+            '<form method="post" action="/ads/book">'
+            '<label>Формат</label>'
+            f'<select name="fmt" required>{fmt_opts}</select>'
+            '<label>Свободная дата (ближайшие 3 месяца)</label>'
+            f'<select name="date" required>{date_opts}</select>'
+            '<label>E-mail для счёта</label>'
+            '<input type="email" name="email" placeholder="mail@example.com" required>'
+            '<button type="submit">Перейти к оплате</button>'
+            '<div class="note">Оплата через Mollie (iDEAL, карты). '
+            'Счёт придёт на e-mail. Цены включают BTW.</div>'
+            '</form>'
+        )
+    else:
+        form = '<p class="note">Сейчас свободных дат нет — напишите нам, подберём вариант.</p>'
+    err = f'<div class="err">{html_lib.escape(error)}</div>' if error else ""
+    return (
+        f'<!doctype html><html lang="ru"><head><meta charset="utf-8">'
+        f'<meta name="viewport" content="width=device-width, initial-scale=1">'
+        f'<title>Реклама — Podslushano.nl</title><style>{_ADS_CSS}</style></head><body>'
+        f'<div class="wrap"><h1>Реклама на Podslushano.nl</h1>'
+        f'<div class="sub">Нативное продвижение для услуг, экспертов и мероприятий</div>'
+        f'<div class="grid">{"".join(cards)}</div>'
+        f'<div class="book"><h2>Забронировать дату</h2>{err}{form}</div>'
+        f'</div></body></html>'
+    )
+
+
+async def _ads(request: web.Request) -> web.Response:
+    from handlers.ads import free_date_options
+    free = await free_date_options()
+    return web.Response(text=_ads_html(free), content_type="text/html")
+
+
+async def _ads_book(request: web.Request) -> web.Response:
+    from handlers.ads import book_and_pay, free_date_options
+    data = await request.post()
+    fmt = (data.get("fmt") or "").strip()
+    date_str = (data.get("date") or "").strip()
+    email = (data.get("email") or "").strip()
+    checkout, err = await book_and_pay(fmt, date_str, email)
+    if checkout:
+        raise web.HTTPFound(location=checkout)
+    free = await free_date_options()
+    return web.Response(text=_ads_html(free, error=err or "Не удалось оформить бронь."),
+                        content_type="text/html", status=400)
+
+
 async def start_webserver(bot) -> web.AppRunner:
     """Запускает веб-сервер на нужном порту (для webhook оплаты и health-check)."""
     app = web.Application()
@@ -841,6 +939,8 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/api/guide.json", _api_guide)
     app.router.add_get("/c/{key}", _contact_page)   # короткая ссылка по slug
     app.router.add_get("/s/{key}", _contact_page)   # короткая ссылка по id
+    app.router.add_get("/ads", _ads)            # страница брони рекламы с календарём
+    app.router.add_post("/ads/book", _ads_book)  # оформление брони → оплата Mollie
     app.router.add_post("/mollie-webhook", _mollie_webhook)
 
     runner = web.AppRunner(app)
