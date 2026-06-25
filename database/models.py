@@ -129,6 +129,8 @@ class AdBooking(Base):
     opt: Mapped[str] = mapped_column(String(20), default="std")
     # Выбранная доп-услуга (напр. повторная публикация), ключ или None
     addon: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # Все даты выхода через запятую (для форматов с несколькими публикациями)
+    dates_csv: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Статус: pending (ждёт оплаты) | paid | closed (бронь админа) | canceled
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     # Реквизиты покупателя для фактуры

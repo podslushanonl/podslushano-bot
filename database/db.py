@@ -46,6 +46,7 @@ _USER_LATER_COLUMNS = {
 _AD_LATER_COLUMNS = {
     "opt": "VARCHAR(20) DEFAULT 'std'",
     "addon": "VARCHAR(20)",
+    "dates_csv": "TEXT",
     "client_type": "VARCHAR(20)",
     "buyer_name": "VARCHAR(200)",
     "company": "VARCHAR(200)",
