@@ -856,6 +856,12 @@ font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px}
 .guide{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:24px}
 .guide h2{margin:0 0 8px;font-size:22px}.guide p{color:var(--muted);margin:6px 0}
 .gcta{display:inline-block;margin-top:12px;background:var(--ink);color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:0 0 6px}
+@media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+.snum{font-size:22px;font-weight:800;color:var(--accent)}
+.slbl{font-size:13px;color:var(--muted);margin-top:2px}
+.snote{text-align:center;color:var(--muted);font-size:12px;margin:6px 0 24px}
 .card ul{margin:6px 0 0;padding-left:20px}.card li{margin:4px 0}
 .who{color:var(--muted);font-size:14px;margin-top:12px}
 .lbl{font-weight:700;margin:14px 0 6px}
@@ -984,6 +990,13 @@ def _ads_html(taken: set, error: str = "") -> str:
         f'<p><b>Размещение от {config.LISTING_PRICE_MONTH} {_cur}/мес или '
         f'{config.LISTING_PRICE_YEAR} {_cur}/год.</b> Премиум — выше в выдаче и с бейджем.</p>'
         f'<a class="gcta" href="{config.BOT_URL}">Добавиться в гайд — в боте →</a></div>')
+    stats_html = (
+        '<div class="stats">'
+        + "".join(f'<div class="stat"><div class="snum">{html_lib.escape(n)}</div>'
+                  f'<div class="slbl">{html_lib.escape(l)}</div></div>'
+                  for n, l in config.AD_STATS)
+        + '</div>'
+        f'<div class="snote">Данные аудитории на {html_lib.escape(config.AD_STATS_UPDATED)}</div>')
     terms_html = (
         f"<p><b>Исполнитель:</b><br>{config.ad_company_block_html()}</p>"
         + "".join(f"<h5>{html_lib.escape(t)}</h5><p>{html_lib.escape(b)}</p>"
@@ -998,6 +1011,7 @@ def _ads_html(taken: set, error: str = "") -> str:
 <div class="wrap">
 <h1>Реклама на Podslushano.nl</h1>
 <div class="sub">Нативное продвижение для услуг, экспертов и мероприятий в Нидерландах</div>
+{stats_html}
 <div class="grid">{''.join(cards)}</div>
 
 {guide_html}
