@@ -72,10 +72,10 @@ def _eur(x: float) -> str:
     return f"€ {x:,.2f}".replace(",", " ")
 
 
-def _build_pdf(no: str, buyer: str, email: str, description: str,
+def _build_pdf(no: str, buyer_lines: list, description: str,
                excl: float, btw: float, total: float) -> bytes:
     _ensure_fonts()
-    buyer, description = _clean(buyer), _clean(description)
+    description = _clean(description)
     from reportlab.lib.pagesizes import A4
     from reportlab.lib.units import mm
     from reportlab.pdfgen import canvas
@@ -109,11 +109,12 @@ def _build_pdf(no: str, buyer: str, email: str, description: str,
     c.setFont(_FONT_BOLD, 10)
     c.drawString(x, y, "Aan / Кому:")
     c.setFont(_FONT, 10)
-    y -= 5 * mm
-    c.drawString(x, y, buyer or "—")
-    if email:
+    for line in (buyer_lines or ["—"]):
+        ln = _clean(line)
+        if not ln:
+            continue
         y -= 5 * mm
-        c.drawString(x, y, email)
+        c.drawString(x, y, ln[:80])
 
     # Таблица
     y -= 14 * mm
@@ -220,7 +221,7 @@ async def _send_gmail(to: str, subject: str, html: str, pdf: bytes, filename: st
 
 
 async def send_invoice(to_email: str, buyer_name: str, description: str,
-                       total_str: str) -> tuple[bool, str]:
+                       total_str: str, buyer_lines: list | None = None) -> tuple[bool, str]:
     """Создаёт счёт-PDF и отправляет на e-mail.
 
     Возвращает (успех, причина_ошибки). Приоритет — Gmail (если настроен
@@ -237,7 +238,7 @@ async def send_invoice(to_email: str, buyer_name: str, description: str,
     excl = round(total / (1 + config.BTW_PERCENT / 100), 2)
     btw = round(total - excl, 2)
     no = await _next_invoice_no()
-    pdf = _build_pdf(no, buyer_name, to_email, description, excl, btw, total)
+    pdf = _build_pdf(no, buyer_lines or [buyer_name, to_email], description, excl, btw, total)
     subject = f"Счёт {no} · Podslushano.nl"
     filename = f"factuur-{no}.pdf"
     html = (
