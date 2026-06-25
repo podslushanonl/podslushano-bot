@@ -28,6 +28,9 @@ async def gather_stats() -> str:
         active_users = await session.scalar(
             select(func.count()).select_from(BotUser).where(BotUser.is_blocked.is_(False))
         ) or 0
+        blocked_users = await session.scalar(
+            select(func.count()).select_from(BotUser).where(BotUser.is_blocked.is_(True))
+        ) or 0
         searches = await session.scalar(
             select(func.count()).select_from(Event).where(Event.type == "search")
         ) or 0
@@ -112,7 +115,8 @@ async def gather_stats() -> str:
     lines = [
         "📊 <b>Статистика бота</b>",
         "",
-        f"👥 Пользователей: <b>{users}</b> (активных: {active_users})",
+        f"👥 Пользователей: <b>{users}</b> (активных: {active_users}, "
+        f"🚫 заблокировали бота: {blocked_users})",
         f"🔍 Поисков специалистов: <b>{searches}</b> (вне категорий: {search_miss_total})",
         f"📇 Специалистов в гайде: <b>{specs_active}</b> (платных: {specs_paid})",
         f"⭐ Отзывов: <b>{reviews}</b>",
