@@ -828,7 +828,7 @@ async def _api_guide(request: web.Request) -> web.Response:
 
 _ADS_CSS = """
 :root{--accent:#e8722a;--accent-soft:#fbe9da;--ink:#26303a;--muted:#6b7682;
---bg:#fbf4ee;--card:#fff;--line:#ede3d9;--radius:18px}
+--bg:#fbf4ee;--card:#fff;--line:#ede3d9;--radius:18px;--free:#e9f6ec;--free-bd:#bfe3c6}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
 font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;line-height:1.55}
 .wrap{max-width:1080px;margin:0 auto;padding:40px 18px 60px}
@@ -837,91 +837,230 @@ h1{font-size:30px;text-align:center;margin:0 0 8px}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}
 @media(max-width:760px){.grid{grid-template-columns:1fr}}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-padding:22px;position:relative}
+padding:24px;position:relative}
 .card.flag{border-color:var(--accent);box-shadow:0 10px 30px rgba(232,114,42,.10)}
 .badge{position:absolute;top:-12px;left:22px;background:var(--accent);color:#fff;
 font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px}
 .head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .title{font-size:20px;font-weight:800;margin:0}
-.price{font-size:21px;font-weight:800;color:var(--accent);white-space:nowrap}
-.lead{color:var(--muted);margin:8px 0 0}
+.price{font-size:20px;font-weight:800;color:var(--accent);white-space:nowrap}
+.price small{display:block;font-size:12px;font-weight:600;color:var(--muted);text-align:right}
+.lead{color:var(--muted);margin:8px 0 10px}
+.card ul{margin:6px 0 0;padding-left:20px}.card li{margin:4px 0}
+.who{color:var(--muted);font-size:14px;margin-top:12px}
+.lbl{font-weight:700;margin:14px 0 6px}
 .book{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-padding:24px;margin-top:30px}
-.book h2{margin:0 0 14px;font-size:22px}
+padding:24px;margin-top:34px}
+.book h2{margin:0 0 6px;font-size:23px}
 label{display:block;font-weight:700;margin:14px 0 6px}
 select,input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;
 font-size:16px;background:#fff;color:var(--ink)}
-button{margin-top:20px;width:100%;background:var(--accent);color:#fff;border:0;
-padding:14px;border-radius:12px;font-weight:700;font-size:16px;cursor:pointer}
-.err{background:#fde8e8;color:#a12;padding:10px 14px;border-radius:10px;margin-top:14px}
-.note{color:var(--muted);font-size:13px;margin-top:12px;text-align:center}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:560px){.row2{grid-template-columns:1fr}}
+.seg{display:flex;gap:10px;margin-top:6px}
+.seg label{flex:1;margin:0;border:1px solid var(--line);border-radius:12px;padding:12px;
+text-align:center;cursor:pointer;font-weight:600}
+.seg input{display:none}.seg input:checked+span{color:var(--accent)}
+.seg label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+button{margin-top:22px;width:100%;background:var(--accent);color:#fff;border:0;
+padding:15px;border-radius:12px;font-weight:800;font-size:17px;cursor:pointer}
+.err{background:#fde8e8;color:#a12;padding:10px 14px;border-radius:10px;margin:12px 0}
+.note{color:var(--muted);font-size:13px;margin-top:12px}
+.cal{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:8px}
+@media(max-width:820px){.cal{grid-template-columns:1fr}}
+.mon h4{margin:0 0 6px;text-align:center;font-size:15px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.dh{font-size:11px;color:var(--muted);text-align:center;padding:2px 0}
+.d{aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+border-radius:8px;font-size:13px;user-select:none}
+.d.off{color:#c8cdd2}
+.d.taken{background:#f3eee9;color:#bcae9f;text-decoration:line-through}
+.d.free{background:var(--free);border:1px solid var(--free-bd);cursor:pointer;font-weight:600}
+.d.free:hover{filter:brightness(.97)}
+.d.sel{background:var(--accent);color:#fff;border-color:var(--accent)}
+.legend{display:flex;gap:16px;font-size:13px;color:var(--muted);margin:10px 0 0;flex-wrap:wrap}
+.legend i{display:inline-block;width:14px;height:14px;border-radius:4px;vertical-align:-2px;margin-right:5px}
+.sum{background:var(--accent-soft);border-radius:12px;padding:12px 14px;margin-top:16px;font-weight:600}
+details.terms{margin-top:16px;border:1px solid var(--line);border-radius:12px;padding:8px 14px}
+details.terms summary{cursor:pointer;color:var(--accent);font-weight:700;padding:6px 0}
+details.terms h5{margin:12px 0 2px;font-size:14px}details.terms p{margin:0 0 8px;font-size:13px;color:#444}
+.chk{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-size:14px}
+.chk input{width:auto;margin-top:3px}
 """
 
+_WD_HEAD = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]
+_MON_NAMES = ["", "Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль",
+              "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"]
 
-def _ads_html(free_opts: list, error: str = "") -> str:
+
+def _calendar_html(taken: set) -> str:
+    """3 месяца от текущего: свободные/занятые/недоступные дни."""
+    import calendar as _cal
+    from datetime import date as _date, timedelta as _td
+    today = _date.today()
+    lo, hi = today + _td(days=1), today + _td(days=90)
+    months = []
+    y, m = today.year, today.month
+    for _ in range(3):
+        weeks = _cal.Calendar(firstweekday=0).monthdayscalendar(y, m)
+        heads = "".join(f'<div class="dh">{w}</div>' for w in _WD_HEAD)
+        cells = []
+        for week in weeks:
+            for dnum in week:
+                if dnum == 0:
+                    cells.append('<div class="d off"></div>')
+                    continue
+                d = _date(y, m, dnum)
+                iso = d.isoformat()
+                if d < lo or d > hi:
+                    cells.append(f'<div class="d off">{dnum}</div>')
+                elif iso in taken:
+                    cells.append(f'<div class="d taken">{dnum}</div>')
+                else:
+                    cells.append(f'<div class="d free" data-date="{iso}">{dnum}</div>')
+        months.append(
+            f'<div class="mon"><h4>{_MON_NAMES[m]} {y}</h4>'
+            f'<div class="days">{heads}{"".join(cells)}</div></div>'
+        )
+        m += 1
+        if m > 12:
+            m, y = 1, y + 1
+    return f'<div class="cal">{"".join(months)}</div>'
+
+
+def _ads_html(taken: set, error: str = "") -> str:
+    import json
     cards = []
     for key, f in config.AD_FORMATS.items():
-        badge = f'<span class="badge">{f["badge"]}</span>' if f.get("badge") else ""
+        badge = f'<span class="badge">{html_lib.escape(f["badge"])}</span>' if f.get("badge") else ""
         flag = " flag" if key == "expert" else ""
+        prices = " / ".join(f'€{o["price"]}' for o in f["options"])
+        bullets = "".join(f"<li>{html_lib.escape(b)}</li>" for b in f.get("details", []))
         cards.append(
             f'<div class="card{flag}">{badge}<div class="head">'
             f'<h3 class="title">{html_lib.escape(f["name"])}</h3>'
-            f'<div class="price">€{f["price"]}</div></div>'
-            f'<p class="lead">{html_lib.escape(f["lead"])}</p></div>'
+            f'<div class="price">{prices}</div></div>'
+            f'<p class="lead">{html_lib.escape(f["lead"])}</p>'
+            f'<div class="lbl">Что входит:</div><ul>{bullets}</ul>'
+            f'<div class="who"><b>Кому подходит:</b> {html_lib.escape(f["who"])}.</div></div>'
         )
-    fmt_opts = "".join(
-        f'<option value="{k}">{html_lib.escape(f["name"])} — €{f["price"]}</option>'
-        for k, f in config.AD_FORMATS.items()
+    fmt_opts = "".join(f'<option value="{k}">{html_lib.escape(f["name"])}</option>'
+                       for k, f in config.AD_FORMATS.items())
+    fmap = {k: {"name": f["name"], "options": f["options"]}
+            for k, f in config.AD_FORMATS.items()}
+    terms_html = "".join(
+        f"<h5>{html_lib.escape(t)}</h5><p>{html_lib.escape(b)}</p>" for t, b in config.AD_TERMS
     )
-    if free_opts:
-        date_opts = "".join(f'<option value="{v}">{html_lib.escape(lbl)}</option>'
-                            for v, lbl in free_opts)
-        form = (
-            '<form method="post" action="/ads/book">'
-            '<label>Формат</label>'
-            f'<select name="fmt" required>{fmt_opts}</select>'
-            '<label>Свободная дата (ближайшие 3 месяца)</label>'
-            f'<select name="date" required>{date_opts}</select>'
-            '<label>E-mail для счёта</label>'
-            '<input type="email" name="email" placeholder="mail@example.com" required>'
-            '<button type="submit">Перейти к оплате</button>'
-            '<div class="note">Оплата через Mollie (iDEAL, карты). '
-            'Счёт придёт на e-mail. Цены включают BTW.</div>'
-            '</form>'
-        )
-    else:
-        form = '<p class="note">Сейчас свободных дат нет — напишите нам, подберём вариант.</p>'
     err = f'<div class="err">{html_lib.escape(error)}</div>' if error else ""
-    return (
-        f'<!doctype html><html lang="ru"><head><meta charset="utf-8">'
-        f'<meta name="viewport" content="width=device-width, initial-scale=1">'
-        f'<title>Реклама — Podslushano.nl</title><style>{_ADS_CSS}</style></head><body>'
-        f'<div class="wrap"><h1>Реклама на Podslushano.nl</h1>'
-        f'<div class="sub">Нативное продвижение для услуг, экспертов и мероприятий</div>'
-        f'<div class="grid">{"".join(cards)}</div>'
-        f'<div class="book"><h2>Забронировать дату</h2>{err}{form}</div>'
-        f'</div></body></html>'
-    )
+    cal = _calendar_html(taken)
+    fmap_js = json.dumps(fmap, ensure_ascii=False)
+    return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Реклама — Podslushano.nl</title><style>{_ADS_CSS}</style></head><body>
+<div class="wrap">
+<h1>Реклама на Podslushano.nl</h1>
+<div class="sub">Нативное продвижение для услуг, экспертов и мероприятий в Нидерландах</div>
+<div class="grid">{''.join(cards)}</div>
+
+<div class="book"><h2>Забронировать дату и формат</h2>{err}
+<form method="post" action="/ads/book" id="bf">
+  <label>Формат</label>
+  <select name="fmt" id="fmt">{fmt_opts}</select>
+  <label>Длительность / вариант</label>
+  <select name="opt" id="opt"></select>
+
+  <label>Выберите свободную дату</label>
+  {cal}
+  <div class="legend">
+    <span><i style="background:var(--free);border:1px solid var(--free-bd)"></i>свободно</span>
+    <span><i style="background:#f3eee9"></i>занято</span>
+    <span><i style="background:var(--accent)"></i>выбрано</span>
+  </div>
+  <input type="hidden" name="date" id="date" required>
+
+  <label>Кто оплачивает</label>
+  <div class="seg">
+    <label><input type="radio" name="client_type" value="person" checked><span>Физлицо</span></label>
+    <label><input type="radio" name="client_type" value="business"><span>Компания</span></label>
+  </div>
+
+  <div id="gPerson">
+    <label>Имя и фамилия</label>
+    <input name="buyer_name" placeholder="Иван Иванов">
+  </div>
+  <div id="gBusiness" style="display:none">
+    <label>Название компании</label><input name="company" placeholder="Bedrijf B.V.">
+    <div class="row2">
+      <div><label>BTW-номер</label><input name="btw" placeholder="NL000000000B00"></div>
+      <div><label>KVK-номер</label><input name="kvk" placeholder="12345678"></div>
+    </div>
+    <label>Телефон (необязательно)</label><input name="phone" placeholder="+31 6 ...">
+  </div>
+
+  <div class="row2">
+    <div><label>Адрес</label><input name="address" placeholder="Straat 1, Stad" required></div>
+    <div id="gPost" style="display:none"><label>Почтовый индекс</label><input name="postcode" placeholder="1234 AB"></div>
+  </div>
+  <label>E-mail для счёта</label>
+  <input type="email" name="email" placeholder="mail@example.com" required>
+
+  <div class="sum" id="sum">Выберите формат и дату.</div>
+
+  <details class="terms"><summary>Условия сотрудничества</summary>{terms_html}</details>
+  <label class="chk"><input type="checkbox" name="terms" id="terms" required>
+    <span>Я ознакомился(ась) и принимаю условия сотрудничества. Оплата означает полное согласие с ними.</span></label>
+
+  <button type="submit">Перейти к оплате</button>
+  <div class="note">Оплата через Mollie (iDEAL, карты). 100% предоплата, дата
+    фиксируется только после оплаты. Счёт (factuur) придёт на e-mail. Все цены включают BTW 21%.</div>
+</form></div>
+</div>
+<script>
+const F={fmap_js};
+const fmt=document.getElementById('fmt'),opt=document.getElementById('opt'),
+dateI=document.getElementById('date'),sum=document.getElementById('sum');
+function fillOpt(){{opt.innerHTML='';F[fmt.value].options.forEach(o=>{{
+  const e=document.createElement('option');e.value=o.key;e.textContent=o.label+' — €'+o.price;
+  e.dataset.price=o.price;opt.appendChild(e);}});updateSum();}}
+function updateSum(){{const o=opt.selectedOptions[0];const d=dateI.value;
+  sum.textContent=(F[fmt.value].name)+(o?' · '+o.textContent:'')+(d?' · дата '+d:' · выберите дату');}}
+fmt.onchange=fillOpt;opt.onchange=updateSum;
+document.querySelectorAll('.d.free').forEach(c=>c.onclick=()=>{{
+  document.querySelectorAll('.d.sel').forEach(x=>x.classList.remove('sel'));
+  c.classList.add('sel');dateI.value=c.dataset.date;updateSum();}});
+function toggleType(){{const b=document.querySelector('input[name=client_type]:checked').value==='business';
+  document.getElementById('gBusiness').style.display=b?'block':'none';
+  document.getElementById('gPerson').style.display=b?'none':'block';
+  document.getElementById('gPost').style.display=b?'block':'none';
+  document.querySelector('[name=buyer_name]').required=!b;
+  ['company','btw','kvk','postcode'].forEach(n=>document.querySelector('[name='+n+']').required=b);}}
+document.querySelectorAll('input[name=client_type]').forEach(r=>r.onchange=toggleType);
+document.getElementById('bf').onsubmit=e=>{{if(!dateI.value){{e.preventDefault();alert('Выберите дату в календаре.');}}}};
+fillOpt();toggleType();
+</script>
+</body></html>"""
 
 
 async def _ads(request: web.Request) -> web.Response:
-    from handlers.ads import free_date_options
-    free = await free_date_options()
-    return web.Response(text=_ads_html(free), content_type="text/html")
+    from handlers.ads import _taken
+    return web.Response(text=_ads_html(await _taken()), content_type="text/html")
 
 
 async def _ads_book(request: web.Request) -> web.Response:
-    from handlers.ads import book_and_pay, free_date_options
+    from handlers.ads import book_and_pay, _taken
     data = await request.post()
-    fmt = (data.get("fmt") or "").strip()
-    date_str = (data.get("date") or "").strip()
-    email = (data.get("email") or "").strip()
-    checkout, err = await book_and_pay(fmt, date_str, email)
+    fields = {k: (data.get(k) or "").strip() for k in (
+        "email", "buyer_name", "company", "btw", "kvk", "address", "postcode", "phone")}
+    fields["client_type"] = data.get("client_type")
+    fields["terms"] = bool(data.get("terms"))
+    checkout, err = await book_and_pay(
+        (data.get("fmt") or "").strip(), (data.get("opt") or "").strip(),
+        (data.get("date") or "").strip(), fields)
     if checkout:
         raise web.HTTPFound(location=checkout)
-    free = await free_date_options()
-    return web.Response(text=_ads_html(free, error=err or "Не удалось оформить бронь."),
-                        content_type="text/html", status=400)
+    return web.Response(
+        text=_ads_html(await _taken(), error=err or "Не удалось оформить бронь."),
+        content_type="text/html", status=400)
 
 
 async def start_webserver(bot) -> web.AppRunner:

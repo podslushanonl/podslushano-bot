@@ -42,6 +42,19 @@ _USER_LATER_COLUMNS = {
     "referred_by": "BIGINT",
 }
 
+# Колонки таблицы броней рекламы, которые могли появиться позже
+_AD_LATER_COLUMNS = {
+    "opt": "VARCHAR(20) DEFAULT 'std'",
+    "client_type": "VARCHAR(20)",
+    "buyer_name": "VARCHAR(200)",
+    "company": "VARCHAR(200)",
+    "btw": "VARCHAR(40)",
+    "kvk": "VARCHAR(40)",
+    "address": "VARCHAR(300)",
+    "postcode": "VARCHAR(20)",
+    "phone": "VARCHAR(40)",
+}
+
 
 async def init_db() -> None:
     """Создаёт таблицы, добавляет недостающие колонки и засевает специалистов."""
@@ -74,6 +87,20 @@ async def _migrate() -> None:
         for name, ddl in _USER_LATER_COLUMNS.items():
             if name not in ucols:
                 await conn.exec_driver_sql(f"ALTER TABLE users ADD COLUMN {name} {ddl}")
+
+        def ad_cols(sync_conn):
+            insp = inspect(sync_conn)
+            if "ad_bookings" not in insp.get_table_names():
+                return None
+            return {c["name"] for c in insp.get_columns("ad_bookings")}
+
+        acols = await conn.run_sync(ad_cols)
+        if acols is not None:
+            for name, ddl in _AD_LATER_COLUMNS.items():
+                if name not in acols:
+                    await conn.exec_driver_sql(
+                        f"ALTER TABLE ad_bookings ADD COLUMN {name} {ddl}"
+                    )
 
 
 async def _seed_if_needed() -> None:

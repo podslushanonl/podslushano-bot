@@ -74,23 +74,41 @@ async def free_date_options() -> list[tuple[str, str]]:
     return out
 
 
-async def book_and_pay(fmt: str, date_str: str, email: str) -> tuple[str | None, str]:
+async def book_and_pay(fmt: str, opt: str, date_str: str, fields: dict) -> tuple[str | None, str]:
     """Создаёт бронь (pending) и платёж Mollie. Возвращает (checkout_url, ошибка)."""
     info = config.AD_FORMATS.get(fmt)
-    if not info:
-        return None, "Неизвестный формат."
+    option = config.ad_option(fmt, opt)
+    if not info or not option:
+        return None, "Неизвестный формат или длительность."
     d = _valid_date(date_str)
     today = date.today()
     if not d or d <= today or d > today + timedelta(days=BOOK_AHEAD_DAYS):
         return None, "Выберите корректную дату из ближайших 3 месяцев."
-    if "@" not in email or "." not in email or " " in email.strip():
+    if not fields.get("terms"):
+        return None, "Подтвердите согласие с условиями сотрудничества."
+    ctype = fields.get("client_type")
+    if ctype not in ("person", "business"):
+        return None, "Выберите тип плательщика (физлицо или компания)."
+    email = (fields.get("email") or "").strip()
+    if "@" not in email or "." not in email or " " in email:
         return None, "Укажите корректный e-mail для счёта."
-    email = email.strip()
+    address = (fields.get("address") or "").strip()
+    if not address:
+        return None, "Укажите адрес для счёта."
+    name = (fields.get("buyer_name") or "").strip()
+    if ctype == "person" and not name:
+        return None, "Укажите имя и фамилию."
+    if ctype == "business":
+        miss = [lbl for key, lbl in (
+            ("company", "название компании"), ("btw", "BTW-номер"),
+            ("kvk", "KVK-номер"), ("postcode", "почтовый индекс"),
+        ) if not (fields.get(key) or "").strip()]
+        if miss:
+            return None, "Для бизнес-счёта заполните: " + ", ".join(miss) + "."
     if not config.payments_enabled():
         return None, "Оплата временно недоступна. Напишите нам напрямую."
 
     async with get_session() as session:
-        # повторная проверка занятости перед вставкой (защита от гонки)
         busy = (await session.scalars(
             select(AdBooking).where(
                 AdBooking.date == date_str, AdBooking.status.in_(_BLOCKING)
@@ -98,16 +116,25 @@ async def book_and_pay(fmt: str, date_str: str, email: str) -> tuple[str | None,
         )).first()
         if busy:
             return None, "Эта дата уже занята — выберите другую."
-        booking = AdBooking(date=date_str, fmt=fmt, status="pending", email=email)
+        booking = AdBooking(
+            date=date_str, fmt=fmt, opt=opt, status="pending",
+            client_type=ctype, email=email, address=address,
+            buyer_name=name or None,
+            company=(fields.get("company") or "").strip() or None,
+            btw=(fields.get("btw") or "").strip() or None,
+            kvk=(fields.get("kvk") or "").strip() or None,
+            postcode=(fields.get("postcode") or "").strip() or None,
+            phone=(fields.get("phone") or "").strip() or None,
+        )
         session.add(booking)
         await session.commit()
         await session.refresh(booking)
         bid = booking.id
 
     payment = await create_payment(
-        f"Реклама «{info['name']}» — {date_str}",
+        f"Реклама «{info['name']}» ({option['label']}) — {date_str}",
         {"kind": "ad", "booking_id": bid},
-        info["price"],
+        option["price"],
     )
     if not payment or not payment.get("checkout_url"):
         async with get_session() as session:
@@ -147,25 +174,39 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
         b.status = "paid"
         session.add(Meta(key=f"adpay:{payment_id}", value="done"))
         await session.commit()
-        fmt, dt, email = b.fmt, b.date, b.email
+        fmt, opt, dt, email, ct = b.fmt, b.opt, b.date, b.email, b.client_type
+        b_name, b_co, b_btw = b.buyer_name, b.company, b.btw
+        b_kvk, b_addr, b_post, b_phone = b.kvk, b.address, b.postcode, b.phone
 
-    info = config.AD_FORMATS.get(fmt, {"name": fmt, "price": "0"})
-    paid_amount = (payment.get("amount") or {}).get("value") or info["price"]
+    info = config.AD_FORMATS.get(fmt, {"name": fmt})
+    option = config.ad_option(fmt, opt) or {"label": "", "price": "0"}
+    paid_amount = (payment.get("amount") or {}).get("value") or option.get("price", "0")
 
-    # Счёт на e-mail
+    # Реквизиты покупателя для фактуры
+    if ct == "business":
+        buyer_name = b_co or "—"
+        buyer_lines = [b_co, b_addr, b_post, f"BTW: {b_btw}", f"KVK: {b_kvk}", email, b_phone]
+    else:
+        buyer_name = b_name or "—"
+        buyer_lines = [b_name, b_addr, email]
+    buyer_lines = [ln for ln in buyer_lines if ln]
+    desc = f"Реклама «{info['name']}» ({option['label']}) — {dt}"
+
     if email:
         try:
             from utils.invoices import send_invoice
-            await send_invoice(email, "Реклама", f"Реклама «{info['name']}» — {dt}", paid_amount)
+            await send_invoice(email, buyer_name, desc, paid_amount, buyer_lines=buyer_lines)
         except Exception as e:  # noqa: BLE001
             log.warning("Счёт за рекламу не отправлен: %s", e)
 
+    who = (b_co or b_name or "—")
     for admin_id in config.ADMIN_IDS:
         try:
             await bot.send_message(
                 admin_id,
-                f"💳 <b>Оплачена реклама</b>\n\nФормат: {info['name']}\n"
-                f"Дата: {dt}\nE-mail: {email or '—'}\nСумма: {paid_amount} {config.LISTING_CURRENCY}",
+                f"💳 <b>Оплачена реклама</b>\n\nФормат: {info['name']} ({option['label']})\n"
+                f"Дата: {dt}\nКлиент: {who} ({'бизнес' if ct == 'business' else 'физлицо'})\n"
+                f"E-mail: {email or '—'}\nСумма: {paid_amount} {config.LISTING_CURRENCY}",
             )
         except Exception as e:  # noqa: BLE001
             log.warning("Не уведомил админа о рекламе: %s", e)

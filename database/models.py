@@ -125,8 +125,19 @@ class AdBooking(Base):
     date: Mapped[str] = mapped_column(String(10), index=True)
     # Формат: expert | promo | afisha | afisha_plus | closed (закрыто админом)
     fmt: Mapped[str] = mapped_column(String(20), default="closed")
+    # Вариант длительности формата (ключ из AD_FORMATS[...]["options"])
+    opt: Mapped[str] = mapped_column(String(20), default="std")
     # Статус: pending (ждёт оплаты) | paid | closed (бронь админа) | canceled
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    # Реквизиты покупателя для фактуры
+    client_type: Mapped[str | None] = mapped_column(String(20), nullable=True)  # person|business
+    buyer_name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    company: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    btw: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    kvk: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    address: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    postcode: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
     email: Mapped[str | None] = mapped_column(String(200), nullable=True)
     payment_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
