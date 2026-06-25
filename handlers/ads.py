@@ -46,6 +46,30 @@ def _valid_date(s: str) -> date | None:
         return None
 
 
+_CYR = re.compile("[а-яёА-ЯЁ]")
+
+
+def _has_cyrillic(s: str) -> bool:
+    return bool(_CYR.search(s or ""))
+
+
+def _parse_flexible(s: str) -> date | None:
+    """Дата из гибких форматов: ГГГГ-ММ-ДД, ДД-ММ-ГГГГ, ДД-ММ (год подбираем)."""
+    s = (s or "").strip().replace(".", "-").replace("/", "-")
+    today = date.today()
+    for fmt in ("%Y-%m-%d", "%d-%m-%Y", "%d-%m"):
+        try:
+            d = datetime.strptime(s, fmt).date()
+        except ValueError:
+            continue
+        if fmt == "%d-%m":
+            d = d.replace(year=today.year)
+            if d < today:
+                d = d.replace(year=today.year + 1)
+        return d
+    return None
+
+
 def _label(d: date) -> str:
     return f"{_WD[d.weekday()]}, {d.day} {_MONTHS[d.month]} {d.year}"
 
@@ -96,15 +120,22 @@ async def book_and_pay(fmt: str, opt: str, date_str: str, fields: dict) -> tuple
     if not address:
         return None, "Укажите адрес для счёта."
     name = (fields.get("buyer_name") or "").strip()
+    company = (fields.get("company") or "").strip()
+    postcode = (fields.get("postcode") or "").strip()
     if ctype == "person" and not name:
         return None, "Укажите имя и фамилию."
     if ctype == "business":
         miss = [lbl for key, lbl in (
-            ("company", "название компании"), ("btw", "BTW-номер"),
-            ("kvk", "KVK-номер"), ("postcode", "почтовый индекс"),
+            ("company", "название компании"), ("postcode", "почтовый индекс"),
         ) if not (fields.get(key) or "").strip()]
         if miss:
             return None, "Для бизнес-счёта заполните: " + ", ".join(miss) + "."
+    # Данные для счёта — только латиницей (как в документах)
+    for lbl, val in (("имя/название", name or company), ("адрес", address),
+                     ("индекс", postcode)):
+        if val and _has_cyrillic(val):
+            return None, ("Данные для счёта вводите латиницей, как в документах "
+                          f"(напр. Alex Mair). Поле «{lbl}» — на английском.")
     if not config.payments_enabled():
         return None, "Оплата временно недоступна. Напишите нам напрямую."
 
@@ -218,48 +249,63 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
 async def cmd_closeslot(message: Message) -> None:
     if not _is_admin(message.from_user.id):
         return
-    parts = (message.text or "").split()
-    d = _valid_date(parts[1]) if len(parts) > 1 else None
-    if not d:
-        await message.answer("Формат: <code>/closeslot 2026-07-15</code>")
+    tokens = (message.text or "").split()[1:]
+    if not tokens:
+        await message.answer(
+            "Закрыть даты (можно сразу несколько):\n"
+            "<code>/closeslot 26-06 27-06 2026-07-14</code>")
         return
-    ds = d.isoformat()
+    closed, skipped = [], []
     async with get_session() as session:
-        busy = (await session.scalars(
-            select(AdBooking).where(AdBooking.date == ds, AdBooking.status.in_(_BLOCKING))
-        )).first()
-        if busy:
-            await message.answer(f"Дата {ds} уже занята ({busy.status}).")
-            return
-        session.add(AdBooking(date=ds, fmt="closed", status="closed"))
+        for tok in tokens:
+            d = _parse_flexible(tok)
+            if not d:
+                skipped.append(f"{tok} (не дата)")
+                continue
+            ds = d.isoformat()
+            busy = (await session.scalars(select(AdBooking).where(
+                AdBooking.date == ds, AdBooking.status.in_(_BLOCKING)))).first()
+            if busy:
+                skipped.append(f"{ds} (уже занято)")
+                continue
+            session.add(AdBooking(date=ds, fmt="closed", status="closed"))
+            closed.append(ds)
         await session.commit()
-    await message.answer(f"🔒 Дата {ds} закрыта — на сайте её больше не выбрать.")
+    lines = []
+    if closed:
+        lines.append(f"🔒 Закрыто ({len(closed)}): " + ", ".join(sorted(closed)))
+    if skipped:
+        lines.append("⏭ Пропущено: " + ", ".join(skipped))
+    await message.answer("\n".join(lines) or "Нечего закрывать.")
 
 
 @router.message(Command("openslot"))
 async def cmd_openslot(message: Message) -> None:
     if not _is_admin(message.from_user.id):
         return
-    parts = (message.text or "").split()
-    d = _valid_date(parts[1]) if len(parts) > 1 else None
-    if not d:
-        await message.answer("Формат: <code>/openslot 2026-07-15</code>")
+    tokens = (message.text or "").split()[1:]
+    if not tokens:
+        await message.answer("Открыть даты: <code>/openslot 26-06 2026-07-14</code>")
         return
-    ds = d.isoformat()
+    opened, total = [], 0
     async with get_session() as session:
-        rows = (await session.scalars(
-            select(AdBooking).where(
-                AdBooking.date == ds, AdBooking.status.in_(("closed", "pending"))
-            )
-        )).all()
-        n = len(rows)
-        for r in rows:
-            r.status = "canceled"
+        for tok in tokens:
+            d = _parse_flexible(tok)
+            if not d:
+                continue
+            ds = d.isoformat()
+            rows = (await session.scalars(select(AdBooking).where(
+                AdBooking.date == ds, AdBooking.status.in_(("closed", "pending"))))).all()
+            for r in rows:
+                r.status = "canceled"
+            if rows:
+                opened.append(ds)
+                total += len(rows)
         await session.commit()
     await message.answer(
-        f"🔓 Дата {ds} открыта (снято {n}).\n"
-        "<i>Оплаченные брони не трогаются — их освобождать вручную нельзя.</i>"
-        if n else f"На {ds} нечего открывать (свободна или есть оплаченная бронь)."
+        f"🔓 Открыто: {', '.join(sorted(opened))} (снято {total}).\n"
+        "<i>Оплаченные брони не трогаются.</i>" if opened
+        else "Нечего открывать (свободно или есть оплаченные брони)."
     )
 
 

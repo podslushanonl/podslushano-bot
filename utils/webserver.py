@@ -983,6 +983,7 @@ def _ads_html(taken: set, error: str = "") -> str:
     <label><input type="radio" name="client_type" value="person" checked><span>Физлицо</span></label>
     <label><input type="radio" name="client_type" value="business"><span>Компания</span></label>
   </div>
+  <div class="note">Все данные для счёта вводите латиницей, как в документах (напр. Alex Mair).</div>
 
   <div id="gPerson">
     <label>Имя и фамилия</label>
@@ -991,8 +992,8 @@ def _ads_html(taken: set, error: str = "") -> str:
   <div id="gBusiness" style="display:none">
     <label>Название компании</label><input name="company" placeholder="Bedrijf B.V.">
     <div class="row2">
-      <div><label>BTW-номер</label><input name="btw" placeholder="NL000000000B00"></div>
-      <div><label>KVK-номер</label><input name="kvk" placeholder="12345678"></div>
+      <div><label>BTW-номер (необязательно)</label><input name="btw" placeholder="NL000000000B00"></div>
+      <div><label>KVK-номер (необязательно)</label><input name="kvk" placeholder="12345678"></div>
     </div>
     <label>Телефон (необязательно)</label><input name="phone" placeholder="+31 6 ...">
   </div>
@@ -1033,7 +1034,7 @@ function toggleType(){{const b=document.querySelector('input[name=client_type]:c
   document.getElementById('gPerson').style.display=b?'none':'block';
   document.getElementById('gPost').style.display=b?'block':'none';
   document.querySelector('[name=buyer_name]').required=!b;
-  ['company','btw','kvk','postcode'].forEach(n=>document.querySelector('[name='+n+']').required=b);}}
+  ['company','postcode'].forEach(n=>document.querySelector('[name='+n+']').required=b);}}
 document.querySelectorAll('input[name=client_type]').forEach(r=>r.onchange=toggleType);
 document.getElementById('bf').onsubmit=e=>{{if(!dateI.value){{e.preventDefault();alert('Выберите дату в календаре.');}}}};
 fillOpt();toggleType();
