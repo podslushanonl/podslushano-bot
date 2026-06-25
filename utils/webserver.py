@@ -853,6 +853,9 @@ font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px}
 .faq p{color:#444;margin:8px 0 0}
 .contact{background:var(--accent-soft);border-radius:var(--radius);padding:20px;margin-top:24px;text-align:center}
 .contact a{color:var(--accent);font-weight:700;text-decoration:none}
+.guide{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-top:24px}
+.guide h2{margin:0 0 8px;font-size:22px}.guide p{color:var(--muted);margin:6px 0}
+.gcta{display:inline-block;margin-top:12px;background:var(--ink);color:#fff;text-decoration:none;padding:12px 18px;border-radius:12px;font-weight:700}
 .card ul{margin:6px 0 0;padding-left:20px}.card li{margin:4px 0}
 .who{color:var(--muted);font-size:14px;margin-top:12px}
 .lbl{font-weight:700;margin:14px 0 6px}
@@ -972,6 +975,15 @@ def _ads_html(taken: set, error: str = "") -> str:
         f'<a href="{config.BOT_URL}">Telegram</a> · '
         '<a href="https://instagram.com/podslushano.nl">Instagram</a> · '
         f'<a href="mailto:{config.COMPANY_EMAIL}">{config.COMPANY_EMAIL}</a></div>')
+    _cur = config.LISTING_CURRENCY
+    guide_html = (
+        '<div class="guide"><h2>Гайд специалистов</h2>'
+        '<p>Не разовая реклама, а постоянное присутствие: ваша карточка в нашем '
+        'каталоге специалистов — вас находят те, кто прямо сейчас ищет услугу. '
+        'Поиск по категориям, отзывы, продвижение.</p>'
+        f'<p><b>Размещение от {config.LISTING_PRICE_MONTH} {_cur}/мес или '
+        f'{config.LISTING_PRICE_YEAR} {_cur}/год.</b> Премиум — выше в выдаче и с бейджем.</p>'
+        f'<a class="gcta" href="{config.BOT_URL}">Добавиться в гайд — в боте →</a></div>')
     terms_html = (
         f"<p><b>Исполнитель:</b><br>{config.ad_company_block_html()}</p>"
         + "".join(f"<h5>{html_lib.escape(t)}</h5><p>{html_lib.escape(b)}</p>"
@@ -987,6 +999,8 @@ def _ads_html(taken: set, error: str = "") -> str:
 <h1>Реклама на Podslushano.nl</h1>
 <div class="sub">Нативное продвижение для услуг, экспертов и мероприятий в Нидерландах</div>
 <div class="grid">{''.join(cards)}</div>
+
+{guide_html}
 
 <div class="book"><h2>Забронировать дату и формат</h2>{err}
 <form method="post" action="/ads/book" id="bf">
