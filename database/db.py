@@ -45,6 +45,7 @@ _USER_LATER_COLUMNS = {
 # Колонки таблицы броней рекламы, которые могли появиться позже
 _AD_LATER_COLUMNS = {
     "opt": "VARCHAR(20) DEFAULT 'std'",
+    "addon": "VARCHAR(20)",
     "client_type": "VARCHAR(20)",
     "buyer_name": "VARCHAR(200)",
     "company": "VARCHAR(200)",
