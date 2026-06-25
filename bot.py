@@ -11,7 +11,7 @@ import config
 from database.db import init_db
 from handlers import (
     admin, ads, afisha, board, cabinet, chat, contacts, errors, events, guides,
-    letters, moderation, salary, selfadd, share, start, submissions, support,
+    letters, moderation, salary, selfadd, share, spotlight, start, submissions, support,
 )
 from handlers.selfadd import reminder_loop
 from utils.limits import ThrottleMiddleware
@@ -119,6 +119,7 @@ async def main() -> None:
     dp.include_router(board.router)  # 📋 доска объявлений
     dp.include_router(afisha.router)  # 📅 платная «Афиша месяца» (мероприятия)
     dp.include_router(ads.router)  # 🗓 бронь рекламных слотов (/slots, /closeslot)
+    dp.include_router(spotlight.router)  # ⭐ «Специалист месяца» в канал (/spotlight)
     dp.include_router(selfadd.router)  # платное само-добавление в гайд
     dp.include_router(cabinet.router)  # 👤 личный кабинет специалиста (с модерацией правок)
     dp.include_router(submissions.router)
