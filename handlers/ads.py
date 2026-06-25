@@ -139,6 +139,14 @@ async def book_and_pay(fmt: str, opt: str, date_str: str, fields: dict) -> tuple
     if not config.payments_enabled():
         return None, "Оплата временно недоступна. Напишите нам напрямую."
 
+    addon = config.ad_addon(fmt) if fields.get("addon") else None
+    total = option["price"]
+    if addon:
+        try:
+            total = f"{float(option['price']) + float(addon['price']):.2f}"
+        except ValueError:
+            total = option["price"]
+
     async with get_session() as session:
         busy = (await session.scalars(
             select(AdBooking).where(
@@ -149,6 +157,7 @@ async def book_and_pay(fmt: str, opt: str, date_str: str, fields: dict) -> tuple
             return None, "Эта дата уже занята — выберите другую."
         booking = AdBooking(
             date=date_str, fmt=fmt, opt=opt, status="pending",
+            addon=(addon["key"] if addon else None),
             client_type=ctype, email=email, address=address,
             buyer_name=name or None,
             company=(fields.get("company") or "").strip() or None,
@@ -162,10 +171,10 @@ async def book_and_pay(fmt: str, opt: str, date_str: str, fields: dict) -> tuple
         await session.refresh(booking)
         bid = booking.id
 
+    desc = (f"Реклама «{info['name']}» ({option['label']}"
+            + (f" + {addon['label']}" if addon else "") + f") — {date_str}")
     payment = await create_payment(
-        f"Реклама «{info['name']}» ({option['label']}) — {date_str}",
-        {"kind": "ad", "booking_id": bid},
-        option["price"],
+        desc, {"kind": "ad", "booking_id": bid}, total,
     )
     if not payment or not payment.get("checkout_url"):
         async with get_session() as session:
@@ -205,12 +214,15 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
         b.status = "paid"
         session.add(Meta(key=f"adpay:{payment_id}", value="done"))
         await session.commit()
-        fmt, opt, dt, email, ct = b.fmt, b.opt, b.date, b.email, b.client_type
+        fmt, opt, addon_key = b.fmt, b.opt, b.addon
+        dt, email, ct = b.date, b.email, b.client_type
         b_name, b_co, b_btw = b.buyer_name, b.company, b.btw
         b_kvk, b_addr, b_post, b_phone = b.kvk, b.address, b.postcode, b.phone
 
     info = config.AD_FORMATS.get(fmt, {"name": fmt})
     option = config.ad_option(fmt, opt) or {"label": "", "price": "0"}
+    addon = config.ad_addon(fmt) if addon_key else None
+    addon_sfx = f" + {addon['label']}" if addon else ""
     paid_amount = (payment.get("amount") or {}).get("value") or option.get("price", "0")
 
     # Реквизиты покупателя для фактуры
@@ -221,7 +233,7 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
         buyer_name = b_name or "—"
         buyer_lines = [b_name, b_addr, email]
     buyer_lines = [ln for ln in buyer_lines if ln]
-    desc = f"Реклама «{info['name']}» ({option['label']}) — {dt}"
+    desc = f"Реклама «{info['name']}» ({option['label']}{addon_sfx}) — {dt}"
 
     if email:
         try:
@@ -235,7 +247,7 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
         try:
             await bot.send_message(
                 admin_id,
-                f"💳 <b>Оплачена реклама</b>\n\nФормат: {info['name']} ({option['label']})\n"
+                f"💳 <b>Оплачена реклама</b>\n\nФормат: {info['name']} ({option['label']}{addon_sfx})\n"
                 f"Дата: {dt}\nКлиент: {who} ({'бизнес' if ct == 'business' else 'физлицо'})\n"
                 f"E-mail: {email or '—'}\nСумма: {paid_amount} {config.LISTING_CURRENCY}",
             )

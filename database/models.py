@@ -127,6 +127,8 @@ class AdBooking(Base):
     fmt: Mapped[str] = mapped_column(String(20), default="closed")
     # Вариант длительности формата (ключ из AD_FORMATS[...]["options"])
     opt: Mapped[str] = mapped_column(String(20), default="std")
+    # Выбранная доп-услуга (напр. повторная публикация), ключ или None
+    addon: Mapped[str | None] = mapped_column(String(20), nullable=True)
     # Статус: pending (ждёт оплаты) | paid | closed (бронь админа) | canceled
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     # Реквизиты покупателя для фактуры

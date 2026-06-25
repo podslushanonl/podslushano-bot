@@ -143,6 +143,8 @@ def _build_pdf(no: str, buyer_lines: list, description: str,
     # Подвал
     y -= 8 * mm
     c.setFont(_FONT, 9)
+    c.drawString(x, y, f"IBAN: {config.COMPANY_IBAN}  ·  BIC: {config.COMPANY_BIC}")
+    y -= 5 * mm
     c.drawString(x, y, "Bedrag voldaan via Mollie / Оплачено через Mollie.")
     y -= 5 * mm
     c.drawString(x, y, "Bedankt! / Спасибо за размещение в гайде Подслушано.nl 🙌")

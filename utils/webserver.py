@@ -946,10 +946,12 @@ def _ads_html(taken: set, error: str = "") -> str:
         )
     fmt_opts = "".join(f'<option value="{k}">{html_lib.escape(f["name"])}</option>'
                        for k, f in config.AD_FORMATS.items())
-    fmap = {k: {"name": f["name"], "options": f["options"]}
+    fmap = {k: {"name": f["name"], "options": f["options"], "addon": f.get("addon")}
             for k, f in config.AD_FORMATS.items()}
-    terms_html = "".join(
-        f"<h5>{html_lib.escape(t)}</h5><p>{html_lib.escape(b)}</p>" for t, b in config.AD_TERMS
+    terms_html = (
+        f"<p><b>Исполнитель:</b><br>{config.ad_company_block_html()}</p>"
+        + "".join(f"<h5>{html_lib.escape(t)}</h5><p>{html_lib.escape(b)}</p>"
+                  for t, b in config.AD_TERMS)
     )
     err = f'<div class="err">{html_lib.escape(error)}</div>' if error else ""
     cal = _calendar_html(taken)
@@ -968,6 +970,7 @@ def _ads_html(taken: set, error: str = "") -> str:
   <select name="fmt" id="fmt">{fmt_opts}</select>
   <label>Длительность / вариант</label>
   <select name="opt" id="opt"></select>
+  <label class="chk" id="addonRow" style="display:none"><input type="checkbox" name="addon" id="addon"><span id="addonLbl"></span></label>
 
   <label>Выберите свободную дату</label>
   {cal}
@@ -1019,13 +1022,21 @@ def _ads_html(taken: set, error: str = "") -> str:
 <script>
 const F={fmap_js};
 const fmt=document.getElementById('fmt'),opt=document.getElementById('opt'),
-dateI=document.getElementById('date'),sum=document.getElementById('sum');
+dateI=document.getElementById('date'),sum=document.getElementById('sum'),
+addon=document.getElementById('addon'),addonRow=document.getElementById('addonRow'),
+addonLbl=document.getElementById('addonLbl');
 function fillOpt(){{opt.innerHTML='';F[fmt.value].options.forEach(o=>{{
   const e=document.createElement('option');e.value=o.key;e.textContent=o.label+' — €'+o.price;
-  e.dataset.price=o.price;opt.appendChild(e);}});updateSum();}}
+  e.dataset.price=o.price;opt.appendChild(e);}});
+  const a=F[fmt.value].addon;
+  if(a){{addonRow.style.display='flex';addonLbl.textContent=a.label+' (+€'+a.price+')';addon.dataset.price=a.price;}}
+  else{{addonRow.style.display='none';addon.checked=false;}}
+  updateSum();}}
 function updateSum(){{const o=opt.selectedOptions[0];const d=dateI.value;
-  sum.textContent=(F[fmt.value].name)+(o?' · '+o.textContent:'')+(d?' · дата '+d:' · выберите дату');}}
-fmt.onchange=fillOpt;opt.onchange=updateSum;
+  let p=o?parseFloat(o.dataset.price):0;
+  if(addon.checked&&F[fmt.value].addon)p+=parseFloat(addon.dataset.price);
+  sum.textContent=F[fmt.value].name+(o?' · '+o.textContent:'')+(addon.checked&&F[fmt.value].addon?' + повтор':'')+(d?' · дата '+d:' · выберите дату')+' · €'+p.toFixed(2);}}
+fmt.onchange=fillOpt;opt.onchange=updateSum;addon.onchange=updateSum;
 document.querySelectorAll('.d.free').forEach(c=>c.onclick=()=>{{
   document.querySelectorAll('.d.sel').forEach(x=>x.classList.remove('sel'));
   c.classList.add('sel');dateI.value=c.dataset.date;updateSum();}});
@@ -1054,6 +1065,7 @@ async def _ads_book(request: web.Request) -> web.Response:
         "email", "buyer_name", "company", "btw", "kvk", "address", "postcode", "phone")}
     fields["client_type"] = data.get("client_type")
     fields["terms"] = bool(data.get("terms"))
+    fields["addon"] = bool(data.get("addon"))
     checkout, err = await book_and_pay(
         (data.get("fmt") or "").strip(), (data.get("opt") or "").strip(),
         (data.get("date") or "").strip(), fields)
