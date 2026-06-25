@@ -75,14 +75,19 @@ def _label(d: date) -> str:
 
 
 async def _taken() -> set[str]:
-    """Множество занятых дат (бронь/ожидание/закрыто админом)."""
+    """Множество занятых дат (бронь/ожидание/закрыто админом), с учётом мультидат."""
     async with get_session() as session:
-        rows = (
-            await session.scalars(
-                select(AdBooking.date).where(AdBooking.status.in_(_BLOCKING))
-            )
-        ).all()
-    return set(rows)
+        rows = (await session.execute(
+            select(AdBooking.date, AdBooking.dates_csv).where(
+                AdBooking.status.in_(_BLOCKING))
+        )).all()
+    taken: set[str] = set()
+    for d, csv in rows:
+        if csv:
+            taken.update(x.strip() for x in csv.split(",") if x.strip())
+        elif d:
+            taken.add(d)
+    return taken
 
 
 async def free_date_options() -> list[tuple[str, str]]:
@@ -98,16 +103,30 @@ async def free_date_options() -> list[tuple[str, str]]:
     return out
 
 
-async def book_and_pay(fmt: str, opt: str, date_str: str, fields: dict) -> tuple[str | None, str]:
+async def book_and_pay(fmt: str, opt: str, dates: list, fields: dict) -> tuple[str | None, str]:
     """Создаёт бронь (pending) и платёж Mollie. Возвращает (checkout_url, ошибка)."""
     info = config.AD_FORMATS.get(fmt)
     option = config.ad_option(fmt, opt)
     if not info or not option:
         return None, "Неизвестный формат или длительность."
-    d = _valid_date(date_str)
+    need = info.get("dates", 1)
     today = date.today()
-    if not d or d <= today or d > today + timedelta(days=BOOK_AHEAD_DAYS):
-        return None, "Выберите корректную дату из ближайших 3 месяцев."
+    chosen = list(dict.fromkeys(s.strip() for s in (dates or []) if s and s.strip()))
+    if len(chosen) != need:
+        return None, (f"Выберите {need} даты выхода." if need > 1 else "Выберите дату выхода.")
+    parsed = []
+    for s in chosen:
+        d = _valid_date(s)
+        if not d or d <= today or d > today + timedelta(days=BOOK_AHEAD_DAYS):
+            return None, "Выберите корректные даты из ближайших 3 месяцев."
+        parsed.append(d)
+    parsed.sort()
+    if need > 1:
+        for a, b in zip(parsed, parsed[1:]):
+            if (b - a).days < config.AD_MULTI_MIN_GAP_DAYS:
+                return None, (f"Между датами должно быть не меньше "
+                              f"{config.AD_MULTI_MIN_GAP_DAYS} дней.")
+    chosen = [x.isoformat() for x in parsed]
     if not fields.get("terms"):
         return None, "Подтвердите согласие с условиями сотрудничества."
     ctype = fields.get("client_type")
@@ -148,15 +167,21 @@ async def book_and_pay(fmt: str, opt: str, date_str: str, fields: dict) -> tuple
             total = option["price"]
 
     async with get_session() as session:
-        busy = (await session.scalars(
-            select(AdBooking).where(
-                AdBooking.date == date_str, AdBooking.status.in_(_BLOCKING)
-            )
-        )).first()
-        if busy:
-            return None, "Эта дата уже занята — выберите другую."
+        rows = (await session.execute(
+            select(AdBooking.date, AdBooking.dates_csv).where(
+                AdBooking.status.in_(_BLOCKING))
+        )).all()
+        taken: set[str] = set()
+        for dd, csv in rows:
+            if csv:
+                taken.update(x.strip() for x in csv.split(",") if x.strip())
+            elif dd:
+                taken.add(dd)
+        clash = [d for d in chosen if d in taken]
+        if clash:
+            return None, "Дата уже занята: " + ", ".join(clash) + ". Выберите другую."
         booking = AdBooking(
-            date=date_str, fmt=fmt, opt=opt, status="pending",
+            date=chosen[0], dates_csv=",".join(chosen), fmt=fmt, opt=opt, status="pending",
             addon=(addon["key"] if addon else None),
             client_type=ctype, email=email, address=address,
             buyer_name=name or None,
@@ -172,7 +197,7 @@ async def book_and_pay(fmt: str, opt: str, date_str: str, fields: dict) -> tuple
         bid = booking.id
 
     desc = (f"Реклама «{info['name']}» ({option['label']}"
-            + (f" + {addon['label']}" if addon else "") + f") — {date_str}")
+            + (f" + {addon['label']}" if addon else "") + f") — {', '.join(chosen)}")
     payment = await create_payment(
         desc, {"kind": "ad", "booking_id": bid}, total,
     )
@@ -215,7 +240,7 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
         session.add(Meta(key=f"adpay:{payment_id}", value="done"))
         await session.commit()
         fmt, opt, addon_key = b.fmt, b.opt, b.addon
-        dt, email, ct = b.date, b.email, b.client_type
+        dt, email, ct = (b.dates_csv or b.date), b.email, b.client_type
         b_name, b_co, b_btw = b.buyer_name, b.company, b.btw
         b_kvk, b_addr, b_post, b_phone = b.kvk, b.address, b.postcode, b.phone
 

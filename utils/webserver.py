@@ -845,7 +845,14 @@ font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px}
 .title{font-size:20px;font-weight:800;margin:0}
 .price{font-size:20px;font-weight:800;color:var(--accent);white-space:nowrap}
 .price small{display:block;font-size:12px;font-weight:600;color:var(--muted);text-align:right}
-.lead{color:var(--muted);margin:8px 0 10px}
+.lead{color:var(--muted);margin:8px 0 8px}
+.opts{font-size:14px;color:var(--ink);margin:0 0 8px}.opts b{color:var(--accent)}
+.faq{margin-top:34px}.faq h2{font-size:22px;margin:0 0 8px}
+.faq details{border-bottom:1px solid var(--line);padding:10px 0}
+.faq summary{cursor:pointer;font-weight:700}
+.faq p{color:#444;margin:8px 0 0}
+.contact{background:var(--accent-soft);border-radius:var(--radius);padding:20px;margin-top:24px;text-align:center}
+.contact a{color:var(--accent);font-weight:700;text-decoration:none}
 .card ul{margin:6px 0 0;padding-left:20px}.card li{margin:4px 0}
 .who{color:var(--muted);font-size:14px;margin-top:12px}
 .lbl{font-weight:700;margin:14px 0 6px}
@@ -934,20 +941,37 @@ def _ads_html(taken: set, error: str = "") -> str:
     for key, f in config.AD_FORMATS.items():
         badge = f'<span class="badge">{html_lib.escape(f["badge"])}</span>' if f.get("badge") else ""
         flag = " flag" if key == "expert" else ""
-        prices = " / ".join(f'€{o["price"]}' for o in f["options"])
+        opts = f["options"]
+        head_price = f'от €{opts[0]["price"]}' if len(opts) > 1 else f'€{opts[0]["price"]}'
+        opts_line = (
+            '<div class="opts">'
+            + " · ".join(f'<b>€{o["price"]}</b> — {html_lib.escape(o["label"])}' for o in opts)
+            + "</div>" if len(opts) > 1 else "")
+        addon_line = (
+            f'<div class="opts">доп.: <b>+€{f["addon"]["price"]}</b> — '
+            f'{html_lib.escape(f["addon"]["label"])}</div>' if f.get("addon") else "")
         bullets = "".join(f"<li>{html_lib.escape(b)}</li>" for b in f.get("details", []))
         cards.append(
             f'<div class="card{flag}">{badge}<div class="head">'
             f'<h3 class="title">{html_lib.escape(f["name"])}</h3>'
-            f'<div class="price">{prices}</div></div>'
-            f'<p class="lead">{html_lib.escape(f["lead"])}</p>'
+            f'<div class="price">{head_price}</div></div>'
+            f'<p class="lead">{html_lib.escape(f["lead"])}</p>{opts_line}{addon_line}'
             f'<div class="lbl">Что входит:</div><ul>{bullets}</ul>'
             f'<div class="who"><b>Кому подходит:</b> {html_lib.escape(f["who"])}.</div></div>'
         )
     fmt_opts = "".join(f'<option value="{k}">{html_lib.escape(f["name"])}</option>'
                        for k, f in config.AD_FORMATS.items())
-    fmap = {k: {"name": f["name"], "options": f["options"], "addon": f.get("addon")}
+    fmap = {k: {"name": f["name"], "options": f["options"], "addon": f.get("addon"),
+                "dates": f.get("dates", 1)}
             for k, f in config.AD_FORMATS.items()}
+    faq_html = "".join(
+        f"<details><summary>{html_lib.escape(q)}</summary><p>{html_lib.escape(a)}</p></details>"
+        for q, a in config.AD_FAQ)
+    contact_html = (
+        '<div class="contact">Остались вопросы? Напишите нам — '
+        f'<a href="{config.BOT_URL}">Telegram</a> · '
+        '<a href="https://instagram.com/podslushano.nl">Instagram</a> · '
+        f'<a href="mailto:{config.COMPANY_EMAIL}">{config.COMPANY_EMAIL}</a></div>')
     terms_html = (
         f"<p><b>Исполнитель:</b><br>{config.ad_company_block_html()}</p>"
         + "".join(f"<h5>{html_lib.escape(t)}</h5><p>{html_lib.escape(b)}</p>"
@@ -979,7 +1003,7 @@ def _ads_html(taken: set, error: str = "") -> str:
     <span><i style="background:#f3eee9"></i>занято</span>
     <span><i style="background:var(--accent)"></i>выбрано</span>
   </div>
-  <input type="hidden" name="date" id="date" required>
+  <input type="hidden" name="dates" id="dates">
 
   <label>Кто оплачивает</label>
   <div class="seg">
@@ -1018,28 +1042,43 @@ def _ads_html(taken: set, error: str = "") -> str:
   <div class="note">Оплата через Mollie (iDEAL, карты). 100% предоплата, дата
     фиксируется только после оплаты. Счёт (factuur) придёт на e-mail. Все цены включают BTW 21%.</div>
 </form></div>
+
+<div class="faq"><h2>Частые вопросы</h2>{faq_html}</div>
+{contact_html}
 </div>
 <script>
 const F={fmap_js};
 const fmt=document.getElementById('fmt'),opt=document.getElementById('opt'),
-dateI=document.getElementById('date'),sum=document.getElementById('sum'),
+datesI=document.getElementById('dates'),sum=document.getElementById('sum'),
 addon=document.getElementById('addon'),addonRow=document.getElementById('addonRow'),
 addonLbl=document.getElementById('addonLbl');
+let sel=[],need=1;
 function fillOpt(){{opt.innerHTML='';F[fmt.value].options.forEach(o=>{{
   const e=document.createElement('option');e.value=o.key;e.textContent=o.label+' — €'+o.price;
   e.dataset.price=o.price;opt.appendChild(e);}});
   const a=F[fmt.value].addon;
   if(a){{addonRow.style.display='flex';addonLbl.textContent=a.label+' (+€'+a.price+')';addon.dataset.price=a.price;}}
   else{{addonRow.style.display='none';addon.checked=false;}}
+  need=F[fmt.value].dates||1;sel=[];datesI.value='';
+  document.querySelectorAll('.d.sel').forEach(x=>x.classList.remove('sel'));
   updateSum();}}
-function updateSum(){{const o=opt.selectedOptions[0];const d=dateI.value;
+function updateSum(){{const o=opt.selectedOptions[0];
   let p=o?parseFloat(o.dataset.price):0;
   if(addon.checked&&F[fmt.value].addon)p+=parseFloat(addon.dataset.price);
-  sum.textContent=F[fmt.value].name+(o?' · '+o.textContent:'')+(addon.checked&&F[fmt.value].addon?' + повтор':'')+(d?' · дата '+d:' · выберите дату')+' · €'+p.toFixed(2);}}
+  const dt=sel.length?sel.join(', '):('выберите '+need+(need>1?' даты':' дату'));
+  sum.textContent=F[fmt.value].name+(o?' · '+o.textContent:'')+(addon.checked&&F[fmt.value].addon?' + повтор':'')+' · '+dt+' · €'+p.toFixed(2);}}
 fmt.onchange=fillOpt;opt.onchange=updateSum;addon.onchange=updateSum;
 document.querySelectorAll('.d.free').forEach(c=>c.onclick=()=>{{
-  document.querySelectorAll('.d.sel').forEach(x=>x.classList.remove('sel'));
-  c.classList.add('sel');dateI.value=c.dataset.date;updateSum();}});
+  const ds=c.dataset.date,i=sel.indexOf(ds);
+  if(i>-1){{sel.splice(i,1);c.classList.remove('sel');}}
+  else{{
+    if(sel.length>=need){{
+      if(need===1){{document.querySelectorAll('.d.sel').forEach(x=>x.classList.remove('sel'));sel=[];}}
+      else{{alert('Нужно выбрать '+need+' даты. Сначала снимите лишнюю.');return;}}
+    }}
+    sel.push(ds);c.classList.add('sel');
+  }}
+  datesI.value=sel.join(',');updateSum();}});
 function toggleType(){{const b=document.querySelector('input[name=client_type]:checked').value==='business';
   document.getElementById('gBusiness').style.display=b?'block':'none';
   document.getElementById('gPerson').style.display=b?'none':'block';
@@ -1047,7 +1086,8 @@ function toggleType(){{const b=document.querySelector('input[name=client_type]:c
   document.querySelector('[name=buyer_name]').required=!b;
   ['company','postcode'].forEach(n=>document.querySelector('[name='+n+']').required=b);}}
 document.querySelectorAll('input[name=client_type]').forEach(r=>r.onchange=toggleType);
-document.getElementById('bf').onsubmit=e=>{{if(!dateI.value){{e.preventDefault();alert('Выберите дату в календаре.');}}}};
+document.getElementById('bf').onsubmit=e=>{{if(sel.length!==need){{e.preventDefault();
+  alert('Выберите '+need+(need>1?' даты в календаре (минимум 14 дней между ними).':' дату в календаре.'));}}}};
 fillOpt();toggleType();
 </script>
 </body></html>"""
@@ -1066,9 +1106,10 @@ async def _ads_book(request: web.Request) -> web.Response:
     fields["client_type"] = data.get("client_type")
     fields["terms"] = bool(data.get("terms"))
     fields["addon"] = bool(data.get("addon"))
+    dates = [s.strip() for s in (data.get("dates") or "").split(",") if s.strip()]
     checkout, err = await book_and_pay(
         (data.get("fmt") or "").strip(), (data.get("opt") or "").strip(),
-        (data.get("date") or "").strip(), fields)
+        dates, fields)
     if checkout:
         raise web.HTTPFound(location=checkout)
     return web.Response(
