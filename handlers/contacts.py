@@ -379,23 +379,21 @@ async def _send_results(message: Message, state: FSMContext, sections: list) -> 
     ids: list[int] = []
     labels: list[str] = []
     overflow = 0
-    pairs: list[tuple[str, Specialist]] = []
     for header, specs in sections:
+        uniq = []
         for s in specs:
             key = (s.name.strip().lower(), (s.contact or "").strip().lower())
             if key in seen:
                 continue
             seen.add(key)
-            pairs.append((header, s))
-    # Премиум — в начало ВСЕЙ выдачи (а не только своего блока). Стабильная
-    # сортировка сохраняет порядок внутри премиум/обычных.
-    pairs.sort(key=lambda hp: 0 if hp[1].is_premium else 1)
-    for header, s in pairs:
-        if len(ids) >= MAX_RESULTS:
-            overflow += 1
-            continue
-        ids.append(s.id)
-        labels.append(header)
+            uniq.append(s)
+        uniq.sort(key=lambda s: 0 if s.is_premium else 1)  # премиум — вперёд (в блоке)
+        for s in uniq:
+            if len(ids) >= MAX_RESULTS:
+                overflow += 1
+                continue
+            ids.append(s.id)
+            labels.append(header)
     if not ids:
         await message.answer(
             "К сожалению, по этому запросу у нас пока никого нет в гайде 😔\n\n"
@@ -608,43 +606,6 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
             else []
         )
 
-        # Доп. кандидаты по словам запроса в имени/описании — даже из ДРУГИХ
-        # категорий, чтобы карточка с неточной категорией всё равно нашлась (как
-        # на сайте). Напр. «маникюр» найдёт студию, даже если её категория иная.
-        kw = _query_tokens(text)
-        if data.get("pending_terms"):
-            kw = list(dict.fromkeys(kw + data["pending_terms"]))
-        if kw:
-            def _kw_hit(s) -> bool:
-                hay = f"{s.name} {s.description or ''}".lower()
-                return s.category != category and any(t[:5] in hay for t in kw)
-
-            async def fetch_kw(*conds):
-                rows = await session.scalars(
-                    select(Specialist).where(
-                        Specialist.status == "active",
-                        or_(Specialist.paid_until.is_(None), Specialist.paid_until > now),
-                        *conds,
-                    )
-                )
-                return [s for s in rows.all() if _kw_hit(s)]
-
-            seen_ids = {s.id for s in online + in_province + in_neighbors}
-
-            def _add(dst, items):
-                for s in items:
-                    if s.id not in seen_ids:
-                        seen_ids.add(s.id)
-                        dst.append(s)
-
-            _add(online, await fetch_kw(Specialist.is_online.is_(True)))
-            _add(in_province, await fetch_kw(
-                Specialist.is_online.is_(False), Specialist.province == province))
-            if neighbor_provinces:
-                _add(in_neighbors, await fetch_kw(
-                    Specialist.is_online.is_(False),
-                    Specialist.province.in_(neighbor_provinces)))
-
     # Релевантность: если в запросе были конкретные слова («вокал», «детский»…),
     # показываем только подходящих, а не всю широкую категорию.
     terms = _query_tokens(text)
@@ -665,8 +626,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     in_province = _filter_relevant(in_province, terms)
     in_neighbors = _filter_relevant(in_neighbors, terms)
 
-    # Внутри локального блока: премиум вперёд, затем точное совпадение по городу.
-    # Глобальный премиум-приоритет (по всей выдаче) делается в _send_results.
+    # Премиум — вперёд, затем точные совпадения по городу
     in_province = sorted(
         in_province,
         key=lambda s: (0 if s.is_premium else 1, 0 if (city and s.city == city) else 1),
