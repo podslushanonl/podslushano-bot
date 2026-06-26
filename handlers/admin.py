@@ -1441,6 +1441,38 @@ async def stats_btn(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
+@router.message(Command("findspec"))
+async def cmd_findspec(message: Message, state: FSMContext) -> None:
+    """/findspec <имя> — показать данные специалиста(ов): контакт, фото, дубликаты."""
+    await state.clear()
+    q = (message.text or "").partition(" ")[2].strip()
+    if not q:
+        await message.answer("Использование: <code>/findspec имя</code>")
+        return
+    ql = q.casefold()
+    async with get_session() as session:
+        rows = (await session.scalars(select(Specialist))).all()
+    found = [s for s in rows if ql in (s.name or "").casefold()][:10]
+    if not found:
+        await message.answer(f"Не нашёл специалиста по «{html.escape(q)}».")
+        return
+    blocks = [f"🔎 Найдено: <b>{len(found)}</b>"
+              + (" ⚠️ есть дубликаты" if len(found) > 1 else "")]
+    for s in found:
+        where = "онлайн" if s.is_online else (s.city or s.province or "—")
+        paid = f"\n• оплачено до: {s.paid_until:%d.%m.%Y}" if s.paid_until else ""
+        blocks.append(
+            f"\n<b>#{s.id} {html.escape(s.name)}</b>"
+            f"\n• категория: {html.escape(s.category)}"
+            f"\n• где: {html.escape(where)}"
+            f"\n• контакт: {html.escape(s.contact or '—')}"
+            f"\n• статус: {s.status} · источник: {s.source} · "
+            f"премиум: {'да' if s.is_premium else 'нет'}"
+            f"\n• фото: {'есть' if s.photo_file_id else 'нет'}" + paid
+        )
+    await message.answer("\n".join(blocks), disable_web_page_preview=True)
+
+
 # --- Отзывы: кто и что оставил ----------------------------------------------
 
 def _fmt_review(r: dict) -> str:
