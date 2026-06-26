@@ -542,6 +542,10 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
             term = " ".join(_extra_terms(text, city, province)) or text.strip().lower()
             if term:
                 await log_event("search_miss", term[:80])
+            # Сначала пробуем реально помочь через ИИ (он умеет веб-поиск): найти
+            # автомойку/шиномонтаж и т.п. в городе, даже если их нет в нашем гайде.
+            if await reply_with_ai(message, state):
+                return
             await state.clear()
             await message.answer(
                 f"К сожалению, по запросу «{html.escape(text.strip()[:80])}» в городе "
@@ -601,6 +605,43 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
             if neighbor_provinces
             else []
         )
+
+        # Доп. кандидаты по словам запроса в имени/описании — даже из ДРУГИХ
+        # категорий, чтобы карточка с неточной категорией всё равно нашлась (как
+        # на сайте). Напр. «маникюр» найдёт студию, даже если её категория иная.
+        kw = _query_tokens(text)
+        if data.get("pending_terms"):
+            kw = list(dict.fromkeys(kw + data["pending_terms"]))
+        if kw:
+            def _kw_hit(s) -> bool:
+                hay = f"{s.name} {s.description or ''}".lower()
+                return s.category != category and any(t[:5] in hay for t in kw)
+
+            async def fetch_kw(*conds):
+                rows = await session.scalars(
+                    select(Specialist).where(
+                        Specialist.status == "active",
+                        or_(Specialist.paid_until.is_(None), Specialist.paid_until > now),
+                        *conds,
+                    )
+                )
+                return [s for s in rows.all() if _kw_hit(s)]
+
+            seen_ids = {s.id for s in online + in_province + in_neighbors}
+
+            def _add(dst, items):
+                for s in items:
+                    if s.id not in seen_ids:
+                        seen_ids.add(s.id)
+                        dst.append(s)
+
+            _add(online, await fetch_kw(Specialist.is_online.is_(True)))
+            _add(in_province, await fetch_kw(
+                Specialist.is_online.is_(False), Specialist.province == province))
+            if neighbor_provinces:
+                _add(in_neighbors, await fetch_kw(
+                    Specialist.is_online.is_(False),
+                    Specialist.province.in_(neighbor_provinces)))
 
     # Релевантность: если в запросе были конкретные слова («вокал», «детский»…),
     # показываем только подходящих, а не всю широкую категорию.
