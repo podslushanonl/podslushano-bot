@@ -115,6 +115,19 @@ class Meta(Base):
     value: Mapped[str] = mapped_column(String(100))
 
 
+class AdLead(Base):
+    """Заявка на рекламу с публичной страницы /reklama (без цен)."""
+
+    __tablename__ = "ad_leads"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    name: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    business: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    contact: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class AdBooking(Base):
     """Бронь рекламного слота на дату (с сайта) или закрытая дата (админом)."""
 

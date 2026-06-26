@@ -14,7 +14,7 @@ from sqlalchemy import or_, select
 
 import config
 from database.db import get_session
-from database.models import Specialist
+from database.models import AdLead, Specialist
 from handlers.selfadd import on_payment_paid
 from utils.contact_links import parse_contact_links
 from utils.reviews import rating_badge, ratings_for, specialist_key
@@ -869,7 +869,7 @@ font-size:12px;font-weight:700;padding:5px 12px;border-radius:20px}
 padding:24px;margin-top:34px}
 .book h2{margin:0 0 6px;font-size:23px}
 label{display:block;font-weight:700;margin:14px 0 6px}
-select,input{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;
+select,input,textarea{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;
 font-size:16px;background:#fff;color:var(--ink)}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:560px){.row2{grid-template-columns:1fr}}
@@ -1007,6 +1007,7 @@ def _ads_html(taken: set, error: str = "") -> str:
     fmap_js = json.dumps(fmap, ensure_ascii=False)
     return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
 <title>Реклама — Podslushano.nl</title><style>{_ADS_CSS}</style></head><body>
 <div class="wrap">
 <h1>Реклама на Podslushano.nl</h1>
@@ -1145,6 +1146,79 @@ async def _ads_book(request: web.Request) -> web.Response:
         content_type="text/html", status=400)
 
 
+def _reklama_html(error: str = "") -> str:
+    stats = "".join(
+        f'<div class="stat"><div class="snum">{html_lib.escape(n)}</div>'
+        f'<div class="slbl">{html_lib.escape(l)}</div></div>' for n, l in config.AD_STATS)
+    formats = " · ".join(html_lib.escape(f["name"]) for f in config.AD_FORMATS.values())
+    err = f'<div class="err">{html_lib.escape(error)}</div>' if error else ""
+    return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Реклама — Podslushano.nl</title><style>{_ADS_CSS}</style></head><body>
+<div class="wrap">
+<h1>Реклама в Podslushano.nl</h1>
+<div class="sub">Доходим до русскоязычных в Нидерландах — нативно, без рекламного шума</div>
+<div class="stats">{stats}</div>
+<div class="snote">Данные аудитории на {html_lib.escape(config.AD_STATS_UPDATED)}</div>
+<div class="guide"><h2>Что мы можем</h2>
+<p>Форматы: {formats}. Подберём под вашу задачу индивидуально — расскажите, что
+хотите прорекламировать, и мы пришлём форматы и условия.</p></div>
+<div class="book"><h2>Оставить заявку</h2>{err}
+<form method="post" action="/reklama/submit">
+  <label>Имя</label><input name="name" required>
+  <label>Бизнес / проект</label><input name="business" placeholder="Название" required>
+  <label>Контакт (Telegram, Instagram, e-mail или телефон)</label><input name="contact" required>
+  <label>Что хотите прорекламировать?</label>
+  <textarea name="message" rows="3" placeholder="Кратко о задаче"></textarea>
+  <button type="submit">Отправить заявку</button>
+  <div class="note">Мы свяжемся с вами и пришлём форматы и условия под вашу задачу.</div>
+</form></div>
+</div></body></html>"""
+
+
+def _reklama_thanks() -> str:
+    return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Заявка отправлена</title><style>{_ADS_CSS}</style></head><body>
+<div class="wrap"><h1>Спасибо! 🙌</h1>
+<div class="sub">Заявка получена</div>
+<div class="guide"><p>Мы свяжемся с вами в ближайшее время и пришлём форматы и
+условия под вашу задачу.</p>
+<a class="gcta" href="{config.SITE_URL}">На сайт Podslushano.nl →</a></div>
+</div></body></html>"""
+
+
+async def _reklama(request: web.Request) -> web.Response:
+    return web.Response(text=_reklama_html(), content_type="text/html")
+
+
+async def _reklama_submit(request: web.Request) -> web.Response:
+    data = await request.post()
+    name = (data.get("name") or "").strip()
+    business = (data.get("business") or "").strip()
+    contact = (data.get("contact") or "").strip()
+    message = (data.get("message") or "").strip()
+    if not name or not contact:
+        return web.Response(text=_reklama_html("Заполните имя и контакт."),
+                            content_type="text/html", status=400)
+    async with get_session() as session:
+        session.add(AdLead(name=name, business=business or None,
+                           contact=contact, message=message or None))
+        await session.commit()
+    bot = request.app["bot"]
+    txt = ("📨 <b>Новая заявка на рекламу</b>\n\n"
+           f"Имя: {html_lib.escape(name)}\n"
+           f"Бизнес: {html_lib.escape(business or '—')}\n"
+           f"Контакт: {html_lib.escape(contact)}\n"
+           f"Сообщение: {html_lib.escape(message or '—')}")
+    for admin_id in config.ADMIN_IDS:
+        try:
+            await bot.send_message(admin_id, txt)
+        except Exception as e:  # noqa: BLE001
+            log.warning("Не уведомил админа о заявке: %s", e)
+    return web.Response(text=_reklama_thanks(), content_type="text/html")
+
+
 async def start_webserver(bot) -> web.AppRunner:
     """Запускает веб-сервер на нужном порту (для webhook оплаты и health-check)."""
     app = web.Application()
@@ -1160,8 +1234,10 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/api/guide.json", _api_guide)
     app.router.add_get("/c/{key}", _contact_page)   # короткая ссылка по slug
     app.router.add_get("/s/{key}", _contact_page)   # короткая ссылка по id
-    app.router.add_get("/ads", _ads)            # страница брони рекламы с календарём
+    app.router.add_get("/ads", _ads)            # приватная страница брони с ценами
     app.router.add_post("/ads/book", _ads_book)  # оформление брони → оплата Mollie
+    app.router.add_get("/reklama", _reklama)            # публичная заявка на рекламу (без цен)
+    app.router.add_post("/reklama/submit", _reklama_submit)
     app.router.add_post("/mollie-webhook", _mollie_webhook)
 
     runner = web.AppRunner(app)
