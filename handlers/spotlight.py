@@ -4,12 +4,14 @@
 показывает предпросмотр поста для канала → по подтверждению публикует. Честная
 ротация: пока не показали всех, один и тот же не повторяется.
 """
+import asyncio
 import html
 import logging
 import random
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
+from aiogram.exceptions import TelegramForbiddenError
 from aiogram.filters import Command
 from aiogram.types import (
     CallbackQuery,
@@ -17,11 +19,11 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     Message,
 )
-from sqlalchemy import and_, or_, select
+from sqlalchemy import and_, func, or_, select
 
 import config
 from database.db import get_session
-from database.models import Meta, Specialist
+from database.models import BotUser, Meta, Specialist
 
 log = logging.getLogger(__name__)
 
@@ -92,7 +94,8 @@ def _pick(elig: list[Specialist], done: set[str]) -> Specialist:
 
 def _confirm_kb(sp_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✅ Опубликовать в канал", callback_data=f"sp:pub:{sp_id}")],
+        [InlineKeyboardButton(text="✅ Разослать подписчикам бота",
+                              callback_data=f"sp:pub:{sp_id}")],
         [InlineKeyboardButton(text="🔁 Показать другого", callback_data="sp:next")],
         [InlineKeyboardButton(text="❌ Отмена", callback_data="sp:no")],
     ])
@@ -106,13 +109,17 @@ async def _show(bot, chat_id) -> None:
         return
     done = await _done_ids()
     sp = _pick(elig, done)
-    from handlers.admin import _send_post  # переиспользуем публикацию поста
+    async with get_session() as session:
+        users = await session.scalar(
+            select(func.count()).select_from(BotUser).where(BotUser.is_blocked.is_(False))
+        ) or 0
+    from handlers.admin import _send_post  # переиспользуем отрисовку поста
     await bot.send_message(chat_id, "Предпросмотр «Специалист месяца» 👇")
     await _send_post(bot, chat_id, _spotlight_text(sp), sp.photo_file_id)
     left = len([s for s in elig if str(s.id) not in done])
     await bot.send_message(
         chat_id,
-        f"Опубликовать в <code>{config.ANNOUNCE_CHANNEL}</code>? "
+        f"Разослать <b>{users}</b> подписчикам бота? "
         f"(в очереди этого цикла ещё ~{max(left - 1, 0)})",
         reply_markup=_confirm_kb(sp.id),
     )
@@ -121,9 +128,6 @@ async def _show(bot, chat_id) -> None:
 @router.message(Command("spotlight"))
 async def cmd_spotlight(message: Message) -> None:
     if not _is_admin(message.from_user.id):
-        return
-    if not config.ANNOUNCE_CHANNEL:
-        await message.answer("⚠️ Не задан канал (<code>ANNOUNCE_CHANNEL</code>).")
         return
     await _show(message.bot, message.chat.id)
 
@@ -156,20 +160,40 @@ async def sp_pub(callback: CallbackQuery) -> None:
         await callback.answer("Карточка не найдена", show_alert=True)
         return
     await callback.message.edit_reply_markup(reply_markup=None)
-    from handlers.admin import _send_post
-    try:
-        await _send_post(callback.bot, config.ANNOUNCE_CHANNEL, _spotlight_text(sp),
-                         sp.photo_file_id)
-    except Exception as e:  # noqa: BLE001
-        log.warning("Спотлайт не опубликован: %s", e)
-        await callback.message.answer(
-            "Не удалось опубликовать. Проверь, что бот — админ канала и "
-            "<code>ANNOUNCE_CHANNEL</code> верный.")
-        await callback.answer()
-        return
+    text, photo = _spotlight_text(sp), sp.photo_file_id
     await _mark_done(sid)
-    await callback.message.answer(f"✅ «{html.escape(sp.name)}» опубликован в канал.")
-    await callback.answer("Опубликовано")
+    await callback.message.answer(
+        f"🚀 Рассылаю «{html.escape(sp.name)}» подписчикам бота — пришлю итог в конце.")
+    asyncio.create_task(_broadcast(callback.bot, text, photo, callback.from_user.id))
+    await callback.answer("Рассылка запущена")
+
+
+async def _broadcast(bot, text: str, photo_id, admin_id: int) -> None:
+    """Шлёт спотлайт всем подписчикам бота (не заблокировавшим)."""
+    from handlers.admin import _send_post
+    async with get_session() as session:
+        uids = (await session.scalars(
+            select(BotUser.user_id).where(BotUser.is_blocked.is_(False)))).all()
+    sent = failed = 0
+    for uid in uids:
+        try:
+            await _send_post(bot, uid, text, photo_id)
+            sent += 1
+        except TelegramForbiddenError:
+            failed += 1
+            async with get_session() as session:
+                u = await session.get(BotUser, uid)
+                if u:
+                    u.is_blocked = True
+                    await session.commit()
+        except Exception:  # noqa: BLE001
+            failed += 1
+        await asyncio.sleep(0.05)  # ~20 сообщений/сек — в пределах лимитов Telegram
+    try:
+        await bot.send_message(
+            admin_id, f"✅ Спотлайт разослан.\nДоставлено: {sent}\nНе доставлено: {failed}")
+    except Exception:  # noqa: BLE001
+        pass
 
 
 async def _mark_done(sp_id: int) -> None:
