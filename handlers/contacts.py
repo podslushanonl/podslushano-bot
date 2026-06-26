@@ -379,21 +379,23 @@ async def _send_results(message: Message, state: FSMContext, sections: list) -> 
     ids: list[int] = []
     labels: list[str] = []
     overflow = 0
+    pairs: list[tuple[str, Specialist]] = []
     for header, specs in sections:
-        uniq = []
         for s in specs:
             key = (s.name.strip().lower(), (s.contact or "").strip().lower())
             if key in seen:
                 continue
             seen.add(key)
-            uniq.append(s)
-        uniq.sort(key=lambda s: 0 if s.is_premium else 1)  # премиум — вперёд
-        for s in uniq:
-            if len(ids) >= MAX_RESULTS:
-                overflow += 1
-                continue
-            ids.append(s.id)
-            labels.append(header)
+            pairs.append((header, s))
+    # Премиум — в начало ВСЕЙ выдачи (а не только своего блока). Стабильная
+    # сортировка сохраняет порядок внутри премиум/обычных.
+    pairs.sort(key=lambda hp: 0 if hp[1].is_premium else 1)
+    for header, s in pairs:
+        if len(ids) >= MAX_RESULTS:
+            overflow += 1
+            continue
+        ids.append(s.id)
+        labels.append(header)
     if not ids:
         await message.answer(
             "К сожалению, по этому запросу у нас пока никого нет в гайде 😔\n\n"
@@ -663,7 +665,8 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
     in_province = _filter_relevant(in_province, terms)
     in_neighbors = _filter_relevant(in_neighbors, terms)
 
-    # Премиум — вперёд, затем точные совпадения по городу
+    # Внутри локального блока: премиум вперёд, затем точное совпадение по городу.
+    # Глобальный премиум-приоритет (по всей выдаче) делается в _send_results.
     in_province = sorted(
         in_province,
         key=lambda s: (0 if s.is_premium else 1, 0 if (city and s.city == city) else 1),
