@@ -545,6 +545,7 @@ async def _api_specialists(request: web.Request) -> web.Response:
         })
     resp = web.json_response({"count": len(data), "specialists": data})
     resp.headers["Access-Control-Allow-Origin"] = "*"
+    resp.headers["Cache-Control"] = "no-store"  # сайт должен брать всегда свежие данные
     return resp
 
 
