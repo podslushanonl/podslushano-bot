@@ -2,7 +2,7 @@
 import os
 from collections import defaultdict
 
-from sqlalchemy import delete, inspect
+from sqlalchemy import delete, inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 import config
@@ -115,11 +115,37 @@ async def _seed_if_needed() -> None:
         version = await session.get(Meta, "seed_version")
         if version is not None and version.value == SEED_VERSION:
             return  # актуальная версия уже залита
-        # Удаляем только старые seed-карточки, платные/ручные сохраняем
+        # Снимок «живых» атрибутов seed-карточек (премиум, фото, оплата, владелец) —
+        # чтобы пересев их не стёр. Категория/описание берутся из файла (обновляются),
+        # а вот премиум/фото/оплату восстановим по ключу имя+контакт.
+        rows = (await session.scalars(
+            select(Specialist).where(Specialist.source == "seed"))).all()
+        live = {
+            (r.name.strip().lower(), (r.contact or "").strip().lower()): {
+                "is_premium": r.is_premium, "photo_file_id": r.photo_file_id,
+                "paid_until": r.paid_until, "premium_until": r.premium_until,
+                "submitter_user_id": r.submitter_user_id, "plan": r.plan,
+                "renewal_reminded": r.renewal_reminded, "status": r.status,
+            }
+            for r in rows
+        }
         await session.execute(delete(Specialist).where(Specialist.source == "seed"))
         await session.commit()
 
     await _seed_specialists()
+
+    # Восстанавливаем премиум/фото/оплату на пересеянных карточках
+    if live:
+        async with async_session() as session:
+            rows = (await session.scalars(
+                select(Specialist).where(Specialist.source == "seed"))).all()
+            for r in rows:
+                snap = live.get(
+                    (r.name.strip().lower(), (r.contact or "").strip().lower()))
+                if snap:
+                    for k, v in snap.items():
+                        setattr(r, k, v)
+            await session.commit()
 
     async with async_session() as session:
         await session.merge(Meta(key="seed_version", value=SEED_VERSION))
