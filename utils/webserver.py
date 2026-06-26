@@ -1167,13 +1167,23 @@ def _reklama_html(error: str = "") -> str:
 <form method="post" action="/reklama/submit">
   <label>Имя</label><input name="name" required>
   <label>Бизнес / проект</label><input name="business" placeholder="Название" required>
-  <label>Контакт (Telegram, Instagram, e-mail или телефон)</label><input name="contact" required>
+  <label>Instagram</label><input name="instagram" placeholder="@username или ссылка">
+  <label>Telegram</label><input name="telegram" placeholder="@username или ссылка">
+  <div class="note">Укажите хотя бы один — Instagram или Telegram (второй по желанию).</div>
   <label>Что хотите прорекламировать?</label>
   <textarea name="message" rows="3" placeholder="Кратко о задаче"></textarea>
   <button type="submit">Отправить заявку</button>
   <div class="note">Мы свяжемся с вами и пришлём форматы и условия под вашу задачу.</div>
 </form></div>
-</div></body></html>"""
+</div>
+<script>
+document.querySelector('form').onsubmit=function(e){{
+  var ig=document.querySelector('[name=instagram]').value.trim();
+  var tg=document.querySelector('[name=telegram]').value.trim();
+  if(!ig&&!tg){{e.preventDefault();alert('Укажите хотя бы один контакт — Instagram или Telegram.');}}
+}};
+</script>
+</body></html>"""
 
 
 def _reklama_thanks() -> str:
@@ -1196,11 +1206,15 @@ async def _reklama_submit(request: web.Request) -> web.Response:
     data = await request.post()
     name = (data.get("name") or "").strip()
     business = (data.get("business") or "").strip()
-    contact = (data.get("contact") or "").strip()
+    ig = (data.get("instagram") or "").strip()
+    tg = (data.get("telegram") or "").strip()
     message = (data.get("message") or "").strip()
-    if not name or not contact:
-        return web.Response(text=_reklama_html("Заполните имя и контакт."),
-                            content_type="text/html", status=400)
+    if not name or not (ig or tg):
+        return web.Response(
+            text=_reklama_html("Укажите имя и хотя бы один контакт — Instagram или Telegram."),
+            content_type="text/html", status=400)
+    contact = " · ".join(p for p in (
+        f"Instagram: {ig}" if ig else "", f"Telegram: {tg}" if tg else "") if p)
     async with get_session() as session:
         session.add(AdLead(name=name, business=business or None,
                            contact=contact, message=message or None))
