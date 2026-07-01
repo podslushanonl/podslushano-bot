@@ -89,10 +89,12 @@ class AdminIG(StatesGroup):
 
 
 class AdminSitePost(StatesGroup):
-    """Статья на сайт (WordPress) по теме: тема → предпросмотр → публикация."""
+    """Статья на сайт (WordPress): тема → предпросмотр → фото → рубрика → черновик."""
 
     waiting_topic = State()
     confirm = State()
+    collecting_photos = State()
+    choosing_category = State()
 
 
 class AdminCircle(StatesGroup):

@@ -167,6 +167,12 @@ def test_wordpress_util() -> None:
     check("публикация на сайт выключена без настроек", wp.wp_enabled() is False)
     check("ссылка на редактирование записи корректна",
           wp.edit_link(42).endswith("/wp-admin/post.php?post=42&action=edit"))
+    # Галерея: пусто → пусто, много фото → сетка (не куча), все фото на месте
+    imgs = [{"id": i, "source_url": f"http://x/{i}.jpg"} for i in (1, 2, 3)]
+    g = wp.gallery_block(imgs)
+    check("галерея пустая без фото", wp.gallery_block([]) == "")
+    check("галерея — сетка колонками", "wp-block-gallery" in g and "columns-" in g)
+    check("галерея содержит все фото", g.count("wp-block-image") == 3)
 
 
 def test_detect_category_basic() -> None:
