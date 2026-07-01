@@ -122,6 +122,34 @@ async def test_reseed_ids_stable_all() -> None:
           not changed, f"сменились id у {len(changed)} карточек")
 
 
+async def test_reseed_keeps_edited_premium_card() -> None:
+    """Если у премиум-карточки отредактировали контакт (ключ разошёлся с файлом),
+    пересев НЕ должен её удалить/затереть и не должен создать дубликат."""
+    async with db.get_session() as s:
+        sp = await _category_of(s, "Fancy Beauty Space")
+        sp.is_premium = True
+        sp.photo_file_id = "PHOTO_EDIT"
+        sp.contact = "instagram: @fancy_beauty_space · +31 6 19 52 06 60"  # правка
+        old_id = sp.id
+        await s.commit()
+    async with db.get_session() as s:
+        await s.merge(Meta(key="seed_version", value="0"))
+        await s.commit()
+    await db._seed_if_needed()
+    async with db.get_session() as s:
+        rows = (await s.scalars(select(Specialist).where(
+            Specialist.name == "Fancy Beauty Space"))).all()
+    check("нет дубля Fancy после пересева с правкой", len(rows) == 1,
+          f"карточек Fancy: {len(rows)}")
+    sp = rows[0] if rows else None
+    check("правленый премиум сохранён", bool(sp) and sp.is_premium is True)
+    check("правленое фото сохранено", bool(sp) and sp.photo_file_id == "PHOTO_EDIT")
+    check("правленый контакт не откатился к файлу",
+          bool(sp) and "fancy_beauty_space" in (sp.contact or ""),
+          f"контакт: {sp.contact if sp else '—'}")
+    check("id правленой карточки сохранён", bool(sp) and sp.id == old_id)
+
+
 async def test_premiums_query() -> None:
     """Список премиум-карточек (команда /premiums) находит помеченные премиумом."""
     # test_reseed_preserves_premium уже пометил Fancy как премиум
@@ -146,6 +174,7 @@ async def main() -> None:
     test_fix_category_no_override()
     await test_reseed_preserves_premium()
     await test_reseed_ids_stable_all()
+    await test_reseed_keeps_edited_premium_card()
     await test_premiums_query()
     test_detect_category_basic()
     print()

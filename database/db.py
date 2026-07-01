@@ -14,7 +14,7 @@ async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 # Версия засева базы специалистов. Повышай число, когда меняешь данные/логику —
 # при следующем запуске бот пересоздаст таблицу специалистов заново.
-SEED_VERSION = "8"
+SEED_VERSION = "9"
 # В скольких провинциях должна встречаться карточка, чтобы считать её
 # «онлайн-специалистом» (работает по всей стране) и хранить одной записью.
 ONLINE_PROVINCE_THRESHOLD = 6
@@ -204,15 +204,36 @@ def _desired_seed_rows() -> list[dict]:
     return rows
 
 
+def _has_live_data(r: Specialist) -> bool:
+    """Есть ли у карточки «нажитое»: премиум, фото, оплата или владелец.
+
+    Такие карточки курировал админ или за них платил специалист — их НЕЛЬЗЯ
+    удалять/пересоздавать при пересеве, даже если админ отредактировал контакт/
+    имя/город (из-за чего ключ перестал совпадать с файлом гайда).
+    """
+    return bool(r.is_premium or r.photo_file_id or r.paid_until
+                or r.submitter_user_id)
+
+
 async def _sync_seed_cards() -> None:
     """Обновляет карточки гайда НА МЕСТЕ (id сохраняются): обновляет существующие,
     добавляет новые, удаляет пропавшие из файла. «Живые» атрибуты (премиум, фото,
     оплата, владелец) и id не трогаем — их задаёт бот.
+
+    ВАЖНО: карточку с «нажитым» (премиум/фото/оплата/владелец) НИКОГДА не удаляем,
+    даже если админ отредактировал у неё контакт/имя (тогда ключ разошёлся с
+    файлом). Иначе пересев затирал бы премиум и ручные правки — что и случалось.
     """
     desired: dict[tuple, dict] = {}
     for d in _desired_seed_rows():
         desired.setdefault(
             _seed_key(d["name"], d["contact"], d["city"], d["province"]), d)
+
+    # Индекс желаемых карточек по имени — чтобы сопоставить отредактированную
+    # «живую» карточку с записью из файла и не создать дубликат.
+    desired_by_name: dict[str, list[tuple]] = defaultdict(list)
+    for key, d in desired.items():
+        desired_by_name[d["name"].strip().lower()].append(key)
 
     async with async_session() as session:
         existing_rows = (await session.scalars(
@@ -221,24 +242,38 @@ async def _sync_seed_cards() -> None:
         for r in existing_rows:
             existing.setdefault(_seed_key(r.name, r.contact, r.city, r.province), r)
 
-        # Обновляем только «редакционные» поля из файла
+        handled: set[tuple] = set()
+
+        # 1. Точное совпадение по ключу — обновляем редакционные поля из файла
         for key, d in desired.items():
             row = existing.get(key)
             if row is not None:
                 row.category = d["category"]
                 row.description = d["description"]
                 row.is_online = d["is_online"]
-            else:
-                session.add(Specialist(
-                    name=d["name"], category=d["category"], city=d["city"],
-                    province=d["province"], description=d["description"],
-                    contact=d["contact"], is_online=d["is_online"], source="seed",
-                ))
+                handled.add(key)
 
-        # Удаляем то, что убрали из файла гайда
+        # 2. Оставшиеся существующие карточки (ключ разошёлся с файлом)
         for key, row in existing.items():
-            if key not in desired:
-                await session.delete(row)
+            if key in desired:
+                continue
+            if _has_live_data(row):
+                # Курируемая/оплаченная/отредактированная — НЕ трогаем.
+                # Гасим соответствующую запись из файла по имени, чтобы не дублировать.
+                for dk in desired_by_name.get(row.name.strip().lower(), []):
+                    handled.add(dk)
+            else:
+                await session.delete(row)  # чистая карточка, убранная из файла
+
+        # 3. Добавляем то, чего ещё нет
+        for key, d in desired.items():
+            if key in handled or key in existing:
+                continue
+            session.add(Specialist(
+                name=d["name"], category=d["category"], city=d["city"],
+                province=d["province"], description=d["description"],
+                contact=d["contact"], is_online=d["is_online"], source="seed",
+            ))
 
         await session.commit()
 
