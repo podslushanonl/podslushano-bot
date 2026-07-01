@@ -82,6 +82,7 @@ async def test_reseed_preserves_premium() -> None:
         sp = await _category_of(s, "Fancy Beauty Space")
         sp.is_premium = True
         sp.photo_file_id = "PHOTO_TEST"
+        old_id = sp.id  # запоминаем id — он НЕ должен меняться (ссылки claim_<id>)
         await s.commit()
     # имитируем смену версии сидов → пересев
     async with db.get_session() as s:
@@ -94,6 +95,31 @@ async def test_reseed_preserves_premium() -> None:
     check("пересев сохранил фото", bool(sp) and sp.photo_file_id == "PHOTO_TEST")
     check("пересев обновил категорию из файла",
           bool(sp) and sp.category == "мастер маникюра")
+    # Главное: id карточки не изменился → ссылки claim_<id> не протухают
+    check("пересев сохранил id карточки (ссылки не ломаются)",
+          bool(sp) and sp.id == old_id,
+          f"было #{old_id}, стало #{sp.id if sp else '—'}")
+
+
+async def test_reseed_ids_stable_all() -> None:
+    """id ВСЕХ seed-карточек не меняются после смены версии засева."""
+    async with db.get_session() as s:
+        rows = (await s.scalars(
+            select(Specialist).where(Specialist.source == "seed"))).all()
+        before = {db._seed_key(r.name, r.contact, r.city, r.province): r.id
+                  for r in rows}
+    async with db.get_session() as s:
+        await s.merge(Meta(key="seed_version", value="0"))
+        await s.commit()
+    await db._seed_if_needed()
+    async with db.get_session() as s:
+        rows = (await s.scalars(
+            select(Specialist).where(Specialist.source == "seed"))).all()
+        after = {db._seed_key(r.name, r.contact, r.city, r.province): r.id
+                 for r in rows}
+    changed = [k for k, i in before.items() if after.get(k) != i]
+    check("id всех seed-карточек стабильны после пересева",
+          not changed, f"сменились id у {len(changed)} карточек")
 
 
 def test_detect_category_basic() -> None:
@@ -107,6 +133,7 @@ async def main() -> None:
     await test_db_and_categories()
     test_fix_category_no_override()
     await test_reseed_preserves_premium()
+    await test_reseed_ids_stable_all()
     test_detect_category_basic()
     print()
     if _fails:
