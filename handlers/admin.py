@@ -41,6 +41,7 @@ from states.forms import (
     AdminIG,
     AdminPost,
     AdminSetPhoto,
+    AdminSitePost,
 )
 from utils.ai import (
     ai_afisha_channel,
@@ -48,9 +49,11 @@ from utils.ai import (
     ai_enabled,
     ai_instagram_carousel,
     ai_post_from_source,
+    ai_site_article,
     extract_specialist_query,
     pick_best_photo,
 )
+from utils.wordpress import create_post as wp_create_post, wp_enabled
 from utils.webpage import fetch_page_text
 from utils.make import make_enabled, send_to_make
 from utils.slides import make_cta_url, make_slide_url, slides_enabled
@@ -127,6 +130,7 @@ _ADMIN_COMMANDS_HELP = (
     "/legacy_export — CSV со ссылками на продление\n"
     "/listcat — сколько специалистов по категориям\n\n"
     "📣 <b>Контент и рассылки</b>\n"
+    "/sitepost — статья на сайт (WordPress, черновик)\n"
     "/post — пост в канал по теме\n"
     "/announce — рассылка-анонс всем\n"
     "/afishapost — афиша в канал\n"
@@ -804,6 +808,114 @@ def _post_confirm_kb() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="🔁 Переписать заново", callback_data="post:redo")],
         [InlineKeyboardButton(text="❌ Отмена", callback_data="post:no")],
     ])
+
+
+# --- Статья на сайт (WordPress) --------------------------------------------
+
+def _sitepost_confirm_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="✅ Создать черновик на сайте",
+                              callback_data="sitepost:draft")],
+        [InlineKeyboardButton(text="🔁 Переписать заново", callback_data="sitepost:redo")],
+        [InlineKeyboardButton(text="❌ Отмена", callback_data="sitepost:no")],
+    ])
+
+
+@router.message(Command("sitepost"))
+async def cmd_sitepost(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    if not wp_enabled():
+        await message.answer(
+            "⚠️ Публикация на сайт не настроена. Нужны переменные окружения "
+            "<code>WP_URL</code>, <code>WP_USER</code>, <code>WP_APP_PASSWORD</code> "
+            "(пароль приложения из WordPress: Профиль → «Пароли приложений»).",
+            reply_markup=main_menu(),
+        )
+        return
+    if not ai_enabled():
+        await message.answer("ИИ сейчас недоступен 🙏 (не настроен ключ или нет баланса).")
+        return
+    await state.set_state(AdminSitePost.waiting_topic)
+    await message.answer(
+        "🌐 <b>Статья на сайт.</b> Напиши тему — я напишу статью и создам "
+        "<b>черновик</b> в WordPress (проверишь и опубликуешь сам).\n\n"
+        "<i>Например: «Как выбрать zorgverzekering на 2026 год», "
+        "«7 осенних маршрутов по Нидерландам».</i>",
+        reply_markup=cancel_menu(),
+    )
+
+
+async def _sitepost_generate(message: Message, state: FSMContext, topic: str) -> None:
+    await message.answer("Пишу статью… ✍️ Это займёт несколько секунд.")
+    res = await ai_site_article(topic)
+    if not res:
+        await state.clear()
+        await message.answer(
+            "Не получилось сгенерировать 🙈 Попробуй другую тему или позже.",
+            reply_markup=main_menu(),
+        )
+        return
+    title, body_html = res
+    await state.update_data(sp_title=title, sp_html=body_html, sp_topic=topic)
+    await state.set_state(AdminSitePost.confirm)
+    preview = re.sub(r"<[^>]+>", "", body_html)
+    preview = re.sub(r"\n{3,}", "\n\n", preview).strip()
+    if len(preview) > 2500:
+        preview = preview[:2500] + "…"
+    await message.answer(
+        f"🌐 <b>{html.escape(title)}</b>\n\n{html.escape(preview)}",
+        reply_markup=_sitepost_confirm_kb(),
+        disable_web_page_preview=True,
+    )
+
+
+@router.message(AdminSitePost.waiting_topic, _not_command)
+async def sitepost_topic(message: Message, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("Напиши тему текстом 🙂")
+        return
+    await _sitepost_generate(message, state, message.text.strip())
+
+
+@router.callback_query(AdminSitePost.confirm, F.data == "sitepost:redo")
+async def sitepost_redo(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    await callback.answer("Переписываю…")
+    await _sitepost_generate(callback.message, state, data.get("sp_topic", ""))
+
+
+@router.callback_query(AdminSitePost.confirm, F.data == "sitepost:no")
+async def sitepost_no(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.message.answer("Отменил.", reply_markup=main_menu())
+    await callback.answer()
+
+
+@router.callback_query(AdminSitePost.confirm, F.data == "sitepost:draft")
+async def sitepost_draft(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    title, body_html = data.get("sp_title"), data.get("sp_html")
+    if not title or not body_html:
+        await state.clear()
+        await callback.message.answer("Черновик устарел — начни заново: /sitepost",
+                                      reply_markup=main_menu())
+        await callback.answer()
+        return
+    await callback.answer("Создаю черновик…")
+    post, err = await wp_create_post(title, body_html, status="draft")
+    await state.clear()
+    if not post:
+        await callback.message.answer(
+            f"❌ Не удалось создать черновик.\n{html.escape(err)}",
+            reply_markup=main_menu(),
+        )
+        return
+    await callback.message.answer(
+        f"✅ Черновик создан в WordPress: «{html.escape(title)}».\n\n"
+        f"✏️ Открыть и опубликовать:\n{post['edit']}",
+        reply_markup=main_menu(),
+        disable_web_page_preview=True,
+    )
 
 
 @router.message(Command("post"))

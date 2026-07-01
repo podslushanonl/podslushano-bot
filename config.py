@@ -21,6 +21,11 @@ ADMIN_IDS: list[int] = _parse_admin_ids(os.getenv("ADMIN_IDS", ""))
 GUIDE_URL: str = os.getenv("GUIDE_URL", "")
 # Главный сайт сообщества (показываем на стартовом экране и в приветствии)
 SITE_URL: str = os.getenv("SITE_URL", "https://www.podslushano.nl")
+# Публикация на сайт (WordPress REST API). WP_URL пусто = берём SITE_URL.
+# WP_APP_PASSWORD — «пароль приложения» из WordPress (Профиль → Пароли приложений).
+WP_URL: str = os.getenv("WP_URL", "")
+WP_USER: str = os.getenv("WP_USER", "")
+WP_APP_PASSWORD: str = os.getenv("WP_APP_PASSWORD", "")
 # Ссылка на бота (для кнопки «Вернуться в Telegram» на странице оплаты)
 BOT_URL: str = os.getenv("BOT_URL", "https://t.me/podslushano_nl_bot")
 # Публичная ссылка на логотип (показывается на странице оплаты). Пусто = без лого.
