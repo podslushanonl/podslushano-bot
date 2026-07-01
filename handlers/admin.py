@@ -6,6 +6,8 @@
 """
 import asyncio
 import html
+import io
+import logging
 import json
 import os
 import re
@@ -53,7 +55,13 @@ from utils.ai import (
     extract_specialist_query,
     pick_best_photo,
 )
-from utils.wordpress import create_post as wp_create_post, wp_enabled
+from utils.wordpress import (
+    create_post as wp_create_post,
+    gallery_block,
+    list_categories,
+    upload_media,
+    wp_enabled,
+)
 from utils.webpage import fetch_page_text
 from utils.make import make_enabled, send_to_make
 from utils.slides import make_cta_url, make_slide_url, slides_enabled
@@ -814,9 +822,17 @@ def _post_confirm_kb() -> InlineKeyboardMarkup:
 
 def _sitepost_confirm_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="✅ Создать черновик на сайте",
-                              callback_data="sitepost:draft")],
+        [InlineKeyboardButton(text="📷 Добавить фото", callback_data="sitepost:addphoto")],
+        [InlineKeyboardButton(text="➡️ Без фото, к рубрике", callback_data="sitepost:nophoto")],
         [InlineKeyboardButton(text="🔁 Переписать заново", callback_data="sitepost:redo")],
+        [InlineKeyboardButton(text="❌ Отмена", callback_data="sitepost:no")],
+    ])
+
+
+def _sitepost_photos_kb(n: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=f"✅ Готово ({n} фото) → рубрика",
+                              callback_data="sitepost:photosdone")],
         [InlineKeyboardButton(text="❌ Отмена", callback_data="sitepost:no")],
     ])
 
@@ -837,7 +853,7 @@ async def cmd_sitepost(message: Message, state: FSMContext) -> None:
         return
     await state.set_state(AdminSitePost.waiting_topic)
     await message.answer(
-        "🌐 <b>Статья на сайт.</b> Напиши тему — я напишу статью и создам "
+        "🌐 <b>Статья на сайт.</b> Напиши тему — я напишу подробную статью и создам "
         "<b>черновик</b> в WordPress (проверишь и опубликуешь сам).\n\n"
         "<i>Например: «Как выбрать zorgverzekering на 2026 год», "
         "«7 осенних маршрутов по Нидерландам».</i>",
@@ -856,7 +872,7 @@ async def _sitepost_generate(message: Message, state: FSMContext, topic: str) ->
         )
         return
     title, body_html = res
-    await state.update_data(sp_title=title, sp_html=body_html, sp_topic=topic)
+    await state.update_data(sp_title=title, sp_html=body_html, sp_topic=topic, sp_photos=[])
     await state.set_state(AdminSitePost.confirm)
     preview = re.sub(r"<[^>]+>", "", body_html)
     preview = re.sub(r"\n{3,}", "\n\n", preview).strip()
@@ -884,15 +900,90 @@ async def sitepost_redo(callback: CallbackQuery, state: FSMContext) -> None:
     await _sitepost_generate(callback.message, state, data.get("sp_topic", ""))
 
 
-@router.callback_query(AdminSitePost.confirm, F.data == "sitepost:no")
+@router.callback_query(F.data == "sitepost:no")
 async def sitepost_no(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     await callback.message.answer("Отменил.", reply_markup=main_menu())
     await callback.answer()
 
 
-@router.callback_query(AdminSitePost.confirm, F.data == "sitepost:draft")
-async def sitepost_draft(callback: CallbackQuery, state: FSMContext) -> None:
+@router.callback_query(AdminSitePost.confirm, F.data == "sitepost:addphoto")
+async def sitepost_addphoto(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.set_state(AdminSitePost.collecting_photos)
+    await callback.message.answer(
+        "📷 Пришли фото — по одному или альбомом. Первое станет обложкой, "
+        "остальные лягут аккуратной галереей. Когда закончишь — жми «Готово».",
+        reply_markup=_sitepost_photos_kb(0),
+    )
+    await callback.answer()
+
+
+@router.message(AdminSitePost.collecting_photos, F.photo)
+async def sitepost_collect_photo(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    photos = list(data.get("sp_photos") or [])
+    photos.append(message.photo[-1].file_id)  # самый большой размер
+    await state.update_data(sp_photos=photos)
+    await message.answer(
+        f"Добавил фото. Всего: <b>{len(photos)}</b>. Пришли ещё или жми «Готово».",
+        reply_markup=_sitepost_photos_kb(len(photos)),
+    )
+
+
+@router.message(AdminSitePost.collecting_photos, _not_command)
+async def sitepost_collect_other(message: Message, state: FSMContext) -> None:
+    await message.answer("Это не фото 🙂 Пришли изображение или жми «Готово».")
+
+
+async def _sitepost_ask_category(message: Message, state: FSMContext) -> None:
+    await state.set_state(AdminSitePost.choosing_category)
+    cats = await list_categories()
+    rows = []
+    row: list = []
+    for c in cats[:24]:
+        row.append(InlineKeyboardButton(text=c["name"] or "—",
+                                        callback_data=f"sitecat:{c['id']}"))
+        if len(row) == 2:
+            rows.append(row); row = []
+    if row:
+        rows.append(row)
+    rows.append([InlineKeyboardButton(text="🗂 Без рубрики", callback_data="sitecat:0")])
+    if not cats:
+        await message.answer(
+            "Не удалось получить список рубрик с сайта — опубликую без рубрики.",
+        )
+    await message.answer(
+        "🗂 В какую <b>рубрику</b> поместить статью?",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+    )
+
+
+@router.callback_query(AdminSitePost.confirm, F.data == "sitepost:nophoto")
+async def sitepost_nophoto(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await _sitepost_ask_category(callback.message, state)
+
+
+@router.callback_query(AdminSitePost.collecting_photos, F.data == "sitepost:photosdone")
+async def sitepost_photosdone(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await _sitepost_ask_category(callback.message, state)
+
+
+async def _download_tg_photo(bot, file_id: str) -> bytes | None:
+    try:
+        f = await bot.get_file(file_id)
+        buf = io.BytesIO()
+        await bot.download_file(f.file_path, buf)
+        return buf.getvalue()
+    except Exception as e:  # noqa: BLE001
+        logging.getLogger(__name__).warning(
+            "Не удалось скачать фото из Telegram: %s", e)
+        return None
+
+
+@router.callback_query(AdminSitePost.choosing_category, F.data.startswith("sitecat:"))
+async def sitepost_create(callback: CallbackQuery, state: FSMContext) -> None:
     data = await state.get_data()
     title, body_html = data.get("sp_title"), data.get("sp_html")
     if not title or not body_html:
@@ -901,8 +992,36 @@ async def sitepost_draft(callback: CallbackQuery, state: FSMContext) -> None:
                                       reply_markup=main_menu())
         await callback.answer()
         return
+    try:
+        cat_id = int(callback.data.split(":")[1])
+    except (ValueError, IndexError):
+        cat_id = 0
     await callback.answer("Создаю черновик…")
-    post, err = await wp_create_post(title, body_html, status="draft")
+    photos = list(data.get("sp_photos") or [])
+
+    # Загружаем фото в медиатеку сайта
+    uploaded: list[dict] = []
+    if photos:
+        await callback.message.answer(f"Загружаю фото на сайт ({len(photos)})… 📤")
+        for fid in photos:
+            raw = await _download_tg_photo(callback.message.bot, fid)
+            if not raw:
+                continue
+            media, err = await upload_media("photo.jpg", raw, "image/jpeg")
+            if media:
+                uploaded.append(media)
+
+    # Обложка — первое фото; галерея в теле — остальные (чтобы не было дубля)
+    featured = uploaded[0]["id"] if uploaded else None
+    content = body_html
+    if len(uploaded) > 1:
+        content = body_html + "\n" + gallery_block(uploaded[1:])
+
+    post, err = await wp_create_post(
+        title, content, status="draft",
+        category_ids=[cat_id] if cat_id else None,
+        featured_media=featured,
+    )
     await state.clear()
     if not post:
         await callback.message.answer(
@@ -910,9 +1029,13 @@ async def sitepost_draft(callback: CallbackQuery, state: FSMContext) -> None:
             reply_markup=main_menu(),
         )
         return
+    extra = ""
+    if photos and not uploaded:
+        extra = "\n⚠️ Фото не загрузились (проверь права/Wordfence), текст создан без них."
     await callback.message.answer(
-        f"✅ Черновик создан в WordPress: «{html.escape(title)}».\n\n"
-        f"✏️ Открыть и опубликовать:\n{post['edit']}",
+        f"✅ Черновик создан в WordPress: «{html.escape(title)}»"
+        f"{' · обложка + галерея' if len(uploaded) > 1 else (' · с обложкой' if uploaded else '')}."
+        f"{extra}\n\n✏️ Открыть и опубликовать:\n{post['edit']}",
         reply_markup=main_menu(),
         disable_web_page_preview=True,
     )
