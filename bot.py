@@ -61,25 +61,18 @@ async def configure_profile(bot: Bot) -> None:
         # Для админов в меню добавляем команду /admin
         for admin_id in config.ADMIN_IDS:
             try:
+                # Короткое меню по «/» — только частое. Полный список команд
+                # по полкам открывается через /admin; редкие команды всё равно
+                # работают, если набрать их вручную.
                 await bot.set_my_commands(
                     [
                         BotCommand(command="start", description="Запустить бота и открыть меню"),
                         BotCommand(command="menu", description="Показать меню"),
+                        BotCommand(command="admin", description="Админ-панель: все команды по полкам"),
+                        BotCommand(command="findspec", description="Найти карточку специалиста"),
+                        BotCommand(command="premiums", description="Премиум-карточки"),
+                        BotCommand(command="stats", description="Статистика"),
                         BotCommand(command="contact", description="Связаться с нами / поддержка"),
-                        BotCommand(command="admin", description="Управление базой (админ)"),
-                        BotCommand(command="broadcast", description="Рассылка-анонс (админ)"),
-                        BotCommand(command="announce", description="Пост в канал с кнопкой (админ)"),
-                        BotCommand(command="post", description="Пост в канал по теме (ИИ, админ)"),
-                        BotCommand(command="setpostbutton", description="Текст кнопки под постом (админ)"),
-                        BotCommand(command="circle", description="Видео-кружок в канал (админ)"),
-                        BotCommand(command="ig", description="Instagram-карусель через Make (ИИ, админ)"),
-                        BotCommand(command="afishapost", description="Афиша «Чем заняться» в канал (админ)"),
-                        BotCommand(command="afisha_new", description="Добавить в афишу вручную (админ)"),
-                        BotCommand(command="afisha_export", description="Собрать афишу месяца для IG (админ)"),
-                        BotCommand(command="guide_export", description="Выгрузить весь гайд CSV (админ)"),
-                        BotCommand(command="recategorize", description="Переразметка категорий: предпросмотр (админ)"),
-                        BotCommand(command="stats", description="Статистика (админ)"),
-                        BotCommand(command="reviews", description="Последние отзывы (админ)"),
                     ],
                     scope=BotCommandScopeChat(chat_id=admin_id),
                 )
