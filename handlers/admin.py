@@ -88,8 +88,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="📸 Instagram-карусель (Make)", callback_data="admin:ig")],
             [InlineKeyboardButton(text="📅 Афиша в канал", callback_data="admin:afisha")],
             [InlineKeyboardButton(text="🆕 В афишу месяца (вручную)", callback_data="admin:afishanew")],
-            [InlineKeyboardButton(text="⏳ Старый гайд: дедлайн оплаты", callback_data="admin:legacydeadline")],
-            [InlineKeyboardButton(text="📋 Старый гайд: список для рассылки", callback_data="admin:legacyexport")],
+            [InlineKeyboardButton(text="📋 Старый гайд: ссылки на продление", callback_data="admin:legacyexport")],
             [InlineKeyboardButton(text="📊 Статистика", callback_data="admin:stats")],
             [InlineKeyboardButton(text="⭐ Отзывы", callback_data="admin:reviews")],
         ]
@@ -108,12 +107,42 @@ def _where(sp: Specialist) -> str:
     return sp.city or sp.province or "—"
 
 
+_ADMIN_COMMANDS_HELP = (
+    "🛠 <b>Админ-панель.</b> Кнопки ниже — частые действия. "
+    "Команды набираешь текстом:\n\n"
+    "🪪 <b>Карточки специалистов</b>\n"
+    "/card ID — показать карточку целиком\n"
+    "/findspec имя — найти карточку (id, контакт, фото)\n"
+    "/premium ID on|off — премиум вкл/выкл\n"
+    "/premiums — список всех премиум-карточек\n"
+    "/setphoto ID — сменить фото\n"
+    "/setcontact ID … — сменить контакт\n"
+    "/setname ID … — сменить имя\n"
+    "/setdesc ID … — сменить описание\n"
+    "/setcategory ID … — сменить категорию\n"
+    "/setcity ID … — сменить город\n"
+    "/grant ID ДД.ММ.ГГГГ — продлить бесплатно\n"
+    "/invoice ID [email] — дослать счёт\n\n"
+    "📇 <b>Гайд и продление</b>\n"
+    "/legacy_export — CSV со ссылками на продление\n"
+    "/listcat — сколько специалистов по категориям\n\n"
+    "📣 <b>Контент и рассылки</b>\n"
+    "/post — пост в канал по теме\n"
+    "/announce — рассылка-анонс всем\n"
+    "/afishapost — афиша в канал\n"
+    "/ig — Instagram-карусель\n\n"
+    "📊 <b>Аналитика</b>\n"
+    "/stats — статистика · /reviews — отзывы"
+)
+
+
 @router.message(Command("admin"))
 async def cmd_admin(message: Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer(
-        "🛠 <b>Админ-панель.</b> Управление базой специалистов.\nЧто делаем?",
+        _ADMIN_COMMANDS_HELP,
         reply_markup=_admin_panel(),
+        disable_web_page_preview=True,
     )
 
 

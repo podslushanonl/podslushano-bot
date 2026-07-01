@@ -11,7 +11,19 @@ from aiogram.types import Message
 import config
 from database.db import get_session
 from database.models import BotUser
-from keyboards.menus import BTN_CANCEL, BTN_STICKERS, main_menu, stickers_button
+from keyboards.menus import (
+    BTN_BACK,
+    BTN_CANCEL,
+    BTN_FOR_SPECIALISTS,
+    BTN_MORE,
+    BTN_SERVICES,
+    BTN_STICKERS,
+    main_menu,
+    more_menu,
+    services_menu,
+    specialists_menu,
+    stickers_button,
+)
 
 log = logging.getLogger(__name__)
 
@@ -190,6 +202,37 @@ async def show_stickers(message: Message) -> None:
         "Лови наши стикеры! 🎨 Жми кнопку — добавятся в один тап 👇",
         reply_markup=stickers_button(),
     )
+
+
+@router.message(F.text == BTN_SERVICES)
+async def open_services(message: Message, state: FSMContext) -> None:
+    """Раздел «Сервисы» — открываем подменю."""
+    await state.clear()
+    await message.answer("🛠 Сервисы — выбери 👇", reply_markup=services_menu())
+
+
+@router.message(F.text == BTN_FOR_SPECIALISTS)
+async def open_specialists(message: Message, state: FSMContext) -> None:
+    """Раздел «Специалистам и рекламодателям» — открываем подменю."""
+    await state.clear()
+    await message.answer(
+        "💼 Для специалистов и рекламодателей — выбери 👇",
+        reply_markup=specialists_menu(),
+    )
+
+
+@router.message(F.text == BTN_MORE)
+async def open_more(message: Message, state: FSMContext) -> None:
+    """Раздел «Ещё» — связаться и поделиться."""
+    await state.clear()
+    await message.answer("☰ Ещё — выбери 👇", reply_markup=more_menu())
+
+
+@router.message(F.text == BTN_BACK)
+async def back_to_main(message: Message, state: FSMContext) -> None:
+    """Возврат из подменю в главное меню."""
+    await state.clear()
+    await message.answer("Главное меню 👇", reply_markup=main_menu())
 
 
 @router.message(F.text == BTN_CANCEL)
