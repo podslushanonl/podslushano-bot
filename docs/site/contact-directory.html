@@ -243,10 +243,10 @@ document.addEventListener('DOMContentLoaded',function(){
   function kgLinkify(t){
     var s=kgEsc(t);
     s=s.replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>');
-    // «instagram: @ник» → Instagram (ник может быть с точкой: @ana.speakup)
-    s=s.replace(/\b(?:instagram|инстаграм|инста)\s*:?\s*@([A-Za-z0-9_.]{2,})/gi,function(m,h){h=h.replace(/[.\s]+$/,'');return '<a href="https://instagram.com/'+h+'" target="_blank" rel="noopener">Instagram</a>';});
-    // «telegram: @ник» → Telegram
-    s=s.replace(/\b(?:telegram|телеграм|tg)\s*:?\s*@([A-Za-z0-9_]{3,})/gi,'<a href="https://t.me/$1" target="_blank" rel="noopener">Telegram</a>');
+    // "instagram: @nick" -> Instagram (ник может быть с точкой: @ana.speakup)
+    s=s.replace(/(?:instagram|insta)\s*:?\s*@([A-Za-z0-9_.]{2,})/gi,function(m,h){h=h.replace(/[.\s]+$/,'');return '<a href="https://instagram.com/'+h+'" target="_blank" rel="noopener">Instagram</a>';});
+    // "telegram: @nick" -> Telegram
+    s=s.replace(/(?:telegram|tg)\s*:?\s*@([A-Za-z0-9_]{3,})/gi,'<a href="https://t.me/$1" target="_blank" rel="noopener">Telegram</a>');
     s=s.replace(/(^|[\s>])(\+?\d[\d\s\-()]{7,}\d)/g,function(m,pre,num){return pre+'<a href="tel:'+num.replace(/[^\d+]/g,'')+'">'+num+'</a>';});
     // оставшийся одиночный @ник без префикса — по умолчанию Telegram
     s=s.replace(/(^|[\s>])@([A-Za-z0-9_]{4,})/g,'$1<a href="https://t.me/$2" target="_blank" rel="noopener">@$2</a>');
