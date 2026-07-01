@@ -1756,6 +1756,42 @@ async def cmd_premium(message: Message) -> None:
     )
 
 
+@router.message(Command("premiums"))
+async def cmd_premiums(message: Message, state: FSMContext) -> None:
+    """Список всех премиум-карточек: #id · имя · где · контакт · оплачено до."""
+    await state.clear()
+    now = datetime.utcnow()
+    async with get_session() as session:
+        rows = (await session.execute(
+            select(Specialist).where(Specialist.is_premium.is_(True))
+            .order_by(Specialist.id)
+        )).scalars().all()
+    if not rows:
+        await message.answer("🌟 Премиум-карточек пока нет.", reply_markup=main_menu())
+        return
+    lines = [f"🌟 <b>Премиум-карточки: {len(rows)}</b>\n"]
+    for s in rows:
+        where = "онлайн" if s.is_online else (s.city or s.province or "—")
+        if s.paid_until:
+            paid = ("оплачено до " + s.paid_until.strftime("%d.%m.%Y")
+                    + ("" if s.paid_until > now else " ⚠️ истёк"))
+        else:
+            paid = "бессрочно"
+        lines.append(
+            f"\n<b>#{s.id} {html.escape(s.name)}</b> · {html.escape(where)}"
+            f"\n• {html.escape(s.contact or '—')}"
+            f"\n• {paid}"
+        )
+    # Телеграм режет сообщения длиннее 4096 — шлём частями
+    chunk = ""
+    for ln in lines:
+        if len(chunk) + len(ln) > 3500:
+            await message.answer(chunk, disable_web_page_preview=True)
+            chunk = ""
+        chunk += ln
+    await message.answer(chunk, reply_markup=main_menu(), disable_web_page_preview=True)
+
+
 @router.message(Command("card"))
 async def cmd_card(message: Message) -> None:
     """Показать карточку целиком. /card ID"""
