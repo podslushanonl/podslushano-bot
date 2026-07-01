@@ -28,32 +28,70 @@ BTN_STICKERS = "🎨 Наши стикеры"
 BTN_CONTACT = "✉️ Связаться с нами"
 BTN_SHARE = "📣 Поделиться ботом"
 BTN_CANCEL = "❌ Отмена"
+# Разделы главного меню — открывают подменю (чтобы не было «стены» кнопок)
+BTN_SERVICES = "🛠 Сервисы"
+BTN_FOR_SPECIALISTS = "💼 Специалистам и рекламодателям"
+BTN_MORE = "☰ Ещё"
+BTN_BACK = "⬅️ Назад в меню"
 
 
 def main_menu() -> ReplyKeyboardMarkup:
-    """Главное меню с кнопками внизу экрана."""
+    """Главное меню — только основное, редкое убрано в подменю (Сервисы / Ещё)."""
     keyboard = [
-        [KeyboardButton(text=BTN_SUBMIT)],
-        [KeyboardButton(text=BTN_AD)],
-        [KeyboardButton(text=BTN_BOARD)],
-        [KeyboardButton(text=BTN_GUIDE)],
-        [KeyboardButton(text=events_button_label())],  # ☀️/🍂/❄️/🌷 Чем заняться
-        [KeyboardButton(text=BTN_LETTER), KeyboardButton(text=BTN_SALARY)],
-        # --- Блок гайда специалистов: найти / добавить себя / кабинет рядом ---
         [KeyboardButton(text=BTN_CONTACTS)],
+        [KeyboardButton(text=BTN_GUIDE)],
+        [KeyboardButton(text=BTN_BOARD)],
+        [KeyboardButton(text=events_button_label())],  # ☀️/🍂/❄️/🌷 Чем заняться
+        [KeyboardButton(text=BTN_SUBMIT)],
+        [KeyboardButton(text=BTN_SERVICES), KeyboardButton(text=BTN_FOR_SPECIALISTS)],
+        [KeyboardButton(text=BTN_MORE)],
     ]
-    # Кнопки для специалистов — сразу под поиском, единым блоком (только при оплате)
-    if config.payments_enabled():
-        keyboard.append([KeyboardButton(text=BTN_SELF_ADD)])
-        keyboard.append([KeyboardButton(text=BTN_CABINET)])
-    # Кнопка стикерпака — только если задана ссылка в настройках
-    if config.STICKER_PACK_URL:
-        keyboard.append([KeyboardButton(text=BTN_STICKERS)])
-    keyboard.append([KeyboardButton(text=BTN_CONTACT), KeyboardButton(text=BTN_SHARE)])
     return ReplyKeyboardMarkup(
         keyboard=keyboard,
         resize_keyboard=True,
         input_field_placeholder="Выбери пункт меню 👇",
+    )
+
+
+def services_menu() -> ReplyKeyboardMarkup:
+    """Подменю «Сервисы»: разбор письма, калькулятор, стикеры."""
+    keyboard = [
+        [KeyboardButton(text=BTN_LETTER), KeyboardButton(text=BTN_SALARY)],
+    ]
+    if config.STICKER_PACK_URL:
+        keyboard.append([KeyboardButton(text=BTN_STICKERS)])
+    keyboard.append([KeyboardButton(text=BTN_BACK)])
+    return ReplyKeyboardMarkup(
+        keyboard=keyboard,
+        resize_keyboard=True,
+        input_field_placeholder="Выбери сервис 👇",
+    )
+
+
+def specialists_menu() -> ReplyKeyboardMarkup:
+    """Подменю для специалистов и рекламодателей."""
+    keyboard = []
+    if config.payments_enabled():
+        keyboard.append([KeyboardButton(text=BTN_SELF_ADD)])
+        keyboard.append([KeyboardButton(text=BTN_CABINET)])
+    keyboard.append([KeyboardButton(text=BTN_AD)])
+    keyboard.append([KeyboardButton(text=BTN_BACK)])
+    return ReplyKeyboardMarkup(
+        keyboard=keyboard,
+        resize_keyboard=True,
+        input_field_placeholder="Выбери пункт 👇",
+    )
+
+
+def more_menu() -> ReplyKeyboardMarkup:
+    """Подменю «Ещё»: связаться и поделиться."""
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text=BTN_CONTACT), KeyboardButton(text=BTN_SHARE)],
+            [KeyboardButton(text=BTN_BACK)],
+        ],
+        resize_keyboard=True,
+        input_field_placeholder="Выбери пункт 👇",
     )
 
 

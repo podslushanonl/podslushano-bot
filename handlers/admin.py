@@ -88,8 +88,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="📸 Instagram-карусель (Make)", callback_data="admin:ig")],
             [InlineKeyboardButton(text="📅 Афиша в канал", callback_data="admin:afisha")],
             [InlineKeyboardButton(text="🆕 В афишу месяца (вручную)", callback_data="admin:afishanew")],
-            [InlineKeyboardButton(text="⏳ Старый гайд: дедлайн оплаты", callback_data="admin:legacydeadline")],
-            [InlineKeyboardButton(text="📋 Старый гайд: список для рассылки", callback_data="admin:legacyexport")],
+            [InlineKeyboardButton(text="📋 Старый гайд: ссылки на продление", callback_data="admin:legacyexport")],
             [InlineKeyboardButton(text="📊 Статистика", callback_data="admin:stats")],
             [InlineKeyboardButton(text="⭐ Отзывы", callback_data="admin:reviews")],
         ]
@@ -108,12 +107,42 @@ def _where(sp: Specialist) -> str:
     return sp.city or sp.province or "—"
 
 
+_ADMIN_COMMANDS_HELP = (
+    "🛠 <b>Админ-панель.</b> Кнопки ниже — частые действия. "
+    "Команды набираешь текстом:\n\n"
+    "🪪 <b>Карточки специалистов</b>\n"
+    "/card ID — показать карточку целиком\n"
+    "/findspec имя — найти карточку (id, контакт, фото)\n"
+    "/premium ID on|off — премиум вкл/выкл\n"
+    "/premiums — список всех премиум-карточек\n"
+    "/setphoto ID — сменить фото\n"
+    "/setcontact ID … — сменить контакт\n"
+    "/setname ID … — сменить имя\n"
+    "/setdesc ID … — сменить описание\n"
+    "/setcategory ID … — сменить категорию\n"
+    "/setcity ID … — сменить город\n"
+    "/grant ID ДД.ММ.ГГГГ — продлить бесплатно\n"
+    "/invoice ID [email] — дослать счёт\n\n"
+    "📇 <b>Гайд и продление</b>\n"
+    "/legacy_export — CSV со ссылками на продление\n"
+    "/listcat — сколько специалистов по категориям\n\n"
+    "📣 <b>Контент и рассылки</b>\n"
+    "/post — пост в канал по теме\n"
+    "/announce — рассылка-анонс всем\n"
+    "/afishapost — афиша в канал\n"
+    "/ig — Instagram-карусель\n\n"
+    "📊 <b>Аналитика</b>\n"
+    "/stats — статистика · /reviews — отзывы"
+)
+
+
 @router.message(Command("admin"))
 async def cmd_admin(message: Message, state: FSMContext) -> None:
     await state.clear()
     await message.answer(
-        "🛠 <b>Админ-панель.</b> Управление базой специалистов.\nЧто делаем?",
+        _ADMIN_COMMANDS_HELP,
         reply_markup=_admin_panel(),
+        disable_web_page_preview=True,
     )
 
 
@@ -1754,6 +1783,42 @@ async def cmd_premium(message: Message) -> None:
         f"{'🌟 Премиум включён' if on else 'Премиум выключен'} для «{html.escape(name)}» (#{sid}).",
         reply_markup=main_menu(),
     )
+
+
+@router.message(Command("premiums"))
+async def cmd_premiums(message: Message, state: FSMContext) -> None:
+    """Список всех премиум-карточек: #id · имя · где · контакт · оплачено до."""
+    await state.clear()
+    now = datetime.utcnow()
+    async with get_session() as session:
+        rows = (await session.execute(
+            select(Specialist).where(Specialist.is_premium.is_(True))
+            .order_by(Specialist.id)
+        )).scalars().all()
+    if not rows:
+        await message.answer("🌟 Премиум-карточек пока нет.", reply_markup=main_menu())
+        return
+    lines = [f"🌟 <b>Премиум-карточки: {len(rows)}</b>\n"]
+    for s in rows:
+        where = "онлайн" if s.is_online else (s.city or s.province or "—")
+        if s.paid_until:
+            paid = ("оплачено до " + s.paid_until.strftime("%d.%m.%Y")
+                    + ("" if s.paid_until > now else " ⚠️ истёк"))
+        else:
+            paid = "бессрочно"
+        lines.append(
+            f"\n<b>#{s.id} {html.escape(s.name)}</b> · {html.escape(where)}"
+            f"\n• {html.escape(s.contact or '—')}"
+            f"\n• {paid}"
+        )
+    # Телеграм режет сообщения длиннее 4096 — шлём частями
+    chunk = ""
+    for ln in lines:
+        if len(chunk) + len(ln) > 3500:
+            await message.answer(chunk, disable_web_page_preview=True)
+            chunk = ""
+        chunk += ln
+    await message.answer(chunk, reply_markup=main_menu(), disable_web_page_preview=True)
 
 
 @router.message(Command("card"))

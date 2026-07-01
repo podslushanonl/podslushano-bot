@@ -122,6 +122,18 @@ async def test_reseed_ids_stable_all() -> None:
           not changed, f"сменились id у {len(changed)} карточек")
 
 
+async def test_premiums_query() -> None:
+    """Список премиум-карточек (команда /premiums) находит помеченные премиумом."""
+    # test_reseed_preserves_premium уже пометил Fancy как премиум
+    async with db.get_session() as s:
+        rows = (await s.scalars(
+            select(Specialist).where(Specialist.is_premium.is_(True)))).all()
+    names = {r.name for r in rows}
+    check("список премиумов не пуст", bool(rows))
+    check("Fancy Beauty Space попадает в список премиумов",
+          "Fancy Beauty Space" in names, f"в списке: {sorted(names)}")
+
+
 def test_detect_category_basic() -> None:
     from utils.geo import detect_category
     check("«маникюр» → мастер маникюра", detect_category("маникюр") == "мастер маникюра")
@@ -134,6 +146,7 @@ async def main() -> None:
     test_fix_category_no_override()
     await test_reseed_preserves_premium()
     await test_reseed_ids_stable_all()
+    await test_premiums_query()
     test_detect_category_basic()
     print()
     if _fails:
