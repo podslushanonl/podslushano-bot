@@ -579,6 +579,58 @@ async def ai_channel_post(
     return text, image_query
 
 
+_ARTICLE_SYSTEM = (
+    "Ты — редактор сайта «Подслушано в Нидерландах» (podslushano.nl), пишешь "
+    "статьи для русскоязычных жителей Нидерландов. Пиши по-русски, простым "
+    "человеческим языком, по делу и полезно, без воды и канцелярита.\n\n"
+    "Формат ответа СТРОГО такой:\n"
+    "Первая строка — заголовок статьи обычным текстом, без разметки и без слова "
+    "«Заголовок».\n"
+    "Дальше пустая строка, затем тело статьи в ПРОСТОМ HTML: абзацы <p>, "
+    "подзаголовки <h2>, списки <ul><li>, выделение <strong>. Без <h1>, без "
+    "<html>/<body>, без markdown, без ``` и без картинок.\n\n"
+    "Объём — 400–700 слов. Не выдумывай факты, цифры и даты. Если речь о "
+    "госуслугах/правилах NL — опирайся на официальные источники (можно поиском). "
+    "Если чего-то не знаешь наверняка — не пиши этого."
+)
+
+
+async def ai_site_article(topic: str) -> tuple[str, str] | None:
+    """Статья для сайта по теме. Возвращает (заголовок, html_тела) или None."""
+    if not ai_enabled() or not (topic or "").strip():
+        return None
+    messages = [{"role": "user", "content": f"Тема статьи: {topic.strip()}"}]
+    client = _get_client()
+    try:
+        kwargs = dict(model=config.AI_POST_MODEL, max_tokens=2200,
+                      system=_ARTICLE_SYSTEM, messages=messages)
+        tools = _web_search_tool(OFFICIAL_SOURCES)
+        if tools:
+            kwargs["tools"] = tools
+        resp = await client.messages.create(**kwargs)
+    except Exception as e:  # noqa: BLE001 — пробуем без веб-поиска
+        log.warning("Статья с веб-поиском не сработала (%s), пробую без", e)
+        try:
+            resp = await client.messages.create(
+                model=config.AI_POST_MODEL, max_tokens=2200,
+                system=_ARTICLE_SYSTEM, messages=messages,
+            )
+        except Exception as e2:  # noqa: BLE001
+            log.warning("Ошибка ai_site_article: %s", e2)
+            return None
+    text = _extract_text_and_sources(resp)[0].strip()
+    if not text:
+        return None
+    # На всякий случай срезаем markdown-заборы, если модель их добавила
+    text = re.sub(r"^```(?:html)?\s*|\s*```$", "", text.strip())
+    lines = text.split("\n", 1)
+    title = lines[0].strip().lstrip("#").strip().strip("*").strip()
+    body = (lines[1].strip() if len(lines) > 1 else "")
+    if not title or not body:
+        return None
+    return title, body
+
+
 async def ai_post_from_source(
     url: str, title: str, body: str
 ) -> tuple[str, str] | None:

@@ -162,6 +162,13 @@ async def test_premiums_query() -> None:
           "Fancy Beauty Space" in names, f"в списке: {sorted(names)}")
 
 
+def test_wordpress_util() -> None:
+    import utils.wordpress as wp
+    check("публикация на сайт выключена без настроек", wp.wp_enabled() is False)
+    check("ссылка на редактирование записи корректна",
+          wp.edit_link(42).endswith("/wp-admin/post.php?post=42&action=edit"))
+
+
 def test_detect_category_basic() -> None:
     from utils.geo import detect_category
     check("«маникюр» → мастер маникюра", detect_category("маникюр") == "мастер маникюра")
@@ -176,6 +183,7 @@ async def main() -> None:
     await test_reseed_ids_stable_all()
     await test_reseed_keeps_edited_premium_card()
     await test_premiums_query()
+    test_wordpress_util()
     test_detect_category_basic()
     print()
     if _fails:

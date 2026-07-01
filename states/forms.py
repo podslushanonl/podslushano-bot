@@ -88,6 +88,13 @@ class AdminIG(StatesGroup):
     editing = State()
 
 
+class AdminSitePost(StatesGroup):
+    """Статья на сайт (WordPress) по теме: тема → предпросмотр → публикация."""
+
+    waiting_topic = State()
+    confirm = State()
+
+
 class AdminCircle(StatesGroup):
     """Видео-кружок в канал: ждём видео, потом подтверждение публикации."""
 
