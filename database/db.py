@@ -2,7 +2,7 @@
 import os
 from collections import defaultdict
 
-from sqlalchemy import delete, inspect, select
+from sqlalchemy import inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 import config
@@ -14,7 +14,7 @@ async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 # Версия засева базы специалистов. Повышай число, когда меняешь данные/логику —
 # при следующем запуске бот пересоздаст таблицу специалистов заново.
-SEED_VERSION = "7"
+SEED_VERSION = "8"
 # В скольких провинциях должна встречаться карточка, чтобы считать её
 # «онлайн-специалистом» (работает по всей стране) и хранить одной записью.
 ONLINE_PROVINCE_THRESHOLD = 6
@@ -105,59 +105,46 @@ async def _migrate() -> None:
                     )
 
 
+def _seed_key(name: str, contact: str | None, city: str, province: str) -> tuple:
+    """Устойчивый ключ карточки гайда — по нему сопоставляем файл и базу."""
+    return (
+        (name or "").strip().lower(),
+        (contact or "").strip().lower(),
+        (city or "").strip().lower(),
+        (province or "").strip().lower(),
+    )
+
+
 async def _seed_if_needed() -> None:
-    """Засевает специалистов из гайда, если версия засева устарела.
+    """Синхронизирует специалистов из гайда, если версия засева устарела.
+
+    ВАЖНО: карточки НЕ удаляются и не пересоздаются — они обновляются на месте.
+    Так у карточки сохраняется её id (а значит и ссылки claim_<id>, которые мы
+    рассылаем специалистам, не протухают при обновлении гайда). Раньше пересев
+    делал delete+insert, из-за чего id менялись и разосланные ссылки ломались.
 
     Карточки, добавленные админом и через само-добавление (source != seed),
-    НИКОГДА не трогаем — обновляем только данные из гайда.
+    НИКОГДА не трогаем — работаем только с source == seed.
     """
     async with async_session() as session:
         version = await session.get(Meta, "seed_version")
         if version is not None and version.value == SEED_VERSION:
             return  # актуальная версия уже залита
-        # Снимок «живых» атрибутов seed-карточек (премиум, фото, оплата, владелец) —
-        # чтобы пересев их не стёр. Категория/описание берутся из файла (обновляются),
-        # а вот премиум/фото/оплату восстановим по ключу имя+контакт.
-        rows = (await session.scalars(
-            select(Specialist).where(Specialist.source == "seed"))).all()
-        live = {
-            (r.name.strip().lower(), (r.contact or "").strip().lower()): {
-                "is_premium": r.is_premium, "photo_file_id": r.photo_file_id,
-                "paid_until": r.paid_until, "premium_until": r.premium_until,
-                "submitter_user_id": r.submitter_user_id, "plan": r.plan,
-                "renewal_reminded": r.renewal_reminded, "status": r.status,
-            }
-            for r in rows
-        }
-        await session.execute(delete(Specialist).where(Specialist.source == "seed"))
-        await session.commit()
 
-    await _seed_specialists()
-
-    # Восстанавливаем премиум/фото/оплату на пересеянных карточках
-    if live:
-        async with async_session() as session:
-            rows = (await session.scalars(
-                select(Specialist).where(Specialist.source == "seed"))).all()
-            for r in rows:
-                snap = live.get(
-                    (r.name.strip().lower(), (r.contact or "").strip().lower()))
-                if snap:
-                    for k, v in snap.items():
-                        setattr(r, k, v)
-            await session.commit()
+    await _sync_seed_cards()
 
     async with async_session() as session:
         await session.merge(Meta(key="seed_version", value=SEED_VERSION))
         await session.commit()
 
 
-async def _seed_specialists() -> None:
-    """Заливает специалистов из гайда, схлопывая дубликаты онлайн-специалистов.
+def _desired_seed_rows() -> list[dict]:
+    """Готовит карточки из файла гайда, схлопывая дубликаты онлайн-специалистов.
 
     Один человек (имя + контакт), размещённый сразу во многих провинциях, — это
     онлайн-специалист: храним его ОДНОЙ карточкой с пометкой is_online. Остальных
-    (локальных) сохраняем как есть.
+    (локальных) сохраняем по карточке на провинцию. Возвращает список словарей
+    (без записи в базу) — их дальше сопоставляем с существующими по ключу.
     """
     from seeds.specialists_seed import SEED_SPECIALISTS
     from utils.geo import detect_category, province_of_city
@@ -178,7 +165,7 @@ async def _seed_specialists() -> None:
         key = (item["name"].strip().lower(), (item.get("contact") or "").strip().lower())
         groups[key].append(item)
 
-    rows: list[Specialist] = []
+    rows: list[dict] = []
     for items in groups.values():
         provinces = {
             (it.get("province") or "").strip()
@@ -188,17 +175,15 @@ async def _seed_specialists() -> None:
         base = items[0]
         if len(provinces) >= ONLINE_PROVINCE_THRESHOLD:
             # Онлайн-специалист — одна карточка без привязки к городу/провинции
-            rows.append(
-                Specialist(
-                    name=base["name"],
-                    category=_fix_category(base),
-                    city="",
-                    province="",
-                    description=base.get("description"),
-                    contact=base.get("contact"),
-                    is_online=True,
-                )
-            )
+            rows.append({
+                "name": base["name"],
+                "category": _fix_category(base),
+                "city": "",
+                "province": "",
+                "description": base.get("description"),
+                "contact": base.get("contact"),
+                "is_online": True,
+            })
         else:
             # Локальные специалисты — сохраняем каждую карточку
             for it in items:
@@ -207,20 +192,54 @@ async def _seed_specialists() -> None:
                     or province_of_city(it.get("city", ""))
                     or ""
                 )
-                rows.append(
-                    Specialist(
-                        name=it["name"],
-                        category=_fix_category(it),
-                        city=it.get("city", ""),
-                        province=province,
-                        description=it.get("description"),
-                        contact=it.get("contact"),
-                        is_online=False,
-                    )
-                )
+                rows.append({
+                    "name": it["name"],
+                    "category": _fix_category(it),
+                    "city": it.get("city", ""),
+                    "province": province,
+                    "description": it.get("description"),
+                    "contact": it.get("contact"),
+                    "is_online": False,
+                })
+    return rows
+
+
+async def _sync_seed_cards() -> None:
+    """Обновляет карточки гайда НА МЕСТЕ (id сохраняются): обновляет существующие,
+    добавляет новые, удаляет пропавшие из файла. «Живые» атрибуты (премиум, фото,
+    оплата, владелец) и id не трогаем — их задаёт бот.
+    """
+    desired: dict[tuple, dict] = {}
+    for d in _desired_seed_rows():
+        desired.setdefault(
+            _seed_key(d["name"], d["contact"], d["city"], d["province"]), d)
 
     async with async_session() as session:
-        session.add_all(rows)
+        existing_rows = (await session.scalars(
+            select(Specialist).where(Specialist.source == "seed"))).all()
+        existing: dict[tuple, Specialist] = {}
+        for r in existing_rows:
+            existing.setdefault(_seed_key(r.name, r.contact, r.city, r.province), r)
+
+        # Обновляем только «редакционные» поля из файла
+        for key, d in desired.items():
+            row = existing.get(key)
+            if row is not None:
+                row.category = d["category"]
+                row.description = d["description"]
+                row.is_online = d["is_online"]
+            else:
+                session.add(Specialist(
+                    name=d["name"], category=d["category"], city=d["city"],
+                    province=d["province"], description=d["description"],
+                    contact=d["contact"], is_online=d["is_online"], source="seed",
+                ))
+
+        # Удаляем то, что убрали из файла гайда
+        for key, row in existing.items():
+            if key not in desired:
+                await session.delete(row)
+
         await session.commit()
 
 
