@@ -127,10 +127,16 @@ LISTING_PRICE_YEAR_PREMIUM: str = os.getenv("LISTING_PRICE_YEAR_PREMIUM", "199.0
 # Лояльный тариф для «старожилов» — карточек из старого бессрочного контакт-гайда
 LISTING_PRICE_MONTH_LEGACY: str = os.getenv("LISTING_PRICE_MONTH_LEGACY", "4.99")
 LISTING_PRICE_YEAR_LEGACY: str = os.getenv("LISTING_PRICE_YEAR_LEGACY", "29.00")
-# --- Allo Walks (прогулки по подписке/разово) -------------------------------
+# --- Allo Walks (прогулки: разовая или абонемент на 3) -----------------------
 # Цены строкой, как требует Mollie. С BTW 21% внутри.
 ALLO_PRICE_SINGLE: str = os.getenv("ALLO_PRICE_SINGLE", "35.00")
 ALLO_PRICE_PASS: str = os.getenv("ALLO_PRICE_PASS", "90.00")
+# Абонемент: сколько прогулок и сколько дней он действует (прогулки на выбор).
+ALLO_PASS_CREDITS: int = 3
+try:
+    ALLO_PASS_VALID_DAYS: int = int(os.getenv("ALLO_PASS_VALID_DAYS", "62"))
+except ValueError:
+    ALLO_PASS_VALID_DAYS = 62
 try:
     ALLO_WALK_CAPACITY: int = int(os.getenv("ALLO_WALK_CAPACITY", "10"))
 except ValueError:
@@ -144,10 +150,7 @@ ALLO_WALKS: list[dict] = [
         "meet": "station Overveen · 10:00",
         "finish": "Overveen / Duincafé De Kennemerduinen",
         "dur": "3–4 часа",
-        "desc": ("Дюны, лес и озеро ’t Wed, подъём к обзорной точке Konijnenberg и "
-                 "спокойное возвращение через сосны к visitor centre. Первый маршрут — "
-                 "самый простой: от станции за 10–15 минут уже в зелени. Темп спокойный, "
-                 "разговорный, в конце — кофе для тех, кто хочет остаться."),
+        "desc": "Дюны, лес и озеро ’t Wed. Спокойный маршрут, кофе в конце.",
     },
     {
         "key": "2026-07-18",
@@ -156,9 +159,7 @@ ALLO_WALKS: list[dict] = [
         "meet": "Nijmegen Centraal · 11:00",
         "finish": "центр Nijmegen / Waalkade",
         "dur": "4–5 часов",
-        "desc": ("Смена декораций: старый центр → набережная Waalkade и вид на Waalbrug → "
-                 "природная часть Ooijpolder. Не экскурсия, а прогулка с красивыми видами "
-                 "реки Waal и простором. Часть пути — по грунтовым дорожкам."),
+        "desc": "Старый центр, набережная Waalkade, река Waal и природа Ooijpolder.",
     },
     {
         "key": "2026-07-25",
@@ -167,9 +168,7 @@ ALLO_WALKS: list[dict] = [
         "meet": "Utrecht Centraal · 11:00",
         "finish": "Oudegracht / центр Utrecht",
         "dur": "3–4 часа",
-        "desc": ("Городской маршрут: Oudegracht с нижними набережными (wharves), район Dom, "
-                 "тихая Nieuwegracht и кофе у воды на финал. Возможна лодочная часть — "
-                 "добавим, если договоримся с партнёром (цена пересчитывается отдельно)."),
+        "desc": "Каналы Oudegracht, район Dom, кофе у воды. Возможна лодочная часть.",
     },
 ]
 
