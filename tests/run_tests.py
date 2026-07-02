@@ -151,22 +151,28 @@ async def test_reseed_keeps_edited_premium_card() -> None:
 
 
 async def test_allo_capacity() -> None:
-    """Абонемент Allo занимает место во всех прогулках; счётчик мест верный."""
+    """Места и абонемент-кредиты Allo Walks считаются верно."""
     import handlers.allo as A
+    from datetime import datetime, timedelta
     from database.models import AlloBooking
     keys = [w["key"] for w in config.ALLO_WALKS]
     async with db.get_session() as s:
-        base = await A._taken(s, keys[0])
-        s.add(AlloBooking(walk_key="pass", plan="pass", user_id=901, status="paid"))
+        b0 = await A._taken(s, keys[0])
+        # покупка абонемента НЕ занимает места на прогулках (куплен вчера)
+        s.add(AlloBooking(walk_key="pass", plan="pass", user_id=901, status="paid",
+                          paid_at=datetime.utcnow() - timedelta(days=1)))
         s.add(AlloBooking(walk_key=keys[0], plan="single", user_id=902, status="paid"))
+        s.add(AlloBooking(walk_key=keys[0], plan="use", user_id=901, status="paid"))
         await s.commit()
     async with db.get_session() as s:
-        check("абонемент+разовая заняли 2 места в первой прогулке",
-              await A._taken(s, keys[0]) == base + 2)
-        check("абонемент занял место и во второй прогулке",
-              await A._taken(s, keys[1]) >= 1)
-    # неоплаченная просроченная бронь не держит место (счётчик не растёт)
-    from datetime import datetime, timedelta
+        check("разовая+списание заняли 2 места", await A._taken(s, keys[0]) == b0 + 2)
+        check("покупка абонемента не занимает место на других датах",
+              await A._taken(s, keys[1]) == 0)
+        # абонемент активен, 1 списание → осталось credits-1
+        _p, rem, _vu = await A._active_pass(s, 901)
+        check("у абонемента списалась 1 прогулка",
+              rem == config.ALLO_PASS_CREDITS - 1, f"осталось {rem}")
+    # просроченная неоплата не держит место
     async with db.get_session() as s:
         before = await A._taken(s, keys[2])
         old = AlloBooking(walk_key=keys[2], plan="single", user_id=903, status="pending")
