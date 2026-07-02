@@ -267,6 +267,71 @@ async def create_post(
     return None, "Не удалось связаться с сайтом (сеть/таймаут)."
 
 
+async def diagnose() -> str:
+    """Проверка связи бота с сайтом: внешний IP бота + ответ REST API.
+
+    Помогает понять, блокирует ли сайт/Wordfence бота (403/таймаут) и какой
+    IP нужно добавить в белый список Wordfence.
+    """
+    lines: list[str] = []
+    # 1) Внешний IP бота — его добавляют в белый список Wordfence
+    ip = "не определён"
+    try:
+        async with aiohttp.ClientSession() as s:
+            async with s.get("https://api.ipify.org",
+                             timeout=aiohttp.ClientTimeout(total=15)) as r:
+                ip = (await r.text()).strip()
+    except Exception as e:  # noqa: BLE001
+        ip = f"не удалось ({type(e).__name__})"
+    lines.append(f"🌐 Внешний IP бота: <code>{ip}</code>")
+
+    if not _wp_url():
+        lines.append("⚠️ WP_URL не задан.")
+        return "\n".join(lines)
+    lines.append(f"Сайт: {_wp_url()}")
+
+    # 2) Доступен ли REST API (без авторизации)
+    try:
+        async with aiohttp.ClientSession() as s:
+            async with s.get(f"{_wp_url()}/wp-json/", headers={"User-Agent": _UA},
+                             timeout=aiohttp.ClientTimeout(total=25)) as r:
+                if r.status == 200:
+                    lines.append("✅ REST API отвечает (HTTP 200).")
+                elif r.status == 403:
+                    lines.append("⛔ HTTP 403 — сайт блокирует бота. Добавь IP выше "
+                                 "в белый список Wordfence.")
+                else:
+                    lines.append(f"HTTP {r.status} от /wp-json/.")
+    except asyncio.TimeoutError:
+        lines.append("⏱ Таймаут на /wp-json/ — сайт не отвечает боту (вероятно, IP "
+                     "заблокирован/отбрасывается фаерволом). Добавь IP выше в белый "
+                     "список Wordfence.")
+        return "\n".join(lines)
+    except Exception as e:  # noqa: BLE001
+        lines.append(f"Ошибка связи: {type(e).__name__}: {e}")
+        return "\n".join(lines)
+
+    # 3) Проверка авторизации (пароль приложения)
+    if wp_enabled():
+        try:
+            async with aiohttp.ClientSession() as s:
+                async with s.get(f"{_wp_url()}/wp-json/wp/v2/users/me",
+                                 headers=_base_headers(),
+                                 timeout=aiohttp.ClientTimeout(total=25)) as r:
+                    if r.status == 200:
+                        lines.append("✅ Авторизация работает (пароль приложения OK).")
+                    elif r.status in (401, 403):
+                        lines.append("⛔ Авторизация отклонена — проверь WP_USER и "
+                                     "WP_APP_PASSWORD.")
+                    else:
+                        lines.append(f"Авторизация: HTTP {r.status}.")
+        except Exception as e:  # noqa: BLE001
+            lines.append(f"Авторизация — ошибка: {type(e).__name__}.")
+    else:
+        lines.append("⚠️ WP_USER/WP_APP_PASSWORD не заданы.")
+    return "\n".join(lines)
+
+
 async def update_post(
     post_id: int, content: str | None = None, featured_media: int | None = None
 ) -> tuple[dict | None, str]:
