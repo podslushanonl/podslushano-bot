@@ -60,6 +60,7 @@ from utils.wordpress import (
     create_post as wp_create_post,
     list_categories,
     section_titles,
+    update_post as wp_update_post,
     upload_media,
     wp_enabled,
 )
@@ -1066,7 +1067,21 @@ async def sitepost_create(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer("Создаю черновик…")
     place = list(data.get("sp_place") or [])
 
-    # Загружаем фото в медиатеку сайта, сохраняя выбранное место
+    # 1) Сначала создаём черновик С ТЕКСТОМ — чтобы статья не пропала, даже если
+    #    фото будут долго грузиться или сайт ответит с ошибкой.
+    post, err = await wp_create_post(
+        title, body_html, status="draft",
+        category_ids=[cat_id] if cat_id else None,
+    )
+    if not post:
+        # Черновик не создан — оставляем состояние, чтобы можно было повторить рубрикой
+        await callback.message.answer(
+            f"❌ Не удалось создать черновик.\n{html.escape(err)}\n\n"
+            "Нажми рубрику ещё раз, чтобы повторить.",
+        )
+        return
+
+    # 2) Заливаем фото и обновляем запись их раскладкой
     placements: list[dict] = []
     n_fail = 0
     if place:
@@ -1081,25 +1096,20 @@ async def sitepost_create(callback: CallbackQuery, state: FSMContext) -> None:
             else:
                 n_fail += 1
 
-    content, featured = build_content_with_images(body_html, placements)
-
-    post, err = await wp_create_post(
-        title, content, status="draft",
-        category_ids=[cat_id] if cat_id else None,
-        featured_media=featured,
-    )
-    await state.clear()
-    if not post:
-        await callback.message.answer(
-            f"❌ Не удалось создать черновик.\n{html.escape(err)}",
-            reply_markup=main_menu(),
-        )
-        return
     note = ""
     if placements:
-        note = f" · фото: {len(placements)} (по твоей раскладке)"
+        content, featured = build_content_with_images(body_html, placements)
+        upd, uerr = await wp_update_post(post["id"], content=content,
+                                         featured_media=featured)
+        if upd:
+            note = f" · фото: {len(placements)} (по твоей раскладке)"
+        else:
+            note = (f"\n⚠️ Текст сохранён, но фото не удалось прикрепить: "
+                    f"{html.escape(uerr)} Открой черновик и добавь фото вручную.")
     if n_fail:
         note += f"\n⚠️ {n_fail} фото не загрузились (проверь права/Wordfence)."
+
+    await state.clear()
     await callback.message.answer(
         f"✅ Черновик создан в WordPress: «{html.escape(title)}»{note}.\n\n"
         f"✏️ Открыть и опубликовать:\n{post['edit']}",
