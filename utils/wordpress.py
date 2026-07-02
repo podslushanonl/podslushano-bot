@@ -34,6 +34,11 @@ def _base_headers() -> dict:
     return {"Authorization": _auth_header(), "User-Agent": _UA}
 
 
+def _ssl_param():
+    """aiohttp ssl-параметр: False = не проверять сертификат (для самоподписанных)."""
+    return None if config.WP_VERIFY_SSL else False
+
+
 def wp_enabled() -> bool:
     """Настроена ли публикация на сайт (есть адрес, логин и пароль приложения)."""
     return bool(_wp_url() and config.WP_USER and config.WP_APP_PASSWORD)
@@ -63,7 +68,7 @@ async def list_categories() -> list[dict]:
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.get(
-                    url, headers=_base_headers(),
+                    url, headers=_base_headers(), ssl=_ssl_param(),
                     timeout=aiohttp.ClientTimeout(total=30),
                 ) as resp:
                     if resp.status != 200:
@@ -96,7 +101,7 @@ async def upload_media(
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    url, data=data, headers=headers,
+                    url, data=data, headers=headers, ssl=_ssl_param(),
                     timeout=aiohttp.ClientTimeout(total=90),
                 ) as resp:
                     if resp.status in (200, 201):
@@ -231,7 +236,7 @@ async def create_post(
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    url, json=payload, headers=headers,
+                    url, json=payload, headers=headers, ssl=_ssl_param(),
                     timeout=aiohttp.ClientTimeout(total=60),
                 ) as resp:
                     body = await resp.text()
@@ -289,11 +294,13 @@ async def diagnose() -> str:
         lines.append("⚠️ WP_URL не задан.")
         return "\n".join(lines)
     lines.append(f"Сайт: {_wp_url()}")
+    lines.append(f"Проверка SSL: {'вкл' if config.WP_VERIFY_SSL else 'выкл'}")
 
-    # 2) Доступен ли REST API (без авторизации)
+    # 2) Доступен ли REST API (с текущими настройками SSL)
     try:
         async with aiohttp.ClientSession() as s:
             async with s.get(f"{_wp_url()}/wp-json/", headers={"User-Agent": _UA},
+                             ssl=_ssl_param(),
                              timeout=aiohttp.ClientTimeout(total=25)) as r:
                 if r.status == 200:
                     lines.append("✅ REST API отвечает (HTTP 200).")
@@ -302,6 +309,23 @@ async def diagnose() -> str:
                                  "в белый список Wordfence.")
                 else:
                     lines.append(f"HTTP {r.status} от /wp-json/.")
+    except aiohttp.ClientConnectorCertificateError:
+        lines.append("🔒 Сертификат сайта не проходит проверку (самоподписанный).")
+        # Пробуем без проверки сертификата — если ок, подсказываем решение
+        try:
+            async with aiohttp.ClientSession() as s:
+                async with s.get(f"{_wp_url()}/wp-json/", headers={"User-Agent": _UA},
+                                 ssl=False,
+                                 timeout=aiohttp.ClientTimeout(total=25)) as r:
+                    if r.status in (200, 401, 403):
+                        lines.append("👉 Без проверки сертификата сайт отвечает. "
+                                     "Реши: поставь в Railway <code>WP_VERIFY_SSL=0</code> "
+                                     "— публикация заработает.")
+                    else:
+                        lines.append(f"Без проверки: HTTP {r.status}.")
+        except Exception as e:  # noqa: BLE001
+            lines.append(f"И без проверки не вышло: {type(e).__name__}.")
+        return "\n".join(lines)
     except asyncio.TimeoutError:
         lines.append("⏱ Таймаут на /wp-json/ — сайт не отвечает боту (вероятно, IP "
                      "заблокирован/отбрасывается фаерволом). Добавь IP выше в белый "
@@ -316,7 +340,7 @@ async def diagnose() -> str:
         try:
             async with aiohttp.ClientSession() as s:
                 async with s.get(f"{_wp_url()}/wp-json/wp/v2/users/me",
-                                 headers=_base_headers(),
+                                 headers=_base_headers(), ssl=_ssl_param(),
                                  timeout=aiohttp.ClientTimeout(total=25)) as r:
                     if r.status == 200:
                         lines.append("✅ Авторизация работает (пароль приложения OK).")
@@ -351,7 +375,7 @@ async def update_post(
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    url, json=payload, headers=headers,
+                    url, json=payload, headers=headers, ssl=_ssl_param(),
                     timeout=aiohttp.ClientTimeout(total=60),
                 ) as resp:
                     if resp.status in (200, 201):

@@ -26,6 +26,11 @@ SITE_URL: str = os.getenv("SITE_URL", "https://www.podslushano.nl")
 WP_URL: str = os.getenv("WP_URL", "")
 WP_USER: str = os.getenv("WP_USER", "")
 WP_APP_PASSWORD: str = os.getenv("WP_APP_PASSWORD", "")
+# Проверять SSL-сертификат сайта. Поставь 0, если у сайта самоподписанный/
+# непроверяемый сертификат и бот не может подключиться (ошибка CERTIFICATE_VERIFY_FAILED).
+WP_VERIFY_SSL: bool = os.getenv("WP_VERIFY_SSL", "1").strip().lower() not in (
+    "0", "false", "no", "off",
+)
 # Ссылка на бота (для кнопки «Вернуться в Telegram» на странице оплаты)
 BOT_URL: str = os.getenv("BOT_URL", "https://t.me/podslushano_nl_bot")
 # Публичная ссылка на логотип (показывается на странице оплаты). Пусто = без лого.
