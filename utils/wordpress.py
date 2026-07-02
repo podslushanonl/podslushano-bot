@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import base64
 import logging
+import re
+from collections import defaultdict
 
 import aiohttp
 
@@ -88,6 +90,65 @@ async def upload_media(
     except Exception as e:  # noqa: BLE001
         log.warning("Ошибка upload_media: %s", e)
         return None, "Не удалось загрузить фото (сеть/таймаут)."
+
+
+def section_titles(body_html: str) -> list[str]:
+    """Заголовки разделов статьи (<h2>) — по ним раскладываем фото по пунктам."""
+    raw = re.findall(r"<h2[^>]*>(.*?)</h2>", body_html or "", re.S | re.I)
+    return [re.sub(r"<[^>]+>", "", t).strip() for t in raw]
+
+
+def image_block(im: dict) -> str:
+    """Одиночная картинка блоком WordPress."""
+    if not im.get("id"):
+        return ""
+    return (
+        f'<!-- wp:image {{"id":{im["id"]},"sizeSlug":"large"}} -->'
+        f'<figure class="wp-block-image size-large">'
+        f'<img src="{im["source_url"]}" class="wp-image-{im["id"]}"/></figure>'
+        f"<!-- /wp:image -->"
+    )
+
+
+def build_content_with_images(
+    body_html: str, placements: list[dict]
+) -> tuple[str, int | None]:
+    """Расставляет фото по статье согласно выбору пользователя.
+
+    placements — список {'im': {id, source_url}, 'where': 'top'|'end'|<int раздел>}.
+    'top' — обложка (featured, в тело не вставляется). <int> — после N-го <h2>.
+    'end' — в конец. Возвращает (готовый_html, id_обложки|None).
+    """
+    section_imgs: dict[int, list[str]] = defaultdict(list)
+    end_imgs: list[str] = []
+    top_extra: list[str] = []
+    featured: int | None = None
+    for p in placements:
+        im, where = p.get("im") or {}, p.get("where")
+        fig = image_block(im)
+        if not fig:
+            continue
+        if where == "top":
+            if featured is None:
+                featured = im.get("id")
+            else:
+                top_extra.append(fig)  # вторая «обложка» → в начало тела
+        elif where == "end":
+            end_imgs.append(fig)
+        else:
+            try:
+                section_imgs[int(where)].append(fig)
+            except (TypeError, ValueError):
+                end_imgs.append(fig)
+    # Вставляем фото сразу после нужного </h2>
+    out = ""
+    h2i = -1
+    for tok in re.split(r"(</h2>)", body_html or ""):
+        out += tok
+        if tok == "</h2>":
+            h2i += 1
+            out += "".join(section_imgs.get(h2i, []))
+    return "".join(top_extra) + out + "".join(end_imgs), featured
 
 
 def gallery_block(images: list[dict]) -> str:

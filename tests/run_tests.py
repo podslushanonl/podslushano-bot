@@ -173,6 +173,17 @@ def test_wordpress_util() -> None:
     check("галерея пустая без фото", wp.gallery_block([]) == "")
     check("галерея — сетка колонками", "wp-block-gallery" in g and "columns-" in g)
     check("галерея содержит все фото", g.count("wp-block-image") == 3)
+    # Ручная раскладка фото по разделам
+    body = "<p>i</p><h2>A</h2><p>a</p><h2>B</h2><p>b</p>"
+    check("разделы статьи распознаются", wp.section_titles(body) == ["A", "B"])
+    content, feat = wp.build_content_with_images(body, [
+        {"im": {"id": 10, "source_url": "u"}, "where": "top"},
+        {"im": {"id": 11, "source_url": "u"}, "where": 1},
+    ])
+    check("обложка = верхнее фото", feat == 10)
+    check("обложка не дублируется в теле", "wp-image-10" not in content)
+    check("фото раздела 2 стоит после его заголовка",
+          content.index("wp-image-11") > content.index("<h2>B</h2>"))
 
 
 def test_detect_category_basic() -> None:

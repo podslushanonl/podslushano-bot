@@ -56,9 +56,10 @@ from utils.ai import (
     pick_best_photo,
 )
 from utils.wordpress import (
+    build_content_with_images,
     create_post as wp_create_post,
-    gallery_block,
     list_categories,
+    section_titles,
     upload_media,
     wp_enabled,
 )
@@ -830,11 +831,48 @@ def _sitepost_confirm_kb() -> InlineKeyboardMarkup:
 
 
 def _sitepost_photos_kb(n: int) -> InlineKeyboardMarkup:
+    label = (f"✅ Готово ({n} фото) → рубрика" if n
+             else "➡️ Дальше без фото → рубрика")
     return InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=f"✅ Готово ({n} фото) → рубрика",
-                              callback_data="sitepost:photosdone")],
+        [InlineKeyboardButton(text=label, callback_data="sitepost:photosdone")],
         [InlineKeyboardButton(text="❌ Отмена", callback_data="sitepost:no")],
     ])
+
+
+def _placement_kb(sections: list[str]) -> InlineKeyboardMarkup:
+    """Куда поставить пришедшее фото: обложка / конкретный раздел / в конец."""
+    rows = [[InlineKeyboardButton(text="📌 Обложка (вверху)", callback_data="siteimg:top")]]
+    for i, title in enumerate(sections[:20]):
+        t = (title[:34] + "…") if len(title) > 35 else title
+        rows.append([InlineKeyboardButton(text=f"{i + 1}. {t}",
+                                          callback_data=f"siteimg:{i}")])
+    rows.append([InlineKeyboardButton(text="⬇️ В конец статьи", callback_data="siteimg:end")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+async def _send_long(message: Message, text: str, reply_markup=None) -> None:
+    """Шлёт длинный текст частями (лимит Telegram ~4096) — виден весь целиком.
+
+    Клавиатуру вешаем только на последнее сообщение."""
+    text = html.escape(text)
+    chunks: list[str] = []
+    cur = ""
+    for para in text.split("\n\n"):
+        while len(para) > 3800:
+            chunks.append(para[:3800])
+            para = para[3800:]
+        if len(cur) + len(para) + 2 > 3800:
+            if cur:
+                chunks.append(cur)
+            cur = para
+        else:
+            cur = (cur + "\n\n" + para) if cur else para
+    if cur:
+        chunks.append(cur)
+    for i, ch in enumerate(chunks or [""]):
+        last = i == len(chunks) - 1
+        await message.answer(ch, reply_markup=reply_markup if last else None,
+                             disable_web_page_preview=True)
 
 
 @router.message(Command("sitepost"))
@@ -873,17 +911,15 @@ async def _sitepost_generate(message: Message, state: FSMContext, topic: str) ->
         )
         return
     title, body_html = res
-    await state.update_data(sp_title=title, sp_html=body_html, sp_topic=topic, sp_photos=[])
+    sections = section_titles(body_html)
+    await state.update_data(sp_title=title, sp_html=body_html, sp_topic=topic,
+                            sp_sections=sections, sp_place=[], sp_pending=None)
     await state.set_state(AdminSitePost.confirm)
-    preview = re.sub(r"<[^>]+>", "", body_html)
-    preview = re.sub(r"\n{3,}", "\n\n", preview).strip()
-    if len(preview) > 2500:
-        preview = preview[:2500] + "…"
-    await message.answer(
-        f"🌐 <b>{html.escape(title)}</b>\n\n{html.escape(preview)}",
-        reply_markup=_sitepost_confirm_kb(),
-        disable_web_page_preview=True,
-    )
+    # Полный текст (без HTML-тегов) — частями, чтобы видеть статью целиком
+    body_plain = re.sub(r"<[^>]+>", "", body_html)
+    body_plain = re.sub(r"\n{3,}", "\n\n", body_plain).strip()
+    await message.answer(f"🌐 <b>{html.escape(title)}</b>", disable_web_page_preview=True)
+    await _send_long(message, body_plain, reply_markup=_sitepost_confirm_kb())
 
 
 @router.message(AdminSitePost.waiting_topic, _not_command)
@@ -910,10 +946,14 @@ async def sitepost_no(callback: CallbackQuery, state: FSMContext) -> None:
 
 @router.callback_query(AdminSitePost.confirm, F.data == "sitepost:addphoto")
 async def sitepost_addphoto(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    n = len(data.get("sp_sections") or [])
     await state.set_state(AdminSitePost.collecting_photos)
+    hint = (f"В статье {n} раздел(ов) — после каждого фото я спрошу, куда его "
+            "поставить (обложка / конкретный раздел / в конец)."
+            if n else "Фото поставлю обложкой или в конец — спрошу для каждого.")
     await callback.message.answer(
-        "📷 Пришли фото — по одному или альбомом. Первое станет обложкой, "
-        "остальные лягут аккуратной галереей. Когда закончишь — жми «Готово».",
+        "📷 Пришли фото — по одному. " + hint + " Когда закончишь — жми «Готово».",
         reply_markup=_sitepost_photos_kb(0),
     )
     await callback.answer()
@@ -922,12 +962,38 @@ async def sitepost_addphoto(callback: CallbackQuery, state: FSMContext) -> None:
 @router.message(AdminSitePost.collecting_photos, F.photo)
 async def sitepost_collect_photo(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
-    photos = list(data.get("sp_photos") or [])
-    photos.append(message.photo[-1].file_id)  # самый большой размер
-    await state.update_data(sp_photos=photos)
+    sections = data.get("sp_sections") or []
+    await state.update_data(sp_pending=message.photo[-1].file_id)
     await message.answer(
-        f"Добавил фото. Всего: <b>{len(photos)}</b>. Пришли ещё или жми «Готово».",
-        reply_markup=_sitepost_photos_kb(len(photos)),
+        "📍 Куда поставить это фото?",
+        reply_markup=_placement_kb(sections),
+    )
+
+
+@router.callback_query(AdminSitePost.collecting_photos, F.data.startswith("siteimg:"))
+async def sitepost_place(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    pending = data.get("sp_pending")
+    if not pending:
+        await callback.answer("Сначала пришли фото 🙂", show_alert=True)
+        return
+    where_raw = callback.data.split(":", 1)[1]
+    where: object = where_raw if where_raw in ("top", "end") else int(where_raw)
+    place = list(data.get("sp_place") or [])
+    place.append({"fid": pending, "where": where})
+    await state.update_data(sp_place=place, sp_pending=None)
+    sections = data.get("sp_sections") or []
+    if where == "top":
+        label = "обложка"
+    elif where == "end":
+        label = "в конец"
+    else:
+        label = f"раздел {int(where) + 1}"
+    await callback.answer(f"Фото → {label}")
+    await callback.message.answer(
+        f"✅ Фото поставлю: <b>{label}</b>. Всего фото: {len(place)}.\n"
+        "Пришли ещё фото или жми «Готово».",
+        reply_markup=_sitepost_photos_kb(len(place)),
     )
 
 
@@ -998,25 +1064,24 @@ async def sitepost_create(callback: CallbackQuery, state: FSMContext) -> None:
     except (ValueError, IndexError):
         cat_id = 0
     await callback.answer("Создаю черновик…")
-    photos = list(data.get("sp_photos") or [])
+    place = list(data.get("sp_place") or [])
 
-    # Загружаем фото в медиатеку сайта
-    uploaded: list[dict] = []
-    if photos:
-        await callback.message.answer(f"Загружаю фото на сайт ({len(photos)})… 📤")
-        for fid in photos:
-            raw = await _download_tg_photo(callback.message.bot, fid)
-            if not raw:
-                continue
-            media, err = await upload_media("photo.jpg", raw, "image/jpeg")
+    # Загружаем фото в медиатеку сайта, сохраняя выбранное место
+    placements: list[dict] = []
+    n_fail = 0
+    if place:
+        await callback.message.answer(f"Загружаю фото на сайт ({len(place)})… 📤")
+        for item in place:
+            raw = await _download_tg_photo(callback.message.bot, item["fid"])
+            media = None
+            if raw:
+                media, _err = await upload_media("photo.jpg", raw, "image/jpeg")
             if media:
-                uploaded.append(media)
+                placements.append({"im": media, "where": item["where"]})
+            else:
+                n_fail += 1
 
-    # Обложка — первое фото; галерея в теле — остальные (чтобы не было дубля)
-    featured = uploaded[0]["id"] if uploaded else None
-    content = body_html
-    if len(uploaded) > 1:
-        content = body_html + "\n" + gallery_block(uploaded[1:])
+    content, featured = build_content_with_images(body_html, placements)
 
     post, err = await wp_create_post(
         title, content, status="draft",
@@ -1030,13 +1095,14 @@ async def sitepost_create(callback: CallbackQuery, state: FSMContext) -> None:
             reply_markup=main_menu(),
         )
         return
-    extra = ""
-    if photos and not uploaded:
-        extra = "\n⚠️ Фото не загрузились (проверь права/Wordfence), текст создан без них."
+    note = ""
+    if placements:
+        note = f" · фото: {len(placements)} (по твоей раскладке)"
+    if n_fail:
+        note += f"\n⚠️ {n_fail} фото не загрузились (проверь права/Wordfence)."
     await callback.message.answer(
-        f"✅ Черновик создан в WordPress: «{html.escape(title)}»"
-        f"{' · обложка + галерея' if len(uploaded) > 1 else (' · с обложкой' if uploaded else '')}."
-        f"{extra}\n\n✏️ Открыть и опубликовать:\n{post['edit']}",
+        f"✅ Черновик создан в WordPress: «{html.escape(title)}»{note}.\n\n"
+        f"✏️ Открыть и опубликовать:\n{post['edit']}",
         reply_markup=main_menu(),
         disable_web_page_preview=True,
     )
