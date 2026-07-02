@@ -247,6 +247,7 @@ async def create_post(
             async with aiohttp.ClientSession() as session:
                 async with session.post(
                     url, json=payload, headers=headers, ssl=_ssl_param(),
+                    allow_redirects=False,
                     timeout=aiohttp.ClientTimeout(total=60),
                 ) as resp:
                     body = await resp.text()
@@ -266,6 +267,12 @@ async def create_post(
                             "status": (data.get("status", status)
                                        if isinstance(data, dict) else status),
                         }, ""
+                    if resp.status in (301, 302, 303, 307, 308):
+                        loc = resp.headers.get("Location", "?")
+                        return None, (
+                            f"Сайт перенаправляет запрос (HTTP {resp.status}) на:\n{loc}\n"
+                            "Из-за редиректа запись не создаётся. Поставь в Railway "
+                            "WP_URL ровно как в адресе выше (обычно без www) и повтори.")
                     if resp.status in (401, 403):
                         return None, ("WordPress отклонил доступ (нет прав или неверный "
                                       "пароль приложения). Проверь WP_USER и WP_APP_PASSWORD.")
@@ -380,6 +387,44 @@ async def diagnose() -> str:
             lines.append(f"Авторизация — ошибка: {type(e).__name__}.")
     else:
         lines.append("⚠️ WP_USER/WP_APP_PASSWORD не заданы.")
+
+    # 4) Тестовое создание черновика — показываем СЫРОЙ ответ (статус, редирект,
+    #    Content-Type, разобранный id / тело). Так видно настоящую причину «нет id».
+    if wp_enabled():
+        try:
+            async with aiohttp.ClientSession() as s:
+                async with s.post(
+                    f"{_wp_url()}/wp-json/wp/v2/posts",
+                    json={"title": "WPTEST — можно удалить", "status": "draft",
+                          "content": "Проверка связи бота."},
+                    headers={**_base_headers(), "Content-Type": "application/json"},
+                    ssl=_ssl_param(), allow_redirects=False,
+                    timeout=aiohttp.ClientTimeout(total=30),
+                ) as r:
+                    ct = r.headers.get("Content-Type", "")
+                    lines.append(f"\n🧪 Тест-создание: HTTP {r.status}, {ct}")
+                    loc = r.headers.get("Location")
+                    if r.status in (301, 302, 303, 307, 308) and loc:
+                        lines.append(f"↪️ Редирект на: {loc}")
+                        lines.append("👉 Поставь WP_URL ровно как в этом адресе "
+                                     "(обычно без www).")
+                    else:
+                        raw = await r.text()
+                        try:
+                            d = json.loads(raw)
+                            pid = d.get("id") if isinstance(d, dict) else None
+                            if pid:
+                                lines.append(f"✅ Запись создалась, id={pid} "
+                                             "(удали тестовый черновик).")
+                            else:
+                                keys = (", ".join(list(d.keys())[:6])
+                                        if isinstance(d, dict) else type(d).__name__)
+                                lines.append(f"⚠️ В ответе нет id. Поля: {keys}")
+                                lines.append(f"Тело: {raw[:250]}")
+                        except Exception:  # noqa: BLE001
+                            lines.append(f"⚠️ Ответ не JSON. Тело: {raw[:250]}")
+        except Exception as e:  # noqa: BLE001
+            lines.append(f"Тест-создание — ошибка: {type(e).__name__}: {e}")
     return "\n".join(lines)
 
 
