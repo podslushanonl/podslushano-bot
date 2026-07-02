@@ -31,7 +31,11 @@ _RETRIES = 3
 
 
 def _base_headers() -> dict:
-    return {"Authorization": _auth_header(), "User-Agent": _UA}
+    return {
+        "Authorization": _auth_header(),
+        "User-Agent": _UA,
+        "Accept": "application/json",
+    }
 
 
 def _ssl_param():
@@ -299,7 +303,8 @@ async def diagnose() -> str:
     # 2) Доступен ли REST API (с текущими настройками SSL)
     try:
         async with aiohttp.ClientSession() as s:
-            async with s.get(f"{_wp_url()}/wp-json/", headers={"User-Agent": _UA},
+            async with s.get(f"{_wp_url()}/wp-json/",
+                             headers={"User-Agent": _UA, "Accept": "application/json"},
                              ssl=_ssl_param(),
                              timeout=aiohttp.ClientTimeout(total=25)) as r:
                 if r.status == 200:
@@ -308,7 +313,14 @@ async def diagnose() -> str:
                     lines.append("⛔ HTTP 403 — сайт блокирует бота. Добавь IP выше "
                                  "в белый список Wordfence.")
                 else:
+                    body = (await r.text())[:250].replace("\n", " ").strip()
+                    server = r.headers.get("Server", "")
+                    powered = r.headers.get("X-Powered-By", "")
                     lines.append(f"HTTP {r.status} от /wp-json/.")
+                    if server or powered:
+                        lines.append(f"Сервер: {server} {powered}".strip())
+                    if body:
+                        lines.append(f"Ответ: {body}")
     except aiohttp.ClientConnectorCertificateError:
         lines.append("🔒 Сертификат сайта не проходит проверку (самоподписанный).")
         # Пробуем без проверки сертификата — если ок, подсказываем решение
@@ -348,7 +360,8 @@ async def diagnose() -> str:
                         lines.append("⛔ Авторизация отклонена — проверь WP_USER и "
                                      "WP_APP_PASSWORD.")
                     else:
-                        lines.append(f"Авторизация: HTTP {r.status}.")
+                        body = (await r.text())[:200].replace("\n", " ").strip()
+                        lines.append(f"Авторизация: HTTP {r.status}. {body}")
         except Exception as e:  # noqa: BLE001
             lines.append(f"Авторизация — ошибка: {type(e).__name__}.")
     else:
