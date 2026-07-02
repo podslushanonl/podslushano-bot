@@ -58,6 +58,7 @@ from utils.ai import (
 from utils.wordpress import (
     build_content_with_images,
     create_post as wp_create_post,
+    diagnose as wp_diagnose,
     list_categories,
     section_titles,
     update_post as wp_update_post,
@@ -141,6 +142,7 @@ _ADMIN_COMMANDS_HELP = (
     "/listcat — сколько специалистов по категориям\n\n"
     "📣 <b>Контент и рассылки</b>\n"
     "/sitepost — статья на сайт (WordPress, черновик)\n"
+    "/wptest — проверить связь бота с сайтом (диагностика)\n"
     "/post — пост в канал по теме\n"
     "/announce — рассылка-анонс всем\n"
     "/afishapost — афиша в канал\n"
@@ -874,6 +876,21 @@ async def _send_long(message: Message, text: str, reply_markup=None) -> None:
         last = i == len(chunks) - 1
         await message.answer(ch, reply_markup=reply_markup if last else None,
                              disable_web_page_preview=True)
+
+
+@router.message(Command("wptest"))
+async def cmd_wptest(message: Message, state: FSMContext) -> None:
+    """Диагностика связи бота с сайтом (IP, доступность REST API, авторизация)."""
+    await state.clear()
+    await message.answer("Проверяю связь с сайтом… ⏳")
+    report = await wp_diagnose()
+    await message.answer(
+        "🔧 <b>Проверка публикации на сайт</b>\n\n" + report + "\n\n"
+        "Если сайт блокирует бота (403/таймаут) — добавь IP выше в Wordfence: "
+        "«IP адреса из белого списка, которые обходят все правила».",
+        reply_markup=main_menu(),
+        disable_web_page_preview=True,
+    )
 
 
 @router.message(Command("sitepost"))
