@@ -373,6 +373,11 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         from handlers.board import on_bump_paid
         await on_bump_paid(bot, payment_id, payment)
         return
+    # Платёж за прогулку Allo Walks — отдельный обработчик (своя таблица)
+    if kind == "allo":
+        from handlers.allo import on_allo_payment_paid
+        await on_allo_payment_paid(bot, payment_id, payment)
+        return
     # Платёж за платное размещение объявления (жильё) — отдельный обработчик
     if kind == "listing":
         from handlers.board import on_listing_paid

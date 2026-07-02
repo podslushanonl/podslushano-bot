@@ -127,6 +127,58 @@ LISTING_PRICE_YEAR_PREMIUM: str = os.getenv("LISTING_PRICE_YEAR_PREMIUM", "199.0
 # Лояльный тариф для «старожилов» — карточек из старого бессрочного контакт-гайда
 LISTING_PRICE_MONTH_LEGACY: str = os.getenv("LISTING_PRICE_MONTH_LEGACY", "4.99")
 LISTING_PRICE_YEAR_LEGACY: str = os.getenv("LISTING_PRICE_YEAR_LEGACY", "29.00")
+# --- Allo Walks (прогулки по подписке/разово) -------------------------------
+# Цены строкой, как требует Mollie. С BTW 21% внутри.
+ALLO_PRICE_SINGLE: str = os.getenv("ALLO_PRICE_SINGLE", "35.00")
+ALLO_PRICE_PASS: str = os.getenv("ALLO_PRICE_PASS", "90.00")
+try:
+    ALLO_WALK_CAPACITY: int = int(os.getenv("ALLO_WALK_CAPACITY", "10"))
+except ValueError:
+    ALLO_WALK_CAPACITY = 10
+# Расписание прогулок. key — устойчивый идентификатор (дата), по нему считаем места.
+ALLO_WALKS: list[dict] = [
+    {
+        "key": "2026-07-11",
+        "date": "11 июля · суббота",
+        "title": "Дюны Zuid-Kennemerland",
+        "meet": "station Overveen · 10:00",
+        "finish": "Overveen / Duincafé De Kennemerduinen",
+        "dur": "3–4 часа",
+        "desc": ("Дюны, лес и озеро ’t Wed, подъём к обзорной точке Konijnenberg и "
+                 "спокойное возвращение через сосны к visitor centre. Первый маршрут — "
+                 "самый простой: от станции за 10–15 минут уже в зелени. Темп спокойный, "
+                 "разговорный, в конце — кофе для тех, кто хочет остаться."),
+    },
+    {
+        "key": "2026-07-18",
+        "date": "18 июля · суббота",
+        "title": "Nijmegen + Ooijpolder",
+        "meet": "Nijmegen Centraal · 11:00",
+        "finish": "центр Nijmegen / Waalkade",
+        "dur": "4–5 часов",
+        "desc": ("Смена декораций: старый центр → набережная Waalkade и вид на Waalbrug → "
+                 "природная часть Ooijpolder. Не экскурсия, а прогулка с красивыми видами "
+                 "реки Waal и простором. Часть пути — по грунтовым дорожкам."),
+    },
+    {
+        "key": "2026-07-25",
+        "date": "25 июля · суббота",
+        "title": "Utrecht canals",
+        "meet": "Utrecht Centraal · 11:00",
+        "finish": "Oudegracht / центр Utrecht",
+        "dur": "3–4 часа",
+        "desc": ("Городской маршрут: Oudegracht с нижними набережными (wharves), район Dom, "
+                 "тихая Nieuwegracht и кофе у воды на финал. Возможна лодочная часть — "
+                 "добавим, если договоримся с партнёром (цена пересчитывается отдельно)."),
+    },
+]
+
+
+def allo_walk(key: str) -> dict | None:
+    """Прогулка по ключу-дате, или None."""
+    return next((w for w in ALLO_WALKS if w["key"] == key), None)
+
+
 # Цена размещения одного мероприятия в афише месяца (строкой, как требует Mollie)
 AFISHA_PRICE: str = os.getenv("AFISHA_PRICE", "25.00")
 # Доска объявлений: цена «поднять наверх» (строкой, как требует Mollie)

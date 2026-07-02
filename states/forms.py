@@ -97,6 +97,12 @@ class AdminSitePost(StatesGroup):
     choosing_category = State()
 
 
+class AlloBook(StatesGroup):
+    """Запись на прогулку Allo Walks: согласие с правилами → e-mail → оплата."""
+
+    waiting_email = State()
+
+
 class AdminCircle(StatesGroup):
     """Видео-кружок в канал: ждём видео, потом подтверждение публикации."""
 

@@ -255,3 +255,25 @@ class Listing(Base):
     bumped_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class AlloBooking(Base):
+    """Запись на прогулку Allo Walks (разовая или абонемент на 3)."""
+
+    __tablename__ = "allo_bookings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    # Ключ прогулки (дата, напр. 2026-07-11) или "pass" для абонемента на все 3
+    walk_key: Mapped[str] = mapped_column(String(20), index=True)
+    plan: Mapped[str] = mapped_column(String(10), default="single")  # single | pass
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    username: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    first_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    email: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    amount: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # pending (ждёт оплаты) | paid | canceled | failed | refunded
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    payment_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    agreed: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

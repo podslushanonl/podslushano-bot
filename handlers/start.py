@@ -143,6 +143,11 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from handlers.board import start_new_listing
         await start_new_listing(message, state, message.from_user.id)
         return
+    # Пришёл по кнопке «Подробнее» из анонса Allo Walks (?start=allo)
+    if command.args == "allo":
+        from handlers.allo import show_allo
+        await show_allo(message, state)
+        return
     # Пришёл по личной ссылке оплаты карточки из старого гайда (?start=claim_<id>)
     if command.args and command.args.startswith("claim_"):
         try:
