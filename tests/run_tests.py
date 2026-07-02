@@ -150,6 +150,35 @@ async def test_reseed_keeps_edited_premium_card() -> None:
     check("id правленой карточки сохранён", bool(sp) and sp.id == old_id)
 
 
+async def test_allo_capacity() -> None:
+    """Абонемент Allo занимает место во всех прогулках; счётчик мест верный."""
+    import handlers.allo as A
+    from database.models import AlloBooking
+    keys = [w["key"] for w in config.ALLO_WALKS]
+    async with db.get_session() as s:
+        base = await A._taken(s, keys[0])
+        s.add(AlloBooking(walk_key="pass", plan="pass", user_id=901, status="paid"))
+        s.add(AlloBooking(walk_key=keys[0], plan="single", user_id=902, status="paid"))
+        await s.commit()
+    async with db.get_session() as s:
+        check("абонемент+разовая заняли 2 места в первой прогулке",
+              await A._taken(s, keys[0]) == base + 2)
+        check("абонемент занял место и во второй прогулке",
+              await A._taken(s, keys[1]) >= 1)
+    # неоплаченная просроченная бронь не держит место (счётчик не растёт)
+    from datetime import datetime, timedelta
+    async with db.get_session() as s:
+        before = await A._taken(s, keys[2])
+        old = AlloBooking(walk_key=keys[2], plan="single", user_id=903, status="pending")
+        s.add(old)
+        await s.commit()
+        old.created_at = datetime.utcnow() - timedelta(hours=3)
+        await s.commit()
+    async with db.get_session() as s:
+        check("просроченная неоплата не занимает место",
+              await A._taken(s, keys[2]) == before)
+
+
 async def test_premiums_query() -> None:
     """Список премиум-карточек (команда /premiums) находит помеченные премиумом."""
     # test_reseed_preserves_premium уже пометил Fancy как премиум
@@ -200,6 +229,7 @@ async def main() -> None:
     await test_reseed_ids_stable_all()
     await test_reseed_keeps_edited_premium_card()
     await test_premiums_query()
+    await test_allo_capacity()
     test_wordpress_util()
     test_detect_category_basic()
     print()
