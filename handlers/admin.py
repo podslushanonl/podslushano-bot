@@ -1078,11 +1078,13 @@ async def _sitepost_finalize(message: Message, state: FSMContext) -> None:
         )
         return
 
-    # 2) Заливаем фото и обновляем запись их раскладкой
-    placements: list[dict] = []
-    n_fail = 0
-    if place:
+    pid = post.get("id")
+    note = ""
+    # 2) Фото прикрепляем только если знаем ID записи
+    if place and pid:
         await message.answer(f"Загружаю фото на сайт ({len(place)})… 📤")
+        placements: list[dict] = []
+        n_fail = 0
         for item in place:
             raw = await _download_tg_photo(message.bot, item["fid"])
             media = None
@@ -1092,24 +1094,26 @@ async def _sitepost_finalize(message: Message, state: FSMContext) -> None:
                 placements.append({"im": media, "where": item["where"]})
             else:
                 n_fail += 1
+        if placements:
+            content, featured = build_content_with_images(body_html, placements)
+            upd, uerr = await wp_update_post(pid, content=content,
+                                             featured_media=featured)
+            note = (f" · фото: {len(placements)} (по твоей раскладке)" if upd
+                    else f"\n⚠️ Текст сохранён, но фото не прикрепились: "
+                         f"{html.escape(uerr)} Добавь их в черновике вручную.")
+        if n_fail:
+            note += f"\n⚠️ {n_fail} фото не загрузились."
+    elif place and not pid:
+        note = ("\n⚠️ Сайт не вернул ID записи — фото не прикрепил. "
+                "Текст сохранён, добавь фото в черновике вручную.")
 
-    note = ""
-    if placements:
-        content, featured = build_content_with_images(body_html, placements)
-        upd, uerr = await wp_update_post(post["id"], content=content,
-                                         featured_media=featured)
-        if upd:
-            note = f" · фото: {len(placements)} (по твоей раскладке)"
-        else:
-            note = (f"\n⚠️ Текст сохранён, но фото не удалось прикрепить: "
-                    f"{html.escape(uerr)} Открой черновик и добавь фото вручную.")
-    if n_fail:
-        note += f"\n⚠️ {n_fail} фото не загрузились (проверь права/Wordfence)."
-
+    link = post.get("edit") or ""
     await state.clear()
     await message.answer(
         f"✅ Черновик создан в WordPress: «{html.escape(title)}»{note}.\n\n"
-        f"Открой черновик, определи раздел/страницу и опубликуй:\n{post['edit']}",
+        + (f"Открой черновик, определи раздел/страницу и опубликуй:\n{link}"
+           if pid else
+           f"ID записи сайт не отдал — открой список черновиков и найди её там:\n{link}"),
         reply_markup=main_menu(),
         disable_web_page_preview=True,
     )

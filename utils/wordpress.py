@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import json
 import logging
 import re
 from collections import defaultdict
@@ -61,6 +62,11 @@ def _auth_header() -> str:
 def edit_link(post_id: int) -> str:
     """Ссылка на редактирование записи в админке WordPress."""
     return f"{_wp_url()}/wp-admin/post.php?post={post_id}&action=edit"
+
+
+def drafts_link() -> str:
+    """Ссылка на список черновиков в админке (запасной вариант, если нет id)."""
+    return f"{_wp_url()}/wp-admin/edit.php?post_status=draft&post_type=post"
 
 
 async def list_categories() -> list[dict]:
@@ -245,12 +251,20 @@ async def create_post(
                 ) as resp:
                     body = await resp.text()
                     if resp.status in (200, 201):
-                        data = await resp.json()
+                        try:
+                            data = json.loads(body)
+                        except Exception:  # noqa: BLE001
+                            data = {}
+                        pid = data.get("id") if isinstance(data, dict) else None
+                        if not pid:
+                            log.warning("create_post: ответ без id (HTTP %s): %s",
+                                        resp.status, body[:400])
                         return {
-                            "id": data.get("id"),
-                            "link": data.get("link", ""),
-                            "edit": edit_link(data.get("id")),
-                            "status": data.get("status", status),
+                            "id": pid,
+                            "link": data.get("link", "") if isinstance(data, dict) else "",
+                            "edit": edit_link(pid) if pid else drafts_link(),
+                            "status": (data.get("status", status)
+                                       if isinstance(data, dict) else status),
                         }, ""
                     if resp.status in (401, 403):
                         return None, ("WordPress отклонил доступ (нет прав или неверный "
@@ -375,6 +389,8 @@ async def update_post(
     """Обновляет запись (тело/обложку). Возвращает (данные, ошибка)."""
     if not wp_enabled():
         return None, "Публикация на сайт не настроена."
+    if not isinstance(post_id, int) or post_id <= 0:
+        return None, "Нет ID записи для обновления."
     url = f"{_wp_url()}/wp-json/wp/v2/posts/{post_id}"
     payload: dict = {}
     if content is not None:
