@@ -258,14 +258,26 @@ async def create_post(
                             data = {}
                         pid = data.get("id") if isinstance(data, dict) else None
                         if not pid:
+                            # Ответ без id — это отказ (защита хостинга и т.п.), а не запись
+                            msg = (data.get("message", "")
+                                   if isinstance(data, dict) else "")
                             log.warning("create_post: ответ без id (HTTP %s): %s",
                                         resp.status, body[:400])
+                            low = (msg or body).lower()
+                            if "imunify" in low or "bot-protection" in low:
+                                return None, (
+                                    "Хостинг-защита Imunify360 блокирует бота. "
+                                    "Добавь IP бота в белый список Imunify360 "
+                                    "(cPanel → Imunify360, или попроси хостинг).")
+                            if msg:
+                                return None, f"Сайт отклонил создание: {msg}"
+                            return None, ("Сайт не вернул ID записи (запрос отклонён). "
+                                          "Проверь защиту хостинга/плагины.")
                         return {
                             "id": pid,
                             "link": data.get("link", "") if isinstance(data, dict) else "",
-                            "edit": edit_link(pid) if pid else drafts_link(),
-                            "status": (data.get("status", status)
-                                       if isinstance(data, dict) else status),
+                            "edit": edit_link(pid),
+                            "status": data.get("status", status),
                         }, ""
                     if resp.status in (301, 302, 303, 307, 308):
                         loc = resp.headers.get("Location", "?")
