@@ -497,22 +497,66 @@ def _announce_custom_kb(label: str | None, url: str | None) -> InlineKeyboardMar
         InlineKeyboardButton(text=label or "Подробнее", url=url)]])
 
 
-@router.message(AdminAnnounce.waiting_text, _not_command)
-async def announce_text(message: Message, state: FSMContext) -> None:
-    if not message.text:
-        await message.answer("Нужен текст сообщения 🙂")
-        return
-    await state.update_data(ann_text=message.html_text)
+async def _send_album(bot, chat_id, photo_ids: list[str]):
+    """Отправляет фото альбомом (до 10). Возвращает список сообщений."""
+    from aiogram.types import InputMediaPhoto
+    media = [InputMediaPhoto(media=fid) for fid in photo_ids[:10]]
+    return await bot.send_media_group(chat_id, media)
+
+
+def _ann_photos_kb(n: int) -> InlineKeyboardMarkup:
+    label = f"✅ Готово ({n} фото) → кнопка" if n else "➡️ Без фото → кнопка"
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text=label, callback_data="announce:photosdone")]])
+
+
+async def _ask_announce_button(message: Message, state: FSMContext) -> None:
     await state.set_state(AdminAnnounce.waiting_button)
+    me = await message.bot.me()
     await message.answer(
         "Теперь <b>кнопка</b> под постом. Пришли в формате <b>Текст | ссылка</b>.\n\n"
         "Быстрые варианты (просто напиши слово):\n"
         "• <code>allo</code> — кнопка «Подробнее» → запись на Allo Walks\n"
         "• <code>бот</code> — «Открыть бота»\n"
         "• <code>нет</code> — без кнопки\n\n"
-        "<i>Своя: Записаться | https://t.me/podslushano_nl_bot?start=allo</i>",
+        f"<i>Своя: Записаться | https://t.me/{me.username}?start=allo</i>",
         reply_markup=cancel_menu(),
     )
+
+
+@router.message(AdminAnnounce.waiting_text, _not_command)
+async def announce_text(message: Message, state: FSMContext) -> None:
+    if not message.text:
+        await message.answer("Нужен текст сообщения 🙂")
+        return
+    await state.update_data(ann_text=message.html_text, ann_photos=[])
+    await state.set_state(AdminAnnounce.waiting_photos)
+    await message.answer(
+        "📷 Пришли <b>фото</b> для поста — одно или несколько (можно альбомом). "
+        "Или сразу жми «Без фото».",
+        reply_markup=_ann_photos_kb(0),
+    )
+
+
+@router.message(AdminAnnounce.waiting_photos, F.photo)
+async def announce_photo(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    photos = list(data.get("ann_photos") or [])
+    photos.append(message.photo[-1].file_id)
+    await state.update_data(ann_photos=photos)
+    await message.answer(f"Добавил фото. Всего: <b>{len(photos)}</b>. Пришли ещё или жми «Готово».",
+                         reply_markup=_ann_photos_kb(len(photos)))
+
+
+@router.message(AdminAnnounce.waiting_photos, _not_command)
+async def announce_photos_other(message: Message, state: FSMContext) -> None:
+    await message.answer("Это не фото 🙂 Пришли изображение или жми «Без фото».")
+
+
+@router.callback_query(AdminAnnounce.waiting_photos, F.data == "announce:photosdone")
+async def announce_photosdone(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await _ask_announce_button(callback.message, state)
 
 
 @router.message(AdminAnnounce.waiting_button, _not_command)
@@ -526,6 +570,9 @@ async def announce_button(message: Message, state: FSMContext) -> None:
     await state.update_data(ann_btn_label=label, ann_btn_url=url)
     data = await state.get_data()
     await message.answer("Вот как будет выглядеть пост 👇")
+    photos = list(data.get("ann_photos") or [])
+    if photos:
+        await _send_album(message.bot, message.chat.id, photos)
     await message.answer(
         data.get("ann_text", ""), reply_markup=_announce_custom_kb(label, url),
         disable_web_page_preview=True,
@@ -553,7 +600,10 @@ async def announce_yes(callback: CallbackQuery, state: FSMContext) -> None:
         await callback.answer("Текст не найден, начни заново: /announce", show_alert=True)
         return
     kb = _announce_custom_kb(data.get("ann_btn_label"), data.get("ann_btn_url"))
+    photos = list(data.get("ann_photos") or [])
     try:
+        if photos:
+            await _send_album(callback.bot, config.ANNOUNCE_CHANNEL, photos)
         msg = await callback.bot.send_message(
             config.ANNOUNCE_CHANNEL, text,
             reply_markup=kb, disable_web_page_preview=True,

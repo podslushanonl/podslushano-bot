@@ -60,9 +60,10 @@ class SalaryCalc(StatesGroup):
 
 
 class AdminAnnounce(StatesGroup):
-    """Анонс в канал: текст → кнопка (текст+ссылка) → публикация."""
+    """Анонс в канал: текст → фото → кнопка (текст+ссылка) → публикация."""
 
     waiting_text = State()
+    waiting_photos = State()
     waiting_button = State()
 
 
