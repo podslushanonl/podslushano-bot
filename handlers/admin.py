@@ -142,8 +142,9 @@ _ADMIN_COMMANDS_HELP = (
     "📣 <b>Контент и рассылки</b>\n"
     "/sitepost — статья на сайт (WordPress, черновик)\n"
     "/wptest — проверить связь бота с сайтом (диагностика)\n"
-    "/post — пост в канал по теме\n"
-    "/announce — рассылка-анонс всем\n"
+    "/announce — пост в канал: твой текст + своя кнопка (ссылка)\n"
+    "/post — пост в канал: ИИ пишет по теме\n"
+    "/setpostbutton — текст кнопки для /post\n"
     "/afishapost — афиша в канал\n"
     "/ig — Instagram-карусель\n\n"
     "📊 <b>Аналитика</b>\n"
@@ -466,16 +467,67 @@ async def cmd_announce(message: Message, state: FSMContext) -> None:
     )
 
 
+def _parse_announce_button(raw: str, uname: str) -> tuple[str, str | None, str | None]:
+    """Разбирает ввод кнопки. Возвращает (status, label, url).
+    status: ok | none (без кнопки) | bad (не распознал)."""
+    raw = (raw or "").strip()
+    low = raw.lower()
+    if low in {"нет", "no", "off", "выкл", "-", "—", "без кнопки"}:
+        return "none", None, None
+    if low in {"бот", "bot", "открыть бота"}:
+        return "ok", "🤖 Открыть бота", f"https://t.me/{uname}"
+    if low in {"allo", "walks", "allo walks", "прогулка", "прогулки", "запись", "записаться"}:
+        return "ok", "Подробнее", f"https://t.me/{uname}?start=allo"
+    if "|" in raw:
+        label, _, url = raw.partition("|")
+        url = url.strip()
+        if url.startswith("http"):
+            return "ok", (label.strip() or "Подробнее")[:60], url
+        return "bad", None, None
+    if raw.startswith("http"):
+        return "ok", "Открыть", raw
+    # просто текст без ссылки — кнопка на бота
+    return "ok", raw[:60], f"https://t.me/{uname}"
+
+
+def _announce_custom_kb(label: str | None, url: str | None) -> InlineKeyboardMarkup | None:
+    if not url:
+        return None
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text=label or "Подробнее", url=url)]])
+
+
 @router.message(AdminAnnounce.waiting_text, _not_command)
 async def announce_text(message: Message, state: FSMContext) -> None:
     if not message.text:
         await message.answer("Нужен текст сообщения 🙂")
         return
     await state.update_data(ann_text=message.html_text)
+    await state.set_state(AdminAnnounce.waiting_button)
+    await message.answer(
+        "Теперь <b>кнопка</b> под постом. Пришли в формате <b>Текст | ссылка</b>.\n\n"
+        "Быстрые варианты (просто напиши слово):\n"
+        "• <code>allo</code> — кнопка «Подробнее» → запись на Allo Walks\n"
+        "• <code>бот</code> — «Открыть бота»\n"
+        "• <code>нет</code> — без кнопки\n\n"
+        "<i>Своя: Записаться | https://t.me/podslushano_nl_bot?start=allo</i>",
+        reply_markup=cancel_menu(),
+    )
+
+
+@router.message(AdminAnnounce.waiting_button, _not_command)
+async def announce_button(message: Message, state: FSMContext) -> None:
     me = await message.bot.me()
+    status, label, url = _parse_announce_button(message.text or "", me.username)
+    if status == "bad":
+        await message.answer("Не понял кнопку 🤔 Формат: <b>Текст | ссылка</b> "
+                             "(или <code>allo</code> / <code>бот</code> / <code>нет</code>).")
+        return
+    await state.update_data(ann_btn_label=label, ann_btn_url=url)
+    data = await state.get_data()
     await message.answer("Вот как будет выглядеть пост 👇")
     await message.answer(
-        message.html_text, reply_markup=_announce_kb(me.username),
+        data.get("ann_text", ""), reply_markup=_announce_custom_kb(label, url),
         disable_web_page_preview=True,
     )
     kb = InlineKeyboardMarkup(inline_keyboard=[[
@@ -500,11 +552,11 @@ async def announce_yes(callback: CallbackQuery, state: FSMContext) -> None:
     if not text:
         await callback.answer("Текст не найден, начни заново: /announce", show_alert=True)
         return
-    me = await callback.bot.me()
+    kb = _announce_custom_kb(data.get("ann_btn_label"), data.get("ann_btn_url"))
     try:
         msg = await callback.bot.send_message(
             config.ANNOUNCE_CHANNEL, text,
-            reply_markup=_announce_kb(me.username), disable_web_page_preview=True,
+            reply_markup=kb, disable_web_page_preview=True,
         )
         try:
             await callback.bot.pin_chat_message(config.ANNOUNCE_CHANNEL, msg.message_id)
