@@ -277,3 +277,19 @@ class AlloBooking(Base):
     agreed: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
     paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class AlloReferral(Base):
+    """Реферал Allo Walks: кто кого привёл. Приводящий получает €10-кредит,
+    когда приведённый впервые оплачивает прогулку."""
+
+    __tablename__ = "allo_referrals"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    referrer_uid: Mapped[int] = mapped_column(BigInteger, index=True)  # кто привёл
+    referred_uid: Mapped[int] = mapped_column(BigInteger, index=True)  # кого привели
+    # pending (привели, ещё не оплатил) | earned (доступный €10) |
+    # reserved (держим под конкретную бронь) | spent (потрачен)
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    booking_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())

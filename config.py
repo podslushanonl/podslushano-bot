@@ -137,6 +137,10 @@ try:
     ALLO_PASS_VALID_DAYS: int = int(os.getenv("ALLO_PASS_VALID_DAYS", "62"))
 except ValueError:
     ALLO_PASS_VALID_DAYS = 62
+# Реферальный бонус: сколько € получает приводящий за каждого оплатившего друга,
+# и минимальный остаток к оплате после скидки (Mollie не примет 0).
+ALLO_REFERRAL_BONUS: int = 10
+ALLO_MIN_CHARGE: float = 5.0
 try:
     ALLO_WALK_CAPACITY: int = int(os.getenv("ALLO_WALK_CAPACITY", "10"))
 except ValueError:
