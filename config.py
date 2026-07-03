@@ -150,29 +150,34 @@ ALLO_WALKS: list[dict] = [
     {
         "key": "2026-07-11",
         "date": "11 июля · суббота",
-        "title": "Дюны Zuid-Kennemerland",
+        "title": "Zuid-Kennemerland",
         "meet": "station Overveen · 10:00",
-        "finish": "Overveen / Duincafé De Kennemerduinen",
-        "dur": "3–4 часа",
-        "desc": "Дюны, лес и озеро ’t Wed. Спокойный маршрут, кофе в конце.",
-    },
-    {
-        "key": "2026-07-18",
-        "date": "18 июля · суббота",
-        "title": "Nijmegen + Ooijpolder",
-        "meet": "Nijmegen Centraal · 11:00",
-        "finish": "центр Nijmegen / Waalkade",
-        "dur": "4–5 часов",
-        "desc": "Старый центр, набережная Waalkade, река Waal и природа Ooijpolder.",
+        "finish": "Bezoekerscentrum De Kennemerduinen",
+        "dur": "≈3 часа + кофе",
+        "desc": ("Маршрут «Rondje Konijnenberg» (зелёный, 3,5 км): дюны, озеро ’t Wed, "
+                 "обзорная точка Konijnenberg, сосны. Спокойный темп, кофе после. "
+                 "⚠️ Без колясок и без животных."),
     },
     {
         "key": "2026-07-25",
         "date": "25 июля · суббота",
-        "title": "Utrecht canals",
+        "title": "Nijmegen + Ooijpolder",
+        "meet": "Nijmegen Centraal · 11:00",
+        "finish": "центр Nijmegen / Waalkade",
+        "dur": "≈4–5 часов",
+        "desc": ("Wandelroute Ooijpolder (7,5 км): река Waal, uiterwaarden, коники, "
+                 "старые кирпичные заводы и виды. Природный маршрут, часть — по "
+                 "грунтовым тропам. Собаки — на поводке."),
+    },
+    {
+        "key": "2026-08-08",
+        "date": "8 августа · суббота",
+        "title": "Utrecht — каналы и werven",
         "meet": "Utrecht Centraal · 11:00",
-        "finish": "Oudegracht / центр Utrecht",
-        "dur": "3–4 часа",
-        "desc": "Каналы Oudegracht, район Dom, кофе у воды. Возможна лодочная часть.",
+        "finish": "центр Utrecht / Oudegracht",
+        "dur": "≈3 часа + кофе",
+        "desc": ("Wandelroute «Grachten en Werven» (2,6 км): каналы Oudegracht, werven "
+                 "и werfkelders, Dom, Stadhuis. Лёгкая городская прогулка + кофе у воды."),
     },
 ]
 
