@@ -185,6 +185,38 @@ async def test_allo_capacity() -> None:
               await A._taken(s, keys[2]) == before)
 
 
+async def test_allo_referral() -> None:
+    """Реферал: приводящий получает €-бонус и он списывается при оплате."""
+    import handlers.allo as A
+    from database.models import AlloBooking
+
+    class _FakeBot:
+        async def send_message(self, *a, **k):
+            pass
+
+    await A.register_referral(111, 222)  # 111 привёл 222
+    await A._maybe_earn_referral(_FakeBot(), 222)  # 222 оплатил впервые → +€10
+    async with db.get_session() as s:
+        check("приводящий получил 1 бонус", await A._referral_credits(s, 111) == 1)
+    # приводящий покупает разовую €35 → скидка €10 → к оплате €25
+    async with db.get_session() as s:
+        b = AlloBooking(walk_key=config.ALLO_WALKS[0]["key"], plan="single",
+                        user_id=111, status="pending", amount="35.00")
+        s.add(b); await s.commit(); await s.refresh(b)
+        pay, disc = await A._reserve_credits(s, 111, "35.00", b.id)
+        bid = b.id
+    check("скидка применилась (€10 → к оплате €25)", pay == "25.00" and disc == 10)
+    async with db.get_session() as s:
+        await A._settle_credits(s, bid, paid=True)
+    async with db.get_session() as s:
+        check("бонус списан после оплаты", await A._referral_credits(s, 111) == 0)
+    # нельзя привести самого себя / уже приведённого
+    await A.register_referral(333, 333)
+    await A.register_referral(999, 222)  # 222 уже приведён — не перезапишется
+    async with db.get_session() as s:
+        check("нельзя привести себя", await A._referral_credits(s, 333) == 0)
+
+
 async def test_premiums_query() -> None:
     """Список премиум-карточек (команда /premiums) находит помеченные премиумом."""
     # test_reseed_preserves_premium уже пометил Fancy как премиум
@@ -236,6 +268,7 @@ async def main() -> None:
     await test_reseed_keeps_edited_premium_card()
     await test_premiums_query()
     await test_allo_capacity()
+    await test_allo_referral()
     test_wordpress_util()
     test_detect_category_basic()
     print()

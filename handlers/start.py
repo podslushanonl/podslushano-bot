@@ -148,6 +148,17 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from handlers.allo import show_allo
         await show_allo(message, state)
         return
+    # Пришёл по реф-ссылке участника Allo Walks (?start=alloref_<uid>)
+    if command.args and command.args.startswith("alloref_"):
+        from handlers.allo import register_referral, show_allo
+        try:
+            ref_uid = int(command.args[len("alloref_"):])
+        except ValueError:
+            ref_uid = 0
+        if ref_uid:
+            await register_referral(ref_uid, message.from_user.id)
+        await show_allo(message, state)
+        return
     # Пришёл по личной ссылке оплаты карточки из старого гайда (?start=claim_<id>)
     if command.args and command.args.startswith("claim_"):
         try:

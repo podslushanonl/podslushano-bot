@@ -18,7 +18,7 @@ from sqlalchemy import and_, func, or_, select
 
 import config
 from database.db import get_session
-from database.models import AlloBooking
+from database.models import AlloBooking, AlloReferral
 from keyboards.menus import cancel_menu, main_menu
 from states.forms import AlloBook
 from utils.payments import create_payment
@@ -156,6 +156,105 @@ async def _user_booked_dates(session, uid: int) -> set:
     return set(rows)
 
 
+# --- Реферальная программа («приведи друга») ---------------------------------
+
+def _referral_link(uid: int) -> str:
+    return f"https://t.me/{config.bot_username()}?start=alloref_{uid}"
+
+
+async def register_referral(referrer_uid: int, referred_uid: int) -> None:
+    """Фиксируем, что referred пришёл по ссылке referrer (до первой оплаты).
+
+    Учитываем только новых: нельзя привести себя, уже приведённого или того,
+    кто уже платил за прогулки.
+    """
+    if not referrer_uid or referrer_uid == referred_uid:
+        return
+    async with get_session() as session:
+        exists = await session.scalar(
+            select(func.count()).select_from(AlloReferral).where(
+                AlloReferral.referred_uid == referred_uid))
+        if exists:
+            return  # этого человека уже кто-то привёл (первая ссылка побеждает)
+        paid = await session.scalar(
+            select(func.count()).select_from(AlloBooking).where(
+                AlloBooking.user_id == referred_uid, AlloBooking.status == "paid"))
+        if paid:
+            return  # уже участник — не считаем за реферала
+        session.add(AlloReferral(referrer_uid=referrer_uid,
+                                 referred_uid=referred_uid, status="pending"))
+        await session.commit()
+
+
+async def _referral_credits(session, uid: int) -> int:
+    """Сколько доступных €-бонусов (earned) у приводящего."""
+    return await session.scalar(
+        select(func.count()).select_from(AlloReferral).where(
+            AlloReferral.referrer_uid == uid, AlloReferral.status == "earned")) or 0
+
+
+async def _maybe_earn_referral(bot, referred_uid: int) -> None:
+    """Приведённый впервые оплатил → приводящий получает €-бонус."""
+    async with get_session() as session:
+        ref = (await session.scalars(select(AlloReferral).where(
+            AlloReferral.referred_uid == referred_uid,
+            AlloReferral.status == "pending"))).first()
+        if ref is None:
+            return
+        ref.status = "earned"
+        referrer = ref.referrer_uid
+        await session.commit()
+        bal = await _referral_credits(session, referrer)
+    total = bal * config.ALLO_REFERRAL_BONUS
+    try:
+        await bot.send_message(
+            referrer,
+            f"🎉 Твой друг записался на Allo Walks — тебе бонус "
+            f"<b>+€{config.ALLO_REFERRAL_BONUS}</b>!\nНакоплено: <b>€{total}</b> — "
+            "спишутся автоматически при следующей оплате прогулки.")
+    except Exception:  # noqa: BLE001
+        pass
+
+
+async def _reserve_credits(session, uid: int, amount: str, booking_id: int):
+    """Резервирует бонусы под оплату. Возвращает (сумма_к_оплате_str, скидка_int)."""
+    try:
+        amt = float(amount)
+    except (TypeError, ValueError):
+        return amount, 0
+    have = await _referral_credits(session, uid)
+    if have <= 0:
+        return amount, 0
+    room = max(0, int((amt - config.ALLO_MIN_CHARGE) // config.ALLO_REFERRAL_BONUS))
+    k = min(have, room)
+    if k <= 0:
+        return amount, 0
+    rows = (await session.scalars(select(AlloReferral).where(
+        AlloReferral.referrer_uid == uid, AlloReferral.status == "earned")
+        .limit(k))).all()
+    for r in rows:
+        r.status = "reserved"
+        r.booking_id = booking_id
+    await session.commit()
+    discount = k * config.ALLO_REFERRAL_BONUS
+    return f"{amt - discount:.2f}", discount
+
+
+async def _settle_credits(session, booking_id: int, paid: bool) -> None:
+    """После оплаты reserved→spent; при отмене reserved→earned (вернуть)."""
+    rows = (await session.scalars(select(AlloReferral).where(
+        AlloReferral.booking_id == booking_id,
+        AlloReferral.status == "reserved"))).all()
+    for r in rows:
+        if paid:
+            r.status = "spent"
+        else:
+            r.status = "earned"
+            r.booking_id = None
+    if rows:
+        await session.commit()
+
+
 # --- Экран Allo Walks --------------------------------------------------------
 
 def _short_date(w: dict) -> str:
@@ -210,6 +309,9 @@ async def show_allo(message: Message, state: FSMContext) -> None:
     rows.append([InlineKeyboardButton(
         text=f"🎟 Абонемент · {config.ALLO_PASS_CREDITS} прогулки · €{_p(config.ALLO_PRICE_PASS)}",
         callback_data="allo:pick:pass")])
+    rows.append([InlineKeyboardButton(
+        text=f"🎁 Привести друга (+€{config.ALLO_REFERRAL_BONUS} тебе)",
+        callback_data="allo:invite")])
     rows.append([InlineKeyboardButton(text="📜 Правила Allo Walks", callback_data="allo:terms")])
     await message.answer(
         ALLO_INTRO.format(cap=config.ALLO_WALK_CAPACITY,
@@ -245,6 +347,26 @@ async def allo_booked(callback: CallbackQuery) -> None:
 @router.callback_query(F.data == "allo:terms")
 async def allo_terms(callback: CallbackQuery) -> None:
     await callback.message.answer(_terms_text(), disable_web_page_preview=True)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "allo:invite")
+async def allo_invite(callback: CallbackQuery) -> None:
+    uid = callback.from_user.id
+    async with get_session() as session:
+        credits = await _referral_credits(session, uid)
+    bal = credits * config.ALLO_REFERRAL_BONUS
+    link = _referral_link(uid)
+    bonus = config.ALLO_REFERRAL_BONUS
+    text = (f"🎁 <b>Приведи друга — получи €{bonus}</b>\n\n"
+            "Поделись своей ссылкой. Когда друг запишется и оплатит прогулку, тебе "
+            f"начислится <b>€{bonus}</b> — они спишутся автоматически при твоей "
+            "следующей оплате.\n\n"
+            f"Твоя ссылка:\n{link}")
+    if bal:
+        text += f"\n\n💰 Уже накоплено: <b>€{bal}</b>."
+    await callback.message.answer(text, disable_web_page_preview=True,
+                                  reply_markup=main_menu())
     await callback.answer()
 
 
@@ -417,13 +539,19 @@ async def allo_email(message: Message, state: FSMContext) -> None:
         await session.commit()
         await session.refresh(booking)
         bid = booking.id
+        # Списываем реферальные бонусы (если есть) — уменьшаем сумму к оплате
+        pay_amount, discount = await _reserve_credits(
+            session, message.from_user.id, amount, bid)
 
     payment = await create_payment(
         f"Allo Walks: {_walk_title(key)}",
         {"kind": "allo", "walk": key, "plan": plan,
          "booking_id": bid, "user_id": message.from_user.id, "email": email},
-        amount)
+        pay_amount)
     if not payment or not payment.get("checkout_url"):
+        # Оплата не создалась — вернём зарезервированные бонусы
+        async with get_session() as session:
+            await _settle_credits(session, bid, paid=False)
         await message.answer("Не удалось создать оплату 🙁 Попробуй позже или напиши "
                              "нам через /contact.", reply_markup=main_menu())
         return
@@ -431,12 +559,14 @@ async def allo_email(message: Message, state: FSMContext) -> None:
         b = await session.get(AlloBooking, bid)
         if b:
             b.payment_id = payment["id"]
+            b.amount = pay_amount
             await session.commit()
+    disc = f"\n🎁 Скидка за друзей: −€{discount}." if discount else ""
     await message.answer(
-        f"К оплате: <b>€{_p(amount)}</b> — {_walk_title(key)}.\n"
+        f"К оплате: <b>€{_p(pay_amount)}</b> — {_walk_title(key)}.{disc}\n"
         "После оплаты пришлём подтверждение сюда и чек на e-mail. 👇",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
-            InlineKeyboardButton(text=f"💳 Оплатить €{_p(amount)}",
+            InlineKeyboardButton(text=f"💳 Оплатить €{_p(pay_amount)}",
                                  url=payment["checkout_url"])]]))
 
 
@@ -465,6 +595,7 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
             if booking.status == "pending":
                 booking.status = "canceled"
                 await session.commit()
+            await _settle_credits(session, bid, paid=False)  # вернуть бонусы
             uid = booking.user_id
             try:
                 await bot.send_message(
@@ -480,9 +611,12 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
         uid, first, uname = booking.user_id, booking.first_name, booking.username
         amount = booking.amount
         await session.commit()
+        await _settle_credits(session, bid, paid=True)  # списать использованные бонусы
 
     from utils.analytics import log_event
     await log_event("allo_paid", plan)
+    # Приведённый впервые оплатил → приводящий получает бонус
+    await _maybe_earn_referral(bot, uid)
 
     if plan == "pass":
         until = (datetime.utcnow()
