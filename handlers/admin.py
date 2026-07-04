@@ -512,16 +512,60 @@ def _ann_photos_kb(n: int) -> InlineKeyboardMarkup:
 
 async def _ask_announce_button(message: Message, state: FSMContext) -> None:
     await state.set_state(AdminAnnounce.waiting_button)
-    me = await message.bot.me()
+    kb = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🚶 «Подробнее» → запись на Allo Walks",
+                              callback_data="announce:btn:allo")],
+        [InlineKeyboardButton(text="🤖 «Открыть бота»", callback_data="announce:btn:bot")],
+        [InlineKeyboardButton(text="✏️ Своя кнопка (текст | ссылка)",
+                              callback_data="announce:btn:custom")],
+        [InlineKeyboardButton(text="🚫 Без кнопки", callback_data="announce:btn:none")],
+    ])
+    await message.answer("Какую <b>кнопку</b> поставить под постом? Выбери 👇",
+                         reply_markup=kb)
+
+
+async def _announce_preview(message: Message, state: FSMContext,
+                            label: str | None, url: str | None) -> None:
+    await state.update_data(ann_btn_label=label, ann_btn_url=url)
+    data = await state.get_data()
+    await message.answer("Вот как будет выглядеть пост 👇")
+    photos = list(data.get("ann_photos") or [])
+    if photos:
+        await _send_album(message.bot, message.chat.id, photos)
     await message.answer(
-        "Теперь <b>кнопка</b> под постом. Пришли в формате <b>Текст | ссылка</b>.\n\n"
-        "Быстрые варианты (просто напиши слово):\n"
-        "• <code>allo</code> — кнопка «Подробнее» → запись на Allo Walks\n"
-        "• <code>бот</code> — «Открыть бота»\n"
-        "• <code>нет</code> — без кнопки\n\n"
-        f"<i>Своя: Записаться | https://t.me/{me.username}?start=allo</i>",
-        reply_markup=cancel_menu(),
+        data.get("ann_text", ""), reply_markup=_announce_custom_kb(label, url),
+        disable_web_page_preview=True,
     )
+    if url:
+        await message.answer(f"Кнопка ведёт на: {url}", disable_web_page_preview=True)
+    kb = InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="✅ Опубликовать и закрепить", callback_data="announce:yes"),
+        InlineKeyboardButton(text="❌ Отмена", callback_data="announce:no"),
+    ]])
+    await message.answer(f"Опубликовать в <code>{config.ANNOUNCE_CHANNEL}</code>?",
+                         reply_markup=kb)
+
+
+@router.callback_query(AdminAnnounce.waiting_button, F.data.startswith("announce:btn:"))
+async def announce_btn_choice(callback: CallbackQuery, state: FSMContext) -> None:
+    which = callback.data.rsplit(":", 1)[1]
+    me = await callback.bot.me()
+    await callback.answer()
+    if which == "allo":
+        await _announce_preview(callback.message, state, "Подробнее",
+                                f"https://t.me/{me.username}?start=allo")
+    elif which == "bot":
+        await _announce_preview(callback.message, state, "🤖 Открыть бота",
+                                f"https://t.me/{me.username}")
+    elif which == "none":
+        await _announce_preview(callback.message, state, None, None)
+    else:  # custom
+        await state.update_data(ann_custom=True)
+        await callback.message.answer(
+            "Пришли кнопку в формате <b>Текст | ссылка</b>.\n"
+            f"<i>Например: Записаться | https://t.me/{me.username}?start=allo</i>",
+            reply_markup=cancel_menu(),
+        )
 
 
 @router.message(AdminAnnounce.waiting_text, _not_command)
@@ -561,27 +605,26 @@ async def announce_photosdone(callback: CallbackQuery, state: FSMContext) -> Non
 
 @router.message(AdminAnnounce.waiting_button, _not_command)
 async def announce_button(message: Message, state: FSMContext) -> None:
+    """Своя кнопка: строго «Текст | ссылка» с настоящей ссылкой (без ловушек)."""
     me = await message.bot.me()
-    status, label, url = _parse_announce_button(message.text or "", me.username)
-    if status == "bad":
-        await message.answer("Не понял кнопку 🤔 Формат: <b>Текст | ссылка</b> "
-                             "(или <code>allo</code> / <code>бот</code> / <code>нет</code>).")
+    raw = (message.text or "").strip()
+    label, url = None, None
+    if "|" in raw:
+        left, _, right = raw.partition("|")
+        right = right.strip()
+        if right.startswith("http"):
+            label, url = (left.strip() or "Подробнее")[:60], right
+    elif raw.startswith("http"):
+        label, url = "Подробнее", raw
+    if not url:
+        await message.answer(
+            "Нужна <b>ссылка</b>. Формат: <b>Текст | ссылка</b>\n"
+            "Для записи на прогулку ссылка такая:\n"
+            f"<code>Записаться | https://t.me/{me.username}?start=allo</code>\n\n"
+            "Или вернись и выбери кнопку из списка.",
+        )
         return
-    await state.update_data(ann_btn_label=label, ann_btn_url=url)
-    data = await state.get_data()
-    await message.answer("Вот как будет выглядеть пост 👇")
-    photos = list(data.get("ann_photos") or [])
-    if photos:
-        await _send_album(message.bot, message.chat.id, photos)
-    await message.answer(
-        data.get("ann_text", ""), reply_markup=_announce_custom_kb(label, url),
-        disable_web_page_preview=True,
-    )
-    kb = InlineKeyboardMarkup(inline_keyboard=[[
-        InlineKeyboardButton(text="✅ Опубликовать и закрепить", callback_data="announce:yes"),
-        InlineKeyboardButton(text="❌ Отмена", callback_data="announce:no"),
-    ]])
-    await message.answer(f"Опубликовать в <code>{config.ANNOUNCE_CHANNEL}</code>?", reply_markup=kb)
+    await _announce_preview(message, state, label, url)
 
 
 @router.callback_query(F.data == "announce:no")
