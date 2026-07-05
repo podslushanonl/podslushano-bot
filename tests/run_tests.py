@@ -183,6 +183,21 @@ async def test_allo_capacity() -> None:
     async with db.get_session() as s:
         check("просроченная неоплата не занимает место",
               await A._taken(s, keys[2]) == before)
+    # ручное закрытие даты (/alloclose): свободных мест нет, хотя броней нет
+    async with db.get_session() as s:
+        check("до закрытия есть свободные места",
+              await A._remaining(s, keys[1]) > 0)
+        await s.merge(Meta(key=A._closed_key(keys[1]), value="closed"))
+        await s.commit()
+    async with db.get_session() as s:
+        check("закрытая дата показывает 0 мест",
+              await A._remaining(s, keys[1]) == 0)
+        m = await s.get(Meta, A._closed_key(keys[1]))
+        await s.delete(m)
+        await s.commit()
+    async with db.get_session() as s:
+        check("после открытия места вернулись",
+              await A._remaining(s, keys[1]) > 0)
 
 
 async def test_allo_referral() -> None:

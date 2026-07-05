@@ -18,7 +18,7 @@ from sqlalchemy import and_, func, or_, select
 
 import config
 from database.db import get_session
-from database.models import AlloBooking, AlloReferral
+from database.models import AlloBooking, AlloReferral, Meta
 from keyboards.menus import cancel_menu, main_menu
 from states.forms import AlloBook
 from utils.payments import create_payment
@@ -126,7 +126,18 @@ async def _taken(session, walk_key: str) -> int:
     ) or 0
 
 
+def _closed_key(walk_key: str) -> str:
+    return f"allo_closed:{walk_key}"
+
+
+async def _is_closed(session, walk_key: str) -> bool:
+    """Дату закрыли вручную (админ /alloclose) — мест «нет», хотя брони нет."""
+    return await session.get(Meta, _closed_key(walk_key)) is not None
+
+
 async def _remaining(session, walk_key: str) -> int:
+    if await _is_closed(session, walk_key):
+        return 0
     return max(0, config.ALLO_WALK_CAPACITY - await _taken(session, walk_key))
 
 
@@ -446,7 +457,8 @@ async def allo_useok(callback: CallbackQuery, state: FSMContext) -> None:
     w = config.allo_walk(key)
     await callback.message.answer(
         f"✅ Записал по абонементу!\n\n📅 {w['date']} — <b>{w['title']}</b>\n"
-        f"📍 Сбор: {w['meet']}\n\nБлиже к дате напомним детали. До встречи! 🚶",
+        f"📍 Сбор: {w['meet']}\n\nБлиже к дате напомним детали. До встречи! 🚶"
+        + _chat_invite(),
         reply_markup=main_menu(), disable_web_page_preview=True)
     await _notify_admins(callback.bot,
                          f"🚶 Списание абонемента: {_walk_title(key)}\n"
@@ -581,6 +593,13 @@ async def allo_email(message: Message, state: FSMContext) -> None:
 
 # --- Подтверждение оплаты (из webhook через on_payment_paid) -----------------
 
+def _chat_invite() -> str:
+    """Приглашение в общий чат участников — добавляем к подтверждению оплаты."""
+    return ("\n\n💬 <b>Чат участников Allo Walks</b> — здесь все, кто ходит с нами. "
+            "Знакомимся, договариваемся о деталях и делимся фото после прогулок. "
+            f"Заходи:\n{config.ALLO_CHAT_URL}")
+
+
 async def _notify_admins(bot, text: str) -> None:
     for admin_id in config.ADMIN_IDS:
         try:
@@ -636,6 +655,7 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
                 "зачтутся в будущее членство закрытого клуба Allo — ты уже вложился.\n\n"
                 "Открой Allo Walks (кнопка «Подробнее» или /allo) и "
                 "выбери даты — за каждую спишется одна прогулка. До встречи! 🚶")
+        body += _chat_invite()
     else:
         w = config.allo_walk(key)
         body = ("✅ <b>Оплата прошла — ты записан(а)!</b>\n\n"
@@ -643,6 +663,7 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
                 f"🏁 Финиш: {w['finish']}\n⏱ {w['dur']}\n\n"
                 "Ближе к дате напомним детали. Возьми удобную обувь, воду и одежду по "
                 "погоде. До встречи! 🚶")
+        body += _chat_invite()
     try:
         await bot.send_message(uid, body, disable_web_page_preview=True)
     except Exception as e:  # noqa: BLE001
@@ -662,6 +683,58 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
              f"{first or ''} @{uname or '—'} · {email} · €{_p(amount or '')}")
 
 
+# --- Админ: закрыть / открыть дату вручную ----------------------------------
+
+def _resolve_walk_key(arg: str) -> str | None:
+    """По аргументу (ключ-дата или её часть) находим прогулку."""
+    arg = (arg or "").strip()
+    if not arg:
+        return None
+    if config.allo_walk(arg):
+        return arg
+    for w in config.ALLO_WALKS:  # разрешим «11.07», «11 июля» и т.п.
+        if arg in w["key"] or arg in w["date"]:
+            return w["key"]
+    return None
+
+
+@router.message(Command("alloclose"), F.from_user.id.in_(config.ADMIN_IDS))
+async def cmd_alloclose(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    arg = (message.text or "").partition(" ")[2].strip()
+    key = _resolve_walk_key(arg)
+    if not key:
+        dates = "\n".join(f"  • <code>{w['key']}</code> — {w['date']} · {w['title']}"
+                          for w in config.ALLO_WALKS)
+        await message.answer(
+            "Укажи дату прогулки, которую закрыть.\n"
+            "Например: <code>/alloclose 2026-07-11</code>\n\n" + dates)
+        return
+    async with get_session() as session:
+        await session.merge(Meta(key=_closed_key(key), value="closed"))
+        await session.commit()
+    await message.answer(f"🚫 Закрыл запись: <b>{_walk_title(key)}</b>. "
+                         "В боте эта дата теперь показывается как «мест нет».\n"
+                         f"Открыть обратно: <code>/alloopen {key}</code>")
+
+
+@router.message(Command("alloopen"), F.from_user.id.in_(config.ADMIN_IDS))
+async def cmd_alloopen(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    arg = (message.text or "").partition(" ")[2].strip()
+    key = _resolve_walk_key(arg)
+    if not key:
+        await message.answer("Укажи дату: <code>/alloopen 2026-07-11</code>")
+        return
+    async with get_session() as session:
+        m = await session.get(Meta, _closed_key(key))
+        if m:
+            await session.delete(m)
+            await session.commit()
+    await message.answer(f"✅ Открыл запись обратно: <b>{_walk_title(key)}</b> "
+                         "(если ещё есть свободные места).")
+
+
 # --- Админ: список записей --------------------------------------------------
 
 @router.message(Command("allobookings"), F.from_user.id.in_(config.ADMIN_IDS))
@@ -676,8 +749,9 @@ async def cmd_allobookings(message: Message, state: FSMContext) -> None:
                     AlloBooking.walk_key == w["key"],
                     AlloBooking.plan.in_(_SEAT_PLANS),
                     AlloBooking.status == "paid"))).all()
+            closed = " · 🚫 закрыта" if await _is_closed(session, w["key"]) else ""
             lines.append(f"\n<b>{w['date']} · {w['title']}</b> — {taken}/"
-                         f"{config.ALLO_WALK_CAPACITY}")
+                         f"{config.ALLO_WALK_CAPACITY}{closed}")
             for r in rows:
                 tag = "🎟" if r.plan == "use" else "💶"
                 lines.append(f"  {tag} {r.first_name or ''} @{r.username or '—'} · {r.email}")
