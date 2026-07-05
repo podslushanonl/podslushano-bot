@@ -147,6 +147,10 @@ _ADMIN_COMMANDS_HELP = (
     "/setpostbutton — текст кнопки для /post\n"
     "/afishapost — афиша в канал\n"
     "/ig — Instagram-карусель\n\n"
+    "🚶 <b>Allo Walks</b>\n"
+    "/allobookings — записи на прогулки\n"
+    "/alloclose ДАТА — закрыть дату («мест нет»)\n"
+    "/alloopen ДАТА — открыть дату обратно\n\n"
     "📊 <b>Аналитика</b>\n"
     "/stats — статистика · /reviews — отзывы"
 )

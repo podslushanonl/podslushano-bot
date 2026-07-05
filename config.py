@@ -142,9 +142,11 @@ except ValueError:
 ALLO_REFERRAL_BONUS: int = 10
 ALLO_MIN_CHARGE: float = 5.0
 try:
-    ALLO_WALK_CAPACITY: int = int(os.getenv("ALLO_WALK_CAPACITY", "10"))
+    ALLO_WALK_CAPACITY: int = int(os.getenv("ALLO_WALK_CAPACITY", "5"))
 except ValueError:
-    ALLO_WALK_CAPACITY = 10
+    ALLO_WALK_CAPACITY = 5
+# Закрытый чат участников — ссылку шлём каждому после оплаты.
+ALLO_CHAT_URL: str = os.getenv("ALLO_CHAT_URL", "https://t.me/+peVFBZ4hOdY1ZDg6")
 # Расписание прогулок. key — устойчивый идентификатор (дата), по нему считаем места.
 ALLO_WALKS: list[dict] = [
     {
