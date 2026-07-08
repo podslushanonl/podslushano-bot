@@ -1,0 +1,5995 @@
+{
+ "source": "TaalCompleet A1 — Thematische woordenlijst (official)",
+ "count": 674,
+ "note": "nl + article + plural + pos + unit + ru. RU: 567 из базы 5000, 108 добавлены вручную.",
+ "words": [
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.1",
+   "nl": "hallo",
+   "pos": "word",
+   "ru": "привет"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.1",
+   "nl": "jaar",
+   "article": "het",
+   "pos": "noun",
+   "ru": "год"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.1",
+   "nl": "kind",
+   "article": "het",
+   "plural": "kinderen",
+   "pos": "noun",
+   "ru": "ребёнок"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.1",
+   "nl": "man",
+   "article": "de",
+   "plural": "mannen",
+   "pos": "noun",
+   "ru": "мужчина"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.1",
+   "nl": "naam",
+   "article": "de",
+   "plural": "namen",
+   "pos": "noun",
+   "ru": "имя"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.1",
+   "nl": "Nederland",
+   "pos": "word",
+   "ru": "Нидерланды"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.1",
+   "nl": "vrouw",
+   "article": "de",
+   "plural": "vrouwen",
+   "pos": "noun",
+   "ru": "женщина"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.1",
+   "nl": "wonen",
+   "pos": "verb",
+   "ru": "жить / проживать"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.2",
+   "nl": "doei",
+   "pos": "word",
+   "ru": "пока"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.2",
+   "nl": "goedemiddag",
+   "pos": "word",
+   "ru": "добрый день"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.2",
+   "nl": "goedemorgen",
+   "pos": "word",
+   "ru": "доброе утро"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.2",
+   "nl": "goedenavond",
+   "pos": "word",
+   "ru": "добрый вечер"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.2",
+   "nl": "groeten",
+   "pos": "verb",
+   "ru": "здороваться"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.2",
+   "nl": "hoi",
+   "pos": "word",
+   "ru": "привет"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.2",
+   "nl": "meneer",
+   "article": "de",
+   "pos": "noun",
+   "ru": "господин"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.2",
+   "nl": "mevrouw",
+   "article": "de",
+   "pos": "noun",
+   "ru": "госпожа"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.2",
+   "nl": "Nederlands",
+   "article": "het",
+   "pos": "noun",
+   "ru": "нидерландский язык"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.2",
+   "nl": "tot ziens",
+   "pos": "phrase",
+   "ru": "до свидания"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.4",
+   "nl": "dochter",
+   "article": "de",
+   "plural": "dochters",
+   "pos": "noun",
+   "ru": "дочь"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.4",
+   "nl": "en",
+   "pos": "word",
+   "ru": "и"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.4",
+   "nl": "familie",
+   "article": "de",
+   "plural": "families",
+   "pos": "noun",
+   "ru": "семья / родственники"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.4",
+   "nl": "heten",
+   "pos": "verb",
+   "ru": "зваться"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.4",
+   "nl": "moeder",
+   "article": "de",
+   "plural": "moeders",
+   "pos": "noun",
+   "ru": "мать"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.4",
+   "nl": "oma",
+   "article": "de",
+   "plural": "oma’s",
+   "pos": "noun",
+   "ru": "бабушка"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.4",
+   "nl": "opa",
+   "article": "de",
+   "plural": "opa’s",
+   "pos": "noun",
+   "ru": "дедушка"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.4",
+   "nl": "ouder",
+   "article": "de",
+   "plural": "ouders",
+   "pos": "noun",
+   "ru": "родитель"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.4",
+   "nl": "vader",
+   "article": "de",
+   "plural": "vaders",
+   "pos": "noun",
+   "ru": "отец"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.4",
+   "nl": "zoon",
+   "article": "de",
+   "plural": "zoons",
+   "pos": "noun",
+   "ru": "сын"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.4",
+   "nl": "zus",
+   "article": "de",
+   "plural": "zussen",
+   "pos": "noun",
+   "ru": "сестра"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.6",
+   "nl": "u",
+   "pos": "word",
+   "ru": "вы"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.6",
+   "nl": "hij",
+   "pos": "word",
+   "ru": "он"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.6",
+   "nl": "jullie",
+   "pos": "word",
+   "ru": "вы"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.8",
+   "nl": "ook",
+   "pos": "word",
+   "ru": "тоже"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.8",
+   "nl": "niet",
+   "pos": "word",
+   "ru": "не"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.9",
+   "nl": "letter",
+   "article": "de",
+   "plural": "letters",
+   "pos": "noun",
+   "ru": "буква"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.9",
+   "nl": "punt",
+   "article": "de",
+   "plural": "punten",
+   "pos": "noun",
+   "ru": "точка"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.9",
+   "nl": "woord",
+   "article": "het",
+   "plural": "woorden",
+   "pos": "noun",
+   "ru": "слово"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.9",
+   "nl": "zin",
+   "article": "de",
+   "plural": "zinnen",
+   "pos": "noun",
+   "ru": "предложение"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.10",
+   "nl": "kleinkind",
+   "article": "het",
+   "plural": "kleinkinderen",
+   "pos": "noun",
+   "ru": "внук / внучка"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.10",
+   "nl": "mijn",
+   "pos": "word",
+   "ru": "мой / моя / моё"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.10",
+   "nl": "neef",
+   "article": "de",
+   "plural": "neven",
+   "pos": "noun",
+   "ru": "племянник / кузен"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.10",
+   "nl": "nicht",
+   "article": "de",
+   "plural": "nichten",
+   "pos": "noun",
+   "ru": "племянница / кузина"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.10",
+   "nl": "oom",
+   "article": "de",
+   "plural": "ooms",
+   "pos": "noun",
+   "ru": "дядя"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.10",
+   "nl": "schoonzus",
+   "article": "de",
+   "plural": "schoonzussen",
+   "pos": "noun",
+   "ru": "невестка / золовка"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.10",
+   "nl": "tante",
+   "article": "de",
+   "plural": "tantes",
+   "pos": "noun",
+   "ru": "тётя"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.10",
+   "nl": "zwager",
+   "article": "de",
+   "plural": "zwagers",
+   "pos": "noun",
+   "ru": "зять / шурин"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.12",
+   "nl": "zijn",
+   "pos": "word",
+   "ru": "его / свой"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "baby",
+   "article": "de",
+   "plural": "baby’s",
+   "pos": "noun",
+   "ru": "младенец"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "geen",
+   "pos": "word",
+   "ru": "нет / никакой"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "gezin",
+   "article": "het",
+   "plural": "gezinnen",
+   "pos": "noun",
+   "ru": "семья"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "groot",
+   "pos": "adj",
+   "ru": "большой"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "hier",
+   "pos": "word",
+   "ru": "здесь"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "horen",
+   "pos": "verb",
+   "ru": "слышать"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "ja",
+   "pos": "word",
+   "ru": "да"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "jongen",
+   "article": "de",
+   "plural": "jongens",
+   "pos": "noun",
+   "ru": "мальчик"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "klein",
+   "pos": "adj",
+   "ru": "маленький"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "leuk",
+   "pos": "adj",
+   "ru": "приятный / классный"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "meisje",
+   "article": "het",
+   "plural": "meisjes",
+   "pos": "noun",
+   "ru": "девочка"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "nee",
+   "pos": "word",
+   "ru": "нет"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.13",
+   "nl": "praten",
+   "pos": "verb",
+   "ru": "разговаривать"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.14",
+   "nl": "antwoord",
+   "article": "het",
+   "plural": "antwoorden",
+   "pos": "noun",
+   "ru": "ответ"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.14",
+   "nl": "vraag",
+   "article": "de",
+   "plural": "vragen",
+   "pos": "noun",
+   "ru": "вопрос"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.14",
+   "nl": "waar",
+   "pos": "word",
+   "ru": "где / куда"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.14",
+   "nl": "wat",
+   "pos": "word",
+   "ru": "что"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.14",
+   "nl": "wie",
+   "pos": "word",
+   "ru": "кто"
+  },
+  {
+   "theme": 1,
+   "theme_name": "Hallo!",
+   "unit": "1.15",
+   "nl": "hebben",
+   "pos": "word",
+   "ru": "иметь"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.1",
+   "nl": "buiten",
+   "pos": "word",
+   "ru": "снаружи"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.1",
+   "nl": "cursist",
+   "article": "de",
+   "plural": "cursisten",
+   "pos": "noun",
+   "ru": "учащийся курса"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.1",
+   "nl": "docent",
+   "article": "de",
+   "plural": "docenten",
+   "pos": "noun",
+   "ru": "преподаватель"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.1",
+   "nl": "gaan",
+   "pos": "verb",
+   "ru": "идти / ехать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.1",
+   "nl": "lopen",
+   "pos": "verb",
+   "ru": "идти пешком"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.1",
+   "nl": "naar",
+   "pos": "word",
+   "ru": "в / к"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.1",
+   "nl": "pauze",
+   "article": "de",
+   "plural": "pauzes",
+   "pos": "noun",
+   "ru": "перерыв"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.1",
+   "nl": "samen",
+   "pos": "word",
+   "ru": "вместе"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.1",
+   "nl": "school",
+   "article": "de",
+   "plural": "scholen",
+   "pos": "noun",
+   "ru": "школа"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.1",
+   "nl": "welkom",
+   "pos": "word",
+   "ru": "добро пожаловать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.1",
+   "nl": "zeggen",
+   "pos": "verb",
+   "ru": "говорить / сказать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "nul",
+   "pos": "word",
+   "ru": "ноль"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "één",
+   "pos": "word",
+   "ru": "один"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "twee",
+   "pos": "word",
+   "ru": "два"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "drie",
+   "pos": "word",
+   "ru": "три"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "vier",
+   "pos": "word",
+   "ru": "четыре"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "vijf",
+   "pos": "word",
+   "ru": "пять"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "zes",
+   "pos": "word",
+   "ru": "шесть"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "zeven",
+   "pos": "word",
+   "ru": "семь"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "acht",
+   "pos": "word",
+   "ru": "восемь"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "negen",
+   "pos": "word",
+   "ru": "девять"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "tien",
+   "pos": "word",
+   "ru": "десять"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "elf",
+   "pos": "word",
+   "ru": "одиннадцать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "twaalf",
+   "pos": "word",
+   "ru": "двенадцать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "dertien",
+   "pos": "word",
+   "ru": "тринадцать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "veertien",
+   "pos": "word",
+   "ru": "четырнадцать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "vijftien",
+   "pos": "word",
+   "ru": "пятнадцать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "zestien",
+   "pos": "word",
+   "ru": "шестнадцать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "zeventien",
+   "pos": "word",
+   "ru": "семнадцать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "achttien",
+   "pos": "word",
+   "ru": "восемнадцать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "negentien",
+   "pos": "word",
+   "ru": "девятнадцать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.2",
+   "nl": "twintig",
+   "pos": "word",
+   "ru": "двадцать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.3",
+   "nl": "bord",
+   "article": "het",
+   "plural": "borden",
+   "pos": "noun",
+   "ru": "доска / табличка"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.3",
+   "nl": "computer",
+   "article": "de",
+   "plural": "computers",
+   "pos": "noun",
+   "ru": "компьютер"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.3",
+   "nl": "leren",
+   "pos": "verb",
+   "ru": "учить / учиться"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.3",
+   "nl": "lezen",
+   "pos": "verb",
+   "ru": "читать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.3",
+   "nl": "luisteren",
+   "pos": "verb",
+   "ru": "слушать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.3",
+   "nl": "maken",
+   "pos": "verb",
+   "ru": "делать / создавать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.3",
+   "nl": "opdracht",
+   "article": "de",
+   "plural": "opdrachten",
+   "pos": "noun",
+   "ru": "задание"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.3",
+   "nl": "pen",
+   "article": "de",
+   "plural": "pennen",
+   "pos": "noun",
+   "ru": "ручка"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.3",
+   "nl": "schrijven",
+   "pos": "verb",
+   "ru": "писать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.3",
+   "nl": "spreken",
+   "pos": "verb",
+   "ru": "говорить"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.3",
+   "nl": "tekst",
+   "article": "de",
+   "plural": "teksten",
+   "pos": "noun",
+   "ru": "текст"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "dag",
+   "article": "de",
+   "plural": "dagen",
+   "pos": "noun",
+   "ru": "привет / пока"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "morgen",
+   "pos": "word",
+   "ru": "завтра"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "vandaag",
+   "pos": "word",
+   "ru": "сегодня"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "week",
+   "article": "de",
+   "plural": "weken",
+   "pos": "noun",
+   "ru": "неделя"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "weekend",
+   "article": "het",
+   "plural": "weekenden",
+   "pos": "noun",
+   "ru": "выходные"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "maandag",
+   "pos": "word",
+   "ru": "понедельник"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "dinsdag",
+   "pos": "word",
+   "ru": "вторник"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "woensdag",
+   "pos": "word",
+   "ru": "среда"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "donderdag",
+   "pos": "word",
+   "ru": "четверг"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "vrijdag",
+   "pos": "word",
+   "ru": "пятница"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "zaterdag",
+   "pos": "word",
+   "ru": "суббота"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.4",
+   "nl": "zondag",
+   "pos": "word",
+   "ru": "воскресенье"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.5",
+   "nl": "hoeveel",
+   "pos": "word",
+   "ru": "сколько"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.5",
+   "nl": "wanneer",
+   "pos": "word",
+   "ru": "когда"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.6",
+   "nl": "dertig",
+   "pos": "word",
+   "ru": "тридцать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.6",
+   "nl": "veertig",
+   "pos": "word",
+   "ru": "сорок"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.6",
+   "nl": "vijftig",
+   "pos": "word",
+   "ru": "пятьдесят"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.6",
+   "nl": "zestig",
+   "pos": "word",
+   "ru": "шестьдесят"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.6",
+   "nl": "zeventig",
+   "pos": "word",
+   "ru": "семьдесят"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.6",
+   "nl": "tachtig",
+   "pos": "word",
+   "ru": "восемьдесят"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.6",
+   "nl": "negentig",
+   "pos": "word",
+   "ru": "девяносто"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.6",
+   "nl": "honderd",
+   "pos": "word",
+   "ru": "сто"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.7",
+   "nl": "mensen",
+   "article": "de",
+   "pos": "noun",
+   "ru": "люди"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.7",
+   "nl": "moeilijk",
+   "pos": "adj",
+   "ru": "трудный"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.7",
+   "nl": "snel",
+   "pos": "adj",
+   "ru": "быстрый"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.7",
+   "nl": "sorry",
+   "pos": "word",
+   "ru": "извините / извини"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.7",
+   "nl": "veel",
+   "pos": "word",
+   "ru": "много"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.8",
+   "nl": "ding",
+   "article": "het",
+   "plural": "dingen",
+   "pos": "noun",
+   "ru": "вещь"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.8",
+   "nl": "gum",
+   "article": "de",
+   "plural": "gummen",
+   "pos": "noun",
+   "ru": "ластик"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.8",
+   "nl": "klas",
+   "article": "de",
+   "plural": "klassen",
+   "pos": "noun",
+   "ru": "класс"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.8",
+   "nl": "makkelijk",
+   "pos": "adj",
+   "ru": "лёгкий"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.8",
+   "nl": "papier",
+   "article": "het",
+   "plural": "papieren",
+   "pos": "noun",
+   "ru": "бумага"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.8",
+   "nl": "potlood",
+   "article": "het",
+   "plural": "potloden",
+   "pos": "noun",
+   "ru": "карандаш"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.8",
+   "nl": "staan",
+   "pos": "verb",
+   "ru": "стоять"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.8",
+   "nl": "zien",
+   "pos": "verb",
+   "ru": "видеть"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.8",
+   "nl": "zitten",
+   "pos": "verb",
+   "ru": "сидеть / находиться"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.9",
+   "nl": "kruisje",
+   "article": "het",
+   "plural": "kruisjes",
+   "pos": "noun",
+   "ru": "крестик"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.9",
+   "nl": "lijn",
+   "article": "de",
+   "plural": "lijnen",
+   "pos": "noun",
+   "ru": "линия"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.9",
+   "nl": "moeten",
+   "pos": "verb",
+   "ru": "долженствовать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.9",
+   "nl": "plaatje",
+   "article": "het",
+   "plural": "plaatjes",
+   "pos": "noun",
+   "ru": "картинка"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.9",
+   "nl": "rondje",
+   "article": "het",
+   "plural": "rondjes",
+   "pos": "noun",
+   "ru": "кружок"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.9",
+   "nl": "streep",
+   "article": "de",
+   "plural": "strepen",
+   "pos": "noun",
+   "ru": "черта"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.9",
+   "nl": "typen",
+   "pos": "verb",
+   "ru": "печатать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "datum",
+   "article": "de",
+   "plural": "datums",
+   "pos": "noun",
+   "ru": "дата"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "eerste",
+   "pos": "word",
+   "ru": "первый"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "jaar",
+   "article": "het",
+   "pos": "noun",
+   "ru": "год"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "laatste",
+   "pos": "word",
+   "ru": "последний"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "maand",
+   "article": "de",
+   "plural": "maanden",
+   "pos": "noun",
+   "ru": "месяц"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "januari",
+   "pos": "word",
+   "ru": "январь"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "februari",
+   "pos": "word",
+   "ru": "февраль"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "maart",
+   "pos": "word",
+   "ru": "март"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "april",
+   "pos": "word",
+   "ru": "апрель"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "mei",
+   "pos": "word",
+   "ru": "май"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "juni",
+   "pos": "word",
+   "ru": "июнь"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "juli",
+   "pos": "word",
+   "ru": "июль"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "augustus",
+   "pos": "word",
+   "ru": "август"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "september",
+   "pos": "word",
+   "ru": "сентябрь"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "oktober",
+   "pos": "word",
+   "ru": "октябрь"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "november",
+   "pos": "word",
+   "ru": "ноябрь"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.10",
+   "nl": "december",
+   "pos": "word",
+   "ru": "декабрь"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.11",
+   "nl": "alsjeblieft",
+   "pos": "word",
+   "ru": "пожалуйста / вот"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.11",
+   "nl": "dank je wel",
+   "pos": "phrase",
+   "ru": "спасибо"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.11",
+   "nl": "drinken",
+   "pos": "verb",
+   "ru": "пить"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.11",
+   "nl": "graag",
+   "pos": "word",
+   "ru": "охотно / пожалуйста"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.11",
+   "nl": "koffie",
+   "article": "de",
+   "pos": "noun",
+   "ru": "кофе"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.11",
+   "nl": "melk",
+   "article": "de",
+   "pos": "noun",
+   "ru": "молоко"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.11",
+   "nl": "op school",
+   "pos": "phrase",
+   "ru": "в школе"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.11",
+   "nl": "suiker",
+   "article": "de",
+   "pos": "noun",
+   "ru": "сахар"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.11",
+   "nl": "thee",
+   "article": "de",
+   "pos": "noun",
+   "ru": "чай"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.11",
+   "nl": "willen",
+   "pos": "verb",
+   "ru": "хотеть"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.14",
+   "nl": "bladzijde",
+   "article": "de",
+   "plural": "bladzijdes",
+   "pos": "noun",
+   "ru": "страница"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.14",
+   "nl": "fout",
+   "pos": "adj",
+   "ru": "неправильный"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.14",
+   "nl": "kijken",
+   "pos": "verb",
+   "ru": "смотреть"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.14",
+   "nl": "les",
+   "article": "de",
+   "plural": "lessen",
+   "pos": "noun",
+   "ru": "урок"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.14",
+   "nl": "puzzel",
+   "article": "de",
+   "plural": "puzzels",
+   "pos": "noun",
+   "ru": "головоломка"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.14",
+   "nl": "titel",
+   "article": "de",
+   "plural": "titels",
+   "pos": "noun",
+   "ru": "заголовок"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.14",
+   "nl": "weten",
+   "pos": "verb",
+   "ru": "знать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.14",
+   "nl": "weg",
+   "pos": "word",
+   "ru": "дорога"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.14",
+   "nl": "welk",
+   "pos": "adj",
+   "ru": "какой / какое"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.15",
+   "nl": "bedankt",
+   "pos": "word",
+   "ru": "спасибо"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.15",
+   "nl": "geven",
+   "pos": "verb",
+   "ru": "давать"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.15",
+   "nl": "graag gedaan",
+   "pos": "phrase",
+   "ru": "не за что"
+  },
+  {
+   "theme": 2,
+   "theme_name": "De school",
+   "unit": "2.15",
+   "nl": "krijgen",
+   "pos": "verb",
+   "ru": "получать"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.1",
+   "nl": "dak",
+   "article": "het",
+   "plural": "daken",
+   "pos": "noun",
+   "ru": "крыша"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.1",
+   "nl": "deur",
+   "article": "de",
+   "plural": "deuren",
+   "pos": "noun",
+   "ru": "дверь"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.1",
+   "nl": "flat",
+   "article": "de",
+   "plural": "flats",
+   "pos": "noun",
+   "ru": "квартира / многоквартирный дом"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.1",
+   "nl": "garage",
+   "article": "de",
+   "plural": "garages",
+   "pos": "noun",
+   "ru": "гараж"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.1",
+   "nl": "huis",
+   "article": "het",
+   "plural": "huizen",
+   "pos": "noun",
+   "ru": "дом"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.1",
+   "nl": "muur",
+   "article": "de",
+   "plural": "muren",
+   "pos": "noun",
+   "ru": "стена"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.1",
+   "nl": "raam",
+   "article": "het",
+   "plural": "ramen",
+   "pos": "noun",
+   "ru": "окно"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.1",
+   "nl": "schuur",
+   "article": "de",
+   "plural": "schuren",
+   "pos": "noun",
+   "ru": "сарай"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.1",
+   "nl": "tuin",
+   "article": "de",
+   "plural": "tuinen",
+   "pos": "noun",
+   "ru": "сад"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.3",
+   "nl": "beneden",
+   "pos": "word",
+   "ru": "внизу"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.3",
+   "nl": "boven",
+   "pos": "word",
+   "ru": "над / наверху"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.3",
+   "nl": "gang",
+   "article": "de",
+   "plural": "gangen",
+   "pos": "noun",
+   "ru": "коридор"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.3",
+   "nl": "kamer",
+   "article": "de",
+   "plural": "kamers",
+   "pos": "noun",
+   "ru": "комната"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.3",
+   "nl": "keuken",
+   "article": "de",
+   "plural": "keukens",
+   "pos": "noun",
+   "ru": "кухня"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.3",
+   "nl": "slaapkamer",
+   "article": "de",
+   "plural": "slaapkamers",
+   "pos": "noun",
+   "ru": "спальня"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.3",
+   "nl": "wc",
+   "article": "de",
+   "plural": "wc’s",
+   "pos": "noun",
+   "ru": "туалет"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.3",
+   "nl": "woonkamer",
+   "article": "de",
+   "plural": "woonkamers",
+   "pos": "noun",
+   "ru": "гостиная"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.3",
+   "nl": "zolder",
+   "article": "de",
+   "plural": "zolders",
+   "pos": "noun",
+   "ru": "чердак"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.4",
+   "nl": "buurman",
+   "article": "de",
+   "plural": "buurmannen",
+   "pos": "noun",
+   "ru": "сосед"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.4",
+   "nl": "buurvrouw",
+   "article": "de",
+   "plural": "buurvrouwen",
+   "pos": "noun",
+   "ru": "соседка"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.4",
+   "nl": "gezellig",
+   "pos": "adj",
+   "ru": "уютный / душевный"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.4",
+   "nl": "koekje",
+   "article": "het",
+   "plural": "koekjes",
+   "pos": "noun",
+   "ru": "печенье"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.4",
+   "nl": "komen",
+   "pos": "verb",
+   "ru": "приходить / приезжать"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.4",
+   "nl": "kopje",
+   "article": "het",
+   "plural": "kopjes",
+   "pos": "noun",
+   "ru": "чашка"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.4",
+   "nl": "nieuw",
+   "pos": "adj",
+   "ru": "новый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.4",
+   "nl": "straat",
+   "article": "de",
+   "plural": "straten",
+   "pos": "noun",
+   "ru": "улица"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.4",
+   "nl": "thuis",
+   "pos": "word",
+   "ru": "дома"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.5",
+   "nl": "bank",
+   "article": "de",
+   "plural": "banken",
+   "pos": "noun",
+   "ru": "диван / банк"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.5",
+   "nl": "bed",
+   "article": "het",
+   "plural": "bedden",
+   "pos": "noun",
+   "ru": "кровать"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.5",
+   "nl": "douche",
+   "article": "de",
+   "plural": "douches",
+   "pos": "noun",
+   "ru": "душ"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.5",
+   "nl": "kast",
+   "article": "de",
+   "plural": "kasten",
+   "pos": "noun",
+   "ru": "шкаф"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.5",
+   "nl": "lamp",
+   "article": "de",
+   "plural": "lampen",
+   "pos": "noun",
+   "ru": "лампа"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.5",
+   "nl": "meubel",
+   "article": "het",
+   "plural": "meubels",
+   "pos": "noun",
+   "ru": "мебель"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.5",
+   "nl": "stoel",
+   "article": "de",
+   "plural": "stoelen",
+   "pos": "noun",
+   "ru": "стул"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.5",
+   "nl": "tafel",
+   "article": "de",
+   "plural": "tafels",
+   "pos": "noun",
+   "ru": "стол"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.5",
+   "nl": "televisie",
+   "article": "de",
+   "plural": "televisies",
+   "pos": "noun",
+   "ru": "телевизор"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.7",
+   "nl": "bruin",
+   "pos": "adj",
+   "ru": "коричневый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.7",
+   "nl": "geel",
+   "pos": "adj",
+   "ru": "жёлтый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.7",
+   "nl": "grijs",
+   "pos": "adj",
+   "ru": "серый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.7",
+   "nl": "groen",
+   "pos": "adj",
+   "ru": "зелёный"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.7",
+   "nl": "kleur",
+   "article": "de",
+   "plural": "kleuren",
+   "pos": "noun",
+   "ru": "цвет"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.7",
+   "nl": "oranje",
+   "pos": "word",
+   "ru": "оранжевый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.7",
+   "nl": "paars",
+   "pos": "adj",
+   "ru": "фиолетовый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.7",
+   "nl": "rood",
+   "pos": "adj",
+   "ru": "красный"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.7",
+   "nl": "roze",
+   "pos": "word",
+   "ru": "розовый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.7",
+   "nl": "wit",
+   "pos": "adj",
+   "ru": "белый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.7",
+   "nl": "zwart",
+   "pos": "adj",
+   "ru": "чёрный"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.8",
+   "nl": "buurt",
+   "article": "de",
+   "plural": "buurten",
+   "pos": "noun",
+   "ru": "район"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.8",
+   "nl": "dorp",
+   "article": "het",
+   "plural": "dorpen",
+   "pos": "noun",
+   "ru": "деревня"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.8",
+   "nl": "hoog",
+   "pos": "adj",
+   "ru": "высокий"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.8",
+   "nl": "lift",
+   "article": "de",
+   "plural": "liften",
+   "pos": "noun",
+   "ru": "лифт"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.8",
+   "nl": "mooi",
+   "pos": "adj",
+   "ru": "красивый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.8",
+   "nl": "park",
+   "article": "het",
+   "plural": "parken",
+   "pos": "noun",
+   "ru": "парк"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.8",
+   "nl": "stad",
+   "article": "de",
+   "plural": "steden",
+   "pos": "noun",
+   "ru": "город"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.8",
+   "nl": "trap",
+   "article": "de",
+   "plural": "trappen",
+   "pos": "noun",
+   "ru": "лестница"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.8",
+   "nl": "verdieping",
+   "article": "de",
+   "plural": "verdiepingen",
+   "pos": "noun",
+   "ru": "этаж"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.8",
+   "nl": "weinig",
+   "pos": "adj",
+   "ru": "мало"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.8",
+   "nl": "winkel",
+   "article": "de",
+   "plural": "winkels",
+   "pos": "noun",
+   "ru": "магазин"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.9",
+   "nl": "tweede",
+   "pos": "word",
+   "ru": "второй"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.9",
+   "nl": "derde",
+   "pos": "word",
+   "ru": "третий"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.9",
+   "nl": "vierde",
+   "pos": "word",
+   "ru": "четвёртый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.9",
+   "nl": "vijfde",
+   "pos": "word",
+   "ru": "пятый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.9",
+   "nl": "zesde",
+   "pos": "word",
+   "ru": "шестой"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.9",
+   "nl": "zevende",
+   "pos": "word",
+   "ru": "седьмой"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.9",
+   "nl": "achtste",
+   "pos": "word",
+   "ru": "восьмой"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.9",
+   "nl": "negende",
+   "pos": "word",
+   "ru": "девятый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.9",
+   "nl": "tiende",
+   "pos": "word",
+   "ru": "десятый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "aantal",
+   "article": "het",
+   "plural": "aantallen",
+   "pos": "noun",
+   "ru": "количество"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "druk",
+   "pos": "adj",
+   "ru": "занятый / оживлённый"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "huren",
+   "pos": "verb",
+   "ru": "снимать (арендовать)"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "internet",
+   "article": "het",
+   "pos": "noun",
+   "ru": "интернет"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "nu",
+   "pos": "word",
+   "ru": "сейчас"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "per",
+   "pos": "word",
+   "ru": "за / в / по"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "plaats",
+   "article": "de",
+   "plural": "plaatsen",
+   "pos": "noun",
+   "ru": "место / населённый пункт"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "prijs",
+   "article": "de",
+   "plural": "prijzen",
+   "pos": "noun",
+   "ru": "цена"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "rustig",
+   "pos": "adj",
+   "ru": "спокойный"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "te huur",
+   "pos": "phrase",
+   "ru": "сдаётся"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "zoeken",
+   "pos": "verb",
+   "ru": "искать"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.10",
+   "nl": "zonder",
+   "pos": "word",
+   "ru": "без"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.12",
+   "nl": "kunnen",
+   "pos": "verb",
+   "ru": "мочь / уметь"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.12",
+   "nl": "lachen",
+   "pos": "verb",
+   "ru": "смеяться"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.12",
+   "nl": "liggen",
+   "pos": "verb",
+   "ru": "лежать / находиться"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.12",
+   "nl": "pakken",
+   "pos": "verb",
+   "ru": "брать"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.12",
+   "nl": "sleutel",
+   "article": "de",
+   "plural": "sleutels",
+   "pos": "noun",
+   "ru": "ключ"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.12",
+   "nl": "vaak",
+   "pos": "word",
+   "ru": "часто"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.12",
+   "nl": "van",
+   "pos": "word",
+   "ru": "из / от / чей"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.12",
+   "nl": "vergeten",
+   "pos": "verb",
+   "ru": "забывать"
+  },
+  {
+   "theme": 3,
+   "theme_name": "Wonen",
+   "unit": "3.12",
+   "nl": "vinden",
+   "pos": "verb",
+   "ru": "находить / считать"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.1",
+   "nl": "bakker",
+   "article": "de",
+   "plural": "bakkers",
+   "pos": "noun",
+   "ru": "пекарь / булочная"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.1",
+   "nl": "boter",
+   "article": "de",
+   "pos": "noun",
+   "ru": "масло"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.1",
+   "nl": "brood",
+   "article": "het",
+   "plural": "broden",
+   "pos": "noun",
+   "ru": "хлеб"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.1",
+   "nl": "groente",
+   "article": "de",
+   "plural": "groenten",
+   "pos": "noun",
+   "ru": "овощи"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.1",
+   "nl": "kopen",
+   "pos": "verb",
+   "ru": "покупать"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.1",
+   "nl": "kunnen",
+   "pos": "verb",
+   "ru": "мочь / уметь"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.1",
+   "nl": "markt",
+   "article": "de",
+   "plural": "markten",
+   "pos": "noun",
+   "ru": "рынок"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.1",
+   "nl": "slager",
+   "article": "de",
+   "plural": "slagers",
+   "pos": "noun",
+   "ru": "мясник / мясная лавка"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.1",
+   "nl": "supermarkt",
+   "article": "de",
+   "plural": "supermarkten",
+   "pos": "noun",
+   "ru": "супермаркет"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.1",
+   "nl": "vlees",
+   "article": "het",
+   "pos": "noun",
+   "ru": "мясо"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.3",
+   "nl": "avondeten",
+   "article": "het",
+   "pos": "noun",
+   "ru": "ужин"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.3",
+   "nl": "dan",
+   "pos": "word",
+   "ru": "тогда / потом"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.3",
+   "nl": "eten",
+   "pos": "verb",
+   "ru": "есть / кушать"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.3",
+   "nl": "lunch",
+   "article": "de",
+   "pos": "noun",
+   "ru": "обед / ланч"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.3",
+   "nl": "of",
+   "pos": "word",
+   "ru": "или"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.3",
+   "nl": "ontbijt",
+   "article": "het",
+   "pos": "noun",
+   "ru": "завтрак"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.3",
+   "nl": "water",
+   "article": "het",
+   "pos": "noun",
+   "ru": "вода"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.3",
+   "nl": "wijn",
+   "article": "de",
+   "plural": "wijnen",
+   "pos": "noun",
+   "ru": "вино"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.4",
+   "nl": "klaar",
+   "pos": "word",
+   "ru": "готовый"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.4",
+   "nl": "koken",
+   "pos": "verb",
+   "ru": "готовить / варить"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.4",
+   "nl": "liter",
+   "article": "de",
+   "plural": "liters",
+   "pos": "noun",
+   "ru": "литр"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.4",
+   "nl": "minuut",
+   "article": "de",
+   "plural": "minuten",
+   "pos": "noun",
+   "ru": "минута"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.4",
+   "nl": "pan",
+   "article": "de",
+   "plural": "pannen",
+   "pos": "noun",
+   "ru": "кастрюля"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.4",
+   "nl": "snijden",
+   "pos": "verb",
+   "ru": "резать"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.4",
+   "nl": "soep",
+   "article": "de",
+   "plural": "soepen",
+   "pos": "noun",
+   "ru": "суп"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.4",
+   "nl": "tomaat",
+   "article": "de",
+   "plural": "tomaten",
+   "pos": "noun",
+   "ru": "помидор"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.4",
+   "nl": "ui",
+   "article": "de",
+   "plural": "uien",
+   "pos": "noun",
+   "ru": "лук"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.4",
+   "nl": "zout",
+   "article": "het",
+   "pos": "noun",
+   "ru": "соль"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.5",
+   "nl": "bord",
+   "article": "het",
+   "plural": "borden",
+   "pos": "noun",
+   "ru": "доска / табличка"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.5",
+   "nl": "eet smakelijk",
+   "pos": "phrase",
+   "ru": "приятного аппетита"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.5",
+   "nl": "glas",
+   "article": "het",
+   "plural": "glazen",
+   "pos": "noun",
+   "ru": "стакан"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.5",
+   "nl": "ijs",
+   "article": "het",
+   "pos": "noun",
+   "ru": "мороженое / лёд"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.5",
+   "nl": "lepel",
+   "article": "de",
+   "plural": "lepels",
+   "pos": "noun",
+   "ru": "ложка"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.5",
+   "nl": "mes",
+   "article": "het",
+   "plural": "messen",
+   "pos": "noun",
+   "ru": "нож"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.5",
+   "nl": "op",
+   "pos": "word",
+   "ru": "на / в"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.5",
+   "nl": "roepen",
+   "pos": "verb",
+   "ru": "звать"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.5",
+   "nl": "vork",
+   "article": "de",
+   "plural": "vorken",
+   "pos": "noun",
+   "ru": "вилка"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.5",
+   "nl": "zetten",
+   "pos": "verb",
+   "ru": "ставить"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.7",
+   "nl": "bloemkool",
+   "article": "de",
+   "plural": "bloemkolen",
+   "pos": "noun",
+   "ru": "цветная капуста"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.7",
+   "nl": "boterham",
+   "article": "de",
+   "plural": "boterhammen",
+   "pos": "noun",
+   "ru": "бутерброд / ломтик хлеба"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.7",
+   "nl": "kaas",
+   "article": "de",
+   "plural": "kazen",
+   "pos": "noun",
+   "ru": "сыр"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.7",
+   "nl": "kip",
+   "article": "de",
+   "plural": "kippen",
+   "pos": "noun",
+   "ru": "курица"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.7",
+   "nl": "lekker",
+   "pos": "word",
+   "ru": "вкусный"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.7",
+   "nl": "meestal",
+   "pos": "word",
+   "ru": "обычно"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.7",
+   "nl": "nooit",
+   "pos": "word",
+   "ru": "никогда"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.7",
+   "nl": "rijst",
+   "article": "de",
+   "pos": "noun",
+   "ru": "рис"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.7",
+   "nl": "vinden",
+   "pos": "verb",
+   "ru": "находить / считать"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.7",
+   "nl": "vis",
+   "article": "de",
+   "plural": "vissen",
+   "pos": "noun",
+   "ru": "рыба"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.7",
+   "nl": "worst",
+   "article": "de",
+   "plural": "worsten",
+   "pos": "noun",
+   "ru": "колбаса"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.9",
+   "nl": "dom",
+   "pos": "word",
+   "ru": "глупый"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.9",
+   "nl": "ei",
+   "article": "het",
+   "plural": "eieren",
+   "pos": "noun",
+   "ru": "яйцо"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.9",
+   "nl": "genoeg",
+   "pos": "word",
+   "ru": "достаточно"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.9",
+   "nl": "gram",
+   "article": "de",
+   "pos": "noun",
+   "ru": "грамм"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.9",
+   "nl": "koud",
+   "pos": "word",
+   "ru": "холодный"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.9",
+   "nl": "meer",
+   "pos": "word",
+   "ru": "больше"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.9",
+   "nl": "minder",
+   "pos": "word",
+   "ru": "меньше"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.9",
+   "nl": "oké",
+   "pos": "word",
+   "ru": "окей"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.9",
+   "nl": "oven",
+   "article": "de",
+   "plural": "ovens",
+   "pos": "noun",
+   "ru": "духовка"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.9",
+   "nl": "taart",
+   "article": "de",
+   "plural": "taarten",
+   "pos": "noun",
+   "ru": "торт / пирог"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.9",
+   "nl": "uit",
+   "pos": "word",
+   "ru": "из / выключено"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.10",
+   "nl": "bedrag",
+   "article": "het",
+   "plural": "bedragen",
+   "pos": "noun",
+   "ru": "сумма"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.10",
+   "nl": "betalen",
+   "pos": "verb",
+   "ru": "платить"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.10",
+   "nl": "bijna",
+   "pos": "word",
+   "ru": "почти"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.10",
+   "nl": "briefje",
+   "article": "het",
+   "plural": "briefjes",
+   "pos": "noun",
+   "ru": "банкнота / записка"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.10",
+   "nl": "cent",
+   "article": "de",
+   "plural": "centen",
+   "pos": "noun",
+   "ru": "цент"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.10",
+   "nl": "euro",
+   "article": "de",
+   "plural": "euro’s",
+   "pos": "noun",
+   "ru": "евро"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.10",
+   "nl": "gebruiken",
+   "pos": "verb",
+   "ru": "использовать"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.10",
+   "nl": "munt",
+   "article": "de",
+   "plural": "munten",
+   "pos": "noun",
+   "ru": "монета"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.10",
+   "nl": "verschillend",
+   "pos": "adj",
+   "ru": "разный"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.12",
+   "nl": "alstublieft",
+   "pos": "word",
+   "ru": "пожалуйста"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.12",
+   "nl": "druif",
+   "article": "de",
+   "plural": "druiven",
+   "pos": "noun",
+   "ru": "виноград"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.12",
+   "nl": "duur",
+   "pos": "word",
+   "ru": "дорогой"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.12",
+   "nl": "fijn",
+   "pos": "adj",
+   "ru": "приятный"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.12",
+   "nl": "helft",
+   "article": "de",
+   "pos": "noun",
+   "ru": "половина"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.12",
+   "nl": "kilo",
+   "article": "de",
+   "pos": "noun",
+   "ru": "килограмм"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.12",
+   "nl": "komkommer",
+   "article": "de",
+   "plural": "komkommers",
+   "pos": "noun",
+   "ru": "огурец"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.12",
+   "nl": "ons",
+   "article": "het",
+   "pos": "noun",
+   "ru": "нас / нам"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.12",
+   "nl": "pond",
+   "article": "het",
+   "pos": "noun",
+   "ru": "фунт (500 г)"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.12",
+   "nl": "terug",
+   "pos": "word",
+   "ru": "назад"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.12",
+   "nl": "verkoper",
+   "article": "de",
+   "plural": "verkopers",
+   "pos": "noun",
+   "ru": "продавец"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "alle",
+   "pos": "word",
+   "ru": "все"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "banaan",
+   "article": "de",
+   "plural": "bananen",
+   "pos": "noun",
+   "ru": "банан"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "boon",
+   "article": "de",
+   "plural": "bonen",
+   "pos": "noun",
+   "ru": "боб / фасоль"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "citroen",
+   "article": "de",
+   "plural": "citroenen",
+   "pos": "noun",
+   "ru": "лимон"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "fruit",
+   "article": "het",
+   "pos": "noun",
+   "ru": "фрукты"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "gratis",
+   "pos": "word",
+   "ru": "бесплатный"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "peer",
+   "article": "de",
+   "plural": "peren",
+   "pos": "noun",
+   "ru": "груша"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "sinaasappel",
+   "article": "de",
+   "plural": "sinaasappels",
+   "pos": "noun",
+   "ru": "апельсин"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "sla",
+   "article": "de",
+   "pos": "noun",
+   "ru": "салат"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "soort",
+   "article": "het",
+   "plural": "soorten",
+   "pos": "noun",
+   "ru": "вид / сорт"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "wortel",
+   "article": "de",
+   "plural": "wortels",
+   "pos": "noun",
+   "ru": "морковь"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.13",
+   "nl": "zak",
+   "article": "de",
+   "plural": "zakken",
+   "pos": "noun",
+   "ru": "пакет / мешок"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.15",
+   "nl": "bon",
+   "article": "de",
+   "plural": "bonnen",
+   "pos": "noun",
+   "ru": "чек"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.15",
+   "nl": "daarna",
+   "pos": "word",
+   "ru": "потом"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.15",
+   "nl": "geld",
+   "article": "het",
+   "pos": "noun",
+   "ru": "деньги"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.15",
+   "nl": "goedkoop",
+   "pos": "adj",
+   "ru": "дешёвый"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.15",
+   "nl": "iets",
+   "pos": "word",
+   "ru": "что-то"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.15",
+   "nl": "kassa",
+   "article": "de",
+   "plural": "kassa’s",
+   "pos": "noun",
+   "ru": "касса"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.15",
+   "nl": "mee",
+   "pos": "word",
+   "ru": "с собой / вместе"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.15",
+   "nl": "pak",
+   "article": "het",
+   "plural": "pakken",
+   "pos": "noun",
+   "ru": "пачка / костюм"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.15",
+   "nl": "pinnen",
+   "pos": "verb",
+   "ru": "платить картой"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.15",
+   "nl": "want",
+   "pos": "word",
+   "ru": "потому что"
+  },
+  {
+   "theme": 4,
+   "theme_name": "Eten en drinken",
+   "unit": "4.15",
+   "nl": "zegel",
+   "article": "de",
+   "plural": "zegels",
+   "pos": "noun",
+   "ru": "марка"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "been",
+   "article": "het",
+   "plural": "benen",
+   "pos": "noun",
+   "ru": "нога"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "bil",
+   "article": "de",
+   "plural": "billen",
+   "pos": "noun",
+   "ru": "ягодица"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "buik",
+   "article": "de",
+   "plural": "buiken",
+   "pos": "noun",
+   "ru": "живот"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "hand",
+   "article": "de",
+   "plural": "handen",
+   "pos": "noun",
+   "ru": "кисть / рука"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "hoofd",
+   "article": "het",
+   "plural": "hoofden",
+   "pos": "noun",
+   "ru": "голова"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "lichaam",
+   "article": "het",
+   "plural": "lichamen",
+   "pos": "noun",
+   "ru": "тело"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "knie",
+   "article": "de",
+   "plural": "knieën",
+   "pos": "noun",
+   "ru": "колено"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "rug",
+   "article": "de",
+   "plural": "ruggen",
+   "pos": "noun",
+   "ru": "спина"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "schouder",
+   "article": "de",
+   "plural": "schouders",
+   "pos": "noun",
+   "ru": "плечо"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "teen",
+   "article": "de",
+   "plural": "tenen",
+   "pos": "noun",
+   "ru": "палец ноги"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "vinger",
+   "article": "de",
+   "plural": "vingers",
+   "pos": "noun",
+   "ru": "палец руки"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.1",
+   "nl": "voet",
+   "article": "de",
+   "plural": "voeten",
+   "pos": "noun",
+   "ru": "ступня / нога"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "gezicht",
+   "article": "het",
+   "plural": "gezichten",
+   "pos": "noun",
+   "ru": "лицо"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "haar",
+   "article": "het",
+   "pos": "noun",
+   "ru": "её / ей"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "kin",
+   "article": "de",
+   "plural": "kinnen",
+   "pos": "noun",
+   "ru": "подбородок"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "lip",
+   "article": "de",
+   "plural": "lippen",
+   "pos": "noun",
+   "ru": "губа"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "mond",
+   "article": "de",
+   "plural": "monden",
+   "pos": "noun",
+   "ru": "рот"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "nek",
+   "article": "de",
+   "plural": "nekken",
+   "pos": "noun",
+   "ru": "шея"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "neus",
+   "article": "de",
+   "plural": "neuzen",
+   "pos": "noun",
+   "ru": "нос"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "oog",
+   "article": "het",
+   "plural": "ogen",
+   "pos": "noun",
+   "ru": "глаз"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "oor",
+   "article": "het",
+   "plural": "oren",
+   "pos": "noun",
+   "ru": "ухо"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "snor",
+   "article": "de",
+   "plural": "snorren",
+   "pos": "noun",
+   "ru": "усы"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "tand",
+   "article": "de",
+   "plural": "tanden",
+   "pos": "noun",
+   "ru": "зуб"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.3",
+   "nl": "wang",
+   "article": "de",
+   "plural": "wangen",
+   "pos": "noun",
+   "ru": "щека"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.5",
+   "nl": "assistente",
+   "article": "de",
+   "plural": "assistentes",
+   "pos": "noun",
+   "ru": "ассистентка"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.5",
+   "nl": "bellen",
+   "pos": "verb",
+   "ru": "звонить"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.5",
+   "nl": "controle",
+   "article": "de",
+   "plural": "controles",
+   "pos": "noun",
+   "ru": "осмотр"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.5",
+   "nl": "eerder",
+   "pos": "word",
+   "ru": "раньше"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.5",
+   "nl": "huisarts",
+   "article": "de",
+   "plural": "huisartsen",
+   "pos": "noun",
+   "ru": "семейный врач"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.5",
+   "nl": "koorts",
+   "article": "de",
+   "pos": "noun",
+   "ru": "температура / жар"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.5",
+   "nl": "later",
+   "pos": "word",
+   "ru": "позже"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.5",
+   "nl": "maar",
+   "pos": "word",
+   "ru": "но"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.5",
+   "nl": "pijn",
+   "article": "de",
+   "pos": "noun",
+   "ru": "боль"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.5",
+   "nl": "tandarts",
+   "article": "de",
+   "plural": "tandartsen",
+   "pos": "noun",
+   "ru": "стоматолог"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.5",
+   "nl": "waarom",
+   "pos": "word",
+   "ru": "почему"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.7",
+   "nl": "apotheek",
+   "article": "de",
+   "plural": "apotheken",
+   "pos": "noun",
+   "ru": "аптека"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.7",
+   "nl": "bijvoorbeeld",
+   "pos": "word",
+   "ru": "например"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.7",
+   "nl": "dokter",
+   "article": "de",
+   "plural": "dokters",
+   "pos": "noun",
+   "ru": "врач"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.7",
+   "nl": "halen",
+   "pos": "verb",
+   "ru": "забирать / получать"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.7",
+   "nl": "medicijn",
+   "article": "het",
+   "plural": "medicijnen",
+   "pos": "noun",
+   "ru": "лекарство"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.7",
+   "nl": "probleem",
+   "article": "het",
+   "plural": "problemen",
+   "pos": "noun",
+   "ru": "проблема"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.7",
+   "nl": "soms",
+   "pos": "word",
+   "ru": "иногда"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.7",
+   "nl": "ziek",
+   "pos": "adj",
+   "ru": "больной"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.7",
+   "nl": "ziekenhuis",
+   "article": "het",
+   "plural": "ziekenhuizen",
+   "pos": "noun",
+   "ru": "больница"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.8",
+   "nl": "jong",
+   "pos": "adj",
+   "ru": "молодой"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.8",
+   "nl": "kennen",
+   "pos": "verb",
+   "ru": "знать (быть знакомым)"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.8",
+   "nl": "oud",
+   "pos": "adj",
+   "ru": "старый"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.8",
+   "nl": "voornaam",
+   "article": "de",
+   "plural": "voornamen",
+   "pos": "noun",
+   "ru": "имя"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.9",
+   "nl": "erg",
+   "pos": "word",
+   "ru": "очень"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.9",
+   "nl": "griep",
+   "article": "de",
+   "pos": "noun",
+   "ru": "грипп"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.9",
+   "nl": "hoesten",
+   "pos": "verb",
+   "ru": "кашлять"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.9",
+   "nl": "keel",
+   "article": "de",
+   "plural": "kelen",
+   "pos": "noun",
+   "ru": "горло"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.9",
+   "nl": "klacht",
+   "article": "de",
+   "plural": "klachten",
+   "pos": "noun",
+   "ru": "жалоба / симптом"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.9",
+   "nl": "natuurlijk",
+   "pos": "word",
+   "ru": "конечно / естественно"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.9",
+   "nl": "nog",
+   "pos": "word",
+   "ru": "ещё"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.9",
+   "nl": "recept",
+   "article": "het",
+   "pos": "noun",
+   "ru": "рецепт"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.9",
+   "nl": "sinds",
+   "pos": "word",
+   "ru": "с какого-то времени"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.9",
+   "nl": "spier",
+   "article": "de",
+   "plural": "spieren",
+   "pos": "noun",
+   "ru": "мышца"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.9",
+   "nl": "waarschijnlijk",
+   "pos": "word",
+   "ru": "вероятно"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "daar",
+   "pos": "word",
+   "ru": "там"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "dagelijks",
+   "pos": "adj",
+   "ru": "ежедневный / ежедневно"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "doosje",
+   "article": "het",
+   "plural": "doosjes",
+   "pos": "noun",
+   "ru": "коробочка"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "drogist",
+   "article": "de",
+   "plural": "drogisten",
+   "pos": "noun",
+   "ru": "магазин косметики/лекарств"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "druppel",
+   "article": "de",
+   "plural": "druppels",
+   "pos": "noun",
+   "ru": "капля"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "huid",
+   "article": "de",
+   "pos": "noun",
+   "ru": "кожа"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "innemen",
+   "pos": "verb",
+   "ru": "принимать внутрь"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "keer",
+   "article": "de",
+   "plural": "keren",
+   "pos": "noun",
+   "ru": "раз"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "pil",
+   "article": "de",
+   "plural": "pillen",
+   "pos": "noun",
+   "ru": "таблетка"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "smeren",
+   "pos": "verb",
+   "ru": "мазать"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "sommige",
+   "pos": "word",
+   "ru": "некоторые"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.12",
+   "nl": "zalf",
+   "article": "de",
+   "pos": "noun",
+   "ru": "мазь"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.14",
+   "nl": "elk",
+   "pos": "adj",
+   "ru": "каждый"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.14",
+   "nl": "gaatje",
+   "article": "het",
+   "plural": "gaatjes",
+   "pos": "noun",
+   "ru": "дырочка (кариес)"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.14",
+   "nl": "gebit",
+   "article": "het",
+   "plural": "gebitten",
+   "pos": "noun",
+   "ru": "зубы"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.14",
+   "nl": "helaas",
+   "pos": "word",
+   "ru": "к сожалению"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.14",
+   "nl": "helemaal",
+   "pos": "word",
+   "ru": "совсем"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.14",
+   "nl": "in orde",
+   "pos": "phrase",
+   "ru": "в порядке"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.14",
+   "nl": "kies",
+   "article": "de",
+   "plural": "kiezen",
+   "pos": "noun",
+   "ru": "коренной зуб"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.14",
+   "nl": "misschien",
+   "pos": "word",
+   "ru": "может быть"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.14",
+   "nl": "poetsen",
+   "pos": "verb",
+   "ru": "чистить"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.14",
+   "nl": "vervelend",
+   "pos": "word",
+   "ru": "неприятный"
+  },
+  {
+   "theme": 5,
+   "theme_name": "De dokter",
+   "unit": "5.14",
+   "nl": "vullen",
+   "pos": "verb",
+   "ru": "заполнять / пломбировать"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.1",
+   "nl": "hemd",
+   "article": "het",
+   "plural": "hemden",
+   "pos": "noun",
+   "ru": "майка / рубашка"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.1",
+   "nl": "jas",
+   "article": "de",
+   "plural": "jassen",
+   "pos": "noun",
+   "ru": "куртка / пальто"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.1",
+   "nl": "onderbroek",
+   "article": "de",
+   "plural": "onderbroeken",
+   "pos": "noun",
+   "ru": "трусы"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.1",
+   "nl": "overhemd",
+   "article": "het",
+   "plural": "overhemden",
+   "pos": "noun",
+   "ru": "рубашка"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.1",
+   "nl": "rok",
+   "article": "de",
+   "plural": "rokken",
+   "pos": "noun",
+   "ru": "юбка"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.1",
+   "nl": "schoen",
+   "article": "de",
+   "plural": "schoenen",
+   "pos": "noun",
+   "ru": "обувь / туфля"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.1",
+   "nl": "sok",
+   "article": "de",
+   "plural": "sokken",
+   "pos": "noun",
+   "ru": "носок"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.1",
+   "nl": "tas",
+   "article": "de",
+   "plural": "tassen",
+   "pos": "noun",
+   "ru": "сумка"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.1",
+   "nl": "trui",
+   "article": "de",
+   "plural": "truien",
+   "pos": "noun",
+   "ru": "свитер"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.1",
+   "nl": "T-shirt",
+   "article": "het",
+   "plural": "T-shirts",
+   "pos": "noun",
+   "ru": "футболка"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.1",
+   "nl": "vest",
+   "article": "het",
+   "plural": "vesten",
+   "pos": "noun",
+   "ru": "кардиган / жилет"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.3",
+   "nl": "feest",
+   "article": "het",
+   "plural": "feesten",
+   "pos": "noun",
+   "ru": "праздник / вечеринка"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.3",
+   "nl": "kleding",
+   "article": "de",
+   "pos": "noun",
+   "ru": "одежда"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.3",
+   "nl": "knoop",
+   "article": "de",
+   "plural": "knopen",
+   "pos": "noun",
+   "ru": "пуговица"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.3",
+   "nl": "maat",
+   "article": "de",
+   "plural": "maten",
+   "pos": "noun",
+   "ru": "размер"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.3",
+   "nl": "mogen",
+   "pos": "verb",
+   "ru": "мочь / иметь разрешение"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.3",
+   "nl": "medewerker",
+   "article": "de",
+   "plural": "medewerkers",
+   "pos": "noun",
+   "ru": "сотрудник"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.3",
+   "nl": "paskamer",
+   "article": "de",
+   "plural": "paskamers",
+   "pos": "noun",
+   "ru": "примерочная"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.3",
+   "nl": "passen",
+   "pos": "verb",
+   "ru": "подходить / примерять"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.3",
+   "nl": "te",
+   "pos": "word",
+   "ru": "слишком"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.3",
+   "nl": "trouwen",
+   "pos": "verb",
+   "ru": "жениться / выходить замуж"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.5",
+   "nl": "dragen",
+   "pos": "verb",
+   "ru": "носить"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.5",
+   "nl": "aanhebben",
+   "pos": "verb",
+   "ru": "быть одетым в"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.5",
+   "nl": "jurk",
+   "article": "de",
+   "plural": "jurken",
+   "pos": "noun",
+   "ru": "платье"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.5",
+   "nl": "kleren",
+   "article": "de",
+   "pos": "noun",
+   "ru": "одежда"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.5",
+   "nl": "kort",
+   "pos": "adj",
+   "ru": "короткий"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.5",
+   "nl": "laars",
+   "article": "de",
+   "plural": "laarzen",
+   "pos": "noun",
+   "ru": "сапог"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.5",
+   "nl": "lang",
+   "pos": "adj",
+   "ru": "длинный / высокий"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.5",
+   "nl": "net",
+   "pos": "adj",
+   "ru": "аккуратный / только что"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.5",
+   "nl": "pak",
+   "article": "het",
+   "plural": "pakken",
+   "pos": "noun",
+   "ru": "пачка / костюм"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.5",
+   "nl": "vrij",
+   "pos": "adj",
+   "ru": "свободный"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.5",
+   "nl": "werk",
+   "article": "het",
+   "pos": "noun",
+   "ru": "работа"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.7",
+   "nl": "bril",
+   "article": "de",
+   "plural": "brillen",
+   "pos": "noun",
+   "ru": "очки"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.7",
+   "nl": "handschoen",
+   "article": "de",
+   "plural": "handschoenen",
+   "pos": "noun",
+   "ru": "перчатка"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.7",
+   "nl": "hoed",
+   "article": "de",
+   "plural": "hoeden",
+   "pos": "noun",
+   "ru": "шляпа"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.7",
+   "nl": "hoofddoek",
+   "article": "de",
+   "plural": "hoofddoeken",
+   "pos": "noun",
+   "ru": "платок (на голову)"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.7",
+   "nl": "horloge",
+   "article": "het",
+   "plural": "horloges",
+   "pos": "noun",
+   "ru": "часы наручные"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.7",
+   "nl": "ketting",
+   "article": "de",
+   "plural": "kettingen",
+   "pos": "noun",
+   "ru": "цепочка / ожерелье"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.7",
+   "nl": "muts",
+   "article": "de",
+   "plural": "mutsen",
+   "pos": "noun",
+   "ru": "шапка"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.7",
+   "nl": "oorbel",
+   "article": "de",
+   "plural": "oorbellen",
+   "pos": "noun",
+   "ru": "серьга"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.7",
+   "nl": "ring",
+   "article": "de",
+   "plural": "ringen",
+   "pos": "noun",
+   "ru": "кольцо"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.7",
+   "nl": "sieraad",
+   "article": "het",
+   "plural": "sieraden",
+   "pos": "noun",
+   "ru": "украшение"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.7",
+   "nl": "sjaal",
+   "article": "de",
+   "plural": "sjaals",
+   "pos": "noun",
+   "ru": "шарф"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.8",
+   "nl": "even",
+   "pos": "word",
+   "ru": "на минутку"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.8",
+   "nl": "gat",
+   "article": "het",
+   "plural": "gaten",
+   "pos": "noun",
+   "ru": "дырка"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.8",
+   "nl": "heel",
+   "pos": "word",
+   "ru": "целый"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.8",
+   "nl": "jammer",
+   "pos": "word",
+   "ru": "жаль"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.8",
+   "nl": "kapot",
+   "pos": "adj",
+   "ru": "сломанный"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.8",
+   "nl": "meenemen",
+   "pos": "verb",
+   "ru": "брать с собой"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.8",
+   "nl": "ruilen",
+   "pos": "verb",
+   "ru": "обменивать"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.8",
+   "nl": "sturen",
+   "pos": "verb",
+   "ru": "отправлять"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.8",
+   "nl": "wel",
+   "pos": "word",
+   "ru": "же / всё-таки / положительно"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.8",
+   "nl": "werken",
+   "pos": "verb",
+   "ru": "работать"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.10",
+   "nl": "klok",
+   "article": "de",
+   "plural": "klokken",
+   "pos": "noun",
+   "ru": "часы"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.10",
+   "nl": "kwartier",
+   "article": "het",
+   "pos": "noun",
+   "ru": "четверть часа"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.10",
+   "nl": "middag",
+   "article": "de",
+   "plural": "middagen",
+   "pos": "noun",
+   "ru": "день / полдень"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.10",
+   "nl": "nacht",
+   "article": "de",
+   "plural": "nachten",
+   "pos": "noun",
+   "ru": "ночь"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.10",
+   "nl": "ochtend",
+   "article": "de",
+   "plural": "ochtenden",
+   "pos": "noun",
+   "ru": "утро"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.10",
+   "nl": "seconde",
+   "article": "de",
+   "plural": "secondes",
+   "pos": "noun",
+   "ru": "секунда"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.10",
+   "nl": "tijd",
+   "article": "de",
+   "pos": "noun",
+   "ru": "время"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.10",
+   "nl": "uur",
+   "article": "het",
+   "plural": "uren",
+   "pos": "noun",
+   "ru": "час"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.11",
+   "nl": "bestellen",
+   "pos": "verb",
+   "ru": "заказывать"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.11",
+   "nl": "brengen",
+   "pos": "verb",
+   "ru": "приносить / привозить"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.11",
+   "nl": "dicht",
+   "pos": "word",
+   "ru": "закрытый"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.11",
+   "nl": "feestdag",
+   "article": "de",
+   "plural": "feestdagen",
+   "pos": "noun",
+   "ru": "праздник"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.11",
+   "nl": "gesloten",
+   "pos": "word",
+   "ru": "закрытый"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.11",
+   "nl": "online",
+   "pos": "word",
+   "ru": "онлайн"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.11",
+   "nl": "open",
+   "pos": "word",
+   "ru": "открытый"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.11",
+   "nl": "openingstijd",
+   "article": "de",
+   "plural": "openingstijden",
+   "pos": "noun",
+   "ru": "часы работы"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.11",
+   "nl": "ophalen",
+   "pos": "verb",
+   "ru": "забирать"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.11",
+   "nl": "spullen",
+   "article": "de",
+   "pos": "noun",
+   "ru": "вещи"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.11",
+   "nl": "toch",
+   "pos": "word",
+   "ru": "всё же / правда?"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.13",
+   "nl": "getal",
+   "article": "het",
+   "plural": "getallen",
+   "pos": "noun",
+   "ru": "число"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.13",
+   "nl": "miljard",
+   "pos": "word",
+   "ru": "миллиард"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.13",
+   "nl": "miljoen",
+   "pos": "word",
+   "ru": "миллион"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.13",
+   "nl": "ongeveer",
+   "pos": "word",
+   "ru": "примерно"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.13",
+   "nl": "precies",
+   "pos": "word",
+   "ru": "точно"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.14",
+   "nl": "apart",
+   "pos": "word",
+   "ru": "отдельно"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.14",
+   "nl": "donker",
+   "pos": "adj",
+   "ru": "тёмный"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.14",
+   "nl": "droog",
+   "pos": "adj",
+   "ru": "сухой"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.14",
+   "nl": "graad",
+   "article": "de",
+   "plural": "graden",
+   "pos": "noun",
+   "ru": "градус"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.14",
+   "nl": "meteen",
+   "pos": "word",
+   "ru": "сразу"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.14",
+   "nl": "ophangen",
+   "pos": "verb",
+   "ru": "вешать"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.14",
+   "nl": "schoon",
+   "pos": "adj",
+   "ru": "чистый"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.14",
+   "nl": "vies",
+   "pos": "adj",
+   "ru": "грязный"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.14",
+   "nl": "warm",
+   "pos": "adj",
+   "ru": "тёплый"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.14",
+   "nl": "wassen",
+   "pos": "verb",
+   "ru": "мыть / стирать"
+  },
+  {
+   "theme": 6,
+   "theme_name": "De kleding",
+   "unit": "6.14",
+   "nl": "zelf",
+   "pos": "word",
+   "ru": "сам"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.1",
+   "nl": "boot",
+   "article": "de",
+   "plural": "boten",
+   "pos": "noun",
+   "ru": "лодка / корабль"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.1",
+   "nl": "bus",
+   "article": "de",
+   "plural": "bussen",
+   "pos": "noun",
+   "ru": "автобус"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.1",
+   "nl": "fiets",
+   "article": "de",
+   "plural": "fietsen",
+   "pos": "noun",
+   "ru": "велосипед"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.1",
+   "nl": "laat",
+   "pos": "word",
+   "ru": "поздно"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.1",
+   "nl": "metro",
+   "article": "de",
+   "plural": "metro’s",
+   "pos": "noun",
+   "ru": "метро"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.1",
+   "nl": "nemen",
+   "pos": "verb",
+   "ru": "брать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.1",
+   "nl": "reizen",
+   "pos": "verb",
+   "ru": "путешествовать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.1",
+   "nl": "station",
+   "article": "het",
+   "plural": "stations",
+   "pos": "noun",
+   "ru": "станция / вокзал"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.1",
+   "nl": "tram",
+   "article": "de",
+   "plural": "trams",
+   "pos": "noun",
+   "ru": "трамвай"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.1",
+   "nl": "trein",
+   "article": "de",
+   "plural": "treinen",
+   "pos": "noun",
+   "ru": "поезд"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.1",
+   "nl": "vliegtuig",
+   "article": "het",
+   "plural": "vliegtuigen",
+   "pos": "noun",
+   "ru": "самолёт"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.3",
+   "nl": "fietspad",
+   "article": "het",
+   "plural": "fietspaden",
+   "pos": "noun",
+   "ru": "велодорожка"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.3",
+   "nl": "kilometer",
+   "article": "de",
+   "plural": "kilometers",
+   "pos": "noun",
+   "ru": "километр"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.3",
+   "nl": "regel",
+   "article": "de",
+   "plural": "regels",
+   "pos": "noun",
+   "ru": "правило"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.3",
+   "nl": "rijden",
+   "pos": "verb",
+   "ru": "ехать / водить"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.3",
+   "nl": "snelweg",
+   "article": "de",
+   "plural": "snelwegen",
+   "pos": "noun",
+   "ru": "автомагистраль"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.3",
+   "nl": "stoplicht",
+   "article": "het",
+   "plural": "stoplichten",
+   "pos": "noun",
+   "ru": "светофор"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.3",
+   "nl": "stoppen",
+   "pos": "verb",
+   "ru": "останавливаться / прекращать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.3",
+   "nl": "verkeer",
+   "article": "het",
+   "pos": "noun",
+   "ru": "движение / трафик"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.3",
+   "nl": "weg",
+   "article": "de",
+   "plural": "wegen",
+   "pos": "noun",
+   "ru": "дорога"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.3",
+   "nl": "zebrapad",
+   "article": "het",
+   "plural": "zebrapaden",
+   "pos": "noun",
+   "ru": "пешеходный переход"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.5",
+   "nl": "eiland",
+   "article": "het",
+   "plural": "eilanden",
+   "pos": "noun",
+   "ru": "остров"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.5",
+   "nl": "hoofdstad",
+   "article": "de",
+   "plural": "hoofdsteden",
+   "pos": "noun",
+   "ru": "столица"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.5",
+   "nl": "kaart",
+   "article": "de",
+   "plural": "kaarten",
+   "pos": "noun",
+   "ru": "карта / билет"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.5",
+   "nl": "land",
+   "article": "het",
+   "plural": "landen",
+   "pos": "noun",
+   "ru": "страна"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.5",
+   "nl": "midden",
+   "article": "het",
+   "pos": "noun",
+   "ru": "центр / середина"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.5",
+   "nl": "noorden",
+   "article": "het",
+   "pos": "noun",
+   "ru": "север"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.5",
+   "nl": "naartoe",
+   "pos": "word",
+   "ru": "туда"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.5",
+   "nl": "oosten",
+   "article": "het",
+   "pos": "noun",
+   "ru": "восток"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.5",
+   "nl": "provincie",
+   "article": "de",
+   "plural": "provincies",
+   "pos": "noun",
+   "ru": "провинция"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.5",
+   "nl": "westen",
+   "article": "het",
+   "pos": "noun",
+   "ru": "запад"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.5",
+   "nl": "zuiden",
+   "article": "het",
+   "pos": "noun",
+   "ru": "юг"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.6",
+   "nl": "achter",
+   "pos": "word",
+   "ru": "за / позади"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.6",
+   "nl": "boven",
+   "pos": "word",
+   "ru": "над / наверху"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.6",
+   "nl": "in",
+   "pos": "word",
+   "ru": "в"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.6",
+   "nl": "naast",
+   "pos": "word",
+   "ru": "рядом"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.6",
+   "nl": "onder",
+   "pos": "word",
+   "ru": "под"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.6",
+   "nl": "op",
+   "pos": "word",
+   "ru": "на / в"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.6",
+   "nl": "over",
+   "pos": "word",
+   "ru": "о / через / над"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.6",
+   "nl": "tegenover",
+   "pos": "word",
+   "ru": "напротив"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.6",
+   "nl": "tussen",
+   "pos": "word",
+   "ru": "между"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.6",
+   "nl": "uit",
+   "pos": "word",
+   "ru": "из / выключено"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.6",
+   "nl": "voor",
+   "pos": "word",
+   "ru": "для / перед"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.7",
+   "nl": "collega",
+   "article": "de",
+   "plural": "collega’s",
+   "pos": "noun",
+   "ru": "коллега"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.7",
+   "nl": "denken",
+   "pos": "verb",
+   "ru": "думать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.7",
+   "nl": "doorgeven",
+   "pos": "verb",
+   "ru": "передавать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.7",
+   "nl": "dus",
+   "pos": "word",
+   "ru": "поэтому / значит"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.7",
+   "nl": "file",
+   "article": "de",
+   "plural": "files",
+   "pos": "noun",
+   "ru": "пробка"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.7",
+   "nl": "onderweg",
+   "pos": "word",
+   "ru": "в пути"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.7",
+   "nl": "plek",
+   "article": "de",
+   "plural": "plekken",
+   "pos": "noun",
+   "ru": "место"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.7",
+   "nl": "prima",
+   "pos": "word",
+   "ru": "отлично"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.7",
+   "nl": "snappen",
+   "pos": "verb",
+   "ru": "понимать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.8",
+   "nl": "dichtbij",
+   "pos": "word",
+   "ru": "близко"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.8",
+   "nl": "eerst",
+   "pos": "word",
+   "ru": "сначала"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.8",
+   "nl": "kruispunt",
+   "article": "het",
+   "plural": "kruispunten",
+   "pos": "noun",
+   "ru": "перекрёсток"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.8",
+   "nl": "linksaf",
+   "pos": "word",
+   "ru": "налево"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.8",
+   "nl": "links",
+   "pos": "word",
+   "ru": "левый / слева"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.8",
+   "nl": "oversteken",
+   "pos": "verb",
+   "ru": "переходить дорогу"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.8",
+   "nl": "rechtdoor",
+   "pos": "word",
+   "ru": "прямо"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.8",
+   "nl": "rechtsaf",
+   "pos": "word",
+   "ru": "направо"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.8",
+   "nl": "rechts",
+   "pos": "word",
+   "ru": "правый / справа"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.8",
+   "nl": "ver",
+   "pos": "word",
+   "ru": "далеко"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.10",
+   "nl": "na",
+   "pos": "word",
+   "ru": "после"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.10",
+   "nl": "om",
+   "pos": "word",
+   "ru": "в (о времени)"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.10",
+   "nl": "sinds",
+   "pos": "word",
+   "ru": "с какого-то времени"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.10",
+   "nl": "tijdens",
+   "pos": "word",
+   "ru": "во время"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.10",
+   "nl": "tot",
+   "pos": "word",
+   "ru": "до"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.10",
+   "nl": "van",
+   "pos": "word",
+   "ru": "из / от / чей"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.11",
+   "nl": "gelukkig",
+   "pos": "word",
+   "ru": "к счастью"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.11",
+   "nl": "halen",
+   "pos": "verb",
+   "ru": "забирать / получать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.11",
+   "nl": "kant",
+   "article": "de",
+   "plural": "kanten",
+   "pos": "noun",
+   "ru": "сторона"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.11",
+   "nl": "aankomen",
+   "pos": "verb",
+   "ru": "прибывать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.11",
+   "nl": "missen",
+   "pos": "verb",
+   "ru": "пропускать / скучать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.11",
+   "nl": "rennen",
+   "pos": "verb",
+   "ru": "бежать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.11",
+   "nl": "spoor",
+   "article": "het",
+   "plural": "sporen",
+   "pos": "noun",
+   "ru": "путь / платформа"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.11",
+   "nl": "vertrekken",
+   "pos": "verb",
+   "ru": "отправляться"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.11",
+   "nl": "vertrektijd",
+   "article": "de",
+   "plural": "vertrektijden",
+   "pos": "noun",
+   "ru": "время отправления"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.11",
+   "nl": "via",
+   "pos": "word",
+   "ru": "через"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.11",
+   "nl": "wachten",
+   "pos": "verb",
+   "ru": "ждать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.12",
+   "nl": "uw",
+   "pos": "word",
+   "ru": "ваш / ваша / ваше"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.12",
+   "nl": "zijn",
+   "pos": "word",
+   "ru": "его / свой"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.12",
+   "nl": "haar",
+   "pos": "word",
+   "ru": "её / ей"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.12",
+   "nl": "jullie",
+   "pos": "word",
+   "ru": "вы"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.12",
+   "nl": "hun",
+   "pos": "word",
+   "ru": "их / им"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.13",
+   "nl": "chauffeur",
+   "article": "de",
+   "plural": "chauffeurs",
+   "pos": "noun",
+   "ru": "водитель"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.13",
+   "nl": "eindelijk",
+   "pos": "word",
+   "ru": "наконец"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.13",
+   "nl": "halte",
+   "article": "de",
+   "plural": "haltes",
+   "pos": "noun",
+   "ru": "остановка"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.13",
+   "nl": "hangen",
+   "pos": "verb",
+   "ru": "висеть"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.13",
+   "nl": "instappen",
+   "pos": "verb",
+   "ru": "садиться в транспорт"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.13",
+   "nl": "net",
+   "pos": "word",
+   "ru": "аккуратный / только что"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.13",
+   "nl": "slapen",
+   "pos": "verb",
+   "ru": "спать"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.13",
+   "nl": "uitstappen",
+   "pos": "verb",
+   "ru": "выходить из транспорта"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.13",
+   "nl": "vanavond",
+   "pos": "word",
+   "ru": "сегодня вечером"
+  },
+  {
+   "theme": 7,
+   "theme_name": "Reizen",
+   "unit": "7.13",
+   "nl": "volgend",
+   "pos": "adj",
+   "ru": "следующий"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.1",
+   "nl": "dier",
+   "article": "het",
+   "plural": "dieren",
+   "pos": "noun",
+   "ru": "животное"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.1",
+   "nl": "dik",
+   "pos": "adj",
+   "ru": "толстый"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.1",
+   "nl": "hond",
+   "article": "de",
+   "plural": "honden",
+   "pos": "noun",
+   "ru": "собака"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.1",
+   "nl": "kat",
+   "article": "de",
+   "plural": "katten",
+   "pos": "noun",
+   "ru": "кошка"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.1",
+   "nl": "koe",
+   "article": "de",
+   "plural": "koeien",
+   "pos": "noun",
+   "ru": "корова"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.1",
+   "nl": "kwijt",
+   "pos": "word",
+   "ru": "потерянный"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.1",
+   "nl": "leven",
+   "pos": "verb",
+   "ru": "жить"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.1",
+   "nl": "overal",
+   "pos": "word",
+   "ru": "везде"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.1",
+   "nl": "paard",
+   "article": "het",
+   "plural": "paarden",
+   "pos": "noun",
+   "ru": "лошадь"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.1",
+   "nl": "schaap",
+   "article": "het",
+   "plural": "schapen",
+   "pos": "noun",
+   "ru": "овца"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.1",
+   "nl": "varken",
+   "article": "het",
+   "plural": "varkens",
+   "pos": "noun",
+   "ru": "свинья"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.5",
+   "nl": "vertellen",
+   "pos": "verb",
+   "ru": "рассказывать"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.5",
+   "nl": "vriend",
+   "article": "de",
+   "plural": "vrienden",
+   "pos": "noun",
+   "ru": "друг"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.5",
+   "nl": "weer",
+   "pos": "word",
+   "ru": "снова"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.5",
+   "nl": "zwemmen",
+   "pos": "verb",
+   "ru": "плавать"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.10",
+   "nl": "bloem",
+   "article": "de",
+   "plural": "bloemen fietsen (ik fiets, jij fietst, hij fietst, wij fietsen) groetjes ieder, iedere de natuur op vakantie gaan (ik ga op vakantie, jij gaat, hij gaat, wij gaan) de tent, de tenten de vakantie, de vakanties de vogel, de vogels wandelen (ik wandel, jij wandelt, hij wandelt, wij wandelen) het weer het zwembad, de zwembaden",
+   "pos": "noun",
+   "ru": "цветок"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.11",
+   "nl": "bedoelen",
+   "pos": "verb",
+   "ru": "иметь в виду"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.13",
+   "nl": "bier",
+   "article": "het",
+   "pos": "noun",
+   "ru": "пиво"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.13",
+   "nl": "café",
+   "article": "het",
+   "plural": "cafés",
+   "pos": "noun",
+   "ru": "кафе"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.13",
+   "nl": "elkaar",
+   "pos": "word",
+   "ru": "друг друга"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.13",
+   "nl": "film",
+   "article": "de",
+   "plural": "films",
+   "pos": "noun",
+   "ru": "фильм"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.13",
+   "nl": "inderdaad",
+   "pos": "word",
+   "ru": "действительно"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.13",
+   "nl": "jawel",
+   "pos": "word",
+   "ru": "да (всё-таки)"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.13",
+   "nl": "kletsen",
+   "pos": "verb",
+   "ru": "болтать"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.13",
+   "nl": "schoonmaken",
+   "pos": "verb",
+   "ru": "убирать"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.13",
+   "nl": "vriendin",
+   "article": "de",
+   "plural": "vriendinnen",
+   "pos": "noun",
+   "ru": "подруга"
+  },
+  {
+   "theme": 8,
+   "theme_name": "Vrije tijd",
+   "unit": "8.13",
+   "nl": "weleens",
+   "pos": "word",
+   "ru": "иногда"
+  }
+ ]
+}

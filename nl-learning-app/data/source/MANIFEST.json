@@ -1,0 +1,188 @@
+{
+  "schema_version": "1.0.0",
+  "created_at_utc": "2026-07-08T17:40:38.104615+00:00",
+  "purpose": "Materials converted into Claude Code readable formats without translation or semantic editing.",
+  "preservation_note": "Original source files are included unchanged in source_originals/. Extracted text is stored page-by-page in JSON/TXT. For visual/layout information, original PDFs remain the source of truth.",
+  "sources": [
+    {
+      "original_name": "DHL TC A1 - Woordenlijst per thema Nederlands.pdf",
+      "package_path": "source_originals/DHL TC A1 - Woordenlijst per thema Nederlands.pdf",
+      "size_bytes": 164662,
+      "sha256": "a7db03e28ba91908b729e026f84ac2af7db58f234c2675eee3e70739d357b4cd",
+      "type": "pdf",
+      "converted_json_path": "converted_json/dhl_tc_a1_woordenlijst_per_thema_nederlands.raw_text.json",
+      "converted_txt_path": "converted_txt/dhl_tc_a1_woordenlijst_per_thema_nederlands.raw_text.txt",
+      "page_count": 41
+    },
+    {
+      "original_name": "DHL_TC_A1_Woordenlijst_raw_text.json",
+      "package_path": "app_data_json/DHL_TC_A1_Woordenlijst_raw_text.json",
+      "size_bytes": 63623,
+      "sha256": "18f71a1ac4f136368ba2b3cd283771a5604211804c7abb6e9005a9be98c09c4e",
+      "type": "json",
+      "content_path": "app_data_json/DHL_TC_A1_Woordenlijst_raw_text.json",
+      "char_count": 63289,
+      "line_count": 172,
+      "json_valid": true,
+      "top_level_keys": [
+        "source_file",
+        "page_count",
+        "extraction_method",
+        "pages",
+        "full_text"
+      ]
+    },
+    {
+      "original_name": "DHL_TC_A1_Woordenlijst_raw_text.txt",
+      "package_path": "app_data_json/DHL_TC_A1_Woordenlijst_raw_text.txt",
+      "size_bytes": 29506,
+      "sha256": "b704d6aa928553ad24110c661e3fd63052578a1210116eb6313b18c027885528",
+      "type": "txt",
+      "content_path": "app_data_json/DHL_TC_A1_Woordenlijst_raw_text.txt",
+      "char_count": 29339,
+      "line_count": 1300
+    },
+    {
+      "original_name": "dutch_a1_a2_5000_learning_items.json",
+      "package_path": "app_data_json/dutch_a1_a2_5000_learning_items.json",
+      "size_bytes": 1138448,
+      "sha256": "843095a902a8439a473f7cbec8289fcd88907ed8d3e9c729f72615ffc740a6e9",
+      "type": "json",
+      "content_path": "app_data_json/dutch_a1_a2_5000_learning_items.json",
+      "char_count": 1069678,
+      "line_count": 49562,
+      "json_valid": true,
+      "top_level_keys": [
+        "metadata",
+        "stats",
+        "items"
+      ],
+      "items_count": 5000
+    },
+    {
+      "original_name": "dutch_a1_a2_5000_learning_items.min.json",
+      "package_path": "app_data_json/dutch_a1_a2_5000_learning_items.min.json",
+      "size_bytes": 771264,
+      "sha256": "7948577223802cc88db99333adeea928d84a8211a182ada4c738853bda9020c2",
+      "type": "json",
+      "content_path": "app_data_json/dutch_a1_a2_5000_learning_items.min.json",
+      "char_count": 702494,
+      "line_count": 1,
+      "json_valid": true,
+      "top_level_keys": [
+        "metadata",
+        "stats",
+        "items"
+      ],
+      "items_count": 5000
+    },
+    {
+      "original_name": "dutch_a1_a2_5000_learning_items.jsonl",
+      "package_path": "app_data_json/dutch_a1_a2_5000_learning_items.jsonl",
+      "size_bytes": 838098,
+      "sha256": "91308ffd742627f17a1975a0623a225d72ef7f0b0471449330529358f6f37408",
+      "type": "jsonl",
+      "content_path": "app_data_json/dutch_a1_a2_5000_learning_items.jsonl",
+      "char_count": 769719,
+      "line_count": 5001,
+      "jsonl_records_estimate": 5000
+    },
+    {
+      "original_name": "TaalCompleet A2 - Werkblad 1 - 09 2025.pdf",
+      "package_path": "source_originals/TaalCompleet A2 - Werkblad 1 - 09 2025.pdf",
+      "size_bytes": 5824822,
+      "sha256": "2f7162fa7ed546f72f56d1604a0f4bbe869823c780ea996f84e6f6244cd6968d",
+      "type": "pdf",
+      "converted_json_path": "converted_json/taalcompleet_a2_werkblad_1_09_2025.raw_text.json",
+      "converted_txt_path": "converted_txt/taalcompleet_a2_werkblad_1_09_2025.raw_text.txt",
+      "page_count": 22
+    },
+    {
+      "original_name": "TaalCompleet A2 - Werkblad 2 - 09 2025.pdf",
+      "package_path": "source_originals/TaalCompleet A2 - Werkblad 2 - 09 2025.pdf",
+      "size_bytes": 5791938,
+      "sha256": "57de03b80e52adb39891c4974641773aaed2ef2185f76248255ae1050b81329b",
+      "type": "pdf",
+      "converted_json_path": "converted_json/taalcompleet_a2_werkblad_2_09_2025.raw_text.json",
+      "converted_txt_path": "converted_txt/taalcompleet_a2_werkblad_2_09_2025.raw_text.txt",
+      "page_count": 29
+    },
+    {
+      "original_name": "TaalCompleet A2 - Werkblad 3 - 09 2025.pdf",
+      "package_path": "source_originals/TaalCompleet A2 - Werkblad 3 - 09 2025.pdf",
+      "size_bytes": 3444661,
+      "sha256": "7d11bdc0f783e6d85717ca63781d5231cbd03010f1cc8f6927d96263f1cc215c",
+      "type": "pdf",
+      "converted_json_path": "converted_json/taalcompleet_a2_werkblad_3_09_2025.raw_text.json",
+      "converted_txt_path": "converted_txt/taalcompleet_a2_werkblad_3_09_2025.raw_text.txt",
+      "page_count": 28
+    },
+    {
+      "original_name": "TaalCompleet A2 - Werkblad 4 - 09 2025.pdf",
+      "package_path": "source_originals/TaalCompleet A2 - Werkblad 4 - 09 2025.pdf",
+      "size_bytes": 1915713,
+      "sha256": "2bf512f8196ac2211c2cea6118a6564f8d8ff1c14b20b86680ea49200406b560",
+      "type": "pdf",
+      "converted_json_path": "converted_json/taalcompleet_a2_werkblad_4_09_2025.raw_text.json",
+      "converted_txt_path": "converted_txt/taalcompleet_a2_werkblad_4_09_2025.raw_text.txt",
+      "page_count": 28
+    },
+    {
+      "original_name": "TaalCompleet A2 - Werkblad 4 - 09 2025 (1).pdf",
+      "package_path": "source_originals/TaalCompleet A2 - Werkblad 4 - 09 2025 (1).pdf",
+      "size_bytes": 1915713,
+      "sha256": "2bf512f8196ac2211c2cea6118a6564f8d8ff1c14b20b86680ea49200406b560",
+      "type": "pdf",
+      "converted_json_path": "converted_json/taalcompleet_a2_werkblad_4_09_2025_1.raw_text.json",
+      "converted_txt_path": "converted_txt/taalcompleet_a2_werkblad_4_09_2025_1.raw_text.txt",
+      "page_count": 28
+    },
+    {
+      "original_name": "TaalCompleet A2 - Werkblad 5 - 09 2025.pdf",
+      "package_path": "source_originals/TaalCompleet A2 - Werkblad 5 - 09 2025.pdf",
+      "size_bytes": 11852809,
+      "sha256": "a25ab22d4ad346e214771e0df73636dc4729c18cf29d3377fcaa347d73696bd2",
+      "type": "pdf",
+      "converted_json_path": "converted_json/taalcompleet_a2_werkblad_5_09_2025.raw_text.json",
+      "converted_txt_path": "converted_txt/taalcompleet_a2_werkblad_5_09_2025.raw_text.txt",
+      "page_count": 39
+    },
+    {
+      "original_name": "TaalCompleet A2 - Werkblad 6 - 09 2025.pdf",
+      "package_path": "source_originals/TaalCompleet A2 - Werkblad 6 - 09 2025.pdf",
+      "size_bytes": 3903816,
+      "sha256": "4398088e2847ec45a20fc03c2ab4d50407f214dc7645223862d6da13238891a7",
+      "type": "pdf",
+      "converted_json_path": "converted_json/taalcompleet_a2_werkblad_6_09_2025.raw_text.json",
+      "converted_txt_path": "converted_txt/taalcompleet_a2_werkblad_6_09_2025.raw_text.txt",
+      "page_count": 19
+    },
+    {
+      "original_name": "TaalCompleet A2 - Werkblad 7 - 09 2025.pdf",
+      "package_path": "source_originals/TaalCompleet A2 - Werkblad 7 - 09 2025.pdf",
+      "size_bytes": 9282291,
+      "sha256": "83ab7e8033a39717698a6f6ce4dd94a9b7265e731b081226a3190b29cc598d4e",
+      "type": "pdf",
+      "converted_json_path": "converted_json/taalcompleet_a2_werkblad_7_09_2025.raw_text.json",
+      "converted_txt_path": "converted_txt/taalcompleet_a2_werkblad_7_09_2025.raw_text.txt",
+      "page_count": 39
+    },
+    {
+      "original_name": "TaalCompleet A2 - Werkblad 8 - 09 2025.pdf",
+      "package_path": "source_originals/TaalCompleet A2 - Werkblad 8 - 09 2025.pdf",
+      "size_bytes": 9436332,
+      "sha256": "4d0448b68bc820a97ee659cf22492703305e04ced79eb201ee718073c182010a",
+      "type": "pdf",
+      "converted_json_path": "converted_json/taalcompleet_a2_werkblad_8_09_2025.raw_text.json",
+      "converted_txt_path": "converted_txt/taalcompleet_a2_werkblad_8_09_2025.raw_text.txt",
+      "page_count": 55
+    },
+    {
+      "original_name": "appprototype (4)(1).html",
+      "package_path": "reference_prototype/appprototype (4)(1).html",
+      "size_bytes": 152686,
+      "sha256": "c6b688f038b5ba0f0681e46330e3231088f9527b8e6b73eb260bfa5be1065344",
+      "type": "html"
+    }
+  ]
+}
