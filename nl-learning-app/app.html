@@ -984,6 +984,457 @@ var THEMES=[
  {name:'Путешествия',emoji:'✈️',c:'#2E8B57',lessons:[]},
  {name:'Досуг',emoji:'⚽',c:'#D9930A',lessons:[]}
 ];
+/* ======= Темы 3–8: уроки 21–38 (TaalCompleet A1) ======= */
+META.push(
+ {n:21,t:'В школе',blk:3},{n:22,t:'Дни и неделя',blk:3},{n:23,t:'Вопрос и ответ',blk:3},
+ {n:24,t:'Продукты',blk:4},{n:25,t:'Готовлю и ем',blk:4},{n:26,t:'Покупки и деньги',blk:4},
+ {n:27,t:'Части тела',blk:5},{n:28,t:'У врача',blk:5},{n:29,t:'Аптека и болезни',blk:5},
+ {n:30,t:'Одежда',blk:6},{n:31,t:'Размер и примерка',blk:6},{n:32,t:'Время суток',blk:6},
+ {n:33,t:'Транспорт',blk:7},{n:34,t:'Спрашиваю дорогу',blk:7},{n:35,t:'В пути',blk:7},
+ {n:36,t:'Хобби и спорт',blk:8},{n:37,t:'Друзья и животные',blk:8},{n:38,t:'Отдых и погода',blk:8}
+);
+THEMES[2].lessons=[21,22,23];THEMES[3].lessons=[24,25,26];THEMES[4].lessons=[27,28,29];
+THEMES[5].lessons=[30,31,32];THEMES[6].lessons=[33,34,35];THEMES[7].lessons=[36,37,38];
+Object.assign(DATA,{
+/* ---------- ТЕМА 3 · ШКОЛА ---------- */
+21:{parts:[
+ {t:'Вещи в школе',steps:[
+  {t:'explain',k:'В школе',b:'📖 Объяснение',html:'<p>В нидерландском у существительных два артикля: <b>de</b> и <b>het</b>. Их лучше запоминать вместе со словом. Слова школы: <b>de school</b>, <b>de docent</b>, <b>het boek</b>, <b>de pen</b>.</p>',ex:[['de school','школа'],['de docent','преподаватель'],['het boek','книга'],['de pen','ручка']]},
+  {t:'word',k:'Слово',emoji:'🏫',nl:'de school',ipa:'[də sxoːl]',tr:'школа'},
+  {t:'word',k:'Слово',emoji:'👨‍🏫',nl:'de docent',ipa:'[də doːˈsɛnt]',tr:'преподаватель'},
+  {t:'word',k:'Слово',emoji:'📖',nl:'het boek',ipa:'[ət buk]',tr:'книга'},
+  {t:'word',k:'Слово',emoji:'🖊️',nl:'de pen',ipa:'[də pɛn]',tr:'ручка'},
+  {t:'pick',k:'Картинка',q:'Где «het boek»?',opts:['📖','🏫','🖊️','👨‍🏫']},
+  {t:'quiz',k:'Выбор',q:'«de docent» — это…',opts:['преподаватель','ученик','книга','школа']},
+  {t:'match',k:'Пары',pairs:[['de school','школа'],['de docent','преподаватель'],['het boek','книга'],['de pen','ручка']]},
+  {t:'listen',k:'Аудирование',audio:'de school',q:'Что прозвучало?',opts:['de school','de stoel','de zoon','de zon']},
+  {t:'translate',k:'Перевод',q:'«книга» (с артиклем)',answer:['het boek'],ph:'… boek'},
+  {t:'speak',k:'Говорение',phrase:'Ik heb een boek en een pen.',tr:'У меня есть книга и ручка.'},
+ ]},
+ {t:'Что я делаю',steps:[
+  {t:'explain',k:'Глаголы урока',b:'📖 Объяснение',html:'<p>В настоящем времени с «ik» глагол берём в основе: <b>ik leer</b>, <b>ik lees</b>, <b>ik schrijf</b>, <b>ik luister</b>. Глаголы: leren — учить(ся), lezen — читать, schrijven — писать, luisteren — слушать.</p>',ex:[['leren','учить(ся)'],['lezen','читать'],['schrijven','писать'],['luisteren','слушать']]},
+  {t:'word',k:'Слово',emoji:'📚',nl:'leren',ipa:'[ˈleːrə]',tr:'учить(ся)'},
+  {t:'word',k:'Слово',emoji:'👀',nl:'lezen',ipa:'[ˈleːzə]',tr:'читать'},
+  {t:'word',k:'Слово',emoji:'✍️',nl:'schrijven',ipa:'[ˈsxrɛivə]',tr:'писать'},
+  {t:'quiz',k:'Грамматика',q:'Ik ___ een boek. (я читаю)',opts:['lees','leest','lezen','leert']},
+  {t:'gapType',k:'На слух',audio:'Ik schrijf een brief',q:'Ik ___ een brief',answer:['schrijf'],ph:'…'},
+  {t:'build',k:'Собери',tr:'Я читаю книгу.',words:['Ik','lees','een','boek'],ans:['Ik','lees','een','boek']},
+  {t:'tf',k:'Верно?',q:'«luisteren» значит «слушать».',answer:true,note:'Да: luisteren — слушать.'},
+  {t:'translate',k:'Перевод',q:'«я учусь»',answer:['ik leer'],ph:'ik …'},
+  {t:'speak',k:'Говорение',phrase:'Ik leer Nederlands op school.',tr:'Я учу нидерландский в школе.'},
+ ]},
+]},
+22:{parts:[
+ {t:'Дни недели',steps:[
+  {t:'explain',k:'De week',b:'📖 Объяснение',html:'<p>Неделя — <b>de week</b>, день — <b>de dag</b>. Дни: <b>maandag, dinsdag, woensdag, donderdag, vrijdag, zaterdag, zondag</b>. Все дни оканчиваются на <b>-dag</b> и пишутся с маленькой буквы.</p>',ex:[['de week','неделя'],['de dag','день'],['maandag','понедельник'],['vrijdag','пятница']]},
+  {t:'word',k:'Слово',emoji:'📅',nl:'de week',ipa:'[də ʋeːk]',tr:'неделя'},
+  {t:'word',k:'Слово',emoji:'☀️',nl:'de dag',ipa:'[də dɑx]',tr:'день'},
+  {t:'word',k:'Слово',emoji:'1️⃣',nl:'maandag',ipa:'[ˈmaːndɑx]',tr:'понедельник'},
+  {t:'quiz',k:'Выбор',q:'«vandaag» — это…',opts:['сегодня','завтра','вчера','неделя']},
+  {t:'quiz',k:'Выбор',q:'«morgen» — это…',opts:['завтра','сегодня','вечер','день']},
+  {t:'match',k:'Пары',pairs:[['maandag','понедельник'],['dinsdag','вторник'],['woensdag','среда'],['donderdag','четверг'],['vrijdag','пятница']]},
+  {t:'listen',k:'Аудирование',audio:'maandag',q:'Что прозвучало?',opts:['maandag','morgen','markt','maand']},
+  {t:'translate',k:'Перевод',q:'«сегодня»',answer:['vandaag'],ph:'…'},
+  {t:'speak',k:'Говорение',phrase:'Vandaag is het maandag.',tr:'Сегодня понедельник.'},
+ ]},
+ {t:'Месяцы',steps:[
+  {t:'explain',k:'De maanden',b:'📖 Объяснение',html:'<p>Месяцы: <b>januari, februari, maart, april, mei, juni, juli, augustus, september, oktober, november, december</b>. Первый месяц года — <b>januari</b>.</p>',ex:[['januari','январь'],['maart','март'],['mei','май'],['december','декабрь']]},
+  {t:'word',k:'Слово',emoji:'❄️',nl:'januari',ipa:'[jɑnyˈaːri]',tr:'январь'},
+  {t:'quiz',k:'Выбор',q:'Первый месяц года —',opts:['januari','juli','maart','mei']},
+  {t:'quiz',k:'Выбор',q:'«vandaag» + «morgen» = сегодня и…',opts:['завтра','вчера','неделя','год']},
+  {t:'build',k:'Собери',tr:'Сегодня понедельник.',words:['Vandaag','is','het','maandag'],ans:['Vandaag','is','het','maandag']},
+  {t:'translate',k:'Перевод',q:'«неделя» (с артиклем)',answer:['de week'],ph:'… week'},
+  {t:'tf',k:'Верно?',q:'Дни недели пишутся с большой буквы.',answer:false,note:'Нет: maandag, dinsdag… — с маленькой.'},
+  {t:'speak',k:'Говорение',phrase:'In januari is het koud.',tr:'В январе холодно.'},
+ ]},
+]},
+23:{parts:[
+ {t:'Спрашиваю и отвечаю',steps:[
+  {t:'explain',k:'Vraag en antwoord',b:'📖 Объяснение',html:'<p>Вопрос — <b>de vraag</b>, ответ — <b>het antwoord</b>. Вежливое «извините» — <b>sorry</b> или <b>pardon</b>. Вопросительные слова: <b>wat</b> (что), <b>wie</b> (кто), <b>waar</b> (где).</p>',ex:[['de vraag','вопрос'],['het antwoord','ответ'],['sorry','извините']]},
+  {t:'word',k:'Слово',emoji:'❓',nl:'de vraag',ipa:'[də vraːx]',tr:'вопрос'},
+  {t:'word',k:'Слово',emoji:'💬',nl:'het antwoord',ipa:'[ət ˈɑntʋoːrt]',tr:'ответ'},
+  {t:'word',k:'Слово',emoji:'🙏',nl:'sorry',ipa:'[ˈsɔri]',tr:'извините'},
+  {t:'quiz',k:'Выбор',q:'«het antwoord» — это…',opts:['ответ','вопрос','человек','школа']},
+  {t:'translate',k:'Перевод',q:'«извините»',answer:['sorry'],ph:'…'},
+  {t:'build',k:'Собери',tr:'Какой ответ?',words:['Wat','is','het','antwoord'],ans:['Wat','is','het','antwoord']},
+  {t:'listen',k:'Аудирование',audio:'de vraag',q:'Что прозвучало?',opts:['de vraag','de vader','de weg','de dag']},
+  {t:'tf',k:'Верно?',q:'«sorry» значит «спасибо».',answer:false,note:'Нет: sorry — извините. Спасибо — dank je.'},
+  {t:'speak',k:'Говорение',phrase:'Sorry, ik heb een vraag.',tr:'Извините, у меня вопрос.'},
+ ]},
+ {t:'Трудно или легко',steps:[
+  {t:'explain',k:'Прилагательные',b:'📖 Объяснение',html:'<p><b>moeilijk</b> — трудный, <b>makkelijk</b> — лёгкий. Люди — <b>de mensen</b> (множественное число). После «is» прилагательное не меняется: <b>Het is moeilijk.</b></p>',ex:[['moeilijk','трудный'],['makkelijk','лёгкий'],['de mensen','люди']]},
+  {t:'word',k:'Слово',emoji:'🧗',nl:'moeilijk',ipa:'[ˈmujlək]',tr:'трудный'},
+  {t:'word',k:'Слово',emoji:'😌',nl:'makkelijk',ipa:'[ˈmɑkələk]',tr:'лёгкий'},
+  {t:'word',k:'Слово',emoji:'👥',nl:'de mensen',ipa:'[də ˈmɛnsə]',tr:'люди'},
+  {t:'quiz',k:'Выбор',q:'«makkelijk» — это…',opts:['лёгкий','трудный','быстрый','новый']},
+  {t:'gapType',k:'На слух',audio:'Nederlands is niet moeilijk',q:'Nederlands is niet ___',answer:['moeilijk'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«люди» (с артиклем)',answer:['de mensen'],ph:'de …'},
+  {t:'match',k:'Пары',pairs:[['moeilijk','трудный'],['makkelijk','лёгкий'],['de vraag','вопрос'],['het antwoord','ответ'],['de mensen','люди']]},
+  {t:'speak',k:'Говорение',phrase:'Nederlands is makkelijk!',tr:'Нидерландский — лёгкий!'},
+ ]},
+]},
+/* ---------- ТЕМА 4 · ЕДА И НАПИТКИ ---------- */
+24:{parts:[
+ {t:'Продукты',steps:[
+  {t:'explain',k:'Eten',b:'📖 Объяснение',html:'<p>Базовые продукты: <b>het brood</b> (хлеб), <b>de kaas</b> (сыр), <b>de boter</b> (масло), <b>het vlees</b> (мясо), <b>de vis</b> (рыба). Обрати внимание на артикль het у brood и vlees.</p>',ex:[['het brood','хлеб'],['de kaas','сыр'],['het vlees','мясо'],['de vis','рыба']]},
+  {t:'word',k:'Слово',emoji:'🍞',nl:'het brood',ipa:'[ət broːt]',tr:'хлеб'},
+  {t:'word',k:'Слово',emoji:'🧀',nl:'de kaas',ipa:'[də kaːs]',tr:'сыр'},
+  {t:'word',k:'Слово',emoji:'🥩',nl:'het vlees',ipa:'[ət vleːs]',tr:'мясо'},
+  {t:'word',k:'Слово',emoji:'🐟',nl:'de vis',ipa:'[də vɪs]',tr:'рыба'},
+  {t:'pick',k:'Картинка',q:'Где «de kaas»?',opts:['🧀','🍞','🥩','🐟']},
+  {t:'quiz',k:'Выбор',q:'«het brood» — это…',opts:['хлеб','сыр','мясо','рыба']},
+  {t:'match',k:'Пары',pairs:[['het brood','хлеб'],['de kaas','сыр'],['het vlees','мясо'],['de vis','рыба']]},
+  {t:'listen',k:'Аудирование',audio:'de kaas',q:'Что прозвучало?',opts:['de kaas','de kat','de kaart','de kast']},
+  {t:'translate',k:'Перевод',q:'«хлеб» (с артиклем)',answer:['het brood'],ph:'… brood'},
+  {t:'speak',k:'Говорение',phrase:'Ik eet brood met kaas.',tr:'Я ем хлеб с сыром.'},
+ ]},
+ {t:'Фрукты и напитки',steps:[
+  {t:'explain',k:'Fruit en drinken',b:'📖 Объяснение',html:'<p>Фрукты: <b>de appel</b> (яблоко), <b>de banaan</b> (банан), <b>het fruit</b> (фрукты), <b>de groente</b> (овощи). Напитки: <b>de melk</b> (молоко), <b>het water</b> (вода), <b>de wijn</b> (вино).</p>',ex:[['de appel','яблоко'],['het fruit','фрукты'],['de melk','молоко'],['het water','вода']]},
+  {t:'word',k:'Слово',emoji:'🍎',nl:'de appel',ipa:'[də ˈɑpəl]',tr:'яблоко'},
+  {t:'word',k:'Слово',emoji:'🍌',nl:'de banaan',ipa:'[də baːˈnaːn]',tr:'банан'},
+  {t:'word',k:'Слово',emoji:'🥛',nl:'de melk',ipa:'[də mɛlk]',tr:'молоко'},
+  {t:'word',k:'Слово',emoji:'💧',nl:'het water',ipa:'[ət ˈʋaːtər]',tr:'вода'},
+  {t:'pick',k:'Картинка',q:'Где «de appel»?',opts:['🍎','🍌','🥛','🧀']},
+  {t:'quiz',k:'Выбор',q:'«het water» — это…',opts:['вода','молоко','вино','сок']},
+  {t:'gapType',k:'На слух',audio:'De appel is rood',q:'De ___ is rood',answer:['appel'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«молоко» (с артиклем)',answer:['de melk'],ph:'de …'},
+  {t:'match',k:'Пары',pairs:[['de appel','яблоко'],['de banaan','банан'],['de melk','молоко'],['het water','вода'],['de wijn','вино']]},
+  {t:'speak',k:'Говорение',phrase:'Ik drink water en melk.',tr:'Я пью воду и молоко.'},
+ ]},
+]},
+25:{parts:[
+ {t:'Готовлю и ем',steps:[
+  {t:'explain',k:'Глаголы',b:'📖 Объяснение',html:'<p>Глаголы еды: <b>eten</b> (есть), <b>drinken</b> (пить), <b>koken</b> (готовить). С «ik»: ik eet, ik drink, ik kook. С «hij/zij» добавляем -t: hij eet, zij drinkt.</p>',ex:[['eten','есть'],['drinken','пить'],['koken','готовить']]},
+  {t:'word',k:'Слово',emoji:'🍽️',nl:'eten',ipa:'[ˈeːtə]',tr:'есть'},
+  {t:'word',k:'Слово',emoji:'🥤',nl:'drinken',ipa:'[ˈdrɪŋkə]',tr:'пить'},
+  {t:'word',k:'Слово',emoji:'🍳',nl:'koken',ipa:'[ˈkoːkə]',tr:'готовить'},
+  {t:'quiz',k:'Грамматика',q:'Ik ___ soep. (я готовлю)',opts:['kook','kookt','koken','kokt']},
+  {t:'quiz',k:'Грамматика',q:'Hij ___ water. (он пьёт)',opts:['drinkt','drink','drinken','drinks']},
+  {t:'build',k:'Собери',tr:'Я ем хлеб.',words:['Ik','eet','brood'],ans:['Ik','eet','brood']},
+  {t:'gapType',k:'На слух',audio:'Ik kook vandaag',q:'Ik ___ vandaag',answer:['kook'],ph:'…'},
+  {t:'tf',k:'Верно?',q:'«drinken» значит «есть».',answer:false,note:'Нет: drinken — пить, eten — есть.'},
+  {t:'translate',k:'Перевод',q:'«я ем»',answer:['ik eet'],ph:'ik …'},
+  {t:'speak',k:'Говорение',phrase:'Ik kook vandaag vis.',tr:'Сегодня я готовлю рыбу.'},
+ ]},
+ {t:'Овощи и фрукты',steps:[
+  {t:'explain',k:'Groente en fruit',b:'📖 Объяснение',html:'<p><b>de groente</b> — овощи, <b>het fruit</b> — фрукты (в нидерландском это единственное число!). «Здоровая еда» — <b>gezond eten</b>.</p>',ex:[['de groente','овощи'],['het fruit','фрукты']]},
+  {t:'word',k:'Слово',emoji:'🥦',nl:'de groente',ipa:'[də ˈxruntə]',tr:'овощи'},
+  {t:'word',k:'Слово',emoji:'🍇',nl:'het fruit',ipa:'[ət frœyt]',tr:'фрукты'},
+  {t:'quiz',k:'Выбор',q:'«de groente» — это…',opts:['овощи','фрукты','мясо','хлеб']},
+  {t:'match',k:'Пары',pairs:[['eten','есть'],['drinken','пить'],['koken','готовить'],['de groente','овощи'],['het fruit','фрукты']]},
+  {t:'translate',k:'Перевод',q:'«фрукты» (с артиклем)',answer:['het fruit'],ph:'… fruit'},
+  {t:'tf',k:'Верно?',q:'«het fruit» — единственное число.',answer:true,note:'Да, в нидерландском fruit — ед. число.'},
+  {t:'speak',k:'Говорение',phrase:'Ik eet veel groente en fruit.',tr:'Я ем много овощей и фруктов.'},
+ ]},
+]},
+26:{parts:[
+ {t:'В магазине',steps:[
+  {t:'explain',k:'Kopen',b:'📖 Объяснение',html:'<p>Покупать — <b>kopen</b>. Где: <b>de markt</b> (рынок), <b>de supermarkt</b> (супермаркет). Деньги — <b>het geld</b>, дорого — <b>duur</b>.</p>',ex:[['kopen','покупать'],['de markt','рынок'],['de supermarkt','супермаркет'],['het geld','деньги']]},
+  {t:'word',k:'Слово',emoji:'🛒',nl:'kopen',ipa:'[ˈkoːpə]',tr:'покупать'},
+  {t:'word',k:'Слово',emoji:'🏪',nl:'de supermarkt',ipa:'[də ˈsypərmɑrkt]',tr:'супермаркет'},
+  {t:'word',k:'Слово',emoji:'💶',nl:'het geld',ipa:'[ət xɛlt]',tr:'деньги'},
+  {t:'quiz',k:'Выбор',q:'«duur» — это…',opts:['дорогой','дешёвый','вкусный','новый']},
+  {t:'quiz',k:'Грамматика',q:'Ik ___ brood. (я покупаю)',opts:['koop','koopt','kopen','koops']},
+  {t:'gapType',k:'На слух',audio:'Het brood is duur',q:'Het brood is ___',answer:['duur'],ph:'…'},
+  {t:'build',k:'Собери',tr:'Я покупаю хлеб на рынке.',words:['Ik','koop','brood','op','de markt'],ans:['Ik','koop','brood','op','de markt']},
+  {t:'translate',k:'Перевод',q:'«деньги» (с артиклем)',answer:['het geld'],ph:'… geld'},
+  {t:'match',k:'Пары',pairs:[['kopen','покупать'],['de markt','рынок'],['de supermarkt','супермаркет'],['het geld','деньги'],['duur','дорогой']]},
+  {t:'speak',k:'Говорение',phrase:'Hoeveel kost het brood?',tr:'Сколько стоит хлеб?'},
+ ]},
+ {t:'Плачу',steps:[
+  {t:'explain',k:'Betalen',b:'📖 Объяснение',html:'<p>«Сколько стоит?» — <b>Hoeveel kost het?</b> «Могу оплатить картой?» — <b>Mag ik pinnen?</b> В Нидерландах часто платят картой (pinnen).</p>',ex:[]},
+  {t:'quiz',k:'Выбор',q:'«Hoeveel kost het?» —',opts:['Сколько стоит?','Где касса?','Что это?','Когда открыто?']},
+  {t:'tf',k:'Верно?',q:'«pinnen» значит «платить картой».',answer:true,note:'Да, pinnen — оплата картой.'},
+  {t:'build',k:'Собери',tr:'Можно оплатить картой?',words:['Mag','ik','pinnen'],ans:['Mag','ik','pinnen']},
+  {t:'translate',k:'Перевод',q:'«дорогой»',answer:['duur'],ph:'…'},
+  {t:'speak',k:'Говорение',phrase:'Mag ik pinnen, alstublieft?',tr:'Можно оплатить картой, пожалуйста?'},
+ ]},
+]},
+/* ---------- ТЕМА 5 · ЗДОРОВЬЕ ---------- */
+27:{parts:[
+ {t:'Части тела',steps:[
+  {t:'explain',k:'Het lichaam',b:'📖 Объяснение',html:'<p>Тело: <b>het hoofd</b> (голова), <b>de hand</b> (кисть руки), <b>de voet</b> (стопа), <b>het oog</b> (глаз), <b>de neus</b> (нос).</p>',ex:[['het hoofd','голова'],['de hand','рука'],['de voet','нога'],['het oog','глаз']]},
+  {t:'word',k:'Слово',emoji:'🧠',nl:'het hoofd',ipa:'[ət hoːft]',tr:'голова'},
+  {t:'word',k:'Слово',emoji:'✋',nl:'de hand',ipa:'[də hɑnt]',tr:'рука (кисть)'},
+  {t:'word',k:'Слово',emoji:'🦶',nl:'de voet',ipa:'[də vut]',tr:'нога (стопа)'},
+  {t:'word',k:'Слово',emoji:'👁️',nl:'het oog',ipa:'[ət oːx]',tr:'глаз'},
+  {t:'pick',k:'Картинка',q:'Где «de hand»?',opts:['✋','🦶','👁️','👃']},
+  {t:'quiz',k:'Выбор',q:'«het hoofd» — это…',opts:['голова','рука','нога','глаз']},
+  {t:'match',k:'Пары',pairs:[['het hoofd','голова'],['de hand','рука'],['de voet','нога'],['het oog','глаз'],['de neus','нос']]},
+  {t:'listen',k:'Аудирование',audio:'de hand',q:'Что прозвучало?',opts:['de hand','de hond','de man','de kant']},
+  {t:'translate',k:'Перевод',q:'«глаз» (с артиклем)',answer:['het oog'],ph:'… oog'},
+  {t:'speak',k:'Говорение',phrase:'Mijn hoofd doet pijn.',tr:'У меня болит голова.'},
+ ]},
+ {t:'Ещё части тела',steps:[
+  {t:'explain',k:'Nog meer',b:'📖 Объяснение',html:'<p>Ещё: <b>het oor</b> (ухо), <b>de mond</b> (рот), <b>de arm</b> (рука целиком), <b>het been</b> (нога целиком), <b>de rug</b> (спина).</p>',ex:[['het oor','ухо'],['de mond','рот'],['de arm','рука'],['het been','нога']]},
+  {t:'word',k:'Слово',emoji:'👂',nl:'het oor',ipa:'[ət oːr]',tr:'ухо'},
+  {t:'word',k:'Слово',emoji:'👄',nl:'de mond',ipa:'[də mɔnt]',tr:'рот'},
+  {t:'word',k:'Слово',emoji:'💪',nl:'de arm',ipa:'[də ɑrm]',tr:'рука'},
+  {t:'quiz',k:'Выбор',q:'«de rug» — это…',opts:['спина','рот','ухо','нога']},
+  {t:'gapType',k:'На слух',audio:'Mijn arm doet pijn',q:'Mijn ___ doet pijn',answer:['arm'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«рот» (с артиклем)',answer:['de mond'],ph:'de …'},
+  {t:'match',k:'Пары',pairs:[['het oor','ухо'],['de mond','рот'],['de arm','рука'],['het been','нога'],['de rug','спина']]},
+  {t:'speak',k:'Говорение',phrase:'Mijn been doet pijn.',tr:'У меня болит нога.'},
+ ]},
+]},
+28:{parts:[
+ {t:'У врача',steps:[
+  {t:'explain',k:'De dokter',b:'📖 Объяснение',html:'<p>Врач — <b>de dokter</b>, зубной — <b>de tandarts</b>. Больной — <b>ziek</b>, боль — <b>de pijn</b>, температура — <b>de koorts</b>. Приём/запись — <b>de afspraak</b>.</p>',ex:[['de dokter','врач'],['ziek','больной'],['de pijn','боль'],['de afspraak','приём']]},
+  {t:'word',k:'Слово',emoji:'👨‍⚕️',nl:'de dokter',ipa:'[də ˈdɔktər]',tr:'врач'},
+  {t:'word',k:'Слово',emoji:'🤒',nl:'ziek',ipa:'[zik]',tr:'больной'},
+  {t:'word',k:'Слово',emoji:'😣',nl:'de pijn',ipa:'[də pɛin]',tr:'боль'},
+  {t:'word',k:'Слово',emoji:'🌡️',nl:'de koorts',ipa:'[də koːrts]',tr:'температура'},
+  {t:'quiz',k:'Выбор',q:'«ziek» — это…',opts:['больной','здоровый','усталый','голодный']},
+  {t:'quiz',k:'Выбор',q:'«de tandarts» — это…',opts:['стоматолог','терапевт','аптекарь','медсестра']},
+  {t:'gapType',k:'На слух',audio:'Ik ben ziek',q:'Ik ben ___',answer:['ziek'],ph:'…'},
+  {t:'build',k:'Собери',tr:'У меня приём к врачу.',words:['Ik','heb','een','afspraak'],ans:['Ik','heb','een','afspraak']},
+  {t:'translate',k:'Перевод',q:'«боль» (с артиклем)',answer:['de pijn'],ph:'de …'},
+  {t:'speak',k:'Говорение',phrase:'Ik ben ziek en heb koorts.',tr:'Я болен, и у меня температура.'},
+ ]},
+ {t:'На приёме',steps:[
+  {t:'explain',k:'Bij de dokter',b:'📖 Объяснение',html:'<p>«Что случилось?» — <b>Wat is er?</b> «У меня болит…» — <b>Ik heb pijn aan…</b> «Мне нужен приём» — <b>Ik wil een afspraak maken.</b></p>',ex:[]},
+  {t:'quiz',k:'Выбор',q:'«Ik heb pijn aan mijn hoofd» —',opts:['У меня болит голова','Я устал','Мне холодно','Я голоден']},
+  {t:'tf',k:'Верно?',q:'«de afspraak» значит «приём/запись».',answer:true,note:'Да, afspraak — встреча/приём.'},
+  {t:'match',k:'Пары',pairs:[['de dokter','врач'],['de tandarts','стоматолог'],['ziek','больной'],['de koorts','температура'],['de pijn','боль']]},
+  {t:'translate',k:'Перевод',q:'«врач» (с артиклем)',answer:['de dokter'],ph:'de …'},
+  {t:'speak',k:'Говорение',phrase:'Ik wil een afspraak maken.',tr:'Я хочу записаться на приём.'},
+ ]},
+]},
+29:{parts:[
+ {t:'Аптека',steps:[
+  {t:'explain',k:'De apotheek',b:'📖 Объяснение',html:'<p>Лекарство — <b>het medicijn</b>, аптека — <b>de apotheek</b>, больница — <b>het ziekenhuis</b>, грипп — <b>de griep</b>.</p>',ex:[['het medicijn','лекарство'],['de apotheek','аптека'],['het ziekenhuis','больница'],['de griep','грипп']]},
+  {t:'word',k:'Слово',emoji:'💊',nl:'het medicijn',ipa:'[ət meːdiˈsɛin]',tr:'лекарство'},
+  {t:'word',k:'Слово',emoji:'🏥',nl:'het ziekenhuis',ipa:'[ət ˈzikənhœys]',tr:'больница'},
+  {t:'word',k:'Слово',emoji:'🤧',nl:'de griep',ipa:'[də xrip]',tr:'грипп'},
+  {t:'quiz',k:'Выбор',q:'«de apotheek» — это…',opts:['аптека','больница','врач','магазин']},
+  {t:'listen',k:'Аудирование',audio:'de apotheek',q:'Что прозвучало?',opts:['de apotheek','de bibliotheek','de apotheker','de school']},
+  {t:'gapType',k:'На слух',audio:'Ik heb de griep',q:'Ik heb de ___',answer:['griep'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«лекарство» (с артиклем)',answer:['het medicijn'],ph:'… medicijn'},
+  {t:'speak',k:'Говорение',phrase:'Waar is de apotheek?',tr:'Где аптека?'},
+ ]},
+ {t:'Мне нехорошо',steps:[
+  {t:'explain',k:'Ik voel me…',b:'📖 Объяснение',html:'<p>«Мне нехорошо» — <b>Ik voel me niet goed.</b> «Мне нужно лекарство» — <b>Ik heb een medicijn nodig.</b> В больнице — <b>in het ziekenhuis</b>.</p>',ex:[]},
+  {t:'quiz',k:'Выбор',q:'«Ik voel me niet goed» —',opts:['Мне нехорошо','Я рад','Мне жарко','Я готов']},
+  {t:'match',k:'Пары',pairs:[['het medicijn','лекарство'],['de apotheek','аптека'],['het ziekenhuis','больница'],['de griep','грипп'],['ziek','больной']]},
+  {t:'build',k:'Собери',tr:'Мне нужно лекарство.',words:['Ik','heb','een','medicijn','nodig'],ans:['Ik','heb','een','medicijn','nodig']},
+  {t:'translate',k:'Перевод',q:'«больница» (с артиклем)',answer:['het ziekenhuis'],ph:'… ziekenhuis'},
+  {t:'speak',k:'Говорение',phrase:'Ik voel me niet goed.',tr:'Я плохо себя чувствую.'},
+ ]},
+]},
+/* ---------- ТЕМА 6 · ОДЕЖДА ---------- */
+30:{parts:[
+ {t:'Одежда',steps:[
+  {t:'explain',k:'De kleding',b:'📖 Объяснение',html:'<p>Одежда — <b>de kleding</b>. Предметы: <b>de jas</b> (куртка), <b>de broek</b> (брюки), <b>de schoen</b> (ботинок), <b>de trui</b> (свитер).</p>',ex:[['de jas','куртка'],['de broek','брюки'],['de schoen','обувь'],['de trui','свитер']]},
+  {t:'word',k:'Слово',emoji:'🧥',nl:'de jas',ipa:'[də jɑs]',tr:'куртка'},
+  {t:'word',k:'Слово',emoji:'👖',nl:'de broek',ipa:'[də bruk]',tr:'брюки'},
+  {t:'word',k:'Слово',emoji:'👟',nl:'de schoen',ipa:'[də sxun]',tr:'обувь'},
+  {t:'word',k:'Слово',emoji:'🧶',nl:'de trui',ipa:'[də trœy]',tr:'свитер'},
+  {t:'pick',k:'Картинка',q:'Где «de jas»?',opts:['🧥','👖','👟','🧶']},
+  {t:'quiz',k:'Выбор',q:'«de broek» — это…',opts:['брюки','куртка','обувь','свитер']},
+  {t:'match',k:'Пары',pairs:[['de jas','куртка'],['de broek','брюки'],['de schoen','обувь'],['de trui','свитер']]},
+  {t:'listen',k:'Аудирование',audio:'de jas',q:'Что прозвучало?',opts:['de jas','de vis','de bus','de kaas']},
+  {t:'translate',k:'Перевод',q:'«обувь» (с артиклем)',answer:['de schoen'],ph:'de …'},
+  {t:'speak',k:'Говорение',phrase:'Ik draag een jas en een broek.',tr:'На мне куртка и брюки.'},
+ ]},
+ {t:'Ещё одежда',steps:[
+  {t:'explain',k:'Meer kleding',b:'📖 Объяснение',html:'<p>Ещё: <b>de jurk</b> (платье), <b>de rok</b> (юбка), <b>de sok</b> (носок), <b>de bril</b> (очки). Носить — <b>dragen</b> (ik draag).</p>',ex:[['de jurk','платье'],['de rok','юбка'],['de sok','носок'],['dragen','носить']]},
+  {t:'word',k:'Слово',emoji:'👗',nl:'de jurk',ipa:'[də jʏrk]',tr:'платье'},
+  {t:'word',k:'Слово',emoji:'🧦',nl:'de sok',ipa:'[də sɔk]',tr:'носок'},
+  {t:'word',k:'Слово',emoji:'👓',nl:'de bril',ipa:'[də brɪl]',tr:'очки'},
+  {t:'quiz',k:'Грамматика',q:'Ik ___ een jurk. (я ношу)',opts:['draag','draagt','dragen','draagd']},
+  {t:'gapType',k:'На слух',audio:'Ik draag een bril',q:'Ik draag een ___',answer:['bril'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«платье» (с артиклем)',answer:['de jurk'],ph:'de …'},
+  {t:'match',k:'Пары',pairs:[['de jurk','платье'],['de rok','юбка'],['de sok','носок'],['de bril','очки'],['dragen','носить']]},
+  {t:'speak',k:'Говорение',phrase:'Zij draagt een mooie jurk.',tr:'На ней красивое платье.'},
+ ]},
+]},
+31:{parts:[
+ {t:'Размер и примерка',steps:[
+  {t:'explain',k:'De maat',b:'📖 Объяснение',html:'<p>Размер — <b>de maat</b>. Примерять/подходить — <b>passen</b>. «Можно примерить?» — <b>Mag ik het passen?</b> «Какой у вас размер?» — <b>Welke maat heeft u?</b></p>',ex:[['de maat','размер'],['passen','примерять']]},
+  {t:'word',k:'Слово',emoji:'📏',nl:'de maat',ipa:'[də maːt]',tr:'размер'},
+  {t:'word',k:'Слово',emoji:'🔄',nl:'passen',ipa:'[ˈpɑsə]',tr:'примерять/подходить'},
+  {t:'quiz',k:'Выбор',q:'«de maat» — это…',opts:['размер','цвет','цена','магазин']},
+  {t:'build',k:'Собери',tr:'Можно примерить?',words:['Mag','ik','het','passen'],ans:['Mag','ik','het','passen']},
+  {t:'gapType',k:'На слух',audio:'Welke maat heeft u',q:'Welke ___ heeft u?',answer:['maat'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«размер» (с артиклем)',answer:['de maat'],ph:'de …'},
+  {t:'tf',k:'Верно?',q:'«passen» может значить «подходить (по размеру)».',answer:true,note:'Да: de broek past — брюки подходят.'},
+  {t:'speak',k:'Говорение',phrase:'Mag ik deze broek passen?',tr:'Можно примерить эти брюки?'},
+ ]},
+ {t:'Открыто или закрыто',steps:[
+  {t:'explain',k:'Open of dicht',b:'📖 Объяснение',html:'<p>Открыто — <b>open</b>, закрыто — <b>dicht</b> (или gesloten). «Магазин открыт» — <b>De winkel is open.</b></p>',ex:[['open','открыто'],['dicht','закрыто']]},
+  {t:'word',k:'Слово',emoji:'🟢',nl:'open',ipa:'[ˈoːpə(n)]',tr:'открыто'},
+  {t:'word',k:'Слово',emoji:'🔴',nl:'dicht',ipa:'[dɪxt]',tr:'закрыто'},
+  {t:'quiz',k:'Выбор',q:'«dicht» — это…',opts:['закрыто','открыто','дорого','дёшево']},
+  {t:'gapType',k:'На слух',audio:'De winkel is open',q:'De winkel is ___',answer:['open'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«закрыто»',answer:['dicht'],ph:'…'},
+  {t:'speak',k:'Говорение',phrase:'Is de winkel open of dicht?',tr:'Магазин открыт или закрыт?'},
+ ]},
+]},
+32:{parts:[
+ {t:'Время суток',steps:[
+  {t:'explain',k:'De tijd',b:'📖 Объяснение',html:'<p>Время — <b>de tijd</b>, час — <b>het uur</b>, часы (прибор) — <b>de klok</b>. Части суток: <b>de ochtend</b> (утро), <b>de avond</b> (вечер), <b>de nacht</b> (ночь).</p>',ex:[['de tijd','время'],['het uur','час'],['de ochtend','утро'],['de avond','вечер']]},
+  {t:'word',k:'Слово',emoji:'⏰',nl:'de klok',ipa:'[də klɔk]',tr:'часы'},
+  {t:'word',k:'Слово',emoji:'🌅',nl:'de ochtend',ipa:'[də ˈɔxtənt]',tr:'утро'},
+  {t:'word',k:'Слово',emoji:'🌆',nl:'de avond',ipa:'[də ˈaːvɔnt]',tr:'вечер'},
+  {t:'word',k:'Слово',emoji:'🌙',nl:'de nacht',ipa:'[də nɑxt]',tr:'ночь'},
+  {t:'quiz',k:'Выбор',q:'«de ochtend» — это…',opts:['утро','вечер','ночь','день']},
+  {t:'match',k:'Пары',pairs:[['de ochtend','утро'],['de avond','вечер'],['de nacht','ночь'],['het uur','час'],['de klok','часы']]},
+  {t:'gapType',k:'На слух',audio:'Goedemorgen',q:'___ (доброе утро)',answer:['goedemorgen'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«вечер» (с артиклем)',answer:['de avond'],ph:'de …'},
+  {t:'speak',k:'Говорение',phrase:'Goedemorgen! Hoe laat is het?',tr:'Доброе утро! Который час?'},
+ ]},
+ {t:'Который час',steps:[
+  {t:'explain',k:'Hoe laat?',b:'📖 Объяснение',html:'<p>«Который час?» — <b>Hoe laat is het?</b> «Час дня» — <b>Het is één uur.</b> «Два часа» — <b>Het is twee uur.</b></p>',ex:[]},
+  {t:'quiz',k:'Выбор',q:'«Hoe laat is het?» —',opts:['Который час?','Где часы?','Когда открыто?','Сколько стоит?']},
+  {t:'build',k:'Собери',tr:'Сейчас три часа.',words:['Het','is','drie','uur'],ans:['Het','is','drie','uur']},
+  {t:'translate',k:'Перевод',q:'«час» (с артиклем)',answer:['het uur'],ph:'… uur'},
+  {t:'tf',k:'Верно?',q:'«de klok» — это часы на стене, а «het uur» — единица времени.',answer:true,note:'Верно: klok — прибор, uur — час.'},
+  {t:'speak',k:'Говорение',phrase:'Het is acht uur in de ochtend.',tr:'Восемь часов утра.'},
+ ]},
+]},
+/* ---------- ТЕМА 7 · ПУТЕШЕСТВИЯ ---------- */
+33:{parts:[
+ {t:'Транспорт',steps:[
+  {t:'explain',k:'Vervoer',b:'📖 Объяснение',html:'<p>Транспорт: <b>de auto</b> (машина), <b>de bus</b> (автобус), <b>de trein</b> (поезд), <b>de fiets</b> (велосипед). В Нидерландах велосипед — главный транспорт!</p>',ex:[['de auto','машина'],['de bus','автобус'],['de trein','поезд'],['de fiets','велосипед']]},
+  {t:'word',k:'Слово',emoji:'🚗',nl:'de auto',ipa:'[də ˈɑutoː]',tr:'машина'},
+  {t:'word',k:'Слово',emoji:'🚌',nl:'de bus',ipa:'[də bʏs]',tr:'автобус'},
+  {t:'word',k:'Слово',emoji:'🚆',nl:'de trein',ipa:'[də trɛin]',tr:'поезд'},
+  {t:'word',k:'Слово',emoji:'🚲',nl:'de fiets',ipa:'[də fits]',tr:'велосипед'},
+  {t:'pick',k:'Картинка',q:'Где «de fiets»?',opts:['🚲','🚗','🚌','🚆']},
+  {t:'quiz',k:'Выбор',q:'«de trein» — это…',opts:['поезд','машина','автобус','самолёт']},
+  {t:'match',k:'Пары',pairs:[['de auto','машина'],['de bus','автобус'],['de trein','поезд'],['de fiets','велосипед']]},
+  {t:'listen',k:'Аудирование',audio:'de fiets',q:'Что прозвучало?',opts:['de fiets','de vis','de fles','de fiets']},
+  {t:'translate',k:'Перевод',q:'«поезд» (с артиклем)',answer:['de trein'],ph:'de …'},
+  {t:'speak',k:'Говорение',phrase:'Ik ga met de fiets naar school.',tr:'Я еду в школу на велосипеде.'},
+ ]},
+ {t:'На вокзале',steps:[
+  {t:'explain',k:'Het station',b:'📖 Объяснение',html:'<p>Вокзал — <b>het station</b>, остановка — <b>de halte</b>. Садиться — <b>instappen</b>, выходить — <b>uitstappen</b>. Путешествовать — <b>reizen</b>.</p>',ex:[['het station','вокзал'],['de halte','остановка'],['instappen','садиться'],['uitstappen','выходить']]},
+  {t:'word',k:'Слово',emoji:'🚉',nl:'het station',ipa:'[ət staːˈɕɔn]',tr:'вокзал'},
+  {t:'word',k:'Слово',emoji:'🚏',nl:'de halte',ipa:'[də ˈhɑltə]',tr:'остановка'},
+  {t:'word',k:'Слово',emoji:'🧳',nl:'reizen',ipa:'[ˈrɛizə]',tr:'путешествовать'},
+  {t:'quiz',k:'Выбор',q:'«instappen» — это…',opts:['садиться','выходить','стоять','идти']},
+  {t:'gapType',k:'На слух',audio:'Waar is het station',q:'Waar is het ___?',answer:['station'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«остановка» (с артиклем)',answer:['de halte'],ph:'de …'},
+  {t:'match',k:'Пары',pairs:[['het station','вокзал'],['de halte','остановка'],['instappen','садиться'],['uitstappen','выходить'],['reizen','путешествовать']]},
+  {t:'speak',k:'Говорение',phrase:'Waar is het station?',tr:'Где вокзал?'},
+ ]},
+]},
+34:{parts:[
+ {t:'Спрашиваю дорогу',steps:[
+  {t:'explain',k:'De weg',b:'📖 Объяснение',html:'<p>Дорога — <b>de weg</b>. Направления: <b>links</b> (налево), <b>rechts</b> (направо), <b>rechtdoor</b> (прямо). «Где…?» — <b>Waar is…?</b></p>',ex:[['de weg','дорога'],['links','налево'],['rechts','направо'],['rechtdoor','прямо']]},
+  {t:'word',k:'Слово',emoji:'⬅️',nl:'links',ipa:'[lɪŋks]',tr:'налево'},
+  {t:'word',k:'Слово',emoji:'➡️',nl:'rechts',ipa:'[rɛxts]',tr:'направо'},
+  {t:'word',k:'Слово',emoji:'⬆️',nl:'rechtdoor',ipa:'[ˈrɛxtdoːr]',tr:'прямо'},
+  {t:'quiz',k:'Выбор',q:'«rechts» — это…',opts:['направо','налево','прямо','назад']},
+  {t:'quiz',k:'Выбор',q:'«rechtdoor» — это…',opts:['прямо','направо','налево','стоп']},
+  {t:'build',k:'Собери',tr:'Идите прямо.',words:['Ga','rechtdoor'],ans:['Ga','rechtdoor']},
+  {t:'gapType',k:'На слух',audio:'Ga naar links',q:'Ga naar ___',answer:['links'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«дорога» (с артиклем)',answer:['de weg'],ph:'de …'},
+  {t:'match',k:'Пары',pairs:[['links','налево'],['rechts','направо'],['rechtdoor','прямо'],['de weg','дорога']]},
+  {t:'speak',k:'Говорение',phrase:'Pardon, waar is de bus?',tr:'Извините, где автобус?'},
+ ]},
+ {t:'Карта и город',steps:[
+  {t:'explain',k:'De stad',b:'📖 Объяснение',html:'<p>Город — <b>de stad</b>, страна — <b>het land</b>, карта — <b>de kaart</b>. «Я заблудился» — <b>Ik ben verdwaald.</b></p>',ex:[['de stad','город'],['het land','страна'],['de kaart','карта']]},
+  {t:'word',k:'Слово',emoji:'🏙️',nl:'de stad',ipa:'[də stɑt]',tr:'город'},
+  {t:'word',k:'Слово',emoji:'🗺️',nl:'de kaart',ipa:'[də kaːrt]',tr:'карта'},
+  {t:'word',k:'Слово',emoji:'🇳🇱',nl:'het land',ipa:'[ət lɑnt]',tr:'страна'},
+  {t:'quiz',k:'Выбор',q:'«de stad» — это…',opts:['город','страна','улица','карта']},
+  {t:'translate',k:'Перевод',q:'«карта» (с артиклем)',answer:['de kaart'],ph:'de …'},
+  {t:'tf',k:'Верно?',q:'«het land» значит «страна».',answer:true,note:'Да: het land — страна.'},
+  {t:'speak',k:'Говорение',phrase:'Amsterdam is een mooie stad.',tr:'Амстердам — красивый город.'},
+ ]},
+]},
+35:{parts:[
+ {t:'В пути',steps:[
+  {t:'explain',k:'Onderweg',b:'📖 Объяснение',html:'<p>Пробка — <b>de file</b>, водитель — <b>de chauffeur</b>, самолёт — <b>het vliegtuig</b>, трамвай — <b>de tram</b>.</p>',ex:[['de file','пробка'],['de chauffeur','водитель'],['het vliegtuig','самолёт'],['de tram','трамвай']]},
+  {t:'word',k:'Слово',emoji:'🚦',nl:'de file',ipa:'[də ˈfilə]',tr:'пробка'},
+  {t:'word',k:'Слово',emoji:'✈️',nl:'het vliegtuig',ipa:'[ət ˈvlixtœyx]',tr:'самолёт'},
+  {t:'word',k:'Слово',emoji:'🚋',nl:'de tram',ipa:'[də trɛm]',tr:'трамвай'},
+  {t:'quiz',k:'Выбор',q:'«de file» — это…',opts:['пробка','остановка','дорога','вокзал']},
+  {t:'listen',k:'Аудирование',audio:'het vliegtuig',q:'Что прозвучало?',opts:['het vliegtuig','het station','de trein','de tram']},
+  {t:'translate',k:'Перевод',q:'«самолёт» (с артиклем)',answer:['het vliegtuig'],ph:'… vliegtuig'},
+  {t:'match',k:'Пары',pairs:[['de file','пробка'],['de chauffeur','водитель'],['het vliegtuig','самолёт'],['de tram','трамвай']]},
+  {t:'speak',k:'Говорение',phrase:'We staan in de file.',tr:'Мы стоим в пробке.'},
+ ]},
+ {t:'Билет и время',steps:[
+  {t:'explain',k:'Het kaartje',b:'📖 Объяснение',html:'<p>«Один билет, пожалуйста» — <b>Eén kaartje, alstublieft.</b> «Во сколько отходит поезд?» — <b>Hoe laat gaat de trein?</b></p>',ex:[]},
+  {t:'quiz',k:'Выбор',q:'«Hoe laat gaat de trein?» —',opts:['Во сколько поезд?','Где поезд?','Сколько стоит?','Куда идёт поезд?']},
+  {t:'build',k:'Собери',tr:'Один билет, пожалуйста.',words:['Eén','kaartje','alstublieft'],ans:['Eén','kaartje','alstublieft']},
+  {t:'translate',k:'Перевод',q:'«водитель» (с артиклем)',answer:['de chauffeur'],ph:'de …'},
+  {t:'speak',k:'Говорение',phrase:'Hoe laat gaat de trein naar Utrecht?',tr:'Во сколько поезд на Утрехт?'},
+ ]},
+]},
+/* ---------- ТЕМА 8 · ДОСУГ ---------- */
+36:{parts:[
+ {t:'Хобби и спорт',steps:[
+  {t:'explain',k:'Vrije tijd',b:'📖 Объяснение',html:'<p>Свободное время — <b>de vrije tijd</b>, хобби — <b>de hobby</b>. Спорт: <b>sporten</b> (заниматься спортом), <b>voetballen</b> (играть в футбол), <b>zwemmen</b> (плавать).</p>',ex:[['de vrije tijd','свободное время'],['de hobby','хобби'],['sporten','заниматься спортом'],['zwemmen','плавать']]},
+  {t:'word',k:'Слово',emoji:'🎨',nl:'de hobby',ipa:'[də ˈhɔbi]',tr:'хобби'},
+  {t:'word',k:'Слово',emoji:'⚽',nl:'voetballen',ipa:'[ˈvudbɑlə]',tr:'играть в футбол'},
+  {t:'word',k:'Слово',emoji:'🏊',nl:'zwemmen',ipa:'[ˈzʋɛmə]',tr:'плавать'},
+  {t:'quiz',k:'Выбор',q:'«zwemmen» — это…',opts:['плавать','бегать','петь','танцевать']},
+  {t:'quiz',k:'Грамматика',q:'Ik ___ graag. (я люблю плавать)',opts:['zwem','zwemt','zwemmen','zwemd']},
+  {t:'gapType',k:'На слух',audio:'Ik speel voetbal',q:'Ik speel ___',answer:['voetbal'],ph:'…'},
+  {t:'match',k:'Пары',pairs:[['de hobby','хобби'],['sporten','спорт'],['voetballen','футбол'],['zwemmen','плавать'],['de vrije tijd','досуг']]},
+  {t:'translate',k:'Перевод',q:'«хобби» (с артиклем)',answer:['de hobby'],ph:'de …'},
+  {t:'speak',k:'Говорение',phrase:'In mijn vrije tijd zwem ik graag.',tr:'В свободное время я люблю плавать.'},
+ ]},
+ {t:'Музыка и танцы',steps:[
+  {t:'explain',k:'Muziek',b:'📖 Объяснение',html:'<p><b>de muziek</b> — музыка, <b>zingen</b> — петь, <b>dansen</b> — танцевать, <b>spelen</b> — играть. «Я слушаю музыку» — <b>Ik luister naar muziek.</b></p>',ex:[['de muziek','музыка'],['zingen','петь'],['dansen','танцевать'],['spelen','играть']]},
+  {t:'word',k:'Слово',emoji:'🎵',nl:'de muziek',ipa:'[də myˈzik]',tr:'музыка'},
+  {t:'word',k:'Слово',emoji:'🎤',nl:'zingen',ipa:'[ˈzɪŋə]',tr:'петь'},
+  {t:'word',k:'Слово',emoji:'💃',nl:'dansen',ipa:'[ˈdɑnsə]',tr:'танцевать'},
+  {t:'quiz',k:'Выбор',q:'«dansen» — это…',opts:['танцевать','петь','играть','слушать']},
+  {t:'build',k:'Собери',tr:'Я слушаю музыку.',words:['Ik','luister','naar','muziek'],ans:['Ik','luister','naar','muziek']},
+  {t:'translate',k:'Перевод',q:'«музыка» (с артиклем)',answer:['de muziek'],ph:'de …'},
+  {t:'speak',k:'Говорение',phrase:'Ik hou van muziek en dansen.',tr:'Я люблю музыку и танцы.'},
+ ]},
+]},
+37:{parts:[
+ {t:'Друзья',steps:[
+  {t:'explain',k:'Vrienden',b:'📖 Объяснение',html:'<p>Друг — <b>de vriend</b>, подруга — <b>de vriendin</b>. Играть — <b>spelen</b>. «Мы играем вместе» — <b>We spelen samen.</b></p>',ex:[['de vriend','друг'],['de vriendin','подруга'],['spelen','играть']]},
+  {t:'word',k:'Слово',emoji:'🧑‍🤝‍🧑',nl:'de vriend',ipa:'[də vrint]',tr:'друг'},
+  {t:'word',k:'Слово',emoji:'👭',nl:'de vriendin',ipa:'[də vrinˈdɪn]',tr:'подруга'},
+  {t:'quiz',k:'Выбор',q:'«de vriendin» — это…',opts:['подруга','друг','сестра','сосед']},
+  {t:'gapType',k:'На слух',audio:'Hij is mijn vriend',q:'Hij is mijn ___',answer:['vriend'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«друг» (с артиклем)',answer:['de vriend'],ph:'de …'},
+  {t:'tf',k:'Верно?',q:'«de vriend» — мужского рода, «de vriendin» — женского.',answer:true,note:'Да: vriend (друг) / vriendin (подруга).'},
+  {t:'speak',k:'Говорение',phrase:'Dit is mijn vriend Tom.',tr:'Это мой друг Том.'},
+ ]},
+ {t:'Животные',steps:[
+  {t:'explain',k:'Dieren',b:'📖 Объяснение',html:'<p>Животное — <b>het dier</b>. <b>de hond</b> (собака), <b>de kat</b> (кошка), <b>het paard</b> (лошадь). «У меня есть собака» — <b>Ik heb een hond.</b></p>',ex:[['het dier','животное'],['de hond','собака'],['de kat','кошка'],['het paard','лошадь']]},
+  {t:'word',k:'Слово',emoji:'🐶',nl:'de hond',ipa:'[də hɔnt]',tr:'собака'},
+  {t:'word',k:'Слово',emoji:'🐱',nl:'de kat',ipa:'[də kɑt]',tr:'кошка'},
+  {t:'word',k:'Слово',emoji:'🐴',nl:'het paard',ipa:'[ət paːrt]',tr:'лошадь'},
+  {t:'pick',k:'Картинка',q:'Где «de kat»?',opts:['🐱','🐶','🐴','🐟']},
+  {t:'quiz',k:'Выбор',q:'«het paard» — это…',opts:['лошадь','собака','кошка','птица']},
+  {t:'match',k:'Пары',pairs:[['het dier','животное'],['de hond','собака'],['de kat','кошка'],['het paard','лошадь']]},
+  {t:'translate',k:'Перевод',q:'«собака» (с артиклем)',answer:['de hond'],ph:'de …'},
+  {t:'speak',k:'Говорение',phrase:'Ik heb een hond en een kat.',tr:'У меня есть собака и кошка.'},
+ ]},
+]},
+38:{parts:[
+ {t:'Отдых',steps:[
+  {t:'explain',k:'Vakantie',b:'📖 Объяснение',html:'<p>Отпуск — <b>de vakantie</b>, пляж — <b>het strand</b>, море — <b>de zee</b>, природа — <b>de natuur</b>.</p>',ex:[['de vakantie','отпуск'],['het strand','пляж'],['de zee','море'],['de natuur','природа']]},
+  {t:'word',k:'Слово',emoji:'🏖️',nl:'het strand',ipa:'[ət strɑnt]',tr:'пляж'},
+  {t:'word',k:'Слово',emoji:'🌊',nl:'de zee',ipa:'[də zeː]',tr:'море'},
+  {t:'word',k:'Слово',emoji:'🌳',nl:'de natuur',ipa:'[də naːˈtyr]',tr:'природа'},
+  {t:'quiz',k:'Выбор',q:'«de zee» — это…',opts:['море','пляж','река','озеро']},
+  {t:'listen',k:'Аудирование',audio:'het strand',q:'Что прозвучало?',opts:['het strand','de stad','de straat','het station']},
+  {t:'gapType',k:'На слух',audio:'Ik ga naar het strand',q:'Ik ga naar het ___',answer:['strand'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'«отпуск» (с артиклем)',answer:['de vakantie'],ph:'de …'},
+  {t:'speak',k:'Говорение',phrase:'In de vakantie ga ik naar zee.',tr:'В отпуск я еду на море.'},
+ ]},
+ {t:'Погода',steps:[
+  {t:'explain',k:'Het weer',b:'📖 Объяснение',html:'<p>Погода — <b>het weer</b>. «Хорошая погода» — <b>mooi weer</b>, «плохая погода» — <b>slecht weer</b>. «Идёт дождь» — <b>Het regent.</b></p>',ex:[['het weer','погода']]},
+  {t:'word',k:'Слово',emoji:'🌤️',nl:'het weer',ipa:'[ət ʋeːr]',tr:'погода'},
+  {t:'quiz',k:'Выбор',q:'«Het regent» —',opts:['Идёт дождь','Светит солнце','Дует ветер','Холодно']},
+  {t:'tf',k:'Верно?',q:'«mooi weer» значит «хорошая погода».',answer:true,note:'Да: mooi weer — хорошая погода.'},
+  {t:'match',k:'Пары',pairs:[['het weer','погода'],['de vakantie','отпуск'],['het strand','пляж'],['de zee','море'],['de natuur','природа']]},
+  {t:'translate',k:'Перевод',q:'«погода» (с артиклем)',answer:['het weer'],ph:'… weer'},
+  {t:'speak',k:'Говорение',phrase:'Vandaag is het mooi weer.',tr:'Сегодня хорошая погода.'},
+ ]},
+]},
+});
 function renderNode(nd,off,th){var s='margin-left:'+off+'px';
  if(nd.type==='lesson'){var st=lessonState(nd.n);var lock=st==='locked';var here=nd.n===currentLesson();
   var bub=here?'<div class="dbubble" style="color:'+th.c+'">СТАРТ<i></i></div>':'';
@@ -994,8 +1445,6 @@ function renderNode(nd,off,th){var s='margin-left:'+off+'px';
  return '';}
 var offs=[0,34,48,34,0,-34,-48,-34];
 function home(){activeTab='learn';
- var due=srsDue().length;
- var srs=due>0?'<div class="srs-pill" data-go="review">🔁<div style="flex:1"><b>Повторить '+due+' слов</b><span>освежи память</span></div><i>→</i></div>':'';
  var map='';
  THEMES.forEach(function(th,ti){
   map+='<div class="chapdiv"><span class="ln"></span><span class="bdg" style="background:'+th.c+'">'+th.emoji+' Тема '+(ti+1)+' · '+th.name+'</span><span class="ln"></span></div>';
@@ -1003,8 +1452,7 @@ function home(){activeTab='learn';
   var nodes=[];th.lessons.forEach(function(ln,i){nodes.push({type:'lesson',n:ln});if((i+1)%3===0&&i<th.lessons.length-1)nodes.push({type:'practice'});if(i===Math.floor(th.lessons.length/2))nodes.push({type:'chest'});});nodes.push({type:'trophy'});
   nodes.forEach(function(nd,i){map+=renderNode(nd,offs[i%8],th);});
  });
- map+='<div class="srs-demo2" data-go="nextday">⏭ демо: следующий день (день '+vDay+')</div>';
- S.innerHTML=appbar()+srs+'<div class="dmap">'+map+'</div><div style="height:8px"></div>'+nav();
+ S.innerHTML=appbar()+'<div class="dmap">'+map+'</div><div style="height:8px"></div>'+nav();
  S.querySelectorAll('[data-lesson]').forEach(function(b){b.onclick=function(){partsScreen(+b.dataset.lesson);};});
  S.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go);};});
  bindNav();}
@@ -1103,8 +1551,13 @@ function friends(){activeTab='';let h='<div class="ltop"><button class="xbtn" da
   FRIENDS.forEach((f,i)=>{h+='<div class="fr"><div class="av">'+f[0]+'</div><div class="nm">'+f[1]+'<span>'+f[2]+'</span></div><button class="frbtn '+(f[3]?'rm':'add')+'" data-fr="'+i+'">'+(f[3]?'Удалить':'+ Добавить')+'</button></div>';});
   h+='</div>';S.innerHTML=h;S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));S.querySelectorAll('[data-fr]').forEach(b=>b.onclick=()=>{const i=+b.dataset.fr;FRIENDS[i][3]=!FRIENDS[i][3];toast(FRIENDS[i][3]?'✅ Друг добавлен':'Друг удалён');friends();});}
 function train(){activeTab='train';const c=[['mistakes','🔁','Повтор ошибок','где ты ошибался','var(--oranje)'],['quick','⚡','Быстрая тренировка','вперемешку','var(--delft)'],['listen','🎧','Аудирование','слушай речь','var(--success)'],['speak','🗣️','Разговор','говори вслух','var(--delft)'],['words','🔤','Слова','повторяй лексику','var(--oranje)']];
+  var due=srsDue().length;
+  var srsT=due>0
+   ?'<div class="tcard card" data-go="review" style="background:linear-gradient(120deg,var(--berry),#5B21B6);color:#fff;border:none;box-shadow:var(--sh-md)"><div class="ti" style="background:rgba(255,255,255,.22);color:#fff">🔁</div><div><b>Умное повторение</b><span style="color:rgba(255,255,255,.9)">'+due+' слов созрело — освежи память</span></div></div>'
+   :'<div class="tcard card" style="opacity:.75"><div class="ti" style="background:color-mix(in srgb,var(--success) 16%,transparent);color:var(--success)">✅</div><div><b>Умное повторение</b><span>всё повторено — слова созреют позже</span></div></div>';
+  var demo='<div class="srs-demo2" data-go="nextday">⏭ демо: следующий день (день '+vDay+')</div>';
   let later=laterList.length?'<div class="tcard card" data-train="words" style="border:1px dashed var(--delft)"><div class="ti" style="background:color-mix(in srgb,var(--delft) 16%,transparent);color:var(--delft)">🔖</div><div><b>Отложенные слова ('+laterList.length+')</b><span>«повторить позже»</span></div></div>':'';
-  S.innerHTML=appbar()+'<div class="plain"><h2>Тренировка</h2><p class="sub">Закрепляй пройденное — без потери «жизней».</p>'+later+c.map(x=>'<div class="tcard card" data-train="'+x[0]+'"><div class="ti" style="background:color-mix(in srgb,'+x[4]+' 16%,transparent);color:'+x[4]+'">'+x[1]+'</div><div><b>'+x[2]+'</b><span>'+x[3]+'</span></div></div>').join('')+'<div class="tcard card" data-go="ai"><div class="ti" style="background:color-mix(in srgb,var(--delft) 16%,transparent);color:var(--delft)">🤖</div><div><b>AI-репетитор</b><span>спроси про грамматику</span></div></div></div>'+nav();
+  S.innerHTML=appbar()+'<div class="plain"><h2>Тренировка</h2><p class="sub">Закрепляй пройденное — без потери «жизней».</p>'+srsT+later+c.map(x=>'<div class="tcard card" data-train="'+x[0]+'"><div class="ti" style="background:color-mix(in srgb,'+x[4]+' 16%,transparent);color:'+x[4]+'">'+x[1]+'</div><div><b>'+x[2]+'</b><span>'+x[3]+'</span></div></div>').join('')+'<div class="tcard card" data-go="ai"><div class="ti" style="background:color-mix(in srgb,var(--delft) 16%,transparent);color:var(--delft)">🤖</div><div><b>AI-репетитор</b><span>спроси про грамматику</span></div></div>'+demo+'</div>'+nav();
   S.querySelectorAll('[data-train]').forEach(b=>b.onclick=()=>startTrain(b.dataset.train));S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));bindNav();}
 function skillRow(name,pct){const col=pct>=60?'var(--success)':pct>=25?'var(--delft)':'var(--oranje)';return '<div class="skill"><div class="row"><span>'+name+'</span><span class="pc">'+pct+'%</span></div><div class="track"><i style="width:'+pct+'%;background:'+col+'"></i></div></div>';}
 function skillPct(k){const st=skillStat[k];const acc=st.t?st.c/st.t:0;const coverage=progress.doneParts.length/CURRICULUM_TOTAL;return Math.round(Math.min(100,acc*coverage*100));}
