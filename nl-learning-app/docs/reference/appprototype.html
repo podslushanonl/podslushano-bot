@@ -1,0 +1,1193 @@
+<title>Учим нидерландский — прототип</title>
+<style>
+  :root{--oranje:#F26A16;--oranje-2:#D8560A;--delft:#2C6BD6;--delft-2:#1E509F;--berry:#7C4DE0;
+    --bg-a:#F1F3F7;--bg-b:#E4E8F0;--tint:rgba(242,106,22,.06);
+    --surface:rgba(255,255,255,.76);--surface-2:rgba(255,255,255,.52);--brd:rgba(18,24,38,.10);
+    --ink:#0F1726;--ink-2:#586074;--ink-3:#8A93A6;
+    --success:#12A150;--success-s:rgba(18,161,80,.12);--danger:#E23B2E;--danger-s:rgba(226,59,46,.12);
+    --font:-apple-system,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --sh-sm:0 2px 8px -2px rgba(16,24,40,.10);--sh-md:0 12px 30px -14px rgba(16,24,40,.26);--sh-lg:0 30px 60px -28px rgba(16,24,40,.4);}
+  @media (prefers-color-scheme:dark){:root{--oranje:#FF894A;--oranje-2:#F26A16;--delft:#5D97E8;--delft-2:#3B78D4;--berry:#A78BFA;
+    --bg-a:#0A0D13;--bg-b:#11151E;--tint:rgba(255,137,74,.06);--surface:rgba(28,34,46,.68);--surface-2:rgba(28,34,46,.42);--brd:rgba(255,255,255,.10);
+    --ink:#EDF1F8;--ink-2:#A2ABBE;--ink-3:#6E7789;--success:#3ECB7E;--success-s:rgba(62,203,126,.14);--danger:#F0705C;--danger-s:rgba(240,112,92,.14);
+    --sh-sm:0 2px 8px -2px rgba(0,0,0,.5);--sh-md:0 14px 34px -14px rgba(0,0,0,.6);--sh-lg:0 34px 64px -28px rgba(0,0,0,.75);}}
+  :root[data-theme="light"]{--oranje:#F26A16;--oranje-2:#D8560A;--delft:#2C6BD6;--delft-2:#1E509F;--berry:#7C4DE0;--bg-a:#F1F3F7;--bg-b:#E4E8F0;--tint:rgba(242,106,22,.06);--surface:rgba(255,255,255,.76);--surface-2:rgba(255,255,255,.52);--brd:rgba(18,24,38,.10);--ink:#0F1726;--ink-2:#586074;--ink-3:#8A93A6;--success:#12A150;--success-s:rgba(18,161,80,.12);--danger:#E23B2E;--danger-s:rgba(226,59,46,.12);--sh-sm:0 2px 8px -2px rgba(16,24,40,.10);--sh-md:0 12px 30px -14px rgba(16,24,40,.26);--sh-lg:0 30px 60px -28px rgba(16,24,40,.4);}
+  :root[data-theme="dark"]{--oranje:#FF894A;--oranje-2:#F26A16;--delft:#5D97E8;--delft-2:#3B78D4;--berry:#A78BFA;--bg-a:#0A0D13;--bg-b:#11151E;--tint:rgba(255,137,74,.06);--surface:rgba(28,34,46,.68);--surface-2:rgba(28,34,46,.42);--brd:rgba(255,255,255,.10);--ink:#EDF1F8;--ink-2:#A2ABBE;--ink-3:#6E7789;--success:#3ECB7E;--success-s:rgba(62,203,126,.14);--danger:#F0705C;--danger-s:rgba(240,112,92,.14);--sh-sm:0 2px 8px -2px rgba(0,0,0,.5);--sh-md:0 14px 34px -14px rgba(0,0,0,.6);--sh-lg:0 34px 64px -28px rgba(0,0,0,.75);}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--font);color:var(--ink);min-height:100vh;padding:20px 12px 56px;background:linear-gradient(180deg,var(--bg-a),var(--bg-b));-webkit-font-smoothing:antialiased;letter-spacing:-.01em}
+  .dh{max-width:440px;margin:0 auto 12px;text-align:center}.dh h1{font-weight:800;font-size:19px;margin:0 0 3px;letter-spacing:-.03em}.dh p{margin:0;color:var(--ink-2);font-size:12.5px}
+  .toolbar{max-width:440px;margin:0 auto 16px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+  .toolbar button{font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--brd);background:var(--surface);color:var(--ink-2);padding:7px 11px;border-radius:999px}.toolbar button.on{background:var(--delft);color:#fff;border-color:transparent}
+  .applogo{border-radius:26%;display:grid;place-items:center;color:rgba(116,50,6,.82);flex:none;background:linear-gradient(155deg,#ffc98f,#ff8c30 46%,#ff7213);box-shadow:inset 0 2px 3px rgba(255,255,255,.6),inset 0 -6px 12px rgba(176,66,0,.2),var(--sh-sm)}.applogo svg{width:70%;height:70%}
+  @media (prefers-color-scheme:dark){.applogo{color:rgba(60,24,0,.86)}}
+  .phone{width:392px;max-width:100%;height:806px;margin:0 auto;position:relative;border-radius:52px;box-shadow:var(--sh-lg);border:10px solid #0a0d14;overflow:hidden;display:flex;flex-direction:column;isolation:isolate;background:var(--bg-b)}
+  @media (prefers-color-scheme:dark){.phone{border-color:#04060a}}
+  .notch{position:absolute;top:9px;left:50%;transform:translateX(-50%);width:116px;height:30px;background:#0a0d14;border-radius:16px;z-index:60}
+  .sub-bg{position:absolute;inset:0;z-index:0;background:radial-gradient(90% 45% at 50% -6%, var(--tint), transparent 62%),radial-gradient(80% 40% at 90% 108%, color-mix(in srgb,var(--delft) 8%,transparent), transparent 60%),linear-gradient(180deg,var(--bg-a),var(--bg-b))}
+  .statusbar{position:relative;z-index:10;height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 26px 4px;font-size:13px;font-weight:700}.statusbar .r{display:flex;gap:5px;align-items:center;opacity:.85}.statusbar .r b{width:15px;height:10px;background:var(--ink);border-radius:2px;display:inline-block}
+  .screen{position:relative;z-index:10;flex:1;overflow-y:auto;overflow-x:hidden}.screen::-webkit-scrollbar{width:0}
+  .card{background:var(--surface);backdrop-filter:blur(20px) saturate(150%);-webkit-backdrop-filter:blur(20px) saturate(150%);border:1px solid var(--brd);border-radius:20px;box-shadow:var(--sh-sm)}
+  .appbar{position:sticky;top:0;z-index:30;margin:8px 14px 8px;padding:9px 12px;display:flex;align-items:center;justify-content:space-between;border-radius:18px}
+  .brand{display:flex;align-items:center;gap:9px}.brand b{font-weight:800;font-size:14.5px;letter-spacing:-.02em}.brand small{display:block;color:var(--ink-2);font-size:10px;font-weight:600;margin-top:-1px}
+  .stats{display:flex;gap:10px;font-weight:800;font-size:14px}.stats .s{display:flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums}.stats .streak{color:var(--oranje)}.stats .xp{color:var(--delft)}
+  .unit-card{margin:2px 16px 6px;padding:15px 17px;border-radius:20px;display:flex;justify-content:space-between;align-items:center;color:#fff;background:linear-gradient(120deg,var(--delft),var(--delft-2));box-shadow:var(--sh-md);cursor:pointer}
+  .unit-card small{opacity:.85;font-weight:700;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase}.unit-card b{font-weight:800;font-size:17px;display:block;margin-top:3px;letter-spacing:-.02em}.unit-card .arr{font-size:13px;opacity:.9;margin-top:3px;font-weight:600}
+  .path{display:flex;flex-direction:column;align-items:center;padding:12px 0 6px}
+  .nw{display:flex;flex-direction:column;align-items:center;position:relative;animation:fadeup .4s both}
+  .nw .lb{font-size:11px;color:var(--ink-2);margin:4px 0 3px;font-weight:600;text-align:center;max-width:210px}
+  .nw .plink{font-size:10.5px;color:var(--delft);font-weight:700;cursor:pointer;margin-bottom:10px}
+  .node{width:64px;height:64px;border-radius:22px;display:grid;place-items:center;cursor:pointer;border:none;position:relative;font-weight:800;font-size:22px;color:#fff;box-shadow:var(--sh-sm);transition:transform .12s}
+  .node:active{transform:scale(.94)}.node.done{background:linear-gradient(150deg,var(--oranje),var(--oranje-2))}
+  .node.current{background:linear-gradient(150deg,var(--delft),var(--delft-2));box-shadow:0 0 0 4px color-mix(in srgb,var(--delft) 25%,transparent),var(--sh-md);animation:breathe 2.4s ease-in-out infinite}
+  @keyframes breathe{50%{box-shadow:0 0 0 8px color-mix(in srgb,var(--delft) 14%,transparent),var(--sh-md)}}
+  .node.locked{cursor:not-allowed;color:var(--ink-3);background:var(--surface);border:1px solid var(--brd);box-shadow:none}
+  .pill{position:absolute;top:-30px;font-weight:800;font-size:10.5px;padding:5px 11px;border-radius:999px;white-space:nowrap;color:#fff;background:var(--delft);box-shadow:var(--sh-sm)}.pill::after{content:"";position:absolute;bottom:-4px;left:50%;transform:translateX(-50%) rotate(45deg);width:8px;height:8px;background:var(--delft)}
+  .conn{width:3px;height:16px;border-radius:3px;background:var(--brd);margin:1px 0}
+  .parts{display:flex;gap:3px;justify-content:center;margin:1px 0 2px}.parts i{width:13px;height:4px;border-radius:2px;background:var(--brd)}.parts i.on{background:var(--oranje)}
+  .nav{position:sticky;bottom:0;z-index:30;margin:6px 12px 10px;padding:6px;display:flex;border-radius:20px}
+  .nav button{flex:1;background:none;border:none;padding:8px 0;cursor:pointer;color:var(--ink-3);border-radius:14px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:10px;font-weight:700}.nav button.on{color:var(--oranje)}.nav svg{width:22px;height:22px}
+  .ltop{display:flex;align-items:center;gap:10px;padding:14px 16px 4px}
+  .xbtn{background:none;border:none;font-size:22px;color:var(--ink-3);cursor:pointer;line-height:1}
+  .pbar{flex:1;height:12px;border-radius:999px;overflow:hidden;background:var(--surface-2);border:1px solid var(--brd)}.pbar>i{display:block;height:100%;border-radius:999px;background:var(--success);transition:width .45s cubic-bezier(.4,1.2,.5,1)}
+  .hearts{display:flex;align-items:center;gap:3px;color:var(--danger);font-weight:800;font-size:14px}.hearts svg{width:19px;height:19px}
+  .retry-banner{margin:8px 16px 0;padding:8px 12px;border-radius:12px;background:var(--danger-s);color:var(--danger);font-size:12.5px;font-weight:700;display:flex;align-items:center;gap:6px}
+  .lbody{padding:8px 18px 18px;animation:slidein .3s ease}
+  @keyframes slidein{from{opacity:0;transform:translateY(10px)}}@keyframes fadeup{from{opacity:0;transform:translateY(6px)}}
+  .kick{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--delft);margin:12px 2px 6px}
+  .qt{font-weight:800;font-size:22px;line-height:1.2;letter-spacing:-.03em;margin:0 0 15px;text-wrap:balance}
+  .explain{padding:18px}.badge{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--delft) 14%,transparent);color:var(--delft);font-weight:800;font-size:12px;padding:5px 11px;border-radius:999px;margin-bottom:12px}
+  .explain p{margin:0 0 10px;font-size:15px;line-height:1.6}.explain h4{margin:14px 0 6px;font-size:14px;font-weight:800}
+  .rule{background:color-mix(in srgb,var(--oranje) 12%,transparent);border-left:3px solid var(--oranje);border-radius:0 10px 10px 0;padding:11px 13px;font-size:14px;line-height:1.5;margin:12px 0}
+  .exmini{display:flex;flex-direction:column;gap:7px;margin-top:10px}
+  .exrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 12px;border-radius:12px;background:var(--surface-2);border:1px solid var(--brd)}.exrow .nl{font-weight:700}.exrow .ru{color:var(--ink-2);font-size:13px}
+  .abc{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}.abc .l{padding:8px 4px;border-radius:10px;background:var(--surface-2);border:1px solid var(--brd);text-align:center;cursor:pointer}.abc .l b{font-weight:800;font-size:16px;display:block}.abc .l span{font-size:10.5px;color:var(--ink-2)}
+  .numtab{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:10px}.numtab .n{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--brd);cursor:pointer;font-size:14px}.numtab .n b{font-weight:800;color:var(--delft);width:20px;font-variant-numeric:tabular-nums}.numtab .n svg{width:15px;height:15px;color:var(--delft);margin-left:auto}
+  .wordcard{padding:24px 18px;text-align:center}.wemoji{font-size:60px;line-height:1;margin-bottom:12px}.wnl{font-weight:800;font-size:28px;letter-spacing:-.02em}.wipa{color:var(--ink-3);font-size:13px;margin-top:2px}.wtr{color:var(--ink-2);font-size:15px;margin-top:6px}
+  .play{width:42px;height:42px;border-radius:13px;border:none;cursor:pointer;color:#fff;display:grid;place-items:center;flex:none;background:var(--delft);box-shadow:var(--sh-sm);transition:transform .12s}.play:active{transform:scale(.9)}.play svg{width:19px;height:19px}.play.big{width:88px;height:88px;border-radius:28px;margin:8px auto 22px}.play.big svg{width:34px;height:34px}.play.playing{animation:ring 1s ease infinite}@keyframes ring{0%,100%{box-shadow:var(--sh-sm)}50%{box-shadow:0 0 0 10px color-mix(in srgb,var(--delft) 16%,transparent)}}
+  .opts{display:flex;flex-direction:column;gap:9px}
+  .opt{display:flex;align-items:center;gap:12px;padding:14px 15px;cursor:pointer;font-size:16px;font-weight:600;color:var(--ink);text-align:left;border-radius:15px;background:var(--surface);border:1px solid var(--brd);transition:.14s;animation:fadeup .3s both}
+  .opt:hover{border-color:var(--delft);transform:translateY(-1px)}
+  .opt .key{width:25px;height:25px;flex:none;border-radius:8px;border:1.5px solid var(--brd);display:grid;place-items:center;font-size:12px;font-weight:800;color:var(--ink-3)}
+  .opt.sel{border-color:var(--delft);background:color-mix(in srgb,var(--delft) 10%,var(--surface))}.opt.sel .key{border-color:var(--delft);color:var(--delft)}
+  .opt.correct{border-color:var(--success);background:var(--success-s);animation:pop .3s}.opt.correct .key{border-color:var(--success);color:var(--success)}
+  .opt.wrong{border-color:var(--danger);background:var(--danger-s);animation:shake .3s}.opt.wrong .key{border-color:var(--danger);color:var(--danger)}.opt.dim{opacity:.4}
+  @keyframes pop{40%{transform:scale(1.03)}}@keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  .picks{display:grid;grid-template-columns:1fr 1fr;gap:11px}.pick{aspect-ratio:1/.8;border-radius:18px;cursor:pointer;display:grid;place-items:center;background:var(--surface);border:1px solid var(--brd);transition:.14s;animation:fadeup .3s both}.pick .pe{font-size:42px;line-height:1.1;text-align:center}.pick.sel{border-color:var(--delft);background:color-mix(in srgb,var(--delft) 10%,var(--surface))}.pick.correct{border-color:var(--success);background:var(--success-s)}.pick.wrong{border-color:var(--danger);background:var(--danger-s)}.pick.dim{opacity:.4}
+  .tinput{width:100%;padding:15px 16px;border-radius:14px;border:1.5px solid var(--brd);background:var(--surface);font-size:18px;font-weight:700;color:var(--ink);outline:none;font-family:var(--font)}.tinput::placeholder{color:var(--ink-3);font-weight:600;font-size:15px}
+  .tfrow{display:flex;gap:11px}.tf{flex:1;padding:18px 10px;border-radius:15px;cursor:pointer;font-weight:800;font-size:16px;color:var(--ink);background:var(--surface);border:1px solid var(--brd);transition:.14s}.tf.sel{border-color:var(--delft);background:color-mix(in srgb,var(--delft) 10%,var(--surface))}.tf.okc{border-color:var(--success);color:var(--success);background:var(--success-s)}.tf.badc{border-color:var(--danger);color:var(--danger);background:var(--danger-s)}
+  .ansline{min-height:54px;border-bottom:2px dashed var(--brd);display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;padding:8px 2px;margin:8px 0 16px}
+  .bank{display:flex;flex-wrap:wrap;gap:8px}.chip{padding:9px 13px;font-size:15px;font-weight:700;cursor:pointer;color:var(--ink);border-radius:12px;background:var(--surface);border:1px solid var(--brd);box-shadow:var(--sh-sm);transition:.1s}.chip:active{transform:translateY(1px)}.chip.used{opacity:.3;pointer-events:none}.chip.inline{background:color-mix(in srgb,var(--delft) 12%,var(--surface));border-color:var(--delft)}
+  .cols{display:flex;gap:11px}.col{flex:1;display:flex;flex-direction:column;gap:8px}.mch{padding:12px;border-radius:13px;cursor:pointer;font-weight:700;font-size:14.5px;text-align:center;color:var(--ink);background:var(--surface);border:1px solid var(--brd);transition:.14s}.mch.sel{border-color:var(--delft);background:color-mix(in srgb,var(--delft) 10%,var(--surface))}.mch.ok{border-color:var(--success);color:var(--success);opacity:.5;pointer-events:none}.mch.bad{border-color:var(--danger);animation:shake .3s}
+  .speakbox{text-align:center;padding:8px 0}.speakphrase{font-weight:800;font-size:22px;margin:14px 0 4px;letter-spacing:-.02em}.speaktr{color:var(--ink-2);font-size:14px;margin-bottom:22px}.mic{width:92px;height:92px;border-radius:30px;border:none;cursor:pointer;color:#fff;display:grid;place-items:center;margin:0 auto 8px;background:linear-gradient(150deg,var(--oranje),var(--oranje-2));box-shadow:var(--sh-md)}.mic svg{width:36px;height:36px}.mic.rec{animation:micp 1s infinite}@keyframes micp{50%{box-shadow:0 0 0 14px color-mix(in srgb,var(--oranje) 18%,transparent)}}
+  .foot{position:sticky;bottom:0;padding:12px 18px calc(12px + env(safe-area-inset-bottom));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);background:var(--surface-2);border-top:1px solid var(--brd);display:flex;flex-direction:column;gap:8px;animation:footup .3s ease}
+  @keyframes footup{from{transform:translateY(10px);opacity:.4}}
+  .foot.ok{background:var(--success-s)}.foot.no{background:var(--danger-s)}.foot .msg{display:flex;align-items:center;gap:8px;font-weight:800;font-size:14.5px}.foot.ok .msg{color:var(--success)}.foot.no .msg{color:var(--danger)}.foot .ic{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;flex:none}.foot.ok .ic{background:var(--success)}.foot.no .ic{background:var(--danger)}
+  .praise-nl{font-weight:800}.praise-ru{font-weight:600;opacity:.7;font-size:12.5px;margin-left:4px}
+  .btn{width:100%;border:none;border-radius:15px;padding:15px;font-weight:800;font-size:16px;cursor:pointer;color:#fff;background:var(--success);box-shadow:var(--sh-sm);transition:transform .1s;font-family:var(--font)}.btn:active{transform:translateY(1px) scale(.995)}.btn.blue{background:var(--delft)}.btn.oran{background:linear-gradient(150deg,var(--oranje),var(--oranje-2))}.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--brd);box-shadow:none}.btn:disabled{background:var(--surface-2);color:var(--ink-3);box-shadow:none;cursor:not-allowed;border:1px solid var(--brd)}
+  .done-wrap{padding:36px 24px;text-align:center;display:flex;flex-direction:column;align-items:center;min-height:100%;justify-content:center}.trophy{width:104px;height:104px;border-radius:32px;display:grid;place-items:center;font-size:50px;margin-bottom:18px;background:linear-gradient(150deg,var(--oranje),var(--oranje-2));box-shadow:var(--sh-md);animation:pop2 .5s cubic-bezier(.2,1.5,.4,1)}@keyframes pop2{from{transform:scale(.5) rotate(-8deg);opacity:0}}
+  .done-wrap h2{font-weight:800;font-size:25px;margin:0 0 6px;letter-spacing:-.03em}.done-wrap>p{color:var(--ink-2);margin:0 0 20px}
+  .reward{display:flex;gap:10px;width:100%;margin-bottom:16px}.rcard{flex:1;padding:14px 8px;border-radius:16px}.rcard .v{font-weight:800;font-size:21px;font-variant-numeric:tabular-nums}.rcard .k{font-size:10px;color:var(--ink-2);font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:.04em}.rcard.xp .v{color:var(--delft)}.rcard.streak .v{color:var(--oranje)}.rcard.acc .v{color:var(--success)}
+  .ob{min-height:100%;display:flex;flex-direction:column;padding:30px 24px 22px}.ob.center{justify-content:center;text-align:center}.ob h2{font-weight:800;font-size:25px;margin:0 0 8px;letter-spacing:-.03em;text-wrap:balance}.ob p{color:var(--ink-2);font-size:15px;line-height:1.5;margin:0 0 22px;text-wrap:balance}.ob .spacer{flex:1}
+  .choice{padding:15px;border-radius:16px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:13px;margin-bottom:10px;background:var(--surface);border:1.5px solid var(--brd);transition:.14s;animation:fadeup .3s both}.choice:active{transform:scale(.99)}.choice.sel{border-color:var(--delft);background:color-mix(in srgb,var(--delft) 8%,var(--surface))}.choice .ei{width:44px;height:44px;border-radius:13px;flex:none;display:grid;place-items:center;font-size:23px;background:var(--surface-2)}.choice b{font-weight:800;font-size:15.5px;display:block}.choice span{font-size:12.5px;color:var(--ink-2)}.choice .rec{font-size:10px;font-weight:800;color:var(--success);text-transform:uppercase;letter-spacing:.05em}.choice .ck{margin-left:auto;width:24px;height:24px;border-radius:50%;border:2px solid var(--brd);flex:none;display:grid;place-items:center;color:#fff}.choice.sel .ck{background:var(--delft);border-color:var(--delft)}
+  .obhead{display:flex;align-items:center;gap:10px;margin-bottom:18px}.obdots{display:flex;gap:5px}.obdots i{width:22px;height:5px;border-radius:3px;background:var(--brd)}.obdots i.on{background:var(--delft)}
+  .pro-hero{width:84px;height:84px;border-radius:26px;margin:0 auto 14px;display:grid;place-items:center;font-size:38px;background:linear-gradient(150deg,var(--oranje),var(--oranje-2));box-shadow:var(--sh-md)}.pro-feat{display:flex;align-items:flex-start;gap:11px;text-align:left;margin-bottom:11px}.pro-feat .pc{width:24px;height:24px;border-radius:8px;flex:none;display:grid;place-items:center;background:var(--success-s);color:var(--success)}.pro-feat b{font-weight:700;font-size:14px;display:block}.price{font-weight:800;font-size:15px;margin:6px 0 2px}.price s{color:var(--ink-3);font-weight:600}
+  .plain{padding:20px 18px}.plain h2{font-weight:800;font-size:22px;margin:0 0 4px;letter-spacing:-.03em}.plain .sub{color:var(--ink-2);font-size:14px;margin:0 0 16px}
+  .tcard{padding:14px;border-radius:16px;margin-bottom:10px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:.12s;animation:fadeup .3s both}.tcard:active{transform:scale(.99)}.tcard .ti{width:44px;height:44px;border-radius:13px;flex:none;display:grid;place-items:center;font-size:21px}.tcard b{font-weight:800;font-size:15px;display:block}.tcard span{font-size:12.5px;color:var(--ink-2)}
+  .partcard{display:flex;align-items:center;gap:13px;padding:14px;border-radius:16px;margin-bottom:10px;cursor:pointer;transition:.12s;animation:fadeup .3s both}.partcard.locked{opacity:.5;cursor:not-allowed}.partcard:not(.locked):active{transform:scale(.99)}
+  .partcard .pn{width:44px;height:44px;border-radius:14px;flex:none;display:grid;place-items:center;font-weight:800;font-size:17px;color:#fff}.pn.done{background:linear-gradient(150deg,var(--oranje),var(--oranje-2))}.pn.current{background:linear-gradient(150deg,var(--delft),var(--delft-2))}.pn.locked{background:var(--surface-2);color:var(--ink-3)}
+  .partcard b{font-weight:800;font-size:15px;display:block}.partcard span{font-size:12px;color:var(--ink-2)}
+  .avatar{width:76px;height:76px;border-radius:24px;margin:0 auto 12px;display:grid;place-items:center;color:#fff;font-weight:800;font-size:29px;background:linear-gradient(150deg,var(--delft),var(--delft-2));box-shadow:var(--sh-sm)}
+  .skill{margin-bottom:11px}.skill .row{display:flex;justify-content:space-between;font-size:13px;font-weight:700;margin-bottom:6px}.skill .row .pc{color:var(--ink-2);font-variant-numeric:tabular-nums}.skill .track{height:9px;border-radius:999px;overflow:hidden;background:var(--surface-2);border:1px solid var(--brd)}.skill .track>i{display:block;height:100%;border-radius:999px;transition:width .6s}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+  .big-ready{text-align:center;padding:16px;border-radius:18px;margin-bottom:14px}.big-ready .v{font-weight:800;font-size:34px;color:var(--delft);letter-spacing:-.03em}.big-ready .k{font-size:12px;color:var(--ink-2);font-weight:600}
+  .seclist .sec{padding:14px 16px;border-radius:16px;margin-bottom:10px}.seclist .sec .sh{display:flex;justify-content:space-between;align-items:center}.seclist .sec b{font-weight:800;font-size:15px}.seclist .sec .lv{font-size:11px;font-weight:800;padding:3px 8px;border-radius:8px;background:var(--surface-2)}
+  .seclist .les{display:flex;align-items:center;gap:10px;padding:9px 4px;font-size:14px;border-top:1px solid var(--brd)}.seclist .les .st{width:22px;height:22px;border-radius:7px;flex:none;display:grid;place-items:center;font-size:12px;color:#fff}.st.done{background:var(--oranje)}.st.current{background:var(--delft)}.st.locked{background:var(--surface-2);color:var(--ink-3)}
+  .lg-head{margin:6px 16px;padding:16px;border-radius:20px;color:#fff;background:linear-gradient(120deg,var(--berry),#5B21B6);box-shadow:var(--sh-md);text-align:center}.lg-head .em{font-size:36px}.lg-head b{display:block;font-weight:800;font-size:18px;margin-top:4px}.lg-head span{font-size:12px;opacity:.9}
+  .lrow{display:flex;align-items:center;gap:11px;padding:11px 14px;border-radius:14px;margin-bottom:7px}.lrow.me{background:color-mix(in srgb,var(--delft) 12%,var(--surface));border:1px solid var(--delft)}.lrow .rk{width:26px;font-weight:800;font-variant-numeric:tabular-nums;color:var(--ink-2);text-align:center}.lrow .av{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-size:18px;flex:none;background:var(--surface-2)}.lrow .nm{flex:1;font-weight:700;font-size:14.5px}.lrow .xp{font-weight:800;color:var(--delft);font-size:14px;font-variant-numeric:tabular-nums}
+  .promo{border-top:2px dashed var(--success);margin:6px 0;text-align:center;font-size:11px;color:var(--success);font-weight:800;padding-top:4px}
+  .post{padding:14px;border-radius:18px;margin-bottom:11px}.post .ph{display:flex;align-items:center;gap:10px;margin-bottom:9px}.post .ph .av{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:19px;flex:none;background:var(--surface-2)}.post .ph b{font-weight:800;font-size:14px;display:block}.post .ph span{font-size:11.5px;color:var(--ink-2)}.post .txt{font-size:14.5px;line-height:1.45;margin-bottom:10px}.post .act{display:flex;gap:16px;font-size:12.5px;color:var(--ink-2);font-weight:700}.post .act b{cursor:pointer;display:flex;align-items:center;gap:4px}.post .act b.liked{color:var(--danger)}
+  .fr{display:flex;align-items:center;gap:11px;padding:10px 4px;border-bottom:1px solid var(--brd)}.fr .av{width:40px;height:40px;border-radius:14px;display:grid;place-items:center;font-size:19px;flex:none;background:var(--surface-2)}.fr .nm{flex:1;font-weight:700;font-size:14.5px}.fr .nm span{display:block;font-size:11.5px;color:var(--ink-2);font-weight:500}.frbtn{border:none;border-radius:10px;padding:8px 13px;font-weight:800;font-size:12.5px;cursor:pointer;font-family:var(--font)}.frbtn.add{background:var(--delft);color:#fff}.frbtn.rm{background:var(--surface-2);color:var(--ink-2);border:1px solid var(--brd)}
+  .ach{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}.ach .a{text-align:center;padding:12px 6px;border-radius:14px;background:var(--surface-2);border:1px solid var(--brd)}.ach .a.lock{opacity:.4}.ach .a .ic{font-size:28px}.ach .a .t{font-size:10.5px;font-weight:700;margin-top:4px;line-height:1.2}
+  .ai-msg{max-width:82%;padding:11px 13px;border-radius:16px;font-size:14px;line-height:1.5;margin-bottom:9px}.ai-a{background:var(--surface);border:1px solid var(--brd);border-bottom-left-radius:5px}.ai-u{background:var(--delft);color:#fff;margin-left:auto;border-bottom-right-radius:5px}.ai-chip{display:inline-block;padding:8px 12px;border-radius:999px;background:var(--surface);border:1px solid var(--brd);font-size:13px;font-weight:600;cursor:pointer;margin:3px}
+  .splash{position:absolute;inset:0;z-index:70;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:linear-gradient(160deg,#FF9A3D,#F26A16 55%,#D8560A);color:#fff}
+  .splash .lg{animation:splashin .7s cubic-bezier(.2,1.5,.4,1)}@keyframes splashin{from{transform:scale(0) rotate(-20deg);opacity:0}}
+  .splash h2{font-weight:800;font-size:23px;margin:0;letter-spacing:-.03em;animation:fadeup .5s .3s both}
+  .splash .load{width:150px;height:6px;border-radius:999px;background:rgba(255,255,255,.3);overflow:hidden}.splash .load>i{display:block;height:100%;width:0;background:#fff;border-radius:999px;animation:loadbar 1.7s ease forwards}@keyframes loadbar{to{width:100%}}
+  .confetti{position:absolute;inset:0;z-index:75;pointer-events:none;overflow:hidden}.confetti i{position:absolute;top:-12px;width:9px;height:14px;border-radius:2px;animation:cfall 2s ease-in forwards}@keyframes cfall{to{transform:translateY(860px) rotate(540deg);opacity:.3}}
+  .blockrow{display:flex;gap:8px;margin:2px 16px 6px}
+  .blocktab{flex:1;padding:9px;border-radius:12px;border:1px solid var(--brd);background:var(--surface);color:var(--ink-2);font-weight:800;font-size:13px;cursor:pointer;font-family:var(--font)}
+  .blocktab.on{background:var(--delft);color:#fff;border-color:transparent}
+  .srs-card{margin:2px 16px 4px;padding:14px 16px;border-radius:18px;display:flex;align-items:center;gap:13px;cursor:pointer;color:#fff;background:linear-gradient(120deg,#7C4DE0,#5B21B6);box-shadow:var(--sh-md)}
+  .srs-card.done{background:linear-gradient(120deg,var(--success),#0a7a44);cursor:default}
+  .srs-card .si{font-size:26px}.srs-card b{font-weight:800;font-size:15px;display:block}.srs-card span{font-size:12px;opacity:.9}.srs-card .srs-go{font-weight:800;font-size:13px}
+  .srs-demo{margin:0 16px 6px;text-align:center;font-size:11.5px;color:var(--ink-3);font-weight:700;cursor:pointer;padding:4px}
+  .memrow{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--brd)}
+  .membar{height:6px;border-radius:999px;background:var(--surface-2);overflow:hidden;margin-top:5px}.membar>i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--oranje),var(--delft))}
+  .memdue{font-size:11px;font-weight:700;color:var(--ink-2);white-space:nowrap}
+  .throw{display:flex;gap:7px;overflow-x:auto;padding:4px 14px 8px;scrollbar-width:none}.throw::-webkit-scrollbar{display:none}
+  .thtab{flex:none;width:38px;height:38px;border-radius:12px;border:1px solid var(--brd);background:var(--surface);font-size:19px;cursor:pointer;display:grid;place-items:center;transition:.12s}
+  .dbanner{position:sticky;top:0;z-index:20;margin:2px 14px 6px;padding:14px 16px;border-radius:16px;color:#fff;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--sh-md)}
+  .dbanner small{opacity:.9;font-weight:800;font-size:10.5px;letter-spacing:.07em}.dbanner b{display:block;font-size:17px;font-weight:800;margin-top:2px;letter-spacing:-.02em}
+  .dmap{display:flex;flex-direction:column;align-items:center;padding:26px 0 22px}
+  .dnw{position:relative;margin:7px 0;display:flex;justify-content:center}
+  .dnode{width:66px;height:66px;border-radius:50%;display:grid;place-items:center;cursor:pointer;border:none;color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.16);transition:transform .1s}
+  .dnode svg{width:29px;height:29px}.dnode.emj{font-size:29px}
+  .dnode:active{transform:translateY(5px);box-shadow:0 1px 0 rgba(0,0,0,.16)}
+  .dnode.lock{background:#e3e3ea!important;color:#b3b3bd!important;box-shadow:0 6px 0 #ccccd4!important;cursor:not-allowed}
+  @media (prefers-color-scheme:dark){.dnode.lock{background:#242a38!important;color:#59617a!important;box-shadow:0 6px 0 #171c27!important}}
+  .dcur{animation:cur 1.8s ease-in-out infinite}@keyframes cur{50%{transform:translateY(-3px)}}
+  .dbubble{position:absolute;top:-36px;background:var(--surface-solid);font-weight:800;font-size:11px;padding:6px 13px;border-radius:11px;box-shadow:var(--sh-md);white-space:nowrap;z-index:25}
+  .dbubble i{position:absolute;bottom:-5px;left:50%;transform:translateX(-50%) rotate(45deg);width:9px;height:9px;background:var(--surface-solid)}
+  .cap{max-width:440px;margin:14px auto 0;text-align:center;color:var(--ink-2);font-size:12px;line-height:1.6}
+  /* --- ТЕЛЕФОН: приложение на весь экран --- */
+  @media (max-width:520px){
+    body{padding:0;background:#000}
+    .dh,.toolbar,.cap{display:none}
+    .phone{width:100vw;height:100vh;max-width:none;border:0;border-radius:0;box-shadow:none}
+    .notch{display:none}.statusbar{height:max(28px,env(safe-area-inset-top))}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="dh"><h1>Учим нидерландский — прототип</h1><p>Открой эту ссылку на телефоне (в приложении/браузере Claude) — развернётся на весь экран 📱</p></div>
+<div class="toolbar" id="toolbar">
+  <button data-go="onboard" class="on">✨ Онбординг</button><button data-go="test">🎯 Тест</button><button data-go="home">🗺️ Карта</button>
+  <button data-go="path">🧭 Путь</button><button data-go="lesson">📖 Урок</button><button data-go="league">🏆 Лига</button>
+  <button data-go="feed">📰 Лента</button><button data-go="ai">🤖 AI</button><button data-go="profile">👤 Профиль</button><button id="themeBtn">🌗</button>
+</div>
+<div class="phone">
+  <div class="notch"></div><div class="sub-bg"></div>
+  <div class="statusbar"><span>9:41</span><span class="r"><b style="width:18px"></b><b style="width:12px;opacity:.5"></b><b></b></span></div>
+  <div class="screen" id="screen"></div>
+</div>
+<p class="cap">Уроки разбиты на части — каждая проходится отдельно и насыщена материалом. Похвала на нидерландском — время от времени.</p>
+
+<script>
+const S=document.getElementById('screen');
+let XP=0,STREAK=1,activeTab='learn';
+let progress={doneParts:[]};
+let userLevel='A1',userGoals=[],userMin=10,laterList=[];
+let skillStat={luisteren:{c:0,t:0},lezen:{c:0,t:0},spreken:{c:0,t:0},schrijven:{c:0,t:0},knm:{c:0,t:0}};
+const CURRICULUM_TOTAL=140; // всего частей во всём курсе A1→B1 (оценка)
+const SK={listen:'luisteren',gap:'luisteren',gapType:'luisteren',quiz:'lezen',pick:'lezen',tf:'lezen',match:'lezen',translate:'schrijven',build:'schrijven',speak:'spreken'};
+function rng(seed){let s=seed%2147483647;if(s<=0)s+=2147483646;return function(){s=s*16807%2147483647;return (s-1)/2147483646;};}
+function shuf(arr,seed){const a=arr.slice(),r=rng(seed||1);for(let i=a.length-1;i>0;i--){const j=Math.floor(r()*(i+1));const t=a[i];a[i]=a[j];a[j]=t;}return a;}
+let seedCtr=7;
+function buildWave(){const N=39,W=240,H=150,g=W/N;let b='';for(let i=0;i<N;i++){const x=(i/(N-1))*2-1;let h=0.10+0.95*Math.exp(-(x*x)/0.015)+0.42*Math.exp(-((x-0.46)**2)/0.010)+0.42*Math.exp(-((x+0.46)**2)/0.010);h+=0.06*Math.sin(i*2.3);h=Math.max(0.05,Math.min(1,h));const bh=h*H,bx=i*g+g*0.5,r=Math.min(g*0.18,3.2);b+='<rect x="'+(bx-r).toFixed(1)+'" y="'+((H-bh)/2).toFixed(1)+'" width="'+(r*2).toFixed(1)+'" height="'+bh.toFixed(1)+'" rx="'+r.toFixed(1)+'"/>';}return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="xMidYMid meet" fill="currentColor">'+b+'</svg>';}
+const WAVE=buildWave(),LOGO_SM='<div class="applogo" style="width:36px;height:36px">'+WAVE+'</div>',LOGO_LG='<div class="applogo lg" style="width:96px;height:96px;margin:0 auto 6px">'+WAVE+'</div>';
+function speak(t,btn){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='nl-NL';u.rate=.9;const v=speechSynthesis.getVoices().find(x=>x.lang&&x.lang.toLowerCase().startsWith('nl'));if(v)u.voice=v;if(btn){btn.classList.add('playing');u.onend=u.onerror=()=>btn.classList.remove('playing');}speechSynthesis.speak(u);}catch(e){}}
+if('speechSynthesis'in window)speechSynthesis.onvoiceschanged=()=>{};
+function toast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--bg-a);padding:9px 15px;border-radius:999px;font-size:12.5px;font-weight:700;box-shadow:var(--sh-md);animation:fadeup .3s';document.querySelector('.phone').appendChild(t);setTimeout(()=>t.remove(),1600);}
+function confetti(){const c=document.createElement('div');c.className='confetti';const cols=['#F26A16','#2C6BD6','#12A150','#F2C438','#E23B2E','#7C4DE0'];let h='';for(let i=0;i<30;i++){h+='<i style="left:'+((i*37+9)%100)+'%;background:'+cols[i%6]+';animation-delay:'+((i%8)*70)+'ms;animation-duration:'+(1600+(i%5)*180)+'ms"></i>';}c.innerHTML=h;const ph=document.querySelector('.phone');if(ph){ph.appendChild(c);setTimeout(()=>c.remove(),2600);}}
+function splash(){const sp=document.createElement('div');sp.className='splash';sp.innerHTML='<div style="color:#fff">'+LOGO_LG.replace('applogo lg','applogo lg').replace('color:rgba','x:rgba')+'</div><h2>Leer Nederlands</h2><div class="load"><i></i></div><div style="font-size:12px;opacity:.85">Учим нидерландский · загрузка…</div>';const ph=document.querySelector('.phone');ph.appendChild(sp);setTimeout(()=>{sp.style.transition='opacity .4s';sp.style.opacity='0';setTimeout(()=>{sp.remove();onboard();},400);},1800);}
+const I={play:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>',heart:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.4 2 5 5.2 5c2 0 3.2 1 3.8 2 .6-1 1.8-2 3.8-2 3.2 0 4.8 3.4 3.2 6.7C19.5 16.4 12 21 12 21z"/></svg>',home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>',dumb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 9v6M8 7v10M16 7v10M20 9v6M8 12h8"/></svg>',user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 5-6 8-6s6.5 2 8 6"/></svg>',check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>',x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',lock:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1V7a5 5 0 0 0-5-5zm-3 8V7a3 3 0 0 1 6 0v3H9z"/></svg>',mic:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4"/></svg>'};
+const META=[{n:1,t:'Алфавит, звуки, приветствия',blk:1},{n:2,t:'Знакомство',blk:1},{n:3,t:'Это я',blk:1},{n:4,t:'Мир вокруг',blk:1},{n:5,t:'Считаем',blk:1},{n:6,t:'Мой день',blk:1},{n:7,t:'Задаю вопросы',blk:1},{n:8,t:'Семья и люди',blk:1},{n:9,t:'Да, нет, не',blk:1},{n:10,t:'Говорю о себе',blk:1},{n:11,t:'Еда и напитки',blk:2},{n:12,t:'Покупки',blk:2},{n:13,t:'Который час',blk:2},{n:14,t:'Моя неделя',blk:2},{n:15,t:'Хочу, могу, должен',blk:2},{n:16,t:'Город и дорога',blk:2},{n:17,t:'Дом и жильё',blk:2},{n:18,t:'Вчера (перфект)',blk:2},{n:19,t:'Мои планы',blk:2},{n:20,t:'Живой день',blk:2}];
+
+/* ============ КОНТЕНТ: уроки → части → задания (dense) ============ */
+const A=(l,r)=>({t:'explain',k:l,b:'📖 Объяснение',html:r});
+const DATA={
+1:{parts:[
+ {t:'Алфавит и чтение',steps:[
+  {t:'explain',k:'Как устроен язык',b:'📖 Объяснение',html:'<p>Нидерландский использует те же <b>26 латинских букв</b>, что и английский, и читается почти «как пишется». Три трудности: звук <b>g</b>, долгие/краткие гласные, сочетания <b>ij, oe, eu, ui</b>. Ударение — обычно на первый слог.</p>'},
+  {t:'explain',k:'Алфавит',b:'🔤 Алфавит',html:'<p>Нажми любую букву — услышишь название.</p><div class="abc">'+[['a','а'],['b','бэ'],['c','сэ'],['d','дэ'],['e','э'],['f','эф'],['g','хэ'],['h','ха'],['i','и'],['j','йе'],['k','ка'],['l','эл'],['m','эм'],['n','эн'],['o','о'],['p','пэ'],['q','кю'],['r','эр'],['s','эс'],['t','тэ'],['u','ю'],['v','фэ'],['w','вэ'],['x','икс'],['y','эй'],['z','зэт']].map(x=>'<div class="l" data-say="'+x[0]+'"><b>'+x[0].toUpperCase()+'</b><span>'+x[1]+'</span></div>').join('')+'</div>',ex:[]},
+  {t:'quiz',k:'Проверка',q:'Как называется буква «g»?',opts:['хэ','гэ','джи','эйч']},
+  {t:'quiz',k:'Проверка',q:'Как называется буква «j»?',opts:['йе','джей','и','жи']},
+  {t:'quiz',k:'Проверка',q:'Как называется буква «w»?',opts:['вэ','дабл-ю','уэ','ви']},
+  {t:'quiz',k:'Проверка',q:'Как называется буква «y»?',opts:['эй','игрек','уай','йот']},
+  {t:'explain',k:'Долгие и краткие гласные',b:'📖 Объяснение',html:'<p>Долгий звук пишется удвоенной буквой и меняет смысл!</p><div class="rule">man (мужчина) ↔ maan (луна) · bom (бомба) ↔ boom (дерево) · zon (солнце) ↔ zoon (сын)</div>',ex:[['man','мужчина'],['maan','луна'],['boom','дерево'],['zoon','сын']]},
+  {t:'listen',k:'Аудирование',audio:'boom',q:'Какое слово прозвучало?',opts:['boom','bom','boon','boot']},
+  {t:'listen',k:'Аудирование',audio:'man',q:'Какое слово прозвучало?',opts:['man','maan','mens','mand']},
+  {t:'tf',k:'Верно?',q:'В слове «maan» гласный долгий (две a).',answer:true,note:'Верно: aa = долгий.'},
+  {t:'quiz',k:'Выбор',q:'Одна гласная буква в закрытом слоге даёт…',opts:['краткий звук','долгий звук','два звука','ударение']},
+  {t:'quiz',k:'Выбор',q:'«boom» переводится как…',opts:['дерево','бомба','лодка','боб']},
+ ]},
+ {t:'Особые звуки',steps:[
+  {t:'explain',k:'Главный звук G',b:'📖 Объяснение',html:'<p><b>g</b> и <b>ch</b> — хриплый горловой «х». Не русское «г».</p><div class="rule">goed ≈ «хут» · dag ≈ «дах» · nacht ≈ «нахт» · Gouda = «Хаўда» 🧀</div>',ex:[['goed','хорошо'],['nacht','ночь'],['dag','день/пока'],['lachen','смеяться']]},
+  {t:'tf',k:'Верно?',q:'Буква g в goed звучит как русское «г».',answer:false,note:'Нет — горловой «х».'},
+  {t:'quiz',k:'Выбор',q:'Сочетание «ch» (в nacht) читается…',opts:['как g (горловой х)','как «ч»','как «к»','как «ш»']},
+  {t:'listen',k:'Аудирование',audio:'goed',q:'Какое слово прозвучало?',opts:['goed','hoed','goud','goot']},
+  {t:'explain',k:'Согласные-ловушки',b:'📖 Объяснение',html:'<p>• <b>w</b> — мягкое «в» · <b>v</b> — «в»→«ф» · <b>j</b> — «й» · <b>sch</b> — «сх» · <b>ng</b> — носовое «нг»</p>',ex:[['water','вода'],['ja','да'],['school','школа'],['lang','длинный']]},
+  {t:'quiz',k:'Выбор',q:'«sch» в school читается как…',opts:['сх','ш','ск','щ']},
+  {t:'quiz',k:'Выбор',q:'Буква «j» в слове «ja» звучит как…',opts:['й','дж','ж','я']},
+  {t:'explain',k:'Дифтонги и диграфы',b:'📖 Объяснение',html:'<div class="rule">ij/ei → «эй» · oe → «у» · eu → «ё» (губы вперёд) · ui → «ой/ау»</div>',ex:[['wijn','вино'],['boek','книга'],['neus','нос'],['huis','дом']]},
+  {t:'match',k:'Пары',pairs:[['ij','«эй»'],['oe','«у»'],['eu','«ё»'],['ui','«ой/ау»'],['ie','«и»'],['aa','долгий «а»']]},
+  {t:'listen',k:'Аудирование',audio:'huis',q:'Какое слово прозвучало?',opts:['huis','huid','hoed','hout']},
+  {t:'quiz',k:'Выбор',q:'Как читается «oe» в boek?',opts:['у','оэ','ё','о']},
+  {t:'listen',k:'Аудирование',audio:'wijn',q:'Какое слово прозвучало?',opts:['wijn','wein','wond','wang']},
+ ]},
+ {t:'Приветствия',steps:[
+  {t:'explain',k:'Здороваемся',b:'📖 Объяснение',html:'<p>Формула: <b>goede</b> + часть суток. Перед avond/nacht добавляется -n.</p><div class="rule">goedemorgen · goedemiddag · goedenavond · goedenacht</div>',ex:[['hallo','привет'],['goedemorgen','доброе утро'],['goedemiddag','добрый день'],['goedenavond','добрый вечер']]},
+  {t:'word',k:'Новое слово',emoji:'👋',nl:'hallo',ipa:'[ˈɦɑloː]',tr:'привет'},
+  {t:'word',k:'Новое слово',emoji:'🌅',nl:'goedemorgen',ipa:'[ˌɣudəˈmɔrɣə]',tr:'доброе утро'},
+  {t:'word',k:'Новое слово',emoji:'🌆',nl:'goedemiddag',ipa:'[ˌɣudəˈmɪdɑx]',tr:'добрый день'},
+  {t:'word',k:'Новое слово',emoji:'🌙',nl:'goedenavond',ipa:'[ˌɣudəˈnaːvɔnt]',tr:'добрый вечер'},
+  {t:'quiz',k:'Выбор',q:'Сейчас 9:00 утра. Как поздороваться?',opts:['goedemorgen','goedenavond','goedemiddag','tot ziens']},
+  {t:'quiz',k:'Выбор',q:'Сейчас 14:00. Как поздороваться?',opts:['goedemiddag','goedemorgen','goedenavond','goedenacht']},
+  {t:'quiz',k:'Выбор',q:'Сейчас 20:00. Как поздороваться?',opts:['goedenavond','goedemorgen','goedemiddag','hallo']},
+  {t:'listen',k:'Аудирование',audio:'goedemorgen',q:'Что ты услышал?',opts:['goedemorgen','goedenavond','goedemiddag','goedenacht']},
+  {t:'listen',k:'Аудирование',audio:'goedenavond',q:'Что ты услышал?',opts:['goedenavond','goedemorgen','goedemiddag','goedenacht']},
+  {t:'match',k:'Пары',pairs:[['hallo','привет'],['goedemorgen','доброе утро'],['goedemiddag','добрый день'],['goedenavond','добрый вечер'],['tot ziens','до свидания'],['doei','пока']]},
+  {t:'gapType',k:'Впиши на слух',audio:'goedemorgen',q:'Напиши приветствие для утра',answer:['goedemorgen'],ph:'goede…'},
+ ]},
+ {t:'Вежливость и диалог',steps:[
+  {t:'explain',k:'Спасибо и пожалуйста',b:'📖 Объяснение',html:'<p>На «ты»: <b>dank je wel</b>. На «вы»: <b>dank u wel</b>. В ответ: <b>graag gedaan</b>. Пожалуйста/вот: <b>alsjeblieft</b>.</p>',ex:[['dank je wel','спасибо'],['dank u wel','спасибо (вы)'],['alsjeblieft','пожалуйста'],['graag gedaan','не за что'],['sorry','извини'],['tot ziens','до свидания']]},
+  {t:'word',k:'Новое слово',emoji:'🙏',nl:'dank je wel',ipa:'[dɑŋk jə ʋɛl]',tr:'спасибо'},
+  {t:'word',k:'Новое слово',emoji:'🤝',nl:'graag gedaan',ipa:'[ɣraːx xəˈdaːn]',tr:'не за что'},
+  {t:'word',k:'Новое слово',emoji:'🙂',nl:'alsjeblieft',ipa:'[ˈɑʃəblift]',tr:'пожалуйста / вот'},
+  {t:'quiz',k:'Выбор',q:'Тебе сказали «dank je wel». Ответь:',opts:['graag gedaan','sorry','hallo','tot ziens']},
+  {t:'quiz',k:'Выбор',q:'«спасибо» на «вы»:',opts:['dank u wel','dank je wel','alsjeblieft','graag gedaan']},
+  {t:'explain',k:'Как дела?',b:'📖 Объяснение',html:'<div class="rule">— Hoe gaat het?<br>— Goed, dank je! En met jou?<br>— Ook goed. Tot ziens!</div>',ex:[['Hoe gaat het?','Как дела?'],['Goed, dank je','Хорошо, спасибо'],['En met jou?','А у тебя?']]},
+  {t:'listen',k:'Аудирование',audio:'Hoe gaat het?',q:'Какую фразу ты услышал?',opts:['Hoe gaat het?','Hoe laat is het?','Waar ga je heen?','Hoe heet je?']},
+  {t:'gapType',k:'Впиши на слух',audio:'Goed, dank je',q:'Goed, ___ je',answer:['dank'],ph:'на слух…'},
+  {t:'build',k:'Собери фразу',tr:'Как дела?',words:['Hoe','gaat','het'],ans:['Hoe','gaat','het']},
+  {t:'build',k:'Собери фразу',tr:'Хорошо, спасибо.',words:['Goed',',','dank','je'],ans:['Goed',',','dank','je']},
+  {t:'translate',k:'Перевод',q:'Напиши: «до свидания»',answer:['tot ziens'],ph:'tot …'},
+  {t:'speak',k:'Говорение',phrase:'Hallo! Goedemorgen! Hoe gaat het?',tr:'Привет! Доброе утро! Как дела?'},
+ ]},
+]},
+2:{parts:[
+ {t:'Приветствия',steps:[
+  {t:'explain',k:'По времени суток',b:'📖 Объяснение',html:'<p>hallo и dag — всегда. По времени: goedemorgen/middag/avond. doei — «пока».</p>',ex:[['hallo','привет'],['dag','привет/пока'],['tot ziens','до свидания'],['doei','пока'],['tot morgen','до завтра']]},
+  {t:'word',k:'Новое слово',emoji:'👋',nl:'dag',ipa:'[dɑx]',tr:'привет/пока'},
+  {t:'word',k:'Новое слово',emoji:'✌️',nl:'doei',ipa:'[dui]',tr:'пока'},
+  {t:'quiz',k:'Выбор',q:'Нейтральное приветствие в любое время:',opts:['hallo','goedemorgen','goedenavond','tot morgen']},
+  {t:'quiz',k:'Выбор',q:'Неформальное «пока»:',opts:['doei','tot ziens','hallo','goedenavond']},
+  {t:'listen',k:'Аудирование',audio:'goedemiddag',q:'Что ты услышал?',opts:['goedemiddag','goedemorgen','goedenavond','goedenacht']},
+  {t:'match',k:'Пары',pairs:[['hallo','привет'],['tot ziens','до свидания'],['doei','пока'],['goedenavond','добрый вечер'],['tot morgen','до завтра'],['dag','привет/пока']]},
+  {t:'speak',k:'Говорение',phrase:'Hallo! Goedenavond! Tot ziens!',tr:'Привет! Добрый вечер! До свидания!'},
+ ]},
+ {t:'Как тебя зовут',steps:[
+  {t:'explain',k:'Знакомство',b:'📖 Объяснение',html:'<p>Спросить: <b>Hoe heet je?</b> Ответить: <b>Ik heet…</b> или <b>Ik ben…</b>. Взаимно: <b>En jij?</b> После — <b>Aangenaam!</b></p>',ex:[['Hoe heet je?','Как тебя зовут?'],['Ik heet…','Меня зовут…'],['En jij?','А ты?'],['aangenaam','приятно']]},
+  {t:'word',k:'Новое слово',emoji:'🙂',nl:'aangenaam',ipa:'[ˈaːnɣənaːm]',tr:'приятно (познакомиться)'},
+  {t:'word',k:'Новое слово',emoji:'📛',nl:'de naam',ipa:'[də naːm]',tr:'имя'},
+  {t:'quiz',k:'Выбор',q:'«Как тебя зовут?»:',opts:['Hoe heet je?','Waar kom je vandaan?','Hoe gaat het?','Wie is dat?']},
+  {t:'quiz',k:'Выбор',q:'Ответить на «Hoe heet je?»:',opts:['Ik heet Anna','Ik kom Anna','Ik gaat Anna','Ik ben uit Anna']},
+  {t:'listen',k:'Аудирование',audio:'Ik heet Anna',q:'Что ты услышал?',opts:['Ik heet Anna','Ik ben Anna','Ik kom uit Anna','Jij heet Anna']},
+  {t:'listen',k:'Аудирование',audio:'Hoe heet je?',q:'Что ты услышал?',opts:['Hoe heet je?','Hoe gaat het?','Hoe oud ben je?','Waar woon je?']},
+  {t:'build',k:'Собери фразу',tr:'Меня зовут Пит.',words:['Ik','heet','Piet'],ans:['Ik','heet','Piet']},
+  {t:'gapType',k:'Впиши на слух',audio:'Ik heet Anna',q:'Ik ___ Anna',answer:['heet'],ph:'на слух…'},
+  {t:'translate',k:'Перевод',q:'Напиши: «Меня зовут Иван»',answer:['ik heet ivan','ik ben ivan'],ph:'ik heet…'},
+  {t:'speak',k:'Говорение',phrase:'Hallo! Ik heet Anna. En jij?',tr:'Привет! Меня зовут Анна. А ты?'},
+ ]},
+ {t:'Откуда ты',steps:[
+  {t:'explain',k:'Страна и язык',b:'📖 Объяснение',html:'<p>Спросить: <b>Waar kom je vandaan?</b> Ответить: <b>Ik kom uit…</b> Язык: <b>Spreek je Nederlands? — Ja, een beetje.</b></p><div class="rule">Страны и языки — с большой буквы: Rusland, Nederlands.</div>',ex:[['Ik kom uit…','Я из…'],['het land','страна'],['de taal','язык'],['een beetje','немного']]},
+  {t:'word',k:'Новое слово',emoji:'🌍',nl:'komen uit',ipa:'[ˈkoːmə œyt]',tr:'быть родом из'},
+  {t:'word',k:'Новое слово',emoji:'🇷🇺',nl:'Rusland',ipa:'[ˈrʏslɑnt]',tr:'Россия'},
+  {t:'word',k:'Новое слово',emoji:'🗣️',nl:'een beetje',ipa:'[ən ˈbeːcə]',tr:'немного'},
+  {t:'quiz',k:'Выбор',q:'«Откуда ты?»:',opts:['Waar kom je vandaan?','Hoe heet je?','Hoe gaat het?','Wat doe je?']},
+  {t:'quiz',k:'Выбор',q:'Ik ___ uit Oekraïne. (komen)',opts:['kom','komt','komen','komst']},
+  {t:'quiz',k:'Выбор',q:'«язык» по-нидерландски:',opts:['de taal','het land','de naam','de tijd']},
+  {t:'listen',k:'Аудирование',audio:'Ik kom uit Rusland',q:'Что ты услышал?',opts:['Ik kom uit Rusland','Ik kom uit Nederland','Ik ben uit Rusland','Jij komt uit Rusland']},
+  {t:'listen',k:'Аудирование',audio:'Spreek je Nederlands?',q:'Что ты услышал?',opts:['Spreek je Nederlands?','Spreek je Engels?','Woon je in Nederland?','Kom je uit Nederland?']},
+  {t:'translate',k:'Перевод',q:'Напиши: «я говорю немного по-нидерландски»',answer:['ik spreek een beetje nederlands'],ph:'ik spreek…'},
+  {t:'speak',k:'Говорение',phrase:'Ik kom uit Rusland en ik spreek een beetje Nederlands.',tr:'Я из России и немного говорю по-нидерландски.'},
+ ]},
+]},
+3:{parts:[
+ {t:'Местоимения + zijn',steps:[
+  {t:'explain',k:'Глагол zijn (быть)',b:'📖 Объяснение',html:'<div class="rule">ik <b>ben</b> · jij <b>bent</b> · hij/zij <b>is</b> · wij/jullie/zij <b>zijn</b></div>',ex:[['ik ben','я есть'],['jij bent','ты есть'],['hij is','он есть'],['wij zijn','мы есть']]},
+  {t:'word',k:'Новое слово',emoji:'🙋',nl:'ik',ipa:'[ɪk]',tr:'я'},
+  {t:'word',k:'Новое слово',emoji:'👉',nl:'jij',ipa:'[jɛi]',tr:'ты'},
+  {t:'word',k:'Новое слово',emoji:'👥',nl:'wij',ipa:'[ʋɛi]',tr:'мы'},
+  {t:'quiz',k:'Выбор',q:'Jij ___ mijn vriend.',opts:['bent','ben','is','zijn']},
+  {t:'quiz',k:'Выбор',q:'Ik ___ student.',opts:['ben','bent','is','zijn']},
+  {t:'quiz',k:'Выбор',q:'Wij ___ studenten.',opts:['zijn','is','ben','bent']},
+  {t:'quiz',k:'Выбор',q:'Hij ___ hier.',opts:['is','ben','bent','zijn']},
+  {t:'listen',k:'Аудирование',audio:'Ik ben student',q:'Что ты услышал?',opts:['Ik ben student','Ik heb student','Jij bent student','Zij is student']},
+  {t:'gapType',k:'Впиши на слух',audio:'Wij zijn studenten',q:'Wij ___ studenten',answer:['zijn'],ph:'форма zijn…'},
+  {t:'build',k:'Собери фразу',tr:'Я — студент.',words:['Ik','ben','student'],ans:['Ik','ben','student']},
+  {t:'match',k:'Пары',pairs:[['ik','я'],['jij','ты'],['hij','он'],['zij','она'],['wij','мы'],['jullie','вы']]},
+ ]},
+ {t:'Глагол hebben + возраст',steps:[
+  {t:'explain',k:'hebben (иметь)',b:'📖 Объяснение',html:'<div class="rule">ik <b>heb</b> · jij <b>hebt</b> · hij/zij <b>heeft</b> · wij/jullie/zij <b>hebben</b></div><p>Возраст: <b>Ik ben 25 jaar.</b></p>',ex:[['ik heb','у меня есть'],['jij hebt','у тебя есть'],['hij heeft','у него есть'],['Ik ben 25 jaar','мне 25 лет']]},
+  {t:'word',k:'Новое слово',emoji:'🐶',nl:'een hond',ipa:'[ən ɦɔnt]',tr:'собака'},
+  {t:'word',k:'Новое слово',emoji:'🐱',nl:'een kat',ipa:'[ən kɑt]',tr:'кошка'},
+  {t:'quiz',k:'Выбор',q:'Hij ___ een hond.',opts:['heeft','hebt','heb','hebben']},
+  {t:'quiz',k:'Выбор',q:'Ik ___ een boek.',opts:['heb','hebt','heeft','hebben']},
+  {t:'quiz',k:'Выбор',q:'«Мне 25 лет»:',opts:['Ik ben 25 jaar','Ik heb 25 jaar','Ik ben 25 oud','Ik heb 25 oud']},
+  {t:'listen',k:'Аудирование',audio:'Ik heb een hond',q:'Что ты услышал?',opts:['Ik heb een hond','Ik heb een kat','Jij hebt een hond','Zij heeft een hond']},
+  {t:'gapType',k:'Впиши на слух',audio:'Ik heb een kat',q:'Ik ___ een kat',answer:['heb'],ph:'форма hebben…'},
+  {t:'tf',k:'Верно?',q:'«Hij heeft een auto» — правильно.',answer:true,note:'Верно: hij heeft.'},
+  {t:'translate',k:'Перевод',q:'Напиши: «у меня есть кошка»',answer:['ik heb een kat'],ph:'ik heb…'},
+  {t:'speak',k:'Говорение',phrase:'Ik ben 28 jaar en ik heb een kat.',tr:'Мне 28 лет, и у меня есть кошка.'},
+ ]},
+ {t:'Рассказ о себе',steps:[
+  {t:'explain',k:'Собираем всё',b:'📖 Объяснение',html:'<div class="rule">Ik heet … · Ik kom uit … · Ik ben … jaar · Ik ben student · Ik heb een …</div>',ex:[['Ik heet Anna','Меня зовут Анна'],['Ik kom uit Rusland','Я из России'],['Ik ben 28 jaar','Мне 28 лет']]},
+  {t:'build',k:'Собери фразу',tr:'Я из России.',words:['Ik','kom','uit','Rusland'],ans:['Ik','kom','uit','Rusland']},
+  {t:'build',k:'Собери фразу',tr:'Мне 28 лет.',words:['Ik','ben','28','jaar'],ans:['Ik','ben','28','jaar']},
+  {t:'match',k:'Пары',pairs:[['Ik heet…','имя'],['Ik kom uit…','страна'],['Ik ben … jaar','возраст'],['Ik heb…','что есть'],['Ik ben student','занятие']]},
+  {t:'translate',k:'Перевод',q:'Напиши: «мне 30 лет»',answer:['ik ben 30 jaar','ik ben dertig jaar'],ph:'ik ben…'},
+  {t:'translate',k:'Перевод',q:'Напиши: «я студент»',answer:['ik ben student'],ph:'ik ben…'},
+  {t:'speak',k:'Говорение',phrase:'Hallo! Ik heet Anna. Ik kom uit Rusland. Ik ben 28 jaar. Ik ben student.',tr:'Рассказ о себе.'},
+ ]},
+]},
+4:{parts:[
+ {t:'de и het',steps:[
+  {t:'explain',k:'Артикль = род',b:'📖 Объяснение',html:'<p>Род показывает только артикль: <b>de</b> или <b>het</b>. Учи слово сразу с артиклем. ≈2/3 слов — de.</p>',ex:[['de man','мужчина'],['het huis','дом'],['de tafel','стол'],['het boek','книга'],['de auto','машина'],['het kind','ребёнок']]},
+  {t:'word',k:'Новое слово',emoji:'🏠',nl:'het huis',ipa:'[ət ɦœys]',tr:'дом'},
+  {t:'word',k:'Новое слово',emoji:'🪑',nl:'de stoel',ipa:'[də stul]',tr:'стул'},
+  {t:'word',k:'Новое слово',emoji:'🚪',nl:'de deur',ipa:'[də døːr]',tr:'дверь'},
+  {t:'word',k:'Новое слово',emoji:'🪟',nl:'het raam',ipa:'[ət raːm]',tr:'окно'},
+  {t:'pick',k:'Выбери картинку',q:'Где «het huis» (дом)?',opts:['🏠','🚗','🐶','🪑']},
+  {t:'pick',k:'Выбери картинку',q:'Где «de stoel» (стул)?',opts:['🪑','🚪','🪟','🏠']},
+  {t:'quiz',k:'Выбор',q:'___ huis is groot.',opts:['Het','De','Een','Der']},
+  {t:'quiz',k:'Выбор',q:'___ stoel is nieuw.',opts:['De','Het','Een','Der']},
+  {t:'quiz',k:'Выбор',q:'___ raam is open.',opts:['Het','De','Een','Der']},
+  {t:'match',k:'Пары',pairs:[['het huis','дом'],['de stoel','стул'],['de deur','дверь'],['het raam','окно'],['de tafel','стол'],['het boek','книга']]},
+ ]},
+ {t:'Артикль een',steps:[
+  {t:'explain',k:'een — «какой-то»',b:'📖 Объяснение',html:'<p><b>een</b> одинаков для de/het. Впервые — een, потом — de/het.</p><div class="rule">Daar staat een auto. De auto is rood.</div>',ex:[['een auto','(какая-то) машина'],['de auto','(эта) машина'],['een huis','(какой-то) дом']]},
+  {t:'word',k:'Новое слово',emoji:'🚗',nl:'de auto',ipa:'[də ˈʌutoː]',tr:'машина'},
+  {t:'word',k:'Новое слово',emoji:'🍎',nl:'een appel',ipa:'[ən ˈɑpəl]',tr:'яблоко'},
+  {t:'pick',k:'Выбери картинку',q:'Где «een appel» (яблоко)?',opts:['🍎','🐟','🚗','☕']},
+  {t:'quiz',k:'Выбор',q:'Неопределённый артикль перед huis:',opts:['een','het','de','der']},
+  {t:'quiz',k:'Выбор',q:'Ik zie een huis. ___ huis is groot.',opts:['Het','De','Een','Der']},
+  {t:'quiz',k:'Выбор',q:'Daar staat een auto. ___ auto is rood.',opts:['De','Het','Een','Der']},
+  {t:'listen',k:'Аудирование',audio:'Dit is een hond',q:'Что ты услышал?',opts:['Dit is een hond','Dit is een kat','Dat is een hond','Dit is de hond']},
+  {t:'build',k:'Собери фразу',tr:'Машина красная.',words:['De','auto','is','rood'],ans:['De','auto','is','rood']},
+  {t:'translate',k:'Перевод',q:'Напиши: «Это дом» (какой-то)',answer:['dit is een huis'],ph:'dit is…'},
+  {t:'speak',k:'Говорение',phrase:'Dit is een auto. De auto is nieuw.',tr:'Это машина. Машина новая.'},
+ ]},
+ {t:'Множественное число',steps:[
+  {t:'explain',k:'Всегда de',b:'📖 Объяснение',html:'<p>Во мн. числе артикль всегда <b>de</b>. Окончание -en или -s.</p><div class="rule">boek→boeken · kat→katten · tafel→tafels · auto→auto’s · raam→ramen · huis→huizen</div>',ex:[['de boeken','книги'],['de katten','кошки'],['de tafels','столы'],['de huizen','дома']]},
+  {t:'quiz',k:'Выбор',q:'het boek → мн. число:',opts:['de boeken','het boeken','de boeks','de boekes']},
+  {t:'quiz',k:'Выбор',q:'de kat → мн. число:',opts:['de katten','de katen','de kats','het katten']},
+  {t:'quiz',k:'Выбор',q:'de auto → мн. число:',opts:['de auto’s','de autos','de autoen','de auten']},
+  {t:'quiz',k:'Выбор',q:'de tafel → мн. число:',opts:['de tafels','de tafelen','de tafeln','de tafeles']},
+  {t:'gapType',k:'Впиши на слух',audio:'De kinderen spelen buiten',q:'De ___ spelen buiten',answer:['kinderen'],ph:'на слух…'},
+  {t:'listen',k:'Аудирование',audio:'De boeken liggen op de tafel',q:'Что ты услышал?',opts:['De boeken liggen op de tafel','Het boek ligt op de tafel','De boeken liggen op de stoel','De boeken zijn op de tafel']},
+  {t:'tf',k:'Верно?',q:'«twee katten» — правильно.',answer:true,note:'Верно: kat → katten.'},
+  {t:'quiz',k:'Выбор',q:'Во мн. числе артикль всегда…',opts:['de','het','een','der']},
+ ]},
+ {t:'Моя комната',steps:[
+  {t:'explain',k:'Что и где',b:'📖 Объяснение',html:'<p><b>Wat is dit?</b> → Dit is een … Предлоги: <b>op</b> (на), <b>in</b> (в), <b>naast</b> (рядом).</p>',ex:[['Wat is dit?','Что это?'],['op','на'],['in','в'],['naast','рядом с'],['de kamer','комната']]},
+  {t:'word',k:'Новое слово',emoji:'🛋️',nl:'de kamer',ipa:'[də ˈkaːmər]',tr:'комната'},
+  {t:'quiz',k:'Выбор',q:'«Что это?»:',opts:['Wat is dit?','Waar is dit?','Wie is dit?','Hoe is dit?']},
+  {t:'quiz',k:'Выбор',q:'«рядом с» по-нидерландски:',opts:['naast','op','in','onder']},
+  {t:'build',k:'Собери фразу',tr:'Книга лежит на столе.',words:['Het','boek','ligt','op','de tafel'],ans:['Het','boek','ligt','op','de tafel']},
+  {t:'listen',k:'Аудирование',audio:'Het raam is open',q:'Что ты услышал?',opts:['Het raam is open','Het raam is dicht','De deur is open','Het huis is open']},
+  {t:'translate',k:'Перевод',q:'Напиши: «это моя комната»',answer:['dit is mijn kamer'],ph:'dit is mijn…'},
+  {t:'speak',k:'Говорение',phrase:'Dit is mijn kamer. De kamer is groot. Op de tafel ligt een boek.',tr:'Описание комнаты.'},
+ ]},
+]},
+5:{parts:[
+ {t:'Числа 0–20',steps:[
+  {t:'explain',k:'Считаем 0–20',b:'📖 Объяснение',html:'<p>0–20 учим наизусть. 13–19 = число + -tien.</p><div class="numtab">'+[['0','nul'],['1','een'],['2','twee'],['3','drie'],['4','vier'],['5','vijf'],['6','zes'],['7','zeven'],['8','acht'],['9','negen'],['10','tien'],['11','elf'],['12','twaalf']].map(x=>'<div class="n" data-say="'+x[1]+'"><b>'+x[0]+'</b> '+x[1]+I.play+'</div>').join('')+'</div>',ex:[]},
+  {t:'word',k:'Новое слово',emoji:'✌️',nl:'twee',ipa:'[tʋeː]',tr:'два'},
+  {t:'word',k:'Новое слово',emoji:'🖐️',nl:'vijf',ipa:'[vɛif]',tr:'пять'},
+  {t:'word',k:'Новое слово',emoji:'🔟',nl:'tien',ipa:'[tin]',tr:'десять'},
+  {t:'quiz',k:'Посчитай',q:'Сколько яблок? 🍎🍎🍎🍎',opts:['vier','drie','vijf','zes']},
+  {t:'quiz',k:'Посчитай',q:'Сколько? 🍎🍎🍎🍎🍎🍎🍎',opts:['zeven','zes','acht','negen']},
+  {t:'pick',k:'Выбери группу',q:'Где «drie» (3 рыбки)?',opts:['🐟🐟🐟','🐟🐟','🐟🐟🐟🐟🐟','🐟🐟🐟🐟']},
+  {t:'quiz',k:'Выбор',q:'«vijf» — это…',opts:['пять','четыре','шесть','семь']},
+  {t:'quiz',k:'Выбор',q:'«negen» — это…',opts:['девять','семь','восемь','десять']},
+  {t:'listen',k:'Аудирование',audio:'Ik heb twee katten',q:'Что ты услышал?',opts:['Ik heb twee katten','Ik heb drie katten','Jij hebt twee katten','Ik heb twee honden']},
+  {t:'match',k:'Пары',pairs:[['een','1'],['drie','3'],['vijf','5'],['zeven','7'],['negen','9'],['tien','10']]},
+  {t:'gapType',k:'Впиши словом',audio:'zeven',q:'Напиши число 7 словом',answer:['zeven'],ph:'z…'},
+ ]},
+ {t:'Десятки и правило единиц',steps:[
+  {t:'explain',k:'Десятки и 13–19',b:'📖 Объяснение',html:'<p>13–19 = число+ -tien. Десятки = число+ -tig. Внимание: <b>tachtig</b> (80).</p>',ex:[['dertien','13'],['veertien','14'],['twintig','20'],['dertig','30'],['veertig','40']]},
+  {t:'explain',k:'Главное правило!',b:'📖 Объяснение',html:'<p>В 21–99 единицы ПЕРЕД десятками, через <b>en</b>: «один-и-двадцать».</p><div class="rule">21 = eenentwintig · 34 = vierendertig · 68 = achtenzestig</div>',ex:[['eenentwintig','21'],['vijfenveertig','45']]},
+  {t:'quiz',k:'Выбор',q:'Как сказать 21?',opts:['eenentwintig','twintigeen','twintig een','een twintig']},
+  {t:'quiz',k:'Выбор',q:'«dertig» — это…',opts:['30','13','3','23']},
+  {t:'quiz',k:'Выбор',q:'«dertien» — это…',opts:['13','30','3','23']},
+  {t:'quiz',k:'Выбор',q:'80 по-нидерландски:',opts:['tachtig','achttig','achttien','tienacht']},
+  {t:'quiz',k:'Выбор',q:'Как сказать 34?',opts:['vierendertig','dertigvier','dertig vier','vier dertig']},
+  {t:'match',k:'Пары',pairs:[['twintig','20'],['dertig','30'],['veertig','40'],['vijftig','50'],['zeventig','70'],['honderd','100']]},
+  {t:'translate',k:'Перевод',q:'Напиши словом: 45',answer:['vijfenveertig'],ph:'…enveertig'},
+ ]},
+ {t:'Возраст, цена, телефон',steps:[
+  {t:'explain',k:'В жизни',b:'📖 Объяснение',html:'<p>Возраст: <b>Ik ben 28 jaar.</b> Цена: <b>Hoeveel kost het? — Het kost drie euro.</b></p>',ex:[['Hoe oud ben je?','сколько тебе лет?'],['Hoeveel kost het?','сколько стоит?'],['de euro','евро'],['duur','дорого']]},
+  {t:'word',k:'Новое слово',emoji:'💶',nl:'de euro',ipa:'[ˈøːroː]',tr:'евро'},
+  {t:'word',k:'Новое слово',emoji:'🎂',nl:'het jaar',ipa:'[ət jaːr]',tr:'год'},
+  {t:'quiz',k:'Выбор',q:'«Сколько тебе лет?»:',opts:['Hoe oud ben je?','Hoe heet je?','Waar kom je vandaan?','Wat doe je?']},
+  {t:'quiz',k:'Выбор',q:'Het ___ drie euro. (стоить)',opts:['kost','komt','heeft','is']},
+  {t:'quiz',k:'Выбор',q:'«Сколько это стоит?»:',opts:['Hoeveel kost het?','Hoe oud ben je?','Wat is dit?','Waar is het?']},
+  {t:'listen',k:'Аудирование',audio:'Ik ben 25 jaar',q:'Что ты услышал?',opts:['Ik ben 25 jaar','Ik ben 35 jaar','Ik heb 25 jaar','Jij bent 25 jaar']},
+  {t:'gapType',k:'Впиши на слух',audio:'Ik ben 25 jaar',q:'Ik ben 25 ___',answer:['jaar'],ph:'…'},
+  {t:'translate',k:'Перевод',q:'Напиши: «мне 20 лет»',answer:['ik ben 20 jaar','ik ben twintig jaar'],ph:'ik ben…'},
+  {t:'speak',k:'Говорение',phrase:'Ik ben 25 jaar. De koffie kost drie euro.',tr:'Мне 25 лет. Кофе стоит 3 евро.'},
+ ]},
+]},
+6:{parts:[
+ {t:'Настоящее время',steps:[
+  {t:'explain',k:'Спряжение',b:'📖 Объяснение',html:'<div class="rule">ik → корень · jij/hij → корень+t · wij/jullie/zij → корень+en</div><p>werken: ik werk · jij/hij werkt · wij werken</p>',ex:[['ik werk','я работаю'],['jij werkt','ты работаешь'],['hij werkt','он работает'],['wij werken','мы работаем']]},
+  {t:'word',k:'Новое слово',emoji:'🏢',nl:'werken',ipa:'[ˈʋɛrkə]',tr:'работать'},
+  {t:'word',k:'Новое слово',emoji:'🏡',nl:'wonen',ipa:'[ˈʋoːnə]',tr:'жить'},
+  {t:'word',k:'Новое слово',emoji:'💬',nl:'spreken',ipa:'[ˈspreːkə]',tr:'говорить'},
+  {t:'word',k:'Новое слово',emoji:'🍽️',nl:'eten',ipa:'[ˈeːtə]',tr:'есть'},
+  {t:'quiz',k:'Выбор',q:'Ik ___ in Amsterdam. (wonen)',opts:['woon','woont','wonen','woons']},
+  {t:'quiz',k:'Выбор',q:'Jij ___ hard. (werken)',opts:['werkt','werk','werken','werks']},
+  {t:'quiz',k:'Выбор',q:'Wij ___ Nederlands. (spreken)',opts:['spreken','spreekt','spreek','sprekt']},
+  {t:'listen',k:'Аудирование',audio:'Ik woon in Amsterdam',q:'Что ты услышал?',opts:['Ik woon in Amsterdam','Ik woon in Rotterdam','Jij woont in Amsterdam','Ik werk in Amsterdam']},
+  {t:'gapType',k:'Впиши на слух',audio:'Wij spreken Nederlands',q:'Wij ___ Nederlands',answer:['spreken'],ph:'форма spreken…'},
+  {t:'build',k:'Собери фразу',tr:'Я живу в Амстердаме.',words:['Ik','woon','in','Amsterdam'],ans:['Ik','woon','in','Amsterdam']},
+  {t:'match',k:'Пары',pairs:[['werken','работать'],['wonen','жить'],['spreken','говорить'],['eten','есть'],['drinken','пить'],['lezen','читать']]},
+ ]},
+ {t:'Распорядок дня',steps:[
+  {t:'explain',k:'Наречия времени',b:'📖 Объяснение',html:'<p>Если фраза начинается с времени — глагол на 2-м месте (инверсия):</p><div class="rule">Ik drink ’s morgens koffie. → ’s Morgens drink ik koffie.</div>',ex:[['altijd','всегда'],['soms','иногда'],['vaak','часто'],['elke dag','каждый день'],['’s morgens','по утрам']]},
+  {t:'word',k:'Новое слово',emoji:'📖',nl:'lezen',ipa:'[ˈleːzə]',tr:'читать'},
+  {t:'word',k:'Новое слово',emoji:'☕',nl:'drinken',ipa:'[ˈdrɪŋkə]',tr:'пить'},
+  {t:'quiz',k:'Выбор',q:'Ik ___ elke dag. (lezen)',opts:['lees','leest','lezen','leesd']},
+  {t:'quiz',k:'Выбор',q:'«часто»:',opts:['vaak','soms','nooit','altijd']},
+  {t:'quiz',k:'Выбор',q:'«каждый день»:',opts:['elke dag','soms','nooit','’s avonds']},
+  {t:'build',k:'Собери фразу',tr:'По утрам я пью кофе.',words:['’s Morgens','drink','ik','koffie'],ans:['’s Morgens','drink','ik','koffie']},
+  {t:'listen',k:'Аудирование',audio:'Ik lees elke dag',q:'Что ты услышал?',opts:['Ik lees elke dag','Ik leer elke dag','Jij leest elke dag','Ik lees soms']},
+  {t:'translate',k:'Перевод',q:'Напиши: «я иногда работаю»',answer:['ik werk soms','soms werk ik'],ph:'ik werk…'},
+  {t:'speak',k:'Говорение',phrase:'’s Morgens drink ik koffie en ’s avonds lees ik.',tr:'Утром пью кофе, вечером читаю.'},
+ ]},
+ {t:'Вопрос с je',steps:[
+  {t:'explain',k:'Пропадает -t',b:'📖 Объяснение',html:'<p>Когда <b>je</b> после глагола (в вопросе), -t исчезает.</p><div class="rule">jij werkt → Werk je? · jij spreekt → Spreek je Nederlands?</div>',ex:[['Werk je?','Ты работаешь?'],['Woon je hier?','Ты здесь живёшь?'],['Spreek je Nederlands?','Говоришь по-нидерландски?']]},
+  {t:'quiz',k:'Выбор',q:'«Ты говоришь по-нидерландски?»:',opts:['Spreek je Nederlands?','Spreekt je Nederlands?','Je spreekt Nederlands?','Spreken je Nederlands?']},
+  {t:'tf',k:'Верно?',q:'«Werk je?» — правильно (без -t).',answer:true,note:'Верно.'},
+  {t:'quiz',k:'Выбор',q:'Вопрос из «Jij woont hier»:',opts:['Woon je hier?','Woont je hier?','Je woont hier?','Wonen je hier?']},
+  {t:'build',k:'Собери вопрос',tr:'Ты здесь живёшь?',words:['Woon','je','hier'],ans:['Woon','je','hier']},
+  {t:'translate',k:'Перевод',q:'Сделай вопрос: «Jij drinkt koffie» →',answer:['drink je koffie'],ph:'drink…'},
+  {t:'speak',k:'Говорение',phrase:'Werk je? Spreek je Nederlands?',tr:'Работаешь? Говоришь по-нидерландски?'},
+ ]},
+ {t:'Мой день',steps:[
+  {t:'explain',k:'Рассказ о дне',b:'📖 Объяснение',html:'<div class="rule">’s Morgens werk ik. ’s Avonds leer ik Nederlands en lees ik een boek.</div>',ex:[['’s morgens','по утрам'],['’s avonds','по вечерам'],['leren','учить(ся)']]},
+  {t:'word',k:'Новое слово',emoji:'📚',nl:'leren',ipa:'[ˈleːrə]',tr:'учить(ся)'},
+  {t:'listen',k:'Аудирование',audio:'’s Avonds lees ik een boek',q:'Что ты услышал?',opts:['’s Avonds lees ik een boek','’s Morgens lees ik een boek','’s Avonds leer ik Nederlands','’s Avonds lees jij een boek']},
+  {t:'match',k:'Пары',pairs:[['’s morgens','по утрам'],['elke dag','каждый день'],['soms','иногда'],['’s avonds','по вечерам'],['altijd','всегда'],['vaak','часто']]},
+  {t:'translate',k:'Перевод',q:'Напиши: «вечером я читаю»',answer:['’s avonds lees ik','ik lees ’s avonds'],ph:'’s avonds…'},
+  {t:'speak',k:'Говорение',phrase:'’s Morgens werk ik. ’s Avonds leer ik Nederlands en lees ik een boek.',tr:'Мой день.'},
+ ]},
+]},
+7:{parts:[
+ {t:'Вопросительные слова',steps:[
+  {t:'explain',k:'Кто, что, где…',b:'📖 Объяснение',html:'<p>Порядок: слово + глагол + подлежащее.</p><div class="rule">wie (кто) · wat (что) · waar (где) · wanneer (когда) · hoe (как) · hoeveel (сколько) · waarom (почему)</div>',ex:[['Waar woon je?','Где ты живёшь?'],['Wat doe je?','Что ты делаешь?'],['Wie is dat?','Кто это?']]},
+  {t:'word',k:'Новое слово',emoji:'❓',nl:'waar',ipa:'[ʋaːr]',tr:'где'},
+  {t:'word',k:'Новое слово',emoji:'❓',nl:'wanneer',ipa:'[ʋɑˈneːr]',tr:'когда'},
+  {t:'quiz',k:'Выбор',q:'«Где ты живёшь?»:',opts:['Waar woon je?','Wie woon je?','Wat woon je?','Hoe woon je?']},
+  {t:'quiz',k:'Выбор',q:'___ kost het? (сколько)',opts:['Hoeveel','Hoe','Wat','Wie']},
+  {t:'quiz',k:'Выбор',q:'___ is dat? (кто)',opts:['Wie','Wat','Waar','Hoe']},
+  {t:'quiz',k:'Выбор',q:'___ ben je? (сколько лет)',opts:['Hoe oud','Hoe','Wie','Waar']},
+  {t:'match',k:'Пары',pairs:[['wie','кто'],['wat','что'],['waar','где'],['wanneer','когда'],['hoe','как'],['waarom','почему']]},
+  {t:'listen',k:'Аудирование',audio:'Wat doe je?',q:'Что ты услышал?',opts:['Wat doe je?','Waar woon je?','Wie is dat?','Hoe heet je?']},
+  {t:'speak',k:'Говорение',phrase:'Waar woon je? Wat doe je?',tr:'Где живёшь? Чем занимаешься?'},
+ ]},
+ {t:'Да/нет-вопросы',steps:[
+  {t:'explain',k:'Порядок слов',b:'📖 Объяснение',html:'<p>Без вопросительного слова глагол выходит на 1-е место.</p><div class="rule">Jij woont hier. → Woon jij hier?<br>Hij spreekt Nederlands. → Spreekt hij Nederlands?</div>',ex:[['Woon jij hier?','Ты здесь живёшь?'],['Heb je een hond?','У тебя есть собака?']]},
+  {t:'quiz',k:'Выбор',q:'Вопрос из «Jij hebt een auto»:',opts:['Heb je een auto?','Je hebt een auto?','Hebt een auto je?','Een auto heb je?']},
+  {t:'quiz',k:'Выбор',q:'Вопрос из «Hij spreekt Nederlands»:',opts:['Spreekt hij Nederlands?','Hij spreekt Nederlands?','Spreek hij Nederlands?','Nederlands spreekt hij?']},
+  {t:'build',k:'Собери вопрос',tr:'Ты здесь живёшь?',words:['Woon','jij','hier'],ans:['Woon','jij','hier']},
+  {t:'translate',k:'Перевод',q:'Сделай вопрос: «Zij woont in Utrecht» →',answer:['woont zij in utrecht'],ph:'Woont…'},
+  {t:'listen',k:'Аудирование',audio:'Heb je een hond?',q:'Что ты услышал?',opts:['Heb je een hond?','Heb je een kat?','Heeft hij een hond?','Heb je een auto?']},
+  {t:'speak',k:'Говорение',phrase:'Woon jij hier? Heb je een hond?',tr:'Ты здесь живёшь? У тебя есть собака?'},
+ ]},
+ {t:'Мини-интервью',steps:[
+  {t:'explain',k:'Диалог',b:'📖 Объяснение',html:'<div class="rule">— Hoe heet je? — Waar kom je vandaan? — Wat doe je?</div>',ex:[['Wat doe je?','Чем ты занимаешься?'],['Wat is jouw naam?','Как твоё имя?']]},
+  {t:'match',k:'Пары',pairs:[['Hoe heet je?','Ik heet Anna'],['Waar kom je vandaan?','Uit Rusland'],['Wat doe je?','Ik ben student'],['Hoe gaat het?','Goed, dank je'],['Hoe oud ben je?','25 jaar']]},
+  {t:'build',k:'Собери вопрос',tr:'Откуда ты?',words:['Waar','kom','je','vandaan'],ans:['Waar','kom','je','vandaan']},
+  {t:'translate',k:'Перевод',q:'Напиши вопрос: «Где ты работаешь?»',answer:['waar werk je'],ph:'waar…'},
+  {t:'speak',k:'Говорение',phrase:'Hoe heet je? Waar kom je vandaan? Wat doe je?',tr:'Интервью.'},
+ ]},
+]},
+8:{parts:[
+ {t:'Семья + притяжательные',steps:[
+  {t:'explain',k:'mijn, jouw, zijn, haar',b:'📖 Объяснение',html:'<div class="rule">mijn (мой) · jouw (твой) · zijn (его) · haar (её) · onze (наш) · hun (их)</div>',ex:[['Mijn moeder','Моя мать'],['Zijn broer','Его брат'],['Haar zus','Её сестра']]},
+  {t:'word',k:'Новое слово',emoji:'👩',nl:'de moeder',ipa:'[də ˈmudər]',tr:'мать'},
+  {t:'word',k:'Новое слово',emoji:'👨',nl:'de vader',ipa:'[də ˈvaːdər]',tr:'отец'},
+  {t:'word',k:'Новое слово',emoji:'👦',nl:'de broer',ipa:'[də brur]',tr:'брат'},
+  {t:'word',k:'Новое слово',emoji:'👧',nl:'de zus',ipa:'[də zʏs]',tr:'сестра'},
+  {t:'quiz',k:'Выбор',q:'«моя мать»:',opts:['mijn moeder','jouw moeder','haar moeder','zijn moeder']},
+  {t:'quiz',k:'Выбор',q:'___ broer woont in Utrecht. (его)',opts:['Zijn','Haar','Mijn','Jouw']},
+  {t:'quiz',k:'Выбор',q:'___ zus is aardig. (её)',opts:['Haar','Zijn','Mijn','Jouw']},
+  {t:'match',k:'Пары',pairs:[['de vader','отец'],['de moeder','мать'],['de broer','брат'],['de zus','сестра'],['het kind','ребёнок'],['de ouders','родители']]},
+  {t:'translate',k:'Перевод',q:'Напиши: «мою маму зовут Мария»',answer:['mijn moeder heet maria'],ph:'mijn moeder…'},
+  {t:'speak',k:'Говорение',phrase:'Dit is mijn familie. Mijn vader heet Ivan.',tr:'Это моя семья. Моего отца зовут Иван.'},
+ ]},
+ {t:'Описываем человека',steps:[
+  {t:'explain',k:'Прилагательные',b:'📖 Объяснение',html:'<p>Прилагательное обычно получает -e. Исключение: het-слово в ед.ч. с een → без -e.</p><div class="rule">de grote man · een grote man · но: een groot kind</div>',ex:[['groot','большой'],['klein','маленький'],['aardig','добрый'],['jong','молодой'],['oud','старый']]},
+  {t:'word',k:'Новое слово',emoji:'😊',nl:'aardig',ipa:'[ˈaːrdəx]',tr:'добрый/милый'},
+  {t:'word',k:'Новое слово',emoji:'🧒',nl:'jong',ipa:'[jɔŋ]',tr:'молодой'},
+  {t:'quiz',k:'Выбор',q:'de ___ man (groot)',opts:['grote','groot','groten','grotes']},
+  {t:'quiz',k:'Выбор',q:'een ___ kind (klein, het-слово)',opts:['klein','kleine','kleinen','kleins']},
+  {t:'quiz',k:'Выбор',q:'«добрый/милый»:',opts:['aardig','oud','klein','lang']},
+  {t:'listen',k:'Аудирование',audio:'Zij is aardig',q:'Что ты услышал?',opts:['Zij is aardig','Hij is aardig','Zij is jong','Zij is klein']},
+  {t:'translate',k:'Перевод',q:'Напиши: «мой брат — добрый»',answer:['mijn broer is aardig'],ph:'mijn broer is…'},
+  {t:'speak',k:'Говорение',phrase:'Mijn broer is jong en aardig.',tr:'Мой брат молодой и добрый.'},
+ ]},
+ {t:'Моя семья',steps:[
+  {t:'explain',k:'Рассказ',b:'📖 Объяснение',html:'<div class="rule">Mijn gezin is klein. Mijn zus heet Olga. Zij is 22 jaar en heel aardig.</div>',ex:[['het gezin','семья'],['klein','маленький'],['groot','большой']]},
+  {t:'build',k:'Собери фразу',tr:'Мою сестру зовут Ольга.',words:['Mijn','zus','heet','Olga'],ans:['Mijn','zus','heet','Olga']},
+  {t:'match',k:'Пары',pairs:[['Mijn moeder…','мать'],['Mijn broer…','брат'],['Mijn ouders…','родители'],['Mijn zus…','сестра']]},
+  {t:'translate',k:'Перевод',q:'Напиши: «у меня есть брат»',answer:['ik heb een broer'],ph:'ik heb…'},
+  {t:'speak',k:'Говорение',phrase:'Mijn familie is niet groot. Ik heb een moeder, een vader en een zus.',tr:'Рассказ о семье.'},
+ ]},
+]},
+9:{parts:[
+ {t:'niet и geen',steps:[
+  {t:'explain',k:'Два отрицания',b:'📖 Объяснение',html:'<p><b>niet</b> — глагол/прилагательное. <b>geen</b> — существительное с een/без артикля.</p><div class="rule">Ik werk niet. · Ik heb geen tijd. · Hij is niet oud.</div>',ex:[['Ik werk niet','Я не работаю'],['Ik heb geen tijd','У меня нет времени'],['Hij is niet oud','Он не старый']]},
+  {t:'word',k:'Новое слово',emoji:'⏰',nl:'de tijd',ipa:'[də tɛit]',tr:'время'},
+  {t:'word',k:'Новое слово',emoji:'😴',nl:'moe',ipa:'[mu]',tr:'усталый'},
+  {t:'quiz',k:'Выбор',q:'Ik heb ___ auto.',opts:['geen','niet','geen een','nee']},
+  {t:'quiz',k:'Выбор',q:'Hij is ___ moe.',opts:['niet','geen','geen een','nee']},
+  {t:'quiz',k:'Выбор',q:'Ik spreek ___ Engels.',opts:['geen','niet','nee','geen een']},
+  {t:'quiz',k:'Выбор',q:'Ik werk ___ vandaag.',opts:['niet','geen','nee','geen een']},
+  {t:'translate',k:'Перевод',q:'Сделай отрицательной: «Ik ben moe» →',answer:['ik ben niet moe'],ph:'ik ben niet…'},
+  {t:'translate',k:'Перевод',q:'Сделай отрицательной: «Ik heb een hond» →',answer:['ik heb geen hond'],ph:'ik heb geen…'},
+  {t:'listen',k:'Аудирование',audio:'Ik heb geen tijd',q:'Что ты услышал?',opts:['Ik heb geen tijd','Ik heb geen auto','Ik werk niet','Ik ben niet moe']},
+  {t:'speak',k:'Говорение',phrase:'Ik heb geen tijd en ik ben niet moe.',tr:'У меня нет времени, и я не устал.'},
+ ]},
+ {t:'ja / nee / jawel',steps:[
+  {t:'explain',k:'Согласие',b:'📖 Объяснение',html:'<p>ja (да), nee (нет). <b>jawel</b> — «да» в ответ на отрицательный вопрос.</p><div class="rule">— Heb je geen auto? — Jawel! (Есть!)</div>',ex:[['ja','да'],['nee','нет'],['jawel','нет, наоборот (да)'],['een beetje','немного']]},
+  {t:'quiz',k:'Выбор',q:'Ответ на «Heb je geen auto?» когда машина ЕСТЬ:',opts:['Jawel!','Ja','Nee','Niet']},
+  {t:'quiz',k:'Выбор',q:'«немного» (в ответе):',opts:['een beetje','geen','niet','nee']},
+  {t:'listen',k:'Аудирование',audio:'Ja, een beetje',q:'Что ты услышал?',opts:['Ja, een beetje','Nee, een beetje','Ja, veel','Jawel, een beetje']},
+  {t:'tf',k:'Верно?',q:'«jawel» используют в ответ на отрицательный вопрос.',answer:true,note:'Верно.'},
+  {t:'speak',k:'Говорение',phrase:'Nee, ik werk niet. Jawel, ik heb tijd!',tr:'Нет, я не работаю. Да, у меня есть время!'},
+ ]},
+]},
+10:{parts:[
+ {t:'Большое повторение',steps:[
+  {t:'quiz',k:'Повтор',q:'___ huis is groot.',opts:['Het','De','Een','Der']},
+  {t:'quiz',k:'Повтор',q:'Hij ___ een hond. (иметь)',opts:['heeft','hebt','heb','hebben']},
+  {t:'quiz',k:'Повтор',q:'Как сказать 21?',opts:['eenentwintig','twintigeen','twintig een','een twintig']},
+  {t:'quiz',k:'Повтор',q:'Jij ___ Nederlands. (spreken)',opts:['spreekt','spreek','spreken','sprekt']},
+  {t:'quiz',k:'Повтор',q:'«Откуда ты?»:',opts:['Waar kom je vandaan?','Hoe heet je?','Wat doe je?','Hoe gaat het?']},
+  {t:'listen',k:'Аудирование',audio:'Ik woon in Amsterdam',q:'Что ты услышал?',opts:['Ik woon in Amsterdam','Ik woon in Rotterdam','Ik werk in Amsterdam','Jij woont in Amsterdam']},
+  {t:'gapType',k:'Впиши на слух',audio:'Ik kom uit Rusland',q:'Ik ___ uit Rusland',answer:['kom'],ph:'форма komen…'},
+  {t:'translate',k:'Перевод',q:'Сделай отрицательной: «Ik heb tijd» →',answer:['ik heb geen tijd'],ph:'ik heb geen…'},
+  {t:'build',k:'Собери фразу',tr:'Меня зовут Анна.',words:['Ik','heet','Anna'],ans:['Ik','heet','Anna']},
+ ]},
+ {t:'Диалог и письмо',steps:[
+  {t:'explain',k:'Полный диалог',b:'📖 Объяснение',html:'<div class="rule">— Hoe heet je? — Ik heet Anna. — Waar kom je vandaan? — Uit Rusland. — Wat doe je? — Ik ben student.</div>',ex:[]},
+  {t:'match',k:'Пары',pairs:[['Hoe heet je?','Ik heet Anna'],['Waar kom je vandaan?','Uit Rusland'],['Wat doe je?','Ik ben student'],['Hoe gaat het?','Goed, dank je'],['Hoe oud ben je?','28 jaar']]},
+  {t:'listen',k:'Аудирование',audio:'Ik woon nu in Amsterdam',q:'Что ты услышал?',opts:['Ik woon nu in Amsterdam','Ik woon nu in Rotterdam','Ik werk nu in Amsterdam','Jij woont nu in Amsterdam']},
+  {t:'build',k:'Собери фразу',tr:'Я живу в Амстердаме.',words:['Ik','woon','in','Amsterdam'],ans:['Ik','woon','in','Amsterdam']},
+  {t:'translate',k:'Письмо',q:'Напиши о себе: имя и откуда ты',answer:['ik heet anna en ik kom uit rusland'],ph:'ik heet … en ik kom uit …',hint:'свободно, AI проверит'},
+ ]},
+ {t:'Финальное говорение',steps:[
+  {t:'explain',k:'Выпускное задание',b:'🎓 Итог блока',html:'<p>Расскажи о себе вслух — это выпуск Блока 1! Дальше открывается Раздел 2 «Каждый день».</p>',ex:[]},
+  {t:'speak',k:'Монолог',phrase:'Hallo! Ik heet Anna. Ik kom uit Rusland. Ik ben 28 jaar. Ik ben student en ik leer Nederlands.',tr:'Рассказ о себе.'},
+  {t:'speak',k:'Диалог с AI',phrase:'Hallo! Hoe heet je? Waar kom je vandaan?',tr:'Ролевой диалог: познакомься с собеседником.'},
+ ]},
+]},
+
+11:{parts:[
+ {t:'Что я люблю',steps:[
+  {t:'explain',k:'Люблю / не люблю',b:'📖 Объяснение',html:'<p>Сказать, что нравится: <b>Ik hou van…</b> (я люблю). Не нравится на вкус: <b>Ik lust geen…</b> Вкусно: <b>lekker</b>.</p>',ex:[['Ik hou van koffie','Я люблю кофе'],['lekker','вкусно'],['Ik lust geen bier','Я не люблю пиво']]},
+  {t:'word',k:'Новое слово',emoji:'☕',nl:'de koffie',ipa:'[ˈkɔfi]',tr:'кофе'},
+  {t:'word',k:'Новое слово',emoji:'🍵',nl:'de thee',ipa:'[teː]',tr:'чай'},
+  {t:'word',k:'Новое слово',emoji:'🍞',nl:'het brood',ipa:'[broːt]',tr:'хлеб'},
+  {t:'word',k:'Новое слово',emoji:'🧀',nl:'de kaas',ipa:'[kaːs]',tr:'сыр'},
+  {t:'word',k:'Новое слово',emoji:'💧',nl:'het water',ipa:'[ˈʋaːtər]',tr:'вода'},
+  {t:'pick',k:'Выбери картинку',q:'Где «de kaas» (сыр)?',opts:['🧀','☕','🍞','💧']},
+  {t:'quiz',k:'Выбор',q:'«Я люблю кофе»:',opts:['Ik hou van koffie','Ik ben koffie','Ik heb van koffie','Ik hou koffie']},
+  {t:'quiz',k:'Выбор',q:'«вкусно»:',opts:['lekker','duur','groot','moe']},
+  {t:'listen',k:'Аудирование',audio:'Ik hou van koffie',q:'Что ты услышал?',opts:['Ik hou van koffie','Ik hou van thee','Ik lust geen koffie','Jij houdt van koffie']},
+  {t:'match',k:'Пары',pairs:[['de koffie','кофе'],['de thee','чай'],['het brood','хлеб'],['de kaas','сыр'],['het water','вода'],['lekker','вкусно']]},
+  {t:'translate',k:'Перевод',q:'Напиши: «я люблю чай»',answer:['ik hou van thee'],ph:'ik hou van…'},
+  {t:'speak',k:'Говорение',phrase:'Ik hou van koffie en kaas. Het is lekker!',tr:'Я люблю кофе и сыр. Это вкусно!'},
+ ]},
+ {t:'Заказ в кафе',steps:[
+  {t:'explain',k:'Хочу / можно мне',b:'📖 Объяснение',html:'<p>Заказать: <b>Ik wil…</b> (я хочу) или вежливо <b>Mag ik…?</b> В конце — <b>alsjeblieft</b>.</p><div class="rule">willen: ik wil · jij wilt · hij wil · wij willen<br>Ik wil een koffie, alsjeblieft. · Mag ik de rekening?</div>',ex:[['Ik wil…','Я хочу…'],['Mag ik…?','Можно мне…?'],['de rekening','счёт'],['de ober','официант']]},
+  {t:'word',k:'Новое слово',emoji:'🙋',nl:'willen',ipa:'[ˈʋɪlə]',tr:'хотеть'},
+  {t:'word',k:'Новое слово',emoji:'🧾',nl:'de rekening',ipa:'[ˈreːkənɪŋ]',tr:'счёт'},
+  {t:'quiz',k:'Выбор',q:'Ik ___ een koffie. (willen)',opts:['wil','wilt','willen','wilst']},
+  {t:'quiz',k:'Выбор',q:'Вежливо «можно мне кофе?»:',opts:['Mag ik een koffie?','Ik wil koffie!','Heb je koffie?','Waar is koffie?']},
+  {t:'quiz',k:'Выбор',q:'«счёт» в кафе:',opts:['de rekening','de ober','de kaas','de winkel']},
+  {t:'listen',k:'Аудирование',audio:'Ik wil een koffie, alsjeblieft',q:'Что ты услышал?',opts:['Ik wil een koffie, alsjeblieft','Ik wil een thee, alsjeblieft','Mag ik een koffie?','Ik hou van koffie']},
+  {t:'gapType',k:'Впиши на слух',audio:'Mag ik de rekening',q:'Mag ik de ___',answer:['rekening'],ph:'на слух…'},
+  {t:'build',k:'Собери фразу',tr:'Я хочу кофе, пожалуйста.',words:['Ik','wil','een','koffie',',','alsjeblieft'],ans:['Ik','wil','een','koffie',',','alsjeblieft']},
+  {t:'translate',k:'Перевод',q:'Напиши: «можно мне чай?»',answer:['mag ik een thee','mag ik thee'],ph:'mag ik…'},
+  {t:'speak',k:'Говорение',phrase:'Goedemiddag! Ik wil een koffie, alsjeblieft.',tr:'Добрый день! Я хочу кофе, пожалуйста.'},
+ ]},
+ {t:'Диалог в кафе',steps:[
+  {t:'explain',k:'В кафе',b:'📖 Объяснение',html:'<div class="rule">— Goedemiddag! Wat wil je drinken?<br>— Ik wil een koffie, alsjeblieft.<br>— Anders nog iets?<br>— Nee, dank je. Mag ik de rekening?</div>',ex:[['Wat wil je drinken?','Что будешь пить?'],['Anders nog iets?','Что-нибудь ещё?']]},
+  {t:'match',k:'Пары',pairs:[['Wat wil je drinken?','Что будешь пить?'],['Ik wil een koffie','Я хочу кофе'],['Mag ik de rekening?','Можно счёт?'],['Anders nog iets?','Что-нибудь ещё?']]},
+  {t:'listen',k:'Аудирование',audio:'Wat wil je drinken?',q:'Что ты услышал?',opts:['Wat wil je drinken?','Wat wil je eten?','Waar wil je zitten?','Wie wil koffie?']},
+  {t:'build',k:'Собери фразу',tr:'Можно мне счёт?',words:['Mag','ik','de','rekening'],ans:['Mag','ik','de','rekening']},
+  {t:'translate',k:'Перевод',q:'Напиши: «нет, спасибо»',answer:['nee, dank je','nee dank je'],ph:'nee…'},
+  {t:'speak',k:'Говорение',phrase:'Ik wil een koffie, alsjeblieft. Mag ik de rekening?',tr:'Диалог в кафе с AI.'},
+ ]},
+]},
+12:{parts:[
+ {t:'В магазине',steps:[
+  {t:'explain',k:'Ищу / у вас есть',b:'📖 Объяснение',html:'<p>В магазине: <b>Ik zoek…</b> (я ищу), <b>Heeft u…?</b> (у вас есть?). Купить: <b>kopen</b>.</p><div class="rule">kopen: ik koop · jij koopt · hij koopt · wij kopen</div>',ex:[['Ik zoek…','Я ищу…'],['Heeft u…?','У вас есть…?'],['de winkel','магазин'],['kopen','покупать']]},
+  {t:'word',k:'Новое слово',emoji:'🏪',nl:'de winkel',ipa:'[ˈʋɪŋkəl]',tr:'магазин'},
+  {t:'word',k:'Новое слово',emoji:'🛒',nl:'de supermarkt',ipa:'[ˈsypərmɑrkt]',tr:'супермаркет'},
+  {t:'word',k:'Новое слово',emoji:'🥛',nl:'de melk',ipa:'[mɛlk]',tr:'молоко'},
+  {t:'word',k:'Новое слово',emoji:'💳',nl:'de kassa',ipa:'[ˈkɑsaː]',tr:'касса'},
+  {t:'pick',k:'Выбери картинку',q:'Где «de melk» (молоко)?',opts:['🥛','🧀','🍞','☕']},
+  {t:'quiz',k:'Выбор',q:'Ik ___ melk. (kopen)',opts:['koop','koopt','kopen','koopst']},
+  {t:'quiz',k:'Выбор',q:'«У вас есть хлеб?»:',opts:['Heeft u brood?','Hebt u brood?','Waar is brood?','Wil u brood?']},
+  {t:'listen',k:'Аудирование',audio:'Ik zoek melk',q:'Что ты услышал?',opts:['Ik zoek melk','Ik zoek kaas','Ik koop melk','Ik heb melk']},
+  {t:'match',k:'Пары',pairs:[['de winkel','магазин'],['de supermarkt','супермаркет'],['de melk','молоко'],['de kassa','касса'],['kopen','покупать'],['de kaas','сыр']]},
+  {t:'translate',k:'Перевод',q:'Напиши: «я ищу сыр»',answer:['ik zoek kaas'],ph:'ik zoek…'},
+  {t:'speak',k:'Говорение',phrase:'Goedemiddag! Ik zoek melk en brood.',tr:'Добрый день! Я ищу молоко и хлеб.'},
+ ]},
+ {t:'Цена и оплата',steps:[
+  {t:'explain',k:'Сколько стоит',b:'📖 Объяснение',html:'<p><b>Hoeveel kost het?</b> Оплата: <b>pinnen</b> (картой), <b>contant</b> (наличными). Дорого/дёшево: <b>duur / goedkoop</b>.</p>',ex:[['Hoeveel kost het?','Сколько стоит?'],['pinnen','картой'],['contant','наличными'],['duur','дорого']]},
+  {t:'word',k:'Новое слово',emoji:'💶',nl:'betalen',ipa:'[bəˈtaːlə]',tr:'платить'},
+  {t:'word',k:'Новое слово',emoji:'💳',nl:'pinnen',ipa:'[ˈpɪnə]',tr:'платить картой'},
+  {t:'word',k:'Новое слово',emoji:'💵',nl:'contant',ipa:'[kɔnˈtɑnt]',tr:'наличными'},
+  {t:'quiz',k:'Выбор',q:'«Сколько это стоит?»:',opts:['Hoeveel kost het?','Hoe oud ben je?','Wat is dit?','Waar is het?']},
+  {t:'quiz',k:'Выбор',q:'«платить картой»:',opts:['pinnen','contant','kopen','betalen']},
+  {t:'quiz',k:'Выбор',q:'«дорого»:',opts:['duur','goedkoop','lekker','klein']},
+  {t:'listen',k:'Аудирование',audio:'Hoeveel kost het?',q:'Что ты услышал?',opts:['Hoeveel kost het?','Wat wil je drinken?','Waar is de kassa?','Mag ik pinnen?']},
+  {t:'gapType',k:'Впиши на слух',audio:'Mag ik pinnen',q:'Mag ik ___',answer:['pinnen'],ph:'на слух…'},
+  {t:'translate',k:'Перевод',q:'Напиши: «сколько это стоит?»',answer:['hoeveel kost het','wat kost het'],ph:'hoeveel…'},
+  {t:'speak',k:'Говорение',phrase:'Hoeveel kost het? Mag ik pinnen?',tr:'Сколько стоит? Можно картой?'},
+ ]},
+ {t:'Диалог покупки',steps:[
+  {t:'explain',k:'На кассе',b:'📖 Объяснение',html:'<div class="rule">— Dat is drie euro vijftig.<br>— Mag ik pinnen?<br>— Ja, natuurlijk. Alstublieft.<br>— Dank u wel!</div>',ex:[['natuurlijk','конечно']]},
+  {t:'match',k:'Пары',pairs:[['Hoeveel kost het?','Сколько стоит?'],['Mag ik pinnen?','Можно картой?'],['Dank u wel','Спасибо (вы)'],['natuurlijk','конечно']]},
+  {t:'listen',k:'Аудирование',audio:'Mag ik pinnen?',q:'Что ты услышал?',opts:['Mag ik pinnen?','Mag ik de rekening?','Hoeveel kost het?','Waar is de kassa?']},
+  {t:'build',k:'Собери фразу',tr:'Сколько это стоит?',words:['Hoeveel','kost','het'],ans:['Hoeveel','kost','het']},
+  {t:'translate',k:'Перевод',q:'Напиши: «спасибо» (на вы)',answer:['dank u wel'],ph:'dank u…'},
+  {t:'speak',k:'Говорение',phrase:'Ik zoek melk. Hoeveel kost het? Mag ik pinnen? Dank u wel!',tr:'Диалог покупки с AI.'},
+ ]},
+]},
+13:{parts:[
+ {t:'Часы',steps:[
+  {t:'explain',k:'Который час?',b:'📖 Объяснение',html:'<p>Спросить: <b>Hoe laat is het?</b> Ответить: <b>Het is … uur.</b></p><div class="rule">kwart over drie = 3:15 · kwart voor vier = 3:45<br>⚠️ <b>half vier = 3:30</b> (нидерландцы считают «половина ДО четырёх»!)</div>',ex:[['Hoe laat is het?','Который час?'],['Het is drie uur','Сейчас 3 часа'],['half vier','3:30'],['kwart over drie','3:15']]},
+  {t:'word',k:'Новое слово',emoji:'🕐',nl:'het uur',ipa:'[ət yːr]',tr:'час'},
+  {t:'word',k:'Новое слово',emoji:'⏳',nl:'half',ipa:'[hɑlf]',tr:'половина'},
+  {t:'word',k:'Новое слово',emoji:'🕒',nl:'kwart',ipa:'[kʋɑrt]',tr:'четверть'},
+  {t:'quiz',k:'Выбор',q:'«Который час?»:',opts:['Hoe laat is het?','Hoe gaat het?','Hoe oud ben je?','Wat is het?']},
+  {t:'quiz',k:'Выбор',q:'«half vier» — это…',opts:['3:30','4:30','3:15','4:15']},
+  {t:'quiz',k:'Выбор',q:'«kwart over drie» — это…',opts:['3:15','3:45','2:45','3:30']},
+  {t:'listen',k:'Аудирование',audio:'Het is drie uur',q:'Что ты услышал?',opts:['Het is drie uur','Het is vier uur','Het is twee uur','Het is half drie']},
+  {t:'gapType',k:'Впиши на слух',audio:'Het is vier uur',q:'Het is ___ uur',answer:['vier'],ph:'число…'},
+  {t:'translate',k:'Перевод',q:'Напиши: «который час?»',answer:['hoe laat is het'],ph:'hoe laat…'},
+  {t:'match',k:'Пары',pairs:[['het uur','час'],['half','половина'],['kwart','четверть'],['over','после'],['voor','до'],['Hoe laat is het?','Который час?']]},
+  {t:'speak',k:'Говорение',phrase:'Hoe laat is het? Het is half vier.',tr:'Который час? Половина четвёртого.'},
+ ]},
+ {t:'Дни и месяцы',steps:[
+  {t:'explain',k:'Дни недели',b:'📖 Объяснение',html:'<p>Дни: maandag, dinsdag, woensdag, donderdag, vrijdag, zaterdag, zondag.</p><div class="rule">vandaag (сегодня) · morgen (завтра) · gisteren (вчера)</div>',ex:[['maandag','понедельник'],['zaterdag','суббота'],['zondag','воскресенье'],['vandaag','сегодня'],['morgen','завтра']]},
+  {t:'word',k:'Новое слово',emoji:'📅',nl:'maandag',ipa:'[ˈmaːndɑx]',tr:'понедельник'},
+  {t:'word',k:'Новое слово',emoji:'🎉',nl:'zaterdag',ipa:'[ˈzaːtərdɑx]',tr:'суббота'},
+  {t:'word',k:'Новое слово',emoji:'🌤️',nl:'vandaag',ipa:'[vɑnˈdaːx]',tr:'сегодня'},
+  {t:'word',k:'Новое слово',emoji:'➡️',nl:'morgen',ipa:'[ˈmɔrɣə]',tr:'завтра'},
+  {t:'quiz',k:'Выбор',q:'«maandag» — это…',opts:['понедельник','вторник','суббота','воскресенье']},
+  {t:'quiz',k:'Выбор',q:'«zaterdag» — это…',opts:['суббота','пятница','воскресенье','среда']},
+  {t:'quiz',k:'Выбор',q:'«завтра» по-нидерландски:',opts:['morgen','vandaag','gisteren','vanavond']},
+  {t:'match',k:'Пары',pairs:[['maandag','понедельник'],['woensdag','среда'],['vrijdag','пятница'],['zaterdag','суббота'],['zondag','воскресенье'],['vandaag','сегодня']]},
+  {t:'listen',k:'Аудирование',audio:'Vandaag is het maandag',q:'Что ты услышал?',opts:['Vandaag is het maandag','Vandaag is het zondag','Morgen is het maandag','Vandaag is het zaterdag']},
+  {t:'translate',k:'Перевод',q:'Напиши: «сегодня»',answer:['vandaag'],ph:'van…'},
+  {t:'speak',k:'Говорение',phrase:'Vandaag is het zaterdag. Morgen is het zondag.',tr:'Сегодня суббота. Завтра воскресенье.'},
+ ]},
+ {t:'Договориться о встрече',steps:[
+  {t:'explain',k:'В котором часу',b:'📖 Объяснение',html:'<p>«В … часов»: <b>om … uur</b>. Когда: <b>Wanneer?</b></p><div class="rule">Kom je om drie uur? — Ja, om drie uur.</div>',ex:[['om drie uur','в 3 часа'],['Wanneer?','Когда?'],['de afspraak','встреча']]},
+  {t:'word',k:'Новое слово',emoji:'🤝',nl:'de afspraak',ipa:'[ˈɑfspraːk]',tr:'встреча'},
+  {t:'quiz',k:'Выбор',q:'«в 3 часа»:',opts:['om drie uur','drie uur om','in drie uur','op drie uur']},
+  {t:'quiz',k:'Выбор',q:'«Когда?»:',opts:['Wanneer?','Waar?','Wie?','Hoe?']},
+  {t:'listen',k:'Аудирование',audio:'Kom je om drie uur?',q:'Что ты услышал?',opts:['Kom je om drie uur?','Kom je om vier uur?','Ga je om drie uur?','Werk je om drie uur?']},
+  {t:'build',k:'Собери фразу',tr:'Ты придёшь в 3 часа?',words:['Kom','je','om','drie','uur'],ans:['Kom','je','om','drie','uur']},
+  {t:'translate',k:'Перевод',q:'Напиши: «в 4 часа»',answer:['om vier uur'],ph:'om…'},
+  {t:'speak',k:'Говорение',phrase:'Wanneer kom je? Ik kom om drie uur.',tr:'Когда придёшь? Я приду в 3 часа.'},
+ ]},
+]},
+14:{parts:[
+ {t:'Отделяемые глаголы',steps:[
+  {t:'explain',k:'Приставка уходит в конец',b:'📖 Объяснение',html:'<p>У некоторых глаголов приставка (op, aan, uit, mee, weg…) в предложении <b>отделяется и уходит в конец</b>!</p><div class="rule">opstaan (вставать) → Ik sta om 7 uur <b>op</b>.<br>weggaan (уходить) → Ik ga om 8 uur <b>weg</b>.</div>',ex:[['opstaan','вставать'],['weggaan','уходить'],['thuiskomen','приходить домой']]},
+  {t:'word',k:'Новое слово',emoji:'⏰',nl:'opstaan',ipa:'[ˈɔpstaːn]',tr:'вставать'},
+  {t:'word',k:'Новое слово',emoji:'🚶',nl:'weggaan',ipa:'[ˈʋɛxɣaːn]',tr:'уходить'},
+  {t:'word',k:'Новое слово',emoji:'🏠',nl:'thuiskomen',ipa:'[ˈtœyskoːmə]',tr:'приходить домой'},
+  {t:'quiz',k:'Выбор',q:'Ik ___ om 7 uur ___. (opstaan)',opts:['sta … op','opsta …','sta op …','staan … op']},
+  {t:'quiz',k:'Выбор',q:'Куда уходит приставка «op» в предложении?',opts:['в конец','перед глаголом','в начало','никуда']},
+  {t:'build',k:'Собери фразу',tr:'Я встаю в 7 часов.',words:['Ik','sta','om','zeven','uur','op'],ans:['Ik','sta','om','zeven','uur','op']},
+  {t:'listen',k:'Аудирование',audio:'Ik sta om zeven uur op',q:'Что ты услышал?',opts:['Ik sta om zeven uur op','Ik sta om acht uur op','Ik ga om zeven uur weg','Jij staat om zeven uur op']},
+  {t:'tf',k:'Верно?',q:'«Ik sta om 7 uur op» — правильно (приставка в конце).',answer:true,note:'Верно: op в конце.'},
+  {t:'translate',k:'Перевод',q:'Напиши: «я ухожу в 8 часов» (weggaan)',answer:['ik ga om acht uur weg','ik ga om 8 uur weg'],ph:'ik ga … weg'},
+  {t:'speak',k:'Говорение',phrase:'Ik sta om zeven uur op en ik ga om acht uur weg.',tr:'Я встаю в 7 и ухожу в 8.'},
+ ]},
+ {t:'Распорядок недели',steps:[
+  {t:'explain',k:'Что я делаю',b:'📖 Объяснение',html:'<p>Соединяем дни, время и глаголы.</p><div class="rule">Op maandag werk ik. In het weekend rust ik.</div>',ex:[['het werk','работа'],['het weekend','выходные'],['rusten','отдыхать']]},
+  {t:'word',k:'Новое слово',emoji:'💼',nl:'het werk',ipa:'[ət ʋɛrk]',tr:'работа'},
+  {t:'word',k:'Новое слово',emoji:'🛌',nl:'rusten',ipa:'[ˈrʏstə]',tr:'отдыхать'},
+  {t:'quiz',k:'Выбор',q:'«работа»:',opts:['het werk','het weekend','de afspraak','het uur']},
+  {t:'quiz',k:'Выбор',q:'Op maandag ___ ik. (werken)',opts:['werk','werkt','werken','werkte']},
+  {t:'listen',k:'Аудирование',audio:'Op maandag werk ik',q:'Что ты услышал?',opts:['Op maandag werk ik','Op zondag werk ik','Op maandag rust ik','Op maandag werkt hij']},
+  {t:'gapType',k:'Впиши на слух',audio:'In het weekend rust ik',q:'In het weekend ___ ik',answer:['rust'],ph:'форма rusten…'},
+  {t:'translate',k:'Перевод',q:'Напиши: «в понедельник я работаю»',answer:['op maandag werk ik','ik werk op maandag'],ph:'op maandag…'},
+  {t:'match',k:'Пары',pairs:[['het werk','работа'],['het weekend','выходные'],['rusten','отдыхать'],['opstaan','вставать'],['weggaan','уходить'],['de afspraak','встреча']]},
+  {t:'speak',k:'Говорение',phrase:'Op maandag werk ik. In het weekend rust ik.',tr:'В понедельник работаю. В выходные отдыхаю.'},
+ ]},
+ {t:'Рассказ о неделе',steps:[
+  {t:'explain',k:'Моя неделя',b:'📖 Объяснение',html:'<div class="rule">Ik sta om 7 uur op. Ik werk van maandag tot vrijdag. In het weekend rust ik.</div>',ex:[['van … tot …','с … до …']]},
+  {t:'match',k:'Пары',pairs:[['Ik sta … op','встаю'],['Ik werk','работаю'],['Ik ga … weg','ухожу'],['Ik rust','отдыхаю']]},
+  {t:'build',k:'Собери фразу',tr:'Я встаю в 7 часов.',words:['Ik','sta','om','zeven','uur','op'],ans:['Ik','sta','om','zeven','uur','op']},
+  {t:'translate',k:'Перевод',q:'Напиши: «в выходные я отдыхаю»',answer:['in het weekend rust ik','ik rust in het weekend'],ph:'in het weekend…'},
+  {t:'speak',k:'Говорение',phrase:'Ik sta om zeven uur op. Ik werk van maandag tot vrijdag. In het weekend rust ik.',tr:'Рассказ о моей неделе.'},
+ ]},
+]},
+15:{parts:[
+ {t:'willen / kunnen',steps:[
+  {t:'explain',k:'Модальные глаголы',b:'📖 Объяснение',html:'<p><b>Модальные глаголы</b> выражают желание/возможность. Главный глагол ставится в <b>инфинитиве в КОНЕЦ</b>!</p><div class="rule">willen (хотеть): ik wil · jij wilt · hij wil · wij willen<br>kunnen (мочь): ik kan · jij kunt · hij kan · wij kunnen<br>Ik wil koffie <b>drinken</b>. · Ik kan Nederlands <b>spreken</b>.</div>',ex:[['Ik wil slapen','Я хочу спать'],['Ik kan zwemmen','Я умею плавать']]},
+  {t:'word',k:'Новое слово',emoji:'🙋',nl:'willen',ipa:'[ˈʋɪlə]',tr:'хотеть'},
+  {t:'word',k:'Новое слово',emoji:'💪',nl:'kunnen',ipa:'[ˈkʏnə]',tr:'мочь/уметь'},
+  {t:'quiz',k:'Выбор',q:'Ik ___ slapen. (willen)',opts:['wil','wilt','willen','wilde']},
+  {t:'quiz',k:'Выбор',q:'Ik ___ Nederlands spreken. (kunnen)',opts:['kan','kunt','kunnen','kon']},
+  {t:'quiz',k:'Выбор',q:'Куда ставится главный глагол при модальном?',opts:['в конец (инфинитив)','сразу после подлежащего','в начало','не меняется']},
+  {t:'listen',k:'Аудирование',audio:'Ik wil koffie drinken',q:'Что ты услышал?',opts:['Ik wil koffie drinken','Ik wil thee drinken','Ik kan koffie drinken','Ik wil koffie kopen']},
+  {t:'build',k:'Собери фразу',tr:'Я хочу пить кофе.',words:['Ik','wil','koffie','drinken'],ans:['Ik','wil','koffie','drinken']},
+  {t:'translate',k:'Перевод',q:'Напиши: «я умею плавать» (zwemmen)',answer:['ik kan zwemmen'],ph:'ik kan…'},
+  {t:'speak',k:'Говорение',phrase:'Ik wil koffie drinken. Ik kan een beetje Nederlands spreken.',tr:'Я хочу пить кофе. Я немного умею говорить.'},
+ ]},
+ {t:'moeten / mogen',steps:[
+  {t:'explain',k:'Должен / можно',b:'📖 Объяснение',html:'<div class="rule">moeten (быть должным): ik moet · jij moet · hij moet · wij moeten<br>mogen (сметь/можно): ik mag · jij mag · hij mag · wij mogen<br>Ik moet <b>werken</b>. · Mag ik hier <b>zitten</b>?</div>',ex:[['Ik moet werken','Я должен работать'],['Mag ik hier zitten?','Можно мне здесь сесть?']]},
+  {t:'word',k:'Новое слово',emoji:'📋',nl:'moeten',ipa:'[ˈmutə]',tr:'быть должным'},
+  {t:'word',k:'Новое слово',emoji:'🙏',nl:'mogen',ipa:'[ˈmoːɣə]',tr:'сметь/можно'},
+  {t:'quiz',k:'Выбор',q:'Ik ___ vandaag werken. (moeten)',opts:['moet','moett','moeten','moest']},
+  {t:'quiz',k:'Выбор',q:'«Можно мне здесь сесть?»:',opts:['Mag ik hier zitten?','Moet ik hier zitten?','Wil ik hier zitten?','Kan ik hier zitten?']},
+  {t:'listen',k:'Аудирование',audio:'Ik moet werken',q:'Что ты услышал?',opts:['Ik moet werken','Ik wil werken','Ik kan werken','Ik moet leren']},
+  {t:'gapType',k:'Впиши на слух',audio:'Ik moet vandaag werken',q:'Ik ___ vandaag werken',answer:['moet'],ph:'форма moeten…'},
+  {t:'translate',k:'Перевод',q:'Напиши: «я должен учиться» (leren)',answer:['ik moet leren'],ph:'ik moet…'},
+  {t:'speak',k:'Говорение',phrase:'Ik moet vandaag werken, maar ik wil rusten.',tr:'Сегодня я должен работать, но хочу отдыхать.'},
+ ]},
+ {t:'Практика',steps:[
+  {t:'explain',k:'Все вместе',b:'📖 Объяснение',html:'<div class="rule">Ik wil… · Ik kan… · Ik moet… · Mag ik…? — и глагол в конец.</div>',ex:[['Ik wil slapen','хочу спать'],['Ik moet gaan','должен идти']]},
+  {t:'match',k:'Пары',pairs:[['willen','хотеть'],['kunnen','мочь'],['moeten','быть должным'],['mogen','можно'],['drinken','пить'],['werken','работать']]},
+  {t:'build',k:'Собери фразу',tr:'Я должен идти домой.',words:['Ik','moet','naar','huis','gaan'],ans:['Ik','moet','naar','huis','gaan']},
+  {t:'translate',k:'Перевод',q:'Напиши: «я хочу спать»',answer:['ik wil slapen'],ph:'ik wil…'},
+  {t:'speak',k:'Говорение',phrase:'Ik moet nu gaan. Mag ik morgen komen?',tr:'Мне пора идти. Можно я приду завтра?'},
+ ]},
+]},
+16:{parts:[
+ {t:'Город и транспорт',steps:[
+  {t:'explain',k:'В городе',b:'📖 Объяснение',html:'<p>Места и транспорт в городе.</p><div class="rule">de stad (город) · de straat (улица) · het station (вокзал) · de bus · de trein · de fiets (велосипед)</div>',ex:[['de stad','город'],['de straat','улица'],['het station','вокзал'],['de fiets','велосипед']]},
+  {t:'word',k:'Новое слово',emoji:'🏙️',nl:'de stad',ipa:'[də stɑt]',tr:'город'},
+  {t:'word',k:'Новое слово',emoji:'🚉',nl:'het station',ipa:'[ət staːˈʃɔn]',tr:'вокзал'},
+  {t:'word',k:'Новое слово',emoji:'🚲',nl:'de fiets',ipa:'[də fits]',tr:'велосипед'},
+  {t:'word',k:'Новое слово',emoji:'🚌',nl:'de bus',ipa:'[də bʏs]',tr:'автобус'},
+  {t:'pick',k:'Выбери картинку',q:'Где «de fiets» (велосипед)?',opts:['🚲','🚌','🚉','🏙️']},
+  {t:'quiz',k:'Выбор',q:'«вокзал»:',opts:['het station','de stad','de straat','de bus']},
+  {t:'quiz',k:'Выбор',q:'«велосипед»:',opts:['de fiets','de bus','de trein','de auto']},
+  {t:'listen',k:'Аудирование',audio:'Ik ga met de fiets',q:'Что ты услышал?',opts:['Ik ga met de fiets','Ik ga met de bus','Ik ga met de trein','Jij gaat met de fiets']},
+  {t:'match',k:'Пары',pairs:[['de stad','город'],['de straat','улица'],['het station','вокзал'],['de bus','автобус'],['de trein','поезд'],['de fiets','велосипед']]},
+  {t:'translate',k:'Перевод',q:'Напиши: «я еду на велосипеде» (met de fiets)',answer:['ik ga met de fiets'],ph:'ik ga met…'},
+  {t:'speak',k:'Говорение',phrase:'Ik ga met de fiets naar het station.',tr:'Я еду на велосипеде на вокзал.'},
+ ]},
+ {t:'Спросить дорогу',steps:[
+  {t:'explain',k:'Как пройти',b:'📖 Объяснение',html:'<p>Спросить: <b>Waar is…?</b> Направления: <b>rechtdoor</b> (прямо), <b>links</b> (налево), <b>rechts</b> (направо).</p><div class="rule">Ga rechtdoor. — Идите прямо.<br>Sla linksaf. — Поверните налево.<br>Sla rechtsaf. — Поверните направо.</div>',ex:[['Waar is het station?','Где вокзал?'],['rechtdoor','прямо'],['links','налево'],['rechts','направо']]},
+  {t:'word',k:'Новое слово',emoji:'⬆️',nl:'rechtdoor',ipa:'[ˈrɛxtdoːr]',tr:'прямо'},
+  {t:'word',k:'Новое слово',emoji:'⬅️',nl:'links',ipa:'[lɪŋks]',tr:'налево'},
+  {t:'word',k:'Новое слово',emoji:'➡️',nl:'rechts',ipa:'[rɛxts]',tr:'направо'},
+  {t:'quiz',k:'Выбор',q:'«Где вокзал?»:',opts:['Waar is het station?','Wie is het station?','Wat is het station?','Hoe is het station?']},
+  {t:'quiz',k:'Выбор',q:'«прямо»:',opts:['rechtdoor','links','rechts','naast']},
+  {t:'quiz',k:'Выбор',q:'«Поверните налево»:',opts:['Sla linksaf','Sla rechtsaf','Ga rechtdoor','Ga naar huis']},
+  {t:'listen',k:'Аудирование',audio:'Ga rechtdoor',q:'Что ты услышал?',opts:['Ga rechtdoor','Sla linksaf','Sla rechtsaf','Ga naar links']},
+  {t:'build',k:'Собери фразу',tr:'Где вокзал?',words:['Waar','is','het','station'],ans:['Waar','is','het','station']},
+  {t:'translate',k:'Перевод',q:'Напиши: «идите прямо»',answer:['ga rechtdoor'],ph:'ga…'},
+  {t:'speak',k:'Говорение',phrase:'Waar is het station? Ga rechtdoor en sla linksaf.',tr:'Где вокзал? Идите прямо и поверните налево.'},
+ ]},
+ {t:'Диалог: спрашиваю дорогу',steps:[
+  {t:'explain',k:'На улице',b:'📖 Объяснение',html:'<div class="rule">— Pardon, waar is het station?<br>— Ga rechtdoor en sla dan rechtsaf. Het is naast de bank.<br>— Dank u wel!</div>',ex:[['Pardon','Извините'],['naast','рядом с'],['de bank','банк']]},
+  {t:'match',k:'Пары',pairs:[['Waar is…?','Где…?'],['rechtdoor','прямо'],['linksaf','налево'],['rechtsaf','направо'],['naast','рядом с'],['Pardon','Извините']]},
+  {t:'listen',k:'Аудирование',audio:'Sla rechtsaf',q:'Что ты услышал?',opts:['Sla rechtsaf','Sla linksaf','Ga rechtdoor','Ga terug']},
+  {t:'build',k:'Собери фразу',tr:'Идите прямо и поверните направо.',words:['Ga','rechtdoor','en','sla','rechtsaf'],ans:['Ga','rechtdoor','en','sla','rechtsaf']},
+  {t:'translate',k:'Перевод',q:'Напиши: «извините, где вокзал?»',answer:['pardon, waar is het station','pardon waar is het station'],ph:'pardon, waar…'},
+  {t:'speak',k:'Говорение',phrase:'Pardon, waar is het station? Ga rechtdoor en sla linksaf.',tr:'Диалог: спроси дорогу у AI.'},
+ ]},
+]},
+17:{parts:[
+ {t:'Комнаты и мебель',steps:[
+  {t:'explain',k:'Комнаты дома',b:'📖 Объяснение',html:'<div class="rule">de woonkamer (гостиная) · de keuken (кухня) · de slaapkamer (спальня) · de badkamer (ванная)</div>',ex:[['de keuken','кухня'],['de slaapkamer','спальня'],['de badkamer','ванная'],['het bed','кровать']]},
+  {t:'word',k:'Новое слово',emoji:'🛋️',nl:'de woonkamer',ipa:'[ˈʋoːnkaːmər]',tr:'гостиная'},
+  {t:'word',k:'Новое слово',emoji:'🍳',nl:'de keuken',ipa:'[ˈkøːkə]',tr:'кухня'},
+  {t:'word',k:'Новое слово',emoji:'🛏️',nl:'de slaapkamer',ipa:'[ˈslaːpkaːmər]',tr:'спальня'},
+  {t:'word',k:'Новое слово',emoji:'🛁',nl:'de badkamer',ipa:'[ˈbɑtkaːmər]',tr:'ванная'},
+  {t:'pick',k:'Выбери картинку',q:'Где «de keuken» (кухня)?',opts:['🍳','🛏️','🛁','🛋️']},
+  {t:'quiz',k:'Выбор',q:'«спальня»:',opts:['de slaapkamer','de keuken','de badkamer','de woonkamer']},
+  {t:'quiz',k:'Выбор',q:'«кухня»:',opts:['de keuken','de badkamer','de slaapkamer','de kamer']},
+  {t:'listen',k:'Аудирование',audio:'De keuken is groot',q:'Что ты услышал?',opts:['De keuken is groot','De keuken is klein','De slaapkamer is groot','De badkamer is groot']},
+  {t:'match',k:'Пары',pairs:[['de woonkamer','гостиная'],['de keuken','кухня'],['de slaapkamer','спальня'],['de badkamer','ванная'],['het bed','кровать'],['de kamer','комната']]},
+  {t:'translate',k:'Перевод',q:'Напиши: «кухня» с артиклем',answer:['de keuken'],ph:'de…'},
+  {t:'speak',k:'Говорение',phrase:'Mijn huis heeft een woonkamer, een keuken en een slaapkamer.',tr:'В моём доме гостиная, кухня и спальня.'},
+ ]},
+ {t:'Er is / er zijn',steps:[
+  {t:'explain',k:'Есть / имеется',b:'📖 Объяснение',html:'<p>Чтобы сказать «есть/имеется», используем <b>er is</b> (ед. ч.) и <b>er zijn</b> (мн. ч.).</p><div class="rule">Er is een bank in de woonkamer. — В гостиной есть диван.<br>Er zijn twee stoelen. — Есть два стула.</div>',ex:[['er is','есть (ед.)'],['er zijn','есть (мн.)'],['de bank','диван']]},
+  {t:'word',k:'Новое слово',emoji:'🛋️',nl:'de bank',ipa:'[də bɑŋk]',tr:'диван'},
+  {t:'word',k:'Новое слово',emoji:'🚪',nl:'de kast',ipa:'[də kɑst]',tr:'шкаф'},
+  {t:'quiz',k:'Выбор',q:'___ een bank in de kamer. (ед. ч.)',opts:['Er is','Er zijn','Het is','Er heeft']},
+  {t:'quiz',k:'Выбор',q:'___ twee stoelen. (мн. ч.)',opts:['Er zijn','Er is','Het zijn','Er heeft']},
+  {t:'listen',k:'Аудирование',audio:'Er is een bed in de slaapkamer',q:'Что ты услышал?',opts:['Er is een bed in de slaapkamer','Er is een bank in de slaapkamer','Er zijn twee bedden','Er is een bed in de keuken']},
+  {t:'gapType',k:'Впиши на слух',audio:'Er zijn twee stoelen',q:'Er ___ twee stoelen',answer:['zijn'],ph:'is/zijn…'},
+  {t:'build',k:'Собери фразу',tr:'В гостиной есть диван.',words:['Er','is','een','bank','in','de','woonkamer'],ans:['Er','is','een','bank','in','de','woonkamer']},
+  {t:'translate',k:'Перевод',q:'Напиши: «есть три комнаты»',answer:['er zijn drie kamers'],ph:'er zijn…'},
+  {t:'speak',k:'Говорение',phrase:'In de woonkamer is een bank en er zijn twee stoelen.',tr:'В гостиной диван и два стула.'},
+ ]},
+ {t:'Снять жильё',steps:[
+  {t:'explain',k:'Аренда',b:'📖 Объяснение',html:'<p>Снимать: <b>huren</b>. Жильё: <b>de woning</b>, квартплата: <b>de huur</b>.</p><div class="rule">Ik zoek een appartement. · Ik huur een kamer.</div>',ex:[['huren','снимать'],['de woning','жильё'],['het appartement','квартира']]},
+  {t:'word',k:'Новое слово',emoji:'🔑',nl:'huren',ipa:'[ˈhyːrə]',tr:'снимать'},
+  {t:'word',k:'Новое слово',emoji:'🏢',nl:'het appartement',ipa:'[ɑpɑrtəˈmɛnt]',tr:'квартира'},
+  {t:'quiz',k:'Выбор',q:'Ik ___ een kamer. (huren)',opts:['huur','huurt','huren','huurde']},
+  {t:'quiz',k:'Выбор',q:'«жильё»:',opts:['de woning','de huur','de kamer','de kast']},
+  {t:'listen',k:'Аудирование',audio:'Ik zoek een appartement',q:'Что ты услышал?',opts:['Ik zoek een appartement','Ik huur een appartement','Ik zoek een kamer','Ik koop een appartement']},
+  {t:'translate',k:'Перевод',q:'Напиши: «я ищу квартиру»',answer:['ik zoek een appartement'],ph:'ik zoek…'},
+  {t:'speak',k:'Говорение',phrase:'Ik zoek een appartement in Amsterdam. Ik huur nu een kamer.',tr:'Я ищу квартиру в Амстердаме. Сейчас снимаю комнату.'},
+ ]},
+]},
+18:{parts:[
+ {t:'Перфект и причастие',steps:[
+  {t:'explain',k:'Прошлое: перфект',b:'📖 Объяснение',html:'<p>Чтобы рассказать о прошлом, чаще всего используют <b>перфект</b>: <b>hebben</b> + <b>причастие II</b>.</p><div class="rule">Причастие: <b>ge + корень + t/d</b><br>werken → <b>gewerkt</b> · wonen → <b>gewoond</b> · leren → <b>geleerd</b><br>Ik heb gisteren <b>gewerkt</b>.</div>',ex:[['gewerkt','работал'],['gewoond','жил'],['geleerd','учил']]},
+  {t:'word',k:'Новое слово',emoji:'📅',nl:'gisteren',ipa:'[ˈɣɪstərə]',tr:'вчера'},
+  {t:'quiz',k:'Выбор',q:'Причастие от «werken»:',opts:['gewerkt','werkte','werken','gewerken']},
+  {t:'quiz',k:'Выбор',q:'Причастие от «wonen»:',opts:['gewoond','woonde','gewoont','gewonen']},
+  {t:'quiz',k:'Выбор',q:'Ik ___ gisteren gewerkt.',opts:['heb','ben','was','had']},
+  {t:'listen',k:'Аудирование',audio:'Ik heb gisteren gewerkt',q:'Что ты услышал?',opts:['Ik heb gisteren gewerkt','Ik heb gisteren geleerd','Ik werk gisteren','Jij hebt gisteren gewerkt']},
+  {t:'build',k:'Собери фразу',tr:'Я вчера работал.',words:['Ik','heb','gisteren','gewerkt'],ans:['Ik','heb','gisteren','gewerkt']},
+  {t:'translate',k:'Перевод',q:'Напиши: «я учил нидерландский» (leren)',answer:['ik heb nederlands geleerd'],ph:'ik heb … geleerd'},
+  {t:'speak',k:'Говорение',phrase:'Ik heb gisteren gewerkt en Nederlands geleerd.',tr:'Вчера я работал и учил нидерландский.'},
+ ]},
+ {t:'hebben или zijn',steps:[
+  {t:'explain',k:'Какой вспомогательный?',b:'📖 Объяснение',html:'<p>Большинство глаголов — с <b>hebben</b>. Но глаголы <b>движения</b> и <b>изменения состояния</b> — с <b>zijn</b>.</p><div class="rule">Ik <b>ben</b> naar huis <b>gegaan</b>. (идти)<br>Ik <b>ben</b> in Parijs <b>geweest</b>. (быть)<br>но: Ik <b>heb</b> <b>gewerkt</b>.</div>',ex:[['gegaan','ушёл (gaan)'],['geweest','был (zijn)'],['gekomen','пришёл (komen)']]},
+  {t:'quiz',k:'Выбор',q:'Ik ___ naar huis gegaan.',opts:['ben','heb','was','had']},
+  {t:'quiz',k:'Выбор',q:'Ik ___ gewerkt.',opts:['heb','ben','was','had']},
+  {t:'quiz',k:'Выбор',q:'Ik ___ in Amsterdam geweest.',opts:['ben','heb','was','had']},
+  {t:'listen',k:'Аудирование',audio:'Ik ben naar huis gegaan',q:'Что ты услышал?',opts:['Ik ben naar huis gegaan','Ik heb naar huis gegaan','Ik ben naar huis gekomen','Ik ga naar huis']},
+  {t:'gapType',k:'Впиши на слух',audio:'Ik ben in Parijs geweest',q:'Ik ___ in Parijs geweest',answer:['ben'],ph:'heb/ben…'},
+  {t:'translate',k:'Перевод',q:'Напиши: «я пришёл домой» (komen)',answer:['ik ben naar huis gekomen'],ph:'ik ben … gekomen'},
+  {t:'speak',k:'Говорение',phrase:'Ik ben naar Amsterdam gegaan en ik heb daar gewerkt.',tr:'Я поехал в Амстердам и там работал.'},
+ ]},
+ {t:'Что я делал вчера',steps:[
+  {t:'explain',k:'Рассказ о вчера',b:'📖 Объяснение',html:'<div class="rule">Wat heb je gisteren gedaan? — Ik heb gewerkt en ik ben naar de winkel gegaan.</div>',ex:[['gedaan','делал (doen)'],['Wat heb je gedaan?','Что ты делал?']]},
+  {t:'match',k:'Пары',pairs:[['gewerkt','работал'],['gewoond','жил'],['geleerd','учил'],['gegaan','ушёл'],['geweest','был'],['gedaan','делал']]},
+  {t:'listen',k:'Аудирование',audio:'Wat heb je gisteren gedaan?',q:'Что ты услышал?',opts:['Wat heb je gisteren gedaan?','Wat ga je morgen doen?','Wat doe je vandaag?','Waar ben je geweest?']},
+  {t:'build',k:'Собери фразу',tr:'Я вчера работал.',words:['Ik','heb','gisteren','gewerkt'],ans:['Ik','heb','gisteren','gewerkt']},
+  {t:'translate',k:'Перевод',q:'Напиши: «я был дома» (thuis)',answer:['ik ben thuis geweest'],ph:'ik ben … geweest'},
+  {t:'speak',k:'Говорение',phrase:'Gisteren heb ik gewerkt en ik ben naar de winkel gegaan.',tr:'Вчера я работал и ходил в магазин.'},
+ ]},
+]},
+19:{parts:[
+ {t:'gaan + инфинитив',steps:[
+  {t:'explain',k:'Планы через gaan',b:'📖 Объяснение',html:'<p>Будущее и планы удобно выражать через <b>gaan</b> + инфинитив (глагол в конце).</p><div class="rule">gaan: ik ga · jij gaat · hij gaat · wij gaan<br>Ik ga morgen <b>werken</b>. · Wij gaan naar de bioscoop.</div>',ex:[['Ik ga werken','Я буду работать'],['Wij gaan sporten','Мы будем заниматься спортом']]},
+  {t:'word',k:'Новое слово',emoji:'➡️',nl:'gaan',ipa:'[ɣaːn]',tr:'идти/собираться'},
+  {t:'word',k:'Новое слово',emoji:'📆',nl:'morgen',ipa:'[ˈmɔrɣə]',tr:'завтра'},
+  {t:'quiz',k:'Выбор',q:'Ik ___ morgen werken. (gaan)',opts:['ga','gaat','gaan','ging']},
+  {t:'quiz',k:'Выбор',q:'Wij ___ naar de bioscoop. (gaan)',opts:['gaan','gaat','ga','gingen']},
+  {t:'listen',k:'Аудирование',audio:'Ik ga morgen werken',q:'Что ты услышал?',opts:['Ik ga morgen werken','Ik ga morgen sporten','Ik werk morgen','Jij gaat morgen werken']},
+  {t:'build',k:'Собери фразу',tr:'Завтра я буду работать.',words:['Morgen','ga','ik','werken'],ans:['Morgen','ga','ik','werken']},
+  {t:'translate',k:'Перевод',q:'Напиши: «я буду учиться» (leren)',answer:['ik ga leren'],ph:'ik ga…'},
+  {t:'speak',k:'Говорение',phrase:'Morgen ga ik werken en ik ga Nederlands leren.',tr:'Завтра я буду работать и учить нидерландский.'},
+ ]},
+ {t:'Выходные и планы',steps:[
+  {t:'explain',k:'Что будешь делать',b:'📖 Объяснение',html:'<p><b>Wat ga je doen?</b> — Что будешь делать? Глаголы досуга.</p><div class="rule">sporten (спорт) · koken (готовить) · winkelen (по магазинам) · het weekend · de vakantie</div>',ex:[['het weekend','выходные'],['de vakantie','отпуск'],['sporten','заниматься спортом']]},
+  {t:'word',k:'Новое слово',emoji:'🏃',nl:'sporten',ipa:'[ˈspɔrtə]',tr:'заниматься спортом'},
+  {t:'word',k:'Новое слово',emoji:'🍳',nl:'koken',ipa:'[ˈkoːkə]',tr:'готовить'},
+  {t:'quiz',k:'Выбор',q:'«Что будешь делать?»:',opts:['Wat ga je doen?','Wat heb je gedaan?','Wat doe je?','Waar ga je?']},
+  {t:'quiz',k:'Выбор',q:'«выходные»:',opts:['het weekend','de vakantie','de week','de dag']},
+  {t:'listen',k:'Аудирование',audio:'In het weekend ga ik sporten',q:'Что ты услышал?',opts:['In het weekend ga ik sporten','In het weekend ga ik koken','In de week ga ik sporten','In het weekend ga ik winkelen']},
+  {t:'gapType',k:'Впиши на слух',audio:'Ik ga koken',q:'Ik ga ___',answer:['koken'],ph:'глагол…'},
+  {t:'translate',k:'Перевод',q:'Напиши: «в выходные я буду готовить»',answer:['in het weekend ga ik koken'],ph:'in het weekend…'},
+  {t:'speak',k:'Говорение',phrase:'In het weekend ga ik sporten en koken.',tr:'В выходные я буду заниматься спортом и готовить.'},
+ ]},
+ {t:'Мои планы (говорение)',steps:[
+  {t:'explain',k:'Собираем',b:'📖 Объяснение',html:'<div class="rule">Morgen ga ik werken. In het weekend ga ik naar mijn familie.</div>',ex:[['de bioscoop','кинотеатр']]},
+  {t:'match',k:'Пары',pairs:[['gaan','идти'],['sporten','спорт'],['koken','готовить'],['winkelen','по магазинам'],['het weekend','выходные'],['de vakantie','отпуск']]},
+  {t:'build',k:'Собери фразу',tr:'Мы идём в кино.',words:['Wij','gaan','naar','de','bioscoop'],ans:['Wij','gaan','naar','de','bioscoop']},
+  {t:'translate',k:'Перевод',q:'Напиши: «завтра я иду в магазин» (winkelen)',answer:['morgen ga ik winkelen'],ph:'morgen ga ik…'},
+  {t:'speak',k:'Говорение',phrase:'Morgen ga ik werken. In het weekend ga ik sporten en koken.',tr:'Мои планы.'},
+ ]},
+]},
+20:{parts:[
+ {t:'Большое повторение',steps:[
+  {t:'quiz',k:'Повтор',q:'Ik ___ een koffie. (willen)',opts:['wil','wilt','willen','wilde']},
+  {t:'quiz',k:'Повтор',q:'«Сколько это стоит?»:',opts:['Hoeveel kost het?','Hoe laat is het?','Wat is dit?','Waar is het?']},
+  {t:'quiz',k:'Повтор',q:'«half vier» — это…',opts:['3:30','4:30','3:15','4:15']},
+  {t:'quiz',k:'Повтор',q:'Ik ___ om 7 uur ___. (opstaan)',opts:['sta … op','opsta …','sta op …','staan … op']},
+  {t:'quiz',k:'Повтор',q:'Ik ___ gisteren gewerkt.',opts:['heb','ben','was','had']},
+  {t:'listen',k:'Аудирование',audio:'Ik ga morgen werken',q:'Что ты услышал?',opts:['Ik ga morgen werken','Ik ga morgen sporten','Ik werk morgen','Ik ga morgen koken']},
+  {t:'gapType',k:'Впиши на слух',audio:'Ik ben naar huis gegaan',q:'Ik ___ naar huis gegaan',answer:['ben'],ph:'heb/ben…'},
+  {t:'translate',k:'Перевод',q:'Напиши: «можно мне кофе?»',answer:['mag ik een koffie','mag ik koffie'],ph:'mag ik…'},
+  {t:'build',k:'Собери фразу',tr:'Где вокзал?',words:['Waar','is','het','station'],ans:['Waar','is','het','station']},
+ ]},
+ {t:'Диалоги: кафе, магазин, дорога',steps:[
+  {t:'explain',k:'Живые ситуации',b:'📖 Объяснение',html:'<div class="rule">Кафе: Ik wil een koffie, alsjeblieft.<br>Магазин: Hoeveel kost het? Mag ik pinnen?<br>Дорога: Waar is het station? Ga rechtdoor.</div>',ex:[]},
+  {t:'match',k:'Пары',pairs:[['Ik wil een koffie','кафе'],['Hoeveel kost het?','цена'],['Mag ik pinnen?','оплата'],['Waar is het station?','дорога'],['Ga rechtdoor','направление'],['Mag ik de rekening?','счёт']]},
+  {t:'listen',k:'Аудирование',audio:'Mag ik pinnen?',q:'Что ты услышал?',opts:['Mag ik pinnen?','Mag ik de rekening?','Hoeveel kost het?','Waar is de kassa?']},
+  {t:'build',k:'Собери фразу',tr:'Я хочу кофе, пожалуйста.',words:['Ik','wil','een','koffie',',','alsjeblieft'],ans:['Ik','wil','een','koffie',',','alsjeblieft']},
+  {t:'translate',k:'Перевод',q:'Напиши: «идите прямо»',answer:['ga rechtdoor'],ph:'ga…'},
+ ]},
+ {t:'Финальное говорение',steps:[
+  {t:'explain',k:'Выпуск Раздела 2',b:'🎓 Итог',html:'<p>Ты умеешь общаться в быту: кафе, магазин, время, дорога, планы! Разыграй ситуации вслух с AI — это выпуск Раздела 2.</p>',ex:[]},
+  {t:'speak',k:'Ролевой диалог',phrase:'Goedemiddag! Ik wil een koffie, alsjeblieft. Hoeveel kost het? Mag ik pinnen?',tr:'Закажи кофе и оплати (с AI).'},
+  {t:'speak',k:'Ролевой диалог',phrase:'Pardon, waar is het station? Ga rechtdoor en sla linksaf. Dank u wel!',tr:'Спроси дорогу (с AI).'},
+ ]},
+]},
+};
+const PARTS=n=>DATA[n].parts.length;
+function partKey(n,p){return n+'.'+p;}
+function partDone(n,p){return progress.doneParts.includes(partKey(n,p));}
+function lessonDone(n){for(let p=0;p<PARTS(n);p++)if(!partDone(n,p))return false;return true;}
+function currentLesson(){for(let n=1;n<=META.length;n++)if(!lessonDone(n))return n;return META.length;}
+function firstOpenPart(n){for(let p=0;p<PARTS(n);p++)if(!partDone(n,p))return p;return PARTS(n)-1;}
+let curBlock=1;
+function blockOf(n){return META[n-1].blk;}
+function blockMeta(b){return META.filter(function(l){return l.blk===b;});}
+function firstOpenInBlock(b){var r=null;blockMeta(b).forEach(function(l){if(r===null&&!lessonDone(l.n))r=l.n;});return r;}
+function blockPartsTotal(b){var s=0;blockMeta(b).forEach(function(l){s+=PARTS(l.n);});return s;}
+function blockDoneCount(b){return progress.doneParts.filter(function(k){return blockOf(+k.split(".")[0])===b;}).length;}
+function lessonState(n){if(lessonDone(n))return 'done';return firstOpenInBlock(blockOf(n))===n?'current':'locked';}
+function totalParts(){let s=0;for(let n=1;n<=META.length;n++)s+=PARTS(n);return s;}
+
+const TRAIN={
+ mistakes:{title:'Повтор ошибок',steps:[{t:'quiz',k:'Повтор',q:'___ huis is groot.',opts:['Het','De','Een','Der']},{t:'quiz',k:'Повтор',q:'Hij ___ een hond.',opts:['heeft','hebt','heb','hebben']},{t:'tf',k:'Верно?',q:'«Hij is een dokter» — правильно.',answer:false,note:'Без артикля: Hij is dokter.'},{t:'translate',k:'Перевод',q:'«до свидания»',answer:['tot ziens'],ph:'tot …'},{t:'build',k:'Собери',tr:'Книга лежит на столе.',words:['Het','boek','ligt','op','de tafel'],ans:['Het','boek','ligt','op','de tafel']},{t:'quiz',k:'Повтор',q:'Как сказать 21?',opts:['eenentwintig','twintigeen','een twintig','twintig een']}]},
+ quick:{title:'Быстрая тренировка',steps:[{t:'pick',k:'Картинка',q:'Где «het huis»?',opts:['🏠','🚗','🐶','🪑']},{t:'quiz',k:'Выбор',q:'Ik ___ in Amsterdam.',opts:['woon','woont','wonen','woons']},{t:'listen',k:'На слух',audio:'Ik ben Anna',q:'Что ты услышал?',opts:['Ik ben Anna','Ik heb Anna','Jij bent Anna','Zij is Anna']},{t:'gapType',k:'На слух',audio:'De appel is rood',q:'___ appel is rood',answer:['de'],ph:'…'},{t:'translate',k:'Перевод',q:'«я работаю»',answer:['ik werk'],ph:'ik …'},{t:'quiz',k:'Выбор',q:'«vijf» — это…',opts:['пять','четыре','шесть','семь']}]},
+ listen:{title:'Аудирование',steps:[{t:'listen',k:'На слух',audio:'De vrouw heeft een auto',q:'Что ты услышал?',opts:['De vrouw heeft een auto','De man heeft een auto','De vrouw heeft een hond','De vrouw heeft een huis']},{t:'gapType',k:'На слух',audio:'Wij zijn studenten',q:'Wij ___ studenten',answer:['zijn'],ph:'…'},{t:'listen',k:'На слух',audio:'Ik heb tien euro',q:'Что ты услышал?',opts:['Ik heb tien euro','Ik heb twee euro','Jij hebt tien euro','Ik heb tien appels']},{t:'gapType',k:'На слух',audio:'Hij spreekt Nederlands',q:'Hij ___ Nederlands',answer:['spreekt'],ph:'…'}]},
+ speak:{title:'Разговор',steps:[{t:'speak',k:'Говорение',phrase:'Hallo! Hoe gaat het?',tr:'Привет! Как дела?'},{t:'speak',k:'Говорение',phrase:'Het huis is groot.',tr:'Дом большой.'},{t:'speak',k:'Говорение',phrase:'Ik ben student en ik heb een hond.',tr:'Я студент, и у меня есть собака.'},{t:'speak',k:'Говорение',phrase:'Ik woon in Nederland.',tr:'Я живу в Нидерландах.'}]},
+ words:{title:'Слова',steps:[{t:'word',k:'Слово',emoji:'🏠',nl:'het huis',ipa:'[ət ɦœys]',tr:'дом'},{t:'word',k:'Слово',emoji:'🐶',nl:'een hond',ipa:'[ən ɦɔnt]',tr:'собака'},{t:'pick',k:'Картинка',q:'Где «een appel»?',opts:['🍎','🐟','🚗','☕']},{t:'match',k:'Пары',pairs:[['werken','работать'],['wonen','жить'],['spreken','говорить'],['leren','учить'],['eten','есть'],['drinken','пить']]},{t:'translate',k:'Перевод',q:'«дом» с артиклем',answer:['het huis'],ph:'… huis'}]},
+};
+const TEST=[{lv:'A1',q:'Как поздороваться утром?',opts:['goedemorgen','goedenavond','dank je','tot ziens']},{lv:'A1',q:'___ huis is groot.',opts:['Het','De','Een','Der']},{lv:'A1',q:'Ik ___ Anna. (быть)',opts:['ben','bent','is','zijn']},{lv:'A1',q:'het boek → мн. число',opts:['de boeken','het boeken','de boeks','de boekes']},{lv:'A2',q:'Jij ___ hard. (werken)',opts:['werkt','werk','werken','werks']},{lv:'A2',q:'Hij ___ een hond. (hebben)',opts:['heeft','hebt','heb','hebben']},{lv:'A2',q:'Верный порядок слов:',opts:['Morgen ga ik naar huis','Morgen ik ga naar huis','Ik morgen ga naar huis','Ga morgen ik naar huis']},{lv:'B1',q:'Ik weet dat hij in Utrecht ___.',opts:['woont','woon','wonen','gewoond']},{lv:'B1',q:'De man ___ daar staat, is mijn vriend.',opts:['die','dat','wie','wat']},{lv:'B1',q:'Ik ___ gisteren een boek gelezen.',opts:['heb','ben','was','had']},{lv:'B2',q:'Ik zou komen als ik tijd ___.',opts:['had','heb','heb gehad','hebben']},{lv:'B2',q:'Оборот «чтобы навестить»:',opts:['om te bezoeken','voor bezoeken','te bezoek','om bezoeken']}];
+let tIdx=0,tScore=0,tSel=null,tShown=[],tCorrect=0;
+function testStart(){tIdx=0;tScore=0;renderTest();}
+function renderTest(){const s=TEST[tIdx];tSel=null;const opts=shuf(s.opts.map((text,i)=>({text,ok:i===0})),tIdx*31+7);tShown=opts;tCorrect=opts.findIndex(o=>o.ok);const prog=Math.round(tIdx/TEST.length*100);
+  S.innerHTML='<div class="ltop"><button class="xbtn" data-go="onboard">✕</button><div class="pbar"><i style="width:'+prog+'%"></i></div><span style="font-weight:800;font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums">'+(tIdx+1)+'/'+TEST.length+'</span></div><div class="lbody"><div class="kick">Тест уровня · '+s.lv+'</div><h2 class="qt">'+s.q+'</h2><div class="opts">'+opts.map((o,i)=>'<button class="opt" data-opt="'+i+'"><span class="key">'+String.fromCharCode(65+i)+'</span><span>'+o.text+'</span></button>').join('')+'</div></div><div class="foot"><button class="btn blue" id="tcta" disabled>Дальше</button></div>';
+  S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));S.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{tSel=+b.dataset.opt;S.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));b.classList.add('sel');document.getElementById('tcta').disabled=false;});
+  document.getElementById('tcta').onclick=()=>{if(tSel===tCorrect)tScore++;tIdx++;if(tIdx>=TEST.length)testResult();else renderTest();};}
+function testResult(){const pct=tScore/TEST.length;if(pct<0.35)userLevel='A1';else if(pct<0.7)userLevel='A2';else userLevel='B1';
+  const desc={A1:'Начнём с самых основ — с алфавита и первых фраз.',A2:'У тебя есть база! Быстро пройдём раздел 1 и двинемся дальше.',B1:'Хороший уровень! Часть основ пропустим.'}[userLevel];
+  S.innerHTML='<div class="ob center"><div style="font-size:54px;margin-bottom:8px">🎉</div><div class="kick" style="text-align:center;color:var(--delft)">Результат теста</div><h2>Твой уровень — <span style="color:var(--delft)">'+userLevel+'</span></h2><p>'+desc+'<br>Правильно: '+tScore+' из '+TEST.length+'</p><button class="btn blue" id="tr1">Продолжить</button></div>';
+  document.getElementById('tr1').onclick=()=>{obStep=3;onboard();};}
+
+/* ONBOARDING */
+let obStep=0;
+const GOALS=[['🎓','Сдать инбургеринг','экзамен на интеграцию'],['💼','Работа','общаться с коллегами'],['🗣️','Общение','говорить с местными'],['🏡','Переезд','обжиться в NL'],['❤️','Для себя','просто интересно']];
+function obhead(step){let d='';for(let i=1;i<=4;i++)d+='<i class="'+(i<=step?'on':'')+'"></i>';return '<div class="obhead"><button class="xbtn" data-go="onboard" style="font-size:20px">‹</button><div class="obdots">'+d+'</div></div>';}
+function onboard(){activeTab='';
+  if(obStep===0){S.innerHTML='<div class="ob center">'+LOGO_LG+'<h2 style="margin-top:12px">Учим нидерландский на русском — бесплатно</h2><p>От нуля до уровня инбургеринга: аудио, говорение и живая практика по 10 минут в день 🇳🇱</p><div class="spacer"></div><button class="btn oran" id="ob0">Начать</button></div>';document.getElementById('ob0').onclick=()=>{obStep=1;onboard();};}
+  else if(obStep===1){S.innerHTML='<div class="ob">'+obhead(1)+'<h2>Зачем ты учишь нидерландский?</h2><p>Выбери одну или несколько целей.</p>'+GOALS.map((g,i)=>'<div class="choice'+(userGoals.includes(i)?' sel':'')+'" data-g="'+i+'"><div class="ei">'+g[0]+'</div><div style="flex:1"><b>'+g[1]+'</b><span>'+g[2]+'</span></div><div class="ck">'+I.check+'</div></div>').join('')+'<div class="spacer"></div><button class="btn blue" id="ob1" '+(userGoals.length?'':'disabled')+'>Далее</button></div>';
+    S.querySelectorAll('[data-g]').forEach(b=>b.onclick=()=>{const i=+b.dataset.g,p=userGoals.indexOf(i);if(p<0)userGoals.push(i);else userGoals.splice(p,1);onboard();});document.getElementById('ob1').onclick=()=>{obStep=2;onboard();};S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));}
+  else if(obStep===2){S.innerHTML='<div class="ob">'+obhead(2)+'<h2>Какой у тебя уровень?</h2><p>Выбери сам — или пройди тест, определим точно.</p>'+[['🌱','Совсем новичок','никогда не учил','A1'],['🌿','Знаю немного','отдельные слова','A1'],['🌳','Средний','читаю и понимаю','A2']].map(x=>'<div class="choice" data-lv="'+x[3]+'"><div class="ei">'+x[0]+'</div><div style="flex:1"><b>'+x[1]+'</b><span>'+x[2]+'</span></div></div>').join('')+'<div class="choice sel" data-test="1" style="border-style:dashed"><div class="ei" style="background:color-mix(in srgb,var(--delft) 18%,transparent);color:var(--delft)">🎯</div><div style="flex:1"><span class="rec">Точнее всего</span><b>Пройти тест уровня</b><span>12 вопросов, ~3 минуты</span></div></div></div>';
+    S.querySelectorAll('[data-lv]').forEach(b=>b.onclick=()=>{userLevel=b.dataset.lv;obStep=3;onboard();});S.querySelector('[data-test]').onclick=()=>testStart();S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));}
+  else if(obStep===3){S.innerHTML='<div class="ob">'+obhead(3)+'<h2>Сколько времени в день?</h2><p>Выбери комфортный ритм.</p>'+[[5,'Лёгкий','5 минут'],[10,'Обычный','10 минут'],[15,'Серьёзный','15 минут'],[20,'Интенсивный','20 минут']].map(x=>'<div class="choice'+(userMin===x[0]?' sel':'')+'" data-min="'+x[0]+'"><div class="ei">⏱️</div><div style="flex:1"><b>'+x[1]+'</b><span>'+x[2]+' в день</span></div><div class="ck">'+I.check+'</div></div>').join('')+'<div class="spacer"></div><button class="btn blue" id="ob3">Далее</button></div>';
+    S.querySelectorAll('[data-min]').forEach(b=>b.onclick=()=>{userMin=+b.dataset.min;onboard();});document.getElementById('ob3').onclick=()=>{obStep=4;onboard();};S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));}
+  else{S.innerHTML='<div class="ob center">'+obhead(4)+'<div class="pro-hero">🚀</div><h2>Попробуй PRO бесплатно</h2><p style="margin-bottom:14px">Полный курс до инбургеринга, без ограничений.</p><div class="card" style="padding:16px;text-align:left;margin-bottom:14px">'+['Все уроки и разделы: A1 → A2 → B1','Подготовка к инбургерингу + KNM','Безлимит «жизней» и тренировок','AI-репетитор и отслеживание навыков'].map(f=>'<div class="pro-feat"><div class="pc">'+I.check+'</div><div><b>'+f+'</b></div></div>').join('')+'<div class="price"><s>9,99 €/мес</s> · первые 14 дней <span style="color:var(--success)">бесплатно</span></div><div style="font-size:12px;color:var(--ink-2)">Потом 9,99 €/мес. Отмена в любой момент.</div></div><button class="btn oran" id="obPro">Начать 14 дней бесплатно</button><button class="btn ghost" id="obFree" style="margin-top:10px">Продолжить с базовой версией</button></div>';
+    document.getElementById('obPro').onclick=()=>home();document.getElementById('obFree').onclick=()=>home();S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));}
+}
+
+/* HOME + PARTS */
+function appbar(){return '<div class="appbar card"><div class="brand">'+LOGO_SM+'<div><b>Нидерландский</b><small>Уровень '+userLevel+' · Раздел 1</small></div></div><div class="stats"><span class="s streak">🔥 '+STREAK+'</span><span class="s xp">✦ '+XP.toLocaleString('ru')+'</span><span class="s" style="color:#E07E0A">💎 '+gems+'</span></div></div>';}
+function nav(){const t=(id,ic,l)=>'<button class="'+(activeTab===id?'on':'')+'" data-tab="'+id+'">'+ic+'<span>'+l+'</span></button>';const e=x=>'<span style="font-size:21px;line-height:22px">'+x+'</span>';return '<div class="nav card">'+t('learn',I.home,'Учить')+t('train',I.dumb,'Тренир.')+t('league',e('🏆'),'Лига')+t('feed',e('📰'),'Лента')+t('me',I.user,'Профиль')+'</div>';}
+function partsPips(n){const p=PARTS(n);let done=0;for(let i=0;i<p;i++)if(partDone(n,i))done++;let s='';for(let i=0;i<p;i++)s+='<i class="'+(i<done?'on':'')+'"></i>';return '<div class="parts">'+s+'</div>';}
+var curTheme=0;
+var STAR='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.6l2.9 5.85 6.45.95-4.67 4.55 1.1 6.4L12 17.9l-5.78 3.05 1.1-6.4-4.67-4.55 6.45-.95z"/></svg>';
+var THEMES=[
+ {name:'Знакомство',emoji:'👋',c:'#58CC02',lessons:[1,2,3,4,5,6,7,8,9,10]},
+ {name:'Каждый день',emoji:'📅',c:'#1CB0F6',lessons:[11,12,13,14,15,16,17,18,19,20]},
+ {name:'Школа',emoji:'🏫',c:'#CE82FF',lessons:[]},
+ {name:'Еда и напитки',emoji:'🍎',c:'#FF9600',lessons:[]},
+ {name:'Здоровье',emoji:'🩺',c:'#FF4B4B',lessons:[]},
+ {name:'Одежда',emoji:'👕',c:'#EC4C9E',lessons:[]},
+ {name:'Путешествия',emoji:'✈️',c:'#2EC4B6',lessons:[]},
+ {name:'Досуг',emoji:'⚽',c:'#FFC800',lessons:[]}
+];
+function renderNode(nd,off,th){var s='margin-left:'+off+'px';
+ if(nd.type==='lesson'){var st=lessonState(nd.n);var lock=st==='locked';
+  var bub=(st==='current')?'<div class="dbubble" style="color:'+th.c+'">СТАРТ<i></i></div>':'';
+  return '<div class="dnw" style="'+s+'">'+bub+'<button class="dnode '+(lock?'lock':'')+(st==='current'?' dcur':'')+'" '+(lock?'':'data-lesson="'+nd.n+'"')+' style="'+(lock?'':'background:'+th.c)+'">'+STAR+'</button></div>';}
+ if(nd.type==='practice')return '<div class="dnw" style="'+s+'"><button class="dnode" data-go="review" style="background:color-mix(in srgb,'+th.c+' 55%,#fff);color:'+th.c+'">'+I.dumb+'</button></div>';
+ if(nd.type==='chest')return '<div class="dnw" style="'+s+'"><button class="dnode emj" data-go="chest" style="background:#F5A623">🎁</button></div>';
+ if(nd.type==='trophy'){var done=th.lessons.every(lessonDone);return '<div class="dnw" style="'+s+'"><button class="dnode emj '+(done?'':'lock')+'" '+(done?'data-go="review"':'')+' style="'+(done?'background:'+th.c:'')+'">🏆</button></div>';}
+ return '';}
+function home(){activeTab='learn';var th=THEMES[curTheme];
+ var tabs='<div class="throw">'+THEMES.map(function(t,i){return '<button class="thtab" data-th="'+i+'" style="'+(curTheme===i?'background:'+t.c+';border-color:transparent':'')+'">'+t.emoji+'</button>';}).join('')+'</div>';
+ var banner='<div class="dbanner" style="background:'+th.c+'"><div><small>ТЕМА '+(curTheme+1)+' · A1</small><b>'+th.name+'</b></div><div style="font-size:26px">'+th.emoji+'</div></div>';
+ var body;
+ if(!th.lessons.length){body='<div style="text-align:center;padding:46px 24px;color:var(--ink-2)"><div style="font-size:50px;opacity:.6">🔒</div><p style="font-weight:800;margin-top:10px;font-size:16px">Тема «'+th.name+'» скоро</p><p style="font-size:13px">Наполняем её уроками из словаря A1 (по 2–5 частей).</p></div>';}
+ else{var nodes=[];th.lessons.forEach(function(ln,i){nodes.push({type:'lesson',n:ln});if((i+1)%3===0&&i<th.lessons.length-1)nodes.push({type:'practice'});if(i===Math.floor(th.lessons.length/2))nodes.push({type:'chest'});});nodes.push({type:'trophy'});
+  var offs=[0,52,80,52,0,-52,-80,-52];var path='';nodes.forEach(function(nd,i){path+=renderNode(nd,offs[i%8],th);});body='<div class="dmap">'+path+'</div>';}
+ S.innerHTML=appbar()+tabs+srsCard()+banner+body+'<div style="height:8px"></div>'+nav();
+ S.querySelectorAll('[data-th]').forEach(function(b){b.onclick=function(){curTheme=+b.dataset.th;home();};});
+ S.querySelectorAll('[data-lesson]').forEach(function(b){b.onclick=function(){partsScreen(+b.dataset.lesson);};});
+ S.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go);};});
+ bindNav();}
+function partsScreen(n){activeTab='';const open=firstOpenPart(n);const reachable=(n===currentLesson()||lessonDone(n));
+  let h='<div class="ltop"><button class="xbtn" data-go="home">‹</button><b style="font-size:16px">Урок '+n+' · '+META[n-1].t+'</b></div><div class="plain">';
+  h+='<p class="sub">Урок разбит на '+PARTS(n)+' части — каждая проходится отдельно и насыщена материалом. Проходи по порядку.</p>';
+  DATA[n].parts.forEach((part,p)=>{const done=partDone(n,p);const isCur=reachable&&p===open&&!done;const st=done?'done':'current';const cnt=part.steps.length;
+    h+='<div class="partcard card '+(st==='locked'?'locked':'')+'" '+(st!=='locked'?'data-part="'+p+'"':'')+'><div class="pn '+st+'">'+(done?'✓':st==='locked'?'🔒':(p+1))+'</div><div style="flex:1"><b>Часть '+(p+1)+' · '+part.t+'</b><span>'+cnt+' заданий'+(done?' · пройдено':isCur?' · продолжить':' · откроется позже')+'</span></div>'+(st!=='locked'?'<span style="font-size:20px;color:var(--delft)">›</span>':'')+'</div>';});
+  h+='<div style="text-align:center;color:var(--ink-2);font-size:12px;margin-top:8px">📖 Правила урока доступны в каждой части (блоки «Объяснение»)</div></div>';
+  S.innerHTML=h;S.querySelectorAll('[data-part]').forEach(b=>b.onclick=()=>startPart(n,+b.dataset.part));S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));}
+
+const FUTURE=[{t:'Раздел 3 · Прошлое и планы',lv:'A2',les:14},{t:'Раздел 4 · Сложная речь',lv:'B1',les:13},{t:'🎓 Подготовка к инбургерингу',lv:'B1',les:10}];
+function pathScreen(){activeTab='';var h='<div class="ltop"><button class="xbtn" data-go="home">‹</button><b style="font-size:17px">Весь путь обучения</b></div><div class="plain seclist">';
+  function sec(title,lv,b){return '<div class="sec card"><div class="sh"><b>'+title+'</b><span class="lv" style="color:var(--delft)">'+lv+'</span></div>'+blockMeta(b).map(function(l){var st=lessonState(l.n);var num=b===2?l.n-10:l.n;return '<div class="les"><div class="st '+st+'">'+(st==='done'?'✓':st==='current'?'▶':'🔒')+'</div><div style="flex:1">Урок '+num+' · '+l.t+' <span style="color:var(--ink-3);font-size:12px">('+PARTS(l.n)+' части)</span></div></div>';}).join('')+'</div>';}
+  h+=sec('Раздел 1 · Первые шаги','A1.1',1);
+  h+=sec('Раздел 2 · Каждый день','A1.2',2);
+  FUTURE.forEach(function(s){h+='<div class="sec card" style="opacity:.65"><div class="sh"><b>'+s.t+'</b><span class="lv">'+s.lv+'</span></div><div class="les"><div class="st locked">🔒</div><div style="flex:1">'+s.les+' уроков · дальше</div></div></div>';});
+  h+='<div style="text-align:center;color:var(--ink-2);font-size:12px;margin-top:6px">До инбургеринга — 4 раздела 🎓</div></div>';
+  S.innerHTML=h;S.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go);};});}
+let curLesson=1,curPart=0,steps=[],playlist=[],pos=0,origLen=0,hearts=5,sel=null,answered=false,asm=[],matchSel=null,matchDone=0,spoke=false,isTrain=false,trainTitle='',curCorrect=0,curStep=null,correctCount=0;
+function recordSkill(t,ok){const k=SK[t];if(!k)return;skillStat[k].t++;if(ok)skillStat[k].c++;}
+function startPart(n,p){isTrain=false;curLesson=n;curPart=p;steps=DATA[n].parts[p].steps;playlist=steps.slice();pos=0;origLen=steps.length;hearts=5;renderStep();}
+function startTrain(k){const s=TRAIN[k];isTrain=true;trainTitle=s.title;steps=s.steps;playlist=steps.slice();pos=0;origLen=steps.length;hearts=5;renderStep();}
+function lheader(){const prog=Math.round(pos/playlist.length*100);const retry=pos>=origLen;return '<div class="ltop"><button class="xbtn" data-go="'+(isTrain?'train':'backparts')+'">✕</button><div class="pbar"><i style="width:'+prog+'%"></i></div><div class="hearts">'+I.heart+'<span style="font-variant-numeric:tabular-nums">'+hearts+'</span></div></div>'+(retry?'<div class="retry-banner">🔁 Повторяем ошибки — ответь верно, чтобы закончить часть</div>':'');}
+function foot(kind,msg,label,dis){let c='foot',inner='';if(kind==='ok'){c+=' ok';inner='<div class="msg"><span class="ic">'+I.check+'</span>'+msg+'</div>';}if(kind==='no'){c+=' no';inner='<div class="msg"><span class="ic">'+I.x+'</span>'+msg+'</div>';}return '<div class="'+c+'">'+inner+'<button class="btn '+(kind==='ok'?'':'blue')+'" id="cta" '+(dis?'disabled':'')+'>'+(label||'Проверить')+'</button></div>';}
+function renderStep(){const s=curStep=playlist[pos];sel=null;answered=false;asm=[];matchSel=null;matchDone=0;spoke=false;seedCtr++;
+  let body='',cl='Проверить',cd=true,customFoot=null;
+  const mkOpts=(arr,cls)=>{const o=shuf(arr.map((text,i)=>({text,ok:i===0})),pos*53+seedCtr*3+arr.length);curCorrect=o.findIndex(x=>x.ok);return o.map((x,i)=>'<button class="'+cls+'" data-opt="'+i+'" style="animation-delay:'+(i*45)+'ms">'+(cls==='opt'?'<span class="key">'+String.fromCharCode(65+i)+'</span><span>'+x.text+'</span>':'<span class="pe">'+x.text+'</span>')+'</button>').join('');};
+  if(s.t==='explain'){body='<div class="kick">'+s.k+'</div><div class="explain card"><span class="badge">'+s.b+'</span>'+s.html+((s.ex&&s.ex.length)?'<div class="exmini">'+s.ex.map(e=>'<div class="exrow"><div><div class="nl">'+e[0]+'</div><div class="ru">'+e[1]+'</div></div><button class="play" data-say="'+e[0]+'">'+I.play+'</button></div>').join('')+'</div>':'')+'</div>';cl='Понятно, дальше';cd=false;}
+  else if(s.t==='word'){body='<div class="kick">'+s.k+'</div><div class="wordcard card"><div class="wemoji">'+s.emoji+'</div><div class="wnl">'+s.nl+'</div>'+(s.ipa?'<div class="wipa">'+s.ipa+'</div>':'')+'<div class="wtr">'+s.tr+'</div><button class="play" data-say="'+(s.audio||s.nl)+'" style="margin:16px auto 0">'+I.play+'</button></div>';customFoot='<div class="foot"><button class="btn ghost" id="later">🔖 Повторить позже</button><button class="btn" id="cta">Запомнил, дальше</button></div>';}
+  else if(s.t==='quiz'){body='<div class="kick">'+s.k+'</div><h2 class="qt">'+s.q+'</h2><div class="opts">'+mkOpts(s.opts,'opt')+'</div>';}
+  else if(s.t==='pick'){body='<div class="kick">'+s.k+'</div><h2 class="qt">'+s.q+'</h2><div class="picks">'+mkOpts(s.opts,'pick')+'</div>';}
+  else if(s.t==='listen'){body='<div class="kick">'+s.k+' · выбери дословно</div><h2 class="qt">'+s.q+'</h2><button class="play big" data-say="'+s.audio+'">'+I.play+'</button><div class="opts">'+mkOpts(s.opts,'opt')+'</div>';}
+  else if(s.t==='gapType'){body='<div class="kick">'+s.k+' · впиши, что слышишь</div><h2 class="qt">Напиши пропущенное слово</h2><button class="play big" data-say="'+s.audio+'">'+I.play+'</button><div class="explain card" style="padding:14px;text-align:center;font-weight:800;font-size:19px;margin-bottom:14px">'+s.q.replace('___','<span style="color:var(--delft)">____</span>')+'</div><input class="tinput" id="tin" placeholder="'+(s.ph||'слово…')+'" autocomplete="off" autocapitalize="off" spellcheck="false">';}
+  else if(s.t==='translate'){body='<div class="kick">'+s.k+'</div><h2 class="qt">'+s.q+'</h2><input class="tinput" id="tin" placeholder="'+(s.ph||'ответ…')+'" autocomplete="off" autocapitalize="off" spellcheck="false">'+(s.hint?'<div style="font-size:12.5px;color:var(--ink-2);margin-top:10px">💡 '+s.hint+'</div>':'');}
+  else if(s.t==='tf'){body='<div class="kick">'+s.k+'</div><h2 class="qt">'+s.q+'</h2><div class="tfrow"><button class="tf" data-tf="1">✓ Верно</button><button class="tf" data-tf="0">✕ Неверно</button></div>';}
+  else if(s.t==='build'){body='<div class="kick">'+s.k+'</div><h2 class="qt">Собери предложение</h2><div class="explain card" style="padding:11px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center"><span style="color:var(--ink-2);font-size:14px">'+s.tr+'</span><button class="play" data-say="'+s.ans.join(' ')+'">'+I.play+'</button></div><div class="ansline" id="ansline"></div><div class="bank" id="bank">'+shuf(s.words.map((w,i)=>({w,i})),pos*17+3).map(o=>'<button class="chip" data-w="'+o.i+'">'+o.w+'</button>').join('')+'</div>';}
+  else if(s.t==='match'){const L=s.pairs.map((p,i)=>({x:p[0],i})),R=shuf(s.pairs.map((p,i)=>({x:p[1],i})),pos*29+5);body='<div class="kick">'+s.k+'</div><h2 class="qt">Соедини пары</h2><div class="cols"><div class="col">'+L.map(o=>'<button class="mch" data-side="L" data-i="'+o.i+'">'+o.x+'</button>').join('')+'</div><div class="col">'+R.map(o=>'<button class="mch" data-side="R" data-i="'+o.i+'">'+o.x+'</button>').join('')+'</div></div>';cl='Продолжить';}
+  else if(s.t==='speak'){body='<div class="kick">'+s.k+'</div><h2 class="qt">Произнеси вслух</h2><div class="speakbox"><button class="play" data-say="'+s.phrase+'" style="margin:0 auto 6px">'+I.play+'</button><div class="speakphrase">'+s.phrase+'</div><div class="speaktr">'+s.tr+'</div><button class="mic" id="mic">'+I.mic+'</button><div id="micHint" style="font-size:13px;color:var(--ink-2);margin-top:6px">Нажми микрофон и произнеси фразу</div></div>';cl='Продолжить';}
+  S.innerHTML=lheader()+'<div class="lbody">'+body+'</div>'+(customFoot||foot(null,'',cl,cd));bindStep();}
+function markWrong(){playlist.push(curStep);}
+function bindStep(){const s=curStep,cta=document.getElementById('cta');
+  S.querySelectorAll('[data-say]').forEach(b=>b.onclick=()=>speak(b.dataset.say,b));
+  S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{if(b.dataset.go==='backparts'){isTrain?train():partsScreen(curLesson);}else go(b.dataset.go);});
+  if(s.t==='explain'){cta.onclick=next;return;}
+  if(s.t==='word'){cta.onclick=next;const lt=document.getElementById('later');if(lt)lt.onclick=()=>{laterList.push(s.nl);toast('🔖 «'+s.nl+'» — повторим позже');next();};return;}
+  if(s.t==='quiz'||s.t==='listen'){S.querySelectorAll('.opt[data-opt]').forEach(b=>b.onclick=()=>{if(answered)return;sel=+b.dataset.opt;S.querySelectorAll('.opt').forEach(o=>o.classList.remove('sel'));b.classList.add('sel');cta.disabled=false;});cta.onclick=()=>checkOpt('.opt',curCorrect);}
+  if(s.t==='pick'){S.querySelectorAll('.pick[data-opt]').forEach(b=>b.onclick=()=>{if(answered)return;sel=+b.dataset.opt;S.querySelectorAll('.pick').forEach(o=>o.classList.remove('sel'));b.classList.add('sel');cta.disabled=false;});cta.onclick=()=>checkOpt('.pick',curCorrect);}
+  if(s.t==='translate'||s.t==='gapType'){const inp=document.getElementById('tin');inp.oninput=()=>{cta.disabled=!inp.value.trim();};cta.onclick=()=>{answered=true;const val=inp.value.trim().toLowerCase().replace(/[.!?,]/g,'');const ok=s.answer.some(a=>a.toLowerCase()===val);inp.disabled=true;inp.style.borderColor=ok?'var(--success)':'var(--danger)';recordSkill(s.t,ok);if(!ok)markWrong();finish(ok,'Верно: <b>'+s.answer[0]+'</b>');};}
+  if(s.t==='tf'){S.querySelectorAll('.tf[data-tf]').forEach(b=>b.onclick=()=>{if(answered)return;sel=+b.dataset.tf;S.querySelectorAll('.tf').forEach(o=>o.classList.remove('sel'));b.classList.add('sel');cta.disabled=false;});cta.onclick=()=>{answered=true;const c=s.answer?1:0;S.querySelectorAll('.tf').forEach(b=>{const v=+b.dataset.tf;b.style.pointerEvents='none';if(v===c)b.classList.add('okc');else if(v===sel)b.classList.add('badc');});const ok=sel===c;recordSkill('tf',ok);if(!ok)markWrong();finish(ok,s.note||'');};}
+  if(s.t==='build'){S.querySelectorAll('#bank .chip').forEach(b=>b.onclick=()=>{if(answered)return;asm.push(+b.dataset.w);b.classList.add('used');drawAsm();});cta.onclick=()=>{answered=true;const ok=asm.length===s.ans.length&&asm.every((i,k)=>s.words[i]===s.ans[k]);S.querySelectorAll('.chip').forEach(o=>o.style.pointerEvents='none');recordSkill('build',ok);if(!ok)markWrong();finish(ok,'Верно: <b>'+s.ans.join(' ')+'</b>');};}
+  if(s.t==='match'){bindMatch();cta.onclick=()=>{recordSkill('match',true);next();};}
+  if(s.t==='speak'){const mic=document.getElementById('mic'),hint=document.getElementById('micHint');cta.onclick=()=>{recordSkill('speak',true);next();};
+    mic.onclick=()=>{if(spoke)return;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;const dn=(t)=>{mic.classList.remove('rec');spoke=true;hint.innerHTML=t;cta.disabled=false;};mic.classList.add('rec');hint.textContent='Слушаю… говори в микрофон 🎙️';
+      if(SR){try{const r=new SR();r.lang='nl-NL';r.maxAlternatives=1;r.onresult=e=>dn('Ты сказал: «'+e.results[0][0].transcript+'» ✓');r.onerror=()=>dn('<b style="color:var(--success)">Записано ✓</b>');r.onend=()=>{if(!spoke)dn('<b style="color:var(--success)">Записано ✓</b>');};r.start();return;}catch(e){}}
+      setTimeout(()=>dn('<b style="color:var(--success)">Klinkt goed! ✓</b>'),1700);};}
+}
+function drawAsm(){const s=curStep,line=document.getElementById('ansline');line.innerHTML=asm.map(i=>'<button class="chip inline" data-rm="'+i+'">'+s.words[i]+'</button>').join('');line.querySelectorAll('[data-rm]').forEach(b=>b.onclick=()=>{if(answered)return;const i=+b.dataset.rm,p=asm.indexOf(i);asm.splice(p,1);document.querySelector('#bank .chip[data-w="'+i+'"]').classList.remove('used');drawAsm();});document.getElementById('cta').disabled=asm.length!==s.words.length;}
+function bindMatch(){S.querySelectorAll('.mch').forEach(b=>b.onclick=()=>{if(b.classList.contains('ok'))return;if(!matchSel){matchSel=b;b.classList.add('sel');return;}if(matchSel===b){b.classList.remove('sel');matchSel=null;return;}if(matchSel.dataset.side===b.dataset.side){matchSel.classList.remove('sel');matchSel=b;b.classList.add('sel');return;}if(matchSel.dataset.i===b.dataset.i){matchSel.classList.add('ok');b.classList.add('ok');matchSel.classList.remove('sel');matchSel=null;matchDone++;if(matchDone===curStep.pairs.length)document.getElementById('cta').disabled=false;}else{const a=matchSel;b.classList.add('bad');a.classList.add('bad');setTimeout(()=>{a.classList.remove('bad','sel');b.classList.remove('bad');},350);matchSel=null;}});}
+function checkOpt(cls,ans){answered=true;S.querySelectorAll(cls).forEach((o,i)=>{o.classList.remove('sel');o.style.pointerEvents='none';if(i===ans)o.classList.add('correct');else if(i===sel)o.classList.add('wrong');else o.classList.add('dim');});const ok=sel===ans;recordSkill(curStep.t,ok);if(!ok)markWrong();finish(ok,'Верно ✓');}
+const PRAISE=[['Goed zo!','Молодец!'],['Uitstekend!','Отлично!'],['Heel goed!','Очень хорошо!'],['Prima!','Прекрасно!'],['Perfect!','Идеально!'],['Knap gedaan!','Здорово!'],['Precies!','Точно!']];
+function finish(ok,note){if(!ok)hearts=Math.max(0,hearts-1);let msg;
+  if(ok){correctCount++;if(correctCount%3===0){const p=PRAISE[(correctCount/3-1)%PRAISE.length];msg='<span class="praise-nl">'+p[0]+'</span><span class="praise-ru">'+p[1]+'</span>';speak(p[0]);}else{msg='Верно!';}}
+  else{msg=note||'Не совсем';}
+  document.querySelector('.foot').outerHTML=foot(ok?'ok':'no',msg,'Продолжить');document.getElementById('cta').onclick=next;const hc=S.querySelector('.hearts span');if(hc)hc.textContent=hearts;}
+function next(){pos++;if(pos>=playlist.length){XP+=25;if(!isTrain&&!partDone(curLesson,curPart))progress.doneParts.push(partKey(curLesson,curPart));donePart();return;}renderStep();}
+function donePart(){const retried=playlist.length-origLen;try{steps.forEach(function(s){if(s.t==='word')srsAdd(s.nl,s.tr);});}catch(e){}
+  if(isTrain){S.innerHTML='<div class="done-wrap"><div class="trophy">🏆</div><h2>Klaar! 🎉</h2><p style="font-weight:800;color:var(--ink);margin-bottom:4px">Тренировка пройдена</p><p>'+trainTitle+'</p><button class="btn" id="d1" style="max-width:320px">Готово</button></div>';document.getElementById('d1').onclick=()=>train();confetti();speak('Goed gedaan!');return;}
+  const more=!lessonDone(curLesson);const nextP=firstOpenPart(curLesson);
+  S.innerHTML='<div class="done-wrap"><div class="trophy">🎉</div><h2>Klaar! Часть пройдена</h2><p style="font-weight:800;color:var(--ink);margin-bottom:2px">Урок '+curLesson+' · Часть '+(curPart+1)+' · '+DATA[curLesson].parts[curPart].t+'</p><p>'+(retried>0?'<span style="color:var(--oranje)">ошибки исправлены 💪</span>':'Отличная работа!')+'</p><div class="reward"><div class="rcard xp card"><div class="v">+25</div><div class="k">XP</div></div><div class="rcard streak card"><div class="v">🔥 '+STREAK+'</div><div class="k">дней</div></div><div class="rcard acc card"><div class="v">'+(80+Math.floor(hearts*4))+'%</div><div class="k">точность</div></div></div>'+
+    (more?'<button class="btn oran" id="dn" style="max-width:320px">Следующая часть →</button>':'<div style="font-weight:800;color:var(--success);margin-bottom:12px">🏆 Урок '+curLesson+' полностью пройден!</div>')+
+    '<button class="btn ghost" id="dp" style="max-width:320px;margin-top:10px">К частям урока</button><button class="btn ghost" id="dh" style="max-width:320px;margin-top:10px">На карту</button></div>';
+  if(more)document.getElementById('dn').onclick=()=>startPart(curLesson,nextP);
+  document.getElementById('dp').onclick=()=>partsScreen(curLesson);document.getElementById('dh').onclick=()=>home();confetti();speak('Goed gedaan!');}
+
+/* AI */
+const AI_QA=[['Почему het meisje, а не de meisje?','Слово «meisje» оканчивается на <b>-je</b> — уменьшительный суффикс. Все уменьшительные на -je <b>всегда среднего рода</b>, поэтому <b>het</b> meisje, даже если это девочка. Правило: -je → het.'],['Как произносится g?','<b>g</b> — хриплый «х» из горла: скажи «х», но глубже, с трением. Потренируйся: <b>goed</b>, <b>dag</b>, <b>Gouda</b> («Хаўда»).'],['Составь фразу со словом hond','• <b>Ik heb een hond.</b> — У меня есть собака.<br>• <b>De hond is groot.</b> — Собака большая.<br>• <b>Waar is de hond?</b> — Где собака?']];
+function aiScreen(){activeTab='';S.innerHTML='<div class="ltop"><button class="xbtn" data-go="home">‹</button><b style="font-size:16px">🤖 AI-репетитор</b></div><div class="plain" id="aichat"><div class="ai-msg ai-a">Привет! Спроси меня о грамматике, попроси разобрать ошибку или составить примеры 🙂</div><div id="chips" style="margin-bottom:10px">'+AI_QA.map((q,i)=>'<span class="ai-chip" data-q="'+i+'">'+q[0]+'</span>').join('')+'</div></div><div class="foot" style="flex-direction:row;gap:8px"><input class="tinput" id="aiin" placeholder="Спроси что-нибудь…" style="flex:1"><button class="btn blue" id="aisend" style="width:auto;padding:15px 18px">→</button></div>';
+  const chat=document.getElementById('aichat');function ask(text,ansHtml){const u=document.createElement('div');u.className='ai-msg ai-u';u.textContent=text;chat.appendChild(u);const a=document.createElement('div');a.className='ai-msg ai-a';a.innerHTML='…';chat.appendChild(a);chat.scrollTop=chat.scrollHeight;setTimeout(()=>{a.innerHTML=ansHtml;chat.scrollTop=chat.scrollHeight;},550);}
+  S.querySelectorAll('[data-q]').forEach(b=>b.onclick=()=>{const q=AI_QA[+b.dataset.q];ask(q[0],q[1]);});
+  document.getElementById('aisend').onclick=()=>{const v=document.getElementById('aiin').value.trim();if(!v)return;document.getElementById('aiin').value='';ask(v,'Это демо 🙂 В готовом приложении здесь ответит настоящая модель (как в вашем боте): объяснит грамматику и даст примеры под твой уровень.');};
+  S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));}
+
+/* LEAGUE / FEED / FRIENDS / TRAIN / PROFILE */
+const LEAGUE=[['🦊','Мария',3120],['🐼','Дмитрий',2890],['🐧','Ольга',2110],['🦉','Иван',1980],['🐨','Локи',1740],['🐸','Анна',1520],['🦁','Пётр',1330],['🐙','Настя',1120],['🐝','Юлия',980]];
+function league(){activeTab='league';const rows=LEAGUE.concat([['🦌','Ты',XP]]).sort((a,b)=>b[2]-a[2]);
+  let h=appbar()+'<div class="lg-head"><div class="em">🥈</div><b>Серебряная лига</b><span>Топ-3 переходят выше · осталось 4 дня</span></div><div class="plain" style="padding-top:6px">';
+  rows.forEach((r,i)=>{h+=(i===3?'<div class="promo">— зона повышения —</div>':'')+'<div class="lrow card'+(r[1]==='Ты'?' me':'')+'"><div class="rk">'+(i+1)+'</div><div class="av">'+r[0]+'</div><div class="nm">'+r[1]+(r[1]==='Ты'?' <span style="color:var(--ink-3);font-weight:600">@anna_nl</span>':'')+'</div><div class="xp">'+r[2].toLocaleString('ru')+' ✦</div></div>';});
+  h+='</div>'+nav();S.innerHTML=h;bindNav();}
+let feedLikes={};const POSTS=[['🦊','Мария','2 ч назад','Прошла часть «Настоящее время» без ошибок! 🎉',14],['🐼','Дмитрий','5 ч назад','Серия 12 дней подряд 🔥 Уже заказываю кофе: «een koffie, alsjeblieft!»',22],['🐧','Ольга','вчера','Пробный инбургеринг-тест на 78% 🥳',37],['🦉','Иван','вчера','Выучил все числа. Eenentwintig больше не пугает 😄',9]];
+function feed(){activeTab='feed';let h=appbar()+'<div class="plain"><h2>Лента</h2><p class="sub">Успехи друзей — вдохновляйся и делись своими 🎉</p><button class="btn oran" style="margin-bottom:14px" id="share">📣 Поделиться успехом</button>';
+  POSTS.forEach((p,i)=>{const liked=feedLikes[i];h+='<div class="post card"><div class="ph"><div class="av">'+p[0]+'</div><div style="flex:1"><b>'+p[1]+'</b><span>'+p[2]+'</span></div></div><div class="txt">'+p[3]+'</div><div class="act"><b class="'+(liked?'liked':'')+'" data-like="'+i+'">❤️ '+(p[4]+(liked?1:0))+'</b><b>💬 Ответить</b></div></div>';});
+  h+='</div>'+nav();S.innerHTML=h;const sh=document.getElementById('share');if(sh)sh.onclick=()=>toast('📣 Успех опубликован!');S.querySelectorAll('[data-like]').forEach(b=>b.onclick=()=>{const i=+b.dataset.like;feedLikes[i]=!feedLikes[i];feed();});bindNav();}
+const FRIENDS=[['🐼','Дмитрий','в сети',true],['🐧','Ольга','2 ч назад',true],['🦉','Иван','серия 5 дней',true],['🦊','Мария','вчера',false],['🐸','Анна','неделю назад',false]];
+function friends(){activeTab='';let h='<div class="ltop"><button class="xbtn" data-go="profile">‹</button><b style="font-size:17px">Друзья</b></div><div class="plain"><input class="tinput" placeholder="🔎 Найти по @юзернейму" style="margin-bottom:14px">';
+  FRIENDS.forEach((f,i)=>{h+='<div class="fr"><div class="av">'+f[0]+'</div><div class="nm">'+f[1]+'<span>'+f[2]+'</span></div><button class="frbtn '+(f[3]?'rm':'add')+'" data-fr="'+i+'">'+(f[3]?'Удалить':'+ Добавить')+'</button></div>';});
+  h+='</div>';S.innerHTML=h;S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));S.querySelectorAll('[data-fr]').forEach(b=>b.onclick=()=>{const i=+b.dataset.fr;FRIENDS[i][3]=!FRIENDS[i][3];toast(FRIENDS[i][3]?'✅ Друг добавлен':'Друг удалён');friends();});}
+function train(){activeTab='train';const c=[['mistakes','🔁','Повтор ошибок','где ты ошибался','var(--oranje)'],['quick','⚡','Быстрая тренировка','вперемешку','var(--delft)'],['listen','🎧','Аудирование','слушай речь','var(--success)'],['speak','🗣️','Разговор','говори вслух','var(--delft)'],['words','🔤','Слова','повторяй лексику','var(--oranje)']];
+  let later=laterList.length?'<div class="tcard card" data-train="words" style="border:1px dashed var(--delft)"><div class="ti" style="background:color-mix(in srgb,var(--delft) 16%,transparent);color:var(--delft)">🔖</div><div><b>Отложенные слова ('+laterList.length+')</b><span>«повторить позже»</span></div></div>':'';
+  S.innerHTML=appbar()+'<div class="plain"><h2>Тренировка</h2><p class="sub">Закрепляй пройденное — без потери «жизней».</p>'+later+c.map(x=>'<div class="tcard card" data-train="'+x[0]+'"><div class="ti" style="background:color-mix(in srgb,'+x[4]+' 16%,transparent);color:'+x[4]+'">'+x[1]+'</div><div><b>'+x[2]+'</b><span>'+x[3]+'</span></div></div>').join('')+'<div class="tcard card" data-go="ai"><div class="ti" style="background:color-mix(in srgb,var(--delft) 16%,transparent);color:var(--delft)">🤖</div><div><b>AI-репетитор</b><span>спроси про грамматику</span></div></div></div>'+nav();
+  S.querySelectorAll('[data-train]').forEach(b=>b.onclick=()=>startTrain(b.dataset.train));S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));bindNav();}
+function skillRow(name,pct){const col=pct>=60?'var(--success)':pct>=25?'var(--delft)':'var(--oranje)';return '<div class="skill"><div class="row"><span>'+name+'</span><span class="pc">'+pct+'%</span></div><div class="track"><i style="width:'+pct+'%;background:'+col+'"></i></div></div>';}
+function skillPct(k){const st=skillStat[k];const acc=st.t?st.c/st.t:0;const coverage=progress.doneParts.length/CURRICULUM_TOTAL;return Math.round(Math.min(100,acc*coverage*100));}
+function profile(){activeTab='me';const sk={luisteren:skillPct('luisteren'),lezen:skillPct('lezen'),spreken:skillPct('spreken'),schrijven:skillPct('schrijven'),knm:skillPct('knm')};const ready=Math.round((sk.luisteren+sk.lezen+sk.spreken+sk.schrijven+sk.knm)/5);
+  S.innerHTML=appbar()+'<div class="plain"><div style="text-align:center;padding:6px 0 12px"><div class="avatar">А</div><h2 style="margin:0">Анна</h2><p class="sub" style="margin:2px 0 0">@anna_nl · 🥈 Серебряная лига</p><p class="sub" style="margin:2px 0 0">Уровень '+userLevel+' · '+STREAK+' день подряд 🔥</p></div>'+
+    '<div class="big-ready card"><div class="v">'+ready+'%</div><div class="k">Готовность к инбургерингу (реальный расчёт)</div></div>'+
+    '<div class="card" style="padding:15px 16px;margin-bottom:12px"><div style="font-weight:800;font-size:13px;margin-bottom:4px">Навыки экзамена</div><div style="font-size:11.5px;color:var(--ink-2);margin-bottom:12px">Считаются по точности и пройденному материалу.</div>'+skillRow('Luisteren · слушание',sk.luisteren)+skillRow('Lezen · чтение',sk.lezen)+skillRow('Spreken · говорение',sk.spreken)+skillRow('Schrijven · письмо',sk.schrijven)+skillRow('KNM · знание общества',sk.knm)+'</div>'+
+    '<div class="card" style="padding:15px 16px;margin-bottom:12px"><div style="font-weight:800;font-size:13px;margin-bottom:12px">Достижения</div><div class="ach">'+[['🎯','Тест уровня',true],['📚','Первая часть',progress.doneParts.length>=1],['🔥','Серия 3 дня',STREAK>=3],['💯','Идеальная часть',progress.doneParts.length>=2],['🗣️','Слово вслух',false],['🏆','Топ-3 в лиге',false]].map(a=>'<div class="a'+(a[2]?'':' lock')+'"><div class="ic">'+(a[2]?a[0]:'🔒')+'</div><div class="t">'+a[1]+'</div></div>').join('')+'</div></div>'+
+    '<button class="btn ghost" data-go="memory">🧠 Память ('+Object.keys(SRS).length+' слов)</button><button class="btn ghost" data-go="dict" style="margin-top:10px">📚 Словарь A1 по темам</button><button class="btn ghost" data-go="friends" style="margin-top:10px">👥 Мои друзья</button><button class="btn ghost" data-go="path" style="margin-top:10px">🧭 Весь путь обучения</button><button class="btn ghost" data-go="test" style="margin-top:10px">Пройти тест уровня заново</button></div>'+nav();
+  S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));bindNav();}
+function bindNav(){S.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;if(t==='learn')home();if(t==='train')train();if(t==='league')league();if(t==='feed')feed();if(t==='me')profile();});}
+function go(n){if(n==='onboard'){obStep=0;onboard();}else if(n==='home')home();else if(n==='path')pathScreen();else if(n==='lesson'){var L=THEMES[curTheme].lessons;var cl=L.filter(function(x){return !lessonDone(x);})[0]||L[0]||1;partsScreen(cl);}else if(n==='test')testStart();else if(n==='profile')profile();else if(n==='train')train();else if(n==='ai')aiScreen();else if(n==='league')league();else if(n==='feed')feed();else if(n==='friends')friends();else if(n==='review')review();else if(n==='memory')memory();else if(n==='nextday'){vDay++;if(!chestReady)chestReady=true;home();}else if(n==='chest'){if(chestReady){gems+=50;chestReady=false;toast('🎁 +50 алмазов!');confetti();}home();}else if(n==='dict')dict();
+  document.querySelectorAll('#toolbar button[data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go===n));}
+document.querySelectorAll('#toolbar button[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+document.getElementById('themeBtn').onclick=()=>{const c=document.documentElement.getAttribute('data-theme');const nx=c==='dark'?'light':(c==='light'?'dark':(matchMedia('(prefers-color-scheme: dark)').matches?'light':'dark'));document.documentElement.setAttribute('data-theme',nx);};
+
+
+/* ===== SRS (интервальные повторения) ===== */
+var vDay=1, SRS={};
+var SRS_INT=[0,1,3,7,14,30,30];
+function srsAdd(nl,tr){if(nl&&tr&&!SRS[nl])SRS[nl]={tr:tr,box:1,due:vDay,wrong:0};}
+function srsSeed(){var s=[
+ ['hallo','привет',4,0],['dank je wel','спасибо',3,0],['tot ziens','до свидания',3,1],
+ ['de moeder','мать',2,0],['de vader','отец',2,0],['de broer','брат',1,0],['de zus','сестра',1,0],['het kind','ребёнок',3,2],
+ ['de koffie','кофе',4,0],['het brood','хлеб',2,0],['de kaas','сыр',1,0],['het water','вода',3,1],['de melk','молоко',2,0],['de appel','яблоко',2,0],
+ ['het huis','дом',5,0],['de keuken','кухня',1,0],['de slaapkamer','спальня',1,0],['de deur','дверь',3,2],['de tafel','стол',4,0],['de stoel','стул',2,0],
+ ['twee','два',5,3],['vijf','пять',3,0],['tien','десять',3,0],['twintig','двадцать',1,0],
+ ['de stad','город',2,0],['het station','вокзал',1,0],['de fiets','велосипед',2,0],['de winkel','магазин',3,1],
+ ['werken','работать',3,0],['wonen','жить',4,0],['spreken','говорить',2,0],['kopen','покупать',1,0],['gaan','идти',3,0],
+ ['vandaag','сегодня',2,0],['morgen','завтра',2,0],['maandag','понедельник',1,0]];
+ s.forEach(function(w){SRS[w[0]]={tr:w[1],box:w[2],due:vDay+w[3],wrong:0};});}
+function srsDue(){return Object.keys(SRS).filter(function(k){return SRS[k].due<=vDay;});}
+function srsAnswer(nl,ok){var w=SRS[nl];if(!w)return;if(ok){w.box=Math.min(6,w.box+1);}else{w.box=1;w.wrong++;}w.due=vDay+SRS_INT[w.box];}
+function srsCard(){var d=srsDue().length;
+ if(d>0)return '<div class="srs-card" data-go="review"><div class="si">🔁</div><div style="flex:1"><b>Умное повторение</b><span>'+d+' слов созрело — освежи память</span></div><span class="srs-go">Начать →</span></div><div class="srs-demo" data-go="nextday">⏭ демо: следующий день (сейчас день '+vDay+')</div>';
+ return '<div class="srs-card done"><div class="si">✅</div><div style="flex:1"><b>Всё повторено!</b><span>Слова созреют позже — возвращайся</span></div></div><div class="srs-demo" data-go="nextday">⏭ демо: следующий день (день '+vDay+')</div>';}
+
+var rvSession=[],rvIdx=0,rvRight=0,rvSel=null,rvAns=false,rvCorrect=0,rvOpts=[];
+function review(){activeTab='';var due=srsDue();if(!due.length){home();return;}
+ rvSession=shuf(due,vDay*7+3).slice(0,12);rvIdx=0;rvRight=0;renderRev();}
+function renderRev(){if(rvIdx>=rvSession.length){rvDone();return;}
+ var nl=rvSession[rvIdx],w=SRS[nl];rvSel=null;rvAns=false;
+ var others=Object.keys(SRS).filter(function(k){return k!==nl;});
+ var distr=shuf(others,rvIdx*13+vDay).slice(0,3).map(function(k){return SRS[k].tr;});
+ rvOpts=shuf([w.tr].concat(distr),rvIdx*7+5);rvCorrect=rvOpts.indexOf(w.tr);
+ var pct=Math.round(rvIdx/rvSession.length*100);
+ S.innerHTML='<div class="ltop"><button class="xbtn" data-go="home">✕</button><div class="pbar"><i style="width:'+pct+'%"></i></div><span style="font-weight:800;font-size:13px;color:var(--ink-2)">'+(rvIdx+1)+'/'+rvSession.length+'</span></div>'+
+  '<div class="lbody"><div class="kick">Повторение · сила памяти '+w.box+'/6</div><h2 class="qt">Переведи слово:</h2>'+
+  '<div class="wordcard card" style="padding:18px"><div class="wnl">'+nl+'</div><button class="play" data-say="'+nl+'" style="margin:10px auto 0">'+I.play+'</button></div>'+
+  '<div class="opts" style="margin-top:14px">'+rvOpts.map(function(o,i){return '<button class="opt" data-opt="'+i+'"><span class="key">'+String.fromCharCode(65+i)+'</span><span>'+o+'</span></button>';}).join('')+'</div></div>'+
+  '<div class="foot"><button class="btn blue" id="rcta" disabled>Проверить</button></div>';
+ S.querySelectorAll('[data-say]').forEach(function(b){b.onclick=function(){speak(b.dataset.say,b);};});
+ S.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go);};});
+ S.querySelectorAll('.opt').forEach(function(b){b.onclick=function(){if(rvAns)return;rvSel=+b.dataset.opt;S.querySelectorAll('.opt').forEach(function(o){o.classList.remove('sel');});b.classList.add('sel');document.getElementById('rcta').disabled=false;};});
+ document.getElementById('rcta').onclick=rvCheck;}
+function rvCheck(){rvAns=true;var nl=rvSession[rvIdx];var ok=rvSel===rvCorrect;if(ok)rvRight++;srsAnswer(nl,ok);
+ S.querySelectorAll('.opt').forEach(function(o,i){o.style.pointerEvents='none';o.classList.remove('sel');if(i===rvCorrect)o.classList.add('correct');else if(i===rvSel)o.classList.add('wrong');else o.classList.add('dim');});
+ var f=document.querySelector('.foot');f.className='foot '+(ok?'ok':'no');
+ f.innerHTML='<div class="msg"><span class="ic">'+(ok?I.check:I.x)+'</span>'+(ok?'Верно! сила ↑':'Правильно: '+SRS[nl].tr+' · сила сброшена')+'</div><button class="btn '+(ok?'':'blue')+'" id="rcta">Продолжить</button>';
+ document.getElementById('rcta').onclick=function(){rvIdx++;renderRev();};}
+function rvDone(){XP+=rvRight*5;
+ S.innerHTML='<div class="done-wrap"><div class="trophy">🧠</div><h2>Память освежена!</h2><p>Повторено '+rvSession.length+' слов · верно '+rvRight+'</p><div class="reward"><div class="rcard xp card"><div class="v">+'+(rvRight*5)+'</div><div class="k">XP</div></div><div class="rcard acc card"><div class="v">'+Math.round(rvRight/rvSession.length*100)+'%</div><div class="k">точность</div></div></div><button class="btn" id="rd1" style="max-width:320px">Готово</button><button class="btn ghost" id="rd2" style="max-width:320px;margin-top:10px">🧠 Мой словарь</button></div>';
+ document.getElementById('rd1').onclick=home;document.getElementById('rd2').onclick=memory;confetti();}
+function memory(){activeTab='';var ks=Object.keys(SRS).sort(function(a,b){return SRS[b].box-SRS[a].box;});
+ var strong=ks.filter(function(k){return SRS[k].box>=5;}).length,due=srsDue().length;
+ var h='<div class="ltop"><button class="xbtn" data-go="home">‹</button><b style="font-size:17px">🧠 Мой словарь</b></div><div class="plain">';
+ h+='<p class="sub">Выучено '+ks.length+' слов · сильных '+strong+' · к повтору '+due+'</p>';
+ ks.forEach(function(k){var w=SRS[k];var pct=Math.round(w.box/6*100);var d=w.due<=vDay?'<span style="color:var(--oranje)">к повтору</span>':('через '+(w.due-vDay)+' дн.');
+  h+='<div class="memrow"><div style="flex:1"><b>'+k+'</b> <span style="color:var(--ink-2);font-size:13px">— '+w.tr+'</span><div class="membar"><i style="width:'+pct+'%"></i></div></div><div class="memdue">'+d+'</div><button class="play" data-say="'+k+'">'+I.play+'</button></div>';});
+ h+='</div>';S.innerHTML=h;
+ S.querySelectorAll('[data-say]').forEach(function(b){b.onclick=function(){speak(b.dataset.say,b);};});
+ S.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go);};});}
+
+var gems=120,chestReady=true;
+var THEMES_A1=[
+ {t:'Hallo! (знакомство, семья)',w:[['hallo','привет'],['de naam','имя'],['het jaar','год'],['de man','мужчина'],['de vrouw','женщина'],['het kind','ребёнок'],['wonen','жить'],['komen','приходить'],['de moeder','мать'],['de vader','отец'],['de broer','брат'],['de zus','сестра'],['de dochter','дочь'],['de zoon','сын'],['de oma','бабушка'],['de opa','дедушка'],['getrouwd','женатый/замужем'],['tot ziens','до свидания'],['goedemorgen','доброе утро'],['de familie','семья']]},
+ {t:'De school (школа, числа, дни)',w:[['de school','школа'],['de docent','преподаватель'],['leren','учить(ся)'],['lezen','читать'],['schrijven','писать'],['luisteren','слушать'],['het boek','книга'],['de pen','ручка'],['de dag','день'],['de week','неделя'],['maandag','понедельник'],['vandaag','сегодня'],['morgen','завтра'],['januari','январь'],['moeilijk','трудный'],['makkelijk','лёгкий'],['de mensen','люди'],['sorry','извините'],['de vraag','вопрос'],['het antwoord','ответ']]},
+ {t:'Wonen (жильё, цвета)',w:[['het huis','дом'],['de deur','дверь'],['het raam','окно'],['de tuin','сад'],['de kamer','комната'],['de keuken','кухня'],['de slaapkamer','спальня'],['de badkamer','ванная'],['de woonkamer','гостиная'],['het bed','кровать'],['de tafel','стол'],['de stoel','стул'],['de bank','диван'],['de kast','шкаф'],['de lamp','лампа'],['de kleur','цвет'],['rood','красный'],['blauw','синий'],['de straat','улица'],['huren','снимать']]},
+ {t:'Eten en drinken (еда, деньги)',w:[['het brood','хлеб'],['de kaas','сыр'],['de boter','масло'],['het vlees','мясо'],['de vis','рыба'],['de appel','яблоко'],['de banaan','банан'],['de groente','овощи'],['het fruit','фрукты'],['de melk','молоко'],['het water','вода'],['de wijn','вино'],['eten','есть'],['drinken','пить'],['koken','готовить'],['kopen','покупать'],['de markt','рынок'],['de supermarkt','супермаркет'],['duur','дорогой'],['het geld','деньги']]},
+ {t:'De dokter (тело, здоровье)',w:[['het hoofd','голова'],['de hand','рука (кисть)'],['de voet','нога (стопа)'],['het oog','глаз'],['het oor','ухо'],['de neus','нос'],['de mond','рот'],['de arm','рука'],['het been','нога'],['de rug','спина'],['de dokter','врач'],['de tandarts','стоматолог'],['ziek','больной'],['de pijn','боль'],['de koorts','температура'],['de afspraak','приём/встреча'],['het medicijn','лекарство'],['de apotheek','аптека'],['het ziekenhuis','больница'],['de griep','грипп']]},
+ {t:'De kleding (одежда, время)',w:[['de jas','куртка'],['de broek','брюки'],['de schoen','обувь'],['de sok','носок'],['de trui','свитер'],['de jurk','платье'],['de rok','юбка'],['de bril','очки'],['de maat','размер'],['passen','примерять/подходить'],['dragen','носить'],['de tijd','время'],['de klok','часы'],['het uur','час'],['de ochtend','утро'],['de avond','вечер'],['de nacht','ночь'],['open','открыто'],['dicht','закрыто'],['de kleding','одежда']]},
+ {t:'Reizen (транспорт, дорога)',w:[['de auto','машина'],['de bus','автобус'],['de trein','поезд'],['de fiets','велосипед'],['de tram','трамвай'],['het vliegtuig','самолёт'],['het station','вокзал'],['reizen','путешествовать'],['de weg','дорога'],['links','налево'],['rechts','направо'],['rechtdoor','прямо'],['de kaart','карта'],['het land','страна'],['de stad','город'],['de file','пробка'],['de halte','остановка'],['instappen','садиться'],['uitstappen','выходить'],['de chauffeur','водитель']]},
+ {t:'Vrije tijd (досуг, животные)',w:[['de vrije tijd','свободное время'],['de hobby','хобби'],['sporten','заниматься спортом'],['voetballen','играть в футбол'],['zwemmen','плавать'],['dansen','танцевать'],['zingen','петь'],['de muziek','музыка'],['spelen','играть'],['de vriend','друг'],['de vriendin','подруга'],['het dier','животное'],['de hond','собака'],['de kat','кошка'],['het paard','лошадь'],['de vakantie','отпуск'],['het strand','пляж'],['de zee','море'],['de natuur','природа'],['het weer','погода']]}
+];
+function srsLoadThemes(){var i=0;THEMES_A1.forEach(function(th){th.w.forEach(function(p){if(!SRS[p[0]]){SRS[p[0]]={tr:p[1],box:1,due:vDay+(i%6),wrong:0};i++;}});});}
+function chestCard(){if(chestReady)return '<div class="srs-card" data-go="chest" style="background:linear-gradient(120deg,#F5A623,#E07E0A)"><div class="si">🎁</div><div style="flex:1"><b>Сундук готов!</b><span>Открой и забери 50 алмазов</span></div><span class="srs-go">Открыть →</span></div>';return '<div class="srs-card done" style="background:var(--surface);color:var(--ink);border:1px solid var(--brd)"><div class="si">🎁</div><div style="flex:1"><b>Сундук открыт ✓</b><span>Следующий — на следующий день</span></div></div>';}
+function dict(){activeTab='';var h='<div class="ltop"><button class="xbtn" data-go="memory">‹</button><b style="font-size:16px">📚 Словарь A1 · 8 тем</b></div><div class="plain">';
+ h+='<p class="sub">Официальный список слов TaalCompleet A1. Нажми слово — услышишь.</p>';
+ THEMES_A1.forEach(function(th,ti){h+='<div class="card" style="padding:13px 15px;margin-bottom:10px"><div style="font-weight:800;font-size:14.5px;margin-bottom:8px">Тема '+(ti+1)+' · '+th.t+' <span style="color:var(--ink-3);font-size:12px">('+th.w.length+')</span></div>';
+  th.w.forEach(function(p){var w=SRS[p[0]];var pct=w?Math.round(w.box/6*100):0;h+='<div class="memrow"><div style="flex:1"><b>'+p[0]+'</b> <span style="color:var(--ink-2);font-size:13px">— '+p[1]+'</span><div class="membar"><i style="width:'+pct+'%"></i></div></div><button class="play" data-say="'+p[0]+'">'+I.play+'</button></div>';});
+  h+='</div>';});
+ h+='</div>';S.innerHTML=h;
+ S.querySelectorAll('[data-say]').forEach(function(b){b.onclick=function(){speak(b.dataset.say,b);};});
+ S.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go);};});}
+srsSeed();srsLoadThemes();
+
+splash();
+</script>
