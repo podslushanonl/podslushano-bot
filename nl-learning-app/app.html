@@ -130,31 +130,61 @@
   .dbanner small{opacity:.9;font-weight:800;font-size:10.5px;letter-spacing:.07em}.dbanner b{display:block;font-size:17px;font-weight:800;margin-top:2px;letter-spacing:-.02em}
   .srs-pill{display:flex;align-items:center;gap:10px;margin:2px 16px 2px;padding:11px 15px;border-radius:14px;color:#fff;cursor:pointer;background:linear-gradient(120deg,var(--berry),#5B21B6);box-shadow:var(--sh-sm);font-size:20px}
   .srs-pill b{font-weight:800;font-size:14px;display:block}.srs-pill span{font-size:11.5px;opacity:.85;font-weight:600}.srs-pill i{margin-left:auto;font-style:normal;font-weight:800;font-size:16px}
-  .dmap{position:relative;display:flex;flex-direction:column;align-items:center;padding:14px 0 22px}
-  .dmap::before{content:'';position:absolute;top:30px;bottom:38px;left:50%;width:2px;transform:translateX(-50%);background:repeating-linear-gradient(var(--brd) 0 7px,transparent 7px 15px);z-index:0}
-  .chapdiv{position:relative;z-index:2;align-self:stretch;display:flex;align-items:center;gap:10px;margin:28px 18px 12px}
-  .chapdiv .ln{flex:1;height:1px;background:var(--brd)}
-  .chapdiv .bdg{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:999px;font-weight:800;font-size:12.5px;color:#fff;letter-spacing:-.01em;box-shadow:var(--sh-sm);white-space:nowrap}
-  .soon{position:relative;z-index:2;color:var(--ink-3);font-size:12px;font-weight:700;margin:2px 0 8px;background:var(--surface);border:1px solid var(--brd);padding:5px 13px;border-radius:999px}
-  .srs-demo2{position:relative;z-index:2;text-align:center;color:var(--ink-3);font-size:11px;font-weight:700;margin:16px 0 2px;cursor:pointer;opacity:.65}
-  .dnw{position:relative;margin:7px 0;display:flex;justify-content:center}
-  /* --- Собственные узлы: скруглённые тайлы (не круги Duolingo) --- */
-  .dnode{position:relative;width:62px;height:62px;border-radius:21px;display:grid;place-items:center;cursor:pointer;border:none;color:#fff;font-weight:800;font-size:21px;letter-spacing:-.02em;
-    box-shadow:0 8px 16px -6px rgba(16,24,40,.4), inset 0 2px 0 rgba(255,255,255,.4), inset 0 -7px 12px rgba(0,0,0,.14);
-    transition:transform .12s ease, box-shadow .12s ease}
-  .dnode::after{content:'';position:absolute;inset:0;border-radius:inherit;background:linear-gradient(158deg,rgba(255,255,255,.34),transparent 52%);pointer-events:none}
+  /* ===== FIETSROUTE — веломаршрут ===== */
+  .dmap{position:relative;display:flex;flex-direction:column;align-items:center;padding:6px 0 30px;overflow:hidden;
+    background:
+      radial-gradient(circle at 14% 20%, rgba(46,139,87,.07), transparent 20%),
+      radial-gradient(circle at 86% 66%, rgba(44,107,214,.07), transparent 22%),
+      repeating-linear-gradient(0deg, rgba(120,130,150,.045) 0 1px, transparent 1px 48px),
+      repeating-linear-gradient(90deg, rgba(120,130,150,.045) 0 1px, transparent 1px 48px)}
+  /* канал наискосок */
+  .dmap .canal{position:absolute;top:-30px;bottom:-30px;left:6%;width:54px;transform:rotate(7deg);z-index:0;pointer-events:none;
+    background:linear-gradient(90deg,transparent,rgba(44,107,214,.12) 30%,rgba(44,107,214,.14),rgba(44,107,214,.12) 70%,transparent);border-radius:40px}
+  /* красная веломаршрутная линия */
+  .dmap::before{content:'';position:absolute;top:22px;bottom:40px;left:50%;width:9px;transform:translateX(-50%);border-radius:9px;z-index:0;
+    background:linear-gradient(180deg,#E23B2E,#C42A20);
+    box-shadow:0 0 0 4px rgba(226,59,46,.10), inset 0 0 0 1px rgba(0,0,0,.06)}
+  .dmap::after{content:'';position:absolute;top:22px;bottom:40px;left:50%;width:2px;transform:translateX(-50%);z-index:0;
+    background:repeating-linear-gradient(180deg, rgba(255,255,255,.9) 0 9px, transparent 9px 20px)}
+  .chapdiv{position:relative;z-index:3;align-self:stretch;display:flex;align-items:center;justify-content:center;margin:26px 16px 12px}
+  .chapdiv .bdg{position:relative;display:inline-flex;align-items:center;gap:7px;padding:8px 15px 8px 14px;border-radius:9px;font-weight:800;font-size:12.5px;color:#fff;letter-spacing:-.01em;white-space:nowrap;
+    border:2px solid rgba(255,255,255,.85);box-shadow:0 6px 16px -8px rgba(16,24,40,.5), inset 0 1px 0 rgba(255,255,255,.25)}
+  .chapdiv .bdg::after{content:'→';font-weight:900;opacity:.9}
+  .soon{position:relative;z-index:3;color:var(--ink-3);font-size:12px;font-weight:700;margin:2px 0 8px;background:var(--surface);border:1px solid var(--brd);padding:5px 13px;border-radius:999px}
+  .srs-demo2{position:relative;z-index:3;text-align:center;color:var(--ink-3);font-size:11px;font-weight:700;margin:16px 0 2px;cursor:pointer;opacity:.65}
+  .dnw{position:relative;z-index:2;margin:9px 0;display:flex;justify-content:center;animation:pop .4s cubic-bezier(.2,.9,.3,1.4) both}
+  @keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+  /* веломаршрутные «остановки» (knooppunt) — круги с номером и белым кантом */
+  .dnode{position:relative;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;cursor:pointer;color:#fff;font-weight:800;font-size:20px;letter-spacing:-.02em;
+    border:3px solid #fff;box-shadow:0 7px 15px -5px rgba(16,24,40,.5);transition:transform .12s ease, box-shadow .12s ease}
+  .dnode::after{content:'';position:absolute;inset:0;border-radius:50%;background:linear-gradient(160deg,rgba(255,255,255,.32),transparent 55%);pointer-events:none}
+  @media (prefers-color-scheme:dark){.dnode{border-color:#0e131c}}
   .dnode svg,.dnode .num{position:relative;z-index:1}
-  .dnode svg{width:25px;height:25px}.dnode.emj{font-size:25px}
-  .dnode:active{transform:translateY(2px) scale(.97);box-shadow:0 4px 10px -6px rgba(16,24,40,.4), inset 0 2px 0 rgba(255,255,255,.3)}
-  .dnode.done{opacity:.9}
+  .dnode svg{width:24px;height:24px}.dnode.emj{font-size:24px}
+  .dnode:active{transform:scale(.9)}
+  .dnode.done{opacity:.92}
   .dnode.lock{background:#e3e3ea!important;color:#b3b3bd!important;box-shadow:0 6px 14px -8px rgba(0,0,0,.3)!important;cursor:not-allowed}
   @media (prefers-color-scheme:dark){.dnode.lock{background:#242a38!important;color:#59617a!important}}
-  .dcur{animation:cur 1.9s ease-in-out infinite}@keyframes cur{50%{transform:translateY(-4px) rotate(-2deg)}}
-  .dcur::before{content:'';position:absolute;inset:-6px;border-radius:26px;border:2.5px solid currentColor;opacity:.35;animation:ring 1.9s ease-in-out infinite}
-  @keyframes ring{0%,100%{transform:scale(1);opacity:.35}50%{transform:scale(1.08);opacity:.12}}
-  /* --- Иллюстрация-заголовок карты (нидерландские домики) --- */
-  .mapart{display:block;margin:6px auto 0;width:min(340px,86%);height:auto;opacity:.95}
-  .motif{position:absolute;opacity:.5;pointer-events:none;z-index:1}
+  .dcur{animation:cur 1.9s ease-in-out infinite}@keyframes cur{50%{transform:translateY(-4px)}}
+  .dcur::before{content:'';position:absolute;inset:-7px;border-radius:50%;border:3px solid currentColor;opacity:.4;animation:ring 1.9s ease-in-out infinite}
+  @keyframes ring{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.12);opacity:.1}}
+  /* сцена по бокам маршрута */
+  .scenerow{position:relative;align-self:stretch;height:0;z-index:1}
+  .scene{position:absolute;z-index:1;pointer-events:none;filter:drop-shadow(0 6px 10px rgba(16,24,40,.14))}
+  .scene.l{left:8px}.scene.r{right:8px}
+  .scene svg{display:block;width:56px;height:auto}
+  .scene.big svg{width:74px}
+  @keyframes sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+  .scene.tulip{animation:sway 4s ease-in-out infinite;transform-origin:bottom center}
+  .scene.mill .blades{animation:spin 9s linear infinite;transform-origin:center;transform-box:fill-box}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  /* дорожный столб-заголовок */
+  .signpost{position:relative;z-index:3;display:flex;flex-direction:column;align-items:center;gap:5px;margin:8px auto 2px;width:max-content}
+  .signpost .sg{display:flex;align-items:center;gap:8px;padding:7px 13px;border-radius:7px;color:#fff;font-weight:800;font-size:12px;box-shadow:0 6px 14px -8px rgba(16,24,40,.5);border:2px solid rgba(255,255,255,.85)}
+  .signpost .post{width:6px;height:16px;background:linear-gradient(#aab2c2,#7f8798);border-radius:3px;margin-top:-1px}
+  /* катящийся велосипед у текущей остановки */
+  .bikeflag{position:absolute;top:-34px;left:50%;transform:translateX(-50%);font-size:22px;z-index:25;animation:hop 1.4s ease-in-out infinite}
+  @keyframes hop{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-4px)}}
   /* --- Словарь (для пользователя) --- */
   .dsearch{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--brd);background:var(--surface);color:var(--ink);font-size:15px;margin-bottom:12px;font-family:var(--font)}
   .dsec{background:var(--surface);border:1px solid var(--brd);border-radius:16px;margin-bottom:10px;overflow:hidden;box-shadow:var(--sh-sm)}
@@ -209,6 +239,7 @@ function buildWave(){const N=39,W=240,H=150,g=W/N;let b='';for(let i=0;i<N;i++){
 const WAVE=buildWave(),LOGO_SM='<div class="applogo" style="width:36px;height:36px">'+WAVE+'</div>',LOGO_LG='<div class="applogo lg" style="width:96px;height:96px;margin:0 auto 6px">'+WAVE+'</div>';
 function speak(t,btn){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='nl-NL';u.rate=.9;const v=speechSynthesis.getVoices().find(x=>x.lang&&x.lang.toLowerCase().startsWith('nl'));if(v)u.voice=v;if(btn){btn.classList.add('playing');u.onend=u.onerror=()=>btn.classList.remove('playing');}speechSynthesis.speak(u);}catch(e){}}
 if('speechSynthesis'in window)speechSynthesis.onvoiceschanged=()=>{};
+function vibe(p){try{if(navigator.vibrate)navigator.vibrate(p);}catch(e){}}
 function toast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:absolute;left:50%;bottom:96px;transform:translateX(-50%);z-index:80;background:var(--ink);color:var(--bg-a);padding:9px 15px;border-radius:999px;font-size:12.5px;font-weight:700;box-shadow:var(--sh-md);animation:fadeup .3s';document.querySelector('.phone').appendChild(t);setTimeout(()=>t.remove(),1600);}
 function confetti(){const c=document.createElement('div');c.className='confetti';const cols=['#F26A16','#2C6BD6','#12A150','#F2C438','#E23B2E','#7C4DE0'];let h='';for(let i=0;i<30;i++){h+='<i style="left:'+((i*37+9)%100)+'%;background:'+cols[i%6]+';animation-delay:'+((i%8)*70)+'ms;animation-duration:'+(1600+(i%5)*180)+'ms"></i>';}c.innerHTML=h;const ph=document.querySelector('.phone');if(ph){ph.appendChild(c);setTimeout(()=>c.remove(),2600);}}
 function splash(){const sp=document.createElement('div');sp.className='splash';sp.innerHTML='<div style="color:#fff">'+LOGO_LG.replace('applogo lg','applogo lg').replace('color:rgba','x:rgba')+'</div><h2>Leer Nederlands</h2><div class="load"><i></i></div><div style="font-size:12px;opacity:.85">Учим нидерландский · загрузка…</div>';const ph=document.querySelector('.phone');ph.appendChild(sp);setTimeout(()=>{sp.style.transition='opacity .4s';sp.style.opacity='0';setTimeout(()=>{sp.remove();onboard();},400);},1800);}
@@ -993,7 +1024,7 @@ function onboard(){activeTab='';
 }
 
 /* HOME + PARTS */
-function appbar(){return '<div class="appbar card"><div class="brand">'+LOGO_SM+'<div><b>Нидерландский</b><small>Уровень '+userLevel+' · Раздел 1</small></div></div><div class="stats"><span class="s streak">🔥 '+STREAK+'</span><span class="s xp">✦ '+XP.toLocaleString('ru')+'</span><span class="s" style="color:#E07E0A">💎 '+gems+'</span></div></div>';}
+function appbar(){return '<div class="appbar card"><div class="brand">'+LOGO_SM+'<div><b>Нидерландский</b><small>Уровень '+userLevel+' · Раздел 1</small></div></div><div class="stats"><span class="s streak">🔥 '+STREAK+'</span><span class="s xp">✦ '+XP.toLocaleString('ru')+'</span><span class="s" style="color:#E07E0A">🧇 '+gems+'</span></div></div>';}
 function nav(){const t=(id,ic,l)=>'<button class="'+(activeTab===id?'on':'')+'" data-tab="'+id+'">'+ic+'<span>'+l+'</span></button>';const e=x=>'<span style="font-size:21px;line-height:22px">'+x+'</span>';return '<div class="nav card">'+t('learn',I.home,'Учить')+t('train',I.dumb,'Тренир.')+t('league',e('🏆'),'Лига')+t('feed',e('📰'),'Лента')+t('me',I.user,'Профиль')+'</div>';}
 function partsPips(n){const p=PARTS(n);let done=0;for(let i=0;i<p;i++)if(partDone(n,i))done++;let s='';for(let i=0;i<p;i++)s+='<i class="'+(i<done?'on':'')+'"></i>';return '<div class="parts">'+s+'</div>';}
 var curTheme=0;
@@ -1476,29 +1507,31 @@ var WL=[{t:'Знакомство (Hallo!)',w:[['hallo','привет'],['het jaa
 function srsLoadWL(){var i=0;WL.forEach(function(th){th.w.forEach(function(p){if(!SRS[p[0]]){SRS[p[0]]={tr:p[1],box:1,due:vDay+(i%45),wrong:0};i++;}});});}
 
 var CHECK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l4 4L19 7"/></svg>';
-function renderNode(nd,off,th){var s='margin-left:'+off+'px';
+function renderNode(nd,off,th,d){var s='margin-left:'+off+'px;animation-delay:'+d+'ms';
  if(nd.type==='lesson'){var done=lessonDone(nd.n);var here=nd.n===currentLesson();var idx=th.lessons.indexOf(nd.n)+1;
-  var bub=here?'<div class="dbubble" style="color:'+th.c+'">СТАРТ<i></i></div>':'';
+  var flag=here?'<div class="bikeflag">🚲</div>':'';
   var inner=done?CHECK:'<span class="num">'+idx+'</span>';
-  return '<div class="dnw" style="'+s+'">'+bub+'<button class="dnode '+(done?'done':'')+(here?' dcur':'')+'" data-lesson="'+nd.n+'" style="background:'+th.c+'">'+inner+'</button></div>';}
+  return '<div class="dnw" style="'+s+'">'+flag+'<button class="dnode '+(done?'done':'')+(here?' dcur':'')+'" data-lesson="'+nd.n+'" style="background:'+th.c+'">'+inner+'</button></div>';}
  if(nd.type==='practice')return '<div class="dnw" style="'+s+'"><button class="dnode" data-go="review" style="background:color-mix(in srgb,'+th.c+' 55%,#fff);color:'+th.c+'">'+I.dumb+'</button></div>';
- if(nd.type==='chest')return '<div class="dnw" style="'+s+'"><button class="dnode emj" data-go="chest" style="background:linear-gradient(150deg,#F6B24B,#E07E0A)">🎁</button></div>';
- if(nd.type==='trophy')return '<div class="dnw" style="'+s+'"><button class="dnode emj" data-go="review" style="background:linear-gradient(150deg,#8E9BB3,#5C6B86)">🏆</button></div>';
+ if(nd.type==='chest')return '<div class="dnw" style="'+s+'"><button class="dnode emj" data-go="chest" style="background:linear-gradient(150deg,#F6B24B,#E07E0A)">🧇</button></div>';
+ if(nd.type==='trophy')return '<div class="dnw" style="'+s+'"><button class="dnode emj" data-go="review" style="background:linear-gradient(150deg,#8E9BB3,#5C6B86)">🏁</button></div>';
  return '';}
-var MAPART='<svg class="mapart" viewBox="0 0 340 96" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'
-+'<g stroke="rgba(0,0,0,.10)" stroke-width="1">'
-+'<rect x="18" y="40" width="34" height="46" rx="2" fill="#2C6BD6"/><path d="M18 40 L35 24 L52 40 Z" fill="#2C6BD6"/>'
-+'<rect x="56" y="30" width="30" height="56" rx="2" fill="#F26A16"/><path d="M56 30 h30 v-6 h-6 v-6 h-6 v6 h-6 v6 h-6 z" fill="#F26A16"/>'
-+'<rect x="90" y="46" width="32" height="40" rx="2" fill="#0E9F8C"/><path d="M90 46 L106 32 L122 46 Z" fill="#0E9F8C"/>'
-+'<rect x="126" y="34" width="28" height="52" rx="2" fill="#7C4DE0"/><path d="M126 34 q14 -16 28 0 z" fill="#7C4DE0"/>'
-+'<rect x="158" y="42" width="34" height="44" rx="2" fill="#D9930A"/><path d="M158 42 L175 26 L192 42 Z" fill="#D9930A"/>'
-+'<rect x="196" y="36" width="30" height="50" rx="2" fill="#C2569E"/><path d="M196 36 h30 v-6 h-6 v-6 h-6 v6 h-6 v6 h-6 z" fill="#C2569E"/>'
-+'<rect x="230" y="48" width="32" height="38" rx="2" fill="#2E8B57"/><path d="M230 48 L246 34 L262 48 Z" fill="#2E8B57"/>'
-+'<rect x="266" y="32" width="30" height="54" rx="2" fill="#D64550"/><path d="M266 32 q15 -15 30 0 z" fill="#D64550"/>'
-+'</g>'
-+'<g fill="rgba(255,255,255,.85)"><rect x="30" y="48" width="10" height="10" rx="1.5"/><rect x="66" y="40" width="10" height="10" rx="1.5"/><rect x="100" y="54" width="10" height="9" rx="1.5"/><rect x="135" y="44" width="10" height="10" rx="1.5"/><rect x="169" y="50" width="10" height="10" rx="1.5"/><rect x="205" y="46" width="10" height="10" rx="1.5"/><rect x="240" y="56" width="10" height="9" rx="1.5"/><rect x="275" y="42" width="10" height="10" rx="1.5"/></g>'
-+'<rect x="0" y="86" width="340" height="10" fill="rgba(44,107,214,.18)"/>'
-+'</svg>';
+/* Дорожный веломаршрутный столб-заголовок */
+var SIGNPOST='<div class="signpost">'
++'<div class="sg" style="background:#E23B2E">🚲 Jouw route · твой маршрут</div>'
++'<div class="sg" style="background:#2C6BD6">↑ Vooruitgang · вперёд</div>'
++'<div class="post"></div></div>';
+/* SVG-сцены по бокам маршрута (currentColor = цвет темы) */
+var SCENES={
+ house:'<svg viewBox="0 0 48 64" aria-hidden="true"><rect x="10" y="20" width="28" height="40" rx="2" fill="currentColor"/><path d="M10 20 h28 v-5 h-6 v-5 h-6 v5 h-6 v5 h-6 z" fill="currentColor"/><rect x="15" y="27" width="7" height="8" rx="1" fill="#fff" opacity=".85"/><rect x="26" y="27" width="7" height="8" rx="1" fill="#fff" opacity=".85"/><rect x="20" y="46" width="9" height="14" rx="1" fill="#fff" opacity=".6"/></svg>',
+ tulip:'<svg viewBox="0 0 48 64" aria-hidden="true"><path d="M9 32 Q7 8 24 16 Q41 8 39 32 Q24 43 9 32Z" fill="currentColor"/><path d="M24 16 V44" stroke="#0a7a44" stroke-width="3"/><path d="M24 40 Q10 40 8 52" stroke="#12A150" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M24 44 Q38 44 40 56" stroke="#12A150" stroke-width="4" fill="none" stroke-linecap="round"/></svg>',
+ mill:'<svg viewBox="0 0 64 74" aria-hidden="true"><path d="M23 72 L41 72 L37 36 L27 36 Z" fill="currentColor"/><rect x="28" y="48" width="9" height="16" rx="1" fill="#fff" opacity=".55"/><path d="M32 36 L27 24 h11 z" fill="#8a5a2b"/><g class="blades"><rect x="30" y="2" width="4" height="46" fill="#6b4a2a"/><rect x="9" y="23" width="46" height="4" fill="#6b4a2a"/></g><circle cx="32" cy="25" r="3" fill="#4a3418"/></svg>',
+ bike:'<svg viewBox="0 0 64 42" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="29" r="9"/><circle cx="50" cy="29" r="9"/><path d="M14 29 L28 29 L40 15 L50 29 M28 29 L34 15 L40 15"/></g><circle cx="14" cy="29" r="2.5" fill="currentColor"/><circle cx="50" cy="29" r="2.5" fill="currentColor"/></svg>',
+ tree:'<svg viewBox="0 0 48 60" aria-hidden="true"><rect x="21" y="34" width="6" height="22" rx="2" fill="#8a5a2b"/><circle cx="24" cy="24" r="15" fill="#2E8B57"/><circle cx="14" cy="30" r="9" fill="#3aa06a"/><circle cx="34" cy="30" r="9" fill="#3aa06a"/></svg>'
+};
+var THEME_SCENE=[['house','tulip'],['bike','tree'],['bike','house'],['tulip','mill'],['tree','tulip'],['house','tulip'],['bike','mill'],['tree','tulip']];
+function sceneRow(ti,k,side){var key=THEME_SCENE[ti%8][k%2];var big=(key==='mill')?' big':'';var cls=(key==='tulip')?' tulip':(key==='mill'?' mill':'');
+ return '<div class="scenerow"><span class="scene '+side+big+cls+'" style="color:'+THEMES[ti].c+';top:-54px">'+SCENES[key]+'</span></div>';}
 var offs=[0,34,48,34,0,-34,-48,-34];
 function home(){activeTab='learn';
  var map='';
@@ -1506,11 +1539,13 @@ function home(){activeTab='learn';
   map+='<div class="chapdiv"><span class="ln"></span><span class="bdg" style="background:'+th.c+'">'+th.emoji+' Тема '+(ti+1)+' · '+th.name+'</span><span class="ln"></span></div>';
   if(!th.lessons.length){map+='<div class="soon">🔒 Скоро — уроки из словаря A1</div>';return;}
   var nodes=[];th.lessons.forEach(function(ln,i){nodes.push({type:'lesson',n:ln});if((i+1)%3===0&&i<th.lessons.length-1)nodes.push({type:'practice'});if(i===Math.floor(th.lessons.length/2))nodes.push({type:'chest'});});nodes.push({type:'trophy'});
-  nodes.forEach(function(nd,i){map+=renderNode(nd,offs[i%8],th);});
+  var sc=0;
+  nodes.forEach(function(nd,i){map+=renderNode(nd,offs[i%8],th,Math.min(i,16)*35);
+   if(i%2===1&&i<nodes.length-1){map+=sceneRow(ti,sc,(sc%2?'r':'l'));sc++;}});
  });
- S.innerHTML=appbar()+MAPART+'<div class="dmap">'+map+'</div><div style="height:8px"></div>'+nav();
- S.querySelectorAll('[data-lesson]').forEach(function(b){b.onclick=function(){partsScreen(+b.dataset.lesson);};});
- S.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go);};});
+ S.innerHTML=appbar()+SIGNPOST+'<div class="dmap"><div class="canal"></div>'+map+'</div><div style="height:8px"></div>'+nav();
+ S.querySelectorAll('[data-lesson]').forEach(function(b){b.onclick=function(){vibe(10);partsScreen(+b.dataset.lesson);};});
+ S.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){vibe(10);go(b.dataset.go);};});
  bindNav();}
 function partsScreen(n){activeTab='';const open=firstOpenPart(n);const reachable=(n===currentLesson()||lessonDone(n));
   let h='<div class="ltop"><button class="xbtn" data-go="home">‹</button><b style="font-size:16px">Урок '+n+' · '+META[n-1].t+'</b></div><div class="plain">';
@@ -1570,7 +1605,7 @@ function drawAsm(){const s=curStep,line=document.getElementById('ansline');line.
 function bindMatch(){S.querySelectorAll('.mch').forEach(b=>b.onclick=()=>{if(b.classList.contains('ok'))return;if(!matchSel){matchSel=b;b.classList.add('sel');return;}if(matchSel===b){b.classList.remove('sel');matchSel=null;return;}if(matchSel.dataset.side===b.dataset.side){matchSel.classList.remove('sel');matchSel=b;b.classList.add('sel');return;}if(matchSel.dataset.i===b.dataset.i){matchSel.classList.add('ok');b.classList.add('ok');matchSel.classList.remove('sel');matchSel=null;matchDone++;if(matchDone===curStep.pairs.length)document.getElementById('cta').disabled=false;}else{const a=matchSel;b.classList.add('bad');a.classList.add('bad');setTimeout(()=>{a.classList.remove('bad','sel');b.classList.remove('bad');},350);matchSel=null;}});}
 function checkOpt(cls,ans){answered=true;S.querySelectorAll(cls).forEach((o,i)=>{o.classList.remove('sel');o.style.pointerEvents='none';if(i===ans)o.classList.add('correct');else if(i===sel)o.classList.add('wrong');else o.classList.add('dim');});const ok=sel===ans;recordSkill(curStep.t,ok);if(!ok)markWrong();finish(ok,'Верно ✓');}
 const PRAISE=[['Goed zo!','Молодец!'],['Uitstekend!','Отлично!'],['Heel goed!','Очень хорошо!'],['Prima!','Прекрасно!'],['Perfect!','Идеально!'],['Knap gedaan!','Здорово!'],['Precies!','Точно!']];
-function finish(ok,note){if(!ok)hearts=Math.max(0,hearts-1);let msg;
+function finish(ok,note){vibe(ok?16:[0,28,55,28]);if(!ok)hearts=Math.max(0,hearts-1);let msg;
   if(ok){correctCount++;if(correctCount%3===0){const p=PRAISE[(correctCount/3-1)%PRAISE.length];msg='<span class="praise-nl">'+p[0]+'</span><span class="praise-ru">'+p[1]+'</span>';speak(p[0]);}else{msg='Верно!';}}
   else{msg=note||'Не совсем';}
   document.querySelector('.foot').outerHTML=foot(ok?'ok':'no',msg,'Продолжить');document.getElementById('cta').onclick=next;const hc=S.querySelector('.hearts span');if(hc)hc.textContent=hearts;}
@@ -1625,7 +1660,7 @@ function profile(){activeTab='me';const sk={luisteren:skillPct('luisteren'),leze
     '<button class="btn ghost" data-go="dict">📚 Словарь A1 по темам</button><button class="btn ghost" data-go="friends" style="margin-top:10px">👥 Мои друзья</button><button class="btn ghost" data-go="path" style="margin-top:10px">🧭 Весь путь обучения</button><button class="btn ghost" data-go="test" style="margin-top:10px">Пройти тест уровня заново</button></div>'+nav();
   S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));bindNav();}
 function bindNav(){S.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{const t=b.dataset.tab;if(t==='learn')home();if(t==='train')train();if(t==='league')league();if(t==='feed')feed();if(t==='me')profile();});}
-function go(n){if(n==='onboard'){obStep=0;onboard();}else if(n==='home')home();else if(n==='path')pathScreen();else if(n==='lesson'){var L=THEMES[curTheme].lessons;var cl=L.filter(function(x){return !lessonDone(x);})[0]||L[0]||1;partsScreen(cl);}else if(n==='test')testStart();else if(n==='profile')profile();else if(n==='train')train();else if(n==='ai')aiScreen();else if(n==='league')league();else if(n==='feed')feed();else if(n==='friends')friends();else if(n==='review')review();else if(n==='memory')memory();else if(n==='nextday'){vDay++;if(!chestReady)chestReady=true;home();}else if(n==='chest'){if(chestReady){gems+=50;chestReady=false;toast('🎁 +50 алмазов!');confetti();}home();}else if(n==='dict')dict();
+function go(n){if(n==='onboard'){obStep=0;onboard();}else if(n==='home')home();else if(n==='path')pathScreen();else if(n==='lesson'){var L=THEMES[curTheme].lessons;var cl=L.filter(function(x){return !lessonDone(x);})[0]||L[0]||1;partsScreen(cl);}else if(n==='test')testStart();else if(n==='profile')profile();else if(n==='train')train();else if(n==='ai')aiScreen();else if(n==='league')league();else if(n==='feed')feed();else if(n==='friends')friends();else if(n==='review')review();else if(n==='memory')memory();else if(n==='nextday'){vDay++;if(!chestReady)chestReady=true;home();}else if(n==='chest'){if(chestReady){gems+=50;chestReady=false;vibe(30);toast('🧇 +50 стропвафелей!');confetti();}home();}else if(n==='dict')dict();
   document.querySelectorAll('#toolbar button[data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go===n));}
 document.querySelectorAll('#toolbar button[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 document.getElementById('themeBtn').onclick=()=>{const c=document.documentElement.getAttribute('data-theme');const nx=c==='dark'?'light':(c==='light'?'dark':(matchMedia('(prefers-color-scheme: dark)').matches?'light':'dark'));document.documentElement.setAttribute('data-theme',nx);};
@@ -1700,7 +1735,7 @@ var THEMES_A1=[
  {t:'Vrije tijd (досуг, животные)',w:[['de vrije tijd','свободное время'],['de hobby','хобби'],['sporten','заниматься спортом'],['voetballen','играть в футбол'],['zwemmen','плавать'],['dansen','танцевать'],['zingen','петь'],['de muziek','музыка'],['spelen','играть'],['de vriend','друг'],['de vriendin','подруга'],['het dier','животное'],['de hond','собака'],['de kat','кошка'],['het paard','лошадь'],['de vakantie','отпуск'],['het strand','пляж'],['de zee','море'],['de natuur','природа'],['het weer','погода']]}
 ];
 function srsLoadThemes(){var i=0;THEMES_A1.forEach(function(th){th.w.forEach(function(p){if(!SRS[p[0]]){SRS[p[0]]={tr:p[1],box:1,due:vDay+(i%6),wrong:0};i++;}});});}
-function chestCard(){if(chestReady)return '<div class="srs-card" data-go="chest" style="background:linear-gradient(120deg,#F5A623,#E07E0A)"><div class="si">🎁</div><div style="flex:1"><b>Сундук готов!</b><span>Открой и забери 50 алмазов</span></div><span class="srs-go">Открыть →</span></div>';return '<div class="srs-card done" style="background:var(--surface);color:var(--ink);border:1px solid var(--brd)"><div class="si">🎁</div><div style="flex:1"><b>Сундук открыт ✓</b><span>Следующий — на следующий день</span></div></div>';}
+function chestCard(){if(chestReady)return '<div class="srs-card" data-go="chest" style="background:linear-gradient(120deg,#F5A623,#E07E0A)"><div class="si">🧇</div><div style="flex:1"><b>Стропвафель готов!</b><span>Забери 50 стропвафелей</span></div><span class="srs-go">Открыть →</span></div>';return '<div class="srs-card done" style="background:var(--surface);color:var(--ink);border:1px solid var(--brd)"><div class="si">🎁</div><div style="flex:1"><b>Сундук открыт ✓</b><span>Следующий — на следующий день</span></div></div>';}
 function dict(){activeTab='';var TOT=WL.reduce(function(a,b){return a+b.w.length;},0);
  var h='<div class="ltop"><button class="xbtn" data-go="profile">‹</button><b style="font-size:16px">📚 Словарь · '+TOT+' слов</b></div><div class="plain">';
  h+='<input class="dsearch" id="dq" placeholder="🔎 Найти слово (nl или рус)…" autocomplete="off" autocapitalize="off" spellcheck="false">';
