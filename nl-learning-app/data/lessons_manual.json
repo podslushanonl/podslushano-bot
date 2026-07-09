@@ -2101,6 +2101,22 @@
        ]
       },
       {
+       "t": "explain",
+       "k": "📐 Правило: артикли DE и HET",
+       "b": "📐 Правило",
+       "html": "<p>У каждого существительного свой артикль — <b>учи слово сразу с ним</b>!</p><div style=\"margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:14px\"><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>DE</b> (~75% слов)</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px;color:var(--ink-2)\">de man, de vrouw, de auto</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>HET</b> (~25%)</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px;color:var(--ink-2)\">het huis, het kind, het boek</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">❗ уменьшительные -je</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px;color:var(--ink-2)\">всегда HET: het koekje</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">❗ множественное число</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px;color:var(--ink-2)\">всегда DE: de huizen</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">een (неопр.)</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px;color:var(--ink-2)\">для всех: een man, een huis</div></div><div class=\"rule\" style=\"margin-top:8px\">Правила выбора почти нет — запоминай артикль как часть слова: не «huis», а «HET huis»</div>",
+       "ex": [
+        [
+         "het huis — de huizen",
+         "дом — дома"
+        ],
+        [
+         "de vrouw — een vrouw",
+         "женщина"
+        ]
+       ]
+      },
+      {
        "t": "word",
        "k": "Новое слово",
        "emoji": "🏠",
@@ -9151,6 +9167,22 @@
         [
          "Wij gaan sporten",
          "Мы будем заниматься спортом"
+        ]
+       ]
+      },
+      {
+       "t": "explain",
+       "k": "📐 Правило: инверсия",
+       "b": "📐 Правило",
+       "html": "<p>Если предложение начинается НЕ с подлежащего (а со времени/места) — <b>глагол всё равно на 2-м месте</b>, подлежащее прыгает за него:</p><div style=\"margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:14px\"><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">Ik ga <b>morgen</b> naar school.</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px;color:var(--ink-2)\">Я иду завтра в школу.</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>Morgen</b> ga ik naar school.</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px;color:var(--ink-2)\">❗ Завтра иду я в школу — инверсия!</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>Vandaag</b> werk ik niet.</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px;color:var(--ink-2)\">Сегодня я не работаю.</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>In Nederland</b> fietsen wij veel.</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px;color:var(--ink-2)\">В Нидерландах мы много ездим на велосипеде.</div></div><div class=\"rule\" style=\"margin-top:8px\">Формула: [Время/Место] + ГЛАГОЛ + подлежащее + остальное</div>",
+       "ex": [
+        [
+         "Morgen ga ik naar school.",
+         "Завтра я иду в школу."
+        ],
+        [
+         "Vandaag werk ik niet.",
+         "Сегодня я не работаю."
         ]
        ]
       },

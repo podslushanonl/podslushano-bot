@@ -30,16 +30,62 @@ def vet_pick(lemma,salt):
     lst=VETL.get(lemma)
     return lst[salt%len(lst)] if lst else None
 
+EMOJI_NL={
+ # люди/семья
+ 'man':'👨','vrouw':'👩','kind':'🧒','baby':'👶','jongen':'👦','meisje':'👧','moeder':'👩‍🦳','vader':'👨‍🦳',
+ 'broer':'👱‍♂️','zus':'👱‍♀️','oma':'👵','opa':'👴','familie':'👪','vriend':'🧑‍🤝‍🧑','vriendin':'👭','dokter':'👨‍⚕️',
+ 'docent':'👨‍🏫','leraar':'👨‍🏫','lerares':'👩‍🏫','collega':'🧑‍💼','buurman':'🙋‍♂️','buurvrouw':'🙋‍♀️',
+ # еда/напитки
+ 'appel':'🍎','banaan':'🍌','brood':'🍞','kaas':'🧀','melk':'🥛','water':'💧','koffie':'☕','thee':'🍵',
+ 'wijn':'🍷','bier':'🍺','vis':'🐟','vlees':'🥩','kip':'🍗','ei':'🥚','soep':'🍲','rijst':'🍚','pasta':'🍝',
+ 'tomaat':'🍅','ui':'🧅','wortel':'🥕','aardappel':'🥔','druif':'🍇','peer':'🍐','citroen':'🍋','sinaasappel':'🍊',
+ 'taart':'🍰','koekje':'🍪','ijs':'🍨','boter':'🧈','suiker':'🍬','zout':'🧂','fruit':'🍇','groente':'🥦',
+ 'boterham':'🥪','worst':'🌭','sla':'🥬','komkommer':'🥒','bloemkool':'🥦','sap':'🧃','ontbijt':'🍳','lunch':'🥪','avondeten':'🍽️',
+ # дом/мебель
+ 'huis':'🏠','deur':'🚪','raam':'🪟','tuin':'🌳','keuken':'🍳','slaapkamer':'🛏️','badkamer':'🛁','woonkamer':'🛋️',
+ 'bed':'🛏️','tafel':'🪑','stoel':'🪑','bank':'🛋️','kast':'🗄️','lamp':'💡','televisie':'📺','wc':'🚽','douche':'🚿',
+ 'trap':'🪜','balkon':'🏢','garage':'🚗','dak':'🏠','muur':'🧱','sleutel':'🔑','flat':'🏢','zolder':'🏚️','lift':'🛗',
+ 'bad':'🛁','spiegel':'🪞','koelkast':'🧊','oven':'🔥','wasmachine':'🧺','magnetron':'📻','plant':'🪴',
+ # школа/работа
+ 'school':'🏫','boek':'📖','pen':'🖊️','potlood':'✏️','papier':'📄','computer':'💻','bord':'🖼️','klas':'🏫',
+ 'les':'📚','gum':'🧽','tekst':'📃','woordenboek':'📕','werk':'💼','kantoor':'🏢','baan':'💼','geld':'💶',
+ 'euro':'💶','rekening':'🧾','kassa':'🧾','bon':'🧾','pinpas':'💳','salaris':'💰','vergadering':'👥','baas':'🧑‍💼',
+ 'telefoon':'📱','e-mail':'📧','brief':'✉️','agenda':'📅','contract':'📜','formulier':'📋',
+ # тело/здоровье
+ 'hoofd':'🧠','hand':'✋','voet':'🦶','oog':'👁️','oor':'👂','neus':'👃','mond':'👄','arm':'💪','been':'🦵',
+ 'rug':'🧍','tand':'🦷','haar':'💇','buik':'🤰','knie':'🦵','keel':'🗣️','tandarts':'🦷','apotheek':'💊',
+ 'medicijn':'💊','ziekenhuis':'🏥','pil':'💊','recept':'📋','koorts':'🌡️','griep':'🤧','pijn':'😣',
+ # одежда
+ 'jas':'🧥','broek':'👖','schoen':'👟','sok':'🧦','trui':'🧶','jurk':'👗','rok':'👗','bril':'👓','hemd':'👕',
+ 'T-shirt':'👕','pet':'🧢','muts':'🧢','sjaal':'🧣','handschoen':'🧤','laars':'👢','tas':'👜','riem':'🩹','vest':'🧥',
+ # транспорт/город
+ 'auto':'🚗','bus':'🚌','trein':'🚆','fiets':'🚲','tram':'🚋','vliegtuig':'✈️','station':'🚉','halte':'🚏',
+ 'weg':'🛣️','straat':'🛣️','stad':'🏙️','dorp':'🏘️','kaart':'🗺️','kaartje':'🎫','brug':'🌉','plein':'⛲',
+ 'winkel':'🏪','supermarkt':'🏪','markt':'🛒','museum':'🏛️','park':'🌳','kerk':'⛪','file':'🚦','stoplicht':'🚦',
+ # природа/досуг
+ 'hond':'🐶','kat':'🐱','paard':'🐴','koe':'🐮','vogel':'🐦','dier':'🐾','boom':'🌳','bloem':'🌸','zon':'☀️',
+ 'maan':'🌙','regen':'🌧️','sneeuw':'❄️','wind':'💨','zee':'🌊','strand':'🏖️','bos':'🌲','muziek':'🎵',
+ 'film':'🎬','sport':'⚽','voetbal':'⚽','zwembad':'🏊','vakantie':'🏖️','feest':'🎉','cadeau':'🎁','foto':'📷',
+ 'krant':'📰','spel':'🎲','bal':'⚽','hobby':'🎨','weer':'🌤️','natuur':'🌿','fietspad':'🚴','hemel':'🌌',
+ # время/разное
+ 'klok':'⏰','uur':'🕐','dag':'☀️','nacht':'🌙','ochtend':'🌅','avond':'🌆','week':'📅','maand':'📅','jaar':'📆',
+ 'naam':'🪪','vraag':'❓','antwoord':'💬','deurbel':'🔔','prijs':'🏷️','nummer':'🔢','adres':'📍','paspoort':'🪪'
+}
+def emoji_for(disp,ty):
+    lm=disp.split(' ')[-1]
+    return EMOJI_NL.get(lm) or EMOJI.get(ty,'📌')
 CLEAN={'noun','verb_infinitive','adjective_or_adverb','color'}
 EMOJI={'noun':'📦','verb_infinitive':'▶️','adjective_or_adverb':'🔤','color':'🎨'}
 MAP=[('Знакомство',['people','family','greetings','pronouns','politeness']),
  ('Каждый день',['time','numbers','frequency','basic','smalltalk','feelings']),
- ('Школа',['school','classroom','work']),
+ ('Школа',['school','classroom']),
  ('Еда и напитки',['food','drinks']),
  ('Здоровье',['health']),
  ('Одежда',['clothing','colors']),
  ('Путешествия',['travel','geography']),
- ('Досуг',['leisure','nature','weather','digital'])]
+ ('Досуг',['leisure','nature','weather','digital']),
+ ('Жильё',['home','furniture']),
+ ('Работа',['work','money','admin'])]
 def disp_of(it):
     if it['type'] in ('noun','color') and it.get('article'):
         return (it['article']+' '+it['nl']).strip()
@@ -86,7 +132,7 @@ def words_html(name,ws):
     rows=''.join('<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd)"><b>'+d+'</b><span style="color:var(--ink-2)">'+ru+'</span></div>' for d,ru,ty in ws)
     return '<p>Новые слова темы «'+name+'». Сначала познакомься со ВСЕМИ словами — прослушай каждое (▶ ниже), потом закрепим заданиями.</p><div style="margin-top:8px">'+rows+'</div>'
 
-for ti in range(2,8):
+for ti in range(2,10):
     name,ws=BANK[ti]
     chunks=[ws[i:i+8] for i in range(0,len(ws),8)]
     chunks=[c for c in chunks if len(c)>=6][:7]
@@ -99,14 +145,14 @@ for ti in range(2,8):
         parts=[]
         # ---------- ЧАСТЬ 1: Новые слова 1 (знакомство → распознавание) ----------
         st=[{'t':'explain','k':'Урок '+str(ci+1)+' · шаг 1 из '+'5','b':'📖 Новые слова (1/2)','html':words_html(name,p1w),'ex':[[d,ru] for d,ru,ty in p1w]}]
-        for d,ru,ty in p1w: st.append({'t':'word','k':'Слово','emoji':EMOJI.get(ty,'📌'),'nl':d,'tr':ru})
+        for d,ru,ty in p1w: st.append({'t':'word','k':'Слово','emoji':emoji_for(d,ty),'nl':d,'tr':ru})
         for j,(d,ru,ty) in enumerate(p1w[:2]):
             st.append({'t':'quiz','k':'Выбор','q':'Как будет «'+ru+'»?','opts':[d]+pick_distractors(pool,d,0,3,salt=j+ci)})
         st.append({'t':'match','k':'Пары','pairs':[[d,ru] for d,ru,ty in p1w]})
         parts.append({'t':'Новые слова 1','steps':st})
         # ---------- ЧАСТЬ 2: Новые слова 2 (+ слух с ПОХОЖИМИ вариантами) ----------
         st=[{'t':'explain','k':'Шаг 2 из 5','b':'📖 Новые слова (2/2)','html':words_html(name,p2w),'ex':[[d,ru] for d,ru,ty in p2w]}]
-        for d,ru,ty in p2w: st.append({'t':'word','k':'Слово','emoji':EMOJI.get(ty,'📌'),'nl':d,'tr':ru})
+        for d,ru,ty in p2w: st.append({'t':'word','k':'Слово','emoji':emoji_for(d,ty),'nl':d,'tr':ru})
         for j,(d,ru,ty) in enumerate(p2w[:2]):
             st.append({'t':'quiz','k':'Значение','q':'«'+d+'» — это…','opts':[ru]+pick_distractors(pool,ru,1,3,salt=j+ci+2)})
         d0,ru0,ty0=p2w[0]

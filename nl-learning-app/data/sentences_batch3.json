@@ -1,6 +1,6 @@
 {
  "note": "Батч №3: перфект (hebben + причастие) и модальные конструкции (moeten/kunnen/mogen/willen/zullen) на глаголы банка. Мост A1→A2.",
- "count": 132,
+ "count": 145,
  "items": [
   {
    "nl": "Ik heb gisteren geholpen.",
@@ -793,6 +793,84 @@
    "ru": "Давай вместе играть?",
    "lemma": "spelen",
    "theme": 7
+  },
+  {
+   "nl": "Ik heb gisteren geslapen.",
+   "ru": "Вчера я спал(а).",
+   "lemma": "slapen",
+   "theme": 8
+  },
+  {
+   "nl": "Heb je al geslapen?",
+   "ru": "Ты уже спал(а)?",
+   "lemma": "slapen",
+   "theme": 8
+  },
+  {
+   "nl": "We hebben samen geslapen.",
+   "ru": "Мы вместе спали.",
+   "lemma": "slapen",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb vandaag nog niet geslapen.",
+   "ru": "Сегодня я ещё не спал(а).",
+   "lemma": "slapen",
+   "theme": 8
+  },
+  {
+   "nl": "Ik moet vandaag slapen.",
+   "ru": "Сегодня мне нужно спать.",
+   "lemma": "slapen",
+   "theme": 8
+  },
+  {
+   "nl": "Ik kan morgen niet slapen.",
+   "ru": "Завтра я не могу спать.",
+   "lemma": "slapen",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb gisteren betaald.",
+   "ru": "Вчера я платил(а).",
+   "lemma": "betalen",
+   "theme": 9
+  },
+  {
+   "nl": "Heb je al betaald?",
+   "ru": "Ты уже платил(а)?",
+   "lemma": "betalen",
+   "theme": 9
+  },
+  {
+   "nl": "We hebben samen betaald.",
+   "ru": "Мы вместе платили.",
+   "lemma": "betalen",
+   "theme": 9
+  },
+  {
+   "nl": "Ik heb vandaag nog niet betaald.",
+   "ru": "Сегодня я ещё не платил(а).",
+   "lemma": "betalen",
+   "theme": 9
+  },
+  {
+   "nl": "Ik moet vandaag betalen.",
+   "ru": "Сегодня мне нужно платить.",
+   "lemma": "betalen",
+   "theme": 9
+  },
+  {
+   "nl": "Ik kan morgen niet betalen.",
+   "ru": "Завтра я не могу платить.",
+   "lemma": "betalen",
+   "theme": 9
+  },
+  {
+   "nl": "Mag ik even betalen?",
+   "ru": "Можно мне платить?",
+   "lemma": "betalen",
+   "theme": 9
   }
  ]
 }
