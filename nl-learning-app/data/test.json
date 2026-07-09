@@ -1,0 +1,125 @@
+{
+ "note": "Тест уровня (12 вопросов, первый вариант — правильный; движок перемешивает). Правь и запускай build.py.",
+ "test": [
+  {
+   "lv": "A1",
+   "q": "Как поздороваться утром?",
+   "opts": [
+    "goedemorgen",
+    "goedenavond",
+    "dank je",
+    "tot ziens"
+   ]
+  },
+  {
+   "lv": "A1",
+   "q": "___ huis is groot.",
+   "opts": [
+    "Het",
+    "De",
+    "Een",
+    "Der"
+   ]
+  },
+  {
+   "lv": "A1",
+   "q": "Ik ___ Anna. (быть)",
+   "opts": [
+    "ben",
+    "bent",
+    "is",
+    "zijn"
+   ]
+  },
+  {
+   "lv": "A1",
+   "q": "het boek → мн. число",
+   "opts": [
+    "de boeken",
+    "het boeken",
+    "de boeks",
+    "de boekes"
+   ]
+  },
+  {
+   "lv": "A2",
+   "q": "Jij ___ hard. (werken)",
+   "opts": [
+    "werkt",
+    "werk",
+    "werken",
+    "werks"
+   ]
+  },
+  {
+   "lv": "A2",
+   "q": "Hij ___ een hond. (hebben)",
+   "opts": [
+    "heeft",
+    "hebt",
+    "heb",
+    "hebben"
+   ]
+  },
+  {
+   "lv": "A2",
+   "q": "Верный порядок слов:",
+   "opts": [
+    "Morgen ga ik naar huis",
+    "Morgen ik ga naar huis",
+    "Ik morgen ga naar huis",
+    "Ga morgen ik naar huis"
+   ]
+  },
+  {
+   "lv": "B1",
+   "q": "Ik weet dat hij in Utrecht ___.",
+   "opts": [
+    "woont",
+    "woon",
+    "wonen",
+    "gewoond"
+   ]
+  },
+  {
+   "lv": "B1",
+   "q": "De man ___ daar staat, is mijn vriend.",
+   "opts": [
+    "die",
+    "dat",
+    "wie",
+    "wat"
+   ]
+  },
+  {
+   "lv": "B1",
+   "q": "Ik ___ gisteren een boek gelezen.",
+   "opts": [
+    "heb",
+    "ben",
+    "was",
+    "had"
+   ]
+  },
+  {
+   "lv": "B2",
+   "q": "Ik zou komen als ik tijd ___.",
+   "opts": [
+    "had",
+    "heb",
+    "heb gehad",
+    "hebben"
+   ]
+  },
+  {
+   "lv": "B2",
+   "q": "Оборот «чтобы навестить»:",
+   "opts": [
+    "om te bezoeken",
+    "voor bezoeken",
+    "te bezoek",
+    "om bezoeken"
+   ]
+  }
+ ]
+}

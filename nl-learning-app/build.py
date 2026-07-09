@@ -20,6 +20,7 @@ def J(name):return json.load(open(os.path.join(ROOT,'data',name),encoding='utf-8
 def js(o):return json.dumps(o,ensure_ascii=False,separators=(',',':'))
 
 H_MAN="/* ===== УРОКИ 1–38 (data/lessons_manual.json) ===== */"
+H_TT="/* ===== ТРЕНИРОВКИ + ТЕСТ УРОВНЯ (data/training.json, data/test.json) ===== */"
 H_BASE="/* ======= Темы 3–8: уроки 21–38 (TaalCompleet A1) ======= */"
 H_GEN="/* ===== Банк A1–A2 (из data/dutch_a1_a2_5000.json) + сгенерированные уроки ===== */"
 H_DLG="/* ===== Диалоги тем 3–8 (часть «Диалог» в первом уроке темы) ===== */"
@@ -31,6 +32,12 @@ def build_manual():
     return (H_MAN+"\n"
      +"const META="+js(man['meta'])+";\n"
      +"const DATA="+js(man['lessons'])+";\n")
+
+def build_traintest():
+    tr=J('training.json');te=J('test.json')
+    return (H_TT+"\n"
+     +"const TRAIN="+js(tr['train'])+";\n"
+     +"const TEST="+js(te['test'])+";\n")
 
 def build_base():
     man=J('lessons_manual.json')
@@ -86,6 +93,9 @@ def main():
     # 1) ручные уроки 1–38 (первый прогон: якорь — сама декларация const META=)
     man_start=H_MAN if H_MAN in app else "const META="
     app=region_replace(app,man_start,"const PARTS=",build_manual())
+    # 1½) тренировки + тест уровня
+    tt_start=H_TT if H_TT in app else "const TRAIN="
+    app=region_replace(app,tt_start,"let tIdx=0",build_traintest()+"")
     # 2) базовые списки уроков тем 3–8
     app=region_replace(app,H_BASE,H_GEN,build_base())
     # 3) банк + автоуроки; 4) диалоги + истории

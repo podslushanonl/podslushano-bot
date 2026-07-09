@@ -1,0 +1,296 @@
+{
+ "note": "Наборы тренировок (вкладка «Тренировка»). Правь и запускай build.py.",
+ "train": {
+  "mistakes": {
+   "title": "Повтор ошибок",
+   "steps": [
+    {
+     "t": "quiz",
+     "k": "Повтор",
+     "q": "___ huis is groot.",
+     "opts": [
+      "Het",
+      "De",
+      "Een",
+      "Der"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Повтор",
+     "q": "Hij ___ een hond.",
+     "opts": [
+      "heeft",
+      "hebt",
+      "heb",
+      "hebben"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "«Hij is een dokter» — правильно.",
+     "answer": false,
+     "note": "Без артикля: Hij is dokter."
+    },
+    {
+     "t": "translate",
+     "k": "Перевод",
+     "q": "«до свидания»",
+     "answer": [
+      "tot ziens"
+     ],
+     "ph": "tot …"
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Книга лежит на столе.",
+     "words": [
+      "Het",
+      "boek",
+      "ligt",
+      "op",
+      "de tafel"
+     ],
+     "ans": [
+      "Het",
+      "boek",
+      "ligt",
+      "op",
+      "de tafel"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Повтор",
+     "q": "Как сказать 21?",
+     "opts": [
+      "eenentwintig",
+      "twintigeen",
+      "een twintig",
+      "twintig een"
+     ]
+    }
+   ]
+  },
+  "quick": {
+   "title": "Быстрая тренировка",
+   "steps": [
+    {
+     "t": "pick",
+     "k": "Картинка",
+     "q": "Где «het huis»?",
+     "opts": [
+      "🏠",
+      "🚗",
+      "🐶",
+      "🪑"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Выбор",
+     "q": "Ik ___ in Amsterdam.",
+     "opts": [
+      "woon",
+      "woont",
+      "wonen",
+      "woons"
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "На слух",
+     "audio": "Ik ben Anna",
+     "q": "Что ты услышал?",
+     "opts": [
+      "Ik ben Anna",
+      "Ik heb Anna",
+      "Jij bent Anna",
+      "Zij is Anna"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "На слух",
+     "audio": "De appel is rood",
+     "q": "___ appel is rood",
+     "answer": [
+      "de"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "translate",
+     "k": "Перевод",
+     "q": "«я работаю»",
+     "answer": [
+      "ik werk"
+     ],
+     "ph": "ik …"
+    },
+    {
+     "t": "quiz",
+     "k": "Выбор",
+     "q": "«vijf» — это…",
+     "opts": [
+      "пять",
+      "четыре",
+      "шесть",
+      "семь"
+     ]
+    }
+   ]
+  },
+  "listen": {
+   "title": "Аудирование",
+   "steps": [
+    {
+     "t": "listen",
+     "k": "На слух",
+     "audio": "De vrouw heeft een auto",
+     "q": "Что ты услышал?",
+     "opts": [
+      "De vrouw heeft een auto",
+      "De man heeft een auto",
+      "De vrouw heeft een hond",
+      "De vrouw heeft een huis"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "На слух",
+     "audio": "Wij zijn studenten",
+     "q": "Wij ___ studenten",
+     "answer": [
+      "zijn"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "listen",
+     "k": "На слух",
+     "audio": "Ik heb tien euro",
+     "q": "Что ты услышал?",
+     "opts": [
+      "Ik heb tien euro",
+      "Ik heb twee euro",
+      "Jij hebt tien euro",
+      "Ik heb tien appels"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "На слух",
+     "audio": "Hij spreekt Nederlands",
+     "q": "Hij ___ Nederlands",
+     "answer": [
+      "spreekt"
+     ],
+     "ph": "…"
+    }
+   ]
+  },
+  "speak": {
+   "title": "Разговор",
+   "steps": [
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Hallo! Hoe gaat het?",
+     "tr": "Привет! Как дела?"
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Het huis is groot.",
+     "tr": "Дом большой."
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Ik ben student en ik heb een hond.",
+     "tr": "Я студент, и у меня есть собака."
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Ik woon in Nederland.",
+     "tr": "Я живу в Нидерландах."
+    }
+   ]
+  },
+  "words": {
+   "title": "Слова",
+   "steps": [
+    {
+     "t": "word",
+     "k": "Слово",
+     "emoji": "🏠",
+     "nl": "het huis",
+     "ipa": "[ət ɦœys]",
+     "tr": "дом"
+    },
+    {
+     "t": "word",
+     "k": "Слово",
+     "emoji": "🐶",
+     "nl": "een hond",
+     "ipa": "[ən ɦɔnt]",
+     "tr": "собака"
+    },
+    {
+     "t": "pick",
+     "k": "Картинка",
+     "q": "Где «een appel»?",
+     "opts": [
+      "🍎",
+      "🐟",
+      "🚗",
+      "☕"
+     ]
+    },
+    {
+     "t": "match",
+     "k": "Пары",
+     "pairs": [
+      [
+       "werken",
+       "работать"
+      ],
+      [
+       "wonen",
+       "жить"
+      ],
+      [
+       "spreken",
+       "говорить"
+      ],
+      [
+       "leren",
+       "учить"
+      ],
+      [
+       "eten",
+       "есть"
+      ],
+      [
+       "drinken",
+       "пить"
+      ]
+     ]
+    },
+    {
+     "t": "translate",
+     "k": "Перевод",
+     "q": "«дом» с артиклем",
+     "answer": [
+      "het huis"
+     ],
+     "ph": "… huis"
+    }
+   ]
+  }
+ }
+}

@@ -1,6 +1,6 @@
 {
- "note": "Длинные истории (2 сцены, вопросы на понимание). Добавляются частью «title» в урок «lesson». Правь и запускай build.py.",
- "count": 3,
+ "note": "Истории двух видов: классические (2 сцены + вопросы) и интерактивные 🎭 (пользователь — участник: ролевые выборы «Твоя реплика», впиши услышанное, говорение). Добавляются частью «title» в урок «lesson». Правь и запускай build.py.",
+ "count": 11,
  "stories": [
   {
    "lesson": 6,
@@ -336,6 +336,1009 @@
      "k": "Говорение",
      "phrase": "Ik voetbal met mijn vrienden.",
      "tr": "Я играю с друзьями в футбол."
+    }
+   ]
+  },
+  {
+   "lesson": 10,
+   "title": "История: новый сосед 🎭",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ты в истории!",
+     "b": "🎭 De nieuwe buurman",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🚪 Звонок в дверь</b></p><p style=\"margin:6px 0\">Er staat een man voor de deur. Hij zegt: «Hallo! Ik ben Peter, de nieuwe buurman.»</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Перед дверью стоит мужчина. Он говорит: «Привет! Я Петер, новый сосед.» Дальше отвечаешь ТЫ.</p></div>",
+     "ex": [
+      [
+       "de nieuwe buurman",
+       "новый сосед"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Слушай соседа",
+     "audio": "Hallo! Ik ben Peter, de nieuwe buurman",
+     "q": "Что сказал мужчина?",
+     "opts": [
+      "Ik ben Peter, de nieuwe buurman",
+      "Ik ben de dokter",
+      "Ik zoek mijn kat",
+      "Ik verkoop boeken"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Представься в ответ. Что ты скажешь?",
+     "opts": [
+      "Hallo! Ik ben Anna. Aangenaam!",
+      "Tot ziens!",
+      "Het regent vandaag.",
+      "Ik heb honger."
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Hallo! Aangenaam!",
+     "tr": "Привет! Приятно познакомиться!"
+    },
+    {
+     "t": "explain",
+     "k": "История продолжается",
+     "b": "🎭 De nieuwe buurman",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>💬 Разговор</b></p><p style=\"margin:6px 0\">Peter vraagt: «Waar kom je vandaan?» Jij: «Ik kom uit Rusland. Ik woon hier drie maanden.»</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Петер спрашивает: «Откуда ты?» Ты: «Я из России. Я живу здесь три месяца.»</p></div>",
+     "ex": [
+      [
+       "Ik woon hier drie maanden.",
+       "Я живу здесь три месяца."
+      ]
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "Ik woon hier drie maanden",
+     "q": "Ik ___ hier drie maanden",
+     "answer": [
+      "woon"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Peter: «Heb je familie hier?» Твой брат живёт здесь. Что ответишь?",
+     "opts": [
+      "Ja, mijn broer woont hier.",
+      "Nee, ik heb geen tijd.",
+      "Ja, tot morgen.",
+      "Nee, dank je."
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери свою фразу",
+     "tr": "Мой брат живёт здесь.",
+     "words": [
+      "Mijn",
+      "broer",
+      "woont",
+      "hier"
+     ],
+     "ans": [
+      "Mijn",
+      "broer",
+      "woont",
+      "hier"
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Финал истории",
+     "audio": "Kom je zaterdag koffie drinken",
+     "q": "Что предложил Петер?",
+     "opts": [
+      "Kom je zaterdag koffie drinken?",
+      "Ga je weg?",
+      "Heb je een pen?",
+      "Waar is de winkel?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что предложил новый сосед?",
+     "opts": [
+      "выпить кофе в субботу",
+      "сходить в кино",
+      "поиграть в футбол",
+      "поужинать в ресторане"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Петер — старый друг.",
+     "answer": false,
+     "note": "Нет — он новый сосед (de nieuwe buurman)."
+    },
+    {
+     "t": "speak",
+     "k": "Твой ответ",
+     "phrase": "Ja, leuk! Tot zaterdag!",
+     "tr": "Да, здорово! До субботы!"
+    }
+   ]
+  },
+  {
+   "lesson": 11,
+   "title": "История: в кафе 🎭",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ты в истории!",
+     "b": "🎭 In het café",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>☕ Кафе в центре</b></p><p style=\"margin:6px 0\">Je zit in een café. De ober komt: «Goedemiddag! Wat wilt u drinken?»</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты сидишь в кафе. Подходит официант: «Добрый день! Что будете пить?» Отвечаешь ТЫ.</p></div>",
+     "ex": [
+      [
+       "Wat wilt u drinken?",
+       "Что будете пить?"
+      ]
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "Wat wilt u drinken",
+     "q": "Wat ___ u drinken?",
+     "answer": [
+      "wilt"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Ты хочешь кофе с молоком. Что скажешь?",
+     "opts": [
+      "Een koffie met melk, alstublieft.",
+      "Waar is het station?",
+      "Ik ben ziek.",
+      "De rekening, snel!"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Een koffie met melk, alstublieft.",
+     "tr": "Кофе с молоком, пожалуйста."
+    },
+    {
+     "t": "explain",
+     "k": "История продолжается",
+     "b": "🎭 In het café",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🍰 Десерт?</b></p><p style=\"margin:6px 0\">De ober vraagt: «Nog iets erbij? De appeltaart is heel lekker.»</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Официант спрашивает: «Что-нибудь ещё? Яблочный пирог очень вкусный.»</p></div>",
+     "ex": [
+      [
+       "Nog iets erbij?",
+       "Что-нибудь ещё?"
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Хочешь кусочек яблочного пирога. Что скажешь?",
+     "opts": [
+      "Ja, een stuk appeltaart, graag.",
+      "Nee, ik ga naar huis.",
+      "Waar is de wc?",
+      "Het is koud vandaag."
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери свою фразу",
+     "tr": "Кусочек яблочного пирога, пожалуйста.",
+     "words": [
+      "Een",
+      "stuk",
+      "appeltaart",
+      "graag"
+     ],
+     "ans": [
+      "Een",
+      "stuk",
+      "appeltaart",
+      "graag"
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Финал истории",
+     "audio": "Dat is samen zes euro vijftig",
+     "q": "Сколько нужно заплатить?",
+     "opts": [
+      "Dat is samen zes euro vijftig",
+      "Dat is samen negen euro",
+      "Dat is twee euro",
+      "Het is gratis"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько стоит заказ?",
+     "opts": [
+      "6,50 €",
+      "9,00 €",
+      "2,00 €",
+      "бесплатно"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Ты заказал(а) чай с лимоном.",
+     "answer": false,
+     "note": "Нет — кофе с молоком и яблочный пирог."
+    },
+    {
+     "t": "speak",
+     "k": "Твой ответ",
+     "phrase": "Mag ik de rekening, alstublieft?",
+     "tr": "Можно счёт, пожалуйста?"
+    }
+   ]
+  },
+  {
+   "lesson": 23,
+   "title": "История: первый день на курсе 🎭",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ты в истории!",
+     "b": "🎭 De eerste les",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🏫 Новый курс</b></p><p style=\"margin:6px 0\">Vandaag is je eerste les Nederlands. De docent vraagt: «Welkom! Hoe heet je?»</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Сегодня твой первый урок нидерландского. Преподаватель спрашивает: «Добро пожаловать! Как тебя зовут?»</p></div>",
+     "ex": [
+      [
+       "Hoe heet je?",
+       "Как тебя зовут?"
+      ]
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "Hoe heet je",
+     "q": "Hoe ___ je?",
+     "answer": [
+      "heet"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Представься. Что ты скажешь?",
+     "opts": [
+      "Mijn naam is Alex.",
+      "Tot ziens, meneer!",
+      "Het is maandag.",
+      "Ik heb een hond."
+     ]
+    },
+    {
+     "t": "explain",
+     "k": "История продолжается",
+     "b": "🎭 De eerste les",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>❓ Непонятное слово</b></p><p style=\"margin:6px 0\">De docent zegt een lang woord: «uitstekend». Je begrijpt het niet.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Преподаватель говорит длинное слово: «uitstekend». Ты его не понимаешь. Спроси!</p></div>",
+     "ex": [
+      [
+       "Ik begrijp het niet.",
+       "Я это не понимаю."
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Ты не понял(а) слово. Что спросишь?",
+     "opts": [
+      "Wat betekent dat?",
+      "Hoe laat is het?",
+      "Waar is de bus?",
+      "Mag ik naar huis?"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Wat betekent dat?",
+     "tr": "Что это значит?"
+    },
+    {
+     "t": "listen",
+     "k": "Ответ учителя",
+     "audio": "Uitstekend betekent heel goed",
+     "q": "Что значит «uitstekend»?",
+     "opts": [
+      "Uitstekend betekent heel goed",
+      "Uitstekend betekent tot ziens",
+      "Uitstekend betekent moeilijk",
+      "Uitstekend betekent langzaam"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Так что же значит «uitstekend»?",
+     "opts": [
+      "отлично (очень хорошо)",
+      "до свидания",
+      "трудно",
+      "медленно"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери свою фразу",
+     "tr": "Что это значит?",
+     "words": [
+      "Wat",
+      "betekent",
+      "dat"
+     ],
+     "ans": [
+      "Wat",
+      "betekent",
+      "dat"
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Финал истории",
+     "audio": "Heel goed! Tot donderdag",
+     "q": "Когда следующий урок?",
+     "opts": [
+      "Tot donderdag",
+      "Tot maandag",
+      "Tot morgen",
+      "Tot volgend jaar"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Следующий урок — в четверг.",
+     "answer": true,
+     "note": "Да: tot donderdag — до четверга."
+    },
+    {
+     "t": "speak",
+     "k": "Твой ответ",
+     "phrase": "Dank u wel! Tot donderdag!",
+     "tr": "Спасибо! До четверга!"
+    }
+   ]
+  },
+  {
+   "lesson": 26,
+   "title": "История: в супермаркете 🎭",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ты в истории!",
+     "b": "🎭 In de supermarkt",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🛒 Нужно молоко</b></p><p style=\"margin:6px 0\">Je zoekt melk, maar je vindt het niet. Daar loopt een medewerker.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты ищешь молоко, но не можешь найти. Рядом идёт сотрудник. Спроси его!</p></div>",
+     "ex": [
+      [
+       "Ik zoek de melk.",
+       "Я ищу молоко."
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Спроси, где молоко. Что скажешь?",
+     "opts": [
+      "Pardon, waar is de melk?",
+      "Hoeveel kost de winkel?",
+      "Ik wil betalen.",
+      "Tot ziens!"
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Ответ сотрудника",
+     "audio": "De melk is achterin, bij de kaas",
+     "q": "Где молоко?",
+     "opts": [
+      "De melk is achterin, bij de kaas",
+      "De melk is bij de kassa",
+      "Wij hebben geen melk",
+      "De melk is buiten"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "De melk is bij de kaas",
+     "q": "De melk is bij de ___",
+     "answer": [
+      "kaas"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Dank u wel!",
+     "tr": "Большое спасибо!"
+    },
+    {
+     "t": "explain",
+     "k": "История продолжается",
+     "b": "🎭 In de supermarkt",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>💳 На кассе</b></p><p style=\"margin:6px 0\">Je staat bij de kassa. De caissière vraagt: «Wilt u de bon? En pinnen of contant?»</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты на кассе. Кассир спрашивает: «Чек нужен? И картой или наличными?»</p></div>",
+     "ex": [
+      [
+       "pinnen of contant",
+       "картой или наличными"
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Чек не нужен, платишь картой. Что скажешь?",
+     "opts": [
+      "Geen bon. Pinnen, graag.",
+      "De bon, contant!",
+      "Ik heb geen geld.",
+      "Waar is de melk?"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери свою фразу",
+     "tr": "Картой, пожалуйста.",
+     "words": [
+      "Pinnen",
+      "graag"
+     ],
+     "ans": [
+      "Pinnen",
+      "graag"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Рядом с чем стоит молоко?",
+     "opts": [
+      "с сыром",
+      "с хлебом",
+      "с рыбой",
+      "с фруктами"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Ты платишь наличными.",
+     "answer": false,
+     "note": "Нет — картой (pinnen)."
+    },
+    {
+     "t": "speak",
+     "k": "Твой ответ",
+     "phrase": "Pinnen, graag.",
+     "tr": "Картой, пожалуйста."
+    }
+   ]
+  },
+  {
+   "lesson": 29,
+   "title": "История: звонок врачу 🎭",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ты в истории!",
+     "b": "🎭 Bellen met de dokter",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>📞 У тебя болит горло</b></p><p style=\"margin:6px 0\">Je hebt drie dagen keelpijn. Je belt de huisarts. De assistente: «Praktijk dokter De Vries, goedemorgen!»</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">У тебя три дня болит горло. Ты звонишь врачу. Ассистентка: «Практика доктора Де Вриса, доброе утро!»</p></div>",
+     "ex": [
+      [
+       "de keelpijn",
+       "боль в горле"
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Тебе нужна запись к врачу. Что скажешь?",
+     "opts": [
+      "Goedemorgen, ik wil graag een afspraak maken.",
+      "Goedemorgen, waar is de winkel?",
+      "Ik wil pizza bestellen.",
+      "Doei!"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "Ik wil graag een afspraak maken",
+     "q": "Ik wil graag een ___ maken",
+     "answer": [
+      "afspraak"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "listen",
+     "k": "Вопрос ассистентки",
+     "audio": "Wat zijn de klachten",
+     "q": "Что спросила ассистентка?",
+     "opts": [
+      "Wat zijn de klachten?",
+      "Waar woont u?",
+      "Hoe oud bent u?",
+      "Heeft u een hond?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Расскажи, что болит. Что скажешь?",
+     "opts": [
+      "Ik heb keelpijn, sinds drie dagen.",
+      "Ik heb een nieuwe auto.",
+      "Het weer is mooi.",
+      "Ik eet brood."
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Ik heb keelpijn.",
+     "tr": "У меня болит горло."
+    },
+    {
+     "t": "listen",
+     "k": "Предложение времени",
+     "audio": "Kunt u morgen om negen uur",
+     "q": "Когда предлагают приём?",
+     "opts": [
+      "Kunt u morgen om negen uur?",
+      "Kunt u vandaag om vijf uur?",
+      "Kunt u volgende week?",
+      "Kunt u nu komen?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Завтра в 9 тебе подходит. Что ответишь?",
+     "opts": [
+      "Ja, dat kan. Dank u wel!",
+      "Nee, ik slaap dan.",
+      "Misschien volgend jaar.",
+      "Wat kost dat?"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери свою фразу",
+     "tr": "Я хочу записаться на приём.",
+     "words": [
+      "Ik",
+      "wil",
+      "een",
+      "afspraak",
+      "maken"
+     ],
+     "ans": [
+      "Ik",
+      "wil",
+      "een",
+      "afspraak",
+      "maken"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько дней болит горло?",
+     "opts": [
+      "три дня",
+      "один день",
+      "неделю",
+      "месяц"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Приём — завтра в девять утра.",
+     "answer": true,
+     "note": "Да: morgen om negen uur."
+    },
+    {
+     "t": "speak",
+     "k": "Твой ответ",
+     "phrase": "Ja, dat kan. Dank u wel!",
+     "tr": "Да, подходит. Спасибо!"
+    }
+   ]
+  },
+  {
+   "lesson": 32,
+   "title": "История: подарок для мамы 🎭",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ты в истории!",
+     "b": "🎭 Een cadeau",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🎁 Суббота, 17:30</b></p><p style=\"margin:6px 0\">Je wilt een sjaal kopen voor je moeder. Maar hoe laat sluit de winkel? Vraag het!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты хочешь купить маме шарф. Но во сколько закрывается магазин? Спроси!</p></div>",
+     "ex": [
+      [
+       "de sjaal",
+       "шарф"
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Спроси о времени закрытия. Что скажешь?",
+     "opts": [
+      "Hoe laat sluit de winkel?",
+      "Hoe laat is het feest?",
+      "Waar is mijn moeder?",
+      "Wat eet u vanavond?"
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Ответ продавца",
+     "audio": "Om zes uur sluiten we",
+     "q": "Когда закрывается магазин?",
+     "opts": [
+      "Om zes uur sluiten we",
+      "Om acht uur sluiten we",
+      "Wij sluiten nooit",
+      "Over vijf minuten"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "De winkel sluit om zes uur",
+     "q": "De winkel sluit om ___ uur",
+     "answer": [
+      "zes"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Скажи, что ищешь шарф для мамы.",
+     "opts": [
+      "Ik zoek een sjaal voor mijn moeder.",
+      "Ik zoek een auto voor mijn vader.",
+      "Ik wil een hond kopen.",
+      "De winkel is mooi."
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Ik zoek een sjaal voor mijn moeder.",
+     "tr": "Я ищу шарф для мамы."
+    },
+    {
+     "t": "listen",
+     "k": "Совет продавца",
+     "audio": "Deze rode sjaal is heel mooi. Tien euro",
+     "q": "Что предлагает продавец?",
+     "opts": [
+      "Deze rode sjaal is heel mooi. Tien euro",
+      "Deze winkel is dicht",
+      "Dit is te duur voor u",
+      "Wij hebben geen sjaals"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько стоит красный шарф?",
+     "opts": [
+      "десять евро",
+      "шесть евро",
+      "двадцать евро",
+      "пять евро"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери свою фразу",
+     "tr": "Я ищу шарф.",
+     "words": [
+      "Ik",
+      "zoek",
+      "een",
+      "sjaal"
+     ],
+     "ans": [
+      "Ik",
+      "zoek",
+      "een",
+      "sjaal"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Магазин закрывается в восемь.",
+     "answer": false,
+     "note": "Нет — в шесть (om zes uur)."
+    },
+    {
+     "t": "speak",
+     "k": "Твой ответ",
+     "phrase": "Mooi! Ik neem de rode sjaal.",
+     "tr": "Отлично! Беру красный шарф."
+    }
+   ]
+  },
+  {
+   "lesson": 34,
+   "title": "История: заблудился 🎭",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ты в истории!",
+     "b": "🎭 Verdwaald",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🗺️ Центр города</b></p><p style=\"margin:6px 0\">Je bent in het centrum. Je telefoon is leeg en je zoekt het station. Daar loopt een vrouw.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты в центре города. Телефон разрядился, а тебе нужен вокзал. Рядом идёт женщина. Обратись к ней!</p></div>",
+     "ex": [
+      [
+       "Mijn telefoon is leeg.",
+       "Мой телефон разрядился."
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Вежливо обратись к прохожей. Что скажешь?",
+     "opts": [
+      "Pardon, mag ik iets vragen?",
+      "Hé! Kom hier!",
+      "Waar is mijn telefoon?",
+      "Ik ben de burgemeester."
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Ответ женщины",
+     "audio": "Natuurlijk! Zegt u het maar",
+     "q": "Что ответила женщина?",
+     "opts": [
+      "Natuurlijk! Zegt u het maar",
+      "Nee, ik heb geen tijd",
+      "Ik woon hier niet",
+      "Tot ziens"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши свой вопрос",
+     "audio": "Waar is het station",
+     "q": "Waar is het ___?",
+     "answer": [
+      "station"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Waar is het station?",
+     "tr": "Где вокзал?"
+    },
+    {
+     "t": "listen",
+     "k": "Дорога",
+     "audio": "Ga rechtdoor en dan rechtsaf bij het stoplicht",
+     "q": "Как пройти к вокзалу?",
+     "opts": [
+      "Ga rechtdoor en dan rechtsaf bij het stoplicht",
+      "Ga naar links bij de brug",
+      "Neem bus vijf",
+      "Het station is hier"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Где нужно повернуть направо?",
+     "opts": [
+      "у светофора",
+      "у моста",
+      "у музея",
+      "у парка"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери маршрут",
+     "tr": "Идите прямо, потом направо.",
+     "words": [
+      "Ga",
+      "rechtdoor",
+      "en",
+      "dan",
+      "rechtsaf"
+     ],
+     "ans": [
+      "Ga",
+      "rechtdoor",
+      "en",
+      "dan",
+      "rechtsaf"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Поблагодари и попрощайся. Что скажешь?",
+     "opts": [
+      "Dank u wel! Fijne dag!",
+      "Dat is te ver.",
+      "Geef mij uw telefoon.",
+      "Ik ga naar huis."
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Телефон помог найти дорогу.",
+     "answer": false,
+     "note": "Нет — телефон разрядился, помогла прохожая."
+    },
+    {
+     "t": "speak",
+     "k": "Твой ответ",
+     "phrase": "Dank u wel! Fijne dag!",
+     "tr": "Большое спасибо! Хорошего дня!"
+    }
+   ]
+  },
+  {
+   "lesson": 36,
+   "title": "История: приглашение в кино 🎭",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ты в истории!",
+     "b": "🎭 Naar de film",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>📱 Звонок подруги</b></p><p style=\"margin:6px 0\">Je vriendin Lisa belt: «Hoi! Ga je vanavond mee naar de film?»</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Звонит подруга Лиза: «Привет! Пойдёшь сегодня вечером в кино?» Отвечаешь ТЫ.</p></div>",
+     "ex": [
+      [
+       "Ga je mee?",
+       "Пойдёшь со мной?"
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Согласись и спроси время. Что скажешь?",
+     "opts": [
+      "Ja, leuk! Hoe laat begint de film?",
+      "Nee, ik haat films.",
+      "Wie ben jij?",
+      "Het is woensdag."
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Ответ Лизы",
+     "audio": "Om acht uur. We eten eerst pizza",
+     "q": "Что сказала Лиза?",
+     "opts": [
+      "Om acht uur. We eten eerst pizza",
+      "Om zes uur. We eten soep",
+      "De film is morgen",
+      "Ik heb geen kaartjes"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "De film begint om acht uur",
+     "q": "De film begint om ___ uur",
+     "answer": [
+      "acht"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Hoe laat begint de film?",
+     "tr": "Во сколько начинается фильм?"
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Спроси, где встретиться. Что скажешь?",
+     "opts": [
+      "Waar spreken we af?",
+      "Waarom eet je pizza?",
+      "Wat kost een fiets?",
+      "Hoe heet je hond?"
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Место встречи",
+     "audio": "Bij het café naast de bioscoop",
+     "q": "Где вы встречаетесь?",
+     "opts": [
+      "Bij het café naast de bioscoop",
+      "Bij het station",
+      "Bij mij thuis",
+      "In het park"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что вы делаете перед фильмом?",
+     "opts": [
+      "едите пиццу",
+      "пьёте кофе",
+      "гуляете в парке",
+      "ничего"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери свою фразу",
+     "tr": "Во сколько начинается фильм?",
+     "words": [
+      "Hoe",
+      "laat",
+      "begint",
+      "de",
+      "film"
+     ],
+     "ans": [
+      "Hoe",
+      "laat",
+      "begint",
+      "de",
+      "film"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Фильм начинается в девять.",
+     "answer": false,
+     "note": "Нет — в восемь (om acht uur)."
+    },
+    {
+     "t": "speak",
+     "k": "Твой ответ",
+     "phrase": "Tot vanavond, Lisa!",
+     "tr": "До вечера, Лиза!"
     }
    ]
   }
