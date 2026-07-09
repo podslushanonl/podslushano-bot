@@ -54,92 +54,133 @@ def pick_distractors(pool,correct,key_idx,n=3,salt=0):
     return out
 
 lesson_num=39;meta=[];lessons={};themeLessons={}
+
+def bare(d):
+    return d.split(' ')[-1]
+
+def similar_distr(pool,correct,n=3):
+    """Похожие варианты для аудирования: та же первая буква, потом похожая длина."""
+    cw=bare(correct)
+    cands=[x[0] for x in pool if x[0]!=correct]
+    same_letter=[c for c in cands if bare(c)[:1]==cw[:1]]
+    near_len=[c for c in cands if c not in same_letter and abs(len(bare(c))-len(cw))<=2]
+    out=[]
+    for grp in (same_letter,near_len,cands):
+        for c in grp:
+            if c not in out:out.append(c)
+            if len(out)>=n:return out
+    return out[:n]
+
+def words_html(name,ws):
+    rows=''.join('<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd)"><b>'+d+'</b><span style="color:var(--ink-2)">'+ru+'</span></div>' for d,ru,ty in ws)
+    return '<p>Новые слова темы «'+name+'». Сначала познакомься со ВСЕМИ словами — прослушай каждое (▶ ниже), потом закрепим заданиями.</p><div style="margin-top:8px">'+rows+'</div>'
+
 for ti in range(2,8):
     name,ws=BANK[ti]
     chunks=[ws[i:i+8] for i in range(0,len(ws),8)]
-    chunks=[c for c in chunks if len(c)>=4][:7]
+    chunks=[c for c in chunks if len(c)>=6][:7]
     nums=[]
     for ci,chunk in enumerate(chunks):
         n=lesson_num;lesson_num+=1;nums.append(n)
         meta.append({'n':n,'t':'Слова: '+name.lower()+' '+str(ci+1),'blk':ti+1})
         half=(len(chunk)+1)//2
-        p1=chunk[:half];p2=chunk[half:];pool=ws
+        p1w=chunk[:half];p2w=chunk[half:];pool=ws
         parts=[]
-        # ---- ЧАСТЬ 1 ----
-        steps=[{'t':'explain','k':'Новые слова','b':'📖 Слова темы','html':'<p>Новые слова темы «'+name+'». Нажимай ▶, слушай и запоминай — потом закрепим в заданиях.</p>'}]
-        for d,ru,ty in p1:
-            steps.append({'t':'word','k':'Слово','emoji':EMOJI.get(ty,'📌'),'nl':d,'tr':ru})
-        for j,(d,ru,ty) in enumerate(p1[:2]):
-            steps.append({'t':'quiz','k':'Выбор','q':'Как будет «'+ru+'»?','opts':[d]+pick_distractors(pool,d,0,3,salt=j+ci)})
-        steps.append({'t':'match','k':'Пары','pairs':[[d,ru] for d,ru,ty in p1]})
-        d0,ru0,ty0=p1[0]
-        steps.append({'t':'listen','k':'Аудирование','audio':d0,'q':'Что прозвучало?','opts':[d0]+pick_distractors(pool,d0,0,3,salt=ci+5)})
-        for d,ru,ty in p1:  # притяжательные
-            lm=d.split(' ')[-1];pv=POSSV.get(lm)
+        # ---------- ЧАСТЬ 1: Новые слова 1 (знакомство → распознавание) ----------
+        st=[{'t':'explain','k':'Урок '+str(ci+1)+' · шаг 1 из '+'5','b':'📖 Новые слова (1/2)','html':words_html(name,p1w),'ex':[[d,ru] for d,ru,ty in p1w]}]
+        for d,ru,ty in p1w: st.append({'t':'word','k':'Слово','emoji':EMOJI.get(ty,'📌'),'nl':d,'tr':ru})
+        for j,(d,ru,ty) in enumerate(p1w[:2]):
+            st.append({'t':'quiz','k':'Выбор','q':'Как будет «'+ru+'»?','opts':[d]+pick_distractors(pool,d,0,3,salt=j+ci)})
+        st.append({'t':'match','k':'Пары','pairs':[[d,ru] for d,ru,ty in p1w]})
+        parts.append({'t':'Новые слова 1','steps':st})
+        # ---------- ЧАСТЬ 2: Новые слова 2 (+ слух с ПОХОЖИМИ вариантами) ----------
+        st=[{'t':'explain','k':'Шаг 2 из 5','b':'📖 Новые слова (2/2)','html':words_html(name,p2w),'ex':[[d,ru] for d,ru,ty in p2w]}]
+        for d,ru,ty in p2w: st.append({'t':'word','k':'Слово','emoji':EMOJI.get(ty,'📌'),'nl':d,'tr':ru})
+        for j,(d,ru,ty) in enumerate(p2w[:2]):
+            st.append({'t':'quiz','k':'Значение','q':'«'+d+'» — это…','opts':[ru]+pick_distractors(pool,ru,1,3,salt=j+ci+2)})
+        d0,ru0,ty0=p2w[0]
+        st.append({'t':'listen','k':'Аудирование','audio':d0,'q':'Что прозвучало? Слушай внимательно — варианты похожи.','opts':[d0]+similar_distr(pool,d0)})
+        if len(p2w)>1:
+            d1,ru1,ty1=p2w[1]
+            st.append({'t':'listen','k':'Аудирование','audio':d1,'q':'А теперь? Варианты снова похожи.','opts':[d1]+similar_distr(pool,d1)})
+        wrong=pick_distractors(pool,p2w[0][1],1,1,salt=ci+9)[0]
+        st.append({'t':'tf','k':'Верно?','q':'«'+p2w[0][0]+'» значит «'+wrong+'».','answer':False,'note':'Нет: '+p2w[0][0]+' — '+p2w[0][1]+'.'})
+        parts.append({'t':'Новые слова 2','steps':st})
+        # ---------- ЧАСТЬ 3: Формы и фразы (мой/этот/мн.число) ----------
+        st=[{'t':'explain','k':'Шаг 3 из 5','b':'📖 Формы слова','html':'<p>Слово живёт в формах: <b>mijn/jouw</b> (мой/твой), <b>deze/die</b> (этот/тот) и множественное число. Потренируем на словах урока.</p><div class="rule">mijn huis — мой дом · deze man — этот мужчина · de man → de mannen</div>'}]
+        used_pl=0
+        for d,ru,ty in chunk:
+            lm=bare(d);pv=POSSV.get(lm)
             if pv and len(pv)+len(DEMV.get(lm,[]))>=3:
                 v=pv[ci%len(pv)]
                 distr=[x['nl'] for x in pv if x['nl']!=v['nl']][:3]
                 if len(distr)<3 and DEMV.get(lm):
                     distr+=[x['nl'] for x in DEMV[lm] if x['nl'] not in distr][:3-len(distr)]
-                steps.append({'t':'quiz','k':'Мой, твой…','q':'Как сказать «'+v['ru']+'»?','opts':[v['nl']]+distr[:3]})
+                st.append({'t':'quiz','k':'Мой, твой…','q':'Как сказать «'+v['ru']+'»?','opts':[v['nl']]+distr[:3]})
                 break
+        for d,ru,ty in chunk:
+            lm=bare(d)
+            pairs=[[x['nl'],x['ru']] for x in DEMV.get(lm,[])[:2]]+[[x['nl'],x['ru']] for x in POSSV.get(lm,[])[:2]]
+            if len(pairs)>=3:
+                st.append({'t':'match','k':'Этот, мой…','pairs':pairs[:4]})
+                break
+        for d,ru,ty in chunk:
+            lm=bare(d);pl=PLUV.get(lm)
+            if pl and used_pl<2:
+                distr=[];pool_lms=[bare(x[0]) for x in pool];ii=ci*5+1+used_pl*3
+                for _ in range(len(pool_lms)*2):
+                    cand=PLUV.get(pool_lms[ii%len(pool_lms)]);ii+=1
+                    if cand and cand['nl']!=pl['nl'] and cand['nl'] not in distr:distr.append(cand['nl'])
+                    if len(distr)>=3:break
+                if len(distr)>=2:
+                    st.append({'t':'quiz','k':'Мн. число','q':'Множественное число от «'+d+'» ('+ru+') — ?','opts':[pl['nl']]+distr[:3]})
+                    used_pl+=1
+        for d,ru,ty in p1w[:2]:
+            st.append({'t':'translate','k':'Перевод','q':'«'+ru+'»','answer':[d],'ph':'…'})
+        if len(st)>=5: parts.append({'t':'Формы и фразы','steps':st})
+        else: parts[-1]['steps'].extend(st[1:])
+        # ---------- ЧАСТЬ 4: Предложения и слух ----------
+        st=[{'t':'explain','k':'Шаг 4 из 5','b':'📖 Слово в предложении','html':'<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class="rule">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>'}]
+        addedS=0;usedNl=set()
+        for d,ru,ty in chunk:
+            v=vet_pick(bare(d),ci+addedS*2+1)
+            if v and addedS<2 and v['nl'] not in usedNl:
+                import re as _re
+                toks=_re.sub(r'[.?!]$','',v['nl']).split(' ')
+                st.append({'t':'build','k':'Предложение','tr':v['ru'],'words':toks,'ans':toks})
+                usedNl.add(v['nl']);addedS+=1
         ALL_NL=[x['nl'] for lst in VETL.values() for x in lst]
-        for d,ru,ty in p1:  # аудирование предложения
-            v=vet_pick(d.split(' ')[-1],ci)
-            if v and len(ALL_NL)>=4:
+        sl=0
+        for d,ru,ty in chunk:
+            v=vet_pick(bare(d),ci+7)
+            if v and sl<1 and len(ALL_NL)>=4 and v['nl'] not in usedNl:
                 others=[x for x in ALL_NL if x!=v['nl']]
                 sd=[];ii=ci*7+3
                 for _ in range(len(others)):
                     cand=others[ii%len(others)];ii+=1
                     if cand not in sd:sd.append(cand)
                     if len(sd)>=3:break
-                steps.append({'t':'listen','k':'Аудирование','audio':v['nl'],'q':'Какое предложение прозвучало?','opts':[v['nl']]+sd})
-                break
-        parts.append({'t':'Новые слова','steps':steps})
-        # ---- ЧАСТЬ 2 ----
-        steps=[{'t':'explain','k':'Ещё слова','b':'📖 Слова темы','html':'<p>Ещё несколько слов темы «'+name+'». Дальше — перевод и говорение.</p>'}]
-        for d,ru,ty in p2:
-            steps.append({'t':'word','k':'Слово','emoji':EMOJI.get(ty,'📌'),'nl':d,'tr':ru})
-        for j,(d,ru,ty) in enumerate(p2[:2]):
-            steps.append({'t':'quiz','k':'Значение','q':'«'+d+'» — это…','opts':[ru]+pick_distractors(pool,ru,1,3,salt=j+ci+2)})
-        for d,ru,ty in p2[:2]:
-            steps.append({'t':'translate','k':'Перевод','q':'«'+ru+'»','answer':[d],'ph':'…'})
-        if p2:
-            d,ru,ty=p2[0]
-            wrong=pick_distractors(pool,ru,1,1,salt=ci+9)[0]
-            steps.append({'t':'tf','k':'Верно?','q':'«'+d+'» значит «'+wrong+'».','answer':False,'note':'Нет: '+d+' — '+ru+'.'})
-        for d,ru,ty in p2:  # пары этот/мой
-            lm=d.split(' ')[-1]
-            pairs=[[x['nl'],x['ru']] for x in DEMV.get(lm,[])[:2]]+[[x['nl'],x['ru']] for x in POSSV.get(lm,[])[:2]]
-            if len(pairs)>=3:
-                steps.append({'t':'match','k':'Этот, мой…','pairs':pairs[:4]})
-                break
-        for d,ru,ty in (p1+p2):  # мн. число
-            lm=d.split(' ')[-1];pl=PLUV.get(lm)
-            if pl:
-                distr=[];pool_lms=[x[0].split(' ')[-1] for x in pool];ii=ci*5+1
-                for _ in range(len(pool_lms)*2):
-                    cand=PLUV.get(pool_lms[ii%len(pool_lms)]);ii+=1
-                    if cand and cand['nl']!=pl['nl'] and cand['nl'] not in distr:distr.append(cand['nl'])
-                    if len(distr)>=3:break
-                if len(distr)>=2:
-                    steps.append({'t':'quiz','k':'Мн. число','q':'Множественное число от «'+d+'» ('+ru+') — ?','opts':[pl['nl']]+distr[:3]})
-                    break
-        addedS=0
-        for d,ru,ty in (p1+p2):  # предложения build
-            lm=d.split(' ')[-1]
-            v=vet_pick(lm,ci+addedS*2+1)
-            if v and addedS<2:
-                import re as _re
-                toks=_re.sub(r'[.?!]$','',v['nl']).split(' ')
-                steps.append({'t':'build','k':'Предложение','tr':v['ru'],'words':toks,'ans':toks})
-                addedS+=1
-        spk=None
-        for d,ru,ty in (p2+p1):
-            if d.startswith(('de ','het ','een ')):spk=(d,ru);break
-        if spk:
-            steps.append({'t':'speak','k':'Говорение','phrase':'Dit is '+spk[0]+'.','tr':'Это '+spk[1]+'.'})
-        parts.append({'t':'Закрепление','steps':steps})
+                st.append({'t':'listen','k':'Аудирование','audio':v['nl'],'q':'Какое предложение прозвучало?','opts':[v['nl']]+sd})
+                usedNl.add(v['nl']);sl+=1
+        for d,ru,ty in chunk:
+            lm=bare(d);v=vet_pick(lm,ci+11)
+            if v and lm in v['nl'] and v['nl'] not in usedNl:
+                st.append({'t':'gapType','k':'На слух','audio':v['nl'],'q':v['nl'].replace(lm,'___',1),'answer':[lm],'ph':'…'})
+                usedNl.add(v['nl']);break
+        if len(st)>=4: parts.append({'t':'Предложения и слух','steps':st})
+        else: parts[-1]['steps'].extend(st[1:])
+        # ---------- ЧАСТЬ 5: Говорим и закрепляем ----------
+        st=[{'t':'explain','k':'Шаг 5 из 5','b':'📖 Финал урока','html':'<p>Последний рывок: скажи фразы вслух и повтори все слова урока. После урока они попадут в «Умное повторение».</p>'}]
+        for d,ru,ty in p2w[:2]:
+            st.append({'t':'translate','k':'Перевод','q':'«'+ru+'»','answer':[d],'ph':'…'})
+        spoken=0
+        for d,ru,ty in (p2w+p1w):
+            if d.startswith(('de ','het ','een ')) and spoken<2:
+                st.append({'t':'speak','k':'Говорение','phrase':'Dit is '+d+'.','tr':'Это '+ru+'.'})
+                spoken+=1
+        mix=[ [d,ru] for d,ru,ty in (p1w[2:4]+p2w[2:4]) ]
+        if len(mix)>=3: st.append({'t':'match','k':'Пары · всё вместе','pairs':mix[:4]})
+        parts.append({'t':'Говорим и закрепляем','steps':st})
         lessons[str(n)]={'parts':parts}
     themeLessons[str(ti)]=nums
 
