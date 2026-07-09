@@ -1,0 +1,343 @@
+{
+ "note": "Длинные истории (2 сцены, вопросы на понимание). Добавляются частью «title» в урок «lesson». Правь и запускай build.py.",
+ "count": 3,
+ "stories": [
+  {
+   "lesson": 6,
+   "title": "История: день Анны",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "История · сцена 1",
+     "b": "📖 Een dag van Anna",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>☀️ De ochtend</b></p><p style=\"margin:6px 0\">Anna staat om zeven uur op. Ze drinkt koffie en eet brood met kaas. Om acht uur gaat ze naar haar werk.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Утро. Анна встаёт в семь часов. Она пьёт кофе и ест хлеб с сыром. В восемь она идёт на работу.</p></div>",
+     "ex": [
+      [
+       "Anna staat om zeven uur op.",
+       "Анна встаёт в семь часов."
+      ],
+      [
+       "Ze drinkt koffie.",
+       "Она пьёт кофе."
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Во сколько Анна встаёт?",
+     "opts": [
+      "в семь часов",
+      "в восемь часов",
+      "в шесть часов",
+      "в девять часов"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что Анна ест на завтрак?",
+     "opts": [
+      "хлеб с сыром",
+      "яблоко",
+      "суп",
+      "яйцо"
+     ]
+    },
+    {
+     "t": "explain",
+     "k": "История · сцена 2",
+     "b": "📖 Een dag van Anna",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🌙 De avond</b></p><p style=\"margin:6px 0\">Om zes uur is Anna thuis. Ze kookt soep en luistert naar muziek. Om elf uur gaat ze slapen.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Вечер. В шесть Анна дома. Она готовит суп и слушает музыку. В одиннадцать она ложится спать.</p></div>",
+     "ex": [
+      [
+       "Ze kookt soep.",
+       "Она готовит суп."
+      ],
+      [
+       "Om elf uur gaat ze slapen.",
+       "В одиннадцать она ложится спать."
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Ze kookt soep en luistert naar muziek",
+     "q": "Что делает Анна вечером?",
+     "opts": [
+      "Ze kookt soep en luistert naar muziek",
+      "Ze eet brood met kaas",
+      "Ze gaat naar haar werk",
+      "Ze drinkt koffie"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что Анна делает вечером?",
+     "opts": [
+      "готовит суп и слушает музыку",
+      "смотрит телевизор",
+      "идёт в магазин",
+      "читает книгу"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Анна идёт на работу в девять часов.",
+     "answer": false,
+     "note": "Нет — в восемь (om acht uur)."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Она пьёт кофе.",
+     "words": [
+      "Ze",
+      "drinkt",
+      "koffie"
+     ],
+     "ans": [
+      "Ze",
+      "drinkt",
+      "koffie"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Ik sta om zeven uur op.",
+     "tr": "Я встаю в семь часов."
+    }
+   ]
+  },
+  {
+   "lesson": 35,
+   "title": "История: поездка в Гаагу",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "История · сцена 1",
+     "b": "📖 Naar Den Haag",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🚉 Op het station</b></p><p style=\"margin:6px 0\">Omar gaat zaterdag naar Den Haag. Hij koopt een kaartje en neemt de trein van spoor drie.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">В субботу Омар едет в Гаагу. Он покупает билет и садится на поезд с третьего пути.</p></div>",
+     "ex": [
+      [
+       "Hij koopt een kaartje.",
+       "Он покупает билет."
+      ],
+      [
+       "De trein van spoor drie.",
+       "Поезд с третьего пути."
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Куда едет Омар?",
+     "opts": [
+      "в Гаагу",
+      "в Утрехт",
+      "в Амстердам",
+      "в Роттердам"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "С какого пути идёт поезд?",
+     "opts": [
+      "с третьего",
+      "с первого",
+      "с пятого",
+      "со второго"
+     ]
+    },
+    {
+     "t": "explain",
+     "k": "История · сцена 2",
+     "b": "📖 Naar Den Haag",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🏖️ In de stad</b></p><p style=\"margin:6px 0\">In Den Haag bezoekt Omar het museum en wandelt hij op het strand. Om acht uur is hij weer thuis.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">В Гааге Омар идёт в музей и гуляет по пляжу. В восемь вечера он снова дома.</p></div>",
+     "ex": [
+      [
+       "Hij bezoekt het museum.",
+       "Он идёт в музей."
+      ],
+      [
+       "Hij wandelt op het strand.",
+       "Он гуляет по пляжу."
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Hij koopt een kaartje en neemt de trein",
+     "q": "Что делает Омар на вокзале?",
+     "opts": [
+      "Hij koopt een kaartje en neemt de trein",
+      "Hij drinkt koffie in het café",
+      "Hij wandelt op het strand",
+      "Hij neemt de bus"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что Омар делает в Гааге?",
+     "opts": [
+      "музей и пляж",
+      "только магазины",
+      "футбол",
+      "ничего"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Омар едет в Гаагу на автобусе.",
+     "answer": false,
+     "note": "Нет — на поезде (de trein)."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Он садится на поезд.",
+     "words": [
+      "Hij",
+      "neemt",
+      "de",
+      "trein"
+     ],
+     "ans": [
+      "Hij",
+      "neemt",
+      "de",
+      "trein"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Ik ga zaterdag naar Den Haag.",
+     "tr": "В субботу я еду в Гаагу."
+    }
+   ]
+  },
+  {
+   "lesson": 38,
+   "title": "История: суббота Тома",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "История · сцена 1",
+     "b": "📖 De zaterdag van Tom",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>⚽ In het park</b></p><p style=\"margin:6px 0\">Tom voetbalt zaterdag met zijn vrienden in het park. Daarna zwemmen ze in het zwembad.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">В субботу Том играет с друзьями в футбол в парке. Потом они плавают в бассейне.</p></div>",
+     "ex": [
+      [
+       "Tom voetbalt met zijn vrienden.",
+       "Том играет с друзьями в футбол."
+      ],
+      [
+       "Ze zwemmen in het zwembad.",
+       "Они плавают в бассейне."
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что Том делает в парке?",
+     "opts": [
+      "играет в футбол",
+      "читает",
+      "спит",
+      "рисует"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Где они плавают?",
+     "opts": [
+      "в бассейне",
+      "в море",
+      "в реке",
+      "в озере"
+     ]
+    },
+    {
+     "t": "explain",
+     "k": "История · сцена 2",
+     "b": "📖 De zaterdag van Tom",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>☕ Na het sporten</b></p><p style=\"margin:6px 0\">Het weer is mooi. Om vijf uur drinken ze samen koffie en praten ze over de vakantie.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Погода хорошая. В пять часов они вместе пьют кофе и разговаривают об отпуске.</p></div>",
+     "ex": [
+      [
+       "Het weer is mooi.",
+       "Погода хорошая."
+      ],
+      [
+       "Ze praten over de vakantie.",
+       "Они разговаривают об отпуске."
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Het weer is mooi",
+     "q": "Что сказано о погоде?",
+     "opts": [
+      "Het weer is mooi",
+      "Het regent",
+      "Het is koud",
+      "Het weer is slecht"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "О чём друзья разговаривают за кофе?",
+     "opts": [
+      "об отпуске",
+      "о работе",
+      "о футболе",
+      "о погоде"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Погода в субботу плохая.",
+     "answer": false,
+     "note": "Нет — хорошая: «Het weer is mooi»."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Погода хорошая.",
+     "words": [
+      "Het",
+      "weer",
+      "is",
+      "mooi"
+     ],
+     "ans": [
+      "Het",
+      "weer",
+      "is",
+      "mooi"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Ik voetbal met mijn vrienden.",
+     "tr": "Я играю с друзьями в футбол."
+    }
+   ]
+  }
+ ]
+}

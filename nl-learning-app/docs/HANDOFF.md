@@ -35,19 +35,22 @@
   онбординг-воронка + PRO; тест уровня; 11 типов заданий; лига/лента/друзья/достижения; AI-мок.
 - Создана папка `nl-learning-app/docs/` и эти 5 документов + копия прототипа в `docs/reference/`.
 
-## 3½. Пайплайн контента (NEW, 2026-07-09)
-Контент частично вынесен в данные:
+## 3½. Пайплайн контента (2026-07-09)
+**Весь контент уроков — в данных.** Схема:
 ```
 data/dutch_a1_a2_5000.json + data/vetted_translations.json
-        │  tools/make_data.py  (генерация)
+        │  tools/make_data.py  (генерация автоуроков/банка/диалогов)
         ▼
-data/bank.json · data/lessons_generated.json · data/dialogues.json
-        │  build.py  (сборка блоков внутри app.html)
+data/lessons_manual.json  · уроки 1–38 (ручные, HTML материализован)
+data/lessons_generated.json · автоуроки 39–79
+data/dialogues.json (14) · data/stories.json (3) · data/bank.json (413)
+data/taalcompleet_a1_woordenlijst.json (674)
+        │  build.py  (сборка размеченных блоков внутри app.html; идемпотентна)
         ▼
 app.html  (самодостаточный файл, как и раньше)
 ```
-**Чтобы поменять автоуроки/диалоги/банк/словарь:** правь JSON (или tools/make_data.py) →
-`python3 build.py`. Ручные уроки 1–38 пока живут прямо в app.html (их шаги содержат JS-выражения).
+**Любая правка контента = правка JSON → `python3 build.py`.** Код приложения не трогается.
+В коде остались только TRAIN (тренировки) и TEST (тест уровня).
 
 ## 4. Какие команды я запускал (как проверять)
 Прототип — один HTML-файл; проверяю так:
