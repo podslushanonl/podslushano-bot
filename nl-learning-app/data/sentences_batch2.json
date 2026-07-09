@@ -1,6 +1,6 @@
 {
  "note": "Батч №2: предложения на слова официального словаря TaalCompleet A1 (не покрытые батчем №1).",
- "count": 282,
+ "count": 279,
  "items": [
   {
    "nl": "Is dit de meneer?",
@@ -261,21 +261,9 @@
    "theme": 1
   },
   {
-   "nl": "Het is gezellig.",
-   "ru": "Это уютно.",
-   "lemma": "gezellig",
-   "theme": 2
-  },
-  {
-   "nl": "Dat is heel gezellig.",
-   "ru": "Это очень уютно.",
-   "lemma": "gezellig",
-   "theme": 2
-  },
-  {
-   "nl": "Is het gezellig?",
-   "ru": "Это уютно?",
-   "lemma": "gezellig",
+   "nl": "Is dit het kopje?",
+   "ru": "Это чашка?",
+   "lemma": "kopje",
    "theme": 2
   },
   {
@@ -303,9 +291,9 @@
    "theme": 2
   },
   {
-   "nl": "Is dit het kopje?",
-   "ru": "Это чашка?",
-   "lemma": "kopje",
+   "nl": "Is het nieuw?",
+   "ru": "Это ново?",
+   "lemma": "nieuw",
    "theme": 2
   },
   {
@@ -321,9 +309,9 @@
    "theme": 2
   },
   {
-   "nl": "Is het nieuw?",
-   "ru": "Это ново?",
-   "lemma": "nieuw",
+   "nl": "Ik zie het meubel niet.",
+   "ru": "Я не вижу мебель.",
+   "lemma": "meubel",
    "theme": 2
   },
   {
@@ -351,9 +339,9 @@
    "theme": 2
   },
   {
-   "nl": "Ik zie het meubel niet.",
-   "ru": "Я не вижу мебель.",
-   "lemma": "meubel",
+   "nl": "Waar is de kleur?",
+   "ru": "Где цвет?",
+   "lemma": "kleur",
    "theme": 2
   },
   {
@@ -381,9 +369,9 @@
    "theme": 2
   },
   {
-   "nl": "Waar is de kleur?",
-   "ru": "Где цвет?",
-   "lemma": "kleur",
+   "nl": "Dat is heel mooi.",
+   "ru": "Это очень красиво.",
+   "lemma": "mooi",
    "theme": 2
   },
   {
@@ -399,9 +387,9 @@
    "theme": 2
   },
   {
-   "nl": "Dat is heel mooi.",
-   "ru": "Это очень красиво.",
-   "lemma": "mooi",
+   "nl": "Is de winkel ver?",
+   "ru": "Далеко ли магазин?",
+   "lemma": "winkel",
    "theme": 2
   },
   {
@@ -423,9 +411,9 @@
    "theme": 2
   },
   {
-   "nl": "Is de winkel ver?",
-   "ru": "Далеко ли магазин?",
-   "lemma": "winkel",
+   "nl": "Is het druk?",
+   "ru": "Это занято?",
+   "lemma": "druk",
    "theme": 2
   },
   {
@@ -441,9 +429,9 @@
    "theme": 2
   },
   {
-   "nl": "Is het druk?",
-   "ru": "Это занято?",
-   "lemma": "druk",
+   "nl": "Is het rustig?",
+   "ru": "Это спокойно?",
+   "lemma": "rustig",
    "theme": 2
   },
   {
@@ -455,12 +443,6 @@
   {
    "nl": "Dat is heel rustig.",
    "ru": "Это очень спокойно.",
-   "lemma": "rustig",
-   "theme": 2
-  },
-  {
-   "nl": "Is het rustig?",
-   "ru": "Это спокойно?",
    "lemma": "rustig",
    "theme": 2
   },

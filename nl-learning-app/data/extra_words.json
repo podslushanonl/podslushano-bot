@@ -1,0 +1,399 @@
+{
+ "note": "Рукописные дополнения банка: Работа (A1) + три темы уровня A2. Правь и запускай tools/make_data.py.",
+ "append": {
+  "Работа": [
+   [
+    "de sollicitatie",
+    "отклик на вакансию"
+   ],
+   [
+    "het sollicitatiegesprek",
+    "собеседование"
+   ],
+   [
+    "de vacature",
+    "вакансия"
+   ],
+   [
+    "de ervaring",
+    "опыт"
+   ],
+   [
+    "de baas",
+    "начальник"
+   ],
+   [
+    "het rooster",
+    "график работы"
+   ],
+   [
+    "de dienst",
+    "смена"
+   ],
+   [
+    "het uitzendbureau",
+    "агентство временной работы"
+   ],
+   [
+    "het diploma",
+    "диплом"
+   ],
+   [
+    "de stage",
+    "стажировка"
+   ],
+   [
+    "de stagiair",
+    "стажёр"
+   ],
+   [
+    "de fabriek",
+    "фабрика"
+   ],
+   [
+    "het magazijn",
+    "склад"
+   ],
+   [
+    "de bouw",
+    "стройка"
+   ],
+   [
+    "de horeca",
+    "общепит"
+   ],
+   [
+    "het overleg",
+    "рабочее обсуждение"
+   ],
+   [
+    "de deadline",
+    "дедлайн"
+   ],
+   [
+    "de belasting",
+    "налог"
+   ],
+   [
+    "de verzekering",
+    "страховка"
+   ],
+   [
+    "de handtekening",
+    "подпись"
+   ]
+  ]
+ },
+ "new_themes": [
+  {
+   "t": "Общение и чувства",
+   "lv": "A2",
+   "w": [
+    [
+     "blij",
+     "радостный"
+    ],
+    [
+     "boos",
+     "сердитый"
+    ],
+    [
+     "verdrietig",
+     "грустный"
+    ],
+    [
+     "moe",
+     "усталый"
+    ],
+    [
+     "bang",
+     "испуганный"
+    ],
+    [
+     "trots",
+     "гордый"
+    ],
+    [
+     "verliefd",
+     "влюблённый"
+    ],
+    [
+     "tevreden",
+     "довольный"
+    ],
+    [
+     "eerlijk",
+     "честный"
+    ],
+    [
+     "vriendelijk",
+     "дружелюбный"
+    ],
+    [
+     "belangrijk",
+     "важный"
+    ],
+    [
+     "gezellig",
+     "уютный / душевный"
+    ],
+    [
+     "de mening",
+     "мнение"
+    ],
+    [
+     "het gevoel",
+     "чувство"
+    ],
+    [
+     "het gesprek",
+     "разговор"
+    ],
+    [
+     "het nieuws",
+     "новости"
+    ],
+    [
+     "het verhaal",
+     "рассказ"
+    ],
+    [
+     "de grap",
+     "шутка"
+    ],
+    [
+     "de ruzie",
+     "ссора"
+    ],
+    [
+     "het compliment",
+     "комплимент"
+    ],
+    [
+     "het idee",
+     "идея"
+    ],
+    [
+     "de keuze",
+     "выбор"
+    ],
+    [
+     "het plan",
+     "план"
+    ],
+    [
+     "de droom",
+     "мечта"
+    ],
+    [
+     "de emotie",
+     "эмоция"
+    ]
+   ]
+  },
+  {
+   "t": "Дом и переезд",
+   "lv": "A2",
+   "w": [
+    [
+     "verhuizen",
+     "переезжать"
+    ],
+    [
+     "het huurcontract",
+     "договор аренды"
+    ],
+    [
+     "de huurder",
+     "арендатор"
+    ],
+    [
+     "de verhuurder",
+     "арендодатель"
+    ],
+    [
+     "de borg",
+     "залог"
+    ],
+    [
+     "de bezichtiging",
+     "просмотр жилья"
+    ],
+    [
+     "de buren",
+     "соседи"
+    ],
+    [
+     "de berging",
+     "кладовая"
+    ],
+    [
+     "de hypotheek",
+     "ипотека"
+    ],
+    [
+     "de inschrijving",
+     "регистрация"
+    ],
+    [
+     "de huisgenoot",
+     "сосед по квартире"
+    ],
+    [
+     "de verwarming",
+     "отопление"
+    ],
+    [
+     "de stroom",
+     "электричество"
+    ],
+    [
+     "het gas",
+     "газ"
+    ],
+    [
+     "het afval",
+     "мусор"
+    ],
+    [
+     "de container",
+     "контейнер"
+    ],
+    [
+     "het behang",
+     "обои"
+    ],
+    [
+     "de verf",
+     "краска"
+    ],
+    [
+     "schilderen",
+     "красить"
+    ],
+    [
+     "klussen",
+     "мастерить по дому"
+    ],
+    [
+     "de doos",
+     "коробка"
+    ],
+    [
+     "de verhuiswagen",
+     "грузовик для переезда"
+    ],
+    [
+     "het slot",
+     "дверной замок"
+    ],
+    [
+     "de gang",
+     "коридор"
+    ]
+   ]
+  },
+  {
+   "t": "Официальные дела",
+   "lv": "A2",
+   "w": [
+    [
+     "de gemeente",
+     "муниципалитет"
+    ],
+    [
+     "het gemeentehuis",
+     "мэрия"
+    ],
+    [
+     "de identiteitskaart",
+     "удостоверение личности"
+    ],
+    [
+     "de vergunning",
+     "разрешение"
+    ],
+    [
+     "het visum",
+     "виза"
+    ],
+    [
+     "de verblijfsvergunning",
+     "вид на жительство"
+    ],
+    [
+     "de belastingdienst",
+     "налоговая служба"
+    ],
+    [
+     "de toeslag",
+     "субсидия"
+    ],
+    [
+     "de zorgverzekering",
+     "медицинская страховка"
+    ],
+    [
+     "het loket",
+     "окно обслуживания"
+    ],
+    [
+     "de wachtrij",
+     "очередь"
+    ],
+    [
+     "het document",
+     "документ"
+    ],
+    [
+     "de kopie",
+     "копия"
+    ],
+    [
+     "ondertekenen",
+     "подписывать"
+    ],
+    [
+     "invullen",
+     "заполнять"
+    ],
+    [
+     "de post",
+     "почта"
+    ],
+    [
+     "het pakket",
+     "посылка"
+    ],
+    [
+     "de melding",
+     "уведомление"
+    ],
+    [
+     "het uittreksel",
+     "выписка"
+    ],
+    [
+     "de afzender",
+     "отправитель"
+    ],
+    [
+     "de ontvanger",
+     "получатель"
+    ],
+    [
+     "het bezwaar",
+     "возражение / апелляция"
+    ],
+    [
+     "de termijn",
+     "срок"
+    ],
+    [
+     "gratis",
+     "бесплатный"
+    ]
+   ]
+  }
+ ]
+}

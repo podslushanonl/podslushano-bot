@@ -101,6 +101,45 @@ for name,dts in MAP:
             seen.add(d);ws.append((d,ru,it['type']))
     BANK.append((name,ws))
 
+
+# ---- рукописные дополнения + A2-слова из базы ----
+try:
+    _ex=json.load(open(ROOT+'/data/extra_words.json',encoding='utf-8'))
+except FileNotFoundError:
+    _ex={'append':{},'new_themes':[]}
+def _lemma(d):return d.split(' ')[-1].lower()
+for name,words in _ex.get('append',{}).items():
+    for th_name,ws in [(n_,w_) for n_,w_ in zip([b[0] for b in BANK],[b[1] for b in BANK])]:
+        pass
+for bi,(bname,bws) in enumerate(BANK):
+    if bname in _ex.get('append',{}):
+        have={_lemma(d) for d,ru,ty in bws}
+        for d,ru in _ex['append'][bname]:
+            if _lemma(d) not in have:
+                ty='noun' if d.startswith(('de ','het ')) else ('verb_infinitive' if d.endswith('en') else 'adjective_or_adverb')
+                bws.append((d,ru,ty));have.add(_lemma(d))
+# A2-слова из базы 5000 по группам
+A2MAP={'Общение и чувства':{'feelings','adjectives','people','family','basic','time','smalltalk'},
+ 'Дом и переезд':{'home','furniture','digital','shopping','food','drinks','weather','nature'},
+ 'Официальные дела':{'work','money','admin','health','school','travel','place','geography'}}
+a2base={}
+for it in items:
+    if it.get('level')=='A2' and it['type'] in CLEAN:
+        ru=it['ru'].strip()
+        if not ru or ':' in ru or '(' in ru:continue
+        d=disp_of(it)
+        for tn,ds in A2MAP.items():
+            if it['theme'] in ds:
+                a2base.setdefault(tn,[]).append((d,ru,it['type']));break
+for t in _ex.get('new_themes',[]):
+    ws=[];have=set()
+    for d,ru in t['w']:
+        ty='noun' if d.startswith(('de ','het ')) else ('verb_infinitive' if d.endswith('en') else 'adjective_or_adverb')
+        if _lemma(d) not in have:ws.append((d,ru,ty));have.add(_lemma(d))
+    for d,ru,ty in a2base.get(t['t'],[]):
+        if _lemma(d) not in have:ws.append((d,ru,ty));have.add(_lemma(d))
+    BANK.append((t['t'],ws))
+
 def pick_distractors(pool,correct,key_idx,n=3,salt=0):
     out=[];i=salt;L=len(pool);g=0
     while len(out)<n and g<L*3:
@@ -132,7 +171,7 @@ def words_html(name,ws):
     rows=''.join('<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd)"><b>'+d+'</b><span style="color:var(--ink-2)">'+ru+'</span></div>' for d,ru,ty in ws)
     return '<p>Новые слова темы «'+name+'». Сначала познакомься со ВСЕМИ словами — прослушай каждое (▶ ниже), потом закрепим заданиями.</p><div style="margin-top:8px">'+rows+'</div>'
 
-for ti in range(2,10):
+for ti in range(2,len(BANK)):
     name,ws=BANK[ti]
     chunks=[ws[i:i+8] for i in range(0,len(ws),8)]
     chunks=[c for c in chunks if len(c)>=6][:7]
