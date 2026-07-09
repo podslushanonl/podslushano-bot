@@ -4,6 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#F1F3F7">
+<script>
+window.__bootErrs=[];window.__booted=false;
+window.onerror=function(m,src,l){window.__bootErrs.push(m+' @'+l);return false;};
+window.addEventListener('unhandledrejection',function(e){window.__bootErrs.push('promise: '+(e.reason&&e.reason.message||e.reason));});
+setTimeout(function(){
+ if(window.__booted)return;
+ var d=document.createElement('div');
+ d.style.cssText='position:fixed;inset:0;z-index:99999;background:#fff;color:#111;padding:24px 20px;font:14px/1.6 -apple-system,system-ui,sans-serif;overflow:auto';
+ d.innerHTML='<b style="font-size:17px">⚠️ Приложение не запустилось</b><br><br>'
+  +(window.__bootErrs.length?('Ошибка:<br><code style="font-size:12px;color:#c0392b">'+window.__bootErrs.join('<br>')+'</code>'):'JavaScript не выполнился (похоже, файл открыт во встроенном просмотрщике).')
+  +'<br><br><b>Как открыть правильно:</b><br>• iPhone: поделиться → «Открыть в Safari»<br>• Android: меню ⋮ → «Открыть в Chrome»<br><br><span style="color:#888;font-size:12px">'+navigator.userAgent+'</span>';
+ document.body.appendChild(d);
+},4500);
+</script>
+<noscript><div style="padding:24px;font:15px/1.6 sans-serif"><b>⚠️ Нужен JavaScript.</b> Открой файл в браузере: iPhone — «поделиться → Safari», Android — «⋮ → открыть в Chrome».</div></noscript>
 <title>Учим нидерландский — прототип</title>
 <style>
   :root{--oranje:#F26A16;--oranje-2:#D8560A;--delft:#2C6BD6;--delft-2:#1E509F;--berry:#7C4DE0;
@@ -648,5 +663,5 @@ var hasSave=loadState();
 setInterval(saveState,8000);window.addEventListener('beforeunload',saveState);
 
 
-splash();
+try{splash();window.__booted=true;}catch(e){window.__bootErrs.push('boot: '+e.message);}
 </script>
