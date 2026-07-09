@@ -1,6 +1,6 @@
 {
  "note": "Батч №1 предложений A1 (тематические шаблоны + русская морфология). Источник уроков и пула экзаменов.",
- "count": 1240,
+ "count": 1228,
  "items": [
   {
    "nl": "De man is erg aardig.",
@@ -3060,78 +3060,6 @@
    "nl": "Ik neem limonade, alstublieft.",
    "ru": "Мне лимонад, пожалуйста.",
    "lemma": "limonade",
-   "theme": 3
-  },
-  {
-   "nl": "Wil je een ontbijt?",
-   "ru": "Хочешь завтрак?",
-   "lemma": "ontbijt",
-   "theme": 3
-  },
-  {
-   "nl": "Het ontbijt is lekker.",
-   "ru": "Завтрак — вкусный.",
-   "lemma": "ontbijt",
-   "theme": 3
-  },
-  {
-   "nl": "Ik koop het ontbijt in de supermarkt.",
-   "ru": "Я покупаю завтрак в супермаркете.",
-   "lemma": "ontbijt",
-   "theme": 3
-  },
-  {
-   "nl": "Ik eet graag ontbijten.",
-   "ru": "Я люблю есть завтраки.",
-   "lemma": "ontbijt",
-   "theme": 3
-  },
-  {
-   "nl": "De lunch is lekker.",
-   "ru": "Обед — вкусный.",
-   "lemma": "lunch",
-   "theme": 3
-  },
-  {
-   "nl": "Ik koop de lunch in de supermarkt.",
-   "ru": "Я покупаю обед в супермаркете.",
-   "lemma": "lunch",
-   "theme": 3
-  },
-  {
-   "nl": "Ik eet graag lunches.",
-   "ru": "Я люблю есть обеды.",
-   "lemma": "lunch",
-   "theme": 3
-  },
-  {
-   "nl": "Wil je een lunch?",
-   "ru": "Хочешь обед?",
-   "lemma": "lunch",
-   "theme": 3
-  },
-  {
-   "nl": "Ik koop het avondeten in de supermarkt.",
-   "ru": "Я покупаю ужин в супермаркете.",
-   "lemma": "avondeten",
-   "theme": 3
-  },
-  {
-   "nl": "Ik eet graag avondeten.",
-   "ru": "Я люблю есть ужин.",
-   "lemma": "avondeten",
-   "theme": 3
-  },
-  {
-   "nl": "Wil je avondeten?",
-   "ru": "Хочешь ужин?",
-   "lemma": "avondeten",
-   "theme": 3
-  },
-  {
-   "nl": "Het avondeten is lekker.",
-   "ru": "Ужин — вкусный.",
-   "lemma": "avondeten",
    "theme": 3
   },
   {

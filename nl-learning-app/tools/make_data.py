@@ -16,12 +16,16 @@ for v in _vv:
     elif t=='demonstrative_phrase':DEMV.setdefault(lm,[]).append(rec)
     elif t=='noun_plural':PLUV[lm]=rec
 # батч №1: новые предложения приоритетнее шаблонных
+for _bf in ("sentences_batch1.json","sentences_batch2.json"):
+    try:
+        for it in json.load(open(ROOT+"/data/"+_bf,encoding='utf-8'))['items']:
+            VETL.setdefault(it['lemma'],[]).insert(0,{'nl':it['nl'],'ru':it['ru']})
+    except FileNotFoundError:
+        pass
 try:
-    _b1=json.load(open(ROOT+"/data/sentences_batch1.json",encoding='utf-8'))['items']
-    for it in _b1:
-        VETL.setdefault(it['lemma'],[]).insert(0,{'nl':it['nl'],'ru':it['ru']})
+    QA=json.load(open(ROOT+"/data/qa_pairs.json",encoding='utf-8'))['pairs']
 except FileNotFoundError:
-    pass
+    QA=[]
 def vet_pick(lemma,salt):
     lst=VETL.get(lemma)
     return lst[salt%len(lst)] if lst else None
@@ -185,6 +189,13 @@ for ti in range(2,8):
             if d.startswith(('de ','het ','een ')) and spoken<2:
                 st.append({'t':'speak','k':'Говорение','phrase':'Dit is '+d+'.','tr':'Это '+ru+'.'})
                 spoken+=1
+        qa_pool=[q for q in QA if q['theme']==ti] or QA
+        if qa_pool:
+            q=qa_pool[(ci+n)%len(qa_pool)]
+            others=[x['a_nl'] for x in QA if x['a_nl']!=q['a_nl']][(n*3)%(len(QA)-4):][:3]
+            st.append({'t':'listen','k':'Вопрос на слух','audio':q['q_nl'],'q':'Тебя спросили: … Что прозвучало?','opts':[q['q_nl']]+[x['q_nl'] for x in QA if x['q_nl']!=q['q_nl']][(n*5)%(len(QA)-4):][:3]})
+            st.append({'t':'quiz','k':'Твой ответ','q':'«'+q['q_nl']+'» — что ответишь?','opts':[q['a_nl']]+others})
+            st.append({'t':'speak','k':'Говорение','phrase':q['a_nl'],'tr':q['a_ru']})
         mix=[ [d,ru] for d,ru,ty in (p1w[2:4]+p2w[2:4]) ]
         if len(mix)>=3: st.append({'t':'match','k':'Пары · всё вместе','pairs':mix[:4]})
         parts.append({'t':'Говорим и закрепляем','steps':st})

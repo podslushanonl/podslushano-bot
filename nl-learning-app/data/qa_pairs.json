@@ -1,0 +1,328 @@
+{
+ "note": "Вопрос-ответные пары A1 (коммуникативное ядро). Используются в уроках: «Что ответить на …?» + аудирование вопроса.",
+ "count": 46,
+ "pairs": [
+  {
+   "q_nl": "Hoe heet je?",
+   "q_ru": "Как тебя зовут?",
+   "a_nl": "Ik heet Anna.",
+   "a_ru": "Меня зовут Анна.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Waar kom je vandaan?",
+   "q_ru": "Откуда ты?",
+   "a_nl": "Ik kom uit Rusland.",
+   "a_ru": "Я из России.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Waar woon je?",
+   "q_ru": "Где ты живёшь?",
+   "a_nl": "Ik woon in Amsterdam.",
+   "a_ru": "Я живу в Амстердаме.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Hoe oud ben je?",
+   "q_ru": "Сколько тебе лет?",
+   "a_nl": "Ik ben dertig jaar.",
+   "a_ru": "Мне тридцать лет.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Hoe gaat het met je?",
+   "q_ru": "Как у тебя дела?",
+   "a_nl": "Goed, dank je. En met jou?",
+   "a_ru": "Хорошо, спасибо. А у тебя?",
+   "theme": 0
+  },
+  {
+   "q_nl": "Ben je getrouwd?",
+   "q_ru": "Ты женат / замужем?",
+   "a_nl": "Ja, ik ben getrouwd.",
+   "a_ru": "Да, я женат / замужем.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Heb je kinderen?",
+   "q_ru": "У тебя есть дети?",
+   "a_nl": "Ja, ik heb twee kinderen.",
+   "a_ru": "Да, у меня двое детей.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Heb je broers of zussen?",
+   "q_ru": "У тебя есть братья или сёстры?",
+   "a_nl": "Ik heb één broer en één zus.",
+   "a_ru": "У меня один брат и одна сестра.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Wat is je telefoonnummer?",
+   "q_ru": "Какой у тебя номер телефона?",
+   "a_nl": "Mijn nummer is nul zes, twaalf, veertien.",
+   "a_ru": "Мой номер — 06-12-14.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Spreek je Nederlands?",
+   "q_ru": "Ты говоришь по-нидерландски?",
+   "a_nl": "Ja, een beetje.",
+   "a_ru": "Да, немного.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Hoe schrijf je dat?",
+   "q_ru": "Как это пишется?",
+   "a_nl": "Zo: A-N-N-A.",
+   "a_ru": "Вот так: А-Н-Н-А.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Wat betekent dat?",
+   "q_ru": "Что это значит?",
+   "a_nl": "Dat betekent «дом».",
+   "a_ru": "Это значит «дом».",
+   "theme": 0
+  },
+  {
+   "q_nl": "Hoe laat is het?",
+   "q_ru": "Который час?",
+   "a_nl": "Het is half negen.",
+   "a_ru": "Половина девятого.",
+   "theme": 1
+  },
+  {
+   "q_nl": "Wanneer sta je op?",
+   "q_ru": "Когда ты встаёшь?",
+   "a_nl": "Ik sta om zeven uur op.",
+   "a_ru": "Я встаю в семь часов.",
+   "theme": 1
+  },
+  {
+   "q_nl": "Wat doe je vandaag?",
+   "q_ru": "Что ты сегодня делаешь?",
+   "a_nl": "Ik werk en daarna sport ik.",
+   "a_ru": "Я работаю, а потом занимаюсь спортом.",
+   "theme": 1
+  },
+  {
+   "q_nl": "Welke dag is het vandaag?",
+   "q_ru": "Какой сегодня день?",
+   "a_nl": "Het is dinsdag.",
+   "a_ru": "Сегодня вторник.",
+   "theme": 1
+  },
+  {
+   "q_nl": "Wat is de datum vandaag?",
+   "q_ru": "Какое сегодня число?",
+   "a_nl": "Het is tien juli.",
+   "a_ru": "Сегодня десятое июля.",
+   "theme": 1
+  },
+  {
+   "q_nl": "Wanneer ben je jarig?",
+   "q_ru": "Когда у тебя день рождения?",
+   "a_nl": "Op vijf mei.",
+   "a_ru": "Пятого мая.",
+   "theme": 1
+  },
+  {
+   "q_nl": "Begrijp je de vraag?",
+   "q_ru": "Ты понимаешь вопрос?",
+   "a_nl": "Nee, kunt u het herhalen?",
+   "a_ru": "Нет, вы можете повторить?",
+   "theme": 2
+  },
+  {
+   "q_nl": "Op welke bladzijde zijn we?",
+   "q_ru": "На какой мы странице?",
+   "a_nl": "Op bladzijde twaalf.",
+   "a_ru": "На странице двенадцать.",
+   "theme": 2
+  },
+  {
+   "q_nl": "Wanneer is de les?",
+   "q_ru": "Когда урок?",
+   "a_nl": "Op maandag en donderdag.",
+   "a_ru": "В понедельник и четверг.",
+   "theme": 2
+  },
+  {
+   "q_nl": "Mag ik iets vragen?",
+   "q_ru": "Можно спросить?",
+   "a_nl": "Ja, natuurlijk!",
+   "a_ru": "Да, конечно!",
+   "theme": 2
+  },
+  {
+   "q_nl": "Wat wil je drinken?",
+   "q_ru": "Что будешь пить?",
+   "a_nl": "Een koffie met melk, graag.",
+   "a_ru": "Кофе с молоком, пожалуйста.",
+   "theme": 3
+  },
+  {
+   "q_nl": "Hoeveel kost het?",
+   "q_ru": "Сколько это стоит?",
+   "a_nl": "Drie euro vijftig.",
+   "a_ru": "Три евро пятьдесят.",
+   "theme": 3
+  },
+  {
+   "q_nl": "Anders nog iets?",
+   "q_ru": "Что-нибудь ещё?",
+   "a_nl": "Nee, dank u. Dat was het.",
+   "a_ru": "Нет, спасибо. Это всё.",
+   "theme": 3
+  },
+  {
+   "q_nl": "Wat eten we vanavond?",
+   "q_ru": "Что мы едим сегодня вечером?",
+   "a_nl": "We eten soep met brood.",
+   "a_ru": "Мы едим суп с хлебом.",
+   "theme": 3
+  },
+  {
+   "q_nl": "Mag ik de rekening?",
+   "q_ru": "Можно счёт?",
+   "a_nl": "Ja, ik kom eraan.",
+   "a_ru": "Да, сейчас подойду.",
+   "theme": 3
+  },
+  {
+   "q_nl": "Wilt u pinnen of contant?",
+   "q_ru": "Картой или наличными?",
+   "a_nl": "Pinnen, graag.",
+   "a_ru": "Картой, пожалуйста.",
+   "theme": 3
+  },
+  {
+   "q_nl": "Wat zijn uw klachten?",
+   "q_ru": "На что жалуетесь?",
+   "a_nl": "Ik heb hoofdpijn en koorts.",
+   "a_ru": "У меня болит голова и температура.",
+   "theme": 4
+  },
+  {
+   "q_nl": "Sinds wanneer bent u ziek?",
+   "q_ru": "С какого времени вы болеете?",
+   "a_nl": "Sinds maandag.",
+   "a_ru": "С понедельника.",
+   "theme": 4
+  },
+  {
+   "q_nl": "Hoe vaak per dag?",
+   "q_ru": "Сколько раз в день?",
+   "a_nl": "Drie keer per dag, na het eten.",
+   "a_ru": "Три раза в день, после еды.",
+   "theme": 4
+  },
+  {
+   "q_nl": "Wilt u een afspraak maken?",
+   "q_ru": "Хотите записаться на приём?",
+   "a_nl": "Ja, graag. Kan het morgen?",
+   "a_ru": "Да, пожалуйста. Можно завтра?",
+   "theme": 4
+  },
+  {
+   "q_nl": "Welke maat heeft u?",
+   "q_ru": "Какой у вас размер?",
+   "a_nl": "Maat achtendertig.",
+   "a_ru": "Размер тридцать восемь.",
+   "theme": 5
+  },
+  {
+   "q_nl": "Mag ik dit passen?",
+   "q_ru": "Можно это примерить?",
+   "a_nl": "Ja, de paskamer is daar.",
+   "a_ru": "Да, примерочная там.",
+   "theme": 5
+  },
+  {
+   "q_nl": "Hoe laat sluit de winkel?",
+   "q_ru": "Во сколько закрывается магазин?",
+   "a_nl": "Om zes uur.",
+   "a_ru": "В шесть часов.",
+   "theme": 5
+  },
+  {
+   "q_nl": "Heeft u dit in het blauw?",
+   "q_ru": "У вас есть это в синем?",
+   "a_nl": "Ik kijk even voor u.",
+   "a_ru": "Сейчас посмотрю для вас.",
+   "theme": 5
+  },
+  {
+   "q_nl": "Hoe laat gaat de trein?",
+   "q_ru": "Во сколько идёт поезд?",
+   "a_nl": "Om tien over negen.",
+   "a_ru": "В девять десять.",
+   "theme": 6
+  },
+  {
+   "q_nl": "Van welk spoor vertrekt de trein?",
+   "q_ru": "С какого пути отправляется поезд?",
+   "a_nl": "Van spoor vijf.",
+   "a_ru": "С пятого пути.",
+   "theme": 6
+  },
+  {
+   "q_nl": "Waar is de bushalte?",
+   "q_ru": "Где автобусная остановка?",
+   "a_nl": "Om de hoek, bij de supermarkt.",
+   "a_ru": "За углом, у супермаркета.",
+   "theme": 6
+  },
+  {
+   "q_nl": "Is het ver lopen?",
+   "q_ru": "Далеко идти пешком?",
+   "a_nl": "Nee, tien minuten.",
+   "a_ru": "Нет, десять минут.",
+   "theme": 6
+  },
+  {
+   "q_nl": "Mag ik een kaartje naar Utrecht?",
+   "q_ru": "Можно билет до Утрехта?",
+   "a_nl": "Ja, dat is negen euro.",
+   "a_ru": "Да, это девять евро.",
+   "theme": 6
+  },
+  {
+   "q_nl": "Wat doe je in je vrije tijd?",
+   "q_ru": "Что ты делаешь в свободное время?",
+   "a_nl": "Ik zwem en ik lees.",
+   "a_ru": "Я плаваю и читаю.",
+   "theme": 7
+  },
+  {
+   "q_nl": "Ga je mee naar de film?",
+   "q_ru": "Пойдёшь со мной в кино?",
+   "a_nl": "Ja, leuk! Hoe laat?",
+   "a_ru": "Да, здорово! Во сколько?",
+   "theme": 7
+  },
+  {
+   "q_nl": "Wat is je hobby?",
+   "q_ru": "Какое у тебя хобби?",
+   "a_nl": "Mijn hobby is koken.",
+   "a_ru": "Моё хобби — готовить.",
+   "theme": 7
+  },
+  {
+   "q_nl": "Heb je een huisdier?",
+   "q_ru": "У тебя есть домашнее животное?",
+   "a_nl": "Ja, ik heb een kat.",
+   "a_ru": "Да, у меня кошка.",
+   "theme": 7
+  },
+  {
+   "q_nl": "Wat voor weer is het?",
+   "q_ru": "Какая погода?",
+   "a_nl": "De zon schijnt!",
+   "a_ru": "Светит солнце!",
+   "theme": 7
+  }
+ ]
+}
