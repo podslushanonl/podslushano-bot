@@ -16,7 +16,7 @@ for v in _vv:
     elif t=='demonstrative_phrase':DEMV.setdefault(lm,[]).append(rec)
     elif t=='noun_plural':PLUV[lm]=rec
 # батч №1: новые предложения приоритетнее шаблонных
-for _bf in ("sentences_batch1.json","sentences_batch2.json"):
+for _bf in ("sentences_batch1.json","sentences_batch2.json","sentences_batch3.json"):
     try:
         for it in json.load(open(ROOT+"/data/"+_bf,encoding='utf-8'))['items']:
             VETL.setdefault(it['lemma'],[]).insert(0,{'nl':it['nl'],'ru':it['ru']})

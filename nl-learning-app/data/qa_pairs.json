@@ -1,6 +1,6 @@
 {
  "note": "Вопрос-ответные пары A1 (коммуникативное ядро). Используются в уроках: «Что ответить на …?» + аудирование вопроса.",
- "count": 46,
+ "count": 66,
  "pairs": [
   {
    "q_nl": "Hoe heet je?",
@@ -323,6 +323,146 @@
    "a_nl": "De zon schijnt!",
    "a_ru": "Светит солнце!",
    "theme": 7
+  },
+  {
+   "q_nl": "Wat voor werk doe je?",
+   "q_ru": "Кем ты работаешь?",
+   "a_nl": "Ik werk in een restaurant.",
+   "a_ru": "Я работаю в ресторане.",
+   "theme": 1
+  },
+  {
+   "q_nl": "Wat heb je gisteren gedaan?",
+   "q_ru": "Что ты делал(а) вчера?",
+   "a_nl": "Ik heb gewerkt en gekookt.",
+   "a_ru": "Я работал(а) и готовил(а).",
+   "theme": 1
+  },
+  {
+   "q_nl": "Heb je goed geslapen?",
+   "q_ru": "Ты хорошо спал(а)?",
+   "a_nl": "Ja, heel goed, dank je.",
+   "a_ru": "Да, очень хорошо, спасибо.",
+   "theme": 1
+  },
+  {
+   "q_nl": "Kun je me helpen?",
+   "q_ru": "Ты можешь мне помочь?",
+   "a_nl": "Ja, natuurlijk. Wat is er?",
+   "a_ru": "Да, конечно. Что случилось?",
+   "theme": 0
+  },
+  {
+   "q_nl": "Mag ik hier zitten?",
+   "q_ru": "Можно мне здесь сесть?",
+   "a_nl": "Ja, ga je gang.",
+   "a_ru": "Да, пожалуйста.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Wil je iets drinken?",
+   "q_ru": "Хочешь что-нибудь выпить?",
+   "a_nl": "Ja, een thee graag.",
+   "a_ru": "Да, чай, пожалуйста.",
+   "theme": 3
+  },
+  {
+   "q_nl": "Heb je al gegeten?",
+   "q_ru": "Ты уже поел(а)?",
+   "a_nl": "Nee, nog niet. Ik heb honger!",
+   "a_ru": "Нет, ещё нет. Я голоден (голодна)!",
+   "theme": 3
+  },
+  {
+   "q_nl": "Moet je morgen werken?",
+   "q_ru": "Тебе завтра работать?",
+   "a_nl": "Ja, van negen tot vijf.",
+   "a_ru": "Да, с девяти до пяти.",
+   "theme": 1
+  },
+  {
+   "q_nl": "Waarom leer je Nederlands?",
+   "q_ru": "Почему ты учишь нидерландский?",
+   "a_nl": "Voor mijn werk en het inburgeringsexamen.",
+   "a_ru": "Для работы и экзамена по интеграции.",
+   "theme": 2
+  },
+  {
+   "q_nl": "Hoe lang woon je al in Nederland?",
+   "q_ru": "Как давно ты живёшь в Нидерландах?",
+   "a_nl": "Al twee jaar.",
+   "a_ru": "Уже два года.",
+   "theme": 0
+  },
+  {
+   "q_nl": "Vind je Nederland leuk?",
+   "q_ru": "Тебе нравятся Нидерланды?",
+   "a_nl": "Ja, maar het regent veel!",
+   "a_ru": "Да, но часто идёт дождь!",
+   "theme": 7
+  },
+  {
+   "q_nl": "Wat vind je van het eten hier?",
+   "q_ru": "Как тебе здешняя еда?",
+   "a_nl": "Lekker, vooral de kaas.",
+   "a_ru": "Вкусно, особенно сыр.",
+   "theme": 3
+  },
+  {
+   "q_nl": "Kun je dat langzamer zeggen?",
+   "q_ru": "Можешь сказать это медленнее?",
+   "a_nl": "Ja, sorry. Ik praat te snel.",
+   "a_ru": "Да, извини. Я говорю слишком быстро.",
+   "theme": 2
+  },
+  {
+   "q_nl": "Zullen we vrijdag afspreken?",
+   "q_ru": "Договоримся на пятницу?",
+   "a_nl": "Ja, vrijdag kan ik.",
+   "a_ru": "Да, в пятницу я могу.",
+   "theme": 1
+  },
+  {
+   "q_nl": "Waar werk je?",
+   "q_ru": "Где ты работаешь?",
+   "a_nl": "Bij een groot bedrijf in de stad.",
+   "a_ru": "В большой компании в городе.",
+   "theme": 1
+  },
+  {
+   "q_nl": "Heb je de bus gemist?",
+   "q_ru": "Ты опоздал(а) на автобус?",
+   "a_nl": "Ja, ik was te laat.",
+   "a_ru": "Да, я опоздал(а).",
+   "theme": 6
+  },
+  {
+   "q_nl": "Wat ga je in het weekend doen?",
+   "q_ru": "Что будешь делать в выходные?",
+   "a_nl": "Ik ga naar het strand.",
+   "a_ru": "Поеду на пляж.",
+   "theme": 7
+  },
+  {
+   "q_nl": "Ben je moe?",
+   "q_ru": "Ты устал(а)?",
+   "a_nl": "Ja, ik heb veel gewerkt.",
+   "a_ru": "Да, я много работал(а).",
+   "theme": 4
+  },
+  {
+   "q_nl": "Kan de dokter vandaag komen?",
+   "q_ru": "Врач может прийти сегодня?",
+   "a_nl": "Nee, morgen om tien uur.",
+   "a_ru": "Нет, завтра в десять.",
+   "theme": 4
+  },
+  {
+   "q_nl": "Mag ik met de kaart betalen?",
+   "q_ru": "Можно оплатить картой?",
+   "a_nl": "Ja, dat kan.",
+   "a_ru": "Да, можно.",
+   "theme": 5
   }
  ]
 }

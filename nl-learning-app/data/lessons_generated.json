@@ -671,9 +671,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Mag ik iets vragen?",
-        "Wat zijn uw klachten?",
-        "Sinds wanneer bent u ziek?",
-        "Hoe vaak per dag?"
+        "Spreek je Nederlands?",
+        "Hoe schrijf je dat?",
+        "Wat betekent dat?"
        ]
       },
       {
@@ -682,9 +682,9 @@
        "q": "«Mag ik iets vragen?» — что ответишь?",
        "opts": [
         "Ja, natuurlijk!",
-        "Om zes uur.",
-        "Ik kijk even voor u.",
-        "Om tien over negen."
+        "Ja, maar het regent veel!",
+        "Lekker, vooral de kaas.",
+        "Ja, sorry. Ik praat te snel."
        ]
       },
       {
@@ -1127,31 +1127,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Op welke bladzijde zijn we?",
+       "audio": "Kun je dat langzamer zeggen?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Op welke bladzijde zijn we?",
-        "Mag ik dit passen?",
-        "Hoe laat sluit de winkel?",
-        "Heeft u dit in het blauw?"
+        "Kun je dat langzamer zeggen?",
+        "Wat doe je vandaag?",
+        "Welke dag is het vandaag?",
+        "Wat is de datum vandaag?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Op welke bladzijde zijn we?» — что ответишь?",
+       "q": "«Kun je dat langzamer zeggen?» — что ответишь?",
        "opts": [
-        "Op bladzijde twaalf.",
-        "Van spoor vijf.",
-        "Om de hoek, bij de supermarkt.",
-        "Nee, tien minuten."
+        "Ja, sorry. Ik praat te snel.",
+        "Ja, vrijdag kan ik.",
+        "Bij een groot bedrijf in de stad.",
+        "Ja, ik was te laat."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Op bladzijde twaalf.",
-       "tr": "На странице двенадцать."
+       "phrase": "Ja, sorry. Ik praat te snel.",
+       "tr": "Да, извини. Я говорю слишком быстро."
       },
       {
        "t": "match",
@@ -1585,31 +1585,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Mag ik iets vragen?",
+       "audio": "Op welke bladzijde zijn we?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
+        "Op welke bladzijde zijn we?",
+        "Wanneer is de les?",
         "Mag ik iets vragen?",
-        "Waar is de bushalte?",
-        "Is het ver lopen?",
-        "Mag ik een kaartje naar Utrecht?"
+        "Wat wil je drinken?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Mag ik iets vragen?» — что ответишь?",
+       "q": "«Op welke bladzijde zijn we?» — что ответишь?",
        "opts": [
-        "Ja, natuurlijk!",
-        "Ja, dat is negen euro.",
-        "Ik zwem en ik lees.",
-        "Ja, leuk! Hoe laat?"
+        "Op bladzijde twaalf.",
+        "Ik ga naar het strand.",
+        "Ja, ik heb veel gewerkt.",
+        "Nee, morgen om tien uur."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ja, natuurlijk!",
-       "tr": "Да, конечно!"
+       "phrase": "Op bladzijde twaalf.",
+       "tr": "На странице двенадцать."
       },
       {
        "t": "match",
@@ -2043,31 +2043,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Op welke bladzijde zijn we?",
+       "audio": "Mag ik iets vragen?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Op welke bladzijde zijn we?",
-        "Hoe heet je?",
-        "Waar kom je vandaan?",
-        "Waar woon je?"
+        "Mag ik iets vragen?",
+        "Wat eten we vanavond?",
+        "Mag ik de rekening?",
+        "Wilt u pinnen of contant?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Op welke bladzijde zijn we?» — что ответишь?",
+       "q": "«Mag ik iets vragen?» — что ответишь?",
        "opts": [
-        "Op bladzijde twaalf.",
-        "Ik heet Anna.",
-        "Ik kom uit Rusland.",
-        "Ik woon in Amsterdam."
+        "Ja, natuurlijk!",
+        "Ik woon in Amsterdam.",
+        "Ik ben dertig jaar.",
+        "Goed, dank je. En met jou?"
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Op bladzijde twaalf.",
-       "tr": "На странице двенадцать."
+       "phrase": "Ja, natuurlijk!",
+       "tr": "Да, конечно!"
       },
       {
        "t": "match",
@@ -2501,31 +2501,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Mag ik iets vragen?",
+       "audio": "Kun je dat langzamer zeggen?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Mag ik iets vragen?",
-        "Ben je getrouwd?",
-        "Heb je kinderen?",
-        "Heb je broers of zussen?"
+        "Kun je dat langzamer zeggen?",
+        "Sinds wanneer bent u ziek?",
+        "Hoe vaak per dag?",
+        "Wilt u een afspraak maken?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Mag ik iets vragen?» — что ответишь?",
+       "q": "«Kun je dat langzamer zeggen?» — что ответишь?",
        "opts": [
-        "Ja, natuurlijk!",
-        "Ik ben dertig jaar.",
-        "Goed, dank je. En met jou?",
-        "Ja, ik ben getrouwd."
+        "Ja, sorry. Ik praat te snel.",
+        "Ja, ik ben getrouwd.",
+        "Ja, ik heb twee kinderen.",
+        "Ik heb één broer en één zus."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ja, natuurlijk!",
-       "tr": "Да, конечно!"
+       "phrase": "Ja, sorry. Ik praat te snel.",
+       "tr": "Да, извини. Я говорю слишком быстро."
       },
       {
        "t": "match",
@@ -2963,9 +2963,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Op welke bladzijde zijn we?",
-        "Hoe schrijf je dat?",
-        "Wat betekent dat?",
-        "Hoe laat is het?"
+        "Heeft u dit in het blauw?",
+        "Hoe laat gaat de trein?",
+        "Van welk spoor vertrekt de trein?"
        ]
       },
       {
@@ -2974,9 +2974,9 @@
        "q": "«Op welke bladzijde zijn we?» — что ответишь?",
        "opts": [
         "Op bladzijde twaalf.",
-        "Ja, ik heb twee kinderen.",
-        "Ik heb één broer en één zus.",
-        "Mijn nummer is nul zes, twaalf, veertien."
+        "Mijn nummer is nul zes, twaalf, veertien.",
+        "Ja, een beetje.",
+        "Zo: A-N-N-A."
        ]
       },
       {
@@ -3254,46 +3254,46 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я очень хочу слушать.",
+       "tr": "Сегодня я не буду слушать.",
        "words": [
-        "Ik",
-        "wil",
-        "graag",
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
         "luisteren"
        ],
        "ans": [
-        "Ik",
-        "wil",
-        "graag",
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
         "luisteren"
        ]
       },
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Сегодня я не буду читать.",
+       "tr": "Я хорошо умею читать.",
        "words": [
-        "Vandaag",
-        "ga",
-        "ik",
-        "niet",
+        "Ik",
+        "kan",
+        "goed",
         "lezen"
        ],
        "ans": [
-        "Vandaag",
-        "ga",
-        "ik",
-        "niet",
+        "Ik",
+        "kan",
+        "goed",
         "lezen"
        ]
       },
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Ik kan goed luisteren.",
+       "audio": "Ik moet vandaag luisteren.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Ik kan goed luisteren.",
+        "Ik moet vandaag luisteren.",
         "Ik zoek het meisje.",
         "Waar is het meisje?",
         "Ik zie het meisje."
@@ -3302,10 +3302,10 @@
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Ik wil graag schrijven.",
-       "q": "Ik wil graag ___.",
+       "audio": "Ik heb gisteren gelezen.",
+       "q": "Ik heb gisteren ge___.",
        "answer": [
-        "schrijven"
+        "lezen"
        ],
        "ph": "…"
       }
@@ -3345,9 +3345,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Mag ik iets vragen?",
-        "Welke dag is het vandaag?",
-        "Wat is de datum vandaag?",
-        "Wanneer ben je jarig?"
+        "Mag ik een kaartje naar Utrecht?",
+        "Wat doe je in je vrije tijd?",
+        "Ga je mee naar de film?"
        ]
       },
       {
@@ -3356,9 +3356,9 @@
        "q": "«Mag ik iets vragen?» — что ответишь?",
        "opts": [
         "Ja, natuurlijk!",
-        "Ja, een beetje.",
-        "Zo: A-N-N-A.",
-        "Dat betekent «дом»."
+        "Dat betekent «дом».",
+        "Het is half negen.",
+        "Ik sta om zeven uur op."
        ]
       },
       {
@@ -3800,31 +3800,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Mag ik de rekening?",
+       "audio": "Hoeveel kost het?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Mag ik de rekening?",
-        "Wanneer is de les?",
-        "Mag ik iets vragen?",
-        "Wat wil je drinken?"
+        "Hoeveel kost het?",
+        "Wat voor weer is het?",
+        "Wat voor werk doe je?",
+        "Wat heb je gisteren gedaan?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Mag ik de rekening?» — что ответишь?",
+       "q": "«Hoeveel kost het?» — что ответишь?",
        "opts": [
-        "Ja, ik kom eraan.",
-        "Het is half negen.",
-        "Ik sta om zeven uur op.",
-        "Ik werk en daarna sport ik."
+        "Drie euro vijftig.",
+        "Ik werk en daarna sport ik.",
+        "Het is dinsdag.",
+        "Het is tien juli."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ja, ik kom eraan.",
-       "tr": "Да, сейчас подойду."
+       "phrase": "Drie euro vijftig.",
+       "tr": "Три евро пятьдесят."
       },
       {
        "t": "match",
@@ -4253,31 +4253,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Wat wil je drinken?",
+       "audio": "Wat eten we vanavond?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Wat wil je drinken?",
-        "Mag ik de rekening?",
-        "Wilt u pinnen of contant?",
-        "Wat zijn uw klachten?"
+        "Wat eten we vanavond?",
+        "Mag ik hier zitten?",
+        "Wil je iets drinken?",
+        "Heb je al gegeten?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Wat wil je drinken?» — что ответишь?",
+       "q": "«Wat eten we vanavond?» — что ответишь?",
        "opts": [
-        "Een koffie met melk, graag.",
-        "Het is dinsdag.",
-        "Het is tien juli.",
-        "Op vijf mei."
+        "We eten soep met brood.",
+        "Op vijf mei.",
+        "Nee, kunt u het herhalen?",
+        "Op bladzijde twaalf."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Een koffie met melk, graag.",
-       "tr": "Кофе с молоком, пожалуйста."
+       "phrase": "We eten soep met brood.",
+       "tr": "Мы едим суп с хлебом."
       },
       {
        "t": "match",
@@ -4706,31 +4706,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Anders nog iets?",
+       "audio": "Wilt u pinnen of contant?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Anders nog iets?",
-        "Wilt u een afspraak maken?",
-        "Welke maat heeft u?",
-        "Mag ik dit passen?"
+        "Wilt u pinnen of contant?",
+        "Hoe lang woon je al in Nederland?",
+        "Vind je Nederland leuk?",
+        "Wat vind je van het eten hier?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Anders nog iets?» — что ответишь?",
+       "q": "«Wilt u pinnen of contant?» — что ответишь?",
        "opts": [
-        "Nee, dank u. Dat was het.",
-        "Nee, kunt u het herhalen?",
-        "Op bladzijde twaalf.",
-        "Op maandag en donderdag."
+        "Pinnen, graag.",
+        "Op maandag en donderdag.",
+        "Ja, natuurlijk!",
+        "Een koffie met melk, graag."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Nee, dank u. Dat was het.",
-       "tr": "Нет, спасибо. Это всё."
+       "phrase": "Pinnen, graag.",
+       "tr": "Картой, пожалуйста."
       },
       {
        "t": "match",
@@ -5159,31 +5159,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Mag ik de rekening?",
+       "audio": "Heb je al gegeten?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Mag ik de rekening?",
-        "Hoe laat gaat de trein?",
-        "Van welk spoor vertrekt de trein?",
-        "Waar is de bushalte?"
+        "Heb je al gegeten?",
+        "Waar werk je?",
+        "Heb je de bus gemist?",
+        "Wat ga je in het weekend doen?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Mag ik de rekening?» — что ответишь?",
+       "q": "«Heb je al gegeten?» — что ответишь?",
        "opts": [
-        "Ja, ik kom eraan.",
-        "Ja, natuurlijk!",
-        "Een koffie met melk, graag.",
-        "Drie euro vijftig."
+        "Nee, nog niet. Ik heb honger!",
+        "Drie euro vijftig.",
+        "Nee, dank u. Dat was het.",
+        "We eten soep met brood."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ja, ik kom eraan.",
-       "tr": "Да, сейчас подойду."
+       "phrase": "Nee, nog niet. Ik heb honger!",
+       "tr": "Нет, ещё нет. Я голоден (голодна)!"
       },
       {
        "t": "match",
@@ -5616,9 +5616,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Wat wil je drinken?",
-        "Wat doe je in je vrije tijd?",
-        "Ga je mee naar de film?",
-        "Wat is je hobby?"
+        "Waar woon je?",
+        "Hoe oud ben je?",
+        "Hoe gaat het met je?"
        ]
       },
       {
@@ -5627,9 +5627,9 @@
        "q": "«Wat wil je drinken?» — что ответишь?",
        "opts": [
         "Een koffie met melk, graag.",
-        "We eten soep met brood.",
-        "Ja, ik kom eraan.",
-        "Pinnen, graag."
+        "Pinnen, graag.",
+        "Ik heb hoofdpijn en koorts.",
+        "Sinds maandag."
        ]
       },
       {
@@ -6069,9 +6069,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Anders nog iets?",
-        "Hoe oud ben je?",
-        "Hoe gaat het met je?",
-        "Ben je getrouwd?"
+        "Heb je broers of zussen?",
+        "Wat is je telefoonnummer?",
+        "Spreek je Nederlands?"
        ]
       },
       {
@@ -6080,9 +6080,9 @@
        "q": "«Anders nog iets?» — что ответишь?",
        "opts": [
         "Nee, dank u. Dat was het.",
-        "Ik heb hoofdpijn en koorts.",
-        "Sinds maandag.",
-        "Drie keer per dag, na het eten."
+        "Drie keer per dag, na het eten.",
+        "Ja, graag. Kan het morgen?",
+        "Maat achtendertig."
        ]
       },
       {
@@ -6334,18 +6334,20 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я очень хочу готовить.",
+       "tr": "Вчера я готовил(а).",
        "words": [
         "Ik",
-        "wil",
-        "graag",
-        "koken"
+        "heb",
+        "gisteren",
+        "lekker",
+        "gekookt"
        ],
        "ans": [
         "Ik",
-        "wil",
-        "graag",
-        "koken"
+        "heb",
+        "gisteren",
+        "lekker",
+        "gekookt"
        ]
       },
       {
@@ -6366,10 +6368,10 @@
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Ik kan goed koken.",
+       "audio": "Wil je met mij koken?",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Ik kan goed koken.",
+        "Wil je met mij koken?",
         "Ik zoek het meisje.",
         "Waar is het meisje?",
         "Ik zie het meisje."
@@ -6421,9 +6423,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Mag ik de rekening?",
-        "Wat is je telefoonnummer?",
-        "Spreek je Nederlands?",
-        "Hoe schrijf je dat?"
+        "Hoe laat is het?",
+        "Wanneer sta je op?",
+        "Wat doe je vandaag?"
        ]
       },
       {
@@ -6432,9 +6434,9 @@
        "q": "«Mag ik de rekening?» — что ответишь?",
        "opts": [
         "Ja, ik kom eraan.",
-        "Ja, graag. Kan het morgen?",
-        "Maat achtendertig.",
-        "Ja, de paskamer is daar."
+        "Ja, de paskamer is daar.",
+        "Om zes uur.",
+        "Ik kijk even voor u."
        ]
       },
       {
@@ -6852,31 +6854,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Sinds wanneer bent u ziek?",
+       "audio": "Kan de dokter vandaag komen?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Sinds wanneer bent u ziek?",
-        "Wanneer sta je op?",
-        "Wat doe je vandaag?",
-        "Welke dag is het vandaag?"
+        "Kan de dokter vandaag komen?",
+        "Wanneer ben je jarig?",
+        "Begrijp je de vraag?",
+        "Op welke bladzijde zijn we?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Sinds wanneer bent u ziek?» — что ответишь?",
+       "q": "«Kan de dokter vandaag komen?» — что ответишь?",
        "opts": [
-        "Sinds maandag.",
-        "Om zes uur.",
+        "Nee, morgen om tien uur.",
         "Ik kijk even voor u.",
-        "Om tien over negen."
+        "Om tien over negen.",
+        "Van spoor vijf."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Sinds maandag.",
-       "tr": "С понедельника."
+       "phrase": "Nee, morgen om tien uur.",
+       "tr": "Нет, завтра в десять."
       },
       {
        "t": "match",
@@ -7305,31 +7307,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Wilt u een afspraak maken?",
+       "audio": "Sinds wanneer bent u ziek?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Wilt u een afspraak maken?",
-        "Begrijp je de vraag?",
-        "Op welke bladzijde zijn we?",
-        "Wanneer is de les?"
+        "Sinds wanneer bent u ziek?",
+        "Wat wil je drinken?",
+        "Hoeveel kost het?",
+        "Anders nog iets?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Wilt u een afspraak maken?» — что ответишь?",
+       "q": "«Sinds wanneer bent u ziek?» — что ответишь?",
        "opts": [
-        "Ja, graag. Kan het morgen?",
-        "Van spoor vijf.",
-        "Om de hoek, bij de supermarkt.",
-        "Nee, tien minuten."
+        "Sinds maandag.",
+        "Nee, tien minuten.",
+        "Ja, dat is negen euro.",
+        "Ik zwem en ik lees."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ja, graag. Kan het morgen?",
-       "tr": "Да, пожалуйста. Можно завтра?"
+       "phrase": "Sinds maandag.",
+       "tr": "С понедельника."
       },
       {
        "t": "match",
@@ -7758,31 +7760,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Sinds wanneer bent u ziek?",
+       "audio": "Wilt u een afspraak maken?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Sinds wanneer bent u ziek?",
-        "Hoeveel kost het?",
-        "Anders nog iets?",
-        "Wat eten we vanavond?"
+        "Wilt u een afspraak maken?",
+        "Wilt u pinnen of contant?",
+        "Wat zijn uw klachten?",
+        "Sinds wanneer bent u ziek?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Sinds wanneer bent u ziek?» — что ответишь?",
+       "q": "«Wilt u een afspraak maken?» — что ответишь?",
        "opts": [
-        "Sinds maandag.",
-        "Ja, dat is negen euro.",
-        "Ik zwem en ik lees.",
-        "Ja, leuk! Hoe laat?"
+        "Ja, graag. Kan het morgen?",
+        "Ja, leuk! Hoe laat?",
+        "Mijn hobby is koken.",
+        "Ja, ik heb een kat."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Sinds maandag.",
-       "tr": "С понедельника."
+       "phrase": "Ja, graag. Kan het morgen?",
+       "tr": "Да, пожалуйста. Можно завтра?"
       },
       {
        "t": "match",
@@ -8211,31 +8213,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Wilt u een afspraak maken?",
+       "audio": "Kan de dokter vandaag komen?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Wilt u een afspraak maken?",
-        "Wat zijn uw klachten?",
-        "Sinds wanneer bent u ziek?",
-        "Hoe vaak per dag?"
+        "Kan de dokter vandaag komen?",
+        "Welke maat heeft u?",
+        "Mag ik dit passen?",
+        "Hoe laat sluit de winkel?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Wilt u een afspraak maken?» — что ответишь?",
+       "q": "«Kan de dokter vandaag komen?» — что ответишь?",
        "opts": [
-        "Ja, graag. Kan het morgen?",
-        "Ik heet Anna.",
-        "Ik kom uit Rusland.",
-        "Ik woon in Amsterdam."
+        "Nee, morgen om tien uur.",
+        "Ja, ik heb een kat.",
+        "De zon schijnt!",
+        "Ik werk in een restaurant."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ja, graag. Kan het morgen?",
-       "tr": "Да, пожалуйста. Можно завтра?"
+       "phrase": "Nee, morgen om tien uur.",
+       "tr": "Нет, завтра в десять."
       },
       {
        "t": "match",
@@ -8672,9 +8674,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Sinds wanneer bent u ziek?",
-        "Hoe laat sluit de winkel?",
-        "Heeft u dit in het blauw?",
-        "Hoe laat gaat de trein?"
+        "Waar is de bushalte?",
+        "Is het ver lopen?",
+        "Mag ik een kaartje naar Utrecht?"
        ]
       },
       {
@@ -8683,9 +8685,9 @@
        "q": "«Sinds wanneer bent u ziek?» — что ответишь?",
        "opts": [
         "Sinds maandag.",
-        "Ik ben dertig jaar.",
-        "Goed, dank je. En met jou?",
-        "Ja, ik ben getrouwd."
+        "Ja, heel goed, dank je.",
+        "Ja, natuurlijk. Wat is er?",
+        "Ja, ga je gang."
        ]
       },
       {
@@ -9131,9 +9133,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Wilt u een afspraak maken?",
-        "Is het ver lopen?",
-        "Mag ik een kaartje naar Utrecht?",
-        "Wat doe je in je vrije tijd?"
+        "Wat is je hobby?",
+        "Heb je een huisdier?",
+        "Wat voor weer is het?"
        ]
       },
       {
@@ -9142,9 +9144,9 @@
        "q": "«Wilt u een afspraak maken?» — что ответишь?",
        "opts": [
         "Ja, graag. Kan het morgen?",
-        "Ja, ik heb twee kinderen.",
-        "Ik heb één broer en één zus.",
-        "Mijn nummer is nul zes, twaalf, veertien."
+        "Ja, een thee graag.",
+        "Nee, nog niet. Ik heb honger!",
+        "Ja, van negen tot vijf."
        ]
       },
       {
@@ -9580,31 +9582,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Heeft u dit in het blauw?",
+       "audio": "Mag ik met de kaart betalen?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Heeft u dit in het blauw?",
-        "Waar kom je vandaan?",
-        "Waar woon je?",
-        "Hoe oud ben je?"
+        "Mag ik met de kaart betalen?",
+        "Wat heb je gisteren gedaan?",
+        "Heb je goed geslapen?",
+        "Kun je me helpen?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Heeft u dit in het blauw?» — что ответишь?",
+       "q": "«Mag ik met de kaart betalen?» — что ответишь?",
        "opts": [
-        "Ik kijk even voor u.",
-        "Ja, een beetje.",
-        "Zo: A-N-N-A.",
-        "Dat betekent «дом»."
+        "Ja, dat kan.",
+        "Ja, van negen tot vijf.",
+        "Voor mijn werk en het inburgeringsexamen.",
+        "Al twee jaar."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ik kijk even voor u.",
-       "tr": "Сейчас посмотрю для вас."
+       "phrase": "Ja, dat kan.",
+       "tr": "Да, можно."
       },
       {
        "t": "match",
@@ -10041,9 +10043,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Mag ik dit passen?",
-        "Heb je kinderen?",
-        "Heb je broers of zussen?",
-        "Wat is je telefoonnummer?"
+        "Moet je morgen werken?",
+        "Waarom leer je Nederlands?",
+        "Hoe lang woon je al in Nederland?"
        ]
       },
       {
@@ -10052,9 +10054,9 @@
        "q": "«Mag ik dit passen?» — что ответишь?",
        "opts": [
         "Ja, de paskamer is daar.",
-        "Het is half negen.",
-        "Ik sta om zeven uur op.",
-        "Ik werk en daarna sport ik."
+        "Lekker, vooral de kaas.",
+        "Ja, sorry. Ik praat te snel.",
+        "Ja, vrijdag kan ik."
        ]
       },
       {
@@ -10494,9 +10496,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Heeft u dit in het blauw?",
-        "Wat betekent dat?",
-        "Hoe laat is het?",
-        "Wanneer sta je op?"
+        "Kun je dat langzamer zeggen?",
+        "Zullen we vrijdag afspreken?",
+        "Waar werk je?"
        ]
       },
       {
@@ -10505,9 +10507,9 @@
        "q": "«Heeft u dit in het blauw?» — что ответишь?",
        "opts": [
         "Ik kijk even voor u.",
-        "Het is dinsdag.",
-        "Het is tien juli.",
-        "Op vijf mei."
+        "Bij een groot bedrijf in de stad.",
+        "Ja, ik was te laat.",
+        "Ik ga naar het strand."
        ]
       },
       {
@@ -10947,31 +10949,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Mag ik dit passen?",
+       "audio": "Welke maat heeft u?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Mag ik dit passen?",
-        "Wat is de datum vandaag?",
-        "Wanneer ben je jarig?",
-        "Begrijp je de vraag?"
+        "Welke maat heeft u?",
+        "Hoe heet je?",
+        "Waar kom je vandaan?",
+        "Waar woon je?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Mag ik dit passen?» — что ответишь?",
+       "q": "«Welke maat heeft u?» — что ответишь?",
        "opts": [
-        "Ja, de paskamer is daar.",
-        "Nee, kunt u het herhalen?",
-        "Op bladzijde twaalf.",
-        "Op maandag en donderdag."
+        "Maat achtendertig.",
+        "Ik heet Anna.",
+        "Ik kom uit Rusland.",
+        "Ik woon in Amsterdam."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ja, de paskamer is daar.",
-       "tr": "Да, примерочная там."
+       "phrase": "Maat achtendertig.",
+       "tr": "Размер тридцать восемь."
       },
       {
        "t": "match",
@@ -11327,31 +11329,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Heeft u dit in het blauw?",
+       "audio": "Hoe laat sluit de winkel?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Heeft u dit in het blauw?",
-        "Mag ik iets vragen?",
-        "Wat wil je drinken?",
-        "Hoeveel kost het?"
+        "Hoe laat sluit de winkel?",
+        "Ben je getrouwd?",
+        "Heb je kinderen?",
+        "Heb je broers of zussen?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Heeft u dit in het blauw?» — что ответишь?",
+       "q": "«Hoe laat sluit de winkel?» — что ответишь?",
        "opts": [
-        "Ik kijk even voor u.",
-        "Ja, natuurlijk!",
-        "Een koffie met melk, graag.",
-        "Drie euro vijftig."
+        "Om zes uur.",
+        "Ik ben dertig jaar.",
+        "Goed, dank je. En met jou?",
+        "Ja, ik ben getrouwd."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ik kijk even voor u.",
-       "tr": "Сейчас посмотрю для вас."
+       "phrase": "Om zes uur.",
+       "tr": "В шесть часов."
       },
       {
        "t": "match",
@@ -11679,31 +11681,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Mag ik dit passen?",
+       "audio": "Mag ik met de kaart betalen?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Mag ik dit passen?",
-        "Mag ik de rekening?",
-        "Wilt u pinnen of contant?",
-        "Wat zijn uw klachten?"
+        "Mag ik met de kaart betalen?",
+        "Hoe schrijf je dat?",
+        "Wat betekent dat?",
+        "Hoe laat is het?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Mag ik dit passen?» — что ответишь?",
+       "q": "«Mag ik met de kaart betalen?» — что ответишь?",
        "opts": [
-        "Ja, de paskamer is daar.",
-        "Nee, dank u. Dat was het.",
-        "We eten soep met brood.",
-        "Ja, ik kom eraan."
+        "Ja, dat kan.",
+        "Ja, ik heb twee kinderen.",
+        "Ik heb één broer en één zus.",
+        "Mijn nummer is nul zes, twaalf, veertien."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ja, de paskamer is daar.",
-       "tr": "Да, примерочная там."
+       "phrase": "Ja, dat kan.",
+       "tr": "Да, можно."
       }
      ]
     }
@@ -12116,31 +12118,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Hoe laat gaat de trein?",
+       "audio": "Heb je de bus gemist?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Hoe laat gaat de trein?",
-        "Wilt u een afspraak maken?",
-        "Welke maat heeft u?",
-        "Mag ik dit passen?"
+        "Heb je de bus gemist?",
+        "Welke dag is het vandaag?",
+        "Wat is de datum vandaag?",
+        "Wanneer ben je jarig?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Hoe laat gaat de trein?» — что ответишь?",
+       "q": "«Heb je de bus gemist?» — что ответишь?",
        "opts": [
-        "Om tien over negen.",
-        "Pinnen, graag.",
-        "Ik heb hoofdpijn en koorts.",
-        "Sinds maandag."
+        "Ja, ik was te laat.",
+        "Ja, een beetje.",
+        "Zo: A-N-N-A.",
+        "Dat betekent «дом»."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Om tien over negen.",
-       "tr": "В девять десять."
+       "phrase": "Ja, ik was te laat.",
+       "tr": "Да, я опоздал(а)."
       },
       {
        "t": "match",
@@ -12573,31 +12575,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Waar is de bushalte?",
+       "audio": "Van welk spoor vertrekt de trein?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Waar is de bushalte?",
-        "Hoe laat gaat de trein?",
         "Van welk spoor vertrekt de trein?",
-        "Is het ver lopen?"
+        "Wanneer is de les?",
+        "Mag ik iets vragen?",
+        "Wat wil je drinken?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Waar is de bushalte?» — что ответишь?",
+       "q": "«Van welk spoor vertrekt de trein?» — что ответишь?",
        "opts": [
-        "Om de hoek, bij de supermarkt.",
-        "Drie keer per dag, na het eten.",
-        "Ja, graag. Kan het morgen?",
-        "Maat achtendertig."
+        "Van spoor vijf.",
+        "Het is half negen.",
+        "Ik sta om zeven uur op.",
+        "Ik werk en daarna sport ik."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Om de hoek, bij de supermarkt.",
-       "tr": "За углом, у супермаркета."
+       "phrase": "Van spoor vijf.",
+       "tr": "С пятого пути."
       },
       {
        "t": "match",
@@ -13030,31 +13032,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Mag ik een kaartje naar Utrecht?",
+       "audio": "Is het ver lopen?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Mag ik een kaartje naar Utrecht?",
-        "Ga je mee naar de film?",
-        "Wat is je hobby?",
-        "Heb je een huisdier?"
+        "Is het ver lopen?",
+        "Wat eten we vanavond?",
+        "Mag ik de rekening?",
+        "Wilt u pinnen of contant?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Mag ik een kaartje naar Utrecht?» — что ответишь?",
+       "q": "«Is het ver lopen?» — что ответишь?",
        "opts": [
-        "Ja, dat is negen euro.",
-        "Ja, de paskamer is daar.",
-        "Om zes uur.",
-        "Ik kijk even voor u."
+        "Nee, tien minuten.",
+        "Het is dinsdag.",
+        "Het is tien juli.",
+        "Op vijf mei."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ja, dat is negen euro.",
-       "tr": "Да, это девять евро."
+       "phrase": "Nee, tien minuten.",
+       "tr": "Нет, десять минут."
       },
       {
        "t": "match",
@@ -13487,31 +13489,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Van welk spoor vertrekt de trein?",
+       "audio": "Heb je de bus gemist?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Van welk spoor vertrekt de trein?",
-        "Hoe gaat het met je?",
-        "Ben je getrouwd?",
-        "Heb je kinderen?"
+        "Heb je de bus gemist?",
+        "Hoe vaak per dag?",
+        "Wilt u een afspraak maken?",
+        "Welke maat heeft u?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Van welk spoor vertrekt de trein?» — что ответишь?",
+       "q": "«Heb je de bus gemist?» — что ответишь?",
        "opts": [
-        "Van spoor vijf.",
-        "Om tien over negen.",
-        "Om de hoek, bij de supermarkt.",
-        "Nee, tien minuten."
+        "Ja, ik was te laat.",
+        "Nee, kunt u het herhalen?",
+        "Op bladzijde twaalf.",
+        "Op maandag en donderdag."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Van spoor vijf.",
-       "tr": "С пятого пути."
+       "phrase": "Ja, ik was te laat.",
+       "tr": "Да, я опоздал(а)."
       },
       {
        "t": "match",
@@ -13942,31 +13944,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Is het ver lopen?",
+       "audio": "Van welk spoor vertrekt de trein?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Is het ver lopen?",
-        "Spreek je Nederlands?",
-        "Hoe schrijf je dat?",
-        "Wat betekent dat?"
+        "Van welk spoor vertrekt de trein?",
+        "Heeft u dit in het blauw?",
+        "Hoe laat gaat de trein?",
+        "Waar is de bushalte?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Is het ver lopen?» — что ответишь?",
+       "q": "«Van welk spoor vertrekt de trein?» — что ответишь?",
        "opts": [
-        "Nee, tien minuten.",
-        "Ja, dat is negen euro.",
-        "Ik zwem en ik lees.",
-        "Ja, leuk! Hoe laat?"
+        "Van spoor vijf.",
+        "Ja, natuurlijk!",
+        "Een koffie met melk, graag.",
+        "Drie euro vijftig."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Nee, tien minuten.",
-       "tr": "Нет, десять минут."
+       "phrase": "Van spoor vijf.",
+       "tr": "С пятого пути."
       },
       {
        "t": "match",
@@ -14399,31 +14401,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Hoe laat gaat de trein?",
+       "audio": "Is het ver lopen?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Hoe laat gaat de trein?",
-        "Wat doe je vandaag?",
-        "Welke dag is het vandaag?",
-        "Wat is de datum vandaag?"
+        "Is het ver lopen?",
+        "Wat doe je in je vrije tijd?",
+        "Ga je mee naar de film?",
+        "Wat is je hobby?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Hoe laat gaat de trein?» — что ответишь?",
+       "q": "«Is het ver lopen?» — что ответишь?",
        "opts": [
-        "Om tien over negen.",
-        "Ik heet Anna.",
-        "Ik kom uit Rusland.",
-        "Ik woon in Amsterdam."
+        "Nee, tien minuten.",
+        "Nee, dank u. Dat was het.",
+        "We eten soep met brood.",
+        "Ja, ik kom eraan."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Om tien over negen.",
-       "tr": "В девять десять."
+       "phrase": "Nee, tien minuten.",
+       "tr": "Нет, десять минут."
       },
       {
        "t": "match",
@@ -14712,31 +14714,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Waar is de bushalte?",
+       "audio": "Heb je de bus gemist?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Waar is de bushalte?",
-        "Op welke bladzijde zijn we?",
-        "Wanneer is de les?",
-        "Mag ik iets vragen?"
+        "Heb je de bus gemist?",
+        "Wat voor weer is het?",
+        "Wat voor werk doe je?",
+        "Wat heb je gisteren gedaan?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Waar is de bushalte?» — что ответишь?",
+       "q": "«Heb je de bus gemist?» — что ответишь?",
        "opts": [
-        "Om de hoek, bij de supermarkt.",
-        "Ik ben dertig jaar.",
-        "Goed, dank je. En met jou?",
-        "Ja, ik ben getrouwd."
+        "Ja, ik was te laat.",
+        "Pinnen, graag.",
+        "Ik heb hoofdpijn en koorts.",
+        "Sinds maandag."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Om de hoek, bij de supermarkt.",
-       "tr": "За углом, у супермаркета."
+       "phrase": "Ja, ik was te laat.",
+       "tr": "Да, я опоздал(а)."
       },
       {
        "t": "match",
@@ -15171,9 +15173,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Wat is je hobby?",
-        "Anders nog iets?",
-        "Wat eten we vanavond?",
-        "Mag ik de rekening?"
+        "Wil je iets drinken?",
+        "Heb je al gegeten?",
+        "Moet je morgen werken?"
        ]
       },
       {
@@ -15182,9 +15184,9 @@
        "q": "«Wat is je hobby?» — что ответишь?",
        "opts": [
         "Mijn hobby is koken.",
-        "Ja, ik heb twee kinderen.",
-        "Ik heb één broer en één zus.",
-        "Mijn nummer is nul zes, twaalf, veertien."
+        "Drie keer per dag, na het eten.",
+        "Ja, graag. Kan het morgen?",
+        "Maat achtendertig."
        ]
       },
       {
@@ -15624,9 +15626,9 @@
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
         "Wat voor weer is het?",
-        "Sinds wanneer bent u ziek?",
-        "Hoe vaak per dag?",
-        "Wilt u een afspraak maken?"
+        "Vind je Nederland leuk?",
+        "Wat vind je van het eten hier?",
+        "Kun je dat langzamer zeggen?"
        ]
       },
       {
@@ -15635,9 +15637,9 @@
        "q": "«Wat voor weer is het?» — что ответишь?",
        "opts": [
         "De zon schijnt!",
-        "Ja, een beetje.",
-        "Zo: A-N-N-A.",
-        "Dat betekent «дом»."
+        "Ja, de paskamer is daar.",
+        "Om zes uur.",
+        "Ik kijk even voor u."
        ]
       },
       {
@@ -16077,31 +16079,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Ga je mee naar de film?",
+       "audio": "Wat ga je in het weekend doen?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Ga je mee naar de film?",
-        "Hoe laat sluit de winkel?",
-        "Heeft u dit in het blauw?",
-        "Hoe laat gaat de trein?"
+        "Wat ga je in het weekend doen?",
+        "Waar werk je?",
+        "Heb je de bus gemist?",
+        "Ben je moe?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Ga je mee naar de film?» — что ответишь?",
+       "q": "«Wat ga je in het weekend doen?» — что ответишь?",
        "opts": [
-        "Ja, leuk! Hoe laat?",
-        "Het is half negen.",
-        "Ik sta om zeven uur op.",
-        "Ik werk en daarna sport ik."
+        "Ik ga naar het strand.",
+        "Om tien over negen.",
+        "Van spoor vijf.",
+        "Om de hoek, bij de supermarkt."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ja, leuk! Hoe laat?",
-       "tr": "Да, здорово! Во сколько?"
+       "phrase": "Ik ga naar het strand.",
+       "tr": "Поеду на пляж."
       },
       {
        "t": "match",
@@ -16530,31 +16532,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Heb je een huisdier?",
+       "audio": "Ga je mee naar de film?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Heb je een huisdier?",
-        "Is het ver lopen?",
-        "Mag ik een kaartje naar Utrecht?",
-        "Wat doe je in je vrije tijd?"
+        "Ga je mee naar de film?",
+        "Hoe oud ben je?",
+        "Hoe gaat het met je?",
+        "Ben je getrouwd?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Heb je een huisdier?» — что ответишь?",
+       "q": "«Ga je mee naar de film?» — что ответишь?",
        "opts": [
-        "Ja, ik heb een kat.",
-        "Het is dinsdag.",
-        "Het is tien juli.",
-        "Op vijf mei."
+        "Ja, leuk! Hoe laat?",
+        "Nee, tien minuten.",
+        "Ja, dat is negen euro.",
+        "Ik zwem en ik lees."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ja, ik heb een kat.",
-       "tr": "Да, у меня кошка."
+       "phrase": "Ja, leuk! Hoe laat?",
+       "tr": "Да, здорово! Во сколько?"
       },
       {
        "t": "match",
@@ -16983,31 +16985,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Wat doe je in je vrije tijd?",
+       "audio": "Heb je een huisdier?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Wat doe je in je vrije tijd?",
-        "Waar woon je?",
-        "Hoe oud ben je?",
-        "Hoe gaat het met je?"
+        "Heb je een huisdier?",
+        "Wat is je telefoonnummer?",
+        "Spreek je Nederlands?",
+        "Hoe schrijf je dat?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Wat doe je in je vrije tijd?» — что ответишь?",
+       "q": "«Heb je een huisdier?» — что ответишь?",
        "opts": [
-        "Ik zwem en ik lees.",
-        "Nee, kunt u het herhalen?",
-        "Op bladzijde twaalf.",
-        "Op maandag en donderdag."
+        "Ja, ik heb een kat.",
+        "Ja, leuk! Hoe laat?",
+        "Mijn hobby is koken.",
+        "De zon schijnt!"
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Ik zwem en ik lees.",
-       "tr": "Я плаваю и читаю."
+       "phrase": "Ja, ik heb een kat.",
+       "tr": "Да, у меня кошка."
       },
       {
        "t": "match",
@@ -17440,31 +17442,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Wat is je hobby?",
+       "audio": "Vind je Nederland leuk?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Wat is je hobby?",
-        "Heb je broers of zussen?",
-        "Wat is je telefoonnummer?",
-        "Spreek je Nederlands?"
+        "Vind je Nederland leuk?",
+        "Wanneer sta je op?",
+        "Wat doe je vandaag?",
+        "Welke dag is het vandaag?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Wat is je hobby?» — что ответишь?",
+       "q": "«Vind je Nederland leuk?» — что ответишь?",
        "opts": [
-        "Mijn hobby is koken.",
-        "Ja, natuurlijk!",
-        "Een koffie met melk, graag.",
-        "Drie euro vijftig."
+        "Ja, maar het regent veel!",
+        "De zon schijnt!",
+        "Ik werk in een restaurant.",
+        "Ik heb gewerkt en gekookt."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Mijn hobby is koken.",
-       "tr": "Моё хобби — готовить."
+       "phrase": "Ja, maar het regent veel!",
+       "tr": "Да, но часто идёт дождь!"
       },
       {
        "t": "match",
@@ -17735,20 +17737,20 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Сегодня я не буду заниматься спортом.",
+       "tr": "Вчера я занимался(ась) спортом.",
        "words": [
-        "Vandaag",
-        "ga",
-        "ik",
-        "niet",
-        "sporten"
+        "Ik",
+        "heb",
+        "gisteren",
+        "lekker",
+        "gesport"
        ],
        "ans": [
-        "Vandaag",
-        "ga",
-        "ik",
-        "niet",
-        "sporten"
+        "Ik",
+        "heb",
+        "gisteren",
+        "lekker",
+        "gesport"
        ]
       },
       {
@@ -17771,10 +17773,10 @@
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "We gaan morgen sporten.",
+       "audio": "Wil je met mij sporten?",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "We gaan morgen sporten.",
+        "Wil je met mij sporten?",
         "Ik zoek het meisje.",
         "Waar is het meisje?",
         "Ik zie het meisje."
@@ -17783,8 +17785,8 @@
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Vandaag ga ik niet zwemmen.",
-       "q": "Vandaag ga ik niet ___.",
+       "audio": "Ik moet vandaag zwemmen.",
+       "q": "Ik moet vandaag ___.",
        "answer": [
         "zwemmen"
        ],
@@ -17822,31 +17824,31 @@
       {
        "t": "listen",
        "k": "Вопрос на слух",
-       "audio": "Wat voor weer is het?",
+       "audio": "Wat doe je in je vrije tijd?",
        "q": "Тебя спросили: … Что прозвучало?",
        "opts": [
-        "Wat voor weer is het?",
-        "Hoe laat is het?",
-        "Wanneer sta je op?",
-        "Wat doe je vandaag?"
+        "Wat doe je in je vrije tijd?",
+        "Begrijp je de vraag?",
+        "Op welke bladzijde zijn we?",
+        "Wanneer is de les?"
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Wat voor weer is het?» — что ответишь?",
+       "q": "«Wat doe je in je vrije tijd?» — что ответишь?",
        "opts": [
-        "De zon schijnt!",
-        "Nee, dank u. Dat was het.",
-        "We eten soep met brood.",
-        "Ja, ik kom eraan."
+        "Ik zwem en ik lees.",
+        "Ja, natuurlijk. Wat is er?",
+        "Ja, ga je gang.",
+        "Ja, een thee graag."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "De zon schijnt!",
-       "tr": "Светит солнце!"
+       "phrase": "Ik zwem en ik lees.",
+       "tr": "Я плаваю и читаю."
       },
       {
        "t": "match",

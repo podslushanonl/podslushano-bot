@@ -3835,9 +3835,9 @@
      "steps": [
       {
        "t": "explain",
-       "k": "Кто, что, где…",
-       "b": "📖 Объяснение",
-       "html": "<p>Порядок: слово + глагол + подлежащее.</p><div class=\"rule\">wie (кто) · wat (что) · waar (где) · wanneer (когда) · hoe (как) · hoeveel (сколько) · waarom (почему)</div>",
+       "k": "📐 Правило: вопросительные слова",
+       "b": "📐 Правило",
+       "html": "<p>Семь главных вопросов. Порядок всегда: <b>вопрос-слово → глагол → подлежащее</b>.</p><div style=\"margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:14px\"><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>wie</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">кто</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>wat</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">что</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>waar</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">где</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>wanneer</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">когда</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>waarom</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">почему</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>hoe</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">как</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>hoeveel</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">сколько</div></div><div class=\"rule\" style=\"margin-top:8px\">Waar <b>woon</b> jij? — глагол сразу после вопрос-слова, потом «jij»</div>",
        "ex": [
         [
          "Waar woon je?",
@@ -6353,9 +6353,9 @@
      "steps": [
       {
        "t": "explain",
-       "k": "Который час?",
-       "b": "📖 Объяснение",
-       "html": "<p>Спросить: <b>Hoe laat is het?</b> Ответить: <b>Het is … uur.</b></p><div class=\"rule\">kwart over drie = 3:15 · kwart voor vier = 3:45<br>⚠️ <b>half vier = 3:30</b> (нидерландцы считают «половина ДО четырёх»!)</div>",
+       "k": "📐 Правило: часы по-нидерландски",
+       "b": "📐 Правило",
+       "html": "<p>Главная ловушка: <b>half negen = ПОЛОВИНА ДЕВЯТОГО = 8:30</b> (не 9:30!). Нидерландцы считают до СЛЕДУЮЩЕГО часа.</p><div style=\"margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:14px\"><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>8:00</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">acht uur</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>8:15</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">kwart over acht</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>8:30</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">half <u>negen</u> ❗</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>8:45</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">kwart voor negen</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>8:10</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">tien over acht</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>8:50</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">tien voor negen</div></div><div class=\"rule\" style=\"margin-top:8px\">over = после · voor = до · half = половина СЛЕДУЮЩЕГО часа</div>",
        "ex": [
         [
          "Hoe laat is het?",
@@ -7348,9 +7348,9 @@
      "steps": [
       {
        "t": "explain",
-       "k": "Модальные глаголы",
-       "b": "📖 Объяснение",
-       "html": "<p><b>Модальные глаголы</b> выражают желание/возможность. Главный глагол ставится в <b>инфинитиве в КОНЕЦ</b>!</p><div class=\"rule\">willen (хотеть): ik wil · jij wilt · hij wil · wij willen<br>kunnen (мочь): ik kan · jij kunt · hij kan · wij kunnen<br>Ik wil koffie <b>drinken</b>. · Ik kan Nederlands <b>spreken</b>.</div>",
+       "k": "📐 Правило: модальные глаголы",
+       "b": "📐 Правило",
+       "html": "<p>Модальный глагол — на 2-м месте, главный — <b>инфинитивом в конец</b>: Ik <b>wil</b> koffie <b>drinken</b>.</p><div style=\"margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:14px\"><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>willen</b> (хотеть)</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">ik wil · jij wilt · hij wil</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>kunnen</b> (мочь)</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">ik kan · jij kunt · hij kan</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>moeten</b> (быть должным)</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">ik moet · jij moet · hij moet</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>mogen</b> (иметь разрешение)</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">ik mag · jij mag · hij mag</div></div><div class=\"rule\" style=\"margin-top:8px\">Ik moet morgen <b>werken</b>. · Mag ik hier <b>zitten</b>? — главный глагол в конце!</div>",
        "ex": [
         [
          "Ik wil slapen",
@@ -7639,127 +7639,101 @@
      ]
     },
     {
-     "t": "Предложения и разговор",
+     "t": "Практика конструкций: модальные",
      "steps": [
       {
        "t": "explain",
-       "k": "Слово в предложении",
+       "k": "Практика конструкции",
        "b": "📖 Практика",
-       "html": "<p>Закрепим материал урока в живых предложениях и вопросах — как в реальном разговоре.</p>"
+       "html": "<p>Тренируем модальные глаголы в живых предложениях: moet / kan / mag / wil.</p>"
       },
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Вещь здесь, я думаю.",
+       "tr": "Завтра я не могу говорить.",
        "words": [
-        "Het",
-        "ding",
-        "is",
-        "hier,",
-        "denk",
-        "ik"
+        "Ik",
+        "kan",
+        "morgen",
+        "niet",
+        "spreken"
        ],
        "ans": [
-        "Het",
-        "ding",
-        "is",
-        "hier,",
-        "denk",
-        "ik"
+        "Ik",
+        "kan",
+        "morgen",
+        "niet",
+        "spreken"
        ]
       },
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я не вижу вещь.",
+       "tr": "Сегодня мне нужно разговаривать.",
        "words": [
         "Ik",
-        "zie",
-        "het",
-        "ding",
-        "niet"
+        "moet",
+        "vandaag",
+        "praten"
        ],
        "ans": [
         "Ik",
-        "zie",
-        "het",
-        "ding",
-        "niet"
+        "moet",
+        "vandaag",
+        "praten"
        ]
       },
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Ik heb een ding nodig.",
+       "audio": "Ik kan morgen niet praten.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Ik heb een ding nodig.",
-        "Ik zie de klas niet.",
-        "Ik heb een klas nodig.",
-        "Is dit de klas?"
+        "Ik kan morgen niet praten.",
+        "Ik kan morgen niet spreken.",
+        "Ik moet vandaag praten.",
+        "Ik moet vandaag luisteren."
        ]
       },
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Waar is het ding?",
+       "audio": "Ik moet vandaag luisteren.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Waar is het ding?",
-        "De cursus is hier, denk ik.",
-        "Ik zie de cursus niet.",
-        "Is dit de cursist?"
+        "Ik moet vandaag luisteren.",
+        "Ik kan morgen niet luisteren.",
+        "Mag ik even luisteren?",
+        "Ik moet vandaag lezen."
        ]
-      },
-      {
-       "t": "gapType",
-       "k": "На слух",
-       "audio": "Ik zie het plaatje niet.",
-       "q": "Ik zie het ___ niet.",
-       "answer": [
-        "plaatje"
-       ],
-       "ph": "…"
       },
       {
        "t": "quiz",
        "k": "Понимание",
-       "q": "Что значит: «Ik heb een plaatje nodig.»?",
+       "q": "Что значит: «Ik kan morgen niet luisteren.»?",
        "opts": [
-        "Мне нужна картинка.",
-        "Это очень еженедельно.",
-        "Это ежемесячно.",
-        "Это очень ежемесячно."
-       ]
-      },
-      {
-       "t": "listen",
-       "k": "Вопрос на слух",
-       "audio": "Welke dag is het vandaag?",
-       "q": "Тебя спросили — что именно?",
-       "opts": [
-        "Welke dag is het vandaag?",
-        "Wat wil je drinken?",
-        "Hoeveel kost het?",
-        "Anders nog iets?"
+        "Завтра я не могу слушать.",
+        "Завтра я не могу говорить.",
+        "Сегодня мне нужно разговаривать.",
+        "Завтра я не могу разговаривать."
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Welke dag is het vandaag?» (Какой сегодня день?) — что ответишь?",
+       "q": "«Kun je me helpen?» (Ты можешь мне помочь?) — что ответишь?",
        "opts": [
-        "Het is dinsdag.",
-        "Om zes uur.",
-        "Ik kijk even voor u.",
-        "Om tien over negen."
+        "Ja, natuurlijk. Wat is er?",
+        "Ik heet Anna.",
+        "Ik kom uit Rusland.",
+        "Ik woon in Amsterdam."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Het is dinsdag.",
-       "tr": "Сегодня вторник."
+       "phrase": "Ja, natuurlijk. Wat is er?",
+       "tr": "Да, конечно. Что случилось?"
       }
      ]
     }
@@ -8761,9 +8735,9 @@
      "steps": [
       {
        "t": "explain",
-       "k": "Прошлое: перфект",
-       "b": "📖 Объяснение",
-       "html": "<p>Чтобы рассказать о прошлом, чаще всего используют <b>перфект</b>: <b>hebben</b> + <b>причастие II</b>.</p><div class=\"rule\">Причастие: <b>ge + корень + t/d</b><br>werken → <b>gewerkt</b> · wonen → <b>gewoond</b> · leren → <b>geleerd</b><br>Ik heb gisteren <b>gewerkt</b>.</div>",
+       "k": "📐 Правило: перфект (прошлое)",
+       "b": "📐 Правило",
+       "html": "<p>О прошлом говорят перфектом: <b>hebben/zijn + причастие</b> (в конце предложения!).</p><div style=\"margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:5px;font-size:14px\"><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\"><b>Формула</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">ge + основа + t/d</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">werken → <b>gewerkt</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">я работал</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">spelen → <b>gespeeld</b></div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">я играл</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">❗ сильные глаголы</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">наизусть: eten→gegeten, drinken→gedronken, lezen→gelezen</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">❗ be-, ver-</div><div style=\"background:var(--surface);border:1px solid var(--brd);border-radius:10px;padding:7px 10px\">без ge-: betalen→betaald</div></div><div class=\"rule\" style=\"margin-top:8px\">Ik <b>heb</b> gisteren pasta <b>gegeten</b>. — hebben на 2-м месте, причастие в конце</div>",
        "ex": [
         [
          "gewerkt",
@@ -9057,121 +9031,103 @@
      ]
     },
     {
-     "t": "Предложения и разговор",
+     "t": "Практика конструкций: перфект",
      "steps": [
       {
        "t": "explain",
-       "k": "Слово в предложении",
+       "k": "Практика конструкции",
        "b": "📖 Практика",
-       "html": "<p>Закрепим материал урока в живых предложениях и вопросах — как в реальном разговоре.</p>"
+       "html": "<p>Тренируем перфект: hebben + причастие в конце предложения.</p>"
       },
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Завтра мы будем помогать.",
+       "tr": "Мы вместе помогали.",
        "words": [
         "We",
-        "gaan",
-        "morgen",
-        "helpen"
+        "hebben",
+        "samen",
+        "geholpen"
        ],
        "ans": [
         "We",
-        "gaan",
-        "morgen",
-        "helpen"
+        "hebben",
+        "samen",
+        "geholpen"
        ]
       },
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я хорошо умею помогать.",
+       "tr": "Сегодня я ещё не помогал(а).",
        "words": [
         "Ik",
-        "kan",
-        "goed",
-        "helpen"
+        "heb",
+        "vandaag",
+        "nog",
+        "niet",
+        "geholpen"
        ],
        "ans": [
         "Ik",
-        "kan",
-        "goed",
-        "helpen"
+        "heb",
+        "vandaag",
+        "nog",
+        "niet",
+        "geholpen"
        ]
       },
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Dat is heel eerlijk.",
+       "audio": "Ik heb gisteren gesproken.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Dat is heel eerlijk.",
-        "Ik zie de computer niet.",
-        "Ik heb een computer nodig.",
-        "De pen is hier, denk ik."
+        "Ik heb gisteren gesproken.",
+        "We hebben samen geholpen.",
+        "Ik heb vandaag nog niet geholpen.",
+        "Heb je al gesproken?"
        ]
       },
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Is het eerlijk?",
+       "audio": "Heb je al gesproken?",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Is het eerlijk?",
-        "Is dit de pen?",
-        "Ik zie het potlood niet.",
-        "Ik heb een potlood nodig."
+        "Heb je al gesproken?",
+        "We hebben samen gesproken.",
+        "Ik heb vandaag nog niet gesproken.",
+        "Ik heb gisteren gepraat."
        ]
-      },
-      {
-       "t": "gapType",
-       "k": "На слух",
-       "audio": "Het is eerlijk.",
-       "q": "Het is ___.",
-       "answer": [
-        "eerlijk"
-       ],
-       "ph": "…"
       },
       {
        "t": "quiz",
        "k": "Понимание",
-       "q": "Что значит: «Is het wekelijks?»?",
+       "q": "Что значит: «We hebben samen gesproken.»?",
        "opts": [
-        "Это еженедельно?",
-        "Это очень трудно.",
-        "Это трудно?",
-        "Это очень быстро."
-       ]
-      },
-      {
-       "t": "listen",
-       "k": "Вопрос на слух",
-       "audio": "Hoe laat is het?",
-       "q": "Тебя спросили — что именно?",
-       "opts": [
-        "Hoe laat is het?",
-        "Hoe heet je?",
-        "Waar kom je vandaan?",
-        "Waar woon je?"
+        "Мы вместе говорили.",
+        "Мы вместе помогали.",
+        "Сегодня я ещё не помогал(а).",
+        "Вчера я говорил(а)."
        ]
       },
       {
        "t": "quiz",
        "k": "Твой ответ",
-       "q": "«Hoe laat is het?» (Который час?) — что ответишь?",
+       "q": "«Wat heb je gisteren gedaan?» (Что ты делал(а) вчера?) — что ответишь?",
        "opts": [
-        "Het is half negen.",
-        "Ja, ik heb twee kinderen.",
-        "Ik heb één broer en één zus.",
-        "Mijn nummer is nul zes, twaalf, veertien."
+        "Ik heb gewerkt en gekookt.",
+        "Ik heet Anna.",
+        "Ik kom uit Rusland.",
+        "Ik woon in Amsterdam."
        ]
       },
       {
        "t": "speak",
        "k": "Говорение",
-       "phrase": "Het is half negen.",
-       "tr": "Половина девятого."
+       "phrase": "Ik heb gewerkt en gekookt.",
+       "tr": "Я работал(а) и готовил(а)."
       }
      ]
     }

@@ -1,0 +1,798 @@
+{
+ "note": "Батч №3: перфект (hebben + причастие) и модальные конструкции (moeten/kunnen/mogen/willen/zullen) на глаголы банка. Мост A1→A2.",
+ "count": 132,
+ "items": [
+  {
+   "nl": "Ik heb gisteren geholpen.",
+   "ru": "Вчера я помогал(а).",
+   "lemma": "helpen",
+   "theme": 1
+  },
+  {
+   "nl": "Heb je al geholpen?",
+   "ru": "Ты уже помогал(а)?",
+   "lemma": "helpen",
+   "theme": 1
+  },
+  {
+   "nl": "We hebben samen geholpen.",
+   "ru": "Мы вместе помогали.",
+   "lemma": "helpen",
+   "theme": 1
+  },
+  {
+   "nl": "Ik heb vandaag nog niet geholpen.",
+   "ru": "Сегодня я ещё не помогал(а).",
+   "lemma": "helpen",
+   "theme": 1
+  },
+  {
+   "nl": "Ik moet vandaag helpen.",
+   "ru": "Сегодня мне нужно помогать.",
+   "lemma": "helpen",
+   "theme": 1
+  },
+  {
+   "nl": "Ik kan morgen niet helpen.",
+   "ru": "Завтра я не могу помогать.",
+   "lemma": "helpen",
+   "theme": 1
+  },
+  {
+   "nl": "Ik heb gisteren gesproken.",
+   "ru": "Вчера я говорил(а).",
+   "lemma": "spreken",
+   "theme": 2
+  },
+  {
+   "nl": "Heb je al gesproken?",
+   "ru": "Ты уже говорил(а)?",
+   "lemma": "spreken",
+   "theme": 2
+  },
+  {
+   "nl": "We hebben samen gesproken.",
+   "ru": "Мы вместе говорили.",
+   "lemma": "spreken",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gesproken.",
+   "ru": "Сегодня я ещё не говорил(а).",
+   "lemma": "spreken",
+   "theme": 2
+  },
+  {
+   "nl": "Ik moet vandaag spreken.",
+   "ru": "Сегодня мне нужно говорить.",
+   "lemma": "spreken",
+   "theme": 2
+  },
+  {
+   "nl": "Ik kan morgen niet spreken.",
+   "ru": "Завтра я не могу говорить.",
+   "lemma": "spreken",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb gisteren gepraat.",
+   "ru": "Вчера я разговаривал(а).",
+   "lemma": "praten",
+   "theme": 2
+  },
+  {
+   "nl": "Heb je al gepraat?",
+   "ru": "Ты уже разговаривал(а)?",
+   "lemma": "praten",
+   "theme": 2
+  },
+  {
+   "nl": "We hebben samen gepraat.",
+   "ru": "Мы вместе разговаривали.",
+   "lemma": "praten",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gepraat.",
+   "ru": "Сегодня я ещё не разговаривал(а).",
+   "lemma": "praten",
+   "theme": 2
+  },
+  {
+   "nl": "Ik moet vandaag praten.",
+   "ru": "Сегодня мне нужно разговаривать.",
+   "lemma": "praten",
+   "theme": 2
+  },
+  {
+   "nl": "Ik kan morgen niet praten.",
+   "ru": "Завтра я не могу разговаривать.",
+   "lemma": "praten",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb gisteren geluisterd.",
+   "ru": "Вчера я слушал(а).",
+   "lemma": "luisteren",
+   "theme": 2
+  },
+  {
+   "nl": "Heb je al geluisterd?",
+   "ru": "Ты уже слушал(а)?",
+   "lemma": "luisteren",
+   "theme": 2
+  },
+  {
+   "nl": "We hebben samen geluisterd.",
+   "ru": "Мы вместе слушали.",
+   "lemma": "luisteren",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb vandaag nog niet geluisterd.",
+   "ru": "Сегодня я ещё не слушал(а).",
+   "lemma": "luisteren",
+   "theme": 2
+  },
+  {
+   "nl": "Ik moet vandaag luisteren.",
+   "ru": "Сегодня мне нужно слушать.",
+   "lemma": "luisteren",
+   "theme": 2
+  },
+  {
+   "nl": "Ik kan morgen niet luisteren.",
+   "ru": "Завтра я не могу слушать.",
+   "lemma": "luisteren",
+   "theme": 2
+  },
+  {
+   "nl": "Mag ik even luisteren?",
+   "ru": "Можно мне слушать?",
+   "lemma": "luisteren",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb gisteren gelezen.",
+   "ru": "Вчера я читал(а).",
+   "lemma": "lezen",
+   "theme": 2
+  },
+  {
+   "nl": "Heb je al gelezen?",
+   "ru": "Ты уже читал(а)?",
+   "lemma": "lezen",
+   "theme": 2
+  },
+  {
+   "nl": "We hebben samen gelezen.",
+   "ru": "Мы вместе читали.",
+   "lemma": "lezen",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gelezen.",
+   "ru": "Сегодня я ещё не читал(а).",
+   "lemma": "lezen",
+   "theme": 2
+  },
+  {
+   "nl": "Ik moet vandaag lezen.",
+   "ru": "Сегодня мне нужно читать.",
+   "lemma": "lezen",
+   "theme": 2
+  },
+  {
+   "nl": "Ik kan morgen niet lezen.",
+   "ru": "Завтра я не могу читать.",
+   "lemma": "lezen",
+   "theme": 2
+  },
+  {
+   "nl": "Mag ik even lezen?",
+   "ru": "Можно мне читать?",
+   "lemma": "lezen",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb gisteren geschreven.",
+   "ru": "Вчера я писал(а).",
+   "lemma": "schrijven",
+   "theme": 2
+  },
+  {
+   "nl": "Heb je al geschreven?",
+   "ru": "Ты уже писал(а)?",
+   "lemma": "schrijven",
+   "theme": 2
+  },
+  {
+   "nl": "We hebben samen geschreven.",
+   "ru": "Мы вместе писали.",
+   "lemma": "schrijven",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb vandaag nog niet geschreven.",
+   "ru": "Сегодня я ещё не писал(а).",
+   "lemma": "schrijven",
+   "theme": 2
+  },
+  {
+   "nl": "Ik moet vandaag schrijven.",
+   "ru": "Сегодня мне нужно писать.",
+   "lemma": "schrijven",
+   "theme": 2
+  },
+  {
+   "nl": "Ik kan morgen niet schrijven.",
+   "ru": "Завтра я не могу писать.",
+   "lemma": "schrijven",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb gisteren geleerd.",
+   "ru": "Вчера я учил(а).",
+   "lemma": "leren",
+   "theme": 2
+  },
+  {
+   "nl": "Heb je al geleerd?",
+   "ru": "Ты уже учил(а)?",
+   "lemma": "leren",
+   "theme": 2
+  },
+  {
+   "nl": "We hebben samen geleerd.",
+   "ru": "Мы вместе учили.",
+   "lemma": "leren",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb vandaag nog niet geleerd.",
+   "ru": "Сегодня я ещё не учил(а).",
+   "lemma": "leren",
+   "theme": 2
+  },
+  {
+   "nl": "Ik moet vandaag leren.",
+   "ru": "Сегодня мне нужно учить.",
+   "lemma": "leren",
+   "theme": 2
+  },
+  {
+   "nl": "Ik kan morgen niet leren.",
+   "ru": "Завтра я не могу учить.",
+   "lemma": "leren",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb gisteren lekker gegeten.",
+   "ru": "Вчера я ел(а).",
+   "lemma": "eten",
+   "theme": 3
+  },
+  {
+   "nl": "Heb je al gegeten?",
+   "ru": "Ты уже ел(а)?",
+   "lemma": "eten",
+   "theme": 3
+  },
+  {
+   "nl": "We hebben samen gegeten.",
+   "ru": "Мы вместе ели.",
+   "lemma": "eten",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gegeten.",
+   "ru": "Сегодня я ещё не ел(а).",
+   "lemma": "eten",
+   "theme": 3
+  },
+  {
+   "nl": "Ik moet vandaag eten.",
+   "ru": "Сегодня мне нужно есть.",
+   "lemma": "eten",
+   "theme": 3
+  },
+  {
+   "nl": "Ik kan morgen niet eten.",
+   "ru": "Завтра я не могу есть.",
+   "lemma": "eten",
+   "theme": 3
+  },
+  {
+   "nl": "Mag ik even eten?",
+   "ru": "Можно мне есть?",
+   "lemma": "eten",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je met mij eten?",
+   "ru": "Хочешь со мной есть?",
+   "lemma": "eten",
+   "theme": 3
+  },
+  {
+   "nl": "Zullen we samen eten?",
+   "ru": "Давай вместе есть?",
+   "lemma": "eten",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb gisteren gedronken.",
+   "ru": "Вчера я пил(а).",
+   "lemma": "drinken",
+   "theme": 3
+  },
+  {
+   "nl": "Heb je al gedronken?",
+   "ru": "Ты уже пил(а)?",
+   "lemma": "drinken",
+   "theme": 3
+  },
+  {
+   "nl": "We hebben samen gedronken.",
+   "ru": "Мы вместе пили.",
+   "lemma": "drinken",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gedronken.",
+   "ru": "Сегодня я ещё не пил(а).",
+   "lemma": "drinken",
+   "theme": 3
+  },
+  {
+   "nl": "Ik moet vandaag drinken.",
+   "ru": "Сегодня мне нужно пить.",
+   "lemma": "drinken",
+   "theme": 3
+  },
+  {
+   "nl": "Ik kan morgen niet drinken.",
+   "ru": "Завтра я не могу пить.",
+   "lemma": "drinken",
+   "theme": 3
+  },
+  {
+   "nl": "Mag ik even drinken?",
+   "ru": "Можно мне пить?",
+   "lemma": "drinken",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb gisteren lekker gekookt.",
+   "ru": "Вчера я готовил(а).",
+   "lemma": "koken",
+   "theme": 3
+  },
+  {
+   "nl": "Heb je al gekookt?",
+   "ru": "Ты уже готовил(а)?",
+   "lemma": "koken",
+   "theme": 3
+  },
+  {
+   "nl": "We hebben samen gekookt.",
+   "ru": "Мы вместе готовили.",
+   "lemma": "koken",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gekookt.",
+   "ru": "Сегодня я ещё не готовил(а).",
+   "lemma": "koken",
+   "theme": 3
+  },
+  {
+   "nl": "Ik moet vandaag koken.",
+   "ru": "Сегодня мне нужно готовить.",
+   "lemma": "koken",
+   "theme": 3
+  },
+  {
+   "nl": "Ik kan morgen niet koken.",
+   "ru": "Завтра я не могу готовить.",
+   "lemma": "koken",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je met mij koken?",
+   "ru": "Хочешь со мной готовить?",
+   "lemma": "koken",
+   "theme": 3
+  },
+  {
+   "nl": "Zullen we samen koken?",
+   "ru": "Давай вместе готовить?",
+   "lemma": "koken",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb gisteren lekker gesport.",
+   "ru": "Вчера я занимался(ась) спортом.",
+   "lemma": "sporten",
+   "theme": 7
+  },
+  {
+   "nl": "Heb je al gesport?",
+   "ru": "Ты уже занимался(ась) спортом?",
+   "lemma": "sporten",
+   "theme": 7
+  },
+  {
+   "nl": "We hebben samen gesport.",
+   "ru": "Мы вместе занимались спортом.",
+   "lemma": "sporten",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gesport.",
+   "ru": "Сегодня я ещё не занимался(ась) спортом.",
+   "lemma": "sporten",
+   "theme": 7
+  },
+  {
+   "nl": "Ik moet vandaag sporten.",
+   "ru": "Сегодня мне нужно заниматься спортом.",
+   "lemma": "sporten",
+   "theme": 7
+  },
+  {
+   "nl": "Ik kan morgen niet sporten.",
+   "ru": "Завтра я не могу заниматься спортом.",
+   "lemma": "sporten",
+   "theme": 7
+  },
+  {
+   "nl": "Wil je met mij sporten?",
+   "ru": "Хочешь со мной заниматься спортом?",
+   "lemma": "sporten",
+   "theme": 7
+  },
+  {
+   "nl": "Zullen we samen sporten?",
+   "ru": "Давай вместе заниматься спортом?",
+   "lemma": "sporten",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb gisteren lekker gevoetbald.",
+   "ru": "Вчера я играл(а) в футбол.",
+   "lemma": "voetballen",
+   "theme": 7
+  },
+  {
+   "nl": "Heb je al gevoetbald?",
+   "ru": "Ты уже играл(а) в футбол?",
+   "lemma": "voetballen",
+   "theme": 7
+  },
+  {
+   "nl": "We hebben samen gevoetbald.",
+   "ru": "Мы вместе играли в футбол.",
+   "lemma": "voetballen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gevoetbald.",
+   "ru": "Сегодня я ещё не играл(а) в футбол.",
+   "lemma": "voetballen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik moet vandaag voetballen.",
+   "ru": "Сегодня мне нужно играть в футбол.",
+   "lemma": "voetballen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik kan morgen niet voetballen.",
+   "ru": "Завтра я не могу играть в футбол.",
+   "lemma": "voetballen",
+   "theme": 7
+  },
+  {
+   "nl": "Wil je met mij voetballen?",
+   "ru": "Хочешь со мной играть в футбол?",
+   "lemma": "voetballen",
+   "theme": 7
+  },
+  {
+   "nl": "Zullen we samen voetballen?",
+   "ru": "Давай вместе играть в футбол?",
+   "lemma": "voetballen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb gisteren lekker gezwommen.",
+   "ru": "Вчера я плавал(а).",
+   "lemma": "zwemmen",
+   "theme": 7
+  },
+  {
+   "nl": "Heb je al gezwommen?",
+   "ru": "Ты уже плавал(а)?",
+   "lemma": "zwemmen",
+   "theme": 7
+  },
+  {
+   "nl": "We hebben samen gezwommen.",
+   "ru": "Мы вместе плавали.",
+   "lemma": "zwemmen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gezwommen.",
+   "ru": "Сегодня я ещё не плавал(а).",
+   "lemma": "zwemmen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik moet vandaag zwemmen.",
+   "ru": "Сегодня мне нужно плавать.",
+   "lemma": "zwemmen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik kan morgen niet zwemmen.",
+   "ru": "Завтра я не могу плавать.",
+   "lemma": "zwemmen",
+   "theme": 7
+  },
+  {
+   "nl": "Mag ik even zwemmen?",
+   "ru": "Можно мне плавать?",
+   "lemma": "zwemmen",
+   "theme": 7
+  },
+  {
+   "nl": "Wil je met mij zwemmen?",
+   "ru": "Хочешь со мной плавать?",
+   "lemma": "zwemmen",
+   "theme": 7
+  },
+  {
+   "nl": "Zullen we samen zwemmen?",
+   "ru": "Давай вместе плавать?",
+   "lemma": "zwemmen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb gisteren lekker gewandeld.",
+   "ru": "Вчера я гулял(а).",
+   "lemma": "wandelen",
+   "theme": 7
+  },
+  {
+   "nl": "Heb je al gewandeld?",
+   "ru": "Ты уже гулял(а)?",
+   "lemma": "wandelen",
+   "theme": 7
+  },
+  {
+   "nl": "We hebben samen gewandeld.",
+   "ru": "Мы вместе гуляли.",
+   "lemma": "wandelen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gewandeld.",
+   "ru": "Сегодня я ещё не гулял(а).",
+   "lemma": "wandelen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik moet vandaag wandelen.",
+   "ru": "Сегодня мне нужно гулять.",
+   "lemma": "wandelen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik kan morgen niet wandelen.",
+   "ru": "Завтра я не могу гулять.",
+   "lemma": "wandelen",
+   "theme": 7
+  },
+  {
+   "nl": "Wil je met mij wandelen?",
+   "ru": "Хочешь со мной гулять?",
+   "lemma": "wandelen",
+   "theme": 7
+  },
+  {
+   "nl": "Zullen we samen wandelen?",
+   "ru": "Давай вместе гулять?",
+   "lemma": "wandelen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb gisteren lekker gedanst.",
+   "ru": "Вчера я танцевал(а).",
+   "lemma": "dansen",
+   "theme": 7
+  },
+  {
+   "nl": "Heb je al gedanst?",
+   "ru": "Ты уже танцевал(а)?",
+   "lemma": "dansen",
+   "theme": 7
+  },
+  {
+   "nl": "We hebben samen gedanst.",
+   "ru": "Мы вместе танцевали.",
+   "lemma": "dansen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gedanst.",
+   "ru": "Сегодня я ещё не танцевал(а).",
+   "lemma": "dansen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik moet vandaag dansen.",
+   "ru": "Сегодня мне нужно танцевать.",
+   "lemma": "dansen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik kan morgen niet dansen.",
+   "ru": "Завтра я не могу танцевать.",
+   "lemma": "dansen",
+   "theme": 7
+  },
+  {
+   "nl": "Wil je met mij dansen?",
+   "ru": "Хочешь со мной танцевать?",
+   "lemma": "dansen",
+   "theme": 7
+  },
+  {
+   "nl": "Zullen we samen dansen?",
+   "ru": "Давай вместе танцевать?",
+   "lemma": "dansen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb gisteren lekker gezongen.",
+   "ru": "Вчера я пел(а).",
+   "lemma": "zingen",
+   "theme": 7
+  },
+  {
+   "nl": "Heb je al gezongen?",
+   "ru": "Ты уже пел(а)?",
+   "lemma": "zingen",
+   "theme": 7
+  },
+  {
+   "nl": "We hebben samen gezongen.",
+   "ru": "Мы вместе пели.",
+   "lemma": "zingen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gezongen.",
+   "ru": "Сегодня я ещё не пел(а).",
+   "lemma": "zingen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik moet vandaag zingen.",
+   "ru": "Сегодня мне нужно петь.",
+   "lemma": "zingen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik kan morgen niet zingen.",
+   "ru": "Завтра я не могу петь.",
+   "lemma": "zingen",
+   "theme": 7
+  },
+  {
+   "nl": "Wil je met mij zingen?",
+   "ru": "Хочешь со мной петь?",
+   "lemma": "zingen",
+   "theme": 7
+  },
+  {
+   "nl": "Zullen we samen zingen?",
+   "ru": "Давай вместе петь?",
+   "lemma": "zingen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb gisteren getekend.",
+   "ru": "Вчера я рисовал(а).",
+   "lemma": "tekenen",
+   "theme": 7
+  },
+  {
+   "nl": "Heb je al getekend?",
+   "ru": "Ты уже рисовал(а)?",
+   "lemma": "tekenen",
+   "theme": 7
+  },
+  {
+   "nl": "We hebben samen getekend.",
+   "ru": "Мы вместе рисовали.",
+   "lemma": "tekenen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb vandaag nog niet getekend.",
+   "ru": "Сегодня я ещё не рисовал(а).",
+   "lemma": "tekenen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik moet vandaag tekenen.",
+   "ru": "Сегодня мне нужно рисовать.",
+   "lemma": "tekenen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik kan morgen niet tekenen.",
+   "ru": "Завтра я не могу рисовать.",
+   "lemma": "tekenen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb gisteren lekker gespeeld.",
+   "ru": "Вчера я играл(а).",
+   "lemma": "spelen",
+   "theme": 7
+  },
+  {
+   "nl": "Heb je al gespeeld?",
+   "ru": "Ты уже играл(а)?",
+   "lemma": "spelen",
+   "theme": 7
+  },
+  {
+   "nl": "We hebben samen gespeeld.",
+   "ru": "Мы вместе играли.",
+   "lemma": "spelen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb vandaag nog niet gespeeld.",
+   "ru": "Сегодня я ещё не играл(а).",
+   "lemma": "spelen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik moet vandaag spelen.",
+   "ru": "Сегодня мне нужно играть.",
+   "lemma": "spelen",
+   "theme": 7
+  },
+  {
+   "nl": "Ik kan morgen niet spelen.",
+   "ru": "Завтра я не могу играть.",
+   "lemma": "spelen",
+   "theme": 7
+  },
+  {
+   "nl": "Mag ik even spelen?",
+   "ru": "Можно мне играть?",
+   "lemma": "spelen",
+   "theme": 7
+  },
+  {
+   "nl": "Wil je met mij spelen?",
+   "ru": "Хочешь со мной играть?",
+   "lemma": "spelen",
+   "theme": 7
+  },
+  {
+   "nl": "Zullen we samen spelen?",
+   "ru": "Давай вместе играть?",
+   "lemma": "spelen",
+   "theme": 7
+  }
+ ]
+}
