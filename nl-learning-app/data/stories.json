@@ -1,6 +1,6 @@
 {
- "note": "Истории двух видов: классические (2 сцены + вопросы) и интерактивные 🎭 (пользователь — участник: ролевые выборы «Твоя реплика», впиши услышанное, говорение). Добавляются частью «title» в урок «lesson». Правь и запускай build.py.",
- "count": 11,
+ "note": "Истории трёх видов: классические (2 сцены + вопросы), интерактивные 🎭 (ролевые выборы «Твоя реплика») и ВЕТВЯЩИЕСЯ 🎋 (шаг {t:\"choice\", opts:[[текст, ветка]]} — выбор игрока определяет, какие шаги с полем branch будут сыграны; шаги без branch — общие). Правь и запускай build.py.",
+ "count": 14,
  "stories": [
   {
    "lesson": 6,
@@ -1339,6 +1339,445 @@
      "k": "Твой ответ",
      "phrase": "Tot vanavond, Lisa!",
      "tr": "До вечера, Лиза!"
+    }
+   ]
+  },
+  {
+   "lesson": 25,
+   "title": "История с выбором: ужин 🎋",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ветвящаяся история",
+     "b": "🎋 Vrijdagavond",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🌆 Пятница, вечер</b></p><p style=\"margin:6px 0\">Het is vrijdagavond. Je bent moe en je hebt honger. Koken of restaurant? JIJ kiest — и история пойдёт по-твоему!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Пятница, вечер. Ты устал(а) и голоден (голодна). Готовить дома или пойти в ресторан? Выбор за тобой!</p></div>",
+     "ex": [
+      [
+       "Ik heb honger.",
+       "Я голоден / голодна."
+      ]
+     ]
+    },
+    {
+     "t": "choice",
+     "k": "Развилка",
+     "q": "Что выберешь?",
+     "opts": [
+      [
+       "🍳 Ik kook thuis — готовлю дома",
+       "A"
+      ],
+      [
+       "🍽️ Ik ga naar het restaurant — иду в ресторан",
+       "B"
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "explain",
+     "k": "Твоя история · дома",
+     "b": "🎋 Thuis koken",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🍳 На кухне</b></p><p style=\"margin:6px 0\">Je kookt pasta met tomaten en kaas. De keuken ruikt heerlijk. Je zet muziek aan.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты готовишь пасту с помидорами и сыром. На кухне чудесно пахнет. Ты включаешь музыку.</p></div>",
+     "ex": [
+      [
+       "Het ruikt heerlijk.",
+       "Чудесно пахнет."
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "Ik kook pasta met tomaten",
+     "q": "Ik kook ___ met tomaten",
+     "answer": [
+      "pasta"
+     ],
+     "ph": "…"
+    },
+    {
+     "branch": "A",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что ты приготовил(а)?",
+     "opts": [
+      "пасту с помидорами и сыром",
+      "суп с хлебом",
+      "рыбу с рисом",
+      "яичницу"
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Ik kook vanavond pasta.",
+     "tr": "Сегодня вечером я готовлю пасту."
+    },
+    {
+     "branch": "B",
+     "t": "explain",
+     "k": "Твоя история · ресторан",
+     "b": "🎋 In het restaurant",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🍽️ Уютный зал</b></p><p style=\"margin:6px 0\">De ober zegt: «Goedenavond! Hier is de kaart.» Je bestelt vis met rijst en een glas water.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Официант говорит: «Добрый вечер! Вот меню.» Ты заказываешь рыбу с рисом и стакан воды.</p></div>",
+     "ex": [
+      [
+       "Hier is de kaart.",
+       "Вот меню."
+      ]
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "listen",
+     "k": "Слушай официанта",
+     "audio": "Goedenavond! Hier is de kaart",
+     "q": "Что сказал официант?",
+     "opts": [
+      "Goedenavond! Hier is de kaart",
+      "Wij zijn gesloten",
+      "De vis is op",
+      "Betalen, alstublieft"
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что ты заказал(а)?",
+     "opts": [
+      "рыбу с рисом и воду",
+      "пасту и вино",
+      "только кофе",
+      "суп и хлеб"
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Vis met rijst, alstublieft.",
+     "tr": "Рыбу с рисом, пожалуйста."
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Вечером ты остался(ась) голодным(ой).",
+     "answer": false,
+     "note": "Нет — в любой ветке ты вкусно поужинал(а)! 😋"
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Еда очень вкусная.",
+     "words": [
+      "Het",
+      "eten",
+      "is",
+      "heel",
+      "lekker"
+     ],
+     "ans": [
+      "Het",
+      "eten",
+      "is",
+      "heel",
+      "lekker"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Финал",
+     "phrase": "Eet smakelijk!",
+     "tr": "Приятного аппетита!"
+    }
+   ]
+  },
+  {
+   "lesson": 33,
+   "title": "История с выбором: суббота 🎋",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ветвящаяся история",
+     "b": "🎋 Een zonnige zaterdag",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>☀️ Утро</b></p><p style=\"margin:6px 0\">Het is zaterdag en de zon schijnt! Naar het strand met de trein — of naar het park met de fiets? JIJ kiest!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Суббота, светит солнце! На пляж на поезде — или в парк на велосипеде? Выбирай!</p></div>",
+     "ex": [
+      [
+       "De zon schijnt.",
+       "Светит солнце."
+      ]
+     ]
+    },
+    {
+     "t": "choice",
+     "k": "Развилка",
+     "q": "Куда поедешь?",
+     "opts": [
+      [
+       "🚆 Naar het strand met de trein — на пляж",
+       "A"
+      ],
+      [
+       "🚲 Naar het park met de fiets — в парк",
+       "B"
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "explain",
+     "k": "Твоя история · пляж",
+     "b": "🎋 Naar het strand",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🚉 Вокзал</b></p><p style=\"margin:6px 0\">Je koopt een kaartje naar Zandvoort. De trein gaat van spoor twee. Op het strand zwem je in de zee.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты покупаешь билет до Зандворта. Поезд идёт со второго пути. На пляже ты купаешься в море.</p></div>",
+     "ex": [
+      [
+       "De trein gaat van spoor twee.",
+       "Поезд идёт со второго пути."
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "De trein gaat van spoor twee",
+     "q": "De trein gaat van ___ twee",
+     "answer": [
+      "spoor"
+     ],
+     "ph": "…"
+    },
+    {
+     "branch": "A",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что ты делаешь на пляже?",
+     "opts": [
+      "купаюсь в море",
+      "играю в футбол",
+      "сплю",
+      "читаю газету"
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Ik zwem in de zee!",
+     "tr": "Я плаваю в море!"
+    },
+    {
+     "branch": "B",
+     "t": "explain",
+     "k": "Твоя история · парк",
+     "b": "🎋 Naar het park",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🚲 Велодорожка</b></p><p style=\"margin:6px 0\">Je fietst naar het park. Het is twintig minuten fietsen. In het park drink je koffie onder een boom.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты едешь в парк на велосипеде. Ехать двадцать минут. В парке ты пьёшь кофе под деревом.</p></div>",
+     "ex": [
+      [
+       "Het is twintig minuten fietsen.",
+       "Ехать двадцать минут."
+      ]
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "Het is twintig minuten fietsen",
+     "q": "Het is ___ minuten fietsen",
+     "answer": [
+      "twintig"
+     ],
+     "ph": "…"
+    },
+    {
+     "branch": "B",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что ты делаешь в парке?",
+     "opts": [
+      "пью кофе под деревом",
+      "плаваю",
+      "покупаю билет",
+      "смотрю кино"
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Ik fiets naar het park.",
+     "tr": "Я еду в парк на велосипеде."
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Какая погода в эту субботу?",
+     "opts": [
+      "солнечная",
+      "дождливая",
+      "снежная",
+      "туманная"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Ты провёл(а) субботу дома.",
+     "answer": false,
+     "note": "Нет — ты отлично погулял(а)!"
+    },
+    {
+     "t": "speak",
+     "k": "Финал",
+     "phrase": "Wat een mooie dag!",
+     "tr": "Какой прекрасный день!"
+    }
+   ]
+  },
+  {
+   "lesson": 37,
+   "title": "История с выбором: вечер с другом 🎋",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ветвящаяся история",
+     "b": "🎋 Een avond met Thomas",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>📱 Сообщение</b></p><p style=\"margin:6px 0\">Je vriend Thomas vraagt: «Wat gaan we doen vanavond — naar de film of voetballen in het park?» JIJ kiest!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Друг Томас спрашивает: «Что делаем сегодня вечером — в кино или футбол в парке?» Решаешь ты!</p></div>",
+     "ex": [
+      [
+       "Wat gaan we doen?",
+       "Что будем делать?"
+      ]
+     ]
+    },
+    {
+     "t": "choice",
+     "k": "Развилка",
+     "q": "Что ответишь Томасу?",
+     "opts": [
+      [
+       "🎬 Naar de film! — в кино",
+       "A"
+      ],
+      [
+       "⚽ Voetballen in het park! — футбол",
+       "B"
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "listen",
+     "k": "Ответ Томаса",
+     "audio": "Leuk! De film begint om acht uur",
+     "q": "Что сказал Томас?",
+     "opts": [
+      "Leuk! De film begint om acht uur",
+      "De bioscoop is dicht",
+      "Ik heb geen geld",
+      "De film is morgen"
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "De film begint om acht uur",
+     "q": "De film begint om ___ uur",
+     "answer": [
+      "acht"
+     ],
+     "ph": "…"
+    },
+    {
+     "branch": "A",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Во сколько начинается фильм?",
+     "opts": [
+      "в восемь",
+      "в семь",
+      "в девять",
+      "в шесть"
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Tot vanavond bij de bioscoop!",
+     "tr": "До вечера у кинотеатра!"
+    },
+    {
+     "branch": "B",
+     "t": "listen",
+     "k": "Ответ Томаса",
+     "audio": "Super! We spelen om vier uur in het park",
+     "q": "Что сказал Томас?",
+     "opts": [
+      "Super! We spelen om vier uur in het park",
+      "Ik kan niet voetballen",
+      "Het regent vandaag",
+      "Het park is dicht"
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "We spelen om vier uur",
+     "q": "We spelen om ___ uur",
+     "answer": [
+      "vier"
+     ],
+     "ph": "…"
+    },
+    {
+     "branch": "B",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Во сколько футбол?",
+     "opts": [
+      "в четыре",
+      "в пять",
+      "в восемь",
+      "в два"
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Tot straks in het park!",
+     "tr": "До скорого в парке!"
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "С кем ты проводишь вечер?",
+     "opts": [
+      "с другом Томасом",
+      "с сестрой",
+      "с коллегой",
+      "один / одна"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Томас предложил пойти в музей.",
+     "answer": false,
+     "note": "Нет — кино или футбол."
+    },
+    {
+     "t": "speak",
+     "k": "Финал",
+     "phrase": "Tot straks, Thomas!",
+     "tr": "До скорого, Томас!"
     }
    ]
   }

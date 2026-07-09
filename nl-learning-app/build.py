@@ -79,9 +79,23 @@ def build_wl():
             if disp.lower() in seen:continue
             seen.add(disp.lower());pairs.append([disp,w['ru']])
         themes.append({'t':LABEL[t],'w':pairs})
+    # WLX — дополнительные разделы из вычитки: мн. число, формы глаголов, фразы (mijn/deze)
+    vet=J('vetted_translations.json')['items']
+    plu=[];vf=[];ph=[];seen_ph=set()
+    for v in vet:
+        if v['quality']=='correct' and v['type']=='noun_plural':plu.append([v['nl'],v['ru_vetted']])
+        elif v['quality']=='form' and v['type']=='verb_form':vf.append([v['nl'],v['ru_vetted']])
+        elif v['quality']=='correct' and v['type'] in ('possessive_phrase','demonstrative_phrase'):
+            if v['nl'].split(' ')[0] in ('mijn','deze','dit') and v['lemma'] not in seen_ph:
+                seen_ph.add(v['lemma']);ph.append([v['nl'],v['ru_vetted']])
+    wlx=[{'t':'Множественное число (meervoud)','w':plu},
+         {'t':'Формы глаголов (ik · jij · hij…)','w':vf},
+         {'t':'Фразы: мой / этот (mijn · deze)','w':ph}]
     return (H_WL+"\n"
      +"var WL="+js(themes)+";\n"
-     +"function srsLoadWL(){var i=0;WL.forEach(function(th){th.w.forEach(function(p){if(!SRS[p[0]]){SRS[p[0]]={tr:p[1],box:1,due:vDay+(i%45),wrong:0};i++;}});});}\n")
+     +"var WLX="+js(wlx)+";\n"
+     +"function srsLoadWL(){var i=0;WL.forEach(function(th){th.w.forEach(function(p){if(!SRS[p[0]]){SRS[p[0]]={tr:p[1],box:1,due:vDay+(i%45),wrong:0};i++;}});});}\n"
+     +"function srsLoadWLX(){var i=0;WLX.forEach(function(th){th.w.forEach(function(p){if(!SRS[p[0]]){SRS[p[0]]={tr:p[1],box:1,due:vDay+(i%60),wrong:0};i++;}});});}\n")
 
 def region_replace(app,start_anchor,end_anchor,content):
     i=app.index(start_anchor);k=app.index(end_anchor,i)
