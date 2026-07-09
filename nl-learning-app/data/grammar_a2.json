@@ -1,0 +1,90 @@
+{
+ "note": "Грамматика A2 по учебнику TaalCompleet A2: порядок слов V2 (Thema 1), imperfect + неправильные глаголы (Thema 2), разделяемые глаголы (Thema 3, 3.6), глагол+предлог (Thema 6, 6.5), спряжение-повторение (Thema 6, 6.2). Каждая запись = часть урока: {lesson, title, steps}. Вшивается build.py в DATA как и диалоги.",
+ "parts": [
+  {
+   "lesson": 94,
+   "title": "Грамматика: глагол — №2 📐",
+   "steps": [
+    {"t":"explain","k":"Правило из учебника (Thema 1)","b":"📐 Порядок слов: глагол всегда №2","html":"<p>Главное правило нидерландского предложения: <b>глагол стоит на втором месте</b>. Раскладываем предложение по колонкам, как в учебнике:</p><div class=\"rule\"><table style=\"width:100%;border-collapse:collapse;font-size:13.5px\"><tr style=\"color:var(--ink-2)\"><td><b>1 · кто/что</b></td><td><b>2 · глагол</b></td><td><b>время</b></td><td><b>место</b></td></tr><tr><td>Mijn zoon</td><td><b>woont</b></td><td></td><td>in Den Haag.</td></tr><tr><td>Ik</td><td><b>woon</b></td><td>al twee jaar</td><td>in Nederland.</td></tr><tr><td>Wij</td><td><b>gaan</b></td><td>volgende maand</td><td>verhuizen. ←2-й глагол в конец!</td></tr></table></div><p>Если предложение начинается со времени — глагол ВСЁ РАВНО №2, а «кто» уезжает за него: <b>Morgen (1) ga (2) ik (3)</b> naar de gemeente.</p>","ex":[["Mijn zoon woont in Den Haag.","Мой сын живёт в Гааге."],["Morgen ga ik naar de gemeente.","Завтра я иду в хементе."]]},
+    {"t":"quiz","k":"Какое предложение верно?","q":"Предложение начинается с «Morgen». Где глагол?","opts":["Morgen ga ik naar de gemeente.","Morgen ik ga naar de gemeente.","Morgen ik naar de gemeente ga.","Ga morgen ik naar de gemeente."]},
+    {"t":"quiz","k":"Какое предложение верно?","q":"Два глагола: где стоит второй?","opts":["Wij gaan volgende maand verhuizen.","Wij gaan verhuizen volgende maand.","Wij verhuizen gaan volgende maand.","Volgende maand wij gaan verhuizen."]},
+    {"t":"build","k":"Собери по колонкам: кто · глагол · место","tr":"Мой сын живёт в Гааге.","words":["Mijn","zoon","woont","in","Den","Haag"],"ans":["Mijn","zoon","woont","in","Den","Haag"]},
+    {"t":"build","k":"Кто · глагол · время · место","tr":"Я живу в Нидерландах уже два года.","words":["Ik","woon","al","twee","jaar","in","Nederland"],"ans":["Ik","woon","al","twee","jaar","in","Nederland"]},
+    {"t":"tf","k":"Верно?","q":"Если предложение начинается с «Morgen», глагол уходит на третье место.","answer":false,"note":"Нет! Глагол ЖЕЛЕЗНО №2: Morgen (1) ga (2) ik…"},
+    {"t":"build","k":"Время на 1-м месте → инверсия","tr":"Завтра мы едем в город.","words":["Morgen","gaan","wij","naar","de","stad"],"ans":["Morgen","gaan","wij","naar","de","stad"]},
+    {"t":"speak","k":"Говорение","phrase":"Ik ga volgende maand verhuizen.","tr":"В следующем месяце я переезжаю."}
+   ]
+  },
+  {
+   "lesson": 96,
+   "title": "Грамматика: imperfect (was, ging) ⏪",
+   "steps": [
+    {"t":"explain","k":"Правило из учебника (Thema 2)","b":"⏪ Imperfect: рассказываем о прошлом","html":"<p>Ты уже знаешь перфект (<i>Ik heb gewerkt</i>). Для <b>рассказа и описания</b> прошлого голландцы берут <b>imperfect</b> — одну форму без hebben/zijn:</p><div class=\"rule\"><table style=\"width:100%;border-collapse:collapse;font-size:14px\"><tr style=\"color:var(--ink-2)\"><td><b>глагол</b></td><td><b>ik/hij</b></td><td><b>wij</b></td></tr><tr><td>zijn (быть)</td><td><b>was</b></td><td><b>waren</b></td></tr><tr><td>hebben (иметь)</td><td><b>had</b></td><td><b>hadden</b></td></tr><tr><td>gaan (идти)</td><td><b>ging</b></td><td><b>gingen</b></td></tr><tr><td>komen (приходить)</td><td><b>kwam</b></td><td><b>kwamen</b></td></tr><tr><td>wonen (жить)*</td><td><b>woonde</b></td><td><b>woonden</b></td></tr></table></div><p>*Правильные глаголы просто получают <b>-de/-te</b>: werken → werk<b>te</b>, wonen → woon<b>de</b>.</p>","ex":[["Gisteren was ik erg moe.","Вчера я был(а) очень уставшим(ей)."],["Vroeger woonde ik in Rusland.","Раньше я жил(а) в России."]]},
+    {"t":"match","k":"Инфинитив → imperfect","pairs":[["zijn (быть)","was"],["hebben (иметь)","had"],["gaan (идти)","ging"],["komen (приходить)","kwam"]]},
+    {"t":"quiz","k":"Выбери форму","q":"Gisteren ___ ik erg moe. (zijn)","opts":["was","ben","waren","geweest"]},
+    {"t":"quiz","k":"Выбери форму","q":"Vroeger ___ wij in een klein dorp. (wonen)","opts":["woonden","wonen","woont","gewoond"]},
+    {"t":"gapType","k":"Впиши imperfect","q":"Ik ___ gisteren naar de markt. (gaan)","answer":["ging"],"ph":"g…","hint":"gaan → imperfect · Вчера я ходил(а) на рынок."},
+    {"t":"tf","k":"Верно?","q":"Imperfect используют, когда рассказывают или описывают прошлое.","answer":true,"note":"Да. Один факт-результат — перфект; рассказ/описание — imperfect."},
+    {"t":"gapType","k":"Впиши imperfect","q":"Het weer ___ mooi. (zijn)","answer":["was"],"ph":"w…","hint":"Погода была хорошая."},
+    {"t":"speak","k":"Говорение","phrase":"Vroeger woonde ik in Rusland. Nu woon ik in Nederland.","tr":"Раньше я жил(а) в России. Теперь живу в Нидерландах."}
+   ]
+  },
+  {
+   "lesson": 100,
+   "title": "Грамматика: неправильные глаголы ⚡",
+   "steps": [
+    {"t":"explain","k":"Правило из учебника (Thema 2 + стр. 365)","b":"⚡ Onregelmatige werkwoorden — наизусть","html":"<p>Самые частые глаголы — неправильные: их imperfect и perfectum надо <b>выучить наизусть</b>. Ядро:</p><div class=\"rule\"><table style=\"width:100%;border-collapse:collapse;font-size:13.5px\"><tr style=\"color:var(--ink-2)\"><td><b>инфинитив</b></td><td><b>imperfect</b></td><td><b>perfectum</b></td></tr><tr><td>gaan</td><td>ging</td><td><b>is</b> gegaan</td></tr><tr><td>komen</td><td>kwam</td><td><b>is</b> gekomen</td></tr><tr><td>zien</td><td>zag</td><td>heeft gezien</td></tr><tr><td>doen</td><td>deed</td><td>heeft gedaan</td></tr><tr><td>krijgen</td><td>kreeg</td><td>heeft gekregen</td></tr><tr><td>geven</td><td>gaf</td><td>heeft gegeven</td></tr><tr><td>nemen</td><td>nam</td><td>heeft genomen</td></tr><tr><td>brengen</td><td>bracht</td><td>heeft gebracht</td></tr><tr><td>denken</td><td>dacht</td><td>heeft gedacht</td></tr><tr><td>kopen</td><td>kocht</td><td>heeft gekocht</td></tr><tr><td>eten</td><td>at</td><td>heeft gegeten</td></tr><tr><td>schrijven</td><td>schreef</td><td>heeft geschreven</td></tr></table></div><p>💡 Полный список из учебника (70+ глаголов) — в «Словаре», раздел «⚡ Неправильные глаголы».</p>"},
+    {"t":"match","k":"Инфинитив → imperfect","pairs":[["krijgen (получать)","kreeg"],["geven (давать)","gaf"],["denken (думать)","dacht"],["kopen (покупать)","kocht"]]},
+    {"t":"quiz","k":"Imperfect","q":"Ik ___ gisteren een mooie jas. (kopen)","opts":["kocht","koopte","gekocht","koop"]},
+    {"t":"quiz","k":"Perfectum","q":"Wij zijn met de trein ___. (gaan)","opts":["gegaan","gaan","ging","gegangen"]},
+    {"t":"gapType","k":"Впиши imperfect","q":"Hij ___ mij een cadeau. (geven)","answer":["gaf"],"ph":"g…","hint":"Он дал мне подарок."},
+    {"t":"clozeBank","k":"Vul in · imperfect","sents":[["Ik ___ gisteren laat thuis. (komen)","kwam","Вчера я поздно пришёл (пришла) домой."],["Zij ___ een brief aan de gemeente. (schrijven)","schreef","Она написала письмо в хементе."],["We ___ veel foto's in Amsterdam. (nemen)","namen","Мы сделали много фото в Амстердаме."]],"bank":["kwam","schreef","namen","ging"]},
+    {"t":"tf","k":"Верно?","q":"Perfectum от gaan — «heeft gegaan».","answer":false,"note":"Нет: глаголы движения идут с zijn — «is gegaan»."},
+    {"t":"speak","k":"Говорение","phrase":"Ik kwam, ik zag, ik kocht een stroopwafel!","tr":"Пришёл, увидел, купил стропвафель! 🧇"}
+   ]
+  },
+  {
+   "lesson": 104,
+   "title": "Грамматика: разделяемые глаголы ✂️",
+   "steps": [
+    {"t":"explain","k":"Правило из учебника (3.6)","b":"✂️ Scheidbare werkwoorden","html":"<p>Многие глаголы состоят из <b>приставки + глагола</b>: schoon<b>maken</b>, uit<b>leggen</b>, mee<b>nemen</b>, in<b>vullen</b>, op<b>staan</b>. В настоящем времени приставка <b>отрывается и уходит в конец</b>:</p><div class=\"rule\">Ik <b>maak</b> de keuken <b>schoon</b>. — Я убираю кухню.<br>De docent <b>legt</b> de opdracht <b>uit</b>. — Преподаватель объясняет задание.<br>Ik <b>vul</b> het formulier <b>in</b>. — Я заполняю формуляр.</div><p>А с модальным глаголом (moeten/willen/gaan…) разделяемый глагол снова <b>одно слово в конце</b>:</p><div class=\"rule\">Ik <b>moet</b> het formulier <b>invullen</b>.<br>Wij <b>gaan</b> de keuken <b>schoonmaken</b>.</div>","ex":[["Ik sta om zeven uur op.","Я встаю в семь часов."],["Neem je broodjes mee?","Ты берёшь бутерброды с собой?"]]},
+    {"t":"match","k":"Из чего состоит глагол?","pairs":[["uitleggen (объяснять)","uit + leggen"],["meenemen (брать с собой)","mee + nemen"],["invullen (заполнять)","in + vullen"],["opstaan (вставать)","op + staan"]]},
+    {"t":"quiz","k":"Какое предложение верно?","q":"«Я заполняю формуляр» — как правильно?","opts":["Ik vul het formulier in.","Ik invul het formulier.","Ik vul in het formulier."]},
+    {"t":"quiz","k":"Какое предложение верно?","q":"С модальным глаголом:","opts":["Wij moeten het formulier invullen.","Wij moeten invullen het formulier.","Wij moeten het formulier in vullen."]},
+    {"t":"build","k":"Приставка — в конец!","tr":"Я встаю в семь часов.","words":["Ik","sta","om","zeven","uur","op"],"ans":["Ik","sta","om","zeven","uur","op"]},
+    {"t":"build","k":"Вопрос","tr":"Ты берёшь бутерброды с собой?","words":["Neem","je","broodjes","mee"],"ans":["Neem","je","broodjes","mee"]},
+    {"t":"tf","k":"Верно?","q":"После модального глагола разделяемый глагол пишется одним словом в конце: «Ik ga de keuken schoonmaken».","answer":true,"note":"Да: модальный на месте №2, разделяемый целиком в конец."},
+    {"t":"speak","k":"Говорение","phrase":"Ik sta om zeven uur op.","tr":"Я встаю в семь часов."}
+   ]
+  },
+  {
+   "lesson": 115,
+   "title": "Грамматика: глагол + предлог 🔗",
+   "steps": [
+    {"t":"explain","k":"Правило из учебника (6.5)","b":"🔗 Werkwoord + voorzetsel","html":"<p>Многие глаголы ходят со <b>своим предлогом</b>. Правил нет — учим <b>парой</b>, как одно слово:</p><div class=\"rule\"><b>luisteren naar</b> — слушать (что-то)<br><b>wachten op</b> — ждать (кого/что)<br><b>zorgen voor</b> — заботиться о<br><b>denken aan</b> — думать о<br><b>klagen over</b> — жаловаться на<br><b>houden van</b> — любить<br><b>genieten van</b> — наслаждаться<br><b>omgaan met</b> — ладить с<br><b>sparen voor</b> — копить на<br><b>bedanken voor</b> — благодарить за</div>","ex":[["Laura luistert naar de radio.","Лаура слушает радио."],["De buren zorgen voor onze kat.","Соседи заботятся о нашей кошке."]]},
+    {"t":"match","k":"Соедини половинки","pairs":[["Hanneke geniet erg…","van haar kleinkinderen."],["Nina luistert niet…","naar haar moeder."],["Alicia wacht…","op de bus."],["Deborah klaagt…","over haar buren."]]},
+    {"t":"quiz","k":"Какое предложение верно?","q":"drukken + ?","opts":["Wout drukt op de knop van de lift.","Wout drukt de knop van de lift.","Wout drukt voor de knop van de lift."]},
+    {"t":"quiz","k":"Какое предложение верно?","q":"wennen + ?","opts":["Lisa kan niet wennen aan Nederland.","Lisa kan niet wennen Nederland.","Lisa kan niet wennen op Nederland."]},
+    {"t":"clozeBank","k":"Vul in · предлоги","sents":[["Ik wacht al een kwartier ___ de trein.","op","Я уже четверть часа жду поезд."],["Judith maakt zich zorgen ___ de cijfers van haar dochter.","over","Юдит переживает из-за оценок дочери."],["Hubert kan goed omgaan ___ kleine kinderen.","met","Хюберт хорошо ладит с маленькими детьми."]],"bank":["op","over","met","naar"]},
+    {"t":"gapType","k":"Впиши предлог","q":"Ik luister elke ochtend ___ de radio.","answer":["naar"],"ph":"n…","hint":"luisteren + ? · Каждое утро я слушаю радио."},
+    {"t":"tf","k":"Верно?","q":"«zorgen» ходит с предлогом voor: De buren zorgen voor onze kat.","answer":true,"note":"Да: zorgen voor = заботиться о."},
+    {"t":"speak","k":"Говорение","phrase":"Ik houd van mijn werk.","tr":"Я люблю свою работу."}
+   ]
+  },
+  {
+   "lesson": 117,
+   "title": "Грамматика: спряжение — повторение 🔁",
+   "steps": [
+    {"t":"explain","k":"Повторение из учебника (6.2)","b":"🔁 Praten over nu: формы глагола","html":"<p>Быстрое повторение настоящего времени — эти формы должны отскакивать от зубов:</p><div class=\"rule\"><table style=\"width:100%;border-collapse:collapse;font-size:13.5px\"><tr style=\"color:var(--ink-2)\"><td></td><td><b>zijn</b></td><td><b>hebben</b></td><td><b>gaan</b></td><td><b>willen</b></td><td><b>kunnen</b></td></tr><tr><td>ik</td><td>ben</td><td>heb</td><td>ga</td><td>wil</td><td>kan</td></tr><tr><td>jij</td><td>bent</td><td>hebt</td><td>gaat</td><td>wil(t)</td><td>kan/kunt</td></tr><tr><td>hij/zij</td><td>is</td><td>heeft</td><td>gaat</td><td>wil</td><td>kan</td></tr><tr><td>wij</td><td>zijn</td><td>hebben</td><td>gaan</td><td>willen</td><td>kunnen</td></tr></table></div><p>⚠️ При инверсии с <b>jij</b> окончание <b>-t исчезает</b>: jij komt → <b>kom jij?</b>, jij werkt → <b>werk jij?</b></p>"},
+    {"t":"quiz","k":"Выбери форму","q":"Farida ___ niet aan het weer in Nederland.","opts":["went","wen","wennen"]},
+    {"t":"quiz","k":"Выбери форму","q":"Felix ___ morgen solliciteren.","opts":["gaat","ga","gaan"]},
+    {"t":"quiz","k":"Выбери форму","q":"___ Janna en Niels ook op je verjaardag?","opts":["Komen","Kom","Komt"]},
+    {"t":"quiz","k":"Выбери форму","q":"Suzanne ___ voor haar examen gezakt.","opts":["is","ben","zijn"]},
+    {"t":"gapType","k":"Впиши форму","q":"Hij ___ een vaste baan bij dat bedrijf. (hebben)","answer":["heeft"],"ph":"h…","hint":"У него постоянная работа в той компании."},
+    {"t":"gapType","k":"Инверсия с jij!","q":"___ jij morgen? (werken)","answer":["werk"],"ph":"w…","hint":"При инверсии -t исчезает: werk jij?"},
+    {"t":"tf","k":"Верно?","q":"При инверсии с jij окончание -t исчезает: «Kom jij?»","answer":true,"note":"Да, только с jij. С hij/zij -t остаётся: Komt hij?"},
+    {"t":"speak","k":"Говорение","phrase":"Kun je me helpen? — Ja, natuurlijk!","tr":"Можешь мне помочь? — Да, конечно!"}
+   ]
+  }
+ ]
+}

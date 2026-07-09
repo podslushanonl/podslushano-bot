@@ -2,6 +2,7 @@
 """Генерирует data/bank.json, data/lessons_generated.json, data/dialogues.json (чистый JSON)."""
 import json
 import os
+import re
 ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 items=json.load(open(ROOT+"/data/dutch_a1_a2_5000.json",encoding='utf-8'))['items']
 
@@ -193,6 +194,13 @@ for ti in range(2,len(BANK)):
         for j,(d,ru,ty) in enumerate(p1w[:2]):
             st.append({'t':'quiz','k':'Выбор','q':'Как будет «'+ru+'»?','opts':[d]+pick_distractors(pool,d,0,3,salt=j+ci)})
         st.append({'t':'match','k':'Пары','pairs':[[d,ru] for d,ru,ty in p1w]})
+        # лишнее слово (как в книге: welk woord past niet in het rijtje?)
+        oti=(ti*3+ci+2)%10
+        if oti==ti:oti=(oti+1)%10
+        ow=BANK[oti][1][(n*7)%len(BANK[oti][1])]
+        own3=[d for d,ru,ty in p1w[:3]]
+        if len(own3)>=3:
+            st.append({'t':'quiz','k':'Лишнее слово','q':'Какое слово НЕ подходит к теме «'+name+'»?','opts':[ow[0]]+own3})
         parts.append({'t':'Новые слова 1','steps':st})
         # ---------- ЧАСТЬ 2: Новые слова 2 (+ слух с ПОХОЖИМИ вариантами) ----------
         st=[{'t':'explain','k':'Шаг 2 из 5','b':'📖 Новые слова (2/2)','html':words_html(name,p2w),'ex':[[d,ru] for d,ru,ty in p2w]}]
@@ -268,12 +276,38 @@ for ti in range(2,len(BANK)):
             if v and lm in v['nl'] and v['nl'] not in usedNl:
                 st.append({'t':'gapType','k':'На слух','audio':v['nl'],'q':v['nl'].replace(lm,'___',1),'answer':[lm],'ph':'…'})
                 usedNl.add(v['nl']);break
+        # Vul in из списка — одно слово лишнее (как в книге)
+        cb=[];cb_l=set()
+        for d,ru,ty in list(chunk)+[w for w in ws if w not in chunk]:
+            if len(cb)>=3:break
+            lm=bare(d)
+            if lm in cb_l:continue
+            v=vet_pick(lm,ci*5+3)
+            if not v or v['nl'] in usedNl:continue
+            q=re.sub(r'\b'+re.escape(lm)+r'\b','___',v['nl'],count=1)
+            if q==v['nl']:continue
+            cb.append([q,lm,v['ru']]);cb_l.add(lm);usedNl.add(v['nl'])
+        if len(cb)==3:
+            extra=None
+            for k2 in range(len(pool)):
+                lmx=bare(pool[(n+k2)%len(pool)][0])
+                if lmx not in cb_l:extra=lmx;break
+            if extra:
+                st.append({'t':'clozeBank','k':'Vul in','sents':cb,'bank':[c[1] for c in cb]+[extra]})
         if len(st)>=4: parts.append({'t':'Предложения и слух','steps':st})
         else: parts[-1]['steps'].extend(st[1:])
         # ---------- ЧАСТЬ 5: Говорим и закрепляем ----------
         st=[{'t':'explain','k':'Шаг 5 из 5','b':'📖 Финал урока','html':'<p>Последний рывок: скажи фразы вслух и повтори все слова урока. После урока они попадут в «Умное повторение».</p>'}]
         for d,ru,ty in p2w[:2]:
             st.append({'t':'translate','k':'Перевод','q':'«'+ru+'»','answer':[d],'ph':'…'})
+        # впиши слово по памяти — подсказка: первая буква (как в книге)
+        for d,ru,ty in chunk:
+            lm=bare(d);v=vet_pick(lm,ci+13)
+            if v and v['nl'] not in usedNl:
+                q=re.sub(r'\b'+re.escape(lm)+r'\b','___',v['nl'],count=1)
+                if q!=v['nl']:
+                    st.append({'t':'gapType','k':'Впиши по памяти','q':q,'answer':[lm],'ph':lm[0]+'…','hint':'Первая буква: «'+lm[0]+'» · '+v['ru']})
+                    usedNl.add(v['nl']);break
         spoken=0
         for d,ru,ty in (p2w+p1w):
             if d.startswith(('de ','het ','een ')) and spoken<2:

@@ -62,6 +62,8 @@ def build_dlg():
     parts=d['dialogues']
     try: parts=parts+J('stories.json')['stories']
     except FileNotFoundError: pass
+    try: parts=parts+J('grammar_a2.json')['parts']
+    except FileNotFoundError: pass
     return (H_DLG+"\n"
      +js(parts)
      +".forEach(function(d){if(DATA[d.lesson])DATA[d.lesson].parts.push({t:d.title,steps:d.steps});});\n")
@@ -99,8 +101,15 @@ def build_wl():
             nl=it['nl']
             if nl.lower() in seen_fw:continue
             seen_fw.add(nl.lower());fw.append([nl,ru])
+    # неправильные глаголы A2 (imperfect + perfectum) — из фото учебника, стр. 365–367
+    try:
+        iv=J('irregular_verbs.json')['verbs']
+        ivw=[[v[0]+' — '+v[1]+' — '+v[2],v[3]] for v in iv]
+    except FileNotFoundError:
+        ivw=[]
     wlx=[{'t':'Множественное число (meervoud)','w':plu},
          {'t':'Формы глаголов (ik · jij · hij…)','w':vf},
+         {'t':'⚡ Неправильные глаголы A2 (imperfect · perfectum)','w':ivw},
          {'t':'Фразы: мой / этот (mijn · deze)','w':ph},
          {'t':'Служебные слова (частые)','w':fw}]
     return (H_WL+"\n"

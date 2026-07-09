@@ -641,6 +641,17 @@
          "курс"
         ]
        ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Школа»?",
+       "opts": [
+        "de buurt",
+        "de school",
+        "de klas",
+        "de les"
+       ]
       }
      ]
     },
@@ -906,6 +917,33 @@
         "school"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik ga naar de ___.",
+         "school",
+         "Я иду в школу."
+        ],
+        [
+         "Ik heb de ___.",
+         "les",
+         "У меня есть урок."
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "cursus",
+         "Я не вижу курс."
+        ]
+       ],
+       "bank": [
+        "school",
+        "les",
+        "cursus",
+        "weten"
+       ]
       }
      ]
     },
@@ -935,6 +973,16 @@
         "de docent"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zoek de ___.",
+       "answer": [
+        "school"
+       ],
+       "ph": "s…",
+       "hint": "Первая буква: «s» · Я ищу школу."
       },
       {
        "t": "speak",
@@ -1102,6 +1150,17 @@
          "de zin",
          "предложение"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Школа»?",
+       "opts": [
+        "het bedrijf",
+        "het boek",
+        "de tekst",
+        "het woord"
        ]
       }
      ]
@@ -1366,6 +1425,33 @@
         "boek"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb de ___.",
+         "tekst",
+         "У меня есть текст."
+        ],
+        [
+         "Ik heb het ___.",
+         "woord",
+         "У меня есть слово."
+        ],
+        [
+         "Ik heb de ___.",
+         "zin",
+         "У меня есть предложение."
+        ]
+       ],
+       "bank": [
+        "tekst",
+        "woord",
+        "zin",
+        "zitten"
+       ]
       }
      ]
     },
@@ -1395,6 +1481,16 @@
         "het alfabet"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is het ___?",
+       "answer": [
+        "boek"
+       ],
+       "ph": "b…",
+       "hint": "Первая буква: «b» · Где книга?"
       },
       {
        "t": "speak",
@@ -1562,6 +1658,17 @@
          "het papier",
          "бумага"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Школа»?",
+       "opts": [
+        "de zwager",
+        "de pen",
+        "het potlood",
+        "de gum"
        ]
       }
      ]
@@ -1824,6 +1931,33 @@
         "pen"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zoek het ___.",
+         "potlood",
+         "Я ищу карандаш."
+        ],
+        [
+         "Ik zoek de ___.",
+         "gum",
+         "Я ищу ластик."
+        ],
+        [
+         "Ik zoek het ___.",
+         "papier",
+         "Я ищу бумагу."
+        ]
+       ],
+       "bank": [
+        "potlood",
+        "gum",
+        "papier",
+        "staan"
+       ]
       }
      ]
     },
@@ -1853,6 +1987,16 @@
         "de vraag"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zie de ___.",
+       "answer": [
+        "pen"
+       ],
+       "ph": "p…",
+       "hint": "Первая буква: «p» · Я вижу ручку."
       },
       {
        "t": "speak",
@@ -2020,6 +2164,17 @@
          "de taal",
          "язык"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Школа»?",
+       "opts": [
+        "gebruiken",
+        "de puzzel",
+        "de titel",
+        "het woordenboek"
        ]
       }
      ]
@@ -2282,6 +2437,33 @@
         "puzzel"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zie de ___ niet.",
+         "puzzel",
+         "Я не вижу головоломку."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "titel",
+         "Мне нужен заголовок."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "woordenboek",
+         "Мне нужен словарь."
+        ]
+       ],
+       "bank": [
+        "puzzel",
+        "titel",
+        "woordenboek",
+        "onthouden"
+       ]
       }
      ]
     },
@@ -2311,6 +2493,16 @@
         "de pauze"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik heb de ___.",
+       "answer": [
+        "puzzel"
+       ],
+       "ph": "p…",
+       "hint": "Первая буква: «p» · У меня есть головоломка."
       },
       {
        "t": "speak",
@@ -2478,6 +2670,17 @@
          "schrijven",
          "писать"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Школа»?",
+       "opts": [
+        "het ijs",
+        "zeggen",
+        "luisteren",
+        "lezen"
        ]
       }
      ]
@@ -2674,6 +2877,33 @@
         "lezen"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik kan morgen niet ___.",
+         "luisteren",
+         "Завтра я не могу слушать."
+        ],
+        [
+         "Ik kan morgen niet ___.",
+         "lezen",
+         "Завтра я не могу читать."
+        ],
+        [
+         "Waar is de ___?",
+         "school",
+         "Где школа?"
+        ]
+       ],
+       "bank": [
+        "luisteren",
+        "lezen",
+        "school",
+        "herhalen"
+       ]
       }
      ]
     },
@@ -2703,6 +2933,16 @@
         "maken"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "We gaan morgen ___.",
+       "answer": [
+        "schrijven"
+       ],
+       "ph": "s…",
+       "hint": "Первая буква: «s» · Завтра мы будем писать."
       },
       {
        "t": "listen",
@@ -2859,6 +3099,17 @@
          "повторять"
         ]
        ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Школа»?",
+       "opts": [
+        "de thee",
+        "zitten",
+        "staan",
+        "onthouden"
+       ]
       }
      ]
     },
@@ -2976,6 +3227,33 @@
         "staan"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "De ___ is om de hoek.",
+         "school",
+         "Школа за углом."
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "klas",
+         "Я не вижу класс."
+        ],
+        [
+         "Ik heb de ___.",
+         "les",
+         "У меня есть урок."
+        ]
+       ],
+       "bank": [
+        "school",
+        "klas",
+        "les",
+        "uitleggen"
+       ]
       }
      ]
     },
@@ -3156,6 +3434,17 @@
          "de sinaasappel",
          "апельсин"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Еда и напитки»?",
+       "opts": [
+        "kunnen",
+        "de appel",
+        "de banaan",
+        "de peer"
        ]
       }
      ]
@@ -3419,6 +3708,33 @@
         "appel"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Is dit de ___?",
+         "appel",
+         "Это яблоко?"
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "peer",
+         "Я не вижу грушу."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "sinaasappel",
+         "Мне нужен апельсин."
+        ]
+       ],
+       "bank": [
+        "appel",
+        "peer",
+        "sinaasappel",
+        "avondeten"
+       ]
       }
      ]
     },
@@ -3448,6 +3764,16 @@
         "de druif"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zoek de ___.",
+       "answer": [
+        "appel"
+       ],
+       "ph": "a…",
+       "hint": "Первая буква: «a» · Я ищу яблоко."
       },
       {
        "t": "speak",
@@ -3615,6 +3941,17 @@
          "de ui",
          "лук"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Еда и напитки»?",
+       "opts": [
+        "zitten",
+        "de groente",
+        "de tomaat",
+        "de komkommer"
        ]
       }
      ]
@@ -3872,6 +4209,33 @@
         "groente"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Dit is de ___.",
+         "tomaat",
+         "Это помидор."
+        ],
+        [
+         "Ik heb de ___.",
+         "komkommer",
+         "У меня есть огурец."
+        ],
+        [
+         "Dit is de ___.",
+         "ui",
+         "Это лук."
+        ]
+       ],
+       "bank": [
+        "tomaat",
+        "komkommer",
+        "ui",
+        "eten"
+       ]
       }
      ]
     },
@@ -3901,6 +4265,16 @@
         "de boon"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "groente"
+       ],
+       "ph": "g…",
+       "hint": "Первая буква: «g» · Где овощи?"
       },
       {
        "t": "speak",
@@ -4068,6 +4442,17 @@
          "de kaas",
          "сыр"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Еда и напитки»?",
+       "opts": [
+        "de rug",
+        "de aardappel",
+        "het brood",
+        "de boterham"
        ]
       }
      ]
@@ -4325,6 +4710,33 @@
         "brood"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zoek de ___.",
+         "boterham",
+         "Я ищу бутерброд."
+        ],
+        [
+         "Ik zoek de ___.",
+         "kaas",
+         "Я ищу сыр."
+        ],
+        [
+         "Ik zoek de ___.",
+         "boter",
+         "Я ищу масло."
+        ]
+       ],
+       "bank": [
+        "boterham",
+        "kaas",
+        "boter",
+        "drinken"
+       ]
       }
      ]
     },
@@ -4354,6 +4766,16 @@
         "de melk"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zoek de ___.",
+       "answer": [
+        "aardappel"
+       ],
+       "ph": "a…",
+       "hint": "Первая буква: «a» · Я ищу картофель."
       },
       {
        "t": "speak",
@@ -4521,6 +4943,17 @@
          "de vis",
          "рыба"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Еда и напитки»?",
+       "opts": [
+        "de huid",
+        "de pasta",
+        "het vlees",
+        "de kip"
        ]
       }
      ]
@@ -4784,6 +5217,33 @@
         "pasta"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "pasta",
+         "Где паста?"
+        ],
+        [
+         "Is dit het ___?",
+         "vlees",
+         "Это мясо?"
+        ],
+        [
+         "Kijk, de ___!",
+         "kip",
+         "Смотри, курица!"
+        ]
+       ],
+       "bank": [
+        "pasta",
+        "vlees",
+        "kip",
+        "koken"
+       ]
       }
      ]
     },
@@ -4813,6 +5273,16 @@
         "de soep"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "De ___ is lekker.",
+       "answer": [
+        "pasta"
+       ],
+       "ph": "p…",
+       "hint": "Первая буква: «p» · Паста — вкусная."
       },
       {
        "t": "speak",
@@ -4980,6 +5450,17 @@
          "de peper",
          "перец"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Еда и напитки»?",
+       "opts": [
+        "het horloge",
+        "het koekje",
+        "het zout",
+        "de suiker"
        ]
       }
      ]
@@ -5237,6 +5718,33 @@
         "koekje"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is het ___?",
+         "zout",
+         "Где соль?"
+        ],
+        [
+         "Waar is de ___?",
+         "suiker",
+         "Где сахар?"
+        ],
+        [
+         "Waar is de ___?",
+         "peper",
+         "Где перец?"
+        ]
+       ],
+       "bank": [
+        "zout",
+        "suiker",
+        "peper",
+        "snijden"
+       ]
       }
      ]
     },
@@ -5266,6 +5774,16 @@
         "de koffie"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Dit is het ___.",
+       "answer": [
+        "koekje"
+       ],
+       "ph": "k…",
+       "hint": "Первая буква: «k» · Это печенье."
       },
       {
        "t": "speak",
@@ -5433,6 +5951,17 @@
          "het ontbijt",
          "завтрак"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Еда и напитки»?",
+       "opts": [
+        "instappen",
+        "het bier",
+        "het sap",
+        "de limonade"
        ]
       }
      ]
@@ -5690,6 +6219,33 @@
         "sap"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb het ___.",
+         "bier",
+         "У меня есть пиво."
+        ],
+        [
+         "Wil je ___?",
+         "sap",
+         "Хочешь сок?"
+        ],
+        [
+         "Ik heb de ___.",
+         "limonade",
+         "У меня есть лимонад."
+        ]
+       ],
+       "bank": [
+        "bier",
+        "sap",
+        "limonade",
+        "proeven"
+       ]
       }
      ]
     },
@@ -5719,6 +6275,16 @@
         "het avondeten"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zie het ___ niet.",
+       "answer": [
+        "sap"
+       ],
+       "ph": "s…",
+       "hint": "Первая буква: «s» · Я не вижу сок."
       },
       {
        "t": "speak",
@@ -5871,6 +6437,17 @@
          "proeven",
          "пробовать на вкус"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Еда и напитки»?",
+       "opts": [
+        "voetballen",
+        "koken",
+        "snijden",
+        "proeven"
        ]
       }
      ]
@@ -6056,6 +6633,33 @@
         "vers"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik kan goed ___.",
+         "koken",
+         "Я хорошо умею готовить."
+        ],
+        [
+         "Dat is heel ___.",
+         "rijp",
+         "Это очень спело."
+        ],
+        [
+         "Ik zie de ___.",
+         "appel",
+         "Я вижу яблоко."
+        ]
+       ],
+       "bank": [
+        "koken",
+        "rijp",
+        "appel",
+        "zoet"
+       ]
       }
      ]
     },
@@ -6085,6 +6689,16 @@
         "vers"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Is het ___?",
+       "answer": [
+        "vers"
+       ],
+       "ph": "v…",
+       "hint": "Первая буква: «v» · Это свежо?"
       },
       {
        "t": "listen",
@@ -6218,6 +6832,17 @@
          "het oog",
          "глаз"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Здоровье»?",
+       "opts": [
+        "rood",
+        "het lichaam",
+        "het hoofd",
+        "het gezicht"
        ]
       }
      ]
@@ -6479,6 +7104,33 @@
         "lichaam"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zoek het ___.",
+         "gezicht",
+         "Я ищу лицо."
+        ],
+        [
+         "Ik zoek het ___.",
+         "oog",
+         "Я ищу глаз."
+        ],
+        [
+         "Ik zoek het ___.",
+         "oor",
+         "Я ищу ухо."
+        ]
+       ],
+       "bank": [
+        "gezicht",
+        "oog",
+        "oor",
+        "lichaam"
+       ]
       }
      ]
     },
@@ -6508,6 +7160,16 @@
         "de neus"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zie het ___.",
+       "answer": [
+        "lichaam"
+       ],
+       "ph": "l…",
+       "hint": "Первая буква: «l» · Я вижу тело."
       },
       {
        "t": "speak",
@@ -6675,6 +7337,17 @@
          "de nek",
          "шея"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Здоровье»?",
+       "opts": [
+        "de jas",
+        "de tand",
+        "de kies",
+        "de kin"
        ]
       }
      ]
@@ -6932,6 +7605,33 @@
         "tand"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Doet je ___ pijn?",
+         "kies",
+         "У тебя болит коренной зуб?"
+        ],
+        [
+         "Is dit de ___?",
+         "kin",
+         "Это подбородок?"
+        ],
+        [
+         "Mijn ___ doet pijn.",
+         "nek",
+         "У меня болит шея."
+        ]
+       ],
+       "bank": [
+        "kies",
+        "kin",
+        "nek",
+        "hoofd"
+       ]
       }
      ]
     },
@@ -6961,6 +7661,16 @@
         "de arm"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik heb de ___.",
+       "answer": [
+        "tand"
+       ],
+       "ph": "t…",
+       "hint": "Первая буква: «t» · У меня есть зуб."
       },
       {
        "t": "speak",
@@ -7128,6 +7838,17 @@
          "de knie",
          "колено"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Здоровье»?",
+       "opts": [
+        "het fietspad",
+        "de buik",
+        "de rug",
+        "het been"
        ]
       }
      ]
@@ -7385,6 +8106,33 @@
         "buik"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zie het ___.",
+         "been",
+         "Я вижу ногу."
+        ],
+        [
+         "Ik zie de ___.",
+         "knie",
+         "Я вижу колено."
+        ],
+        [
+         "Ik zie de ___.",
+         "voet",
+         "Я вижу ступню."
+        ]
+       ],
+       "bank": [
+        "been",
+        "knie",
+        "voet",
+        "gezicht"
+       ]
       }
      ]
     },
@@ -7414,6 +8162,16 @@
         "de teen"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Dit is de ___.",
+       "answer": [
+        "buik"
+       ],
+       "ph": "b…",
+       "hint": "Первая буква: «b» · Это живот."
       },
       {
        "t": "speak",
@@ -7581,6 +8339,17 @@
          "de griep",
          "грипп"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Здоровье»?",
+       "opts": [
+        "het paard",
+        "de huid",
+        "de pijn",
+        "de koorts"
        ]
       }
      ]
@@ -7838,6 +8607,33 @@
         "pijn"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb de ___.",
+         "huid",
+         "У меня есть кожа."
+        ],
+        [
+         "Ik heb de ___.",
+         "pijn",
+         "У меня есть боль."
+        ],
+        [
+         "Ik zie de ___.",
+         "koorts",
+         "Я вижу температуру."
+        ]
+       ],
+       "bank": [
+        "huid",
+        "pijn",
+        "koorts",
+        "oog"
+       ]
       }
      ]
     },
@@ -7867,6 +8663,16 @@
         "de klacht"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "huid"
+       ],
+       "ph": "h…",
+       "hint": "Первая буква: «h» · Где кожа?"
       },
       {
        "t": "speak",
@@ -8034,6 +8840,17 @@
          "de apotheek",
          "аптека"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Здоровье»?",
+       "opts": [
+        "de stad",
+        "de huisarts",
+        "de tandarts",
+        "de assistente"
        ]
       }
      ]
@@ -8295,6 +9112,33 @@
         "tandarts"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "De ___ helpt mij vaak.",
+         "huisarts",
+         "Семейный врач часто мне помогает."
+        ],
+        [
+         "Ken jij de ___?",
+         "tandarts",
+         "Ты знаешь стоматолога?"
+        ],
+        [
+         "De ___ is erg aardig.",
+         "assistente",
+         "Ассистентка очень приятная."
+        ]
+       ],
+       "bank": [
+        "huisarts",
+        "tandarts",
+        "assistente",
+        "oor"
+       ]
       }
      ]
     },
@@ -8324,6 +9168,16 @@
         "het ziekenhuis"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ken jij de ___?",
+       "answer": [
+        "huisarts"
+       ],
+       "ph": "h…",
+       "hint": "Первая буква: «h» · Ты знаешь семейного врача?"
       },
       {
        "t": "speak",
@@ -8491,6 +9345,17 @@
          "het doosje",
          "коробочка"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Здоровье»?",
+       "opts": [
+        "de rekening",
+        "de pil",
+        "de zalf",
+        "de druppel"
        ]
       }
      ]
@@ -8754,6 +9619,33 @@
         "zalf"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Is dit de ___?",
+         "pil",
+         "Это таблетка?"
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "druppel",
+         "Я не вижу каплю."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "doosje",
+         "Мне нужна коробочка."
+        ]
+       ],
+       "bank": [
+        "pil",
+        "druppel",
+        "doosje",
+        "neus"
+       ]
       }
      ]
     },
@@ -8950,6 +9842,17 @@
          "de jas",
          "куртка / пальто"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Одежда»?",
+       "opts": [
+        "het liedje",
+        "de kleding",
+        "de kleren",
+        "de broek"
        ]
       }
      ]
@@ -9207,6 +10110,33 @@
         "kleding"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb de ___ nodig.",
+         "kleding",
+         "Мне нужна одежда."
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "broek",
+         "Я не вижу брюки."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "jas",
+         "Мне нужна куртка."
+        ]
+       ],
+       "bank": [
+        "kleding",
+        "broek",
+        "jas",
+        "onderbroek"
+       ]
       }
      ]
     },
@@ -9236,6 +10166,16 @@
         "de jurk"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "De ___ past goed.",
+       "answer": [
+        "rok"
+       ],
+       "ph": "r…",
+       "hint": "Первая буква: «r» · Юбка хорошо сидит."
       },
       {
        "t": "speak",
@@ -9403,6 +10343,17 @@
          "het vest",
          "кардиган / жилет"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Одежда»?",
+       "opts": [
+        "de keuken",
+        "het hemd",
+        "het overhemd",
+        "de bloes"
        ]
       }
      ]
@@ -9664,6 +10615,33 @@
         "overhemd"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Het ___ is hier, denk ik.",
+         "overhemd",
+         "Рубашка здесь, я думаю."
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "bloes",
+         "Я не вижу блузку."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "vest",
+         "Мне нужен кардиган."
+        ]
+       ],
+       "bank": [
+        "overhemd",
+        "bloes",
+        "vest",
+        "sok"
+       ]
       }
      ]
     },
@@ -9693,6 +10671,16 @@
         "de sok"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is het ___?",
+       "answer": [
+        "hemd"
+       ],
+       "ph": "h…",
+       "hint": "Первая буква: «h» · Где майка?"
       },
       {
        "t": "speak",
@@ -9860,6 +10848,17 @@
          "de handschoen",
          "перчатка"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Одежда»?",
+       "opts": [
+        "het uitzendbureau",
+        "de muts",
+        "de hoed",
+        "de sjaal"
        ]
       }
      ]
@@ -10117,6 +11116,33 @@
         "hoed"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zie de ___ niet.",
+         "sjaal",
+         "Я не вижу шарф."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "handschoen",
+         "Мне нужна перчатка."
+        ],
+        [
+         "De ___ past goed.",
+         "bril",
+         "Очки хорошо сидит."
+        ]
+       ],
+       "bank": [
+        "sjaal",
+        "handschoen",
+        "bril",
+        "schoen"
+       ]
       }
      ]
     },
@@ -10146,6 +11172,16 @@
         "het horloge"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik heb een ___ nodig.",
+       "answer": [
+        "muts"
+       ],
+       "ph": "m…",
+       "hint": "Первая буква: «m» · Мне нужна шапка."
       },
       {
        "t": "speak",
@@ -10313,6 +11349,17 @@
          "de maat",
          "размер"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Одежда»?",
+       "opts": [
+        "de vriendin",
+        "de armband",
+        "de oorbel",
+        "het sieraad"
        ]
       }
      ]
@@ -10574,6 +11621,33 @@
         "oorbel"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "armband",
+         "Где браслет?"
+        ],
+        [
+         "Is dit de ___?",
+         "oorbel",
+         "Это серьга?"
+        ],
+        [
+         "Het ___ is hier, denk ik.",
+         "sieraad",
+         "Украшение здесь, я думаю."
+        ]
+       ],
+       "bank": [
+        "armband",
+        "oorbel",
+        "sieraad",
+        "laars"
+       ]
       }
      ]
     },
@@ -10603,6 +11677,16 @@
         "de knoop"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "De ___ is hier, denk ik.",
+       "answer": [
+        "armband"
+       ],
+       "ph": "a…",
+       "hint": "Первая буква: «a» · Браслет здесь, я думаю."
       },
       {
        "t": "speak",
@@ -10770,6 +11854,17 @@
          "blauw",
          "синий"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Одежда»?",
+       "opts": [
+        "boos",
+        "passen",
+        "dragen",
+        "aanhebben"
        ]
       }
      ]
@@ -10966,6 +12061,33 @@
         "blauw"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik vind ___ mooi.",
+         "geel",
+         "Мне нравится жёлтый цвет."
+        ],
+        [
+         "Mijn jas is ___.",
+         "grijs",
+         "Моя куртка — серая."
+        ],
+        [
+         "Waar is de ___?",
+         "kleding",
+         "Где одежда?"
+        ]
+       ],
+       "bank": [
+        "geel",
+        "grijs",
+        "kleding",
+        "muts"
+       ]
       }
      ]
     },
@@ -11135,6 +12257,17 @@
          "rood",
          "красный"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Одежда»?",
+       "opts": [
+        "de gum",
+        "oranje",
+        "paars",
+        "rood"
        ]
       }
      ]
@@ -11318,6 +12451,33 @@
         "oranje"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Het is ___.",
+         "paars",
+         "Это фиолетовый цвет."
+        ],
+        [
+         "Ik vind ___ mooi.",
+         "rood",
+         "Мне нравится красный цвет."
+        ],
+        [
+         "Mijn jas is ___.",
+         "roze",
+         "Моя куртка — розовая."
+        ]
+       ],
+       "bank": [
+        "paars",
+        "rood",
+        "roze",
+        "hoed"
+       ]
       }
      ]
     },
@@ -11347,6 +12507,16 @@
         "wit"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Mijn jas is ___.",
+       "answer": [
+        "rood"
+       ],
+       "ph": "r…",
+       "hint": "Первая буква: «r» · Моя куртка — красная."
       },
       {
        "t": "listen",
@@ -11480,6 +12650,17 @@
          "de tram",
          "трамвай"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Путешествия»?",
+       "opts": [
+        "de nicht",
+        "de fiets",
+        "de auto",
+        "de bus"
        ]
       }
      ]
@@ -11743,6 +12924,33 @@
         "auto"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Is dit de ___?",
+         "fiets",
+         "Это велосипед?"
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "bus",
+         "Я не вижу автобус."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "tram",
+         "Мне нужен трамвай."
+        ]
+       ],
+       "bank": [
+        "fiets",
+        "bus",
+        "tram",
+        "metro"
+       ]
       }
      ]
     },
@@ -11772,6 +12980,16 @@
         "de trein"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "De ___ vertrekt om negen uur.",
+       "answer": [
+        "metro"
+       ],
+       "ph": "m…",
+       "hint": "Первая буква: «m» · Метро отправляется в девять часов."
       },
       {
        "t": "speak",
@@ -11939,6 +13157,17 @@
          "de chauffeur",
          "водитель"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Путешествия»?",
+       "opts": [
+        "geven",
+        "het station",
+        "de halte",
+        "het spoor"
        ]
       }
      ]
@@ -12200,6 +13429,33 @@
         "halte"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "halte",
+         "Где остановка?"
+        ],
+        [
+         "Is dit het ___?",
+         "spoor",
+         "Это путь?"
+        ],
+        [
+         "Daar loopt de ___.",
+         "chauffeur",
+         "Вон идёт водитель."
+        ]
+       ],
+       "bank": [
+        "halte",
+        "spoor",
+        "chauffeur",
+        "trein"
+       ]
       }
      ]
     },
@@ -12229,6 +13485,16 @@
         "het kaartje"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Het ___ is om de hoek.",
+       "answer": [
+        "station"
+       ],
+       "ph": "s…",
+       "hint": "Первая буква: «s» · Станция за углом."
       },
       {
        "t": "speak",
@@ -12396,6 +13662,17 @@
          "het zebrapad",
          "пешеходный переход"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Путешествия»?",
+       "opts": [
+        "weten",
+        "de weg",
+        "de snelweg",
+        "het fietspad"
        ]
       }
      ]
@@ -12657,6 +13934,33 @@
         "snelweg"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb een ___ nodig.",
+         "fietspad",
+         "Мне нужна велодорожка."
+        ],
+        [
+         "Waar is het ___?",
+         "zebrapad",
+         "Где пешеходный переход?"
+        ],
+        [
+         "Is dit het ___?",
+         "stoplicht",
+         "Это светофор?"
+        ]
+       ],
+       "bank": [
+        "fietspad",
+        "zebrapad",
+        "stoplicht",
+        "boot"
+       ]
       }
      ]
     },
@@ -12686,6 +13990,16 @@
         "het kruispunt"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "weg"
+       ],
+       "ph": "w…",
+       "hint": "Первая буква: «w» · Где дорога?"
       },
       {
        "t": "speak",
@@ -12853,6 +14167,17 @@
          "de vakantie",
          "отпуск / каникулы"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Путешествия»?",
+       "opts": [
+        "de koffie",
+        "de regel",
+        "de boete",
+        "de reis"
        ]
       }
      ]
@@ -13114,6 +14439,33 @@
         "hotel"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb een ___ nodig.",
+         "tent",
+         "Мне нужна палатка."
+        ],
+        [
+         "Ik ga naar het ___.",
+         "hotel",
+         "Я иду в отель."
+        ],
+        [
+         "Waar is de ___?",
+         "camping",
+         "Где кемпинг?"
+        ]
+       ],
+       "bank": [
+        "tent",
+        "hotel",
+        "camping",
+        "vliegtuig"
+       ]
       }
      ]
     },
@@ -13143,6 +14495,16 @@
         "het hotel"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Is dit de ___?",
+       "answer": [
+        "tent"
+       ],
+       "ph": "t…",
+       "hint": "Первая буква: «t» · Это палатка?"
       },
       {
        "t": "speak",
@@ -13310,6 +14672,17 @@
          "het eiland",
          "остров"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Путешествия»?",
+       "opts": [
+        "de tand",
+        "Nederland",
+        "de provincie",
+        "de hoofdstad"
        ]
       }
      ]
@@ -13569,6 +14942,33 @@
         "hoofdstad"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "hoofdstad",
+         "Где столица?"
+        ],
+        [
+         "Ik zie het ___ niet.",
+         "eiland",
+         "Я не вижу остров."
+        ],
+        [
+         "Waar is het ___?",
+         "noorden",
+         "Где север?"
+        ]
+       ],
+       "bank": [
+        "hoofdstad",
+        "eiland",
+        "noorden",
+        "station"
+       ]
       }
      ]
     },
@@ -13598,6 +14998,16 @@
         "het zuiden"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Is dit het ___?",
+       "answer": [
+        "eiland"
+       ],
+       "ph": "e…",
+       "hint": "Первая буква: «e» · Это остров?"
       },
       {
        "t": "speak",
@@ -13765,6 +15175,17 @@
          "de vertrektijd",
          "время отправления"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Путешествия»?",
+       "opts": [
+        "de ketting",
+        "het midden",
+        "de kant",
+        "de plek"
        ]
       }
      ]
@@ -14026,6 +15447,33 @@
         "plek"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is het ___?",
+         "midden",
+         "Где центр?"
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "plek",
+         "Я не вижу место."
+        ],
+        [
+         "Is dit de ___?",
+         "fiets",
+         "Это велосипед?"
+        ]
+       ],
+       "bank": [
+        "midden",
+        "plek",
+        "fiets",
+        "halte"
+       ]
       }
      ]
     },
@@ -14055,6 +15503,16 @@
         "nemen"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "De ___ is hier, denk ik.",
+       "answer": [
+        "kant"
+       ],
+       "ph": "k…",
+       "hint": "Первая буква: «k» · Сторона здесь, я думаю."
       },
       {
        "t": "speak",
@@ -14223,6 +15681,17 @@
          "выходить из транспорта"
         ]
        ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Путешествия»?",
+       "opts": [
+        "de film",
+        "lopen",
+        "rijden",
+        "instappen"
+       ]
       }
      ]
     },
@@ -14351,6 +15820,33 @@
         "rijden"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Is dit de ___?",
+         "fiets",
+         "Это велосипед?"
+        ],
+        [
+         "De ___ is hier, denk ik.",
+         "auto",
+         "Машина здесь, я думаю."
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "bus",
+         "Я не вижу автобус."
+        ]
+       ],
+       "bank": [
+        "fiets",
+        "auto",
+        "bus",
+        "spoor"
+       ]
       }
      ]
     },
@@ -14535,6 +16031,17 @@
          "het concert",
          "концерт"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Досуг»?",
+       "opts": [
+        "de ui",
+        "de hobby",
+        "de muziek",
+        "de film"
        ]
       }
      ]
@@ -14794,6 +16301,33 @@
         "restaurant"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik ga naar het ___.",
+         "museum",
+         "Я иду в музей."
+        ],
+        [
+         "Het ___ is vandaag dicht.",
+         "café",
+         "Кафе сегодня закрыто."
+        ],
+        [
+         "Het ___ is om de hoek.",
+         "strand",
+         "Пляж за углом."
+        ]
+       ],
+       "bank": [
+        "museum",
+        "café",
+        "strand",
+        "bloem"
+       ]
       }
      ]
     },
@@ -14990,6 +16524,17 @@
          "de boom",
          "дерево"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Досуг»?",
+       "opts": [
+        "de drogist",
+        "de zee",
+        "de natuur",
+        "de bloem"
        ]
       }
      ]
@@ -15247,6 +16792,33 @@
         "natuur"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "natuur",
+         "Где природа?"
+        ],
+        [
+         "Ik vind de ___ leuk.",
+         "bloem",
+         "Мне нравится цветок."
+        ],
+        [
+         "Waar is de ___?",
+         "boom",
+         "Где дерево?"
+        ]
+       ],
+       "bank": [
+        "natuur",
+        "bloem",
+        "boom",
+        "bos"
+       ]
       }
      ]
     },
@@ -15276,6 +16848,16 @@
         "het park"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zie de ___ niet.",
+       "answer": [
+        "zee"
+       ],
+       "ph": "z…",
+       "hint": "Первая буква: «z» · Я не вижу море."
       },
       {
        "t": "speak",
@@ -15443,6 +17025,17 @@
          "het paard",
          "лошадь"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Досуг»?",
+       "opts": [
+        "de jurk",
+        "de hond",
+        "de kat",
+        "de koe"
        ]
       }
      ]
@@ -15704,6 +17297,33 @@
         "koe"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Kijk, het ___!",
+         "paard",
+         "Смотри, лошадь!"
+        ],
+        [
+         "Ik heb thuis een ___.",
+         "schaap",
+         "У меня дома овца."
+        ],
+        [
+         "Is het ___ groot?",
+         "varken",
+         "Свинья большая?"
+        ]
+       ],
+       "bank": [
+        "paard",
+        "schaap",
+        "varken",
+        "bos"
+       ]
       }
      ]
     },
@@ -15733,6 +17353,16 @@
         "het varken"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Kijk, de ___!",
+       "answer": [
+        "kat"
+       ],
+       "ph": "k…",
+       "hint": "Первая буква: «k» · Смотри, кошка!"
       },
       {
        "t": "speak",
@@ -15900,6 +17530,17 @@
          "de wolk",
          "облако"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Досуг»?",
+       "opts": [
+        "het oosten",
+        "de zon",
+        "de wind",
+        "de sneeuw"
        ]
       }
      ]
@@ -16157,6 +17798,33 @@
         "zon"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik vind de ___ leuk.",
+         "zon",
+         "Мне нравится солнце."
+        ],
+        [
+         "Is dit de ___?",
+         "sneeuw",
+         "Это снег?"
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "wolk",
+         "Я не вижу облако."
+        ]
+       ],
+       "bank": [
+        "zon",
+        "sneeuw",
+        "wolk",
+        "park"
+       ]
       }
      ]
     },
@@ -16186,6 +17854,16 @@
         "de graad"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "sneeuw"
+       ],
+       "ph": "s…",
+       "hint": "Первая буква: «s» · Где снег?"
       },
       {
        "t": "speak",
@@ -16353,6 +18031,17 @@
          "de app",
          "приложение"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Досуг»?",
+       "opts": [
+        "het appartement",
+        "de mail",
+        "het bericht",
+        "de website"
        ]
       }
      ]
@@ -16618,6 +18307,33 @@
         "mail"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik vind de ___ leuk.",
+         "app",
+         "Мне нравится приложение."
+        ],
+        [
+         "Is dit het ___?",
+         "account",
+         "Это аккаунт?"
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "foto",
+         "Я не вижу фото."
+        ]
+       ],
+       "bank": [
+        "app",
+        "account",
+        "foto",
+        "vogel"
+       ]
       }
      ]
     },
@@ -16647,6 +18363,16 @@
         "het account"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik heb een ___ nodig.",
+       "answer": [
+        "foto"
+       ],
+       "ph": "f…",
+       "hint": "Первая буква: «f» · Мне нужно фото."
       },
       {
        "t": "speak",
@@ -16814,6 +18540,17 @@
          "de wedstrijd",
          "матч / соревнование"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Досуг»?",
+       "opts": [
+        "de gang",
+        "het liedje",
+        "de club",
+        "het team"
        ]
       }
      ]
@@ -17075,6 +18812,33 @@
         "team"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "club",
+         "Где клуб?"
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "bal",
+         "Я не вижу мяч."
+        ],
+        [
+         "Waar is het ___?",
+         "zwembad",
+         "Где бассейн?"
+        ]
+       ],
+       "bank": [
+        "club",
+        "bal",
+        "zwembad",
+        "dier"
+       ]
       }
      ]
     },
@@ -17271,6 +19035,17 @@
          "sporten",
          "заниматься спортом"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Досуг»?",
+       "opts": [
+        "de verzekering",
+        "downloaden",
+        "inloggen",
+        "uitloggen"
        ]
       }
      ]
@@ -17469,6 +19244,33 @@
         "zwemmen"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "We gaan morgen ___.",
+         "sporten",
+         "Завтра мы будем заниматься спортом."
+        ],
+        [
+         "Ik wil graag ___.",
+         "wandelen",
+         "Я очень хочу гулять."
+        ],
+        [
+         "We gaan morgen ___.",
+         "dansen",
+         "Завтра мы будем танцевать."
+        ]
+       ],
+       "bank": [
+        "sporten",
+        "wandelen",
+        "dansen",
+        "hond"
+       ]
       }
      ]
     },
@@ -17653,6 +19455,17 @@
          "het appartement",
          "квартира"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Жильё»?",
+       "opts": [
+        "de boot",
+        "het huis",
+        "de woning",
+        "de flat"
        ]
       }
      ]
@@ -17912,6 +19725,33 @@
         "huis"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Is dit het ___?",
+         "huis",
+         "Это дом?"
+        ],
+        [
+         "De ___ is hier, denk ik.",
+         "flat",
+         "Квартира здесь, я думаю."
+        ],
+        [
+         "Ik zie het ___ niet.",
+         "appartement",
+         "Я не вижу квартиру."
+        ]
+       ],
+       "bank": [
+        "huis",
+        "flat",
+        "appartement",
+        "vloer"
+       ]
       }
      ]
     },
@@ -17941,6 +19781,16 @@
         "de woonkamer"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zoek het ___.",
+       "answer": [
+        "huis"
+       ],
+       "ph": "h…",
+       "hint": "Первая буква: «h» · Я ищу дом."
       },
       {
        "t": "speak",
@@ -18108,6 +19958,17 @@
          "de zolder",
          "чердак"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Жильё»?",
+       "opts": [
+        "het museum",
+        "de badkamer",
+        "de wc",
+        "de gang"
        ]
       }
      ]
@@ -18367,6 +20228,33 @@
         "badkamer"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Dit is de ___.",
+         "wc",
+         "Это туалет."
+        ],
+        [
+         "Dit is de ___.",
+         "gang",
+         "Это коридор."
+        ],
+        [
+         "Dit is de ___.",
+         "zolder",
+         "Это чердак."
+        ]
+       ],
+       "bank": [
+        "wc",
+        "gang",
+        "zolder",
+        "trap"
+       ]
       }
      ]
     },
@@ -18396,6 +20284,16 @@
         "de tuin"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "badkamer"
+       ],
+       "ph": "b…",
+       "hint": "Первая буква: «b» · Где ванная комната?"
       },
       {
        "t": "speak",
@@ -18563,6 +20461,17 @@
          "de muur",
          "стена"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Жильё»?",
+       "opts": [
+        "het briefje",
+        "het dak",
+        "de deur",
+        "het raam"
        ]
       }
      ]
@@ -18820,6 +20729,33 @@
         "dak"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zoek de ___.",
+         "deur",
+         "Я ищу дверь."
+        ],
+        [
+         "Ik zoek het ___.",
+         "raam",
+         "Я ищу окно."
+        ],
+        [
+         "Ik zoek de ___.",
+         "muur",
+         "Я ищу стену."
+        ]
+       ],
+       "bank": [
+        "deur",
+        "raam",
+        "muur",
+        "lift"
+       ]
       }
      ]
     },
@@ -18849,6 +20785,16 @@
         "de trap"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zie het ___.",
+       "answer": [
+        "dak"
+       ],
+       "ph": "d…",
+       "hint": "Первая буква: «d» · Я вижу крышу."
       },
       {
        "t": "speak",
@@ -19016,6 +20962,17 @@
          "de brievenbus",
          "почтовый ящик"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Жильё»?",
+       "opts": [
+        "de geboortedatum",
+        "de sleutel",
+        "het slot",
+        "de bel"
        ]
       }
      ]
@@ -19273,6 +21230,33 @@
         "sleutel"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zie de ___ niet.",
+         "sleutel",
+         "Я не вижу ключ."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "slot",
+         "Мне нужен замок."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "bel",
+         "Мне нужен звонок."
+        ]
+       ],
+       "bank": [
+        "sleutel",
+        "slot",
+        "bel",
+        "verdieping"
+       ]
       }
      ]
     },
@@ -19302,6 +21286,16 @@
         "de stoel"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik heb de ___.",
+       "answer": [
+        "sleutel"
+       ],
+       "ph": "s…",
+       "hint": "Первая буква: «s» · У меня есть ключ."
       },
       {
        "t": "speak",
@@ -19469,6 +21463,17 @@
          "de douche",
          "душ"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Жильё»?",
+       "opts": [
+        "de nicht",
+        "de kast",
+        "de lamp",
+        "de televisie"
        ]
       }
      ]
@@ -19726,6 +21731,33 @@
         "kast"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "lamp",
+         "Где лампа?"
+        ],
+        [
+         "Waar is de ___?",
+         "televisie",
+         "Где телевизор?"
+        ],
+        [
+         "Waar is de ___?",
+         "douche",
+         "Где душ?"
+        ]
+       ],
+       "bank": [
+        "lamp",
+        "televisie",
+        "douche",
+        "sleutel"
+       ]
       }
      ]
     },
@@ -19755,6 +21787,16 @@
         "de wasmachine"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Dit is de ___.",
+       "answer": [
+        "kast"
+       ],
+       "ph": "k…",
+       "hint": "Первая буква: «k» · Это шкаф."
       },
       {
        "t": "speak",
@@ -19922,6 +21964,17 @@
          "het dorp",
          "деревня"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Жильё»?",
+       "opts": [
+        "kijken",
+        "de magnetron",
+        "de buurt",
+        "de straat"
        ]
       }
      ]
@@ -20179,6 +22232,33 @@
         "magnetron"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zie de ___ niet.",
+         "magnetron",
+         "Я не вижу микроволновку."
+        ],
+        [
+         "Ik zie de ___ niet.",
+         "buurt",
+         "Я не вижу район."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "straat",
+         "Мне нужна улица."
+        ]
+       ],
+       "bank": [
+        "magnetron",
+        "buurt",
+        "straat",
+        "slot"
+       ]
       }
      ]
     },
@@ -20208,6 +22288,16 @@
         "de plaats"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik heb een ___ nodig.",
+       "answer": [
+        "magnetron"
+       ],
+       "ph": "m…",
+       "hint": "Первая буква: «m» · Мне нужна микроволновка."
       },
       {
        "t": "speak",
@@ -20375,6 +22465,17 @@
          "schoonmaken",
          "убирать"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Жильё»?",
+       "opts": [
+        "de puzzel",
+        "het internet",
+        "wonen",
+        "wassen"
        ]
       }
      ]
@@ -20602,6 +22703,33 @@
         "Waar is het meisje?",
         "Ik zie het meisje."
        ]
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zie het ___.",
+         "huis",
+         "Я вижу дом."
+        ],
+        [
+         "Ik heb de ___.",
+         "woning",
+         "У меня есть жильё."
+        ],
+        [
+         "Ik zie de ___.",
+         "flat",
+         "Я вижу квартиру."
+        ]
+       ],
+       "bank": [
+        "huis",
+        "woning",
+        "flat",
+        "bel"
+       ]
       }
      ]
     },
@@ -20631,6 +22759,16 @@
         "verhuizen"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Dit is het ___.",
+       "answer": [
+        "internet"
+       ],
+       "ph": "i…",
+       "hint": "Первая буква: «i» · Это интернет."
       },
       {
        "t": "speak",
@@ -20792,6 +22930,17 @@
          "het beroep",
          "профессия"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Работа»?",
+       "opts": [
+        "de vriendin",
+        "de collega",
+        "het werk",
+        "de baan"
        ]
       }
      ]
@@ -21056,6 +23205,33 @@
         "werk"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik ken de ___ goed.",
+         "collega",
+         "Я хорошо знаю коллегу."
+        ],
+        [
+         "Ik heb de ___.",
+         "baan",
+         "У меня есть работа."
+        ],
+        [
+         "Ik heb het ___.",
+         "beroep",
+         "У меня есть профессия."
+        ]
+       ],
+       "bank": [
+        "collega",
+        "baan",
+        "beroep",
+        "verdienen"
+       ]
       }
      ]
     },
@@ -21085,6 +23261,16 @@
         "de werknemer"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "De ___ is erg aardig.",
+       "answer": [
+        "werkgever"
+       ],
+       "ph": "w…",
+       "hint": "Первая буква: «w» · Работодатель очень приятный."
       },
       {
        "t": "speak",
@@ -21252,6 +23438,17 @@
          "het contract",
          "контракт"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Работа»?",
+       "opts": [
+        "de achternaam",
+        "de medewerker",
+        "de manager",
+        "het bedrijf"
        ]
       }
      ]
@@ -21516,6 +23713,33 @@
         "manager"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb de ___.",
+         "manager",
+         "У меня есть менеджер."
+        ],
+        [
+         "Dit is het ___.",
+         "bedrijf",
+         "Это компания."
+        ],
+        [
+         "Dit is het ___.",
+         "contract",
+         "Это контракт."
+        ]
+       ],
+       "bank": [
+        "manager",
+        "bedrijf",
+        "contract",
+        "betalen"
+       ]
       }
      ]
     },
@@ -21545,6 +23769,16 @@
         "de sollicitatie"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "De ___ helpt mij vaak.",
+       "answer": [
+        "medewerker"
+       ],
+       "ph": "m…",
+       "hint": "Первая буква: «m» · Сотрудник часто мне помогает."
       },
       {
        "t": "speak",
@@ -21712,6 +23946,17 @@
          "de munt",
          "монета"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Работа»?",
+       "opts": [
+        "eerlijk",
+        "de euro",
+        "de cent",
+        "het bedrag"
        ]
       }
      ]
@@ -21969,6 +24214,33 @@
         "euro"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zoek de ___.",
+         "cent",
+         "Я ищу цент."
+        ],
+        [
+         "Ik zoek het ___.",
+         "bedrag",
+         "Я ищу сумму."
+        ],
+        [
+         "Ik zoek de ___.",
+         "munt",
+         "Я ищу монету."
+        ]
+       ],
+       "bank": [
+        "cent",
+        "bedrag",
+        "munt",
+        "pinnen"
+       ]
       }
      ]
     },
@@ -21998,6 +24270,16 @@
         "de rekening"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zie de ___.",
+       "answer": [
+        "euro"
+       ],
+       "ph": "e…",
+       "hint": "Первая буква: «e» · Я вижу евро."
       },
       {
        "t": "speak",
@@ -22165,6 +24447,17 @@
          "de geboortedatum",
          "дата рождения"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Работа»?",
+       "opts": [
+        "de docent",
+        "de postcode",
+        "het e-mailadres",
+        "het formulier"
        ]
       }
      ]
@@ -22426,6 +24719,33 @@
         "formulier"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "postcode",
+         "Где почтовый индекс?"
+        ],
+        [
+         "Het ___ is hier, denk ik.",
+         "formulier",
+         "Формуляр здесь, я думаю."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "handtekening",
+         "Мне нужна подпись."
+        ]
+       ],
+       "bank": [
+        "postcode",
+        "formulier",
+        "handtekening",
+        "invullen"
+       ]
       }
      ]
     },
@@ -22455,6 +24775,16 @@
         "de brief"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "De ___ is hier, denk ik.",
+       "answer": [
+        "postcode"
+       ],
+       "ph": "p…",
+       "hint": "Первая буква: «p» · Почтовый индекс здесь, я думаю."
       },
       {
        "t": "speak",
@@ -22622,6 +24952,17 @@
          "inschrijven",
          "записываться / регистрироваться"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Работа»?",
+       "opts": [
+        "de soep",
+        "betalen",
+        "pinnen",
+        "invullen"
        ]
       }
      ]
@@ -22822,6 +25163,33 @@
         "vacature"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik kan morgen niet ___.",
+         "betalen",
+         "Завтра я не могу платить."
+        ],
+        [
+         "Is dit de ___?",
+         "vacature",
+         "Это вакансия?"
+        ],
+        [
+         "Ik heb de ___ nodig.",
+         "ervaring",
+         "Мне нужен опыт."
+        ]
+       ],
+       "bank": [
+        "betalen",
+        "vacature",
+        "ervaring",
+        "inschrijven"
+       ]
       }
      ]
     },
@@ -22851,6 +25219,16 @@
         "de vacature"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "baas"
+       ],
+       "ph": "b…",
+       "hint": "Первая буква: «b» · Где начальник?"
       },
       {
        "t": "speak",
@@ -23018,6 +25396,17 @@
          "het diploma",
          "диплом"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Работа»?",
+       "opts": [
+        "de mond",
+        "het rooster",
+        "de dienst",
+        "het uitzendbureau"
        ]
       }
      ]
@@ -23216,6 +25605,33 @@
         "rooster"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "dienst",
+         "Где смена?"
+        ],
+        [
+         "Is dit het ___?",
+         "uitzendbureau",
+         "Это агентство временной работы?"
+        ],
+        [
+         "Ik heb het ___ nodig.",
+         "diploma",
+         "Мне нужен диплом."
+        ]
+       ],
+       "bank": [
+        "dienst",
+        "uitzendbureau",
+        "diploma",
+        "sollicitatiegesprek"
+       ]
       }
      ]
     },
@@ -23245,6 +25661,16 @@
         "de stagiair"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik heb het ___ nodig.",
+       "answer": [
+        "uitzendbureau"
+       ],
+       "ph": "u…",
+       "hint": "Первая буква: «u» · Мне нужно агентство временной работы."
       },
       {
        "t": "speak",
@@ -23397,6 +25823,17 @@
          "het overleg",
          "рабочее обсуждение"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Работа»?",
+       "opts": [
+        "groen",
+        "de bouw",
+        "de horeca",
+        "het overleg"
        ]
       }
      ]
@@ -23582,6 +26019,33 @@
         "bouw"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb de ___ nodig.",
+         "bouw",
+         "Мне нужна стройка."
+        ],
+        [
+         "Is dit het ___?",
+         "overleg",
+         "Это рабочее обсуждение?"
+        ],
+        [
+         "Ik heb de ___ nodig.",
+         "deadline",
+         "Мне нужен дедлайн."
+        ]
+       ],
+       "bank": [
+        "bouw",
+        "overleg",
+        "deadline",
+        "vacature"
+       ]
       }
      ]
     },
@@ -23611,6 +26075,16 @@
         "de belasting"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is het ___?",
+       "answer": [
+        "overleg"
+       ],
+       "ph": "o…",
+       "hint": "Первая буква: «o» · Где рабочее обсуждение?"
       },
       {
        "t": "speak",
@@ -23756,6 +26230,17 @@
          "de verhuurder",
          "арендодатель"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Переезд»?",
+       "opts": [
+        "luisteren",
+        "verhuizen",
+        "het huurcontract",
+        "de huurder"
        ]
       }
      ]
@@ -23954,6 +26439,33 @@
         "huurder"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Is dit de ___?",
+         "huurder",
+         "Это арендатор?"
+        ],
+        [
+         "Ik heb de ___ nodig.",
+         "verhuurder",
+         "Мне нужна арендодатель."
+        ],
+        [
+         "Is dit de ___?",
+         "borg",
+         "Это залог?"
+        ]
+       ],
+       "bank": [
+        "huurder",
+        "verhuurder",
+        "borg",
+        "woning"
+       ]
       }
      ]
     },
@@ -23983,6 +26495,16 @@
         "de bezichtiging"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is het ___?",
+       "answer": [
+        "huurcontract"
+       ],
+       "ph": "h…",
+       "hint": "Первая буква: «h» · Где договор аренды?"
       },
       {
        "t": "speak",
@@ -24150,6 +26672,17 @@
          "de verwarming",
          "отопление"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Переезд»?",
+       "opts": [
+        "de sinaasappel",
+        "de hypotheek",
+        "de inschrijving",
+        "de huisgenoot"
        ]
       }
      ]
@@ -24348,6 +26881,33 @@
         "hypotheek"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "De ___ helpt mij vaak.",
+         "huisgenoot",
+         "Сосед по квартире часто мне помогает."
+        ],
+        [
+         "De ___ doet het niet.",
+         "verwarming",
+         "Отопление не работает."
+        ],
+        [
+         "De ___ en het gas zijn geregeld.",
+         "stroom",
+         "Электричество и газ подключены."
+        ]
+       ],
+       "bank": [
+        "huisgenoot",
+        "verwarming",
+        "stroom",
+        "appartement"
+       ]
       }
      ]
     },
@@ -24377,6 +26937,16 @@
         "het gas"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "verwarming"
+       ],
+       "ph": "v…",
+       "hint": "Первая буква: «v» · Где отопление?"
       },
       {
        "t": "speak",
@@ -24544,6 +27114,17 @@
          "klussen",
          "мастерить по дому"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Переезд»?",
+       "opts": [
+        "de assistente",
+        "het behang",
+        "de verf",
+        "schilderen"
        ]
       }
      ]
@@ -24803,6 +27384,33 @@
         "behang"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "verf",
+         "Где краска?"
+        ],
+        [
+         "Is dit de ___?",
+         "doos",
+         "Это коробка?"
+        ],
+        [
+         "Ik heb de ___ nodig.",
+         "verhuiswagen",
+         "Мне нужен грузовик для переезда."
+        ]
+       ],
+       "bank": [
+        "verf",
+        "doos",
+        "verhuiswagen",
+        "brievenbus"
+       ]
       }
      ]
     },
@@ -24832,6 +27440,16 @@
         "de verhuiswagen"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik heb de ___ nodig.",
+       "answer": [
+        "doos"
+       ],
+       "ph": "d…",
+       "hint": "Первая буква: «d» · Мне нужна коробка."
       },
       {
        "t": "speak",
@@ -24999,6 +27617,17 @@
          "de wasmachine",
          "стиральная машина"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Переезд»?",
+       "opts": [
+        "het horloge",
+        "de woning",
+        "het appartement",
+        "de brievenbus"
        ]
       }
      ]
@@ -25256,6 +27885,33 @@
         "woning"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Het ___ is hier, denk ik.",
+         "appartement",
+         "Квартира здесь, я думаю."
+        ],
+        [
+         "Is dit de ___?",
+         "brievenbus",
+         "Это почтовый ящик?"
+        ],
+        [
+         "Is dit de ___?",
+         "wasmachine",
+         "Это стиральная машина?"
+        ]
+       ],
+       "bank": [
+        "appartement",
+        "brievenbus",
+        "wasmachine",
+        "koelkast"
+       ]
       }
      ]
     },
@@ -25285,6 +27941,16 @@
         "de magnetron"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zoek de ___.",
+       "answer": [
+        "woning"
+       ],
+       "ph": "w…",
+       "hint": "Первая буква: «w» · Я ищу жильё."
       },
       {
        "t": "speak",
@@ -25452,6 +28118,17 @@
          "de koning",
          "король"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Нидерланды»?",
+       "opts": [
+        "de paskamer",
+        "de gewoonte",
+        "de traditie",
+        "het feest"
        ]
       }
      ]
@@ -25631,6 +28308,17 @@
         "de traditie"
        ],
        "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
       },
       {
        "t": "build",
@@ -25661,6 +28349,33 @@
         "Ik ken de man goed.",
         "De man is erg aardig.",
         "Ik zoek de man."
+       ]
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Het ___ is hier, denk ik.",
+         "feest",
+         "Праздник здесь, я думаю."
+        ],
+        [
+         "Waar is het ___?",
+         "nieuws",
+         "Где новости?"
+        ],
+        [
+         "Is dit het ___?",
+         "verhaal",
+         "Это рассказ?"
+        ]
+       ],
+       "bank": [
+        "feest",
+        "nieuws",
+        "verhaal",
+        "bos"
        ]
       }
      ]
@@ -25859,6 +28574,17 @@
          "олибол"
         ]
        ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Нидерланды»?",
+       "opts": [
+        "het zebrapad",
+        "de dijk",
+        "de klomp",
+        "het cadeautje"
+       ]
       }
      ]
     },
@@ -25987,6 +28713,17 @@
         "de klomp"
        ],
        "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
       },
       {
        "t": "build",
@@ -26015,6 +28752,33 @@
         "De vrouw is erg aardig.",
         "Ken jij de vrouw?",
         "De vrouw helpt mij vaak."
+       ]
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Het ___ is hier, denk ik.",
+         "feest",
+         "Праздник здесь, я думаю."
+        ],
+        [
+         "Vertel je ___ maar!",
+         "verhaal",
+         "Ну, рассказывай свою историю!"
+        ],
+        [
+         "Wat is jouw ___?",
+         "mening",
+         "Каково твоё мнение?"
+        ]
+       ],
+       "bank": [
+        "feest",
+        "verhaal",
+        "mening",
+        "sneeuw"
        ]
       }
      ]
@@ -26213,6 +28977,17 @@
          "влюблённый"
         ]
        ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Нидерланды»?",
+       "opts": [
+        "het dier",
+        "het verhaal",
+        "de mening",
+        "moe"
+       ]
       }
      ]
     },
@@ -26410,6 +29185,33 @@
         "moe"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waarom ben je zo ___?",
+         "verliefd",
+         "Почему ты такой(ая) влюблённый?"
+        ],
+        [
+         "Waarom ben je zo ___?",
+         "tevreden",
+         "Почему ты такой(ая) довольный?"
+        ],
+        [
+         "Het is ___.",
+         "eerlijk",
+         "Это честно."
+        ]
+       ],
+       "bank": [
+        "verliefd",
+        "tevreden",
+        "eerlijk",
+        "wolk"
+       ]
       }
      ]
     },
@@ -26439,6 +29241,16 @@
         "eerlijk"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "mening"
+       ],
+       "ph": "m…",
+       "hint": "Первая буква: «m» · Где мнение?"
       },
       {
        "t": "speak",
@@ -26606,6 +29418,17 @@
          "de keuze",
          "выбор"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Нидерланды»?",
+       "opts": [
+        "zetten",
+        "gezellig",
+        "het gesprek",
+        "het idee"
        ]
       }
      ]
@@ -26854,6 +29677,33 @@
         "idee"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Is dit de ___?",
+         "keuze",
+         "Это выбор?"
+        ],
+        [
+         "Ik heb het ___ nodig.",
+         "plan",
+         "Мне нужен план."
+        ],
+        [
+         "Waar is de ___?",
+         "droom",
+         "Где мечта?"
+        ]
+       ],
+       "bank": [
+        "keuze",
+        "plan",
+        "droom",
+        "temperatuur"
+       ]
       }
      ]
     },
@@ -26883,6 +29733,16 @@
         "de droom"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Het was een leuk ___.",
+       "answer": [
+        "gesprek"
+       ],
+       "ph": "g…",
+       "hint": "Первая буква: «g» · Это был приятный разговор."
       },
       {
        "t": "speak",
@@ -27050,6 +29910,17 @@
          "de camping",
          "кемпинг"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Нидерланды»?",
+       "opts": [
+        "de belasting",
+        "de ov-chipkaart",
+        "de boete",
+        "het hotel"
        ]
       }
      ]
@@ -27309,6 +30180,33 @@
         "hotel"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "ov-chipkaart",
+         "Где транспортная карта?"
+        ],
+        [
+         "Ik ga naar het ___.",
+         "hotel",
+         "Я иду в отель."
+        ],
+        [
+         "Waar is de ___?",
+         "camping",
+         "Где кемпинг?"
+        ]
+       ],
+       "bank": [
+        "ov-chipkaart",
+        "hotel",
+        "camping",
+        "proberen"
+       ]
       }
      ]
     },
@@ -27338,6 +30236,16 @@
         "het bos"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Is dit de ___?",
+       "answer": [
+        "ov-chipkaart"
+       ],
+       "ph": "o…",
+       "hint": "Первая буква: «o» · Это транспортная карта?"
       },
       {
        "t": "speak",
@@ -27505,6 +30413,17 @@
          "leeg",
          "пустой"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Нидерланды»?",
+       "opts": [
+        "de zwager",
+        "de temperatuur",
+        "proberen",
+        "lelijk"
        ]
       }
      ]
@@ -27751,6 +30670,33 @@
         "temperatuur"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Het is ___.",
+         "lelijk",
+         "Это некрасиво."
+        ],
+        [
+         "Dat is heel ___.",
+         "leeg",
+         "Это очень пусто."
+        ],
+        [
+         "Is het ___?",
+         "nat",
+         "Это мокро?"
+        ]
+       ],
+       "bank": [
+        "lelijk",
+        "leeg",
+        "nat",
+        "licht"
+       ]
       }
      ]
     },
@@ -27780,6 +30726,16 @@
         "licht"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Is het ___?",
+       "answer": [
+        "leeg"
+       ],
+       "ph": "l…",
+       "hint": "Первая буква: «l» · Это пусто?"
       },
       {
        "t": "speak",
@@ -27941,6 +30897,17 @@
          "gewone",
          "обычный"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Нидерланды»?",
+       "opts": [
+        "hebben",
+        "veilig",
+        "gevaarlijk",
+        "mogelijk"
        ]
       }
      ]
@@ -28135,6 +31102,33 @@
         "veilig"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Het is ___.",
+         "veilig",
+         "Это безопасно."
+        ],
+        [
+         "Dat is heel ___.",
+         "mogelijk",
+         "Это очень возможно."
+        ],
+        [
+         "Is het ___?",
+         "gewone",
+         "Это обычно?"
+        ]
+       ],
+       "bank": [
+        "veilig",
+        "mogelijk",
+        "gewone",
+        "leeg"
+       ]
       }
      ]
     },
@@ -28164,6 +31158,16 @@
         "speciaal"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Het is ___.",
+       "answer": [
+        "mogelijk"
+       ],
+       "ph": "m…",
+       "hint": "Первая буква: «m» · Это возможно."
       },
       {
        "t": "listen",
@@ -28320,6 +31324,17 @@
          "учитель начальной школы"
         ]
        ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Дети»?",
+       "opts": [
+        "het slot",
+        "het kinderdagverblijf",
+        "de basisschool",
+        "de juf"
+       ]
       }
      ]
     },
@@ -28448,6 +31463,33 @@
         "de basisschool"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik was gisteren erg ___.",
+         "blij",
+         "Вчера я был(а) очень рад(а)."
+        ],
+        [
+         "Ik was gisteren erg ___.",
+         "boos",
+         "Вчера я был(а) очень сердит(а)."
+        ],
+        [
+         "Ik was gisteren erg ___.",
+         "verdrietig",
+         "Вчера я был(а) очень грустен (грустна)."
+        ]
+       ],
+       "bank": [
+        "blij",
+        "boos",
+        "verdrietig",
+        "speeltuin"
+       ]
       }
      ]
     },
@@ -28644,6 +31686,17 @@
          "de kleuter",
          "дошкольник"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Дети»?",
+       "opts": [
+        "het formulier",
+        "het speelgoed",
+        "de luier",
+        "de peuter"
        ]
       }
      ]
@@ -28846,6 +31899,33 @@
         "blij"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik ben vandaag een beetje ___.",
+         "verdrietig",
+         "Сегодня я немного грустен (грустна)."
+        ],
+        [
+         "Ik ben vandaag een beetje ___.",
+         "bang",
+         "Сегодня я немного напуган(а)."
+        ],
+        [
+         "Ik ben vandaag een beetje ___.",
+         "trots",
+         "Сегодня я немного горд(а)."
+        ]
+       ],
+       "bank": [
+        "verdrietig",
+        "bang",
+        "trots",
+        "speelgoed"
+       ]
       }
      ]
     },
@@ -29042,6 +32122,17 @@
          "het compliment",
          "комплимент"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Дети»?",
+       "opts": [
+        "de broer",
+        "bang",
+        "trots",
+        "de ruzie"
        ]
       }
      ]
@@ -29304,6 +32395,33 @@
         "bang"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waarom ben je zo ___?",
+         "trots",
+         "Почему ты такой(ая) гордый?"
+        ],
+        [
+         "Ik heb de ___ nodig.",
+         "ruzie",
+         "Мне нужна ссора."
+        ],
+        [
+         "Waar is het ___?",
+         "compliment",
+         "Где комплимент?"
+        ]
+       ],
+       "bank": [
+        "trots",
+        "ruzie",
+        "compliment",
+        "luier"
+       ]
       }
      ]
     },
@@ -29333,6 +32451,16 @@
         "het gevoel"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "ruzie"
+       ],
+       "ph": "r…",
+       "hint": "Первая буква: «r» · Где ссора?"
       },
       {
        "t": "speak",
@@ -29500,6 +32628,17 @@
          "voelen",
          "чувствовать"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Дети»?",
+       "opts": [
+        "moe",
+        "de echtgenote",
+        "de schoonmoeder",
+        "de schoonvader"
        ]
       }
      ]
@@ -29762,6 +32901,33 @@
         "schoonmoeder"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb de ___.",
+         "echtgenote",
+         "У меня есть жена."
+        ],
+        [
+         "Ik heb de ___.",
+         "schoonmoeder",
+         "У меня есть свекровь."
+        ],
+        [
+         "Ik heb de ___.",
+         "schoonvader",
+         "У меня есть свёкор."
+        ]
+       ],
+       "bank": [
+        "echtgenote",
+        "schoonmoeder",
+        "schoonvader",
+        "peuter"
+       ]
       }
      ]
     },
@@ -29791,6 +32957,16 @@
         "vallen"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "echtgenote"
+       ],
+       "ph": "e…",
+       "hint": "Первая буква: «e» · Где жена?"
       },
       {
        "t": "speak",
@@ -29958,6 +33134,17 @@
          "ruilen",
          "обменивать товар"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Магазины»?",
+       "opts": [
+        "gaan",
+        "de klacht",
+        "de korting",
+        "de aanbieding"
        ]
       }
      ]
@@ -30137,6 +33324,17 @@
         "de korting"
        ],
        "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
       },
       {
        "t": "build",
@@ -30169,6 +33367,33 @@
         "Ik ken de man goed.",
         "De man is erg aardig.",
         "Ik zoek de man."
+       ]
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "klacht",
+         "Где жалоба?"
+        ],
+        [
+         "Wil je ___?",
+         "aardbei",
+         "Хочешь клубнику?"
+        ],
+        [
+         "Ik eet graag ___.",
+         "pasta",
+         "Я люблю есть пасту."
+        ]
+       ],
+       "bank": [
+        "klacht",
+        "aardbei",
+        "pasta",
+        "mailen"
        ]
       }
      ]
@@ -30366,6 +33591,17 @@
          "de webshop",
          "интернет-магазин"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Магазины»?",
+       "opts": [
+        "de cursist",
+        "de klantenservice",
+        "het winkelcentrum",
+        "de garantie"
        ]
       }
      ]
@@ -30595,6 +33831,33 @@
         "aardbei"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "klacht",
+         "Где жалоба?"
+        ],
+        [
+         "Ik zie de ___.",
+         "pasta",
+         "Я вижу пасту."
+        ],
+        [
+         "Dit is de ___.",
+         "peper",
+         "Это перец."
+        ]
+       ],
+       "bank": [
+        "klacht",
+        "pasta",
+        "peper",
+        "downloaden"
+       ]
       }
      ]
     },
@@ -30624,6 +33887,16 @@
         "de uitleg"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "aardbei"
+       ],
+       "ph": "a…",
+       "hint": "Первая буква: «a» · Где клубника?"
       },
       {
        "t": "speak",
@@ -30791,6 +34064,17 @@
          "de limonade",
          "лимонад"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Магазины»?",
+       "opts": [
+        "het fruit",
+        "de pasta",
+        "de peper",
+        "het sap"
        ]
       }
      ]
@@ -31048,6 +34332,33 @@
         "pasta"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zoek de ___.",
+         "peper",
+         "Я ищу перец."
+        ],
+        [
+         "Ik neem ___, alstublieft.",
+         "sap",
+         "Мне сок, пожалуйста."
+        ],
+        [
+         "Wil je ___?",
+         "limonade",
+         "Хочешь лимонад?"
+        ]
+       ],
+       "bank": [
+        "peper",
+        "sap",
+        "limonade",
+        "inloggen"
+       ]
       }
      ]
     },
@@ -31077,6 +34388,16 @@
         "het blik"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik koop de ___ in de supermarkt.",
+       "answer": [
+        "pasta"
+       ],
+       "ph": "p…",
+       "hint": "Первая буква: «p» · Я покупаю пасту в супермаркете."
       },
       {
        "t": "speak",
@@ -31244,6 +34565,17 @@
          "het wachtwoord",
          "пароль"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Магазины»?",
+       "opts": [
+        "de druppel",
+        "het bericht",
+        "de website",
+        "de app"
        ]
       }
      ]
@@ -31505,6 +34837,33 @@
         "website"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zie de ___ niet.",
+         "website",
+         "Я не вижу сайт."
+        ],
+        [
+         "Waar is het ___?",
+         "account",
+         "Где аккаунт?"
+        ],
+        [
+         "Waar is de ___?",
+         "klacht",
+         "Где жалоба?"
+        ]
+       ],
+       "bank": [
+        "website",
+        "account",
+        "klacht",
+        "uitloggen"
+       ]
       }
      ]
     },
@@ -31534,6 +34893,16 @@
         "verkopen"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Het ___ is hier, denk ik.",
+       "answer": [
+        "account"
+       ],
+       "ph": "a…",
+       "hint": "Первая буква: «a» · Аккаунт здесь, я думаю."
       },
       {
        "t": "speak",
@@ -31686,6 +35055,17 @@
          "uitloggen",
          "выходить из аккаунта"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Магазины»?",
+       "opts": [
+        "paars",
+        "downloaden",
+        "inloggen",
+        "uitloggen"
        ]
       }
      ]
@@ -31869,6 +35249,33 @@
         "vers"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Waar is de ___?",
+         "klacht",
+         "Где жалоба?"
+        ],
+        [
+         "Waar is de ___?",
+         "aardbei",
+         "Где клубника?"
+        ],
+        [
+         "Is dit de ___?",
+         "pasta",
+         "Это паста?"
+        ]
+       ],
+       "bank": [
+        "klacht",
+        "aardbei",
+        "pasta",
+        "zoet"
+       ]
       }
      ]
     },
@@ -32031,6 +35438,17 @@
          "het lokaal",
          "учебный кабинет"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Образование»?",
+       "opts": [
+        "het oor",
+        "de opleiding",
+        "de toets",
+        "het huiswerk"
        ]
       }
      ]
@@ -32357,6 +35775,17 @@
          "упражняться"
         ]
        ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Образование»?",
+       "opts": [
+        "het overhemd",
+        "zakken",
+        "het vak",
+        "de bibliotheek"
+       ]
       }
      ]
     },
@@ -32682,6 +36111,17 @@
          "на полставки"
         ]
        ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Поиск работы»?",
+       "opts": [
+        "het restaurant",
+        "solliciteren",
+        "de sollicitatiebrief",
+        "de werkervaring"
+       ]
       }
      ]
     },
@@ -32810,6 +36250,33 @@
         "de sollicitatiebrief"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Het ___ is hier, denk ik.",
+         "formulier",
+         "Формуляр здесь, я думаю."
+        ],
+        [
+         "Ik heb de ___.",
+         "rekening",
+         "У меня есть счёт."
+        ],
+        [
+         "De ___ is hier, denk ik.",
+         "pinpas",
+         "Банковская карта здесь, я думаю."
+        ]
+       ],
+       "bank": [
+        "formulier",
+        "rekening",
+        "pinpas",
+        "werkervaring"
+       ]
       }
      ]
     },
@@ -33006,6 +36473,17 @@
          "de motivatie",
          "мотивация"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Поиск работы»?",
+       "opts": [
+        "schoonmaken",
+        "de bijbaan",
+        "werkloos",
+        "de uitkering"
        ]
       }
      ]
@@ -33294,6 +36772,16 @@
        "ph": "…"
       },
       {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Is dit het ___?",
+       "answer": [
+        "formulier"
+       ],
+       "ph": "f…",
+       "hint": "Первая буква: «f» · Это формуляр?"
+      },
+      {
        "t": "speak",
        "k": "Говорение",
        "phrase": "Dit is het formulier.",
@@ -33460,6 +36948,17 @@
          "опасность"
         ]
        ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «На работе»?",
+       "opts": [
+        "de achternaam",
+        "de rondleiding",
+        "de vergaderzaal",
+        "de veiligheid"
+       ]
       }
      ]
     },
@@ -33588,6 +37087,17 @@
         "de vergaderzaal"
        ],
        "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
       },
       {
        "t": "build",
@@ -33618,6 +37128,33 @@
         "Ik ken de man goed.",
         "De man is erg aardig.",
         "Ik zoek de man."
+       ]
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "De ___ is hier, denk ik.",
+         "dag",
+         "Привет здесь, я думаю."
+        ],
+        [
+         "Is dit de ___?",
+         "gang",
+         "Это коридор?"
+        ],
+        [
+         "De ___ is erg aardig.",
+         "werkgever",
+         "Работодатель очень приятный."
+        ]
+       ],
+       "bank": [
+        "dag",
+        "gang",
+        "werkgever",
+        "gereedschap"
        ]
       }
      ]
@@ -33815,6 +37352,17 @@
          "de machine",
          "станок"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «На работе»?",
+       "opts": [
+        "kijken",
+        "de werkdag",
+        "de taak",
+        "de planning"
        ]
       }
      ]
@@ -34076,6 +37624,33 @@
         "gang"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb de ___.",
+         "werkgever",
+         "У меня есть работодатель."
+        ],
+        [
+         "De ___ is hier, denk ik.",
+         "dag",
+         "Привет здесь, я думаю."
+        ],
+        [
+         "Ik heb de ___.",
+         "werknemer",
+         "У меня есть работник."
+        ]
+       ],
+       "bank": [
+        "werkgever",
+        "dag",
+        "werknemer",
+        "instructie"
+       ]
       }
      ]
     },
@@ -34105,6 +37680,16 @@
         "de instructie"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Waar is de ___?",
+       "answer": [
+        "gang"
+       ],
+       "ph": "g…",
+       "hint": "Первая буква: «g» · Где коридор?"
       },
       {
        "t": "speak",
@@ -34272,6 +37857,17 @@
          "het bedrijf",
          "компания"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «На работе»?",
+       "opts": [
+        "de taal",
+        "de werknemer",
+        "de vergadering",
+        "de manager"
        ]
       }
      ]
@@ -34536,6 +38132,33 @@
         "vergadering"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "De ___ is erg aardig.",
+         "manager",
+         "Менеджер очень приятный."
+        ],
+        [
+         "Ik zoek het ___.",
+         "bedrijf",
+         "Я ищу компанию."
+        ],
+        [
+         "Ik zoek het ___.",
+         "contract",
+         "Я ищу контракт."
+        ]
+       ],
+       "bank": [
+        "manager",
+        "bedrijf",
+        "contract",
+        "gang"
+       ]
       }
      ]
     },
@@ -34565,6 +38188,16 @@
         "het salaris"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik zoek de ___.",
+       "answer": [
+        "werknemer"
+       ],
+       "ph": "w…",
+       "hint": "Первая буква: «w» · Я ищу работника."
       },
       {
        "t": "speak",
@@ -34732,6 +38365,17 @@
          "de vergunning",
          "разрешение"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Gemeente»?",
+       "opts": [
+        "de rijst",
+        "de gemeente",
+        "het gemeentehuis",
+        "de identiteitskaart"
        ]
       }
      ]
@@ -34930,6 +38574,33 @@
         "gemeentehuis"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb de ___ nodig.",
+         "identiteitskaart",
+         "Мне нужны удостоверение личности."
+        ],
+        [
+         "Waar is de ___?",
+         "vergunning",
+         "Где разрешение?"
+        ],
+        [
+         "Waar is het ___?",
+         "visum",
+         "Где виза?"
+        ]
+       ],
+       "bank": [
+        "identiteitskaart",
+        "vergunning",
+        "visum",
+        "burgemeester"
+       ]
       }
      ]
     },
@@ -34959,6 +38630,16 @@
         "de verblijfsvergunning"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik heb het ___ nodig.",
+       "answer": [
+        "gemeentehuis"
+       ],
+       "ph": "g…",
+       "hint": "Первая буква: «g» · Мне нужна мэрия."
       },
       {
        "t": "speak",
@@ -35126,6 +38807,17 @@
          "het document",
          "документ"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Gemeente»?",
+       "opts": [
+        "de tand",
+        "de zorgverzekering",
+        "het loket",
+        "de wachtrij"
        ]
       }
      ]
@@ -35324,6 +39016,33 @@
         "wachtrij"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Dit ___ is gratis.",
+         "document",
+         "Этот документ бесплатный."
+        ],
+        [
+         "Ik heb een ___ van mijn paspoort nodig.",
+         "kopie",
+         "Мне нужна копия паспорта."
+        ],
+        [
+         "Wilt u hier ___?",
+         "ondertekenen",
+         "Распишитесь здесь, пожалуйста."
+        ]
+       ],
+       "bank": [
+        "document",
+        "kopie",
+        "ondertekenen",
+        "website"
+       ]
       }
      ]
     },
@@ -35353,6 +39072,16 @@
         "ondertekenen"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Is dit het ___?",
+       "answer": [
+        "loket"
+       ],
+       "ph": "l…",
+       "hint": "Первая буква: «l» · Это окно обслуживания?"
       },
       {
        "t": "speak",
@@ -35520,6 +39249,17 @@
          "de afzender",
          "отправитель"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Gemeente»?",
+       "opts": [
+        "de handschoen",
+        "het pakket",
+        "de melding",
+        "het uittreksel"
        ]
       }
      ]
@@ -35716,6 +39456,33 @@
         "uittreksel"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik heb de ___ nodig.",
+         "afzender",
+         "Мне нужна отправитель."
+        ],
+        [
+         "Waar is de ___?",
+         "ontvanger",
+         "Где получатель?"
+        ],
+        [
+         "Ik heb het ___ nodig.",
+         "bezwaar",
+         "Мне нужно возражение."
+        ]
+       ],
+       "bank": [
+        "afzender",
+        "ontvanger",
+        "bezwaar",
+        "afvalkalender"
+       ]
       }
      ]
     },
@@ -35745,6 +39512,16 @@
         "het bezwaar"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "Ik heb de ___ nodig.",
+       "answer": [
+        "melding"
+       ],
+       "ph": "m…",
+       "hint": "Первая буква: «m» · Мне нужно уведомление."
       },
       {
        "t": "speak",
@@ -35912,6 +39689,17 @@
          "de website",
          "сайт"
         ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Лишнее слово",
+       "q": "Какое слово НЕ подходит к теме «Gemeente»?",
+       "opts": [
+        "de ov-chipkaart",
+        "de politie",
+        "de aangifte",
+        "de burgemeester"
        ]
       }
      ]
@@ -36158,6 +39946,33 @@
         "website"
        ],
        "ph": "…"
+      },
+      {
+       "t": "clozeBank",
+       "k": "Vul in",
+       "sents": [
+        [
+         "Ik zie de ___ niet.",
+         "website",
+         "Я не вижу сайт."
+        ],
+        [
+         "Ik heb een ___ nodig.",
+         "handtekening",
+         "Мне нужна подпись."
+        ],
+        [
+         "Waar is de ___?",
+         "brief",
+         "Где письмо?"
+        ]
+       ],
+       "bank": [
+        "website",
+        "handtekening",
+        "brief",
+        "gemeente"
+       ]
       }
      ]
     },
@@ -36187,6 +40002,16 @@
         "de handtekening"
        ],
        "ph": "…"
+      },
+      {
+       "t": "gapType",
+       "k": "Впиши по памяти",
+       "q": "De ___ is hier, denk ik.",
+       "answer": [
+        "brief"
+       ],
+       "ph": "b…",
+       "hint": "Первая буква: «b» · Письмо здесь, я думаю."
       },
       {
        "t": "speak",
