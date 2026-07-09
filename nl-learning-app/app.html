@@ -391,13 +391,29 @@ function partsScreen(n){activeTab='';const open=firstOpenPart(n);const reachable
   S.innerHTML=h;S.querySelectorAll('[data-part]').forEach(b=>b.onclick=()=>startPart(n,+b.dataset.part));S.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));}
 
 const FUTURE=[{t:'Раздел 3 · Прошлое и планы',lv:'A2',les:14},{t:'Раздел 4 · Сложная речь',lv:'B1',les:13},{t:'🎓 Подготовка к инбургерингу',lv:'B1',les:10}];
-function pathScreen(){activeTab='';var h='<div class="ltop"><button class="xbtn" data-go="home">‹</button><b style="font-size:17px">Весь путь обучения</b></div><div class="plain seclist">';
-  function sec(title,lv,b){return '<div class="sec card"><div class="sh"><b>'+title+'</b><span class="lv" style="color:var(--delft)">'+lv+'</span></div>'+blockMeta(b).map(function(l){var st=lessonState(l.n);var num=b===2?l.n-10:l.n;return '<div class="les"><div class="st '+st+'">'+(st==='done'?'✓':st==='current'?'▶':'🔒')+'</div><div style="flex:1">Урок '+num+' · '+l.t+' <span style="color:var(--ink-3);font-size:12px">('+PARTS(l.n)+' части)</span></div></div>';}).join('')+'</div>';}
-  h+=sec('Раздел 1 · Первые шаги','A1.1',1);
-  h+=sec('Раздел 2 · Каждый день','A1.2',2);
-  FUTURE.forEach(function(s){h+='<div class="sec card" style="opacity:.65"><div class="sh"><b>'+s.t+'</b><span class="lv">'+s.lv+'</span></div><div class="les"><div class="st locked">🔒</div><div style="flex:1">'+s.les+' уроков · дальше</div></div></div>';});
-  h+='<div style="text-align:center;color:var(--ink-2);font-size:12px;margin-top:6px">До инбургеринга — 4 раздела 🎓</div></div>';
-  S.innerHTML=h;S.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go);};});}
+function pathScreen(){activeTab='';
+ var h='<div class="ltop"><button class="xbtn" data-go="home">‹</button><b style="font-size:17px">Весь путь обучения</b></div><div class="plain seclist">';
+ h+='<p class="sub" style="margin-top:0">Уровень A1 — '+THEMES.length+' разделов. В конце каждого — экзамен 🏆.</p>';
+ THEMES.forEach(function(th,ti){
+  var total=th.lessons.length;
+  var done=th.lessons.filter(lessonDone).length;
+  var parts=0,partsDone=0;
+  th.lessons.forEach(function(n){parts+=PARTS(n);for(var p=0;p<PARTS(n);p++)if(partDone(n,p))partsDone++;});
+  var ex=progress.exams&&progress.exams[ti]>=80;
+  var pct=parts?Math.round(partsDone/parts*100):0;
+  h+='<div class="sec card" style="padding:13px 15px">'
+   +'<div style="display:flex;align-items:center;gap:10px">'
+   +'<span style="font-size:24px">'+th.emoji+'</span>'
+   +'<div style="flex:1"><b>Раздел '+(ti+1)+' · '+th.name+'</b>'
+   +'<div style="font-size:12px;color:var(--ink-2);margin-top:2px">'+total+' уроков · пройдено частей: '+partsDone+'/'+parts+'</div></div>'
+   +'<span style="font-size:18px">'+(ex?'🏅':'🏆')+'</span></div>'
+   +'<div class="track" style="margin-top:9px;height:7px;border-radius:999px;background:var(--surface-2);overflow:hidden"><i style="display:block;height:100%;width:'+pct+'%;background:'+th.c+';border-radius:999px"></i></div>'
+   +'</div>';
+ });
+ h+='<div class="sec card" style="opacity:.65;padding:13px 15px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:24px">🎓</span><div style="flex:1"><b>Уровень A2 · Прошлое и планы</b><div style="font-size:12px;color:var(--ink-2);margin-top:2px">следующий уровень — скоро</div></div><span class="lv">A2</span></div></div>';
+ h+='<div class="sec card" style="opacity:.65;padding:13px 15px"><div style="display:flex;align-items:center;gap:10px"><span style="font-size:24px">🏛️</span><div style="flex:1"><b>Уровень B1 · Подготовка к инбургерингу</b><div style="font-size:12px;color:var(--ink-2);margin-top:2px">финал курса</div></div><span class="lv">B1</span></div></div>';
+ h+='<div style="text-align:center;color:var(--ink-2);font-size:12px;margin-top:6px">A1 → A2 → B1 → инбургеринг 🎓</div></div>';
+ S.innerHTML=h;S.querySelectorAll('[data-go]').forEach(function(b){b.onclick=function(){go(b.dataset.go);};});}
 let curLesson=1,curPart=0,steps=[],playlist=[],pos=0,origLen=0,hearts=5,sel=null,answered=false,asm=[],matchSel=null,matchDone=0,spoke=false,isTrain=false,trainTitle='',curCorrect=0,curStep=null,correctCount=0,curBranch=null,isExam=false,examTheme=0,examWrong=0,wrongLog=[];
 function recordSkill(t,ok){const k=SK[t];if(!k)return;skillStat[k].t++;if(ok)skillStat[k].c++;}
 function startPart(n,p){isTrain=false;isExam=false;wrongLog=[];curBranch=new Set();curLesson=n;curPart=p;steps=DATA[n].parts[p].steps;playlist=steps.slice();pos=0;origLen=steps.length;hearts=5;renderStep();}
@@ -613,6 +629,7 @@ function savePrefs(){try{localStorage.setItem('nlprefs',JSON.stringify(PREFS));}
 function applyTheme(){document.documentElement.dataset.theme=(PREFS.theme==='auto'?'':PREFS.theme);}
 applyTheme();
 var CHANGELOG=[
+ {d:'10.07 (5)',items:['Экран «Весь путь обучения» переписан: все 10 разделов A1 с прогрессом частей и экзаменами + уровни A2/B1'],},
  {d:'10.07 (4)',items:['A1 теперь 10 разделов: новые темы «Жильё» 🏠 (7 уроков) и «Работа» 💼 (4 урока) — со своими экзаменами','Диалоги: «Смотрим квартиру» (аренда, метры) и «Собеседование» (опыт, старт в понедельник)','Правила: артикли DE/HET (урок 4), инверсия «Morgen ga ik…» (урок 19)','Правильные картинки у слов: 150+ эмодзи (🛁 badkamer, 🍞 brood, 🚆 trein…)','Банк вырос: +77 слов тем жильё/работа, предложения пересобраны (1889)']},
  {d:'10.07 (3)',items:['Батч №3: 132 предложения с перфектом и модальными (мост к A2)','Правила-таблицы: урок 7 (вопрос-слова), урок 13 (часы: half negen = 8:30!), урок 15 (модальные), урок 18 (перфект)','Урок 15: новая часть «Практика конструкций: модальные»','Урок 18: новая часть «Практика конструкций: перфект»','+20 вопрос-ответных пар уровня A2 (работа, мнения, договорённости)']},
  {d:'10.07 (2)',items:['Батч №2: +445 предложений на слова официального словаря (всего 1673)','46 вопрос-ответных пар: «Тебя спросили — что ответишь?» в уроках 2–20 и «Слова:…»','Правила-таблицы: урок 2 (глагол zijn), урок 3 (hebben), урок 5 (числа, «один-и-двадцать»), урок 9 (niet или geen?)','Аудирование слов в уроках 1–20 — похожие варианты вместо подсказок']},
