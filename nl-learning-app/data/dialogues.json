@@ -1,0 +1,1212 @@
+{
+ "note": "Мини-диалоги с вопросами на понимание. Каждый добавляется частью «title» в урок «lesson».",
+ "count": 14,
+ "dialogues": [
+  {
+   "lesson": 21,
+   "title": "Диалог: в классе",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 In de klas",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Docent:</b> Goedemorgen! Welkom in de klas.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Учитель: Доброе утро! Добро пожаловать в класс.</span></p><p style=\"margin:7px 0\"><b>Cursist:</b> Goedemorgen, meneer!<br><span style=\"color:var(--ink-2);font-size:12.5px\">Ученик: Доброе утро!</span></p><p style=\"margin:7px 0\"><b>Docent:</b> Open het boek op bladzijde tien.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Учитель: Откройте книгу на странице десять.</span></p><p style=\"margin:7px 0\"><b>Cursist:</b> Sorry, wat zegt u?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Ученик: Извините, что вы сказали?</span></p><p style=\"margin:7px 0\"><b>Docent:</b> Bladzijde tien. En pak je pen.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Учитель: Страница десять. И возьми ручку.</span></p></div>",
+     "ex": [
+      [
+       "Welkom in de klas",
+       "Добро пожаловать в класс"
+      ],
+      [
+       "Sorry, wat zegt u?",
+       "Извините, что вы сказали?"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Open het boek op bladzijde tien",
+     "q": "Что сказал учитель?",
+     "opts": [
+      "Open het boek op bladzijde tien",
+      "Open de deur, alsjeblieft",
+      "Pak je pen en papier",
+      "Welkom in de klas"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "На какой странице нужно открыть книгу?",
+     "opts": [
+      "на десятой",
+      "на пятой",
+      "на двадцатой",
+      "на третьей"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что учитель просит взять?",
+     "opts": [
+      "ручку",
+      "карандаш",
+      "бумагу",
+      "ластик"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Ученик понял учителя с первого раза.",
+     "answer": false,
+     "note": "Нет — он переспросил: «Sorry, wat zegt u?»"
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Откройте книгу.",
+     "words": [
+      "Open",
+      "het",
+      "boek"
+     ],
+     "ans": [
+      "Open",
+      "het",
+      "boek"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Sorry, wat zegt u?",
+     "tr": "Извините, что вы сказали?"
+    }
+   ]
+  },
+  {
+   "lesson": 24,
+   "title": "Диалог: на рынке",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Op de markt",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Verkoper:</b> Goedemiddag! Zegt u het maar.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Продавец: Добрый день! Слушаю вас.</span></p><p style=\"margin:7px 0\"><b>Klant:</b> Ik wil graag een kilo appels.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Покупатель: Мне, пожалуйста, килограмм яблок.</span></p><p style=\"margin:7px 0\"><b>Verkoper:</b> Anders nog iets?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Продавец: Что-нибудь ещё?</span></p><p style=\"margin:7px 0\"><b>Klant:</b> Ja, twee bananen. Hoeveel kost het?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Покупатель: Да, два банана. Сколько это стоит?</span></p><p style=\"margin:7px 0\"><b>Verkoper:</b> Drie euro vijftig.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Продавец: Три евро пятьдесят.</span></p></div>",
+     "ex": [
+      [
+       "Anders nog iets?",
+       "Что-нибудь ещё?"
+      ],
+      [
+       "Hoeveel kost het?",
+       "Сколько это стоит?"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Hoeveel kost het",
+     "q": "Что спросил покупатель?",
+     "opts": [
+      "Hoeveel kost het?",
+      "Anders nog iets?",
+      "Waar is de markt?",
+      "Wat wilt u?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что покупает клиент?",
+     "opts": [
+      "яблоки и бананы",
+      "хлеб и сыр",
+      "молоко",
+      "виноград"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько стоит покупка?",
+     "opts": [
+      "3,50 €",
+      "2,50 €",
+      "5,00 €",
+      "1,50 €"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Клиент купил только яблоки.",
+     "answer": false,
+     "note": "Нет — ещё два банана."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Мне, пожалуйста, килограмм яблок.",
+     "words": [
+      "Ik",
+      "wil",
+      "graag",
+      "een",
+      "kilo",
+      "appels"
+     ],
+     "ans": [
+      "Ik",
+      "wil",
+      "graag",
+      "een",
+      "kilo",
+      "appels"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Hoeveel kost het?",
+     "tr": "Сколько это стоит?"
+    }
+   ]
+  },
+  {
+   "lesson": 27,
+   "title": "Диалог: у врача",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Bij de dokter",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Dokter:</b> Goedemorgen. Wat zijn uw klachten?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Врач: Доброе утро. На что жалуетесь?</span></p><p style=\"margin:7px 0\"><b>Patiënt:</b> Ik heb hoofdpijn en koorts.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Пациент: У меня болит голова и температура.</span></p><p style=\"margin:7px 0\"><b>Dokter:</b> Sinds wanneer bent u ziek?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Врач: С какого времени вы болеете?</span></p><p style=\"margin:7px 0\"><b>Patiënt:</b> Sinds maandag.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Пациент: С понедельника.</span></p><p style=\"margin:7px 0\"><b>Dokter:</b> Ik geef u een recept voor de apotheek.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Врач: Я дам вам рецепт для аптеки.</span></p></div>",
+     "ex": [
+      [
+       "Wat zijn uw klachten?",
+       "На что жалуетесь?"
+      ],
+      [
+       "Ik heb hoofdpijn",
+       "У меня болит голова"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Ik heb hoofdpijn en koorts",
+     "q": "Что сказал пациент?",
+     "opts": [
+      "Ik heb hoofdpijn en koorts",
+      "Ik ben niet ziek",
+      "Mijn been doet pijn",
+      "Ik heb een afspraak"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что болит у пациента?",
+     "opts": [
+      "голова",
+      "нога",
+      "спина",
+      "зуб"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "С какого дня пациент болеет?",
+     "opts": [
+      "с понедельника",
+      "со вторника",
+      "с пятницы",
+      "с субботы"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Врач дал рецепт для аптеки.",
+     "answer": true,
+     "note": "Да: een recept voor de apotheek."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "У меня температура.",
+     "words": [
+      "Ik",
+      "heb",
+      "koorts"
+     ],
+     "ans": [
+      "Ik",
+      "heb",
+      "koorts"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Ik heb hoofdpijn en koorts.",
+     "tr": "У меня болит голова и температура."
+    }
+   ]
+  },
+  {
+   "lesson": 30,
+   "title": "Диалог: в магазине",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 In de winkel",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Klant:</b> Mag ik deze broek passen?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Покупатель: Можно примерить эти брюки?</span></p><p style=\"margin:7px 0\"><b>Medewerker:</b> Ja, natuurlijk. De paskamer is daar.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Продавец: Да, конечно. Примерочная — там.</span></p><p style=\"margin:7px 0\"><b>Klant:</b> Welke maat is dit?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Покупатель: Какой это размер?</span></p><p style=\"margin:7px 0\"><b>Medewerker:</b> Maat 38.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Продавец: Размер 38.</span></p><p style=\"margin:7px 0\"><b>Klant:</b> De broek past goed. Ik neem hem!<br><span style=\"color:var(--ink-2);font-size:12.5px\">Покупатель: Брюки хорошо сидят. Беру!</span></p></div>",
+     "ex": [
+      [
+       "Mag ik deze broek passen?",
+       "Можно примерить эти брюки?"
+      ],
+      [
+       "De paskamer is daar",
+       "Примерочная — там"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Mag ik deze broek passen",
+     "q": "Что спросил покупатель?",
+     "opts": [
+      "Mag ik deze broek passen?",
+      "Waar is de kassa?",
+      "Hoeveel kost de jas?",
+      "Welke maat is dit?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что примеряет покупатель?",
+     "opts": [
+      "брюки",
+      "куртку",
+      "платье",
+      "обувь"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Какой размер?",
+     "opts": [
+      "38",
+      "36",
+      "40",
+      "42"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Брюки не подошли покупателю.",
+     "answer": false,
+     "note": "Подошли: «De broek past goed»."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Можно примерить эти брюки?",
+     "words": [
+      "Mag",
+      "ik",
+      "deze",
+      "broek",
+      "passen"
+     ],
+     "ans": [
+      "Mag",
+      "ik",
+      "deze",
+      "broek",
+      "passen"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Waar is de paskamer?",
+     "tr": "Где примерочная?"
+    }
+   ]
+  },
+  {
+   "lesson": 33,
+   "title": "Диалог: на вокзале",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Op het station",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Reiziger:</b> Pardon, hoe laat gaat de trein naar Utrecht?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Путешественник: Извините, во сколько поезд на Утрехт?</span></p><p style=\"margin:7px 0\"><b>Medewerker:</b> Om tien uur, van spoor vijf.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Сотрудник: В десять часов, с пятого пути.</span></p><p style=\"margin:7px 0\"><b>Reiziger:</b> Wat kost een kaartje?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Путешественник: Сколько стоит билет?</span></p><p style=\"margin:7px 0\"><b>Medewerker:</b> Negen euro.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Сотрудник: Девять евро.</span></p><p style=\"margin:7px 0\"><b>Reiziger:</b> Dank u wel!<br><span style=\"color:var(--ink-2);font-size:12.5px\">Путешественник: Большое спасибо!</span></p></div>",
+     "ex": [
+      [
+       "Hoe laat gaat de trein?",
+       "Во сколько идёт поезд?"
+      ],
+      [
+       "Wat kost een kaartje?",
+       "Сколько стоит билет?"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Hoe laat gaat de trein naar Utrecht",
+     "q": "Что спросил путешественник?",
+     "opts": [
+      "Hoe laat gaat de trein naar Utrecht?",
+      "Waar is de bushalte?",
+      "Mag ik hier zitten?",
+      "Waar is het station?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Куда едет путешественник?",
+     "opts": [
+      "в Утрехт",
+      "в Амстердам",
+      "в Роттердам",
+      "в Гаагу"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Во сколько идёт поезд?",
+     "opts": [
+      "в 10:00",
+      "в 9:00",
+      "в 5:00",
+      "в 12:00"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Билет стоит девять евро.",
+     "answer": true,
+     "note": "Да: negen euro."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Во сколько идёт поезд?",
+     "words": [
+      "Hoe",
+      "laat",
+      "gaat",
+      "de",
+      "trein"
+     ],
+     "ans": [
+      "Hoe",
+      "laat",
+      "gaat",
+      "de",
+      "trein"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Eén kaartje naar Utrecht, alstublieft.",
+     "tr": "Один билет до Утрехта, пожалуйста."
+    }
+   ]
+  },
+  {
+   "lesson": 36,
+   "title": "Диалог: свободное время",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Vrije tijd",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Anna:</b> Wat doe je in je vrije tijd?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Анна: Что ты делаешь в свободное время?</span></p><p style=\"margin:7px 0\"><b>Tom:</b> Ik zwem en ik speel voetbal. En jij?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Том: Я плаваю и играю в футбол. А ты?</span></p><p style=\"margin:7px 0\"><b>Anna:</b> Ik luister naar muziek en ik lees.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Анна: Я слушаю музыку и читаю.</span></p><p style=\"margin:7px 0\"><b>Tom:</b> Ga je zaterdag mee naar het strand?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Том: Пойдёшь в субботу со мной на пляж?</span></p><p style=\"margin:7px 0\"><b>Anna:</b> Ja, leuk! Tot zaterdag!<br><span style=\"color:var(--ink-2);font-size:12.5px\">Анна: Да, здорово! До субботы!</span></p></div>",
+     "ex": [
+      [
+       "Wat doe je in je vrije tijd?",
+       "Что ты делаешь в свободное время?"
+      ],
+      [
+       "Ga je mee?",
+       "Пойдёшь со мной?"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Wat doe je in je vrije tijd",
+     "q": "Что спросила Анна?",
+     "opts": [
+      "Wat doe je in je vrije tijd?",
+      "Waar woon je?",
+      "Hoe gaat het met je?",
+      "Wat eet je vandaag?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что делает Том в свободное время?",
+     "opts": [
+      "плавает и играет в футбол",
+      "читает книги",
+      "танцует",
+      "поёт"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Куда они пойдут в субботу?",
+     "opts": [
+      "на пляж",
+      "в кино",
+      "в парк",
+      "в музей"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Анна слушает музыку и читает.",
+     "answer": true,
+     "note": "Да, так она и сказала."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Я плаваю и играю в футбол.",
+     "words": [
+      "Ik",
+      "zwem",
+      "en",
+      "ik",
+      "speel",
+      "voetbal"
+     ],
+     "ans": [
+      "Ik",
+      "zwem",
+      "en",
+      "ik",
+      "speel",
+      "voetbal"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Wat doe je in je vrije tijd?",
+     "tr": "Что ты делаешь в свободное время?"
+    }
+   ]
+  },
+  {
+   "lesson": 2,
+   "title": "Диалог: знакомство",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Kennismaken",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Anna:</b> Hallo! Ik ben Anna. Hoe heet jij?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Анна: Привет! Я Анна. Как тебя зовут?</span></p><p style=\"margin:7px 0\"><b>Tom:</b> Hoi! Mijn naam is Tom.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Том: Привет! Меня зовут Том.</span></p><p style=\"margin:7px 0\"><b>Anna:</b> Waar kom je vandaan, Tom?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Анна: Откуда ты, Том?</span></p><p style=\"margin:7px 0\"><b>Tom:</b> Ik kom uit Rusland. En jij?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Том: Я из России. А ты?</span></p><p style=\"margin:7px 0\"><b>Anna:</b> Ik woon in Amsterdam.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Анна: Я живу в Амстердаме.</span></p></div>",
+     "ex": [
+      [
+       "Hoe heet jij?",
+       "Как тебя зовут?"
+      ],
+      [
+       "Waar kom je vandaan?",
+       "Откуда ты?"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Waar kom je vandaan",
+     "q": "Что спросила Анна?",
+     "opts": [
+      "Waar kom je vandaan?",
+      "Hoe gaat het?",
+      "Hoe oud ben je?",
+      "Waar woon je?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Как зовут девушку?",
+     "opts": [
+      "Анна",
+      "Мария",
+      "Ольга",
+      "Эмма"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Откуда Том?",
+     "opts": [
+      "из России",
+      "из Нидерландов",
+      "из Германии",
+      "из Бельгии"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Анна живёт в Амстердаме.",
+     "answer": true,
+     "note": "Да: «Ik woon in Amsterdam»."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Я из России.",
+     "words": [
+      "Ik",
+      "kom",
+      "uit",
+      "Rusland"
+     ],
+     "ans": [
+      "Ik",
+      "kom",
+      "uit",
+      "Rusland"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Hallo! Ik ben Anna.",
+     "tr": "Привет! Я Анна."
+    }
+   ]
+  },
+  {
+   "lesson": 13,
+   "title": "Диалог: который час",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Hoe laat is het?",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Sara:</b> Hoe laat is het?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Сара: Который час?</span></p><p style=\"margin:7px 0\"><b>Omar:</b> Het is acht uur.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Омар: Восемь часов.</span></p><p style=\"margin:7px 0\"><b>Sara:</b> O nee, ik ben laat! De les begint om negen uur.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Сара: О нет, я опаздываю! Урок начинается в девять.</span></p><p style=\"margin:7px 0\"><b>Omar:</b> Rustig! Je hebt nog een uur.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Омар: Спокойно! У тебя ещё час.</span></p><p style=\"margin:7px 0\"><b>Sara:</b> Ja, je hebt gelijk.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Сара: Да, ты прав.</span></p></div>",
+     "ex": [
+      [
+       "Hoe laat is het?",
+       "Который час?"
+      ],
+      [
+       "De les begint om negen uur",
+       "Урок начинается в девять"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Het is acht uur",
+     "q": "Что ответил Омар?",
+     "opts": [
+      "Het is acht uur",
+      "Het is negen uur",
+      "Het is tien uur",
+      "Het is één uur"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько сейчас времени?",
+     "opts": [
+      "восемь часов",
+      "девять часов",
+      "десять часов",
+      "семь часов"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Во сколько начинается урок?",
+     "opts": [
+      "в девять",
+      "в восемь",
+      "в десять",
+      "в одиннадцать"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Сара уже опоздала на урок.",
+     "answer": false,
+     "note": "Нет — у неё ещё целый час."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Который час?",
+     "words": [
+      "Hoe",
+      "laat",
+      "is",
+      "het"
+     ],
+     "ans": [
+      "Hoe",
+      "laat",
+      "is",
+      "het"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Hoe laat is het?",
+     "tr": "Который час?"
+    }
+   ]
+  },
+  {
+   "lesson": 22,
+   "title": "Диалог: расписание",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 De agenda",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Lisa:</b> Welke dag is het vandaag?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Лиза: Какой сегодня день?</span></p><p style=\"margin:7px 0\"><b>Ali:</b> Het is woensdag.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Али: Среда.</span></p><p style=\"margin:7px 0\"><b>Lisa:</b> En wanneer is de les Nederlands?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Лиза: А когда урок нидерландского?</span></p><p style=\"margin:7px 0\"><b>Ali:</b> Op maandag en donderdag.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Али: В понедельник и четверг.</span></p><p style=\"margin:7px 0\"><b>Lisa:</b> Dank je wel!<br><span style=\"color:var(--ink-2);font-size:12.5px\">Лиза: Спасибо!</span></p></div>",
+     "ex": [
+      [
+       "Welke dag is het vandaag?",
+       "Какой сегодня день?"
+      ],
+      [
+       "op maandag en donderdag",
+       "в понедельник и четверг"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Het is woensdag",
+     "q": "Что ответил Али?",
+     "opts": [
+      "Het is woensdag",
+      "Het is maandag",
+      "Het is vrijdag",
+      "Het is zondag"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Какой сегодня день?",
+     "opts": [
+      "среда",
+      "понедельник",
+      "пятница",
+      "воскресенье"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Когда уроки нидерландского?",
+     "opts": [
+      "в понедельник и четверг",
+      "во вторник и пятницу",
+      "в среду и субботу",
+      "каждый день"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Урок нидерландского бывает по средам.",
+     "answer": false,
+     "note": "Нет — по понедельникам и четвергам."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Какой сегодня день?",
+     "words": [
+      "Welke",
+      "dag",
+      "is",
+      "het",
+      "vandaag"
+     ],
+     "ans": [
+      "Welke",
+      "dag",
+      "is",
+      "het",
+      "vandaag"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Welke dag is het vandaag?",
+     "tr": "Какой сегодня день?"
+    }
+   ]
+  },
+  {
+   "lesson": 25,
+   "title": "Диалог: ужин дома",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Het avondeten",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Mila:</b> Wat eten we vanavond?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Мила: Что мы едим сегодня вечером?</span></p><p style=\"margin:7px 0\"><b>Daan:</b> Ik kook soep met brood.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Дан: Я готовлю суп с хлебом.</span></p><p style=\"margin:7px 0\"><b>Mila:</b> Lekker! Heb je hulp nodig?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Мила: Вкусно! Тебе нужна помощь?</span></p><p style=\"margin:7px 0\"><b>Daan:</b> Ja, graag. Snijd jij de ui?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Дан: Да, пожалуйста. Порежешь лук?</span></p><p style=\"margin:7px 0\"><b>Mila:</b> Oké, geen probleem.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Мила: Окей, без проблем.</span></p></div>",
+     "ex": [
+      [
+       "Wat eten we vanavond?",
+       "Что мы едим сегодня вечером?"
+      ],
+      [
+       "Heb je hulp nodig?",
+       "Тебе нужна помощь?"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Ik kook soep met brood",
+     "q": "Что сказал Дан?",
+     "opts": [
+      "Ik kook soep met brood",
+      "Ik eet een appel",
+      "Ik drink koffie",
+      "Ik koop brood"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что готовят на ужин?",
+     "opts": [
+      "суп с хлебом",
+      "рыбу с рисом",
+      "салат",
+      "яичницу"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "О чём Дан просит Милу?",
+     "opts": [
+      "порезать лук",
+      "купить хлеб",
+      "помыть посуду",
+      "накрыть на стол"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Мила отказалась помогать.",
+     "answer": false,
+     "note": "Нет — она согласилась: «Oké, geen probleem»."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Я готовлю суп.",
+     "words": [
+      "Ik",
+      "kook",
+      "soep"
+     ],
+     "ans": [
+      "Ik",
+      "kook",
+      "soep"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Wat eten we vanavond?",
+     "tr": "Что мы едим сегодня вечером?"
+    }
+   ]
+  },
+  {
+   "lesson": 28,
+   "title": "Диалог: в аптеке",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Bij de apotheek",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Klant:</b> Goedemiddag, ik heb een recept.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Клиент: Добрый день, у меня рецепт.</span></p><p style=\"margin:7px 0\"><b>Apotheker:</b> Dank u. Een moment, alstublieft.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Аптекарь: Спасибо. Минутку, пожалуйста.</span></p><p style=\"margin:7px 0\"><b>Apotheker:</b> Dit medicijn is drie keer per dag.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Аптекарь: Это лекарство — три раза в день.</span></p><p style=\"margin:7px 0\"><b>Klant:</b> Voor of na het eten?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Клиент: До или после еды?</span></p><p style=\"margin:7px 0\"><b>Apotheker:</b> Na het eten, met water.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Аптекарь: После еды, с водой.</span></p></div>",
+     "ex": [
+      [
+       "Ik heb een recept",
+       "У меня рецепт"
+      ],
+      [
+       "drie keer per dag",
+       "три раза в день"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Dit medicijn is drie keer per dag",
+     "q": "Что сказал аптекарь?",
+     "opts": [
+      "Dit medicijn is drie keer per dag",
+      "De apotheek is dicht",
+      "Wij hebben geen medicijnen",
+      "Het recept is oud"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько раз в день принимать лекарство?",
+     "opts": [
+      "три раза",
+      "один раз",
+      "два раза",
+      "четыре раза"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Как принимать лекарство?",
+     "opts": [
+      "после еды, с водой",
+      "до еды",
+      "только утром",
+      "перед сном"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Лекарство принимают до еды.",
+     "answer": false,
+     "note": "Нет — после еды (na het eten)."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "У меня рецепт.",
+     "words": [
+      "Ik",
+      "heb",
+      "een",
+      "recept"
+     ],
+     "ans": [
+      "Ik",
+      "heb",
+      "een",
+      "recept"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Voor of na het eten?",
+     "tr": "До или после еды?"
+    }
+   ]
+  },
+  {
+   "lesson": 31,
+   "title": "Диалог: покупка обуви",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Schoenen kopen",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Klant:</b> Ik zoek schoenen, maat 42.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Покупатель: Я ищу обувь, размер 42.</span></p><p style=\"margin:7px 0\"><b>Medewerker:</b> Deze zijn mooi. Wilt u ze passen?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Продавец: Вот красивые. Хотите примерить?</span></p><p style=\"margin:7px 0\"><b>Klant:</b> Ja... Ze zijn te klein.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Покупатель: Да… Они малы.</span></p><p style=\"margin:7px 0\"><b>Medewerker:</b> Hier is maat 43.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Продавец: Вот размер 43.</span></p><p style=\"margin:7px 0\"><b>Klant:</b> Die passen goed. Ik neem ze!<br><span style=\"color:var(--ink-2);font-size:12.5px\">Покупатель: Эти подходят. Беру!</span></p></div>",
+     "ex": [
+      [
+       "Ik zoek schoenen",
+       "Я ищу обувь"
+      ],
+      [
+       "Ze zijn te klein",
+       "Они слишком малы"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Ze zijn te klein",
+     "q": "Что сказал покупатель после примерки?",
+     "opts": [
+      "Ze zijn te klein",
+      "Ze zijn te groot",
+      "Ze zijn mooi",
+      "Ze zijn duur"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что ищет покупатель?",
+     "opts": [
+      "обувь",
+      "куртку",
+      "брюки",
+      "шапку"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Какой размер подошёл?",
+     "opts": [
+      "43",
+      "42",
+      "41",
+      "44"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Размер 42 подошёл сразу.",
+     "answer": false,
+     "note": "Нет — 42 был мал, подошёл 43."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Я ищу обувь.",
+     "words": [
+      "Ik",
+      "zoek",
+      "schoenen"
+     ],
+     "ans": [
+      "Ik",
+      "zoek",
+      "schoenen"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Wilt u ze passen?",
+     "tr": "Хотите их примерить?"
+    }
+   ]
+  },
+  {
+   "lesson": 34,
+   "title": "Диалог: как пройти",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 De weg vragen",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Toerist:</b> Pardon, waar is het museum?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Турист: Извините, где музей?</span></p><p style=\"margin:7px 0\"><b>Vrouw:</b> Ga rechtdoor en dan linksaf.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Женщина: Идите прямо, потом налево.</span></p><p style=\"margin:7px 0\"><b>Toerist:</b> Is het ver?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Турист: Это далеко?</span></p><p style=\"margin:7px 0\"><b>Vrouw:</b> Nee, tien minuten lopen.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Женщина: Нет, десять минут пешком.</span></p><p style=\"margin:7px 0\"><b>Toerist:</b> Dank u wel!<br><span style=\"color:var(--ink-2);font-size:12.5px\">Турист: Большое спасибо!</span></p></div>",
+     "ex": [
+      [
+       "Waar is het museum?",
+       "Где музей?"
+      ],
+      [
+       "Ga rechtdoor en dan linksaf",
+       "Идите прямо, потом налево"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Ga rechtdoor en dan linksaf",
+     "q": "Как пройти к музею?",
+     "opts": [
+      "Ga rechtdoor en dan linksaf",
+      "Ga naar rechts en dan rechtdoor",
+      "Neem de bus",
+      "Het is hier"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что ищет турист?",
+     "opts": [
+      "музей",
+      "вокзал",
+      "аптеку",
+      "рынок"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько идти пешком?",
+     "opts": [
+      "десять минут",
+      "пять минут",
+      "полчаса",
+      "час"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "До музея нужно ехать на автобусе.",
+     "answer": false,
+     "note": "Нет — десять минут пешком."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Идите прямо.",
+     "words": [
+      "Ga",
+      "rechtdoor"
+     ],
+     "ans": [
+      "Ga",
+      "rechtdoor"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Pardon, waar is het museum?",
+     "tr": "Извините, где музей?"
+    }
+   ]
+  },
+  {
+   "lesson": 37,
+   "title": "Диалог: домашние животные",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Huisdieren",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Emma:</b> Heb jij een huisdier?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Эмма: У тебя есть домашнее животное?</span></p><p style=\"margin:7px 0\"><b>Lucas:</b> Ja, ik heb een hond. Hij heet Max.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Лукас: Да, у меня собака. Его зовут Макс.</span></p><p style=\"margin:7px 0\"><b>Emma:</b> Wat leuk! Is hij groot?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Эмма: Здорово! Он большой?</span></p><p style=\"margin:7px 0\"><b>Lucas:</b> Nee, hij is klein en lief.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Лукас: Нет, он маленький и милый.</span></p><p style=\"margin:7px 0\"><b>Emma:</b> Ik heb twee katten.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Эмма: А у меня две кошки.</span></p></div>",
+     "ex": [
+      [
+       "Heb jij een huisdier?",
+       "У тебя есть домашнее животное?"
+      ],
+      [
+       "Hij is klein en lief",
+       "Он маленький и милый"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Ik heb een hond",
+     "q": "Что сказал Лукас?",
+     "opts": [
+      "Ik heb een hond",
+      "Ik heb een kat",
+      "Ik heb een paard",
+      "Ik heb geen huisdier"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Как зовут собаку?",
+     "opts": [
+      "Макс",
+      "Том",
+      "Рекс",
+      "Лукас"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько кошек у Эммы?",
+     "opts": [
+      "две",
+      "одна",
+      "три",
+      "ни одной"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Собака Лукаса большая.",
+     "answer": false,
+     "note": "Нет — маленькая и милая."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "У меня собака.",
+     "words": [
+      "Ik",
+      "heb",
+      "een",
+      "hond"
+     ],
+     "ans": [
+      "Ik",
+      "heb",
+      "een",
+      "hond"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Heb jij een huisdier?",
+     "tr": "У тебя есть домашнее животное?"
+    }
+   ]
+  }
+ ]
+}
