@@ -119,9 +119,14 @@ for bi,(bname,bws) in enumerate(BANK):
                 ty='noun' if d.startswith(('de ','het ')) else ('verb_infinitive' if d.endswith('en') else 'adjective_or_adverb')
                 bws.append((d,ru,ty));have.add(_lemma(d))
 # A2-слова из базы 5000 по группам
-A2MAP={'Общение и чувства':{'feelings','adjectives','people','family','basic','time','smalltalk'},
- 'Дом и переезд':{'home','furniture','digital','shopping','food','drinks','weather','nature'},
- 'Официальные дела':{'work','money','admin','health','school','travel','place','geography'}}
+A2MAP={'Переезд':{'home','furniture'},
+ 'Нидерланды':{'weather','nature','geography','place','travel','time','adjectives','basic','smalltalk'},
+ 'Дети':{'family','people','feelings','health'},
+ 'Магазины':{'shopping','clothing','food','drinks','digital'},
+ 'Образование':{'school','classroom'},
+ 'Поиск работы':{'money'},
+ 'На работе':{'work'},
+ 'Gemeente':{'admin'}}
 a2base={}
 for it in items:
     if it.get('level')=='A2' and it['type'] in CLEAN:

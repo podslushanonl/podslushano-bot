@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Батч №4: предложения на A2-лексику (темы 11–13: чувства/дом-переезд/официальные дела).
+"""Батч №4: предложения на A2-лексику (новые темы A2: Переезд(10)/Нидерланды(11)/Дети(12)/На работе(16)/Gemeente(17)).
 - чувства: ik ben/was + adj (имперфект was — новинка A2);
 - мнения: Ik vind … belangrijk;
 - новые причастия (verhuisd, ingevuld, ondertekend);
@@ -16,18 +16,18 @@ def add(nl,ru,lemma,theme):
     if nl in seen:return
     seen.add(nl);items.append({'nl':nl,'ru':ru,'lemma':lemma,'theme':theme})
 
-# --- тема «Общение и чувства» (индекс 10): только проверенные слова ---
+# --- чувства → «Дети» (12), общение/мнения → «Нидерланды» (11) ---
 FEELING_OK={'blij':'рад(а)','boos':'сердит(а)','verdrietig':'грустен (грустна)','moe':'устал(а)',
  'bang':'напуган(а)','trots':'горд(а)','verliefd':'влюблён (влюблена)','tevreden':'доволен (довольна)'}
 FEELING_FULL={'blij':'радостный','boos':'сердитый','verdrietig':'грустный','moe':'усталый',
  'bang':'испуганный','trots':'гордый','verliefd':'влюблённый','tevreden':'довольный'}
 TRAIT_OK={'vriendelijk':'дружелюбный','eerlijk':'честный','gezellig':'душевный'}
 for a,short in FEELING_OK.items():
-    add('Ik ben vandaag een beetje '+a+'.','Сегодня я немного '+short+'.',a,10)
-    add('Waarom ben je zo '+a+'?','Почему ты такой(ая) '+FEELING_FULL[a]+'?',a,10)
-    add('Ik was gisteren erg '+a+'.','Вчера я был(а) очень '+short+'.',a,10)
+    add('Ik ben vandaag een beetje '+a+'.','Сегодня я немного '+short+'.',a,12)
+    add('Waarom ben je zo '+a+'?','Почему ты такой(ая) '+FEELING_FULL[a]+'?',a,12)
+    add('Ik was gisteren erg '+a+'.','Вчера я был(а) очень '+short+'.',a,12)
 for a,r in TRAIT_OK.items():
-    add('Mijn collega is heel '+a+'.','Мой коллега очень '+r+'.',a,10)
+    add('Mijn collega is heel '+a+'.','Мой коллега очень '+r+'.',a,16)
 COMM=[
  ('Wat is jouw mening?','Каково твоё мнение?','mening'),
  ('Dat is een goed idee!','Это хорошая идея!','idee'),
@@ -42,9 +42,9 @@ COMM=[
  ('Ik heb een droom: een eigen huis.','У меня есть мечта — собственный дом.','droom'),
  ('Belangrijk is dat je het probeert.','Важно то, что ты пытаешься.','belangrijk'),
 ]
-for nl,ru,lm in COMM:add(nl,ru,lm,10)
+for nl,ru,lm in COMM:add(nl,ru,lm,12 if lm in ('ruzie','compliment','grap') else 11)
 
-# --- тема «Дом и переезд» (индекс 11): перфект переезда ---
+# --- «Переезд» (10): перфект переезда ---
 MOVE=[
  ('Ik ben vorige maand verhuisd.','В прошлом месяце я переехал(а).','verhuizen'),
  ('Wij zijn naar Utrecht verhuisd.','Мы переехали в Утрехт.','verhuizen'),
@@ -62,9 +62,9 @@ MOVE=[
  ('De stroom en het gas zijn geregeld.','Электричество и газ подключены.','stroom'),
  ('Mijn huisgenoot kookt vandaag.','Мой сосед по квартире сегодня готовит.','huisgenoot'),
 ]
-for nl,ru,lm in MOVE:add(nl,ru,lm,11)
+for nl,ru,lm in MOVE:add(nl,ru,lm,10)
 
-# --- тема «Официальные дела» (индекс 12) ---
+# --- «Gemeente» (17) ---
 OFF=[
  ('Ik heb een afspraak bij de gemeente.','У меня приём в муниципалитете.','gemeente'),
  ('Waar kan ik een uittreksel aanvragen?','Где я могу запросить выписку?','uittreksel'),
@@ -85,7 +85,7 @@ OFF=[
  ('Ik wil bezwaar maken.','Я хочу подать возражение.','bezwaar'),
  ('De zorgverzekering is verplicht in Nederland.','Медицинская страховка в Нидерландах обязательна.','zorgverzekering'),
 ]
-for nl,ru,lm in OFF:add(nl,ru,lm,12)
+for nl,ru,lm in OFF:add(nl,ru,lm,17)
 
 json.dump({'note':'Батч №4: A2-конструкции — чувства (ik ben/was + adj), мнения (ik vind … belangrijk), переезд и официальные дела (перфект: verhuisd/ingevuld/ondertekend).',
  'count':len(items),'items':items},
@@ -95,16 +95,16 @@ print("batch4:",len(items))
 # --- +10 Q&A A2 ---
 qa=json.load(open(ROOT+'/data/qa_pairs.json',encoding='utf-8'))
 NEW=[
- ['Waarom ben je verhuisd?','Почему ты переехал(а)?','Mijn oude huis was te klein.','Моя старая квартира была слишком маленькой.',11],
- ['Heeft u een afspraak?','У вас назначен приём?','Ja, om half elf.','Да, на полодиннадцатого.',12],
- ['Wat is er gebeurd?','Что случилось?','Niets ergs. Alles is oké.','Ничего страшного. Всё в порядке.',10],
- ['Waarom ben je zo blij?','Почему ты такой радостный (такая радостная)?','Ik heb een nieuwe baan!','У меня новая работа!',10],
- ['Hoe was je weekend?','Как прошли выходные?','Heel gezellig, dank je.','Очень душевно, спасибо.',10],
- ['Welke documenten moet ik meenemen?','Какие документы мне взять с собой?','Uw paspoort en een kopie.','Ваш паспорт и копию.',12],
- ['Wanneer komt de verhuiswagen?','Когда приедет грузовик для переезда?','Zaterdag om negen uur.','В субботу в девять.',11],
- ['Ben je boos op mij?','Ты на меня сердишься?','Nee hoor, het geeft niet.','Да нет, всё нормально.',10],
- ['Hoe lang duurt de aanvraag?','Сколько длится оформление заявки?','Ongeveer twee weken.','Примерно две недели.',12],
- ['Bevalt het nieuwe huis?','Нравится новое жильё?','Ja, vooral de grote keuken!','Да, особенно большая кухня!',11],
+ ['Waarom ben je verhuisd?','Почему ты переехал(а)?','Mijn oude huis was te klein.','Моя старая квартира была слишком маленькой.',10],
+ ['Heeft u een afspraak?','У вас назначен приём?','Ja, om half elf.','Да, на полодиннадцатого.',17],
+ ['Wat is er gebeurd?','Что случилось?','Niets ergs. Alles is oké.','Ничего страшного. Всё в порядке.',12],
+ ['Waarom ben je zo blij?','Почему ты такой радостный (такая радостная)?','Ik heb een nieuwe baan!','У меня новая работа!',15],
+ ['Hoe was je weekend?','Как прошли выходные?','Heel gezellig, dank je.','Очень душевно, спасибо.',11],
+ ['Welke documenten moet ik meenemen?','Какие документы мне взять с собой?','Uw paspoort en een kopie.','Ваш паспорт и копию.',17],
+ ['Wanneer komt de verhuiswagen?','Когда приедет грузовик для переезда?','Zaterdag om negen uur.','В субботу в девять.',10],
+ ['Ben je boos op mij?','Ты на меня сердишься?','Nee hoor, het geeft niet.','Да нет, всё нормально.',12],
+ ['Hoe lang duurt de aanvraag?','Сколько длится оформление заявки?','Ongeveer twee weken.','Примерно две недели.',17],
+ ['Bevalt het nieuwe huis?','Нравится новое жильё?','Ja, vooral de grote keuken!','Да, особенно большая кухня!',10],
 ]
 have={p['q_nl'] for p in qa['pairs']}
 added=0

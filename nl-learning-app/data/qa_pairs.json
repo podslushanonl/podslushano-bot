@@ -469,70 +469,70 @@
    "q_ru": "Почему ты переехал(а)?",
    "a_nl": "Mijn oude huis was te klein.",
    "a_ru": "Моя старая квартира была слишком маленькой.",
-   "theme": 11
+   "theme": 10
   },
   {
    "q_nl": "Heeft u een afspraak?",
    "q_ru": "У вас назначен приём?",
    "a_nl": "Ja, om half elf.",
    "a_ru": "Да, на полодиннадцатого.",
-   "theme": 12
+   "theme": 17
   },
   {
    "q_nl": "Wat is er gebeurd?",
    "q_ru": "Что случилось?",
    "a_nl": "Niets ergs. Alles is oké.",
    "a_ru": "Ничего страшного. Всё в порядке.",
-   "theme": 10
+   "theme": 12
   },
   {
    "q_nl": "Waarom ben je zo blij?",
    "q_ru": "Почему ты такой радостный (такая радостная)?",
    "a_nl": "Ik heb een nieuwe baan!",
    "a_ru": "У меня новая работа!",
-   "theme": 10
+   "theme": 15
   },
   {
    "q_nl": "Hoe was je weekend?",
    "q_ru": "Как прошли выходные?",
    "a_nl": "Heel gezellig, dank je.",
    "a_ru": "Очень душевно, спасибо.",
-   "theme": 10
+   "theme": 11
   },
   {
    "q_nl": "Welke documenten moet ik meenemen?",
    "q_ru": "Какие документы мне взять с собой?",
    "a_nl": "Uw paspoort en een kopie.",
    "a_ru": "Ваш паспорт и копию.",
-   "theme": 12
+   "theme": 17
   },
   {
    "q_nl": "Wanneer komt de verhuiswagen?",
    "q_ru": "Когда приедет грузовик для переезда?",
    "a_nl": "Zaterdag om negen uur.",
    "a_ru": "В субботу в девять.",
-   "theme": 11
+   "theme": 10
   },
   {
    "q_nl": "Ben je boos op mij?",
    "q_ru": "Ты на меня сердишься?",
    "a_nl": "Nee hoor, het geeft niet.",
    "a_ru": "Да нет, всё нормально.",
-   "theme": 10
+   "theme": 12
   },
   {
    "q_nl": "Hoe lang duurt de aanvraag?",
    "q_ru": "Сколько длится оформление заявки?",
    "a_nl": "Ongeveer twee weken.",
    "a_ru": "Примерно две недели.",
-   "theme": 12
+   "theme": 17
   },
   {
    "q_nl": "Bevalt het nieuwe huis?",
    "q_ru": "Нравится новое жильё?",
    "a_nl": "Ja, vooral de grote keuken!",
    "a_ru": "Да, особенно большая кухня!",
-   "theme": 11
+   "theme": 10
   }
  ]
 }

@@ -6,433 +6,433 @@
    "nl": "Ik ben vandaag een beetje blij.",
    "ru": "Сегодня я немного рад(а).",
    "lemma": "blij",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Waarom ben je zo blij?",
    "ru": "Почему ты такой(ая) радостный?",
    "lemma": "blij",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik was gisteren erg blij.",
    "ru": "Вчера я был(а) очень рад(а).",
    "lemma": "blij",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik ben vandaag een beetje boos.",
    "ru": "Сегодня я немного сердит(а).",
    "lemma": "boos",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Waarom ben je zo boos?",
    "ru": "Почему ты такой(ая) сердитый?",
    "lemma": "boos",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik was gisteren erg boos.",
    "ru": "Вчера я был(а) очень сердит(а).",
    "lemma": "boos",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik ben vandaag een beetje verdrietig.",
    "ru": "Сегодня я немного грустен (грустна).",
    "lemma": "verdrietig",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Waarom ben je zo verdrietig?",
    "ru": "Почему ты такой(ая) грустный?",
    "lemma": "verdrietig",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik was gisteren erg verdrietig.",
    "ru": "Вчера я был(а) очень грустен (грустна).",
    "lemma": "verdrietig",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik ben vandaag een beetje moe.",
    "ru": "Сегодня я немного устал(а).",
    "lemma": "moe",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Waarom ben je zo moe?",
    "ru": "Почему ты такой(ая) усталый?",
    "lemma": "moe",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik was gisteren erg moe.",
    "ru": "Вчера я был(а) очень устал(а).",
    "lemma": "moe",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik ben vandaag een beetje bang.",
    "ru": "Сегодня я немного напуган(а).",
    "lemma": "bang",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Waarom ben je zo bang?",
    "ru": "Почему ты такой(ая) испуганный?",
    "lemma": "bang",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik was gisteren erg bang.",
    "ru": "Вчера я был(а) очень напуган(а).",
    "lemma": "bang",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik ben vandaag een beetje trots.",
    "ru": "Сегодня я немного горд(а).",
    "lemma": "trots",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Waarom ben je zo trots?",
    "ru": "Почему ты такой(ая) гордый?",
    "lemma": "trots",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik was gisteren erg trots.",
    "ru": "Вчера я был(а) очень горд(а).",
    "lemma": "trots",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik ben vandaag een beetje verliefd.",
    "ru": "Сегодня я немного влюблён (влюблена).",
    "lemma": "verliefd",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Waarom ben je zo verliefd?",
    "ru": "Почему ты такой(ая) влюблённый?",
    "lemma": "verliefd",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik was gisteren erg verliefd.",
    "ru": "Вчера я был(а) очень влюблён (влюблена).",
    "lemma": "verliefd",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik ben vandaag een beetje tevreden.",
    "ru": "Сегодня я немного доволен (довольна).",
    "lemma": "tevreden",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Waarom ben je zo tevreden?",
    "ru": "Почему ты такой(ая) довольный?",
    "lemma": "tevreden",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Ik was gisteren erg tevreden.",
    "ru": "Вчера я был(а) очень доволен (довольна).",
    "lemma": "tevreden",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Mijn collega is heel vriendelijk.",
    "ru": "Мой коллега очень дружелюбный.",
    "lemma": "vriendelijk",
-   "theme": 10
+   "theme": 16
   },
   {
    "nl": "Mijn collega is heel eerlijk.",
    "ru": "Мой коллега очень честный.",
    "lemma": "eerlijk",
-   "theme": 10
+   "theme": 16
   },
   {
    "nl": "Mijn collega is heel gezellig.",
    "ru": "Мой коллега очень душевный.",
    "lemma": "gezellig",
-   "theme": 10
+   "theme": 16
   },
   {
    "nl": "Wat is jouw mening?",
    "ru": "Каково твоё мнение?",
    "lemma": "mening",
-   "theme": 10
+   "theme": 11
   },
   {
    "nl": "Dat is een goed idee!",
    "ru": "Это хорошая идея!",
    "lemma": "idee",
-   "theme": 10
+   "theme": 11
   },
   {
    "nl": "Ik heb een beter plan.",
    "ru": "У меня есть план получше.",
    "lemma": "plan",
-   "theme": 10
+   "theme": 11
   },
   {
    "nl": "Het was een leuk gesprek.",
    "ru": "Это был приятный разговор.",
    "lemma": "gesprek",
-   "theme": 10
+   "theme": 11
   },
   {
    "nl": "Heb je het nieuws gehoord?",
    "ru": "Ты слышал(а) новости?",
    "lemma": "nieuws",
-   "theme": 10
+   "theme": 11
   },
   {
    "nl": "Vertel je verhaal maar!",
    "ru": "Ну, рассказывай свою историю!",
    "lemma": "verhaal",
-   "theme": 10
+   "theme": 11
   },
   {
    "nl": "Dat was een goede grap!",
    "ru": "Это была хорошая шутка!",
    "lemma": "grap",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "We hebben ruzie gehad, maar nu is alles goed.",
    "ru": "Мы поссорились, но теперь всё хорошо.",
    "lemma": "ruzie",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "Wat een mooi compliment!",
    "ru": "Какой приятный комплимент!",
    "lemma": "compliment",
-   "theme": 10
+   "theme": 12
   },
   {
    "nl": "De keuze is aan jou.",
    "ru": "Выбор за тобой.",
    "lemma": "keuze",
-   "theme": 10
+   "theme": 11
   },
   {
    "nl": "Ik heb een droom: een eigen huis.",
    "ru": "У меня есть мечта — собственный дом.",
    "lemma": "droom",
-   "theme": 10
+   "theme": 11
   },
   {
    "nl": "Belangrijk is dat je het probeert.",
    "ru": "Важно то, что ты пытаешься.",
    "lemma": "belangrijk",
-   "theme": 10
+   "theme": 11
   },
   {
    "nl": "Ik ben vorige maand verhuisd.",
    "ru": "В прошлом месяце я переехал(а).",
    "lemma": "verhuizen",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "Wij zijn naar Utrecht verhuisd.",
    "ru": "Мы переехали в Утрехт.",
    "lemma": "verhuizen",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "Heb je de dozen al ingepakt?",
    "ru": "Ты уже упаковал(а) коробки?",
    "lemma": "doos",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "De buren hebben ons geholpen.",
    "ru": "Соседи нам помогли.",
    "lemma": "buren",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "Ik heb het huurcontract gelezen en ondertekend.",
    "ru": "Я прочитал(а) и подписал(а) договор аренды.",
    "lemma": "huurcontract",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "De borg is één maand huur.",
    "ru": "Залог — месячная аренда.",
    "lemma": "borg",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "Wanneer is de bezichtiging?",
    "ru": "Когда просмотр жилья?",
    "lemma": "bezichtiging",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "We hebben de muren geschilderd.",
    "ru": "Мы покрасили стены.",
    "lemma": "schilderen",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "De verwarming doet het niet.",
    "ru": "Отопление не работает.",
    "lemma": "verwarming",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "Waar zet ik de container neer?",
    "ru": "Куда мне поставить контейнер?",
    "lemma": "container",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "Het afval gaat op dinsdag buiten.",
    "ru": "Мусор выносят по вторникам.",
    "lemma": "afval",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "De verhuiswagen komt om negen uur.",
    "ru": "Грузовик для переезда приедет в девять.",
    "lemma": "verhuiswagen",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "Ik heb nieuwe buren. Ze zijn aardig!",
    "ru": "У меня новые соседи. Они приятные!",
    "lemma": "buren",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "De stroom en het gas zijn geregeld.",
    "ru": "Электричество и газ подключены.",
    "lemma": "stroom",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "Mijn huisgenoot kookt vandaag.",
    "ru": "Мой сосед по квартире сегодня готовит.",
    "lemma": "huisgenoot",
-   "theme": 11
+   "theme": 10
   },
   {
    "nl": "Ik heb een afspraak bij de gemeente.",
    "ru": "У меня приём в муниципалитете.",
    "lemma": "gemeente",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "Waar kan ik een uittreksel aanvragen?",
    "ru": "Где я могу запросить выписку?",
    "lemma": "uittreksel",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "U kunt de vergunning online aanvragen.",
    "ru": "Вы можете запросить разрешение онлайн.",
    "lemma": "vergunning",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "Heeft u uw identiteitskaart bij u?",
    "ru": "У вас с собой удостоверение личности?",
    "lemma": "identiteitskaart",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "Ik heb het formulier al ingevuld.",
    "ru": "Я уже заполнил(а) формуляр.",
    "lemma": "invullen",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "Wilt u hier ondertekenen?",
    "ru": "Распишитесь здесь, пожалуйста.",
    "lemma": "ondertekenen",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "De wachtrij is lang vandaag.",
    "ru": "Очередь сегодня длинная.",
    "lemma": "wachtrij",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "Ga naar loket drie, alstublieft.",
    "ru": "Пройдите к третьему окну, пожалуйста.",
    "lemma": "loket",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "Ik heb een kopie van mijn paspoort nodig.",
    "ru": "Мне нужна копия паспорта.",
    "lemma": "kopie",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "De toeslag komt volgende week.",
    "ru": "Субсидия придёт на следующей неделе.",
    "lemma": "toeslag",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "Mijn verblijfsvergunning is nog geldig.",
    "ru": "Мой вид на жительство ещё действителен.",
    "lemma": "verblijfsvergunning",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "Ik heb een brief van de belastingdienst gekregen.",
    "ru": "Я получил(а) письмо из налоговой.",
    "lemma": "belastingdienst",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "U krijgt binnen twee weken een melding.",
    "ru": "Вы получите уведомление в течение двух недель.",
    "lemma": "melding",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "Het pakket ligt bij de buren.",
    "ru": "Посылка у соседей.",
    "lemma": "pakket",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "De termijn is al voorbij.",
    "ru": "Срок уже прошёл.",
    "lemma": "termijn",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "Dit document is gratis.",
    "ru": "Этот документ бесплатный.",
    "lemma": "document",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "Ik wil bezwaar maken.",
    "ru": "Я хочу подать возражение.",
    "lemma": "bezwaar",
-   "theme": 12
+   "theme": 17
   },
   {
    "nl": "De zorgverzekering is verplicht in Nederland.",
    "ru": "Медицинская страховка в Нидерландах обязательна.",
    "lemma": "zorgverzekering",
-   "theme": 12
+   "theme": 17
   }
  ]
 }
