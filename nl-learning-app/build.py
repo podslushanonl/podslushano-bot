@@ -64,6 +64,10 @@ def build_dlg():
     except FileNotFoundError: pass
     try: parts=parts+J('grammar_a2.json')['parts']
     except FileNotFoundError: pass
+    try: parts=parts+J('handige_zinnen.json')['parts']
+    except FileNotFoundError: pass
+    try: parts=parts+J('documents_a2.json')['parts']
+    except FileNotFoundError: pass
     return (H_DLG+"\n"
      +js(parts)
      +".forEach(function(d){if(DATA[d.lesson])DATA[d.lesson].parts.push({t:d.title,steps:d.steps});});\n")
@@ -107,10 +111,16 @@ def build_wl():
         ivw=[[v[0]+' — '+v[1]+' — '+v[2],v[3]] for v in iv]
     except FileNotFoundError:
         ivw=[]
+    # Handige zinnen (стр. 368–369 учебника) — готовые фразы по ситуациям
+    try:
+        hz=J('handige_zinnen.json')['sections']
+    except FileNotFoundError:
+        hz=[]
     wlx=[{'t':'Множественное число (meervoud)','w':plu},
          {'t':'Формы глаголов (ik · jij · hij…)','w':vf},
-         {'t':'⚡ Неправильные глаголы A2 (imperfect · perfectum)','w':ivw},
-         {'t':'Фразы: мой / этот (mijn · deze)','w':ph},
+         {'t':'⚡ Неправильные глаголы A2 (imperfect · perfectum)','w':ivw}]\
+        +hz\
+        +[{'t':'Фразы: мой / этот (mijn · deze)','w':ph},
          {'t':'Служебные слова (частые)','w':fw}]
     return (H_WL+"\n"
      +"var WL="+js(themes)+";\n"
