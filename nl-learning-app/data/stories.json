@@ -1,6 +1,6 @@
 {
- "note": "Истории трёх видов: классические (2 сцены + вопросы), интерактивные 🎭 (ролевые выборы «Твоя реплика») и ВЕТВЯЩИЕСЯ 🎋 (шаг {t:\"choice\", opts:[[текст, ветка]]} — выбор игрока определяет, какие шаги с полем branch будут сыграны; шаги без branch — общие). Правь и запускай build.py.",
- "count": 14,
+ "note": "Истории: классические (сцены+вопросы), интерактивные 🎭 («Твоя реплика»), ветвящиеся 🎋 (choice → branch) и деревья 🎋🎋 (вложенные choice: ветка A содержит choice A1/A2 — шаги играются, если их branch есть в наборе выбранных). Правь и запускай build.py.",
+ "count": 19,
  "stories": [
   {
    "lesson": 6,
@@ -1778,6 +1778,781 @@
      "k": "Финал",
      "phrase": "Tot straks, Thomas!",
      "tr": "До скорого, Томас!"
+    }
+   ]
+  },
+  {
+   "lesson": 14,
+   "title": "История-дерево: твоё воскресенье 🎋🎋",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "История-дерево",
+     "b": "🎋 Jouw zondag",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>☀️ Воскресенье</b></p><p style=\"margin:6px 0\">Het is zondag — een vrije dag! Wat ga je doen? In deze история ДВА выбора — 4 разных концовки. Пройди её ещё раз по-другому!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Воскресенье — свободный день! В этой истории два выбора и четыре разных концовки.</p></div>",
+     "ex": [
+      [
+       "de vrije dag",
+       "выходной день"
+      ]
+     ]
+    },
+    {
+     "t": "choice",
+     "k": "Развилка 1",
+     "q": "Чем займёшься утром?",
+     "opts": [
+      [
+       "🧺 Naar de markt — на рынок",
+       "A"
+      ],
+      [
+       "🏃 Sporten — заняться спортом",
+       "B"
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "explain",
+     "k": "Твоя история · рынок",
+     "b": "🎋 Op de markt",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🧺 Рынок</b></p><p style=\"margin:6px 0\">Op de markt is het druk en gezellig. Je ziet bloemen, oude kaas en vers fruit. Wat koop je?</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">На рынке людно и уютно. Ты видишь цветы, выдержанный сыр и свежие фрукты. Что купишь?</p></div>",
+     "ex": [
+      [
+       "druk en gezellig",
+       "людно и уютно"
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "choice",
+     "k": "Развилка 2",
+     "q": "Что купишь на рынке?",
+     "opts": [
+      [
+       "🌷 Bloemen — цветы",
+       "A1"
+      ],
+      [
+       "🧀 Kaas — сыр",
+       "A2"
+      ]
+     ]
+    },
+    {
+     "branch": "A1",
+     "t": "explain",
+     "k": "Концовка 1 из 4",
+     "b": "🎋 De tulpen",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🌷 Тюльпаны</b></p><p style=\"margin:6px 0\">Je koopt tien rode tulpen voor vijf euro. Thuis staan ze mooi op de tafel!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты покупаешь десять красных тюльпанов за пять евро. Дома они красиво стоят на столе!</p></div>",
+     "ex": [
+      [
+       "tien rode tulpen",
+       "десять красных тюльпанов"
+      ]
+     ]
+    },
+    {
+     "branch": "A1",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько стоят тюльпаны?",
+     "opts": [
+      "пять евро",
+      "десять евро",
+      "два евро",
+      "один евро"
+     ]
+    },
+    {
+     "branch": "A1",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Tien rode tulpen, alstublieft.",
+     "tr": "Десять красных тюльпанов, пожалуйста."
+    },
+    {
+     "branch": "A2",
+     "t": "explain",
+     "k": "Концовка 2 из 4",
+     "b": "🎋 De kaas",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🧀 Сыр</b></p><p style=\"margin:6px 0\">Je koopt een stuk oude kaas. De verkoper geeft je een stukje om te proeven — heerlijk!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты покупаешь кусок выдержанного сыра. Продавец даёт попробовать кусочек — объедение!</p></div>",
+     "ex": [
+      [
+       "om te proeven",
+       "чтобы попробовать"
+      ]
+     ]
+    },
+    {
+     "branch": "A2",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Какой сыр ты купил(а)?",
+     "opts": [
+      "выдержанный (oude kaas)",
+      "молодой",
+      "козий",
+      "с травами"
+     ]
+    },
+    {
+     "branch": "A2",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Mag ik een stukje proeven?",
+     "tr": "Можно попробовать кусочек?"
+    },
+    {
+     "branch": "B",
+     "t": "explain",
+     "k": "Твоя история · спорт",
+     "b": "🎋 Sporten",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🏃 Спорт</b></p><p style=\"margin:6px 0\">Sporten is gezond! Maar wat kies je: het zwembad of het park?</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Спорт — это здорово! Но что выберешь: бассейн или парк?</p></div>",
+     "ex": [
+      [
+       "gezond",
+       "полезно для здоровья"
+      ]
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "choice",
+     "k": "Развилка 2",
+     "q": "Какой спорт выберешь?",
+     "opts": [
+      [
+       "🏊 Zwemmen — бассейн",
+       "B1"
+      ],
+      [
+       "🏃 Hardlopen in het park — бег в парке",
+       "B2"
+      ]
+     ]
+    },
+    {
+     "branch": "B1",
+     "t": "explain",
+     "k": "Концовка 3 из 4",
+     "b": "🎋 Het zwembad",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🏊 Бассейн</b></p><p style=\"margin:6px 0\">In het zwembad zwem je een uur. Het water is lekker warm. Daarna drink je thee.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">В бассейне ты плаваешь час. Вода приятно тёплая. Потом ты пьёшь чай.</p></div>",
+     "ex": [
+      [
+       "lekker warm",
+       "приятно тёплая"
+      ]
+     ]
+    },
+    {
+     "branch": "B1",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько ты плавал(а)?",
+     "opts": [
+      "час",
+      "десять минут",
+      "весь день",
+      "полчаса"
+     ]
+    },
+    {
+     "branch": "B1",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Ik zwem elke zondag.",
+     "tr": "Я плаваю каждое воскресенье."
+    },
+    {
+     "branch": "B2",
+     "t": "explain",
+     "k": "Концовка 4 из 4",
+     "b": "🎋 Het park",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🏃 Парк</b></p><p style=\"margin:6px 0\">Je loopt door het park. De zon schijnt en de vogels zingen. Wat een ochtend!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты бежишь по парку. Светит солнце, поют птицы. Какое утро!</p></div>",
+     "ex": [
+      [
+       "de vogels zingen",
+       "поют птицы"
+      ]
+     ]
+    },
+    {
+     "branch": "B2",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Какая погода в парке?",
+     "opts": [
+      "солнечная",
+      "дождливая",
+      "снежная",
+      "туманная"
+     ]
+    },
+    {
+     "branch": "B2",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Ik loop in het park.",
+     "tr": "Я бегаю в парке."
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Это был скучный день.",
+     "answer": false,
+     "note": "Нет — отличное воскресенье! Пройди историю ещё раз и выбери другой путь."
+    },
+    {
+     "t": "speak",
+     "k": "Финал",
+     "phrase": "Wat een fijne zondag!",
+     "tr": "Какое прекрасное воскресенье!"
+    }
+   ]
+  },
+  {
+   "lesson": 9,
+   "title": "История с выбором: приглашение 🎋",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ветвящаяся история",
+     "b": "🎋 Koffie bij Peter",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🚪 Сосед у двери</b></p><p style=\"margin:6px 0\">Je buurman Peter vraagt: «Kom je koffie drinken?» Сейчас — или завтра? Выбор твой!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Сосед Петер спрашивает: «Зайдёшь на кофе?» Сейчас — или завтра?</p></div>",
+     "ex": [
+      [
+       "Kom je koffie drinken?",
+       "Зайдёшь на кофе?"
+      ]
+     ]
+    },
+    {
+     "t": "choice",
+     "k": "Развилка",
+     "q": "Что ответишь Петеру?",
+     "opts": [
+      [
+       "☕ Ja, gezellig! Nu! — да, прямо сейчас",
+       "A"
+      ],
+      [
+       "📅 Morgen graag — лучше завтра",
+       "B"
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "explain",
+     "k": "Твоя история · в гостях",
+     "b": "🎋 Bij Peter",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>☕ У Петера</b></p><p style=\"margin:6px 0\">Zijn huis is mooi. Jullie drinken koffie met een koekje en praten over de familie.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">У него красивый дом. Вы пьёте кофе с печеньем и разговариваете о семье.</p></div>",
+     "ex": [
+      [
+       "koffie met een koekje",
+       "кофе с печеньем"
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "Jullie drinken koffie met een koekje",
+     "q": "Jullie drinken koffie met een ___",
+     "answer": [
+      "koekje"
+     ],
+     "ph": "…"
+    },
+    {
+     "branch": "A",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "О чём вы разговариваете?",
+     "opts": [
+      "о семье",
+      "о работе",
+      "о футболе",
+      "о погоде"
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Wat gezellig!",
+     "tr": "Как уютно!"
+    },
+    {
+     "branch": "B",
+     "t": "explain",
+     "k": "Твоя история · завтра",
+     "b": "🎋 Morgen dan",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>📅 Договорились</b></p><p style=\"margin:6px 0\">Je zegt: «Sorry, ik heb geen tijd. Morgen, oké?» Peter lacht: «Geen probleem! Tot morgen om tien uur.»</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты говоришь: «Извини, нет времени. Завтра, окей?» Петер смеётся: «Без проблем! До завтра, в десять».</p></div>",
+     "ex": [
+      [
+       "Ik heb geen tijd.",
+       "У меня нет времени."
+      ]
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "listen",
+     "k": "Слушай Петера",
+     "audio": "Geen probleem! Tot morgen om tien uur",
+     "q": "Что ответил Петер?",
+     "opts": [
+      "Geen probleem! Tot morgen om tien uur",
+      "Jammer, doei!",
+      "Ik ben boos",
+      "Kom nooit meer"
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Во сколько кофе завтра?",
+     "opts": [
+      "в десять",
+      "в девять",
+      "в восемь",
+      "в полдень"
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Tot morgen, Peter!",
+     "tr": "До завтра, Петер!"
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Петер обиделся.",
+     "answer": false,
+     "note": "Нет — в любой ветке всё дружелюбно (gezellig!)."
+    },
+    {
+     "t": "speak",
+     "k": "Финал",
+     "phrase": "Bedankt, Peter!",
+     "tr": "Спасибо, Петер!"
+    }
+   ]
+  },
+  {
+   "lesson": 22,
+   "title": "История с выбором: домашка 🎋",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ветвящаяся история",
+     "b": "🎋 Het huiswerk",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🏫 Урок закончился</b></p><p style=\"margin:6px 0\">De les is klaar. Het huiswerk: bladzijde twaalf. Waar ga je het maken — in de klas of in het café met Ali?</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Урок закончился. Домашнее задание: страница двенадцать. Где будешь делать — в классе или в кафе с Али?</p></div>",
+     "ex": [
+      [
+       "het huiswerk",
+       "домашнее задание"
+      ]
+     ]
+    },
+    {
+     "t": "choice",
+     "k": "Развилка",
+     "q": "Где делаешь домашку?",
+     "opts": [
+      [
+       "🏫 In de klas — в классе, в тишине",
+       "A"
+      ],
+      [
+       "☕ In het café met Ali — в кафе с Али",
+       "B"
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "explain",
+     "k": "Твоя история · класс",
+     "b": "🎋 In de klas",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🤫 Тихо</b></p><p style=\"margin:6px 0\">Je blijft in de klas. Het is rustig. De docent helpt je met een moeilijke vraag.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты остаёшься в классе. Тихо. Преподаватель помогает тебе с трудным вопросом.</p></div>",
+     "ex": [
+      [
+       "Het is rustig.",
+       "Тихо / спокойно."
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "De docent helpt je",
+     "q": "De ___ helpt je",
+     "answer": [
+      "docent"
+     ],
+     "ph": "…"
+    },
+    {
+     "branch": "A",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Кто тебе помог?",
+     "opts": [
+      "преподаватель",
+      "Али",
+      "сосед",
+      "никто"
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Kunt u mij helpen?",
+     "tr": "Вы можете мне помочь?"
+    },
+    {
+     "branch": "B",
+     "t": "explain",
+     "k": "Твоя история · кафе",
+     "b": "🎋 In het café",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>☕ Вдвоём веселее</b></p><p style=\"margin:6px 0\">In het café bestellen jullie thee. Ali leest de tekst en jij schrijft de antwoorden. Samen is het makkelijk!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">В кафе вы заказываете чай. Али читает текст, а ты пишешь ответы. Вместе — легко!</p></div>",
+     "ex": [
+      [
+       "Samen is het makkelijk!",
+       "Вместе — легко!"
+      ]
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "Ali leest de tekst",
+     "q": "Ali ___ de tekst",
+     "answer": [
+      "leest"
+     ],
+     "ph": "…"
+    },
+    {
+     "branch": "B",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что вы заказали?",
+     "opts": [
+      "чай",
+      "кофе",
+      "сок",
+      "лимонад"
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Samen is het makkelijk!",
+     "tr": "Вместе — легко!"
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Какая страница была задана?",
+     "opts": [
+      "двенадцать",
+      "два",
+      "двадцать",
+      "десять"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Домашка осталась несделанной.",
+     "answer": false,
+     "note": "Нет — в любой ветке ты её сделал(а)!"
+    },
+    {
+     "t": "speak",
+     "k": "Финал",
+     "phrase": "Het huiswerk is klaar!",
+     "tr": "Домашка готова!"
+    }
+   ]
+  },
+  {
+   "lesson": 27,
+   "title": "История с выбором: простуда 🎋",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ветвящаяся история",
+     "b": "🎋 Ziek!",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🤒 Утро</b></p><p style=\"margin:6px 0\">Je wordt wakker: hoofdpijn en keelpijn. Wat doe je — de dokter bellen of naar de apotheek gaan?</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты просыпаешься: болит голова и горло. Что делаешь — звонишь врачу или идёшь в аптеку?</p></div>",
+     "ex": [
+      [
+       "Ik ben ziek.",
+       "Я болен / больна."
+      ]
+     ]
+    },
+    {
+     "t": "choice",
+     "k": "Развилка",
+     "q": "Твоё решение?",
+     "opts": [
+      [
+       "📞 De dokter bellen — позвонить врачу",
+       "A"
+      ],
+      [
+       "💊 Naar de apotheek — сходить в аптеку",
+       "B"
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "explain",
+     "k": "Твоя история · врач",
+     "b": "🎋 Bij de dokter",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🩺 Приём</b></p><p style=\"margin:6px 0\">De assistente zegt: «Kom vandaag om drie uur.» De dokter luistert goed en geeft je een recept.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ассистентка говорит: «Приходите сегодня в три». Врач внимательно слушает и даёт тебе рецепт.</p></div>",
+     "ex": [
+      [
+       "Kom vandaag om drie uur.",
+       "Приходите сегодня в три."
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "listen",
+     "k": "Слушай ассистентку",
+     "audio": "Kom vandaag om drie uur",
+     "q": "Что сказала ассистентка?",
+     "opts": [
+      "Kom vandaag om drie uur",
+      "Kom volgende week",
+      "Wij zijn dicht",
+      "Bel morgen terug"
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Во сколько приём?",
+     "opts": [
+      "в три часа",
+      "в два часа",
+      "в пять часов",
+      "завтра утром"
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Ik kom om drie uur.",
+     "tr": "Я приду в три часа."
+    },
+    {
+     "branch": "B",
+     "t": "explain",
+     "k": "Твоя история · аптека",
+     "b": "🎋 De apotheek",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>💊 Лекарство</b></p><p style=\"margin:6px 0\">De apotheker geeft je een medicijn tegen de keelpijn: «Drie keer per dag, na het eten.»</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Аптекарь даёт тебе лекарство от боли в горле: «Три раза в день, после еды».</p></div>",
+     "ex": [
+      [
+       "tegen de keelpijn",
+       "от боли в горле"
+      ]
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "Drie keer per dag",
+     "q": "___ keer per dag",
+     "answer": [
+      "drie"
+     ],
+     "ph": "…"
+    },
+    {
+     "branch": "B",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Как принимать лекарство?",
+     "opts": [
+      "3 раза в день после еды",
+      "1 раз утром",
+      "только на ночь",
+      "до еды"
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Heeft u iets tegen keelpijn?",
+     "tr": "У вас есть что-нибудь от боли в горле?"
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Ты остался(ась) без помощи.",
+     "answer": false,
+     "note": "Нет — в обеих ветках тебе помогли!"
+    },
+    {
+     "t": "speak",
+     "k": "Финал",
+     "phrase": "Ik voel me al beter!",
+     "tr": "Мне уже лучше!"
+    }
+   ]
+  },
+  {
+   "lesson": 31,
+   "title": "История с выбором: дождь 🎋",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ветвящаяся история",
+     "b": "🎋 Regen!",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🌧️ В городе</b></p><p style=\"margin:6px 0\">Je bent in de stad en… het regent! Je hebt twintig euro. Een jas kopen — of een paraplu en een koffie?</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты в городе и… пошёл дождь! У тебя двадцать евро. Купить куртку — или зонт и кофе?</p></div>",
+     "ex": [
+      [
+       "Het regent!",
+       "Идёт дождь!"
+      ]
+     ]
+    },
+    {
+     "t": "choice",
+     "k": "Развилка",
+     "q": "На что потратишь 20 €?",
+     "opts": [
+      [
+       "🧥 Een jas — куртка (19,95 €)",
+       "A"
+      ],
+      [
+       "☂️ Een paraplu + koffie — зонт и кофе",
+       "B"
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "explain",
+     "k": "Твоя история · куртка",
+     "b": "🎋 De jas",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🧥 Тепло и сухо</b></p><p style=\"margin:6px 0\">Je koopt een blauwe jas voor negentien euro vijfennegentig. Warm en droog — maar je geld is op!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты покупаешь синюю куртку за 19,95. Тепло и сухо — но деньги закончились!</p></div>",
+     "ex": [
+      [
+       "Warm en droog.",
+       "Тепло и сухо."
+      ]
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько стоит куртка?",
+     "opts": [
+      "19,95 €",
+      "7,50 €",
+      "25,00 €",
+      "10,00 €"
+     ]
+    },
+    {
+     "branch": "A",
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "Je koopt een blauwe jas",
+     "q": "Je koopt een blauwe ___",
+     "answer": [
+      "jas"
+     ],
+     "ph": "…"
+    },
+    {
+     "branch": "A",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Deze jas is warm en mooi.",
+     "tr": "Эта куртка тёплая и красивая."
+    },
+    {
+     "branch": "B",
+     "t": "explain",
+     "k": "Твоя история · зонт",
+     "b": "🎋 De paraplu",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>☂️ Уютно</b></p><p style=\"margin:6px 0\">Je koopt een paraplu voor zeven euro vijftig en drinkt koffie in het café. Je kijkt naar de regen — gezellig!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты покупаешь зонт за 7,50 и пьёшь кофе в кафе. Смотришь на дождь — уютно!</p></div>",
+     "ex": [
+      [
+       "de paraplu",
+       "зонт"
+      ]
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "Je koopt een paraplu",
+     "q": "Je koopt een ___",
+     "answer": [
+      "paraplu"
+     ],
+     "ph": "…"
+    },
+    {
+     "branch": "B",
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что ты делаешь в кафе?",
+     "opts": [
+      "пью кофе и смотрю на дождь",
+      "ем суп",
+      "сплю",
+      "читаю газету"
+     ]
+    },
+    {
+     "branch": "B",
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Een paraplu, alstublieft.",
+     "tr": "Зонт, пожалуйста."
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Ты промок(ла) под дождём.",
+     "answer": false,
+     "note": "Нет — в обеих ветках ты сухой(ая)!"
+    },
+    {
+     "t": "speak",
+     "k": "Финал",
+     "phrase": "Het regent, maar ik ben droog!",
+     "tr": "Идёт дождь, но я сухой(ая)!"
     }
    ]
   }
