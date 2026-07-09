@@ -228,13 +228,13 @@
   "1": {
    "parts": [
     {
-     "t": "Алфавит и чтение",
+     "t": "Алфавит: 26 букв",
      "steps": [
       {
        "t": "explain",
-       "k": "Как устроен язык",
-       "b": "📖 Объяснение",
-       "html": "<p>Нидерландский использует те же <b>26 латинских букв</b>, что и английский, и читается почти «как пишется». Три трудности: звук <b>g</b>, долгие/краткие гласные, сочетания <b>ij, oe, eu, ui</b>. Ударение — обычно на первый слог.</p>"
+       "k": "Урок 1 · с чего начинается язык",
+       "b": "📖 Как устроен нидерландский",
+       "html": "<p>Нидерландский использует те же <b>26 латинских букв</b> и читается почти «как пишется». Есть три особенности: звук <b>g</b> (как русское «х», но глубже), долгие/краткие гласные и сочетания <b>ij, oe, eu, ui</b>. Ударение почти всегда на первый слог.</p><p>Сначала выучим, как <b>называются</b> буквы — это нужно, чтобы диктовать своё имя по буквам (в Нидерландах это происходит постоянно: телефон, GGD, gemeente).</p>"
       },
       {
        "t": "explain",
@@ -245,54 +245,220 @@
       },
       {
        "t": "quiz",
-       "k": "Проверка",
+       "k": "Буквы",
        "q": "Как называется буква «g»?",
        "opts": [
         "хэ",
         "гэ",
         "джи",
-        "эйч"
+        "жэ"
        ]
       },
       {
        "t": "quiz",
-       "k": "Проверка",
+       "k": "Буквы",
        "q": "Как называется буква «j»?",
        "opts": [
         "йе",
         "джей",
-        "и",
-        "жи"
+        "жи",
+        "и"
        ]
       },
       {
        "t": "quiz",
-       "k": "Проверка",
+       "k": "Буквы",
+       "q": "Как называется буква «e»?",
+       "opts": [
+        "э",
+        "е",
+        "и",
+        "ё"
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Буквы",
+       "q": "Как называется буква «u»?",
+       "opts": [
+        "ю",
+        "у",
+        "а",
+        "ы"
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Буквы",
+       "q": "Как называется буква «v»?",
+       "opts": [
+        "фэ",
+        "вэ",
+        "ви",
+        "эф"
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Буквы",
        "q": "Как называется буква «w»?",
        "opts": [
         "вэ",
         "дабл-ю",
         "уэ",
-        "ви"
+        "ме"
        ]
       },
       {
        "t": "quiz",
-       "k": "Проверка",
+       "k": "Буквы",
        "q": "Как называется буква «y»?",
        "opts": [
         "эй",
         "игрек",
-        "уай",
+        "ю",
         "йот"
        ]
       },
       {
+       "t": "quiz",
+       "k": "Буквы",
+       "q": "Как называется буква «z»?",
+       "opts": [
+        "зэт",
+        "зэ",
+        "эс",
+        "цэ"
+       ]
+      },
+      {
+       "t": "tf",
+       "k": "Верно?",
+       "q": "Буква «v» в нидерландском часто звучит ближе к русскому «ф».",
+       "answer": true,
+       "note": "Да! vader звучит почти как «фадер»."
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "a, b, c, d, e, f, g",
+       "tr": "Произнеси первые семь букв алфавита."
+      }
+     ]
+    },
+    {
+     "t": "Правило: долгие и краткие",
+     "steps": [
+      {
        "t": "explain",
-       "k": "Долгие и краткие гласные",
-       "b": "📖 Объяснение",
-       "html": "<p>Долгий звук пишется удвоенной буквой и меняет смысл!</p><div class=\"rule\">man (мужчина) ↔ maan (луна) · bom (бомба) ↔ boom (дерево) · zon (солнце) ↔ zoon (сын)</div>",
+       "k": "Главное правило чтения",
+       "b": "📐 Правило",
+       "html": "<p><b>Правило №1 нидерландского чтения.</b> Одна и та же гласная читается <b>кратко</b> или <b>долго</b> — и это меняет смысл слова!</p><div class=\"rule\">📏 <b>ДОЛГИЙ звук</b>: гласная удвоена (aa, oo, ee, uu) — maan, boom, zee<br>⚡ <b>КРАТКИЙ звук</b>: одна гласная + согласная в конце слога — man, bom, zon</div><div style=\"margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:14px;text-align:center\"><div style=\"background:var(--danger-s);border-radius:10px;padding:8px\"><b>man</b><br><span style=\"font-size:12px;color:var(--ink-2)\">мужчина (кратко)</span></div><div style=\"background:var(--success-s);border-radius:10px;padding:8px\"><b>maan</b><br><span style=\"font-size:12px;color:var(--ink-2)\">луна (долго)</span></div><div style=\"background:var(--danger-s);border-radius:10px;padding:8px\"><b>bom</b><br><span style=\"font-size:12px;color:var(--ink-2)\">бомба (кратко)</span></div><div style=\"background:var(--success-s);border-radius:10px;padding:8px\"><b>boom</b><br><span style=\"font-size:12px;color:var(--ink-2)\">дерево (долго)</span></div><div style=\"background:var(--danger-s);border-radius:10px;padding:8px\"><b>zon</b><br><span style=\"font-size:12px;color:var(--ink-2)\">солнце (кратко)</span></div><div style=\"background:var(--success-s);border-radius:10px;padding:8px\"><b>zoon</b><br><span style=\"font-size:12px;color:var(--ink-2)\">сын (долго)</span></div></div>",
        "ex": [
+        [
+         "man — maan",
+         "мужчина — луна"
+        ],
+        [
+         "bom — boom",
+         "бомба — дерево"
+        ],
+        [
+         "zon — zoon",
+         "солнце — сын"
+        ]
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Правило",
+       "q": "«maan» читается долго, потому что…",
+       "opts": [
+        "гласная удвоена (aa)",
+        "слово короткое",
+        "ударение на первый слог",
+        "после неё согласная"
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Правило",
+       "q": "Одна гласная в закрытом слоге (man) даёт…",
+       "opts": [
+        "краткий звук",
+        "долгий звук",
+        "два звука",
+        "немой звук"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование · слушай внимательно",
+       "audio": "zoon",
+       "q": "Кратко или долго? Что прозвучало?",
+       "opts": [
+        "zoon",
+        "zon",
+        "zin",
+        "zen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "bom",
+       "q": "А теперь? (не угадывай — слушай длину звука)",
+       "opts": [
+        "bom",
+        "boom",
+        "bon",
+        "bond"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "maan",
+       "q": "И ещё раз:",
+       "opts": [
+        "maan",
+        "man",
+        "mand",
+        "mama"
+       ]
+      },
+      {
+       "t": "quiz",
+       "k": "Смысл меняется!",
+       "q": "«Ik zie de maan» — я вижу…",
+       "opts": [
+        "луну",
+        "мужчину",
+        "маму",
+        "дерево"
+       ]
+      },
+      {
+       "t": "tf",
+       "k": "Верно?",
+       "q": "«boom» и «bom» — это одно и то же слово.",
+       "answer": false,
+       "note": "Нет: boom — дерево (долго), bom — бомба (кратко)."
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "De zoon kijkt naar de maan",
+       "q": "De ___ kijkt naar de maan",
+       "answer": [
+        "zoon"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "match",
+       "k": "Пары",
+       "pairs": [
         [
          "man",
          "мужчина"
@@ -306,62 +472,13 @@
          "дерево"
         ],
         [
+         "zon",
+         "солнце"
+        ],
+        [
          "zoon",
          "сын"
         ]
-       ]
-      },
-      {
-       "t": "listen",
-       "k": "Аудирование",
-       "audio": "boom",
-       "q": "Какое слово прозвучало?",
-       "opts": [
-        "boom",
-        "bom",
-        "boon",
-        "boot"
-       ]
-      },
-      {
-       "t": "listen",
-       "k": "Аудирование",
-       "audio": "man",
-       "q": "Какое слово прозвучало?",
-       "opts": [
-        "man",
-        "maan",
-        "mens",
-        "mand"
-       ]
-      },
-      {
-       "t": "tf",
-       "k": "Верно?",
-       "q": "В слове «maan» гласный долгий (две a).",
-       "answer": true,
-       "note": "Верно: aa = долгий."
-      },
-      {
-       "t": "quiz",
-       "k": "Выбор",
-       "q": "Одна гласная буква в закрытом слоге даёт…",
-       "opts": [
-        "краткий звук",
-        "долгий звук",
-        "два звука",
-        "ударение"
-       ]
-      },
-      {
-       "t": "quiz",
-       "k": "Выбор",
-       "q": "«boom» переводится как…",
-       "opts": [
-        "дерево",
-        "бомба",
-        "лодка",
-        "боб"
        ]
       }
      ]
@@ -1269,6 +1386,106 @@
        "tr": "Я из России и немного говорю по-нидерландски."
       }
      ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я хорошо знаю ребёнка.",
+       "words": [
+        "Ik",
+        "ken",
+        "het",
+        "kind",
+        "goed"
+       ],
+       "ans": [
+        "Ik",
+        "ken",
+        "het",
+        "kind",
+        "goed"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Мальчик часто мне помогает.",
+       "words": [
+        "De",
+        "jongen",
+        "helpt",
+        "mij",
+        "vaak"
+       ],
+       "ans": [
+        "De",
+        "jongen",
+        "helpt",
+        "mij",
+        "vaak"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ken jij de jongen?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ken jij de jongen?",
+        "Daar loopt de baby.",
+        "De baby helpt mij vaak.",
+        "Ken jij de baby?"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "De jongen is erg aardig.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "De jongen is erg aardig.",
+        "De vriend helpt mij vaak.",
+        "Ken jij de vriend?",
+        "De vriend is erg aardig."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik ken de jongen goed.",
+       "q": "Ik ken de ___ goed.",
+       "answer": [
+        "jongen"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Daar loopt de jongen.»?",
+       "opts": [
+        "Вон идёт мальчик.",
+        "Вон идёт женщина.",
+        "Женщина часто мне помогает.",
+        "Ты знаешь женщину?"
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Ken jij het meisje?",
+       "tr": "Ты знаешь девочку?"
+      }
+     ]
     }
    ]
   },
@@ -1667,6 +1884,106 @@
        "k": "Говорение",
        "phrase": "Hallo! Ik heet Anna. Ik kom uit Rusland. Ik ben 28 jaar. Ik ben student.",
        "tr": "Рассказ о себе."
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Девочка очень приятная.",
+       "words": [
+        "Het",
+        "meisje",
+        "is",
+        "erg",
+        "aardig"
+       ],
+       "ans": [
+        "Het",
+        "meisje",
+        "is",
+        "erg",
+        "aardig"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я хорошо знаю девочку.",
+       "words": [
+        "Ik",
+        "ken",
+        "het",
+        "meisje",
+        "goed"
+       ],
+       "ans": [
+        "Ik",
+        "ken",
+        "het",
+        "meisje",
+        "goed"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Daar loopt het meisje.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Daar loopt het meisje.",
+        "De buurman helpt mij vaak.",
+        "Ken jij de buurman?",
+        "De buurman is erg aardig."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Het meisje helpt mij vaak.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Het meisje helpt mij vaak.",
+        "Ken jij de buurvrouw?",
+        "De buurvrouw is erg aardig.",
+        "Ik ken de buurvrouw goed."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "De baby is erg aardig.",
+       "q": "De ___ is erg aardig.",
+       "answer": [
+        "baby"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Ik ken de baby goed.»?",
+       "opts": [
+        "Я хорошо знаю младенца.",
+        "Женщина очень приятная.",
+        "Вон идёт ребёнок.",
+        "Ребёнок часто мне помогает."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Daar loopt de baby.",
+       "tr": "Вон идёт младенец."
       }
      ]
     }
@@ -2178,6 +2495,104 @@
        "tr": "Описание комнаты."
       }
      ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Младенец часто мне помогает.",
+       "words": [
+        "De",
+        "baby",
+        "helpt",
+        "mij",
+        "vaak"
+       ],
+       "ans": [
+        "De",
+        "baby",
+        "helpt",
+        "mij",
+        "vaak"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Ты знаешь младенца?",
+       "words": [
+        "Ken",
+        "jij",
+        "de",
+        "baby"
+       ],
+       "ans": [
+        "Ken",
+        "jij",
+        "de",
+        "baby"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik ken de vriend goed.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik ken de vriend goed.",
+        "De persoon helpt mij vaak.",
+        "Ken jij de persoon?",
+        "Ik ken de mensen goed."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Daar loopt de vriend.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Daar loopt de vriend.",
+        "Ken jij de mensen?",
+        "De mensen is erg aardig.",
+        "Ik heb een achternaam nodig."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "De vriend helpt mij vaak.",
+       "q": "De ___ helpt mij vaak.",
+       "answer": [
+        "vriend"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Ken jij de vriend?»?",
+       "opts": [
+        "Ты знаешь друга?",
+        "Ты знаешь ребёнка?",
+        "Ребёнок очень приятный.",
+        "Я хорошо знаю ребёнка."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "De vriend is erg aardig.",
+       "tr": "Друг очень приятный."
+      }
+     ]
     }
    ]
   },
@@ -2582,6 +2997,104 @@
        "k": "Говорение",
        "phrase": "Ik ben 25 jaar. De koffie kost drie euro.",
        "tr": "Мне 25 лет. Кофе стоит 3 евро."
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Вон идёт подруга.",
+       "words": [
+        "Daar",
+        "loopt",
+        "de",
+        "vriendin"
+       ],
+       "ans": [
+        "Daar",
+        "loopt",
+        "de",
+        "vriendin"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Подруга часто мне помогает.",
+       "words": [
+        "De",
+        "vriendin",
+        "helpt",
+        "mij",
+        "vaak"
+       ],
+       "ans": [
+        "De",
+        "vriendin",
+        "helpt",
+        "mij",
+        "vaak"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ken jij de vriendin?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ken jij de vriendin?",
+        "De familie is hier, denk ik.",
+        "Ik ken de vader goed.",
+        "Daar loopt de vader."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "De vriendin is erg aardig.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "De vriendin is erg aardig.",
+        "De vader is erg aardig.",
+        "Daar loopt de moeder.",
+        "De moeder helpt mij vaak."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik ken de vriendin goed.",
+       "q": "Ik ken de ___ goed.",
+       "answer": [
+        "vriendin"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «De buurman helpt mij vaak.»?",
+       "opts": [
+        "Сосед часто мне помогает.",
+        "Мальчик часто мне помогает.",
+        "Ты знаешь мальчика?",
+        "Мальчик очень приятный."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Ken jij de buurman?",
+       "tr": "Ты знаешь соседа?"
       }
      ]
     }
@@ -3053,6 +3566,106 @@
        "tr": "Мой день."
       }
      ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Сосед очень приятный.",
+       "words": [
+        "De",
+        "buurman",
+        "is",
+        "erg",
+        "aardig"
+       ],
+       "ans": [
+        "De",
+        "buurman",
+        "is",
+        "erg",
+        "aardig"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я хорошо знаю соседа.",
+       "words": [
+        "Ik",
+        "ken",
+        "de",
+        "buurman",
+        "goed"
+       ],
+       "ans": [
+        "Ik",
+        "ken",
+        "de",
+        "buurman",
+        "goed"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Daar loopt de buurman.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Daar loopt de buurman.",
+        "De ouder is erg aardig.",
+        "Ik ken de ouder goed.",
+        "Daar loopt de ouder."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ken jij de buurvrouw?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ken jij de buurvrouw?",
+        "Ik ken de zoon goed.",
+        "Daar loopt de zoon.",
+        "De zoon helpt mij vaak."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "De buurvrouw is erg aardig.",
+       "q": "De ___ is erg aardig.",
+       "answer": [
+        "buurvrouw"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Ik ken de buurvrouw goed.»?",
+       "opts": [
+        "Я хорошо знаю соседку.",
+        "Я хорошо знаю мальчика.",
+        "Вон идёт мальчик.",
+        "Ты знаешь девочку?"
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Daar loopt de buurvrouw.",
+       "tr": "Вон идёт соседка."
+      }
+     ]
     }
    ]
   },
@@ -3352,6 +3965,106 @@
        "k": "Говорение",
        "phrase": "Hoe heet je? Waar kom je vandaan? Wat doe je?",
        "tr": "Интервью."
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Соседка часто мне помогает.",
+       "words": [
+        "De",
+        "buurvrouw",
+        "helpt",
+        "mij",
+        "vaak"
+       ],
+       "ans": [
+        "De",
+        "buurvrouw",
+        "helpt",
+        "mij",
+        "vaak"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Человек очень приятный.",
+       "words": [
+        "De",
+        "persoon",
+        "is",
+        "erg",
+        "aardig"
+       ],
+       "ans": [
+        "De",
+        "persoon",
+        "is",
+        "erg",
+        "aardig"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik ken de persoon goed.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik ken de persoon goed.",
+        "Ik ken de broer goed.",
+        "Daar loopt de broer.",
+        "De broer helpt mij vaak."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Daar loopt de persoon.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Daar loopt de persoon.",
+        "Daar loopt de zus.",
+        "De zus helpt mij vaak.",
+        "Ken jij de zus?"
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "De persoon helpt mij vaak.",
+       "q": "De ___ helpt mij vaak.",
+       "answer": [
+        "persoon"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Ken jij de persoon?»?",
+       "opts": [
+        "Ты знаешь человека?",
+        "Девочка очень приятная.",
+        "Я хорошо знаю девочку.",
+        "Вон идёт девочка."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Ik ken de mensen goed.",
+       "tr": "Я хорошо знаю людей."
       }
      ]
     }
@@ -3681,6 +4394,104 @@
        "tr": "Рассказ о семье."
       }
      ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Вон идёт люди.",
+       "words": [
+        "Daar",
+        "loopt",
+        "de",
+        "mensen"
+       ],
+       "ans": [
+        "Daar",
+        "loopt",
+        "de",
+        "mensen"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Люди часто мне помогают.",
+       "words": [
+        "De",
+        "mensen",
+        "helpt",
+        "mij",
+        "vaak"
+       ],
+       "ans": [
+        "De",
+        "mensen",
+        "helpt",
+        "mij",
+        "vaak"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ken jij de mensen?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ken jij de mensen?",
+        "Ik ken de opa goed.",
+        "Daar loopt de opa.",
+        "Ken jij de oma?"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "De mensen is erg aardig.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "De mensen is erg aardig.",
+        "Daar loopt de oma.",
+        "De oma helpt mij vaak.",
+        "De oom is erg aardig."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik heb een achternaam nodig.",
+       "q": "Ik heb een ___ nodig.",
+       "answer": [
+        "achternaam"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Is dit de achternaam?»?",
+       "opts": [
+        "Это фамилия?",
+        "Девочка часто мне помогает.",
+        "Младенец очень приятный.",
+        "Я хорошо знаю младенца."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "De achternaam is hier, denk ik.",
+       "tr": "Фамилия здесь, я думаю."
+      }
+     ]
     }
    ]
   },
@@ -3880,6 +4691,106 @@
        "k": "Говорение",
        "phrase": "Nee, ik werk niet. Jawel, ik heb tijd!",
        "tr": "Нет, я не работаю. Да, у меня есть время!"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я не вижу фамилию.",
+       "words": [
+        "Ik",
+        "zie",
+        "de",
+        "achternaam",
+        "niet"
+       ],
+       "ans": [
+        "Ik",
+        "zie",
+        "de",
+        "achternaam",
+        "niet"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я не вижу семью.",
+       "words": [
+        "Ik",
+        "zie",
+        "de",
+        "familie",
+        "niet"
+       ],
+       "ans": [
+        "Ik",
+        "zie",
+        "de",
+        "familie",
+        "niet"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Is dit de familie?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Is dit de familie?",
+        "Daar loopt de tante.",
+        "De tante helpt mij vaak.",
+        "Ken jij de tante?"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "De familie is hier, denk ik.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "De familie is hier, denk ik.",
+        "De neef helpt mij vaak.",
+        "Ken jij de neef?",
+        "De neef is erg aardig."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik ken de vader goed.",
+       "q": "Ik ken de ___ goed.",
+       "answer": [
+        "vader"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Daar loopt de vader.»?",
+       "opts": [
+        "Вон идёт отец.",
+        "Вон идёт младенец.",
+        "Младенец часто мне помогает.",
+        "Ты знаешь младенца?"
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "De vader helpt mij vaak.",
+       "tr": "Отец часто мне помогает."
       }
      ]
     }
@@ -4091,6 +5002,104 @@
        "k": "Диалог с AI",
        "phrase": "Hallo! Hoe heet je? Waar kom je vandaan?",
        "tr": "Ролевой диалог: познакомься с собеседником."
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Ты знаешь отца?",
+       "words": [
+        "Ken",
+        "jij",
+        "de",
+        "vader"
+       ],
+       "ans": [
+        "Ken",
+        "jij",
+        "de",
+        "vader"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Отец очень приятный.",
+       "words": [
+        "De",
+        "vader",
+        "is",
+        "erg",
+        "aardig"
+       ],
+       "ans": [
+        "De",
+        "vader",
+        "is",
+        "erg",
+        "aardig"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Daar loopt de moeder.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Daar loopt de moeder.",
+        "Daar loopt de nicht.",
+        "Ken jij het kleinkind?",
+        "Het kleinkind is erg aardig."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "De moeder helpt mij vaak.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "De moeder helpt mij vaak.",
+        "Het kleinkind helpt mij vaak.",
+        "De partner is erg aardig.",
+        "Ik ken de partner goed."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ken jij de moeder?",
+       "q": "Ken jij de ___?",
+       "answer": [
+        "moeder"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «De moeder is erg aardig.»?",
+       "opts": [
+        "Мать очень приятная.",
+        "Я хорошо знаю друга.",
+        "Вон идёт друг.",
+        "Друг часто мне помогает."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Ik ken de moeder goed.",
+       "tr": "Я хорошо знаю мать."
       }
      ]
     }
@@ -4477,6 +5486,102 @@
        "tr": "Диалог в кафе с AI."
       }
      ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Завтра мы будем помогать.",
+       "words": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ],
+       "ans": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я хорошо умею помогать.",
+       "words": [
+        "Ik",
+        "kan",
+        "goed",
+        "helpen"
+       ],
+       "ans": [
+        "Ik",
+        "kan",
+        "goed",
+        "helpen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Dat is heel eerlijk.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Dat is heel eerlijk.",
+        "Daar loopt de echtgenoot.",
+        "De echtgenoot helpt mij vaak.",
+        "Ken jij de echtgenoot?"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Is het eerlijk?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Is het eerlijk?",
+        "De echtgenote helpt mij vaak.",
+        "Ken jij de echtgenote?",
+        "De echtgenote is erg aardig."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Het is eerlijk.",
+       "q": "Het is ___.",
+       "answer": [
+        "eerlijk"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Is het wekelijks?»?",
+       "opts": [
+        "Это еженедельно?",
+        "Это честно.",
+        "Это еженедельно.",
+        "Это очень еженедельно."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Het is wekelijks.",
+       "tr": "Это еженедельно."
+      }
+     ]
     }
    ]
   },
@@ -4835,6 +5940,104 @@
        "k": "Говорение",
        "phrase": "Ik zoek melk. Hoeveel kost het? Mag ik pinnen? Dank u wel!",
        "tr": "Диалог покупки с AI."
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Сегодня я не буду помогать.",
+       "words": [
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
+        "helpen"
+       ],
+       "ans": [
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
+        "helpen"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я очень хочу помогать.",
+       "words": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ],
+       "ans": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "We gaan morgen helpen.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "We gaan morgen helpen.",
+        "Daar loopt de schoonmoeder.",
+        "Ken jij de schoonvader?",
+        "De schoonvader is erg aardig."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik kan goed helpen.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik kan goed helpen.",
+        "De schoonvader helpt mij vaak.",
+        "De zwager is erg aardig.",
+        "Ik ken de zwager goed."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Dat is heel eerlijk.",
+       "q": "Dat is heel ___.",
+       "answer": [
+        "eerlijk"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Is het eerlijk?»?",
+       "opts": [
+        "Это честно?",
+        "Сегодня я не буду помогать.",
+        "Я очень хочу помогать.",
+        "Завтра мы будем помогать."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Het is eerlijk.",
+       "tr": "Это честно."
       }
      ]
     }
@@ -5250,6 +6453,102 @@
        "tr": "Когда придёшь? Я приду в 3 часа."
       }
      ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я очень хочу помогать.",
+       "words": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ],
+       "ans": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Завтра мы будем помогать.",
+       "words": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ],
+       "ans": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik kan goed helpen.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik kan goed helpen.",
+        "De schoonzus helpt mij vaak.",
+        "Ken jij de schoonzus?",
+        "De schoonzus is erg aardig."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Dat is heel eerlijk.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Dat is heel eerlijk.",
+        "We gaan morgen helpen.",
+        "Ik kan goed helpen.",
+        "Is het eerlijk?"
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Is het eerlijk?",
+       "q": "Is het ___?",
+       "answer": [
+        "eerlijk"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Het is eerlijk.»?",
+       "opts": [
+        "Это честно.",
+        "Я хорошо умею помогать.",
+        "Это очень честно.",
+        "Это честно?"
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Is het wekelijks?",
+       "tr": "Это еженедельно?"
+      }
+     ]
     }
    ]
   },
@@ -5588,6 +6887,102 @@
        "tr": "Рассказ о моей неделе."
       }
      ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Завтра мы будем помогать.",
+       "words": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ],
+       "ans": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я хорошо умею помогать.",
+       "words": [
+        "Ik",
+        "kan",
+        "goed",
+        "helpen"
+       ],
+       "ans": [
+        "Ik",
+        "kan",
+        "goed",
+        "helpen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Dat is heel eerlijk.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Dat is heel eerlijk.",
+        "Dat is heel maandelijks.",
+        "Is het maandelijks?",
+        "De collega is erg aardig."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Is het eerlijk?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Is het eerlijk?",
+        "De collega helpt mij vaak.",
+        "Ken jij de collega?",
+        "De school is vandaag dicht."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Het is eerlijk.",
+       "q": "Het is ___.",
+       "answer": [
+        "eerlijk"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Is het wekelijks?»?",
+       "opts": [
+        "Это еженедельно?",
+        "Это честно.",
+        "Это еженедельно.",
+        "Это очень еженедельно."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Het is wekelijks.",
+       "tr": "Это еженедельно."
+      }
+     ]
     }
    ]
   },
@@ -5885,6 +7280,104 @@
        "k": "Говорение",
        "phrase": "Ik moet nu gaan. Mag ik morgen komen?",
        "tr": "Мне пора идти. Можно я приду завтра?"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Сегодня я не буду помогать.",
+       "words": [
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
+        "helpen"
+       ],
+       "ans": [
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
+        "helpen"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я очень хочу помогать.",
+       "words": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ],
+       "ans": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "We gaan morgen helpen.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "We gaan morgen helpen.",
+        "Ik heb een klas nodig.",
+        "Is dit de klas?",
+        "Ik heb een cursus nodig."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik kan goed helpen.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik kan goed helpen.",
+        "Ik zie de cursus niet.",
+        "Is dit de cursist?",
+        "De cursist is hier, denk ik."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Dat is heel eerlijk.",
+       "q": "Dat is heel ___.",
+       "answer": [
+        "eerlijk"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Is het eerlijk?»?",
+       "opts": [
+        "Это честно?",
+        "Сегодня я не буду помогать.",
+        "Я очень хочу помогать.",
+        "Завтра мы будем помогать."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Het is eerlijk.",
+       "tr": "Это честно."
       }
      ]
     }
@@ -6274,6 +7767,102 @@
        "tr": "Диалог: спроси дорогу у AI."
       }
      ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я очень хочу помогать.",
+       "words": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ],
+       "ans": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Завтра мы будем помогать.",
+       "words": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ],
+       "ans": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik kan goed helpen.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik kan goed helpen.",
+        "Ken jij de docent?",
+        "De docent is erg aardig.",
+        "Daar loopt de leraar."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Dat is heel eerlijk.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Dat is heel eerlijk.",
+        "De leraar is erg aardig.",
+        "Ik ken de leraar goed.",
+        "De lerares helpt mij vaak."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Is het eerlijk?",
+       "q": "Is het ___?",
+       "answer": [
+        "eerlijk"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Het is eerlijk.»?",
+       "opts": [
+        "Это честно.",
+        "Я хорошо умею помогать.",
+        "Это очень честно.",
+        "Это честно?"
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Is het wekelijks?",
+       "tr": "Это еженедельно?"
+      }
+     ]
     }
    ]
   },
@@ -6642,6 +8231,102 @@
        "tr": "Я ищу квартиру в Амстердаме. Сейчас снимаю комнату."
       }
      ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Завтра мы будем помогать.",
+       "words": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ],
+       "ans": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я хорошо умею помогать.",
+       "words": [
+        "Ik",
+        "kan",
+        "goed",
+        "helpen"
+       ],
+       "ans": [
+        "Ik",
+        "kan",
+        "goed",
+        "helpen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Dat is heel eerlijk.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Dat is heel eerlijk.",
+        "Is dit het boek?",
+        "Het boek is hier, denk ik.",
+        "Ik zie het boek niet."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Is het eerlijk?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Is het eerlijk?",
+        "Het alfabet is hier, denk ik.",
+        "Ik zie het alfabet niet.",
+        "Is dit het bord?"
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Het is eerlijk.",
+       "q": "Het is ___.",
+       "answer": [
+        "eerlijk"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Is het wekelijks?»?",
+       "opts": [
+        "Это еженедельно?",
+        "Это честно.",
+        "Это еженедельно.",
+        "Это очень еженедельно."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Het is wekelijks.",
+       "tr": "Это еженедельно."
+      }
+     ]
     }
    ]
   },
@@ -6946,6 +8631,104 @@
        "tr": "Вчера я работал и ходил в магазин."
       }
      ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Сегодня я не буду помогать.",
+       "words": [
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
+        "helpen"
+       ],
+       "ans": [
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
+        "helpen"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я очень хочу помогать.",
+       "words": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ],
+       "ans": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "We gaan morgen helpen.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "We gaan morgen helpen.",
+        "Ik zie de computer niet.",
+        "Ik heb een computer nodig.",
+        "De pen is hier, denk ik."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik kan goed helpen.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik kan goed helpen.",
+        "Is dit de pen?",
+        "Ik zie het potlood niet.",
+        "Ik heb een potlood nodig."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Dat is heel eerlijk.",
+       "q": "Dat is heel ___.",
+       "answer": [
+        "eerlijk"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Is het eerlijk?»?",
+       "opts": [
+        "Это честно?",
+        "Сегодня я не буду помогать.",
+        "Я очень хочу помогать.",
+        "Завтра мы будем помогать."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Het is eerlijk.",
+       "tr": "Это честно."
+      }
+     ]
     }
    ]
   },
@@ -7234,6 +9017,102 @@
        "tr": "Мои планы."
       }
      ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я очень хочу помогать.",
+       "words": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ],
+       "ans": [
+        "Ik",
+        "wil",
+        "graag",
+        "helpen"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Завтра мы будем помогать.",
+       "words": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ],
+       "ans": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik kan goed helpen.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik kan goed helpen.",
+        "Ik zie de gum niet.",
+        "Is dit het papier?",
+        "Het papier is hier, denk ik."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Dat is heel eerlijk.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Dat is heel eerlijk.",
+        "Is dit de puzzel?",
+        "De puzzel is hier, denk ik.",
+        "Ik zie de puzzel niet."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Is het eerlijk?",
+       "q": "Is het ___?",
+       "answer": [
+        "eerlijk"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Het is eerlijk.»?",
+       "opts": [
+        "Это честно.",
+        "Я хорошо умею помогать.",
+        "Это очень честно.",
+        "Это честно?"
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Is het wekelijks?",
+       "tr": "Это еженедельно?"
+      }
+     ]
     }
    ]
   },
@@ -7453,6 +9332,102 @@
        "k": "Ролевой диалог",
        "phrase": "Pardon, waar is het station? Ga rechtdoor en sla linksaf. Dank u wel!",
        "tr": "Спроси дорогу (с AI)."
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Новая часть урока",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Закрепим слова урока в живых предложениях: собери, услышь, впиши и произнеси.</p>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Завтра мы будем помогать.",
+       "words": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ],
+       "ans": [
+        "We",
+        "gaan",
+        "morgen",
+        "helpen"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я хорошо умею помогать.",
+       "words": [
+        "Ik",
+        "kan",
+        "goed",
+        "helpen"
+       ],
+       "ans": [
+        "Ik",
+        "kan",
+        "goed",
+        "helpen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Dat is heel eerlijk.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Dat is heel eerlijk.",
+        "Het woordenboek is hier, denk ik.",
+        "Ik zie het woordenboek niet.",
+        "Ik heb een woordenboek nodig."
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Is het eerlijk?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Is het eerlijk?",
+        "Ken jij de werkgever?",
+        "De werkgever is erg aardig.",
+        "Ik ken de werkgever goed."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Het is eerlijk.",
+       "q": "Het is ___.",
+       "answer": [
+        "eerlijk"
+       ],
+       "ph": "…"
+      },
+      {
+       "t": "quiz",
+       "k": "Понимание",
+       "q": "Что значит: «Is het wekelijks?»?",
+       "opts": [
+        "Это еженедельно?",
+        "Это честно.",
+        "Это еженедельно.",
+        "Это очень еженедельно."
+       ]
+      },
+      {
+       "t": "speak",
+       "k": "Говорение",
+       "phrase": "Het is wekelijks.",
+       "tr": "Это еженедельно."
       }
      ]
     }
