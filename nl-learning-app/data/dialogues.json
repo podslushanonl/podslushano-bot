@@ -1,6 +1,6 @@
 {
  "note": "Мини-диалоги с вопросами на понимание. Каждый добавляется частью «title» в урок «lesson».",
- "count": 14,
+ "count": 19,
  "dialogues": [
   {
    "lesson": 21,
@@ -1205,6 +1205,439 @@
      "k": "Говорение",
      "phrase": "Heb jij een huisdier?",
      "tr": "У тебя есть домашнее животное?"
+    }
+   ]
+  },
+  {
+   "lesson": 78,
+   "title": "Диалог: смотрим квартиру",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Een huis bekijken",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Makelaar:</b> Welkom! Dit is de woonkamer.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Риелтор: Добро пожаловать! Это гостиная.</span></p><p style=\"margin:7px 0\"><b>Jij:</b> Mooi! En hoe groot is de slaapkamer?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Ты: Красиво! А какая по размеру спальня?</span></p><p style=\"margin:7px 0\"><b>Makelaar:</b> Twaalf vierkante meter. En er is een balkon.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Риелтор: Двенадцать квадратных метров. И есть балкон.</span></p><p style=\"margin:7px 0\"><b>Jij:</b> Wat is de huur per maand?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Ты: Какая аренда в месяц?</span></p><p style=\"margin:7px 0\"><b>Makelaar:</b> Duizend euro, inclusief.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Риелтор: Тысяча евро, всё включено.</span></p></div>",
+     "ex": [
+      [
+       "Hoe groot is de slaapkamer?",
+       "Какая по размеру спальня?"
+      ],
+      [
+       "Wat is de huur?",
+       "Какая аренда?"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Wat is de huur per maand",
+     "q": "Что ты спросил(а)?",
+     "opts": [
+      "Wat is de huur per maand?",
+      "Waar is de keuken?",
+      "Hoe laat is het?",
+      "Is er een tuin?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Какая аренда в месяц?",
+     "opts": [
+      "тысяча евро",
+      "двести евро",
+      "пятьсот евро",
+      "две тысячи"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что есть в квартире, кроме комнат?",
+     "opts": [
+      "балкон",
+      "сад",
+      "гараж",
+      "бассейн"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Спальня — двадцать квадратных метров.",
+     "answer": false,
+     "note": "Нет — двенадцать (twaalf)."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Какая аренда в месяц?",
+     "words": [
+      "Wat",
+      "is",
+      "de",
+      "huur",
+      "per",
+      "maand"
+     ],
+     "ans": [
+      "Wat",
+      "is",
+      "de",
+      "huur",
+      "per",
+      "maand"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Hoe groot is de slaapkamer?",
+     "tr": "Какая по размеру спальня?"
+    }
+   ]
+  },
+  {
+   "lesson": 85,
+   "title": "Диалог: собеседование",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Het sollicitatiegesprek",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Manager:</b> Goedemorgen! Vertel iets over jezelf.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Менеджер: Доброе утро! Расскажите о себе.</span></p><p style=\"margin:7px 0\"><b>Jij:</b> Ik ben Anna. Ik kom uit Rusland en ik leer Nederlands.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Ты: Я Анна. Я из России и учу нидерландский.</span></p><p style=\"margin:7px 0\"><b>Manager:</b> Heb je ervaring met dit werk?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Менеджер: У вас есть опыт этой работы?</span></p><p style=\"margin:7px 0\"><b>Jij:</b> Ja, twee jaar in een restaurant.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Ты: Да, два года в ресторане.</span></p><p style=\"margin:7px 0\"><b>Manager:</b> Mooi! Kun je maandag beginnen?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Менеджер: Отлично! Можете начать в понедельник?</span></p></div>",
+     "ex": [
+      [
+       "Vertel iets over jezelf.",
+       "Расскажите о себе."
+      ],
+      [
+       "Heb je ervaring?",
+       "У вас есть опыт?"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Heb je ervaring met dit werk",
+     "q": "Что спросил менеджер?",
+     "opts": [
+      "Heb je ervaring met dit werk?",
+      "Waar woon je?",
+      "Hoe oud ben je?",
+      "Wil je koffie?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Сколько лет опыта у Анны?",
+     "opts": [
+      "два года",
+      "пять лет",
+      "нет опыта",
+      "десять лет"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Когда можно начать работу?",
+     "opts": [
+      "в понедельник",
+      "завтра",
+      "через месяц",
+      "в пятницу"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Анна работала в магазине.",
+     "answer": false,
+     "note": "Нет — в ресторане (in een restaurant)."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Я учу нидерландский.",
+     "words": [
+      "Ik",
+      "leer",
+      "Nederlands"
+     ],
+     "ans": [
+      "Ik",
+      "leer",
+      "Nederlands"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Ik heb twee jaar ervaring.",
+     "tr": "У меня два года опыта."
+    }
+   ]
+  },
+  {
+   "lesson": 92,
+   "title": "Диалог: ссора и примирение",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Ruzie en sorry",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Emma:</b> Waarom ben je zo boos op mij?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Эмма: Почему ты так на меня сердишься?</span></p><p style=\"margin:7px 0\"><b>Daan:</b> Je bent gisteren niet gekomen! Ik heb twee uur gewacht.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Дан: Ты вчера не пришла! Я ждал два часа.</span></p><p style=\"margin:7px 0\"><b>Emma:</b> O nee… Het spijt me echt. Ik was mijn telefoon vergeten.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Эмма: О нет… Мне правда жаль. Я забыла телефон.</span></p><p style=\"margin:7px 0\"><b>Daan:</b> Echt waar? Nou ja… het geeft niet.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Дан: Правда? Ну ладно… ничего страшного.</span></p><p style=\"margin:7px 0\"><b>Emma:</b> Zal ik het goedmaken? Koffie en appeltaart?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Эмма: Загладить вину? Кофе и яблочный пирог?</span></p></div>",
+     "ex": [
+      [
+       "Het spijt me echt.",
+       "Мне правда жаль."
+      ],
+      [
+       "Het geeft niet.",
+       "Ничего страшного."
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Het spijt me echt",
+     "q": "Как Эмма извинилась?",
+     "opts": [
+      "Het spijt me echt",
+      "Het geeft niet",
+      "Ik ben boos",
+      "Tot morgen"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Почему Дан сердится?",
+     "opts": [
+      "Эмма вчера не пришла",
+      "Эмма съела его пирог",
+      "Эмма опоздала на работу",
+      "Эмма забыла его имя"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что предлагает Эмма в конце?",
+     "opts": [
+      "кофе и яблочный пирог",
+      "деньги",
+      "билеты в кино",
+      "ничего"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Дан не простил Эмму.",
+     "answer": false,
+     "note": "Простил: «Het geeft niet» — ничего страшного."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Мне правда жаль.",
+     "words": [
+      "Het",
+      "spijt",
+      "me",
+      "echt"
+     ],
+     "ans": [
+      "Het",
+      "spijt",
+      "me",
+      "echt"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Het spijt me. Het geeft niet!",
+     "tr": "Извини. — Ничего страшного!"
+    }
+   ]
+  },
+  {
+   "lesson": 98,
+   "title": "Диалог: день переезда",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 De verhuisdag",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Buurman:</b> Hallo! Jullie zijn de nieuwe buren, toch?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Сосед: Привет! Вы ведь новые соседи?</span></p><p style=\"margin:7px 0\"><b>Jij:</b> Ja! We zijn vandaag verhuisd. Ik ben Anna.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Ты: Да! Мы сегодня переехали. Я Анна.</span></p><p style=\"margin:7px 0\"><b>Buurman:</b> Welkom! Hulp nodig met die dozen?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Сосед: Добро пожаловать! Помочь с коробками?</span></p><p style=\"margin:7px 0\"><b>Jij:</b> Graag! De verhuiswagen staat nog vol.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Ты: С удовольствием! Грузовик ещё полный.</span></p><p style=\"margin:7px 0\"><b>Buurman:</b> Daarna drinken we koffie bij mij. Welkom in de straat!<br><span style=\"color:var(--ink-2);font-size:12.5px\">Сосед: А потом кофе у меня. Добро пожаловать на нашу улицу!</span></p></div>",
+     "ex": [
+      [
+       "We zijn vandaag verhuisd.",
+       "Мы сегодня переехали."
+      ],
+      [
+       "Hulp nodig?",
+       "Нужна помощь?"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "We zijn vandaag verhuisd",
+     "q": "Что сказала Анна?",
+     "opts": [
+      "We zijn vandaag verhuisd",
+      "We gaan morgen verhuizen",
+      "We wonen hier al lang",
+      "We zoeken een huis"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что предлагает сосед?",
+     "opts": [
+      "помочь с коробками и кофе",
+      "вызвать грузчиков",
+      "продать мебель",
+      "ничего"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши услышанное",
+     "audio": "De verhuiswagen staat nog vol",
+     "q": "De ___ staat nog vol",
+     "answer": [
+      "verhuiswagen"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Анна переехала на прошлой неделе.",
+     "answer": false,
+     "note": "Нет — сегодня (vandaag)."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Мы сегодня переехали.",
+     "words": [
+      "We",
+      "zijn",
+      "vandaag",
+      "verhuisd"
+     ],
+     "ans": [
+      "We",
+      "zijn",
+      "vandaag",
+      "verhuisd"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Wij zijn de nieuwe buren!",
+     "tr": "Мы — новые соседи!"
+    }
+   ]
+  },
+  {
+   "lesson": 105,
+   "title": "Диалог: в gemeente",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Диалог",
+     "b": "💬 Bij de gemeente",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:7px 0\"><b>Medewerker:</b> Goedemorgen! Heeft u een afspraak?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Сотрудник: Доброе утро! У вас назначен приём?</span></p><p style=\"margin:7px 0\"><b>Jij:</b> Ja, om tien uur. Ik wil een uittreksel aanvragen.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Ты: Да, на десять. Я хочу запросить выписку.</span></p><p style=\"margin:7px 0\"><b>Medewerker:</b> Prima. Heeft u uw identiteitskaart bij u?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Сотрудник: Отлично. Удостоверение личности с собой?</span></p><p style=\"margin:7px 0\"><b>Jij:</b> Ja, alstublieft. Moet ik nog iets invullen?<br><span style=\"color:var(--ink-2);font-size:12.5px\">Ты: Да, пожалуйста. Мне нужно ещё что-то заполнить?</span></p><p style=\"margin:7px 0\"><b>Medewerker:</b> Alleen dit formulier. En hier ondertekenen, graag.<br><span style=\"color:var(--ink-2);font-size:12.5px\">Сотрудник: Только этот формуляр. И распишитесь здесь, пожалуйста.</span></p></div>",
+     "ex": [
+      [
+       "Heeft u een afspraak?",
+       "У вас назначен приём?"
+      ],
+      [
+       "Hier ondertekenen, graag.",
+       "Распишитесь здесь, пожалуйста."
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Heeft u uw identiteitskaart bij u",
+     "q": "Что спросил сотрудник?",
+     "opts": [
+      "Heeft u uw identiteitskaart bij u?",
+      "Waar woont u?",
+      "Hoe heet u?",
+      "Wilt u koffie?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Зачем ты пришёл (пришла) в gemeente?",
+     "opts": [
+      "запросить выписку",
+      "получить паспорт",
+      "заплатить налог",
+      "пожаловаться"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что нужно сделать в конце?",
+     "opts": [
+      "заполнить формуляр и расписаться",
+      "заплатить 50 евро",
+      "прийти завтра",
+      "сфотографироваться"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Приём назначен на одиннадцать.",
+     "answer": false,
+     "note": "Нет — на десять (om tien uur)."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Я хочу запросить выписку.",
+     "words": [
+      "Ik",
+      "wil",
+      "een",
+      "uittreksel",
+      "aanvragen"
+     ],
+     "ans": [
+      "Ik",
+      "wil",
+      "een",
+      "uittreksel",
+      "aanvragen"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Ik heb een afspraak om tien uur.",
+     "tr": "У меня приём в десять часов."
     }
    ]
   }

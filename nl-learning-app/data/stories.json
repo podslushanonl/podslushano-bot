@@ -1,6 +1,6 @@
 {
  "note": "Истории: классические (сцены+вопросы), интерактивные 🎭 («Твоя реплика»), ветвящиеся 🎋 (choice → branch) и деревья 🎋🎋 (вложенные choice: ветка A содержит choice A1/A2 — шаги играются, если их branch есть в наборе выбранных). Правь и запускай build.py.",
- "count": 19,
+ "count": 22,
  "stories": [
   {
    "lesson": 6,
@@ -2553,6 +2553,357 @@
      "k": "Финал",
      "phrase": "Het regent, maar ik ben droog!",
      "tr": "Идёт дождь, но я сухой(ая)!"
+    }
+   ]
+  },
+  {
+   "lesson": 93,
+   "title": "Перфект-история: выходные 🎭",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ты в истории!",
+     "b": "🎭 Wat heb je gedaan?",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>☕ Понедельник, перерыв</b></p><p style=\"margin:6px 0\">Je collega vraagt: «En? Wat heb je in het weekend gedaan?» Отвечаешь ТЫ — в перфекте!</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Коллега спрашивает: «Ну что? Что ты делал(а) в выходные?» Вспомни перфект: hebben/zijn + причастие в конце.</p></div>",
+     "ex": [
+      [
+       "Wat heb je gedaan?",
+       "Что ты делал(а)?"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Вопрос коллеги",
+     "audio": "Wat heb je in het weekend gedaan",
+     "q": "Что спросил коллега?",
+     "opts": [
+      "Wat heb je in het weekend gedaan?",
+      "Waar woon je?",
+      "Hoe laat is het?",
+      "Wil je koffie?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Ты гулял(а) и готовил(а). Что скажешь?",
+     "opts": [
+      "Ik heb gewandeld en gekookt.",
+      "Ik wandelen en koken.",
+      "Ik heb wandelen en koken.",
+      "Ik ga wandelen."
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши причастие",
+     "audio": "Ik heb zaterdag lekker gekookt",
+     "q": "Ik heb zaterdag lekker ___",
+     "answer": [
+      "gekookt"
+     ],
+     "ph": "ge…"
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Коллега: «En zondag?» В воскресенье ты читал(а). Что скажешь?",
+     "opts": [
+      "Zondag heb ik een boek gelezen.",
+      "Zondag ik lees een boek.",
+      "Zondag heb ik een boek lezen.",
+      "Ik lezen zondag."
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Ik heb gewandeld, gekookt en gelezen.",
+     "tr": "Я гулял(а), готовил(а) и читал(а)."
+    },
+    {
+     "t": "listen",
+     "k": "Ответ коллеги",
+     "audio": "Wat gezellig! Ik heb alleen gewerkt",
+     "q": "А что делал коллега?",
+     "opts": [
+      "Wat gezellig! Ik heb alleen gewerkt",
+      "Ik heb ook gelezen",
+      "Ik was op vakantie",
+      "Ik heb gesport"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Что делал коллега в выходные?",
+     "opts": [
+      "только работал",
+      "гулял",
+      "читал",
+      "готовил"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Причастие в перфекте стоит в конце предложения.",
+     "answer": true,
+     "note": "Да: Ik heb een boek GELEZEN."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "В воскресенье я читал(а) книгу.",
+     "words": [
+      "Zondag",
+      "heb",
+      "ik",
+      "een",
+      "boek",
+      "gelezen"
+     ],
+     "ans": [
+      "Zondag",
+      "heb",
+      "ik",
+      "een",
+      "boek",
+      "gelezen"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Финал",
+     "phrase": "Tot morgen! Fijne dag nog!",
+     "tr": "До завтра! Хорошего дня!"
+    }
+   ]
+  },
+  {
+   "lesson": 99,
+   "title": "Перфект-история: переезд удался 🎭",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ты в истории!",
+     "b": "🎭 De verhuizing",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>📦 Вечер после переезда</b></p><p style=\"margin:6px 0\">Je belt je moeder: «Mam, we zijn verhuisd!» Она хочет знать ВСЁ. Расскажи в перфекте, что вы сделали.</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Ты звонишь маме: «Мам, мы переехали!» Расскажи в перфекте, что вы успели.</p></div>",
+     "ex": [
+      [
+       "We zijn verhuisd!",
+       "Мы переехали!"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Вопрос мамы",
+     "audio": "Hebben de buren geholpen",
+     "q": "Что спросила мама?",
+     "opts": [
+      "Hebben de buren geholpen?",
+      "Waar is de kat?",
+      "Heb je gegeten?",
+      "Hoe is het weer?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Соседи помогли с коробками. Что скажешь?",
+     "opts": [
+      "Ja, ze hebben ons met de dozen geholpen.",
+      "Ja, ze helpen ons morgen.",
+      "Nee, ik heb geen buren.",
+      "Ja, ze hebben geholpen ons."
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши причастие",
+     "audio": "We hebben de muren geschilderd",
+     "q": "We hebben de muren ___",
+     "answer": [
+      "geschilderd"
+     ],
+     "ph": "ge…"
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Контракт ты уже подписал(а). Скажи об этом:",
+     "opts": [
+      "Ik heb het contract al ondertekend.",
+      "Ik onderteken het contract al.",
+      "Het contract heeft mij ondertekend.",
+      "Ik heb ondertekend het contract."
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "We zijn verhuisd en we hebben alles ingepakt!",
+     "tr": "Мы переехали и всё упаковали!"
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "Почему «WE ZIJN verhuisd», а не «we hebben»?",
+     "opts": [
+      "verhuizen — глагол движения/изменения, перфект с zijn",
+      "это ошибка",
+      "zijn звучит красивее",
+      "после we всегда zijn"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "«Мы покрасили стены» = We hebben de muren geschilderd.",
+     "answer": true,
+     "note": "Верно! ge- + schilder + d."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Соседи нам помогли.",
+     "words": [
+      "De",
+      "buren",
+      "hebben",
+      "ons",
+      "geholpen"
+     ],
+     "ans": [
+      "De",
+      "buren",
+      "hebben",
+      "ons",
+      "geholpen"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Финал",
+     "phrase": "Kom snel kijken, mam!",
+     "tr": "Приезжай скорее посмотреть, мам!"
+    }
+   ]
+  },
+  {
+   "lesson": 106,
+   "title": "Перфект-история: день в gemeente 🎭",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Ты в истории!",
+     "b": "🎭 Een dag bij de gemeente",
+     "html": "<div style=\"text-align:left\"><p style=\"margin:6px 0\"><b>🏛️ Вечером дома</b></p><p style=\"margin:6px 0\">Твой партнёр спрашивает: «En, is alles gelukt bij de gemeente?» Расскажи, что ты сделал(а): ждал(а), заполнял(а), подписал(а)…</p><p style=\"margin:6px 0;color:var(--ink-2);font-size:12.5px\">Партнёр спрашивает: «Ну что, всё получилось в муниципалитете?» Отвечай в перфекте.</p></div>",
+     "ex": [
+      [
+       "Is alles gelukt?",
+       "Всё получилось?"
+      ]
+     ]
+    },
+    {
+     "t": "listen",
+     "k": "Вопрос",
+     "audio": "Is alles gelukt bij de gemeente",
+     "q": "Что спросил партнёр?",
+     "opts": [
+      "Is alles gelukt bij de gemeente?",
+      "Heb je brood gekocht?",
+      "Waar ben je geweest?",
+      "Hoe laat kom je thuis?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Ты долго ждал(а) в очереди. Что скажешь?",
+     "opts": [
+      "Ik heb lang in de wachtrij gestaan.",
+      "Ik sta lang in de wachtrij.",
+      "Ik heb de wachtrij.",
+      "De wachtrij heeft mij gestaan."
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши причастие",
+     "audio": "Ik heb het formulier ingevuld",
+     "q": "Ik heb het formulier ___",
+     "answer": [
+      "ingevuld"
+     ],
+     "ph": "…"
+    },
+    {
+     "t": "quiz",
+     "k": "Твоя реплика",
+     "q": "Выписку ты получил(а)! Скажи об этом:",
+     "opts": [
+      "Ik heb het uittreksel gekregen!",
+      "Ik krijg het uittreksel morgen.",
+      "Het uittreksel heeft mij gekregen.",
+      "Ik heb gekregen het uittreksel."
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Скажи вслух",
+     "phrase": "Ik heb alles ingevuld en ondertekend.",
+     "tr": "Я всё заполнил(а) и подписал(а)."
+    },
+    {
+     "t": "quiz",
+     "k": "Понимание",
+     "q": "«ingevuld» — почему без ge- в начале?",
+     "opts": [
+      "ge- уходит внутрь: in-GE-vuld (отделяемая приставка)",
+      "ошибка в учебнике",
+      "потому что глагол короткий",
+      "ge- только у сильных глаголов"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Ты забыл(а) удостоверение личности.",
+     "answer": false,
+     "note": "Нет — всё получилось, документы были с собой!"
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Я долго стоял(а) в очереди.",
+     "words": [
+      "Ik",
+      "heb",
+      "lang",
+      "in",
+      "de",
+      "wachtrij",
+      "gestaan"
+     ],
+     "ans": [
+      "Ik",
+      "heb",
+      "lang",
+      "in",
+      "de",
+      "wachtrij",
+      "gestaan"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Финал",
+     "phrase": "Alles is gelukt!",
+     "tr": "Всё получилось!"
     }
    ]
   }
