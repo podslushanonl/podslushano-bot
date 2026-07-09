@@ -15,6 +15,13 @@ for v in _vv:
     elif t=='possessive_phrase':POSSV.setdefault(lm,[]).append(rec)
     elif t=='demonstrative_phrase':DEMV.setdefault(lm,[]).append(rec)
     elif t=='noun_plural':PLUV[lm]=rec
+# батч №1: новые предложения приоритетнее шаблонных
+try:
+    _b1=json.load(open(ROOT+"/data/sentences_batch1.json",encoding='utf-8'))['items']
+    for it in _b1:
+        VETL.setdefault(it['lemma'],[]).insert(0,{'nl':it['nl'],'ru':it['ru']})
+except FileNotFoundError:
+    pass
 def vet_pick(lemma,salt):
     lst=VETL.get(lemma)
     return lst[salt%len(lst)] if lst else None

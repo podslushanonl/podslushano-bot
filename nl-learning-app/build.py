@@ -88,9 +88,21 @@ def build_wl():
         elif v['quality']=='correct' and v['type'] in ('possessive_phrase','demonstrative_phrase'):
             if v['nl'].split(' ')[0] in ('mijn','deze','dit') and v['lemma'] not in seen_ph:
                 seen_ph.add(v['lemma']);ph.append([v['nl'],v['ru_vetted']])
+    # служебные слова из базы 5000 (местоимения, наречия, предлоги, союзы, числа, дни, месяцы…)
+    base=J('dutch_a1_a2_5000.json')['items']
+    FUNC_T={'pronoun':1,'adverb':1,'question':1,'answer':1,'connector':1,'preposition':1,'word':1,'phrase':1,'number':1,'ordinal':1,'day':1,'month':1}
+    fw=[];seen_fw=set()
+    for it in base:
+        if it['type'] in FUNC_T:
+            ru=(it.get('ru') or '').strip()
+            if not ru or ':' in ru or '(' in ru:continue
+            nl=it['nl']
+            if nl.lower() in seen_fw:continue
+            seen_fw.add(nl.lower());fw.append([nl,ru])
     wlx=[{'t':'Множественное число (meervoud)','w':plu},
          {'t':'Формы глаголов (ik · jij · hij…)','w':vf},
-         {'t':'Фразы: мой / этот (mijn · deze)','w':ph}]
+         {'t':'Фразы: мой / этот (mijn · deze)','w':ph},
+         {'t':'Служебные слова (частые)','w':fw}]
     return (H_WL+"\n"
      +"var WL="+js(themes)+";\n"
      +"var WLX="+js(wlx)+";\n"

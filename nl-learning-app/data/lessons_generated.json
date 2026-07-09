@@ -566,35 +566,39 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Где коллега?",
+       "tr": "Коллега часто мне помогает.",
        "words": [
-        "Waar",
-        "is",
-        "de",
-        "collega"
+        "De",
+        "collega",
+        "helpt",
+        "mij",
+        "vaak"
        ],
        "ans": [
-        "Waar",
-        "is",
-        "de",
-        "collega"
+        "De",
+        "collega",
+        "helpt",
+        "mij",
+        "vaak"
        ]
       },
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "У меня есть школа.",
+       "tr": "Школа сегодня закрыта.",
        "words": [
-        "Ik",
-        "heb",
-        "de",
-        "school"
+        "De",
+        "school",
+        "is",
+        "vandaag",
+        "dicht"
        ],
        "ans": [
-        "Ik",
-        "heb",
-        "de",
-        "school"
+        "De",
+        "school",
+        "is",
+        "vandaag",
+        "dicht"
        ]
       },
       {
@@ -604,16 +608,16 @@
        "q": "Какое предложение прозвучало?",
        "opts": [
         "Ik zie de collega.",
-        "Ik heb de man.",
-        "Dit is de man.",
-        "Ik zoek de vrouw."
+        "Ik ken de man goed.",
+        "De man is erg aardig.",
+        "Ik zoek de man."
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Waar is de school?",
-       "q": "Waar is de ___?",
+       "audio": "De school is om de hoek.",
+       "q": "De ___ is om de hoek.",
        "answer": [
         "school"
        ],
@@ -995,33 +999,35 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я вижу учительницу.",
+       "tr": "Учительница очень приятная.",
        "words": [
-        "Ik",
-        "zie",
-        "de",
-        "lerares"
+        "De",
+        "lerares",
+        "is",
+        "erg",
+        "aardig"
        ],
        "ans": [
-        "Ik",
-        "zie",
-        "de",
-        "lerares"
+        "De",
+        "lerares",
+        "is",
+        "erg",
+        "aardig"
        ]
       },
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Это книга.",
+       "tr": "Я ищу книгу.",
        "words": [
-        "Dit",
-        "is",
+        "Ik",
+        "zoek",
         "het",
         "boek"
        ],
        "ans": [
-        "Dit",
-        "is",
+        "Ik",
+        "zoek",
         "het",
         "boek"
        ]
@@ -1033,16 +1039,16 @@
        "q": "Какое предложение прозвучало?",
        "opts": [
         "Ik heb de lerares.",
-        "Ik zoek het kind.",
-        "Waar is het kind?",
-        "Ik zie het kind."
+        "De vrouw is erg aardig.",
+        "Ken jij de vrouw?",
+        "De vrouw helpt mij vaak."
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Ik zie het boek.",
-       "q": "Ik zie het ___.",
+       "audio": "Ik heb een boek nodig.",
+       "q": "Ik heb een ___ nodig.",
        "answer": [
         "boek"
        ],
@@ -1424,16 +1430,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "У меня есть компьютер.",
+       "tr": "Это компьютер?",
        "words": [
-        "Ik",
-        "heb",
+        "Is",
+        "dit",
         "de",
         "computer"
        ],
        "ans": [
-        "Ik",
-        "heb",
+        "Is",
+        "dit",
         "de",
         "computer"
        ]
@@ -1441,16 +1447,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я ищу ручку.",
+       "tr": "Где ручка?",
        "words": [
-        "Ik",
-        "zoek",
+        "Waar",
+        "is",
         "de",
         "pen"
        ],
        "ans": [
-        "Ik",
-        "zoek",
+        "Waar",
+        "is",
         "de",
         "pen"
        ]
@@ -1458,22 +1464,22 @@
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Dit is de computer.",
+       "audio": "Ik heb een computer nodig.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Dit is de computer.",
-        "Ik zie de jongen.",
-        "Ik heb de jongen.",
-        "Dit is de jongen."
+        "Ik heb een computer nodig.",
+        "Ik zie de vrouw.",
+        "Ik heb de vrouw.",
+        "Dit is de vrouw."
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Ik heb de pen.",
-       "q": "Ik heb de ___.",
+       "audio": "Ik zoek de computer.",
+       "q": "Ik zoek de ___.",
        "answer": [
-        "pen"
+        "computer"
        ],
        "ph": "…"
       }
@@ -1870,16 +1876,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Где головоломка?",
+       "tr": "Я вижу головоломку.",
        "words": [
-        "Waar",
-        "is",
+        "Ik",
+        "zie",
         "de",
         "puzzel"
        ],
        "ans": [
-        "Waar",
-        "is",
+        "Ik",
+        "zie",
         "de",
         "puzzel"
        ]
@@ -1891,16 +1897,16 @@
        "q": "Какое предложение прозвучало?",
        "opts": [
         "Ik zoek de bladzijde.",
-        "Dit is het meisje.",
-        "Ik zoek de baby.",
-        "Waar is de baby?"
+        "Daar loopt het kind.",
+        "Ik zoek het kind.",
+        "Waar is het kind?"
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Dit is de puzzel.",
-       "q": "Dit is de ___.",
+       "audio": "Waar is de puzzel?",
+       "q": "Waar is de ___?",
        "answer": [
         "puzzel"
        ],
@@ -2320,9 +2326,9 @@
        "q": "Какое предложение прозвучало?",
        "opts": [
         "Waar is het beroep?",
-        "Waar is de vriend?",
-        "Ik zie de vriend.",
-        "Ik heb de vriend."
+        "Ik ken de jongen goed.",
+        "De jongen is erg aardig.",
+        "Ken jij de jongen?"
        ]
       },
       {
@@ -2711,16 +2717,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Где компания?",
+       "tr": "Я вижу компанию.",
        "words": [
-        "Waar",
-        "is",
+        "Ik",
+        "zie",
         "het",
         "bedrijf"
        ],
        "ans": [
-        "Waar",
-        "is",
+        "Ik",
+        "zie",
         "het",
         "bedrijf"
        ]
@@ -2728,16 +2734,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "У меня есть контракт.",
+       "tr": "Это контракт.",
        "words": [
-        "Ik",
-        "heb",
+        "Dit",
+        "is",
         "het",
         "contract"
        ],
        "ans": [
-        "Ik",
-        "heb",
+        "Dit",
+        "is",
         "het",
         "contract"
        ]
@@ -2745,22 +2751,22 @@
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Ik zie het bedrijf.",
+       "audio": "Is dit het bedrijf?",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Ik zie het bedrijf.",
-        "Ik heb de vriendin.",
-        "Dit is de vriendin.",
-        "Ik zoek de buurman."
+        "Is dit het bedrijf?",
+        "Ik heb de jongen.",
+        "Dit is de jongen.",
+        "Het meisje helpt mij vaak."
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Waar is het contract?",
-       "q": "Waar is het ___?",
+       "audio": "Ik heb het bedrijf.",
+       "q": "Ik heb het ___.",
        "answer": [
-        "contract"
+        "bedrijf"
        ],
        "ph": "…"
       }
@@ -3057,6 +3063,75 @@
        "q": "«читать»",
        "answer": [
         "lezen"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я очень хочу слушать.",
+       "words": [
+        "Ik",
+        "wil",
+        "graag",
+        "luisteren"
+       ],
+       "ans": [
+        "Ik",
+        "wil",
+        "graag",
+        "luisteren"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Сегодня я не буду читать.",
+       "words": [
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
+        "lezen"
+       ],
+       "ans": [
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
+        "lezen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik kan goed luisteren.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik kan goed luisteren.",
+        "Ik zoek het meisje.",
+        "Waar is het meisje?",
+        "Ik zie het meisje."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik wil graag schrijven.",
+       "q": "Ik wil graag ___.",
+       "answer": [
+        "schrijven"
        ],
        "ph": "…"
       }
@@ -3419,56 +3494,62 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Где яблоко?",
+       "tr": "Я не вижу яблоко.",
        "words": [
-        "Waar",
-        "is",
+        "Ik",
+        "zie",
         "de",
-        "appel"
+        "appel",
+        "niet"
        ],
        "ans": [
-        "Waar",
-        "is",
+        "Ik",
+        "zie",
         "de",
-        "appel"
+        "appel",
+        "niet"
        ]
       },
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "У меня есть банан.",
+       "tr": "Банан здесь, я думаю.",
        "words": [
-        "Ik",
-        "heb",
-        "de",
-        "banaan"
+        "De",
+        "banaan",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
        ],
        "ans": [
-        "Ik",
-        "heb",
-        "de",
-        "banaan"
+        "De",
+        "banaan",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
        ]
       },
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Ik zie de appel.",
+       "audio": "Ik heb de appel.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Ik zie de appel.",
-        "Ik heb de man.",
-        "Dit is de man.",
-        "Ik zoek de vrouw."
+        "Ik heb de appel.",
+        "Ik ken de man goed.",
+        "De man is erg aardig.",
+        "Ik zoek de man."
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Waar is de banaan?",
-       "q": "Waar is de ___?",
+       "audio": "De appel is hier, denk ik.",
+       "q": "De ___ is hier, denk ik.",
        "answer": [
-        "banaan"
+        "appel"
        ],
        "ph": "…"
       }
@@ -3843,16 +3924,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я вижу овощи.",
+       "tr": "Это овощи?",
        "words": [
-        "Ik",
-        "zie",
+        "Is",
+        "dit",
         "de",
         "groente"
        ],
        "ans": [
-        "Ik",
-        "zie",
+        "Is",
+        "dit",
         "de",
         "groente"
        ]
@@ -3860,16 +3941,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Это помидор.",
+       "tr": "Я ищу помидор.",
        "words": [
-        "Dit",
-        "is",
+        "Ik",
+        "zoek",
         "de",
         "tomaat"
        ],
        "ans": [
-        "Dit",
-        "is",
+        "Ik",
+        "zoek",
         "de",
         "tomaat"
        ]
@@ -3877,22 +3958,22 @@
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Ik heb de groente.",
+       "audio": "Dit is de groente.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Ik heb de groente.",
-        "Ik zoek het kind.",
-        "Waar is het kind?",
-        "Ik zie het kind."
+        "Dit is de groente.",
+        "De vrouw is erg aardig.",
+        "Ken jij de vrouw?",
+        "De vrouw helpt mij vaak."
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Ik zie de tomaat.",
-       "q": "Ik zie de ___.",
+       "audio": "Wil je een groente?",
+       "q": "Wil je een ___?",
        "answer": [
-        "tomaat"
+        "groente"
        ],
        "ph": "…"
       }
@@ -4267,33 +4348,33 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "У меня есть картофель.",
+       "tr": "Картофель — вкусный.",
        "words": [
-        "Ik",
-        "heb",
-        "de",
-        "aardappel"
+        "De",
+        "aardappel",
+        "is",
+        "lekker"
        ],
        "ans": [
-        "Ik",
-        "heb",
-        "de",
-        "aardappel"
+        "De",
+        "aardappel",
+        "is",
+        "lekker"
        ]
       },
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я ищу хлеб.",
+       "tr": "Где хлеб?",
        "words": [
-        "Ik",
-        "zoek",
+        "Waar",
+        "is",
         "het",
         "brood"
        ],
        "ans": [
-        "Ik",
-        "zoek",
+        "Waar",
+        "is",
         "het",
         "brood"
        ]
@@ -4305,16 +4386,16 @@
        "q": "Какое предложение прозвучало?",
        "opts": [
         "Dit is de aardappel.",
-        "Ik zie de jongen.",
-        "Ik heb de jongen.",
-        "Dit is de jongen."
+        "Ik zie de vrouw.",
+        "Ik heb de vrouw.",
+        "Dit is de vrouw."
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Ik heb het brood.",
-       "q": "Ik heb het ___.",
+       "audio": "Ik zoek het brood.",
+       "q": "Ik zoek het ___.",
        "answer": [
         "brood"
        ],
@@ -4691,16 +4772,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Это паста.",
+       "tr": "Я ищу пасту.",
        "words": [
-        "Dit",
-        "is",
+        "Ik",
+        "zoek",
         "de",
         "pasta"
        ],
        "ans": [
-        "Dit",
-        "is",
+        "Ik",
+        "zoek",
         "de",
         "pasta"
        ]
@@ -4708,16 +4789,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Где мясо?",
+       "tr": "Я вижу мясо.",
        "words": [
-        "Waar",
-        "is",
+        "Ik",
+        "zie",
         "het",
         "vlees"
        ],
        "ans": [
-        "Waar",
-        "is",
+        "Ik",
+        "zie",
         "het",
         "vlees"
        ]
@@ -4725,22 +4806,22 @@
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Ik zoek de pasta.",
+       "audio": "Ik eet graag pasta.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Ik zoek de pasta.",
-        "Dit is het meisje.",
-        "Ik zoek de baby.",
-        "Waar is de baby?"
+        "Ik eet graag pasta.",
+        "Daar loopt het kind.",
+        "Ik zoek het kind.",
+        "Waar is het kind?"
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Dit is het vlees.",
-       "q": "Dit is het ___.",
+       "audio": "Waar is de pasta?",
+       "q": "Waar is de ___?",
        "answer": [
-        "vlees"
+        "pasta"
        ],
        "ph": "…"
       }
@@ -5115,16 +5196,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я ищу печенье.",
+       "tr": "Где печенье?",
        "words": [
-        "Ik",
-        "zoek",
+        "Waar",
+        "is",
         "het",
         "koekje"
        ],
        "ans": [
-        "Ik",
-        "zoek",
+        "Waar",
+        "is",
         "het",
         "koekje"
        ]
@@ -5132,16 +5213,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я вижу соль.",
+       "tr": "У меня есть соль.",
        "words": [
         "Ik",
-        "zie",
+        "heb",
         "het",
         "zout"
        ],
        "ans": [
         "Ik",
-        "zie",
+        "heb",
         "het",
         "zout"
        ]
@@ -5149,22 +5230,22 @@
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Waar is het koekje?",
+       "audio": "Ik koop het koekje in de supermarkt.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Waar is het koekje?",
-        "Waar is de vriend?",
-        "Ik zie de vriend.",
-        "Ik heb de vriend."
+        "Ik koop het koekje in de supermarkt.",
+        "Ik ken de jongen goed.",
+        "De jongen is erg aardig.",
+        "Ken jij de jongen?"
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Ik zoek het zout.",
-       "q": "Ik zoek het ___.",
+       "audio": "Ik zie het koekje.",
+       "q": "Ik zie het ___.",
        "answer": [
-        "zout"
+        "koekje"
        ],
        "ph": "…"
       }
@@ -5573,13 +5654,13 @@
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Ik zie het bier.",
+       "audio": "Ik drink graag bier.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Ik zie het bier.",
-        "Ik heb de vriendin.",
-        "Dit is de vriendin.",
-        "Ik zoek de buurman."
+        "Ik drink graag bier.",
+        "Ik heb de jongen.",
+        "Dit is de jongen.",
+        "Het meisje helpt mij vaak."
        ]
       },
       {
@@ -5859,6 +5940,71 @@
        "q": "«резать»",
        "answer": [
         "snijden"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я очень хочу готовить.",
+       "words": [
+        "Ik",
+        "wil",
+        "graag",
+        "koken"
+       ],
+       "ans": [
+        "Ik",
+        "wil",
+        "graag",
+        "koken"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Это свежо.",
+       "words": [
+        "Het",
+        "is",
+        "vers"
+       ],
+       "ans": [
+        "Het",
+        "is",
+        "vers"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik kan goed koken.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik kan goed koken.",
+        "Ik zoek het meisje.",
+        "Waar is het meisje?",
+        "Ik zie het meisje."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Dat is heel vers.",
+       "q": "Dat is heel ___.",
+       "answer": [
+        "vers"
        ],
        "ph": "…"
       }
@@ -6199,33 +6345,37 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Где тело?",
+       "tr": "Тело здесь, я думаю.",
        "words": [
-        "Waar",
+        "Het",
+        "lichaam",
         "is",
-        "het",
-        "lichaam"
+        "hier,",
+        "denk",
+        "ik"
        ],
        "ans": [
-        "Waar",
+        "Het",
+        "lichaam",
         "is",
-        "het",
-        "lichaam"
+        "hier,",
+        "denk",
+        "ik"
        ]
       },
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "У меня есть голова.",
+       "tr": "Я ищу голову.",
        "words": [
         "Ik",
-        "heb",
+        "zoek",
         "het",
         "hoofd"
        ],
        "ans": [
         "Ik",
-        "heb",
+        "zoek",
         "het",
         "hoofd"
        ]
@@ -6233,22 +6383,22 @@
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Ik zie het lichaam.",
+       "audio": "Dit is het lichaam.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Ik zie het lichaam.",
-        "Ik heb de man.",
-        "Dit is de man.",
-        "Ik zoek de vrouw."
+        "Dit is het lichaam.",
+        "Ik ken de man goed.",
+        "De man is erg aardig.",
+        "Ik zoek de man."
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Waar is het hoofd?",
-       "q": "Waar is het ___?",
+       "audio": "Ik zoek het lichaam.",
+       "q": "Ik zoek het ___.",
        "answer": [
-        "hoofd"
+        "lichaam"
        ],
        "ph": "…"
       }
@@ -6623,16 +6773,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я вижу зуб.",
+       "tr": "Это зуб?",
        "words": [
-        "Ik",
-        "zie",
+        "Is",
+        "dit",
         "de",
         "tand"
        ],
        "ans": [
-        "Ik",
-        "zie",
+        "Is",
+        "dit",
         "de",
         "tand"
        ]
@@ -6640,15 +6790,15 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Это коренной зуб.",
+       "tr": "Где коренной зуб?",
        "words": [
-        "Dit",
+        "Waar",
         "is",
         "de",
         "kies"
        ],
        "ans": [
-        "Dit",
+        "Waar",
         "is",
         "de",
         "kies"
@@ -6657,22 +6807,22 @@
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Ik heb de tand.",
+       "audio": "Doet je tand pijn?",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Ik heb de tand.",
-        "Ik zoek het kind.",
-        "Waar is het kind?",
-        "Ik zie het kind."
+        "Doet je tand pijn?",
+        "De vrouw is erg aardig.",
+        "Ken jij de vrouw?",
+        "De vrouw helpt mij vaak."
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Ik zie de kies.",
-       "q": "Ik zie de ___.",
+       "audio": "Waar is de tand?",
+       "q": "Waar is de ___?",
        "answer": [
-        "kies"
+        "tand"
        ],
        "ph": "…"
       }
@@ -7047,16 +7197,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "У меня есть живот.",
+       "tr": "Я ищу живот.",
        "words": [
         "Ik",
-        "heb",
+        "zoek",
         "de",
         "buik"
        ],
        "ans": [
         "Ik",
-        "heb",
+        "zoek",
         "de",
         "buik"
        ]
@@ -7064,16 +7214,16 @@
       {
        "t": "build",
        "k": "Предложение",
-       "tr": "Я ищу спину.",
+       "tr": "Я вижу спину.",
        "words": [
         "Ik",
-        "zoek",
+        "zie",
         "de",
         "rug"
        ],
        "ans": [
         "Ik",
-        "zoek",
+        "zie",
         "de",
         "rug"
        ]
@@ -7081,22 +7231,22 @@
       {
        "t": "listen",
        "k": "Аудирование",
-       "audio": "Dit is de buik.",
+       "audio": "Mijn buik doet pijn.",
        "q": "Какое предложение прозвучало?",
        "opts": [
-        "Dit is de buik.",
-        "Ik zie de jongen.",
-        "Ik heb de jongen.",
-        "Dit is de jongen."
+        "Mijn buik doet pijn.",
+        "Ik zie de vrouw.",
+        "Ik heb de vrouw.",
+        "Dit is de vrouw."
        ]
       },
       {
        "t": "gapType",
        "k": "На слух",
-       "audio": "Ik heb de rug.",
-       "q": "Ik heb de ___.",
+       "audio": "Ik zie de buik.",
+       "q": "Ik zie de ___.",
        "answer": [
-        "rug"
+        "buik"
        ],
        "ph": "…"
       }
@@ -7509,9 +7659,9 @@
        "q": "Какое предложение прозвучало?",
        "opts": [
         "Ik zoek de huid.",
-        "Dit is het meisje.",
-        "Ik zoek de baby.",
-        "Waar is de baby?"
+        "Daar loopt het kind.",
+        "Ik zoek het kind.",
+        "Waar is het kind?"
        ]
       },
       {
@@ -7884,6 +8034,77 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я хорошо знаю семейного врача.",
+       "words": [
+        "Ik",
+        "ken",
+        "de",
+        "huisarts",
+        "goed"
+       ],
+       "ans": [
+        "Ik",
+        "ken",
+        "de",
+        "huisarts",
+        "goed"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Стоматолог очень приятный.",
+       "words": [
+        "De",
+        "tandarts",
+        "is",
+        "erg",
+        "aardig"
+       ],
+       "ans": [
+        "De",
+        "tandarts",
+        "is",
+        "erg",
+        "aardig"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "De huisarts is erg aardig.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "De huisarts is erg aardig.",
+        "Ik ken de jongen goed.",
+        "De jongen is erg aardig.",
+        "Ken jij de jongen?"
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Daar loopt de tandarts.",
+       "q": "Daar loopt de ___.",
+       "answer": [
+        "tandarts"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -8235,6 +8456,79 @@
        "q": "«мазь»",
        "answer": [
         "de zalf"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я не вижу таблетку.",
+       "words": [
+        "Ik",
+        "zie",
+        "de",
+        "pil",
+        "niet"
+       ],
+       "ans": [
+        "Ik",
+        "zie",
+        "de",
+        "pil",
+        "niet"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Мазь здесь, я думаю.",
+       "words": [
+        "De",
+        "zalf",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
+       ],
+       "ans": [
+        "De",
+        "zalf",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "De pil is hier, denk ik.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "De pil is hier, denk ik.",
+        "Ik heb de jongen.",
+        "Dit is de jongen.",
+        "Het meisje helpt mij vaak."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik heb een zalf nodig.",
+       "q": "Ik heb een ___ nodig.",
+       "answer": [
+        "zalf"
        ],
        "ph": "…"
       }
@@ -8598,6 +8892,73 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Это одежда?",
+       "words": [
+        "Is",
+        "dit",
+        "de",
+        "kleding"
+       ],
+       "ans": [
+        "Is",
+        "dit",
+        "de",
+        "kleding"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Где одежда?",
+       "words": [
+        "Waar",
+        "is",
+        "de",
+        "kleren"
+       ],
+       "ans": [
+        "Waar",
+        "is",
+        "de",
+        "kleren"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik heb de kleren nodig.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik heb de kleren nodig.",
+        "Ik ken de man goed.",
+        "De man is erg aardig.",
+        "Ik zoek de man."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Waar is de kleding?",
+       "q": "Waar is de ___?",
+       "answer": [
+        "kleding"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -8949,6 +9310,77 @@
        "q": "«рубашка»",
        "answer": [
         "het overhemd"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Майка здесь, я думаю.",
+       "words": [
+        "Het",
+        "hemd",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
+       ],
+       "ans": [
+        "Het",
+        "hemd",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Это рубашка?",
+       "words": [
+        "Is",
+        "dit",
+        "het",
+        "overhemd"
+       ],
+       "ans": [
+        "Is",
+        "dit",
+        "het",
+        "overhemd"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Is dit het hemd?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Is dit het hemd?",
+        "De vrouw is erg aardig.",
+        "Ken jij de vrouw?",
+        "De vrouw helpt mij vaak."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik zie het overhemd niet.",
+       "q": "Ik zie het ___ niet.",
+       "answer": [
+        "overhemd"
        ],
        "ph": "…"
       }
@@ -9312,6 +9744,73 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Это шапка?",
+       "words": [
+        "Is",
+        "dit",
+        "de",
+        "muts"
+       ],
+       "ans": [
+        "Is",
+        "dit",
+        "de",
+        "muts"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Шляпа хорошо сидит.",
+       "words": [
+        "De",
+        "hoed",
+        "past",
+        "goed"
+       ],
+       "ans": [
+        "De",
+        "hoed",
+        "past",
+        "goed"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Waar is de muts?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Waar is de muts?",
+        "Ik zie de vrouw.",
+        "Ik heb de vrouw.",
+        "Dit is de vrouw."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "De hoed is hier, denk ik.",
+       "q": "De ___ is hier, denk ik.",
+       "answer": [
+        "hoed"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -9669,6 +10168,77 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Мне нужен браслет.",
+       "words": [
+        "Ik",
+        "heb",
+        "een",
+        "armband",
+        "nodig"
+       ],
+       "ans": [
+        "Ik",
+        "heb",
+        "een",
+        "armband",
+        "nodig"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я не вижу серьгу.",
+       "words": [
+        "Ik",
+        "zie",
+        "de",
+        "oorbel",
+        "niet"
+       ],
+       "ans": [
+        "Ik",
+        "zie",
+        "de",
+        "oorbel",
+        "niet"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik zie de armband niet.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik zie de armband niet.",
+        "Daar loopt het kind.",
+        "Ik zoek het kind.",
+        "Waar is het kind?"
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Waar is de oorbel?",
+       "q": "Waar is de ___?",
+       "answer": [
+        "oorbel"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -9965,6 +10535,73 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Моя куртка — синяя.",
+       "words": [
+        "Mijn",
+        "jas",
+        "is",
+        "blauw"
+       ],
+       "ans": [
+        "Mijn",
+        "jas",
+        "is",
+        "blauw"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Мне нравится коричневый цвет.",
+       "words": [
+        "Ik",
+        "vind",
+        "bruin",
+        "mooi"
+       ],
+       "ans": [
+        "Ik",
+        "vind",
+        "bruin",
+        "mooi"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Het is bruin.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Het is bruin.",
+        "Ik ken de jongen goed.",
+        "De jongen is erg aardig.",
+        "Ken jij de jongen?"
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik vind blauw mooi.",
+       "q": "Ik vind ___ mooi.",
+       "answer": [
+        "blauw"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -10217,6 +10854,71 @@
        "q": "«фиолетовый»",
        "answer": [
         "paars"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Это оранжевый цвет.",
+       "words": [
+        "Het",
+        "is",
+        "oranje"
+       ],
+       "ans": [
+        "Het",
+        "is",
+        "oranje"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Моя куртка — фиолетовая.",
+       "words": [
+        "Mijn",
+        "jas",
+        "is",
+        "paars"
+       ],
+       "ans": [
+        "Mijn",
+        "jas",
+        "is",
+        "paars"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik vind paars mooi.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik vind paars mooi.",
+        "Ik heb de jongen.",
+        "Dit is de jongen.",
+        "Het meisje helpt mij vaak."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Mijn jas is oranje.",
+       "q": "Mijn jas is ___.",
+       "answer": [
+        "oranje"
        ],
        "ph": "…"
       }
@@ -10540,6 +11242,79 @@
        "q": "«машина»",
        "answer": [
         "de auto"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я не вижу велосипед.",
+       "words": [
+        "Ik",
+        "zie",
+        "de",
+        "fiets",
+        "niet"
+       ],
+       "ans": [
+        "Ik",
+        "zie",
+        "de",
+        "fiets",
+        "niet"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Машина здесь, я думаю.",
+       "words": [
+        "De",
+        "auto",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
+       ],
+       "ans": [
+        "De",
+        "auto",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "De fiets is hier, denk ik.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "De fiets is hier, denk ik.",
+        "Ik ken de man goed.",
+        "De man is erg aardig.",
+        "Ik zoek de man."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik heb een auto nodig.",
+       "q": "Ik heb een ___ nodig.",
+       "answer": [
+        "auto"
        ],
        "ph": "…"
       }
@@ -10903,6 +11678,77 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я иду в станцию.",
+       "words": [
+        "Ik",
+        "ga",
+        "naar",
+        "het",
+        "station"
+       ],
+       "ans": [
+        "Ik",
+        "ga",
+        "naar",
+        "het",
+        "station"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Мне нужна остановка.",
+       "words": [
+        "Ik",
+        "heb",
+        "een",
+        "halte",
+        "nodig"
+       ],
+       "ans": [
+        "Ik",
+        "heb",
+        "een",
+        "halte",
+        "nodig"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Is het station ver?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Is het station ver?",
+        "De vrouw is erg aardig.",
+        "Ken jij de vrouw?",
+        "De vrouw helpt mij vaak."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Is dit de halte?",
+       "q": "Is dit de ___?",
+       "answer": [
+        "halte"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -11254,6 +12100,77 @@
        "q": "«автомагистраль»",
        "answer": [
         "de snelweg"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Дорога здесь, я думаю.",
+       "words": [
+        "De",
+        "weg",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
+       ],
+       "ans": [
+        "De",
+        "weg",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Это автомагистраль?",
+       "words": [
+        "Is",
+        "dit",
+        "de",
+        "snelweg"
+       ],
+       "ans": [
+        "Is",
+        "dit",
+        "de",
+        "snelweg"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Is dit de weg?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Is dit de weg?",
+        "Ik zie de vrouw.",
+        "Ik heb de vrouw.",
+        "Dit is de vrouw."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik zie de snelweg niet.",
+       "q": "Ik zie de ___ niet.",
+       "answer": [
+        "snelweg"
        ],
        "ph": "…"
       }
@@ -11617,6 +12534,77 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я не вижу палатку.",
+       "words": [
+        "Ik",
+        "zie",
+        "de",
+        "tent",
+        "niet"
+       ],
+       "ans": [
+        "Ik",
+        "zie",
+        "de",
+        "tent",
+        "niet"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Отель сегодня закрыт.",
+       "words": [
+        "Het",
+        "hotel",
+        "is",
+        "vandaag",
+        "dicht"
+       ],
+       "ans": [
+        "Het",
+        "hotel",
+        "is",
+        "vandaag",
+        "dicht"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "De tent is hier, denk ik.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "De tent is hier, denk ik.",
+        "Daar loopt het kind.",
+        "Ik zoek het kind.",
+        "Waar is het kind?"
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Is het hotel ver?",
+       "q": "Is het ___ ver?",
+       "answer": [
+        "hotel"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -11974,6 +12962,75 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я не вижу провинцию.",
+       "words": [
+        "Ik",
+        "zie",
+        "de",
+        "provincie",
+        "niet"
+       ],
+       "ans": [
+        "Ik",
+        "zie",
+        "de",
+        "provincie",
+        "niet"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Это столица?",
+       "words": [
+        "Is",
+        "dit",
+        "de",
+        "hoofdstad"
+       ],
+       "ans": [
+        "Is",
+        "dit",
+        "de",
+        "hoofdstad"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Is dit de provincie?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Is dit de provincie?",
+        "Ik ken de jongen goed.",
+        "De jongen is erg aardig.",
+        "Ken jij de jongen?"
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik zie de hoofdstad niet.",
+       "q": "Ik zie de ___ niet.",
+       "answer": [
+        "hoofdstad"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -12325,6 +13382,77 @@
        "q": "«сторона»",
        "answer": [
         "de kant"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Центр за углом.",
+       "words": [
+        "Het",
+        "midden",
+        "is",
+        "om",
+        "de",
+        "hoek"
+       ],
+       "ans": [
+        "Het",
+        "midden",
+        "is",
+        "om",
+        "de",
+        "hoek"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Где сторона?",
+       "words": [
+        "Waar",
+        "is",
+        "de",
+        "kant"
+       ],
+       "ans": [
+        "Waar",
+        "is",
+        "de",
+        "kant"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Het midden is vandaag dicht.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Het midden is vandaag dicht.",
+        "Ik heb de jongen.",
+        "Dit is de jongen.",
+        "Het meisje helpt mij vaak."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Waar is de plek?",
+       "q": "Waar is de ___?",
+       "answer": [
+        "plek"
        ],
        "ph": "…"
       }
@@ -12972,6 +14100,75 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Музей сегодня закрыт.",
+       "words": [
+        "Het",
+        "museum",
+        "is",
+        "vandaag",
+        "dicht"
+       ],
+       "ans": [
+        "Het",
+        "museum",
+        "is",
+        "vandaag",
+        "dicht"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Где ресторан?",
+       "words": [
+        "Waar",
+        "is",
+        "het",
+        "restaurant"
+       ],
+       "ans": [
+        "Waar",
+        "is",
+        "het",
+        "restaurant"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Waar is het museum?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Waar is het museum?",
+        "Ik ken de man goed.",
+        "De man is erg aardig.",
+        "Ik zoek de man."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Het restaurant is om de hoek.",
+       "q": "Het ___ is om de hoek.",
+       "answer": [
+        "restaurant"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -13323,6 +14520,73 @@
        "q": "«природа»",
        "answer": [
         "de natuur"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Где море?",
+       "words": [
+        "Waar",
+        "is",
+        "de",
+        "zee"
+       ],
+       "ans": [
+        "Waar",
+        "is",
+        "de",
+        "zee"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Это природа?",
+       "words": [
+        "Is",
+        "dit",
+        "de",
+        "natuur"
+       ],
+       "ans": [
+        "Is",
+        "dit",
+        "de",
+        "natuur"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik vind de zee leuk.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik vind de zee leuk.",
+        "De vrouw is erg aardig.",
+        "Ken jij de vrouw?",
+        "De vrouw helpt mij vaak."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik vind de natuur leuk.",
+       "q": "Ik vind de ___ leuk.",
+       "answer": [
+        "natuur"
        ],
        "ph": "…"
       }
@@ -13686,6 +14950,77 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Собака играет в саду.",
+       "words": [
+        "De",
+        "hond",
+        "speelt",
+        "in",
+        "de",
+        "tuin"
+       ],
+       "ans": [
+        "De",
+        "hond",
+        "speelt",
+        "in",
+        "de",
+        "tuin"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Кошка большая?",
+       "words": [
+        "Is",
+        "de",
+        "kat",
+        "groot"
+       ],
+       "ans": [
+        "Is",
+        "de",
+        "kat",
+        "groot"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik heb thuis een hond.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik heb thuis een hond.",
+        "Ik zie de vrouw.",
+        "Ik heb de vrouw.",
+        "Dit is de vrouw."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "De koe speelt in de tuin.",
+       "q": "De ___ speelt in de tuin.",
+       "answer": [
+        "koe"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -14037,6 +15372,73 @@
        "q": "«ветер»",
        "answer": [
         "de wind"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Это солнце?",
+       "words": [
+        "Is",
+        "dit",
+        "de",
+        "zon"
+       ],
+       "ans": [
+        "Is",
+        "dit",
+        "de",
+        "zon"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Где ветер?",
+       "words": [
+        "Waar",
+        "is",
+        "de",
+        "wind"
+       ],
+       "ans": [
+        "Waar",
+        "is",
+        "de",
+        "wind"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik vind de wind leuk.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik vind de wind leuk.",
+        "Daar loopt het kind.",
+        "Ik zoek het kind.",
+        "Waar is het kind?"
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Waar is de zon?",
+       "q": "Waar is de ___?",
+       "answer": [
+        "zon"
        ],
        "ph": "…"
       }
@@ -14400,6 +15802,73 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Где электронное письмо?",
+       "words": [
+        "Waar",
+        "is",
+        "de",
+        "mail"
+       ],
+       "ans": [
+        "Waar",
+        "is",
+        "de",
+        "mail"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Где сайт?",
+       "words": [
+        "Waar",
+        "is",
+        "de",
+        "website"
+       ],
+       "ans": [
+        "Waar",
+        "is",
+        "de",
+        "website"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Ik vind de mail leuk.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Ik vind de mail leuk.",
+        "Ik ken de jongen goed.",
+        "De jongen is erg aardig.",
+        "Ken jij de jongen?"
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "De website is hier, denk ik.",
+       "q": "De ___ is hier, denk ik.",
+       "answer": [
+        "website"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -14757,6 +16226,77 @@
      ]
     },
     {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Клуб здесь, я думаю.",
+       "words": [
+        "De",
+        "club",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
+       ],
+       "ans": [
+        "De",
+        "club",
+        "is",
+        "hier,",
+        "denk",
+        "ik"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Это команда?",
+       "words": [
+        "Is",
+        "dit",
+        "het",
+        "team"
+       ],
+       "ans": [
+        "Is",
+        "dit",
+        "het",
+        "team"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "Is dit de club?",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "Is dit de club?",
+        "Ik heb de jongen.",
+        "Dit is de jongen.",
+        "Het meisje helpt mij vaak."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Ik zie het team niet.",
+       "q": "Ik zie het ___ niet.",
+       "answer": [
+        "team"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
      "t": "Говорим и закрепляем",
      "steps": [
       {
@@ -15047,6 +16587,75 @@
        "q": "«входить в аккаунт»",
        "answer": [
         "inloggen"
+       ],
+       "ph": "…"
+      }
+     ]
+    },
+    {
+     "t": "Предложения и слух",
+     "steps": [
+      {
+       "t": "explain",
+       "k": "Шаг 4 из 5",
+       "b": "📖 Слово в предложении",
+       "html": "<p>Теперь — целые предложения с новыми словами. Сначала собери, потом услышь и допиши.</p><div class=\"rule\">Dit is … — это … · Waar is …? — где …? · Ik heb … — у меня есть …</div>"
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Сегодня я не буду заниматься спортом.",
+       "words": [
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
+        "sporten"
+       ],
+       "ans": [
+        "Vandaag",
+        "ga",
+        "ik",
+        "niet",
+        "sporten"
+       ]
+      },
+      {
+       "t": "build",
+       "k": "Предложение",
+       "tr": "Я хорошо умею играть в футбол.",
+       "words": [
+        "Ik",
+        "kan",
+        "goed",
+        "voetballen"
+       ],
+       "ans": [
+        "Ik",
+        "kan",
+        "goed",
+        "voetballen"
+       ]
+      },
+      {
+       "t": "listen",
+       "k": "Аудирование",
+       "audio": "We gaan morgen sporten.",
+       "q": "Какое предложение прозвучало?",
+       "opts": [
+        "We gaan morgen sporten.",
+        "Ik zoek het meisje.",
+        "Waar is het meisje?",
+        "Ik zie het meisje."
+       ]
+      },
+      {
+       "t": "gapType",
+       "k": "На слух",
+       "audio": "Vandaag ga ik niet zwemmen.",
+       "q": "Vandaag ga ik niet ___.",
+       "answer": [
+        "zwemmen"
        ],
        "ph": "…"
       }
