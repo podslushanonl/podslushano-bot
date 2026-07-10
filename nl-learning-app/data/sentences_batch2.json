@@ -1,6 +1,6 @@
 {
  "note": "Батч №2: предложения на слова официального словаря TaalCompleet A1 (не покрытые батчем №1).",
- "count": 198,
+ "count": 193,
  "items": [
   {
    "nl": "Het gezin is hier, denk ik.",
@@ -579,6 +579,12 @@
    "theme": 3
   },
   {
+   "nl": "Het is verschillend.",
+   "ru": "Это разно.",
+   "lemma": "verschillend",
+   "theme": 3
+  },
+  {
    "nl": "Dat is heel verschillend.",
    "ru": "Это очень разно.",
    "lemma": "verschillend",
@@ -591,9 +597,9 @@
    "theme": 3
   },
   {
-   "nl": "Het is verschillend.",
-   "ru": "Это разно.",
-   "lemma": "verschillend",
+   "nl": "Dat is heel fijn.",
+   "ru": "Это очень приятно.",
+   "lemma": "fijn",
    "theme": 3
   },
   {
@@ -609,9 +615,9 @@
    "theme": 3
   },
   {
-   "nl": "Dat is heel fijn.",
-   "ru": "Это очень приятно.",
-   "lemma": "fijn",
+   "nl": "Waar is de kilo?",
+   "ru": "Где килограмм?",
+   "lemma": "kilo",
    "theme": 3
   },
   {
@@ -627,9 +633,9 @@
    "theme": 3
   },
   {
-   "nl": "Waar is de kilo?",
-   "ru": "Где килограмм?",
-   "lemma": "kilo",
+   "nl": "Is dit het ons?",
+   "ru": "Это нас?",
+   "lemma": "ons",
    "theme": 3
   },
   {
@@ -657,9 +663,9 @@
    "theme": 3
   },
   {
-   "nl": "Wil je een ons?",
-   "ru": "Хочешь нас?",
-   "lemma": "ons",
+   "nl": "Ik heb een bon nodig.",
+   "ru": "Мне нужен чек.",
+   "lemma": "bon",
    "theme": 3
   },
   {
@@ -681,9 +687,9 @@
    "theme": 3
   },
   {
-   "nl": "Ik heb een bon nodig.",
-   "ru": "Мне нужен чек.",
-   "lemma": "bon",
+   "nl": "Dat is heel goedkoop.",
+   "ru": "Это очень дешёво.",
+   "lemma": "goedkoop",
    "theme": 3
   },
   {
@@ -699,9 +705,9 @@
    "theme": 3
   },
   {
-   "nl": "Dat is heel goedkoop.",
-   "ru": "Это очень дешёво.",
-   "lemma": "goedkoop",
+   "nl": "Is dit de kassa?",
+   "ru": "Это касса?",
+   "lemma": "kassa",
    "theme": 3
   },
   {
@@ -723,9 +729,9 @@
    "theme": 3
   },
   {
-   "nl": "Is dit de kassa?",
-   "ru": "Это касса?",
-   "lemma": "kassa",
+   "nl": "Ik zie de zegel niet.",
+   "ru": "Я не вижу марку.",
+   "lemma": "zegel",
    "theme": 3
   },
   {
@@ -749,12 +755,6 @@
   {
    "nl": "De zegel is hier, denk ik.",
    "ru": "Марка здесь, я думаю.",
-   "lemma": "zegel",
-   "theme": 3
-  },
-  {
-   "nl": "Ik zie de zegel niet.",
-   "ru": "Я не вижу марку.",
    "lemma": "zegel",
    "theme": 3
   },
@@ -987,6 +987,12 @@
    "theme": 5
   },
   {
+   "nl": "Ik wil graag werken.",
+   "ru": "Я очень хочу работать.",
+   "lemma": "werken",
+   "theme": 5
+  },
+  {
    "nl": "We gaan morgen werken.",
    "ru": "Завтра мы будем работать.",
    "lemma": "werken",
@@ -1005,9 +1011,9 @@
    "theme": 5
   },
   {
-   "nl": "Ik wil graag werken.",
-   "ru": "Я очень хочу работать.",
-   "lemma": "werken",
+   "nl": "De klok is hier, denk ik.",
+   "ru": "Часы здесь, я думаю.",
+   "lemma": "klok",
    "theme": 5
   },
   {
@@ -1035,9 +1041,9 @@
    "theme": 5
   },
   {
-   "nl": "De klok is hier, denk ik.",
-   "ru": "Часы здесь, я думаю.",
-   "lemma": "klok",
+   "nl": "Is dit de feestdag?",
+   "ru": "Это праздник?",
+   "lemma": "feestdag",
    "theme": 5
   },
   {
@@ -1065,9 +1071,9 @@
    "theme": 5
   },
   {
-   "nl": "Is dit de feestdag?",
-   "ru": "Это праздник?",
-   "lemma": "feestdag",
+   "nl": "De openingstijd is hier, denk ik.",
+   "ru": "Часы работы здесь, я думаю.",
+   "lemma": "openingstijd",
    "theme": 5
   },
   {
@@ -1095,48 +1101,6 @@
    "theme": 5
   },
   {
-   "nl": "De openingstijd is hier, denk ik.",
-   "ru": "Часы работы здесь, я думаю.",
-   "lemma": "openingstijd",
-   "theme": 5
-  },
-  {
-   "nl": "Is dit het getal?",
-   "ru": "Это число?",
-   "lemma": "getal",
-   "theme": 5
-  },
-  {
-   "nl": "Het getal is hier, denk ik.",
-   "ru": "Число здесь, я думаю.",
-   "lemma": "getal",
-   "theme": 5
-  },
-  {
-   "nl": "Ik zie het getal niet.",
-   "ru": "Я не вижу число.",
-   "lemma": "getal",
-   "theme": 5
-  },
-  {
-   "nl": "Ik heb een getal nodig.",
-   "ru": "Мне нужно число.",
-   "lemma": "getal",
-   "theme": 5
-  },
-  {
-   "nl": "Waar is het getal?",
-   "ru": "Где число?",
-   "lemma": "getal",
-   "theme": 5
-  },
-  {
-   "nl": "Is het droog?",
-   "ru": "Это сухо?",
-   "lemma": "droog",
-   "theme": 5
-  },
-  {
    "nl": "Het is droog.",
    "ru": "Это сухо.",
    "lemma": "droog",
@@ -1149,9 +1113,9 @@
    "theme": 5
   },
   {
-   "nl": "Dat is heel warm.",
-   "ru": "Это очень тёпло.",
-   "lemma": "warm",
+   "nl": "Is het droog?",
+   "ru": "Это сухо?",
+   "lemma": "droog",
    "theme": 5
   },
   {
@@ -1163,6 +1127,12 @@
   {
    "nl": "Het is warm.",
    "ru": "Это тёпло.",
+   "lemma": "warm",
+   "theme": 5
+  },
+  {
+   "nl": "Dat is heel warm.",
+   "ru": "Это очень тёпло.",
    "lemma": "warm",
    "theme": 5
   },
