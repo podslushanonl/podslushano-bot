@@ -232,7 +232,7 @@ def words_html(name,ws):
     rows=''.join('<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd)"><b>'+d+'</b><span style="color:var(--ink-2)">'+ru+'</span></div>' for d,ru,ty in ws)
     return '<p>Новые слова темы «'+name+'». Сначала познакомься со ВСЕМИ словами — прослушай каждое (▶ ниже), потом закрепим заданиями.</p><div style="margin-top:8px">'+rows+'</div>'
 
-for ti in range(2,len(BANK)):
+for ti in range(0,len(BANK)):
     name,ws=BANK[ti]
     chunks=[ws[i:i+8] for i in range(0,len(ws),8)]
     chunks=[c for c in chunks if len(c)>=6][:12]
