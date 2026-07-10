@@ -2,44 +2,291 @@
  "note": "«Реальные документы» в формате инбургеринг-экзамена (по образцу TaalCompleet A2: nieuwsbrief 3.11, e-mail 3.5, antwoordapparaat 6.4): чтение/слушание документа → waar/niet waar → вопросы по содержанию → продукция. Части уроков {lesson, title, steps}, вшивает build.py.",
  "parts": [
   {
-   "lesson": 105,
    "title": "Документ: письмо из школы 📄",
    "steps": [
-    {"t":"explain","k":"Читаем документ (как 3.11 в книге)","b":"📄 Nieuwsbrief De Regenboogschool","html":"<p>На экзамене (и в жизни!) придётся читать письма из школы ребёнка. Прочитай рассылку — потом вопросы по ней:</p><div class=\"rule\" style=\"font-size:13px;line-height:1.65\"><b style=\"color:var(--oranje)\">Nieuwsbrief De Regenboogschool</b><br><br><b>Schoolreis.</b> Alle groepen gaan vrijdag 20 mei op schoolreis. Groep 1–3 gaat naar de dierentuin, groep 4–8 naar het museum.<br><br><b>Kijkavond.</b> Wilt u het werk van de kinderen zien? Kom dinsdag 28 juni om 19.30 uur naar de kijkavond. Alle ouders, opa's en oma's zijn welkom!<br><br><b>De laatste schooldag</b> is vrijdag 1 juli. We doen 's ochtends spelletjes. Om 13.00 uur zijn de kinderen vrij.<br><br><b>Helpen?</b> Welke ouders willen helpen met het voorbereiden van de laatste schooldag? Stuur een e-mail naar meester Arie.</div>","ex":[["de schoolreis","школьная поездка"],["de kijkavond","вечер открытых дверей"],["voorbereiden","подготавливать"],["vrij zijn","быть свободным"]]},
-    {"t":"tf","k":"Waar of niet waar?","q":"De schoolreis is op vrijdag 20 mei.","answer":true,"note":"Да, первый абзац: vrijdag 20 mei."},
-    {"t":"tf","k":"Waar of niet waar?","q":"Op de laatste schooldag zijn de kinderen om 15.00 uur vrij.","answer":false,"note":"Нет: om 13.00 uur zijn de kinderen vrij."},
-    {"t":"tf","k":"Waar of niet waar?","q":"Opa's en oma's mogen ook naar de kijkavond komen.","answer":true,"note":"Да: «Alle ouders, opa's en oma's zijn welkom!»"},
-    {"t":"quiz","k":"Вопрос по тексту","q":"Wanneer is de kijkavond?","opts":["Dinsdag 28 juni om 19.30 uur.","Vrijdag 20 mei.","Vrijdag 1 juli om 13.00 uur.","Zaterdag 28 juni."]},
-    {"t":"quiz","k":"Вопрос по тексту","q":"Waar gaat groep 1–3 naartoe?","opts":["Naar de dierentuin.","Naar het museum.","Naar het strand.","Naar de gemeente."]},
-    {"t":"quiz","k":"Что нужно СДЕЛАТЬ?","q":"Een moeder wil helpen op de laatste schooldag. Wat moet ze doen?","opts":["Een e-mail sturen naar meester Arie.","Naar de kijkavond gaan.","De juf bellen om 13.00 uur.","Een formulier invullen bij de gemeente."]},
-    {"t":"gapType","k":"Впиши по тексту","q":"De laatste ___ is op vrijdag 1 juli.","answer":["schooldag"],"ph":"s…","hint":"последний учебный день"}
-   ]
+    {
+     "t": "explain",
+     "k": "Читаем документ (как 3.11 в книге)",
+     "b": "📄 Nieuwsbrief De Regenboogschool",
+     "html": "<p>На экзамене (и в жизни!) придётся читать письма из школы ребёнка. Прочитай рассылку — потом вопросы по ней:</p><div class=\"rule\" style=\"font-size:13px;line-height:1.65\"><b style=\"color:var(--oranje)\">Nieuwsbrief De Regenboogschool</b><br><br><b>Schoolreis.</b> Alle groepen gaan vrijdag 20 mei op schoolreis. Groep 1–3 gaat naar de dierentuin, groep 4–8 naar het museum.<br><br><b>Kijkavond.</b> Wilt u het werk van de kinderen zien? Kom dinsdag 28 juni om 19.30 uur naar de kijkavond. Alle ouders, opa's en oma's zijn welkom!<br><br><b>De laatste schooldag</b> is vrijdag 1 juli. We doen 's ochtends spelletjes. Om 13.00 uur zijn de kinderen vrij.<br><br><b>Helpen?</b> Welke ouders willen helpen met het voorbereiden van de laatste schooldag? Stuur een e-mail naar meester Arie.</div>",
+     "ex": [
+      [
+       "de schoolreis",
+       "школьная поездка"
+      ],
+      [
+       "de kijkavond",
+       "вечер открытых дверей"
+      ],
+      [
+       "voorbereiden",
+       "подготавливать"
+      ],
+      [
+       "vrij zijn",
+       "быть свободным"
+      ]
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Waar of niet waar?",
+     "q": "De schoolreis is op vrijdag 20 mei.",
+     "answer": true,
+     "note": "Да, первый абзац: vrijdag 20 mei."
+    },
+    {
+     "t": "tf",
+     "k": "Waar of niet waar?",
+     "q": "Op de laatste schooldag zijn de kinderen om 15.00 uur vrij.",
+     "answer": false,
+     "note": "Нет: om 13.00 uur zijn de kinderen vrij."
+    },
+    {
+     "t": "tf",
+     "k": "Waar of niet waar?",
+     "q": "Opa's en oma's mogen ook naar de kijkavond komen.",
+     "answer": true,
+     "note": "Да: «Alle ouders, opa's en oma's zijn welkom!»"
+    },
+    {
+     "t": "quiz",
+     "k": "Вопрос по тексту",
+     "q": "Wanneer is de kijkavond?",
+     "opts": [
+      "Dinsdag 28 juni om 19.30 uur.",
+      "Vrijdag 20 mei.",
+      "Vrijdag 1 juli om 13.00 uur.",
+      "Zaterdag 28 juni."
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Вопрос по тексту",
+     "q": "Waar gaat groep 1–3 naartoe?",
+     "opts": [
+      "Naar de dierentuin.",
+      "Naar het museum.",
+      "Naar het strand.",
+      "Naar de gemeente."
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Что нужно СДЕЛАТЬ?",
+     "q": "Een moeder wil helpen op de laatste schooldag. Wat moet ze doen?",
+     "opts": [
+      "Een e-mail sturen naar meester Arie.",
+      "Naar de kijkavond gaan.",
+      "De juf bellen om 13.00 uur.",
+      "Een formulier invullen bij de gemeente."
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши по тексту",
+     "q": "De laatste ___ is op vrijdag 1 juli.",
+     "answer": [
+      "schooldag"
+     ],
+     "ph": "s…",
+     "hint": "последний учебный день"
+    }
+   ],
+   "theme": "Дети",
+   "idx": 2
   },
   {
-   "lesson": 113,
    "title": "Документ: e-mail учителю 📧",
    "steps": [
-    {"t":"explain","k":"Пишем документ (как 3.5 в книге)","b":"📧 Официальный e-mail: ребёнок заболел","html":"<p>Классика инбургеринг-экзамена (Schrijven): написать короткий официальный e-mail. Структура железная:</p><div class=\"rule\" style=\"font-size:13.5px;line-height:1.7\">1️⃣ <b>Geachte meneer / mevrouw …,</b> — Уважаемый(ая)…<br>2️⃣ Суть: <b>Mijn dochter Sara is vandaag ziek. Ze heeft koorts en blijft thuis.</b><br>3️⃣ <b>Met vriendelijke groet,</b><br>Anna Petrova</div><p>⚠️ «Hoi» и «Doei» — только друзьям. В официальном письме — никогда!</p>","ex":[["Geachte mevrouw De Vries,","Уважаемая госпожа Де Врис,"],["Met vriendelijke groet,","С уважением, (дословно: с дружеским приветом)"]]},
-    {"t":"quiz","k":"Начало письма","q":"Пишешь незнакомой учительнице (mevrouw De Vries). Как начать?","opts":["Geachte mevrouw De Vries,","Hoi!","Dag Maria!","Hallo, met Anna."]},
-    {"t":"quiz","k":"Конец письма","q":"Как закончить официальный e-mail?","opts":["Met vriendelijke groet,","Doei!","Tot straks!","Dag. Tot ziens."]},
-    {"t":"clozeBank","k":"Допиши e-mail","sents":[["___ meneer Smits,","Geachte","Уважаемый господин Смитс,"],["Mijn dochter is vandaag ___. Ze blijft thuis.","ziek","Моя дочь сегодня болеет. Она останется дома."],["Met vriendelijke ___,","groet","С уважением,"]],"bank":["Geachte","ziek","groet","Hoi"]},
-    {"t":"build","k":"Собери фразу из письма","tr":"Мой сын болеет и остаётся дома.","words":["Mijn","zoon","is","ziek","en","blijft","thuis"],"ans":["Mijn","zoon","is","ziek","en","blijft","thuis"]},
-    {"t":"tf","k":"Верно?","q":"«Hoi» подходит для письма директору школы.","answer":false,"note":"Нет! Директору — «Geachte meneer/mevrouw …». Hoi — только друзьям."},
-    {"t":"speak","k":"Говорение","phrase":"Mijn dochter is ziek. Ze blijft vandaag thuis.","tr":"Моя дочь болеет. Сегодня она останется дома."}
-   ]
+    {
+     "t": "explain",
+     "k": "Пишем документ (как 3.5 в книге)",
+     "b": "📧 Официальный e-mail: ребёнок заболел",
+     "html": "<p>Классика инбургеринг-экзамена (Schrijven): написать короткий официальный e-mail. Структура железная:</p><div class=\"rule\" style=\"font-size:13.5px;line-height:1.7\">1️⃣ <b>Geachte meneer / mevrouw …,</b> — Уважаемый(ая)…<br>2️⃣ Суть: <b>Mijn dochter Sara is vandaag ziek. Ze heeft koorts en blijft thuis.</b><br>3️⃣ <b>Met vriendelijke groet,</b><br>Anna Petrova</div><p>⚠️ «Hoi» и «Doei» — только друзьям. В официальном письме — никогда!</p>",
+     "ex": [
+      [
+       "Geachte mevrouw De Vries,",
+       "Уважаемая госпожа Де Врис,"
+      ],
+      [
+       "Met vriendelijke groet,",
+       "С уважением, (дословно: с дружеским приветом)"
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Начало письма",
+     "q": "Пишешь незнакомой учительнице (mevrouw De Vries). Как начать?",
+     "opts": [
+      "Geachte mevrouw De Vries,",
+      "Hoi!",
+      "Dag Maria!",
+      "Hallo, met Anna."
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Конец письма",
+     "q": "Как закончить официальный e-mail?",
+     "opts": [
+      "Met vriendelijke groet,",
+      "Doei!",
+      "Tot straks!",
+      "Dag. Tot ziens."
+     ]
+    },
+    {
+     "t": "clozeBank",
+     "k": "Допиши e-mail",
+     "sents": [
+      [
+       "___ meneer Smits,",
+       "Geachte",
+       "Уважаемый господин Смитс,"
+      ],
+      [
+       "Mijn dochter is vandaag ___. Ze blijft thuis.",
+       "ziek",
+       "Моя дочь сегодня болеет. Она останется дома."
+      ],
+      [
+       "Met vriendelijke ___,",
+       "groet",
+       "С уважением,"
+      ]
+     ],
+     "bank": [
+      "Geachte",
+      "ziek",
+      "groet",
+      "Hoi"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери фразу из письма",
+     "tr": "Мой сын болеет и остаётся дома.",
+     "words": [
+      "Mijn",
+      "zoon",
+      "is",
+      "ziek",
+      "en",
+      "blijft",
+      "thuis"
+     ],
+     "ans": [
+      "Mijn",
+      "zoon",
+      "is",
+      "ziek",
+      "en",
+      "blijft",
+      "thuis"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "«Hoi» подходит для письма директору школы.",
+     "answer": false,
+     "note": "Нет! Директору — «Geachte meneer/mevrouw …». Hoi — только друзьям."
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Mijn dochter is ziek. Ze blijft vandaag thuis.",
+     "tr": "Моя дочь болеет. Сегодня она останется дома."
+    }
+   ],
+   "theme": "Образование",
+   "idx": 1
   },
   {
-   "lesson": 121,
    "title": "Документ: автоответчик ☎️",
    "steps": [
-    {"t":"explain","k":"Слушаем (как 6.4 в книге)","b":"☎️ Antwoordapparaat: что нужно сделать?","html":"<p>Формат экзамена Luisteren: прослушать сообщение автоответчика и понять, <b>что тебе нужно сделать</b>. Прослушай оба сообщения (▶ ниже) — текст перед глазами, сверяйся:</p><div class=\"rule\" style=\"font-size:13px;line-height:1.65\">📩 <b>Сообщение 1:</b> «U spreekt met de gemeente Utrecht. Uw afspraak van dinsdag gaat niet door. Bel ons voor een nieuwe afspraak.»<br><br>📩 <b>Сообщение 2:</b> «Goedemiddag, dit is apotheek De Brug. Uw medicijnen zijn klaar. U kunt ze morgen na negen uur ophalen.»</div>","ex":[["Uw afspraak gaat niet door.","Ваш приём отменяется."],["Uw medicijnen zijn klaar.","Ваши лекарства готовы."],["ophalen","забирать"]]},
-    {"t":"quiz","k":"Сообщение 1 · wat moet je doen?","q":"Хементе оставило сообщение. Что ты должен сделать?","opts":["Bellen voor een nieuwe afspraak.","Dinsdag naar de gemeente gaan.","Een formulier invullen.","Niets doen."]},
-    {"t":"quiz","k":"Сообщение 2 · вопрос","q":"Wanneer kun je de medicijnen ophalen?","opts":["Morgen na negen uur.","Vandaag om negen uur.","Volgende week dinsdag.","Vanavond."]},
-    {"t":"tf","k":"Верно?","q":"De afspraak bij de gemeente gaat gewoon door.","answer":false,"note":"Нет: «gaat NIET door» — приём отменён."},
-    {"t":"listen","k":"Аудирование","audio":"Uw medicijnen zijn klaar.","q":"Что прозвучало?","opts":["Uw medicijnen zijn klaar.","Uw medicijnen zijn duur.","Uw medicijnen zijn hier.","Uw afspraak is klaar."]},
-    {"t":"gapType","k":"Впиши слово","q":"Uw afspraak gaat niet ___.","answer":["door"],"ph":"d…","hint":"niet doorgaan = не состояться, отменяться"},
-    {"t":"speak","k":"Твой ответный звонок","phrase":"Goedemiddag, u spreekt met Anna. Ik bel voor een nieuwe afspraak.","tr":"Добрый день, это Анна. Я звоню, чтобы записаться заново."}
-   ]
+    {
+     "t": "explain",
+     "k": "Слушаем (как 6.4 в книге)",
+     "b": "☎️ Antwoordapparaat: что нужно сделать?",
+     "html": "<p>Формат экзамена Luisteren: прослушать сообщение автоответчика и понять, <b>что тебе нужно сделать</b>. Прослушай оба сообщения (▶ ниже) — текст перед глазами, сверяйся:</p><div class=\"rule\" style=\"font-size:13px;line-height:1.65\">📩 <b>Сообщение 1:</b> «U spreekt met de gemeente Utrecht. Uw afspraak van dinsdag gaat niet door. Bel ons voor een nieuwe afspraak.»<br><br>📩 <b>Сообщение 2:</b> «Goedemiddag, dit is apotheek De Brug. Uw medicijnen zijn klaar. U kunt ze morgen na negen uur ophalen.»</div>",
+     "ex": [
+      [
+       "Uw afspraak gaat niet door.",
+       "Ваш приём отменяется."
+      ],
+      [
+       "Uw medicijnen zijn klaar.",
+       "Ваши лекарства готовы."
+      ],
+      [
+       "ophalen",
+       "забирать"
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Сообщение 1 · wat moet je doen?",
+     "q": "Хементе оставило сообщение. Что ты должен сделать?",
+     "opts": [
+      "Bellen voor een nieuwe afspraak.",
+      "Dinsdag naar de gemeente gaan.",
+      "Een formulier invullen.",
+      "Niets doen."
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Сообщение 2 · вопрос",
+     "q": "Wanneer kun je de medicijnen ophalen?",
+     "opts": [
+      "Morgen na negen uur.",
+      "Vandaag om negen uur.",
+      "Volgende week dinsdag.",
+      "Vanavond."
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "De afspraak bij de gemeente gaat gewoon door.",
+     "answer": false,
+     "note": "Нет: «gaat NIET door» — приём отменён."
+    },
+    {
+     "t": "listen",
+     "k": "Аудирование",
+     "audio": "Uw medicijnen zijn klaar.",
+     "q": "Что прозвучало?",
+     "opts": [
+      "Uw medicijnen zijn klaar.",
+      "Uw medicijnen zijn duur.",
+      "Uw medicijnen zijn hier.",
+      "Uw afspraak is klaar."
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши слово",
+     "q": "Uw afspraak gaat niet ___.",
+     "answer": [
+      "door"
+     ],
+     "ph": "d…",
+     "hint": "niet doorgaan = не состояться, отменяться"
+    },
+    {
+     "t": "speak",
+     "k": "Твой ответный звонок",
+     "phrase": "Goedemiddag, u spreekt met Anna. Ik bel voor een nieuwe afspraak.",
+     "tr": "Добрый день, это Анна. Я звоню, чтобы записаться заново."
+    }
+   ],
+   "theme": "Gemeente",
+   "idx": 2
   }
  ]
 }

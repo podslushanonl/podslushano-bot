@@ -1,130 +1,821 @@
 {
  "note": "Handige zinnen из TaalCompleet A2 (стр. 368–369): готовые фразы по ситуациям. sections → разделы Словаря (и SRS), parts → части-задания в уроках (вшивает build.py как диалоги).",
  "sections": [
-  {"t":"💬 Фразы: восклицания (Wat …!)","w":[
-   ["Wat leuk!","Как здорово!"],["Wat fijn!","Как приятно!"],["Wat mooi!","Как красиво!"],
-   ["Wat groot!","Какой большой!"],["Wat duur!","Как дорого!"],["Wat jammer!","Как жаль!"]]},
-  {"t":"💬 Фразы: погода (Praten over het weer)","w":[
-   ["Het is koud.","Холодно."],["Het is warm.","Тепло."],["Het is heet.","Жарко."],["Het is droog.","Сухо."],
-   ["Het regent.","Идёт дождь."],["Het waait.","Дует ветер."],["Het sneeuwt.","Идёт снег."],
-   ["Het is lente.","Весна."],["Het is zomer.","Лето."],["Het is herfst.","Осень."],["Het is winter.","Зима."],
-   ["Het is mooi weer.","Хорошая погода."],["Het is slecht weer.","Плохая погода."]]},
-  {"t":"💬 Фразы: открытки (Kaartjes schrijven)","w":[
-   ["Gefeliciteerd met je verjaardag!","С днём рождения! (у кого-то день рождения)"],
-   ["Ik wens je een fijne dag.","Желаю тебе хорошего дня."],
-   ["Gefeliciteerd met jullie baby!","Поздравляю с малышом! (родился ребёнок)"],
-   ["Veel geluk met elkaar.","Счастья вам вместе."],
-   ["Gecondoleerd.","Соболезную. (кто-то умер)"],
-   ["Sterkte.","Держись. (трудная ситуация)"],
-   ["Gefeliciteerd met jullie huwelijk!","Поздравляю со свадьбой!"],
-   ["Beterschap!","Выздоравливай! (кто-то болеет)"],
-   ["Gefeliciteerd met je nieuwe woning.","Поздравляю с новым жильём."],
-   ["Veel succes met je nieuwe baan!","Успехов на новой работе!"],
-   ["Veel succes met je examen!","Удачи на экзамене!"],
-   ["Bedankt voor je hulp.","Спасибо за помощь. (кто-то что-то для тебя сделал)"]]},
-  {"t":"💬 Фразы: телефон (Bellen)","w":[
-   ["Hallo, met Thomas.","Алло, это Томас. (ты берёшь трубку)"],
-   ["Goedemorgen, u spreekt met Ria Lutters.","Доброе утро, с вами говорит Рия Лютерс."],
-   ["Dag. Tot ziens.","До свидания. (конец разговора)"],
-   ["Kunt u dat herhalen?","Вы можете это повторить?"]]},
-  {"t":"💬 Фразы: попросить помощи (Om hulp vragen)","w":[
-   ["Kun je me helpen?","Ты можешь мне помочь?"],
-   ["Kunt u me helpen?","Вы можете мне помочь? (вежливо)"],
-   ["Hoe werkt …?","Как работает …?"],
-   ["Ik begrijp het.","Я понимаю."],
-   ["Ik snap het.","Я понял(а)."],
-   ["Bedankt voor de hulp.","Спасибо за помощь."]]},
-  {"t":"💬 Фразы: мнение (Je mening geven)","w":[
-   ["Wat vind jij?","А ты как считаешь?"],
-   ["Wat is jouw mening?","Каково твоё мнение?"],
-   ["Ik vind dat ook.","Я тоже так считаю."],
-   ["Ik vind dat niet.","Я так не считаю."],
-   ["Ik ben het ermee eens, want …","Я с этим согласен(на), потому что …"],
-   ["Ik ben het er niet mee eens, want …","Я с этим не согласен(на), потому что …"],
-   ["Ik vind dat een goed idee.","По-моему, это хорошая идея."]]},
-  {"t":"💬 Фразы: договориться о встрече (Een afspraak maken)","w":[
-   ["Zal ik morgen komen?","Мне прийти завтра?"],
-   ["Zullen we zaterdag winkelen?","Пойдём в субботу по магазинам?"],
-   ["We kunnen naar een museum gaan.","Мы можем сходить в музей."],
-   ["Dat vind ik een goed idee.","По-моему, отличная идея."],
-   ["Ik houd niet van winkelen.","Я не люблю ходить по магазинам."],
-   ["Ik kan dan helaas niet.","К сожалению, тогда я не могу."]]}
+  {
+   "t": "💬 Фразы: восклицания (Wat …!)",
+   "w": [
+    [
+     "Wat leuk!",
+     "Как здорово!"
+    ],
+    [
+     "Wat fijn!",
+     "Как приятно!"
+    ],
+    [
+     "Wat mooi!",
+     "Как красиво!"
+    ],
+    [
+     "Wat groot!",
+     "Какой большой!"
+    ],
+    [
+     "Wat duur!",
+     "Как дорого!"
+    ],
+    [
+     "Wat jammer!",
+     "Как жаль!"
+    ]
+   ]
+  },
+  {
+   "t": "💬 Фразы: погода (Praten over het weer)",
+   "w": [
+    [
+     "Het is koud.",
+     "Холодно."
+    ],
+    [
+     "Het is warm.",
+     "Тепло."
+    ],
+    [
+     "Het is heet.",
+     "Жарко."
+    ],
+    [
+     "Het is droog.",
+     "Сухо."
+    ],
+    [
+     "Het regent.",
+     "Идёт дождь."
+    ],
+    [
+     "Het waait.",
+     "Дует ветер."
+    ],
+    [
+     "Het sneeuwt.",
+     "Идёт снег."
+    ],
+    [
+     "Het is lente.",
+     "Весна."
+    ],
+    [
+     "Het is zomer.",
+     "Лето."
+    ],
+    [
+     "Het is herfst.",
+     "Осень."
+    ],
+    [
+     "Het is winter.",
+     "Зима."
+    ],
+    [
+     "Het is mooi weer.",
+     "Хорошая погода."
+    ],
+    [
+     "Het is slecht weer.",
+     "Плохая погода."
+    ]
+   ]
+  },
+  {
+   "t": "💬 Фразы: открытки (Kaartjes schrijven)",
+   "w": [
+    [
+     "Gefeliciteerd met je verjaardag!",
+     "С днём рождения! (у кого-то день рождения)"
+    ],
+    [
+     "Ik wens je een fijne dag.",
+     "Желаю тебе хорошего дня."
+    ],
+    [
+     "Gefeliciteerd met jullie baby!",
+     "Поздравляю с малышом! (родился ребёнок)"
+    ],
+    [
+     "Veel geluk met elkaar.",
+     "Счастья вам вместе."
+    ],
+    [
+     "Gecondoleerd.",
+     "Соболезную. (кто-то умер)"
+    ],
+    [
+     "Sterkte.",
+     "Держись. (трудная ситуация)"
+    ],
+    [
+     "Gefeliciteerd met jullie huwelijk!",
+     "Поздравляю со свадьбой!"
+    ],
+    [
+     "Beterschap!",
+     "Выздоравливай! (кто-то болеет)"
+    ],
+    [
+     "Gefeliciteerd met je nieuwe woning.",
+     "Поздравляю с новым жильём."
+    ],
+    [
+     "Veel succes met je nieuwe baan!",
+     "Успехов на новой работе!"
+    ],
+    [
+     "Veel succes met je examen!",
+     "Удачи на экзамене!"
+    ],
+    [
+     "Bedankt voor je hulp.",
+     "Спасибо за помощь. (кто-то что-то для тебя сделал)"
+    ]
+   ]
+  },
+  {
+   "t": "💬 Фразы: телефон (Bellen)",
+   "w": [
+    [
+     "Hallo, met Thomas.",
+     "Алло, это Томас. (ты берёшь трубку)"
+    ],
+    [
+     "Goedemorgen, u spreekt met Ria Lutters.",
+     "Доброе утро, с вами говорит Рия Лютерс."
+    ],
+    [
+     "Dag. Tot ziens.",
+     "До свидания. (конец разговора)"
+    ],
+    [
+     "Kunt u dat herhalen?",
+     "Вы можете это повторить?"
+    ]
+   ]
+  },
+  {
+   "t": "💬 Фразы: попросить помощи (Om hulp vragen)",
+   "w": [
+    [
+     "Kun je me helpen?",
+     "Ты можешь мне помочь?"
+    ],
+    [
+     "Kunt u me helpen?",
+     "Вы можете мне помочь? (вежливо)"
+    ],
+    [
+     "Hoe werkt …?",
+     "Как работает …?"
+    ],
+    [
+     "Ik begrijp het.",
+     "Я понимаю."
+    ],
+    [
+     "Ik snap het.",
+     "Я понял(а)."
+    ],
+    [
+     "Bedankt voor de hulp.",
+     "Спасибо за помощь."
+    ]
+   ]
+  },
+  {
+   "t": "💬 Фразы: мнение (Je mening geven)",
+   "w": [
+    [
+     "Wat vind jij?",
+     "А ты как считаешь?"
+    ],
+    [
+     "Wat is jouw mening?",
+     "Каково твоё мнение?"
+    ],
+    [
+     "Ik vind dat ook.",
+     "Я тоже так считаю."
+    ],
+    [
+     "Ik vind dat niet.",
+     "Я так не считаю."
+    ],
+    [
+     "Ik ben het ermee eens, want …",
+     "Я с этим согласен(на), потому что …"
+    ],
+    [
+     "Ik ben het er niet mee eens, want …",
+     "Я с этим не согласен(на), потому что …"
+    ],
+    [
+     "Ik vind dat een goed idee.",
+     "По-моему, это хорошая идея."
+    ]
+   ]
+  },
+  {
+   "t": "💬 Фразы: договориться о встрече (Een afspraak maken)",
+   "w": [
+    [
+     "Zal ik morgen komen?",
+     "Мне прийти завтра?"
+    ],
+    [
+     "Zullen we zaterdag winkelen?",
+     "Пойдём в субботу по магазинам?"
+    ],
+    [
+     "We kunnen naar een museum gaan.",
+     "Мы можем сходить в музей."
+    ],
+    [
+     "Dat vind ik een goed idee.",
+     "По-моему, отличная идея."
+    ],
+    [
+     "Ik houd niet van winkelen.",
+     "Я не люблю ходить по магазинам."
+    ],
+    [
+     "Ik kan dan helaas niet.",
+     "К сожалению, тогда я не могу."
+    ]
+   ]
+  }
  ],
  "parts": [
   {
-   "lesson": 95,
    "title": "Handige zinnen: Wat leuk! 💬",
    "steps": [
-    {"t":"explain","k":"Полезные фразы (стр. 368)","b":"💬 Wat + прилагательное = «Как …!»","html":"<p>Хочешь коротко отреагировать — восхититься, посочувствовать? Голландцы говорят <b>Wat …!</b>:</p><div class=\"rule\"><b>Wat leuk!</b> — Как здорово! · <b>Wat fijn!</b> — Как приятно!<br><b>Wat mooi!</b> — Как красиво! · <b>Wat groot!</b> — Какой большой!<br><b>Wat duur!</b> — Как дорого! · <b>Wat jammer!</b> — Как жаль!</div><p>Все эти фразы (и остальные из этого блока) есть в Словаре → «💬 Фразы».</p>","ex":[["Wat leuk!","Как здорово!"],["Wat jammer!","Как жаль!"]]},
-    {"t":"quiz","k":"Что скажешь?","q":"Друг показывает свою новую квартиру — светлую и уютную. Твоя реакция?","opts":["Wat mooi!","Wat jammer!","Wat duur!","Gecondoleerd."]},
-    {"t":"quiz","k":"Что скажешь?","q":"Соседи говорят: вечеринка по случаю новоселья отменяется. Твоя реакция?","opts":["Wat jammer!","Wat leuk!","Wat fijn!","Wat groot!"]},
-    {"t":"match","k":"Пары","pairs":[["Wat leuk!","Как здорово!"],["Wat jammer!","Как жаль!"],["Wat duur!","Как дорого!"],["Wat fijn!","Как приятно!"]]},
-    {"t":"build","k":"Собери реакцию","tr":"Какой красивый дом!","words":["Wat","een","mooi","huis"],"ans":["Wat","een","mooi","huis"]},
-    {"t":"speak","k":"Говорение","phrase":"Wat leuk! Wat fijn voor jou!","tr":"Как здорово! Как приятно за тебя!"}
-   ]
+    {
+     "t": "explain",
+     "k": "Полезные фразы (стр. 368)",
+     "b": "💬 Wat + прилагательное = «Как …!»",
+     "html": "<p>Хочешь коротко отреагировать — восхититься, посочувствовать? Голландцы говорят <b>Wat …!</b>:</p><div class=\"rule\"><b>Wat leuk!</b> — Как здорово! · <b>Wat fijn!</b> — Как приятно!<br><b>Wat mooi!</b> — Как красиво! · <b>Wat groot!</b> — Какой большой!<br><b>Wat duur!</b> — Как дорого! · <b>Wat jammer!</b> — Как жаль!</div><p>Все эти фразы (и остальные из этого блока) есть в Словаре → «💬 Фразы».</p>",
+     "ex": [
+      [
+       "Wat leuk!",
+       "Как здорово!"
+      ],
+      [
+       "Wat jammer!",
+       "Как жаль!"
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Что скажешь?",
+     "q": "Друг показывает свою новую квартиру — светлую и уютную. Твоя реакция?",
+     "opts": [
+      "Wat mooi!",
+      "Wat jammer!",
+      "Wat duur!",
+      "Gecondoleerd."
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Что скажешь?",
+     "q": "Соседи говорят: вечеринка по случаю новоселья отменяется. Твоя реакция?",
+     "opts": [
+      "Wat jammer!",
+      "Wat leuk!",
+      "Wat fijn!",
+      "Wat groot!"
+     ]
+    },
+    {
+     "t": "match",
+     "k": "Пары",
+     "pairs": [
+      [
+       "Wat leuk!",
+       "Как здорово!"
+      ],
+      [
+       "Wat jammer!",
+       "Как жаль!"
+      ],
+      [
+       "Wat duur!",
+       "Как дорого!"
+      ],
+      [
+       "Wat fijn!",
+       "Как приятно!"
+      ]
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери реакцию",
+     "tr": "Какой красивый дом!",
+     "words": [
+      "Wat",
+      "een",
+      "mooi",
+      "huis"
+     ],
+     "ans": [
+      "Wat",
+      "een",
+      "mooi",
+      "huis"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Wat leuk! Wat fijn voor jou!",
+     "tr": "Как здорово! Как приятно за тебя!"
+    }
+   ],
+   "theme": "Переезд",
+   "idx": 3
   },
   {
-   "lesson": 102,
    "title": "Handige zinnen: погода 🌦️",
    "steps": [
-    {"t":"explain","k":"Полезные фразы (стр. 368)","b":"🌦️ Praten over het weer","html":"<p>Разговор о погоде — главный smalltalk в Нидерландах 😄 Говорим через <b>het</b>:</p><div class=\"rule\"><b>Het regent.</b> — Идёт дождь. · <b>Het waait.</b> — Ветрено.<br><b>Het sneeuwt.</b> — Идёт снег. · <b>Het is koud / warm / heet.</b><br><b>Het is mooi weer.</b> — Хорошая погода.<br><b>Het is lente / zomer / herfst / winter.</b> — времена года</div>","ex":[["Het is mooi weer vandaag!","Сегодня хорошая погода!"],["Het regent alweer…","Опять дождь…"]]},
-    {"t":"clozeBank","k":"Vul in · погода","sents":[["Het ___ vandaag hard. (дождь)","regent","Сегодня сильный дождь."],["Het ___ aan zee altijd. (ветер)","waait","На море всегда ветрено."],["Het ___ bijna nooit in Nederland. (снег)","sneeuwt","В Нидерландах почти никогда не идёт снег."]],"bank":["regent","waait","sneeuwt","schijnt"]},
-    {"t":"quiz","k":"Как сказать?","q":"«Светит солнце!»","opts":["De zon schijnt!","Het zon is!","De zon regent!","Het is zon."]},
-    {"t":"match","k":"Времена года","pairs":[["de lente","весна"],["de zomer","лето"],["de herfst","осень"],["de winter","зима"]]},
-    {"t":"tf","k":"Верно?","q":"О погоде говорят с het: «Het is koud», «Het regent».","answer":true,"note":"Да, всегда het — как английское it."},
-    {"t":"speak","k":"Говорение","phrase":"Het is mooi weer vandaag, vind je niet?","tr":"Сегодня отличная погода, правда?"}
-   ]
+    {
+     "t": "explain",
+     "k": "Полезные фразы (стр. 368)",
+     "b": "🌦️ Praten over het weer",
+     "html": "<p>Разговор о погоде — главный smalltalk в Нидерландах 😄 Говорим через <b>het</b>:</p><div class=\"rule\"><b>Het regent.</b> — Идёт дождь. · <b>Het waait.</b> — Ветрено.<br><b>Het sneeuwt.</b> — Идёт снег. · <b>Het is koud / warm / heet.</b><br><b>Het is mooi weer.</b> — Хорошая погода.<br><b>Het is lente / zomer / herfst / winter.</b> — времена года</div>",
+     "ex": [
+      [
+       "Het is mooi weer vandaag!",
+       "Сегодня хорошая погода!"
+      ],
+      [
+       "Het regent alweer…",
+       "Опять дождь…"
+      ]
+     ]
+    },
+    {
+     "t": "clozeBank",
+     "k": "Vul in · погода",
+     "sents": [
+      [
+       "Het ___ vandaag hard. (дождь)",
+       "regent",
+       "Сегодня сильный дождь."
+      ],
+      [
+       "Het ___ aan zee altijd. (ветер)",
+       "waait",
+       "На море всегда ветрено."
+      ],
+      [
+       "Het ___ bijna nooit in Nederland. (снег)",
+       "sneeuwt",
+       "В Нидерландах почти никогда не идёт снег."
+      ]
+     ],
+     "bank": [
+      "regent",
+      "waait",
+      "sneeuwt",
+      "schijnt"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Как сказать?",
+     "q": "«Светит солнце!»",
+     "opts": [
+      "De zon schijnt!",
+      "Het zon is!",
+      "De zon regent!",
+      "Het is zon."
+     ]
+    },
+    {
+     "t": "match",
+     "k": "Времена года",
+     "pairs": [
+      [
+       "de lente",
+       "весна"
+      ],
+      [
+       "de zomer",
+       "лето"
+      ],
+      [
+       "de herfst",
+       "осень"
+      ],
+      [
+       "de winter",
+       "зима"
+      ]
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "О погоде говорят с het: «Het is koud», «Het regent».",
+     "answer": true,
+     "note": "Да, всегда het — как английское it."
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Het is mooi weer vandaag, vind je niet?",
+     "tr": "Сегодня отличная погода, правда?"
+    }
+   ],
+   "theme": "Нидерланды",
+   "idx": 6
   },
   {
-   "lesson": 98,
    "title": "Handige zinnen: открытки 💌",
    "steps": [
-    {"t":"explain","k":"Полезные фразы (стр. 368)","b":"💌 Kaartjes schrijven — что написать в открытке","html":"<p>Голландцы обожают открытки — на каждый случай есть дежурная фраза. Перепутать их нельзя!</p><div class=\"rule\"><table style=\"width:100%;border-collapse:collapse;font-size:13px\"><tr style=\"color:var(--ink-2)\"><td><b>Случай</b></td><td><b>Что писать</b></td></tr><tr><td>день рождения</td><td><b>Gefeliciteerd met je verjaardag!</b></td></tr><tr><td>родился ребёнок</td><td><b>Gefeliciteerd met jullie baby!</b></td></tr><tr><td>кто-то умер</td><td><b>Gecondoleerd. Sterkte.</b></td></tr><tr><td>свадьба</td><td><b>Gefeliciteerd met jullie huwelijk!</b></td></tr><tr><td>кто-то болеет</td><td><b>Beterschap!</b></td></tr><tr><td>новое жильё</td><td><b>Gefeliciteerd met je nieuwe woning.</b></td></tr><tr><td>новая работа</td><td><b>Veel succes met je nieuwe baan!</b></td></tr></table></div>","ex":[["Gefeliciteerd!","Поздравляю!"],["Beterschap!","Выздоравливай!"]]},
-    {"t":"quiz","k":"Что напишешь?","q":"У коллеги родился ребёнок 🍼","opts":["Gefeliciteerd met jullie baby!","Gecondoleerd.","Beterschap!","Veel succes!"]},
-    {"t":"quiz","k":"Что напишешь?","q":"Подруга лежит с гриппом 🤒","opts":["Beterschap!","Gefeliciteerd!","Veel geluk samen.","Wat leuk!"]},
-    {"t":"quiz","k":"Что напишешь?","q":"У знакомых умер дедушка 🖤","opts":["Gecondoleerd. Sterkte.","Gefeliciteerd!","Wat jammer!","Veel succes!"]},
-    {"t":"clozeBank","k":"Vul in · открытки","sents":[["У подруги день рождения: ___ met je verjaardag!","Gefeliciteerd","С днём рождения!"],["Брату предстоит экзамен: Veel ___ met je examen!","succes","Удачи на экзамене!"],["Коллега купил дом: Gefeliciteerd met je nieuwe ___!","woning","Поздравляю с новым жильём!"]],"bank":["Gefeliciteerd","succes","woning","Gecondoleerd"]},
-    {"t":"build","k":"Собери","tr":"Поздравляю со свадьбой!","words":["Gefeliciteerd","met","jullie","huwelijk"],"ans":["Gefeliciteerd","met","jullie","huwelijk"]},
-    {"t":"speak","k":"Говорение","phrase":"Gefeliciteerd! Ik wens je een fijne dag!","tr":"Поздравляю! Желаю хорошего дня!"}
-   ]
+    {
+     "t": "explain",
+     "k": "Полезные фразы (стр. 368)",
+     "b": "💌 Kaartjes schrijven — что написать в открытке",
+     "html": "<p>Голландцы обожают открытки — на каждый случай есть дежурная фраза. Перепутать их нельзя!</p><div class=\"rule\"><table style=\"width:100%;border-collapse:collapse;font-size:13px\"><tr style=\"color:var(--ink-2)\"><td><b>Случай</b></td><td><b>Что писать</b></td></tr><tr><td>день рождения</td><td><b>Gefeliciteerd met je verjaardag!</b></td></tr><tr><td>родился ребёнок</td><td><b>Gefeliciteerd met jullie baby!</b></td></tr><tr><td>кто-то умер</td><td><b>Gecondoleerd. Sterkte.</b></td></tr><tr><td>свадьба</td><td><b>Gefeliciteerd met jullie huwelijk!</b></td></tr><tr><td>кто-то болеет</td><td><b>Beterschap!</b></td></tr><tr><td>новое жильё</td><td><b>Gefeliciteerd met je nieuwe woning.</b></td></tr><tr><td>новая работа</td><td><b>Veel succes met je nieuwe baan!</b></td></tr></table></div>",
+     "ex": [
+      [
+       "Gefeliciteerd!",
+       "Поздравляю!"
+      ],
+      [
+       "Beterschap!",
+       "Выздоравливай!"
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Что напишешь?",
+     "q": "У коллеги родился ребёнок 🍼",
+     "opts": [
+      "Gefeliciteerd met jullie baby!",
+      "Gecondoleerd.",
+      "Beterschap!",
+      "Veel succes!"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Что напишешь?",
+     "q": "Подруга лежит с гриппом 🤒",
+     "opts": [
+      "Beterschap!",
+      "Gefeliciteerd!",
+      "Veel geluk samen.",
+      "Wat leuk!"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Что напишешь?",
+     "q": "У знакомых умер дедушка 🖤",
+     "opts": [
+      "Gecondoleerd. Sterkte.",
+      "Gefeliciteerd!",
+      "Wat jammer!",
+      "Veel succes!"
+     ]
+    },
+    {
+     "t": "clozeBank",
+     "k": "Vul in · открытки",
+     "sents": [
+      [
+       "У подруги день рождения: ___ met je verjaardag!",
+       "Gefeliciteerd",
+       "С днём рождения!"
+      ],
+      [
+       "Брату предстоит экзамен: Veel ___ met je examen!",
+       "succes",
+       "Удачи на экзамене!"
+      ],
+      [
+       "Коллега купил дом: Gefeliciteerd met je nieuwe ___!",
+       "woning",
+       "Поздравляю с новым жильём!"
+      ]
+     ],
+     "bank": [
+      "Gefeliciteerd",
+      "succes",
+      "woning",
+      "Gecondoleerd"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Поздравляю со свадьбой!",
+     "words": [
+      "Gefeliciteerd",
+      "met",
+      "jullie",
+      "huwelijk"
+     ],
+     "ans": [
+      "Gefeliciteerd",
+      "met",
+      "jullie",
+      "huwelijk"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Gefeliciteerd! Ik wens je een fijne dag!",
+     "tr": "Поздравляю! Желаю хорошего дня!"
+    }
+   ],
+   "theme": "Нидерланды",
+   "idx": 2
   },
   {
-   "lesson": 108,
    "title": "Handige zinnen: телефон 📞",
    "steps": [
-    {"t":"explain","k":"Полезные фразы (стр. 369)","b":"📞 Bellen — телефонный этикет","html":"<p>В Нидерландах по телефону <b>всегда называют своё имя</b> — и тот, кто звонит, и тот, кто берёт трубку:</p><div class=\"rule\">📲 Берёшь трубку: <b>Hallo, met Thomas.</b><br>📲 Официально: <b>Goedemorgen, u spreekt met Ria Lutters.</b><br>📞 Звонишь ты: подожди, пока назовут имя, потом поздоровайся и назови себя.<br>🔚 Конец разговора — оба прощаются: <b>Dag. / Tot ziens.</b></div>","ex":[["Hallo, met Anna.","Алло, это Анна."],["Dag, tot ziens!","До свидания!"]]},
-    {"t":"quiz","k":"Как правильно?","q":"Ты берёшь трубку. Что говоришь?","opts":["Hallo, met Anna.","Ja? Wie is dit?","Spreek!","Goedemorgen. Wat wilt u?"]},
-    {"t":"quiz","k":"Как правильно?","q":"Разговор окончен. Что говоришь?","opts":["Dag. Tot ziens.","Hallo, met Anna.","Kunt u dat herhalen?","Wat jammer!"]},
-    {"t":"tf","k":"Верно?","q":"Когда звонишь ТЫ, сначала подожди, пока собеседник назовёт своё имя.","answer":true,"note":"Да: он говорит «met …», потом здороваешься и называешь себя."},
-    {"t":"gapType","k":"Впиши слово","q":"Goedemorgen, u spreekt ___ Ria Lutters.","answer":["met"],"ph":"m…","hint":"«с вами говорит …»"},
-    {"t":"build","k":"Собери","tr":"Доброе утро, с вами говорит Рия.","words":["Goedemorgen,","u","spreekt","met","Ria"],"ans":["Goedemorgen,","u","spreekt","met","Ria"]},
-    {"t":"speak","k":"Говорение","phrase":"Hallo, met Anna. Dag, tot ziens!","tr":"Алло, это Анна. До свидания!"}
-   ]
+    {
+     "t": "explain",
+     "k": "Полезные фразы (стр. 369)",
+     "b": "📞 Bellen — телефонный этикет",
+     "html": "<p>В Нидерландах по телефону <b>всегда называют своё имя</b> — и тот, кто звонит, и тот, кто берёт трубку:</p><div class=\"rule\">📲 Берёшь трубку: <b>Hallo, met Thomas.</b><br>📲 Официально: <b>Goedemorgen, u spreekt met Ria Lutters.</b><br>📞 Звонишь ты: подожди, пока назовут имя, потом поздоровайся и назови себя.<br>🔚 Конец разговора — оба прощаются: <b>Dag. / Tot ziens.</b></div>",
+     "ex": [
+      [
+       "Hallo, met Anna.",
+       "Алло, это Анна."
+      ],
+      [
+       "Dag, tot ziens!",
+       "До свидания!"
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Как правильно?",
+     "q": "Ты берёшь трубку. Что говоришь?",
+     "opts": [
+      "Hallo, met Anna.",
+      "Ja? Wie is dit?",
+      "Spreek!",
+      "Goedemorgen. Wat wilt u?"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Как правильно?",
+     "q": "Разговор окончен. Что говоришь?",
+     "opts": [
+      "Dag. Tot ziens.",
+      "Hallo, met Anna.",
+      "Kunt u dat herhalen?",
+      "Wat jammer!"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Когда звонишь ТЫ, сначала подожди, пока собеседник назовёт своё имя.",
+     "answer": true,
+     "note": "Да: он говорит «met …», потом здороваешься и называешь себя."
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши слово",
+     "q": "Goedemorgen, u spreekt ___ Ria Lutters.",
+     "answer": [
+      "met"
+     ],
+     "ph": "m…",
+     "hint": "«с вами говорит …»"
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Доброе утро, с вами говорит Рия.",
+     "words": [
+      "Goedemorgen,",
+      "u",
+      "spreekt",
+      "met",
+      "Ria"
+     ],
+     "ans": [
+      "Goedemorgen,",
+      "u",
+      "spreekt",
+      "met",
+      "Ria"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Hallo, met Anna. Dag, tot ziens!",
+     "tr": "Алло, это Анна. До свидания!"
+    }
+   ],
+   "theme": "Магазины",
+   "idx": 1
   },
   {
-   "lesson": 106,
    "title": "Handige zinnen: мнение 🗣️",
    "steps": [
-    {"t":"explain","k":"Полезные фразы (стр. 369)","b":"🗣️ Je mening geven — выразить мнение","html":"<p>На экзамене и в жизни постоянно спрашивают мнение. Формулы:</p><div class=\"rule\">❓ <b>Wat vind jij? / Wat is jouw mening?</b> — а ты как считаешь?<br>✅ <b>Ik vind dat ook.</b> — я тоже так считаю<br>✅ <b>Ik ben het ermee eens, want …</b> — согласен, потому что…<br>❌ <b>Ik vind dat niet.</b> — я так не считаю<br>❌ <b>Ik ben het er niet mee eens, want …</b> — не согласен, потому что…</div><p>💡 После <b>want</b> всегда объясняй ПОЧЕМУ — так требуют на экзамене.</p>","ex":[["Ik vind dat ook.","Я тоже так считаю."],["Ik ben het ermee eens.","Я с этим согласен(на)."]]},
-    {"t":"quiz","k":"Согласись","q":"«Wonen in Nederland is duur.» Ты СОГЛАСЕН. Что скажешь?","opts":["Ik ben het ermee eens, want ik betaal veel huur.","Ik vind dat niet.","Wat jammer!","Ik kan dan helaas niet."]},
-    {"t":"quiz","k":"Не согласись","q":"«Het weer in Nederland is fijn.» Ты НЕ согласен. Что скажешь?","opts":["Ik vind dat niet, want het regent vaak.","Ik vind dat ook.","Dat vind ik een goed idee.","Wat mooi!"]},
-    {"t":"gapType","k":"Впиши слово","q":"Ik ben het ermee ___, want jij hebt gelijk.","answer":["eens"],"ph":"e…","hint":"согласие · «ты прав(а)»"},
-    {"t":"build","k":"Собери","tr":"По-моему, это хорошая идея.","words":["Ik","vind","dat","een","goed","idee"],"ans":["Ik","vind","dat","een","goed","idee"]},
-    {"t":"tf","k":"Верно?","q":"«Ik vind dat ook» — так выражают согласие.","answer":true,"note":"Да: «я тоже так считаю»."},
-    {"t":"speak","k":"Говорение","phrase":"Wat vind jij? — Ik vind dat ook!","tr":"А ты как считаешь? — Я тоже так считаю!"}
-   ]
+    {
+     "t": "explain",
+     "k": "Полезные фразы (стр. 369)",
+     "b": "🗣️ Je mening geven — выразить мнение",
+     "html": "<p>На экзамене и в жизни постоянно спрашивают мнение. Формулы:</p><div class=\"rule\">❓ <b>Wat vind jij? / Wat is jouw mening?</b> — а ты как считаешь?<br>✅ <b>Ik vind dat ook.</b> — я тоже так считаю<br>✅ <b>Ik ben het ermee eens, want …</b> — согласен, потому что…<br>❌ <b>Ik vind dat niet.</b> — я так не считаю<br>❌ <b>Ik ben het er niet mee eens, want …</b> — не согласен, потому что…</div><p>💡 После <b>want</b> всегда объясняй ПОЧЕМУ — так требуют на экзамене.</p>",
+     "ex": [
+      [
+       "Ik vind dat ook.",
+       "Я тоже так считаю."
+      ],
+      [
+       "Ik ben het ermee eens.",
+       "Я с этим согласен(на)."
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Согласись",
+     "q": "«Wonen in Nederland is duur.» Ты СОГЛАСЕН. Что скажешь?",
+     "opts": [
+      "Ik ben het ermee eens, want ik betaal veel huur.",
+      "Ik vind dat niet.",
+      "Wat jammer!",
+      "Ik kan dan helaas niet."
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Не согласись",
+     "q": "«Het weer in Nederland is fijn.» Ты НЕ согласен. Что скажешь?",
+     "opts": [
+      "Ik vind dat niet, want het regent vaak.",
+      "Ik vind dat ook.",
+      "Dat vind ik een goed idee.",
+      "Wat mooi!"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши слово",
+     "q": "Ik ben het ermee ___, want jij hebt gelijk.",
+     "answer": [
+      "eens"
+     ],
+     "ph": "e…",
+     "hint": "согласие · «ты прав(а)»"
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "По-моему, это хорошая идея.",
+     "words": [
+      "Ik",
+      "vind",
+      "dat",
+      "een",
+      "goed",
+      "idee"
+     ],
+     "ans": [
+      "Ik",
+      "vind",
+      "dat",
+      "een",
+      "goed",
+      "idee"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "«Ik vind dat ook» — так выражают согласие.",
+     "answer": true,
+     "note": "Да: «я тоже так считаю»."
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Wat vind jij? — Ik vind dat ook!",
+     "tr": "А ты как считаешь? — Я тоже так считаю!"
+    }
+   ],
+   "theme": "Дети",
+   "idx": 3
   },
   {
-   "lesson": 118,
    "title": "Handige zinnen: договориться 🤝",
    "steps": [
-    {"t":"explain","k":"Полезные фразы (стр. 369)","b":"🤝 Een afspraak maken — договориться о встрече","html":"<p>Предложить что-то вместе и отреагировать на предложение:</p><div class=\"rule\">💡 Предложить: <b>Zal ik …?</b> (мне …?) · <b>Zullen we …?</b> (давай …?) · <b>We kunnen …</b> (мы можем …)<br>👍 Согласиться: <b>Dat vind ik een goed idee. / Wat leuk!</b><br>👎 Отказаться вежливо: <b>Ik kan dan helaas niet.</b> · <b>Ik houd niet van winkelen.</b></div>","ex":[["Zullen we zaterdag winkelen?","Пойдём в субботу по магазинам?"],["Ik kan dan helaas niet.","К сожалению, тогда я не могу."]]},
-    {"t":"quiz","k":"Предложи","q":"Хочешь предложить коллеге вместе пообедать. Что скажешь?","opts":["Zullen we samen lunchen?","Ik kan dan helaas niet.","Wat duur!","Ik vind dat niet."]},
-    {"t":"quiz","k":"Откажись вежливо","q":"Тебя зовут в кино в пятницу, но ты работаешь. Что скажешь?","opts":["Ik kan dan helaas niet.","Nee.","Dat vind ik een goed idee.","Zal ik komen?"]},
-    {"t":"clozeBank","k":"Vul in · предложения","sents":[["___ we zaterdag winkelen?","Zullen","Пойдём в субботу по магазинам?"],["___ ik morgen komen?","Zal","Мне прийти завтра?"],["We ___ naar een museum gaan.","kunnen","Мы можем сходить в музей."]],"bank":["Zullen","Zal","kunnen","Willen"]},
-    {"t":"build","k":"Собери","tr":"Договоримся на пятницу?","words":["Zullen","we","vrijdag","afspreken"],"ans":["Zullen","we","vrijdag","afspreken"]},
-    {"t":"speak","k":"Говорение","phrase":"Zullen we morgen afspreken? — Dat vind ik een goed idee!","tr":"Договоримся на завтра? — Отличная идея!"}
-   ]
+    {
+     "t": "explain",
+     "k": "Полезные фразы (стр. 369)",
+     "b": "🤝 Een afspraak maken — договориться о встрече",
+     "html": "<p>Предложить что-то вместе и отреагировать на предложение:</p><div class=\"rule\">💡 Предложить: <b>Zal ik …?</b> (мне …?) · <b>Zullen we …?</b> (давай …?) · <b>We kunnen …</b> (мы можем …)<br>👍 Согласиться: <b>Dat vind ik een goed idee. / Wat leuk!</b><br>👎 Отказаться вежливо: <b>Ik kan dan helaas niet.</b> · <b>Ik houd niet van winkelen.</b></div>",
+     "ex": [
+      [
+       "Zullen we zaterdag winkelen?",
+       "Пойдём в субботу по магазинам?"
+      ],
+      [
+       "Ik kan dan helaas niet.",
+       "К сожалению, тогда я не могу."
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Предложи",
+     "q": "Хочешь предложить коллеге вместе пообедать. Что скажешь?",
+     "opts": [
+      "Zullen we samen lunchen?",
+      "Ik kan dan helaas niet.",
+      "Wat duur!",
+      "Ik vind dat niet."
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Откажись вежливо",
+     "q": "Тебя зовут в кино в пятницу, но ты работаешь. Что скажешь?",
+     "opts": [
+      "Ik kan dan helaas niet.",
+      "Nee.",
+      "Dat vind ik een goed idee.",
+      "Zal ik komen?"
+     ]
+    },
+    {
+     "t": "clozeBank",
+     "k": "Vul in · предложения",
+     "sents": [
+      [
+       "___ we zaterdag winkelen?",
+       "Zullen",
+       "Пойдём в субботу по магазинам?"
+      ],
+      [
+       "___ ik morgen komen?",
+       "Zal",
+       "Мне прийти завтра?"
+      ],
+      [
+       "We ___ naar een museum gaan.",
+       "kunnen",
+       "Мы можем сходить в музей."
+      ]
+     ],
+     "bank": [
+      "Zullen",
+      "Zal",
+      "kunnen",
+      "Willen"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Договоримся на пятницу?",
+     "words": [
+      "Zullen",
+      "we",
+      "vrijdag",
+      "afspreken"
+     ],
+     "ans": [
+      "Zullen",
+      "we",
+      "vrijdag",
+      "afspreken"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Zullen we morgen afspreken? — Dat vind ik een goed idee!",
+     "tr": "Договоримся на завтра? — Отличная идея!"
+    }
+   ],
+   "theme": "На работе",
+   "idx": 2
   }
  ]
 }

@@ -1,88 +1,387 @@
 {
- "note": "Klemtoon (ударение, как упр. 119/7 в TaalCompleet A2) и пазлы-кроссворды со скрытым словом (как «Maak de puzzel», стр. 173). Части уроков {lesson,title,steps}, вшивает build.py. Ударения выверены по учебнику (подчёркнутые слоги на фото) и базовым правилам NL.",
+ "note": "Klemtoon (ударение, как упр. 119/7 в TaalCompleet A2). Пазлы-кроссворды переехали в data/crosswords.json (настоящая сетка, узел 🧩 на карте в каждой теме).",
  "parts": [
   {
-   "lesson": 40,
    "title": "Klemtoon: ударение 🎵",
    "steps": [
-    {"t":"explain","k":"Произношение (как в учебнике)","b":"🎵 Waar ligt de klemtoon?","html":"<p>В нидерландском ударение чаще всего на <b>первом слоге</b>: <b>TA</b>-fel, <b>KEU</b>-ken. Но заимствованные слова бьют в конец: sta-<b>TION</b>, mu-<b>ZIEK</b>, te-le-<b>FOON</b>.</p><div class=\"rule\">Слушай слово (▶) и выбирай слог, на который падает ударение. Потом повтори вслух — это тренирует и слух, и произношение.</div>"},
-    {"t":"quiz","k":"Где ударение?","audio":"tafel","q":"tafel (стол)","opts":["TA-fel","ta-FEL"]},
-    {"t":"quiz","k":"Где ударение?","audio":"keuken","q":"keuken (кухня)","opts":["KEU-ken","keu-KEN"]},
-    {"t":"quiz","k":"Где ударение?","audio":"koffie","q":"koffie (кофе)","opts":["KOF-fie","kof-FIE"]},
-    {"t":"quiz","k":"Где ударение?","audio":"vandaag","q":"vandaag (сегодня)","opts":["van-DAAG","VAN-daag"]},
-    {"t":"quiz","k":"Где ударение?","audio":"ontbijt","q":"ontbijt (завтрак)","opts":["ont-BIJT","ONT-bijt"]},
-    {"t":"quiz","k":"Где ударение?","audio":"betalen","q":"betalen (платить)","opts":["be-TA-len","BE-ta-len","be-ta-LEN"]},
-    {"t":"quiz","k":"Где ударение?","audio":"station","q":"station (вокзал)","opts":["sta-TION","STA-tion"]},
-    {"t":"quiz","k":"Где ударение?","audio":"muziek","q":"muziek (музыка)","opts":["mu-ZIEK","MU-ziek"]},
-    {"t":"quiz","k":"Где ударение?","audio":"telefoon","q":"telefoon (телефон)","opts":["te-le-FOON","TE-le-foon","te-LE-foon"]},
-    {"t":"quiz","k":"Где ударение?","audio":"familie","q":"familie (семья)","opts":["fa-MI-lie","FA-mi-lie","fa-mi-LIE"]},
-    {"t":"quiz","k":"Где ударение?","audio":"vakantie","q":"vakantie (отпуск)","opts":["va-KAN-tie","VA-kan-tie","va-kan-TIE"]},
-    {"t":"quiz","k":"Где ударение?","audio":"politie","q":"politie (полиция)","opts":["po-LI-tie","PO-li-tie","po-li-TIE"]},
-    {"t":"quiz","k":"Где ударение?","audio":"gezellig","q":"gezellig (уютный, душевный)","opts":["ge-ZEL-lig","GE-zel-lig","ge-zel-LIG"]},
-    {"t":"quiz","k":"Где ударение?","audio":"Nederland","q":"Nederland (Нидерланды)","opts":["NE-der-land","ne-DER-land","ne-der-LAND"]},
-    {"t":"quiz","k":"Где ударение?","audio":"computer","q":"computer (компьютер)","opts":["com-PU-ter","COM-pu-ter","com-pu-TER"]},
-    {"t":"tf","k":"Верно?","q":"В нидерландском ударение чаще всего падает на первый слог.","answer":true,"note":"Да, но заимствования (station, muziek, telefoon) — исключения."},
-    {"t":"speak","k":"Говорение · повтори с ударением","phrase":"tafel, keuken, station, muziek, telefoon","tr":"стол · кухня · вокзал · музыка · телефон"}
-   ]
+    {
+     "t": "explain",
+     "k": "Произношение (как в учебнике)",
+     "b": "🎵 Waar ligt de klemtoon?",
+     "html": "<p>В нидерландском ударение чаще всего на <b>первом слоге</b>: <b>TA</b>-fel, <b>KEU</b>-ken. Но заимствованные слова бьют в конец: sta-<b>TION</b>, mu-<b>ZIEK</b>, te-le-<b>FOON</b>.</p><div class=\"rule\">Слушай слово (▶) и выбирай слог, на который падает ударение. Потом повтори вслух — это тренирует и слух, и произношение.</div>"
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "tafel",
+     "q": "tafel (стол)",
+     "opts": [
+      "TA-fel",
+      "ta-FEL"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "keuken",
+     "q": "keuken (кухня)",
+     "opts": [
+      "KEU-ken",
+      "keu-KEN"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "koffie",
+     "q": "koffie (кофе)",
+     "opts": [
+      "KOF-fie",
+      "kof-FIE"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "vandaag",
+     "q": "vandaag (сегодня)",
+     "opts": [
+      "van-DAAG",
+      "VAN-daag"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "ontbijt",
+     "q": "ontbijt (завтрак)",
+     "opts": [
+      "ont-BIJT",
+      "ONT-bijt"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "betalen",
+     "q": "betalen (платить)",
+     "opts": [
+      "be-TA-len",
+      "BE-ta-len",
+      "be-ta-LEN"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "station",
+     "q": "station (вокзал)",
+     "opts": [
+      "sta-TION",
+      "STA-tion"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "muziek",
+     "q": "muziek (музыка)",
+     "opts": [
+      "mu-ZIEK",
+      "MU-ziek"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "telefoon",
+     "q": "telefoon (телефон)",
+     "opts": [
+      "te-le-FOON",
+      "TE-le-foon",
+      "te-LE-foon"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "familie",
+     "q": "familie (семья)",
+     "opts": [
+      "fa-MI-lie",
+      "FA-mi-lie",
+      "fa-mi-LIE"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "vakantie",
+     "q": "vakantie (отпуск)",
+     "opts": [
+      "va-KAN-tie",
+      "VA-kan-tie",
+      "va-kan-TIE"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "politie",
+     "q": "politie (полиция)",
+     "opts": [
+      "po-LI-tie",
+      "PO-li-tie",
+      "po-li-TIE"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "gezellig",
+     "q": "gezellig (уютный, душевный)",
+     "opts": [
+      "ge-ZEL-lig",
+      "GE-zel-lig",
+      "ge-zel-LIG"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "Nederland",
+     "q": "Nederland (Нидерланды)",
+     "opts": [
+      "NE-der-land",
+      "ne-DER-land",
+      "ne-der-LAND"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "computer",
+     "q": "computer (компьютер)",
+     "opts": [
+      "com-PU-ter",
+      "COM-pu-ter",
+      "com-pu-TER"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "В нидерландском ударение чаще всего падает на первый слог.",
+     "answer": true,
+     "note": "Да, но заимствования (station, muziek, telefoon) — исключения."
+    },
+    {
+     "t": "speak",
+     "k": "Говорение · повтори с ударением",
+     "phrase": "tafel, keuken, station, muziek, telefoon",
+     "tr": "стол · кухня · вокзал · музыка · телефон"
+    }
+   ],
+   "theme": "Школа",
+   "idx": 1
   },
   {
-   "lesson": 112,
    "title": "Klemtoon: ударение A2 🎵",
    "steps": [
-    {"t":"explain","k":"Произношение (упр. 119 и 7 из учебника)","b":"🎵 Klemtoon в длинных словах A2","html":"<p>Слова стали длиннее — ударение важнее. Запомни модели:</p><div class=\"rule\">приставки <b>aan-/voor-/na-/werk-/tij-</b> обычно ударные: <b>AAN</b>-dacht, <b>VOOR</b>-deel, <b>WERK</b>-ge-ver<br>суффиксы <b>-teit / -aat / -uur / -eren</b> тянут ударение к концу: ac-ti-vi-<b>TEIT</b>, ad-vo-<b>CAAT</b>, sol-li-ci-<b>TE</b>-ren</div><p>Слушай (▶) и выбирай ударный слог — эти слова прямо из упражнений учебника.</p>"},
-    {"t":"quiz","k":"Где ударение?","audio":"aandacht","q":"aandacht (внимание)","opts":["AAN-dacht","aan-DACHT"]},
-    {"t":"quiz","k":"Где ударение?","audio":"allerlei","q":"allerlei (всевозможные)","opts":["AL-ler-lei","al-LER-lei","al-ler-LEI"]},
-    {"t":"quiz","k":"Где ударение?","audio":"activiteit","q":"activiteit (занятие, активность)","opts":["ac-ti-vi-TEIT","ac-TI-vi-teit","AC-ti-vi-teit"]},
-    {"t":"quiz","k":"Где ударение?","audio":"persoonlijk","q":"persoonlijk (личный)","opts":["per-SOON-lijk","PER-soon-lijk","per-soon-LIJK"]},
-    {"t":"quiz","k":"Где ударение?","audio":"regelmatig","q":"regelmatig (регулярный)","opts":["re-gel-MA-tig","RE-gel-ma-tig","re-GEL-ma-tig"]},
-    {"t":"quiz","k":"Где ударение?","audio":"ontdekken","q":"ontdekken (открывать, обнаруживать)","opts":["ont-DEK-ken","ONT-dek-ken","ont-dek-KEN"]},
-    {"t":"quiz","k":"Где ударение?","audio":"maximaal","q":"maximaal (максимально)","opts":["ma-xi-MAAL","MA-xi-maal","ma-XI-maal"]},
-    {"t":"quiz","k":"Где ударение?","audio":"advocaat","q":"advocaat (адвокат)","opts":["ad-vo-CAAT","AD-vo-caat","ad-VO-caat"]},
-    {"t":"quiz","k":"Где ударение?","audio":"vacature","q":"vacature (вакансия)","opts":["va-ca-TU-re","VA-ca-tu-re","va-CA-tu-re"]},
-    {"t":"quiz","k":"Где ударение?","audio":"solliciteren","q":"solliciteren (откликаться на вакансию)","opts":["sol-li-ci-TE-ren","SOL-li-ci-te-ren","sol-LI-ci-te-ren"]},
-    {"t":"quiz","k":"Где ударение?","audio":"werkgever","q":"werkgever (работодатель)","opts":["WERK-ge-ver","werk-GE-ver","werk-ge-VER"]},
-    {"t":"quiz","k":"Где ударение?","audio":"tijdelijk","q":"tijdelijk (временный)","opts":["TIJ-de-lijk","tij-DE-lijk","tij-de-LIJK"]},
-    {"t":"quiz","k":"Где ударение?","audio":"contract","q":"contract (договор)","opts":["con-TRACT","CON-tract"]},
-    {"t":"quiz","k":"Где ударение?","audio":"kennis","q":"kennis (знание)","opts":["KEN-nis","ken-NIS"]},
-    {"t":"quiz","k":"Где ударение?","audio":"voordeel","q":"voordeel (преимущество)","opts":["VOOR-deel","voor-DEEL"]},
-    {"t":"quiz","k":"Где ударение?","audio":"bewaren","q":"bewaren (хранить)","opts":["be-WA-ren","BE-wa-ren","be-wa-REN"]},
-    {"t":"tf","k":"Верно?","q":"В слове «solliciteren» ударение падает на «te»: sol-li-ci-TE-ren.","answer":true,"note":"Да: суффикс -eren тянет ударение на себя."},
-    {"t":"speak","k":"Говорение · повтори с ударением","phrase":"aandacht, vacature, solliciteren, werkgever, contract","tr":"внимание · вакансия · откликаться · работодатель · договор"}
-   ]
-  },
-  {
-   "lesson": 51,
-   "title": "Пазл: кроссворд 🧩",
-   "steps": [
-    {"t":"explain","k":"Как «Maak de puzzel» в учебнике","b":"🧩 Кроссворд со скрытым словом","html":"<p>Реши кроссворд: по определению впиши слово по-нидерландски (без артикля). <b>Первые буквы шести ответов сложатся в скрытое слово!</b> Записывай их по пути 😉</p>"},
-    {"t":"translate","k":"Пазл 1/6","q":"Ей едят суп. Столовый прибор — de …","answer":["lepel"],"ph":"l…","hint":"1-я буква скрытого слова"},
-    {"t":"translate","k":"Пазл 2/6","q":"Курица несёт его каждый день — het …","answer":["ei"],"ph":"e…","hint":"2-я буква скрытого слова"},
-    {"t":"translate","k":"Пазл 3/6","q":"Голландия знаменита этим продуктом (жёлтый, из молока) — de …","answer":["kaas"],"ph":"k…","hint":"3-я буква скрытого слова"},
-    {"t":"translate","k":"Пазл 4/6","q":"Птица, которую едят с картошкой фри — de …","answer":["kip"],"ph":"k…","hint":"4-я буква скрытого слова"},
-    {"t":"translate","k":"Пазл 5/6","q":"Это делают три раза в день: завтрак, обед, ужин (глагол)","answer":["eten"],"ph":"e…","hint":"5-я буква скрытого слова"},
-    {"t":"translate","k":"Пазл 6/6","q":"Белый гарнир, любимый в Азии — de …","answer":["rijst"],"ph":"r…","hint":"6-я буква скрытого слова"},
-    {"t":"explain","k":"Скрытое слово","b":"🎉 L-E-K-K-E-R!","html":"<p>Первые буквы: lepel, ei, kaas, kip, eten, rijst → <b>LEKKER</b> — «вкусно»! Самое нужное слово за голландским столом 😋</p><div class=\"rule\">Wat lekker! — Как вкусно! · Het eten is lekker. — Еда вкусная.</div>"},
-    {"t":"build","k":"Пазл: собери слово","tr":"вкусно (6 букв)","words":["l","e","k","k","e","r"],"ans":["l","e","k","k","e","r"]},
-    {"t":"quiz","k":"Сколько слов?","audio":"Het eten is vandaag heel lekker.","q":"Прослушай. Сколько слов в предложении?","opts":["6","5","7","8"]},
-    {"t":"dict","k":"Диктант","audio":"Het eten is lekker.","answer":["Het eten is lekker"],"tr":"Еда вкусная."},
-    {"t":"speak","k":"Говорение","phrase":"Wat lekker! Het eten is heel lekker!","tr":"Как вкусно! Еда очень вкусная!"}
-   ]
-  },
-  {
-   "lesson": 122,
-   "title": "Пазл: A2-кроссворд 🧩",
-   "steps": [
-    {"t":"explain","k":"Как «Maak de puzzel» в учебнике","b":"🧩 Кроссворд со скрытым словом","html":"<p>По определению впиши слово (без артикля). <b>Первые буквы четырёх ответов сложатся в скрытое слово</b> — без него в gemeente делать нечего 😄</p>"},
-    {"t":"translate","k":"Пазл 1/4","q":"Туда идёшь за паспортом, пропиской и разрешениями — de …","answer":["gemeente"],"ph":"g…","hint":"1-я буква скрытого слова"},
-    {"t":"translate","k":"Пазл 2/4","q":"Валюта Нидерландов — de …","answer":["euro"],"ph":"e…","hint":"2-я буква скрытого слова"},
-    {"t":"translate","k":"Пазл 3/4","q":"Окошко в учреждении, куда вызывают по номерку — het …","answer":["loket"],"ph":"l…","hint":"3-я буква скрытого слова"},
-    {"t":"translate","k":"Пазл 4/4","q":"Официальная бумага: паспорт, договор, справка — het …","answer":["document"],"ph":"d…","hint":"4-я буква скрытого слова"},
-    {"t":"explain","k":"Скрытое слово","b":"🎉 G-E-L-D!","html":"<p>gemeente, euro, loket, document → <b>GELD</b> — «деньги»! Без них и уittreksel не выдадут 💶</p><div class=\"rule\">Hoeveel geld kost het? — Сколько это стоит? · Ik heb geen geld bij me. — У меня с собой нет денег.</div>"},
-    {"t":"build","k":"Пазл: собери слово","tr":"окошко в учреждении (5 букв)","words":["l","o","k","e","t"],"ans":["l","o","k","e","t"]},
-    {"t":"quiz","k":"Сколько слов?","audio":"Ik heb een afspraak bij de gemeente.","q":"Прослушай. Сколько слов в предложении?","opts":["7","6","8","9"]},
-    {"t":"dict","k":"Диктант","audio":"Ik wil bezwaar maken.","answer":["Ik wil bezwaar maken"],"tr":"Я хочу подать возражение."},
-    {"t":"speak","k":"Говорение","phrase":"Ik heb een afspraak bij de gemeente.","tr":"У меня приём в муниципалитете."}
-   ]
+    {
+     "t": "explain",
+     "k": "Произношение (упр. 119 и 7 из учебника)",
+     "b": "🎵 Klemtoon в длинных словах A2",
+     "html": "<p>Слова стали длиннее — ударение важнее. Запомни модели:</p><div class=\"rule\">приставки <b>aan-/voor-/na-/werk-/tij-</b> обычно ударные: <b>AAN</b>-dacht, <b>VOOR</b>-deel, <b>WERK</b>-ge-ver<br>суффиксы <b>-teit / -aat / -uur / -eren</b> тянут ударение к концу: ac-ti-vi-<b>TEIT</b>, ad-vo-<b>CAAT</b>, sol-li-ci-<b>TE</b>-ren</div><p>Слушай (▶) и выбирай ударный слог — эти слова прямо из упражнений учебника.</p>"
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "aandacht",
+     "q": "aandacht (внимание)",
+     "opts": [
+      "AAN-dacht",
+      "aan-DACHT"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "allerlei",
+     "q": "allerlei (всевозможные)",
+     "opts": [
+      "AL-ler-lei",
+      "al-LER-lei",
+      "al-ler-LEI"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "activiteit",
+     "q": "activiteit (занятие, активность)",
+     "opts": [
+      "ac-ti-vi-TEIT",
+      "ac-TI-vi-teit",
+      "AC-ti-vi-teit"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "persoonlijk",
+     "q": "persoonlijk (личный)",
+     "opts": [
+      "per-SOON-lijk",
+      "PER-soon-lijk",
+      "per-soon-LIJK"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "regelmatig",
+     "q": "regelmatig (регулярный)",
+     "opts": [
+      "re-gel-MA-tig",
+      "RE-gel-ma-tig",
+      "re-GEL-ma-tig"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "ontdekken",
+     "q": "ontdekken (открывать, обнаруживать)",
+     "opts": [
+      "ont-DEK-ken",
+      "ONT-dek-ken",
+      "ont-dek-KEN"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "maximaal",
+     "q": "maximaal (максимально)",
+     "opts": [
+      "ma-xi-MAAL",
+      "MA-xi-maal",
+      "ma-XI-maal"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "advocaat",
+     "q": "advocaat (адвокат)",
+     "opts": [
+      "ad-vo-CAAT",
+      "AD-vo-caat",
+      "ad-VO-caat"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "vacature",
+     "q": "vacature (вакансия)",
+     "opts": [
+      "va-ca-TU-re",
+      "VA-ca-tu-re",
+      "va-CA-tu-re"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "solliciteren",
+     "q": "solliciteren (откликаться на вакансию)",
+     "opts": [
+      "sol-li-ci-TE-ren",
+      "SOL-li-ci-te-ren",
+      "sol-LI-ci-te-ren"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "werkgever",
+     "q": "werkgever (работодатель)",
+     "opts": [
+      "WERK-ge-ver",
+      "werk-GE-ver",
+      "werk-ge-VER"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "tijdelijk",
+     "q": "tijdelijk (временный)",
+     "opts": [
+      "TIJ-de-lijk",
+      "tij-DE-lijk",
+      "tij-de-LIJK"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "contract",
+     "q": "contract (договор)",
+     "opts": [
+      "con-TRACT",
+      "CON-tract"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "kennis",
+     "q": "kennis (знание)",
+     "opts": [
+      "KEN-nis",
+      "ken-NIS"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "voordeel",
+     "q": "voordeel (преимущество)",
+     "opts": [
+      "VOOR-deel",
+      "voor-DEEL"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Где ударение?",
+     "audio": "bewaren",
+     "q": "bewaren (хранить)",
+     "opts": [
+      "be-WA-ren",
+      "BE-wa-ren",
+      "be-wa-REN"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "В слове «solliciteren» ударение падает на «te»: sol-li-ci-TE-ren.",
+     "answer": true,
+     "note": "Да: суффикс -eren тянет ударение на себя."
+    },
+    {
+     "t": "speak",
+     "k": "Говорение · повтори с ударением",
+     "phrase": "aandacht, vacature, solliciteren, werkgever, contract",
+     "tr": "внимание · вакансия · откликаться · работодатель · договор"
+    }
+   ],
+   "theme": "Образование",
+   "idx": 0
   }
  ]
 }

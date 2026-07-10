@@ -72,6 +72,45 @@ EMOJI_NL={
  'klok':'⏰','uur':'🕐','dag':'☀️','nacht':'🌙','ochtend':'🌅','avond':'🌆','week':'📅','maand':'📅','jaar':'📆',
  'naam':'🪪','vraag':'❓','antwoord':'💬','deurbel':'🔔','prijs':'🏷️','nummer':'🔢','adres':'📍','paspoort':'🪪'
 }
+EMOJI_NL.update({
+ 'achternaam':'🪪','leeftijd':'🎂','gezin':'👪','oom':'👨','tante':'👩','gast':'🙋','tweeling':'👯',
+ 'wekker':'⏰','weekend':'🎉','verjaardag':'🎂','pauze':'☕','boodschappen':'🛒','huiswerk':'📚','was':'🧺','afwas':'🍽️',
+ 'leerling':'🧑‍🎓','student':'🧑‍🎓','juf':'👩‍🏫','meester':'👨‍🏫','directeur':'🧑‍💼','lokaal':'🏫','rooster':'📅',
+ 'opdracht':'📋','oefening':'✏️','fout':'❌','examen':'🎓','toets':'📝','cijfer':'🔢','diploma':'🎓','taal':'🗣️',
+ 'woord':'🔤','zin':'📃','letter':'🔠','map':'📁','schaar':'✂️','lijm':'🧴','schrift':'📓','laptop':'💻',
+ 'maaltijd':'🍽️','gerecht':'🍲','smaak':'👅','honger':'😋','dorst':'🥤','bestek':'🍴','vork':'🍴','mes':'🔪',
+ 'pan':'🍳','glas':'🥛','fles':'🍾','kopje':'☕','peper':'🌶️','olie':'🫒','honing':'🍯','jam':'🍓',
+ 'pannenkoek':'🥞','haring':'🐟','frietjes':'🍟','stroopwafel':'🧇','erwtensoep':'🍲','hagelslag':'🍫','pindakaas':'🥜',
+ 'huisarts':'👨‍⚕️','verpleegkundige':'👩‍⚕️','patiënt':'🤒','verzekering':'📋','hoest':'🤧','wond':'🩹','verband':'🩹',
+ 'pleister':'🩹','zalf':'🧴','druppel':'💧','operatie':'🏥','allergie':'🤧','dieet':'🥗','gewicht':'⚖️',
+ 'kleding':'👕','ondergoed':'🩲','pyjama':'🛌','blouse':'👚','overhemd':'👔','pak':'🕴️','stropdas':'👔',
+ 'knoop':'🔘','spijkerbroek':'👖','slipper':'🩴','veter':'👟','wol':'🧶','mode':'💃',
+ 'reis':'🧳','reiziger':'🧳','vertrek':'🛫','aankomst':'🛬','vertraging':'⏳','perron':'🚉','chauffeur':'🚗',
+ 'douane':'🛂','koffer':'🧳','rugzak':'🎒','bagage':'🧳','benzine':'⛽','tankstation':'⛽','parkeerplaats':'🅿️',
+ 'rotonde':'🔄','verkeer':'🚦','snelweg':'🛣️','grens':'🛂','buitenland':'🌍',
+ 'concert':'🎤','theater':'🎭','bioscoop':'🎬','voorstelling':'🎭','festival':'🎪','tentoonstelling':'🖼️',
+ 'pretpark':'🎢','dierentuin':'🦁','terras':'☕','wandeling':'🚶','picknick':'🧺','barbecue':'🍖','training':'🏋️',
+ 'wedstrijd':'🏆','doelpunt':'⚽','winnaar':'🥇','meer':'🏞️','rivier':'🏞️','berg':'⛰️','camping':'🏕️','tent':'⛺',
+ 'woning':'🏠','studio':'🏢','hypotheek':'🏦','buurt':'🏘️','wijk':'🏘️','centrum':'🏙️','uitzicht':'🌅',
+ 'ingang':'🚪','uitgang':'🚪','brievenbus':'📬','stopcontact':'🔌','kraan':'🚰','gordijn':'🪟','kussen':'🛏️',
+ 'deken':'🛌','laken':'🛏️','zeep':'🧼','shampoo':'🧴',
+ 'beroep':'💼','werknemer':'🧑‍💼','klant':'🛍️','overleg':'👥','project':'📊','taak':'✅','belasting':'🧾',
+ 'bonus':'💰','pensioen':'👴','magazijn':'📦','verhuisdoos':'📦','ladder':'🪜','gereedschap':'🧰','boor':'🛠️',
+ 'hamer':'🔨','schroef':'🔩','verf':'🎨','kwast':'🖌️','paraplu':'☂️','mist':'🌫️','storm':'🌪️','hagel':'🌨️',
+ 'hoofdstad':'🏛️','inwoner':'🙋','cultuur':'🎭','traditie':'🎎','klomp':'🥿','polder':'🌾','kanaal':'🌉','gracht':'🌉',
+ 'peuter':'🧒','kleuter':'🧒','tiener':'🧑','knuffel':'🧸','wieg':'👶','kinderwagen':'👶','speeltuin':'🛝',
+ 'schommel':'🛝','glijbaan':'🛝','oppas':'🧑‍🍼','rapport':'📄','traktatie':'🧁',
+ 'aanbieding':'🏷️','reclame':'📢','folder':'📄','kassabon':'🧾','garantie':'✅','winkelwagen':'🛒','mandje':'🧺',
+ 'weegschaal':'⚖️','etalage':'🪟','uitverkoop':'🏷️','merk':'™️',
+ 'universiteit':'🎓','bibliotheek':'📚','wiskunde':'➗','geschiedenis':'🏛️','aardrijkskunde':'🌍','biologie':'🧬',
+ 'natuurkunde':'⚛️','mentor':'🧑‍🏫','klasgenoot':'🧑‍🤝‍🧑','tentamen':'📝',
+ 'sollicitatiebrief':'✉️','sollicitatiegesprek':'🤝','motivatie':'🔥','vaardigheid':'🛠️','proeftijd':'⏳',
+ 'bijbaan':'💼','loon':'💶','kans':'🍀','eis':'📌','netwerk':'🕸️',
+ 'afdeling':'🏢','receptie':'🛎️','kantine':'🍽️','koffiepauze':'☕','presentatie':'📊','verslag':'📄',
+ 'printer':'🖨️','vergaderzaal':'👥','toetsenbord':'⌨️','muis':'🖱️','wachtwoord':'🔑','bijlage':'📎',
+ 'promotie':'📈','sfeer':'✨','veiligheid':'🦺','helm':'⛑️','werkkleding':'🦺',
+ 'gemeentehuis':'🏛️','inschrijving':'📝','inburgering':'🎓','subsidie':'💶','uitkering':'💶','huurtoeslag':'💶',
+ 'zorgtoeslag':'💶','kinderbijslag':'💶','grofvuil':'🗑️','brandweer':'🚒','ambulance':'🚑'})
 def emoji_for(disp,ty):
     lm=disp.split(' ')[-1]
     return EMOJI_NL.get(lm) or EMOJI.get(ty,'📌')
@@ -196,7 +235,7 @@ def words_html(name,ws):
 for ti in range(2,len(BANK)):
     name,ws=BANK[ti]
     chunks=[ws[i:i+8] for i in range(0,len(ws),8)]
-    chunks=[c for c in chunks if len(c)>=6][:7]
+    chunks=[c for c in chunks if len(c)>=6][:12]
     nums=[]
     for ci,chunk in enumerate(chunks):
         n=lesson_num;lesson_num+=1;nums.append(n)

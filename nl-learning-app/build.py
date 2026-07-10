@@ -70,9 +70,24 @@ def build_dlg():
     except FileNotFoundError: pass
     try: parts=parts+J('phonetics_puzzles.json')['parts']
     except FileNotFoundError: pass
+    try: cw=J('crosswords.json')['crosswords']
+    except FileNotFoundError: cw={}
+    # символьные ссылки {theme, idx} → номер урока (не ломаются при росте банка)
+    gen=J('lessons_generated.json');bankj=J('bank.json')
+    tmap={th['t']:gen['themeLessons'].get(str(ti),[]) for ti,th in enumerate(bankj['themes'])}
+    resolved=[]
+    for d in parts:
+        if 'theme' in d:
+            ls=tmap.get(d['theme'],[])
+            if d['idx']>=len(ls):
+                print('  ! пропущена часть «%s»: в теме «%s» нет урока #%d'%(d['title'],d['theme'],d['idx']))
+                continue
+            d=dict(d);d['lesson']=ls[d['idx']]
+        resolved.append(d)
     return (H_DLG+"\n"
-     +js(parts)
-     +".forEach(function(d){if(DATA[d.lesson])DATA[d.lesson].parts.push({t:d.title,steps:d.steps});});\n")
+     +js(resolved)
+     +".forEach(function(d){if(DATA[d.lesson])DATA[d.lesson].parts.push({t:d.title,steps:d.steps});});\n"
+     +"var CROSSWORDS="+js(cw)+";\n")
 
 def build_wl():
     wl=J('taalcompleet_a1_woordenlijst.json')
@@ -124,6 +139,17 @@ def build_wl():
         +hz\
         +[{'t':'Фразы: мой / этот (mijn · deze)','w':ph},
          {'t':'Служебные слова (частые)','w':fw}]
+    # слова банка уроков, которых ещё нет в словаре — чтобы счётчик отражал реальный объём
+    bankj=J('bank.json')['themes']
+    have={p[0].lower() for th in themes for p in th['w']}
+    for sec in wlx:have|={p[0].lower() for p in sec['w']}
+    bw=[];seen_b=set()
+    for th in bankj:
+        for d,ru in th['w']:
+            k=d.lower()
+            if k in have or k in seen_b:continue
+            seen_b.add(k);bw.append([d,ru])
+    wlx.append({'t':'Слова уроков (банк всех тем)','w':bw})
     return (H_WL+"\n"
      +"var WL="+js(themes)+";\n"
      +"var WLX="+js(wlx)+";\n"
