@@ -179,12 +179,30 @@ def build_dlg():
             special.append({'id':sid,'after':d['lesson'],'icon':em,'title':d['title'],'steps':d['steps']});sid+=1
         else:
             inline.append(d)
+    # KNM — отдельный курс: уроки 1001+, темы в var KNM, шаги quiz/tf с флагом knm
+    knm_js="var KNM=[];\n"
+    try:
+        knm=J('knm.json')['themes']
+        kid=1001;kthemes=[];klessons={}
+        for th in knm:
+            ids=[]
+            for les in th['lessons']:
+                for st in les['steps']:
+                    if st.get('t') in ('quiz','tf'):st['knm']=1
+                klessons[kid]={'parts':[{'t':les['title'],'steps':les['steps']}],'knmL':1}
+                ids.append(kid);kid+=1
+            kthemes.append({'t':th['t'],'ru':th['ru'],'emoji':th['emoji'],'lessons':ids})
+        knm_js=("Object.assign(DATA,"+js(klessons)+");\n"
+                +"var KNM="+js(kthemes)+";\n")
+    except FileNotFoundError:
+        pass
     return (H_DLG+"\n"
      +js(inline)
      +".forEach(function(d){if(DATA[d.lesson])DATA[d.lesson].parts.push({t:d.title,steps:d.steps});});\n"
      +js(special)
      +".forEach(function(sp){DATA[sp.id]={parts:[{t:sp.title,steps:sp.steps}],icon:sp.icon};"
      +"for(var ti=0;ti<THEMES.length;ti++){var ix=THEMES[ti].lessons.indexOf(sp.after);if(ix>=0){THEMES[ti].lessons.splice(ix+1,0,sp.id);break;}}});\n"
+     +knm_js
      +"var CROSSWORDS="+js(cw)+";\n")
 
 def build_wl():
