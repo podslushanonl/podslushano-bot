@@ -165,9 +165,26 @@ def build_dlg():
                 continue
             d=dict(d);d['lesson']=ls[d['idx']]
         resolved.append(d)
+    # спец-части → ОТДЕЛЬНЫЕ уроки-узлы со значками на карте (id 901+), всегда доступны
+    import re as _re2
+    ICON=[('Аудио-история','🎧'),('Klemtoon','🎵'),('Грамматика','📐'),('Handige','💬'),('Документ','📄')]
+    def icon_of(t):
+        for pref,em in ICON:
+            if t.startswith(pref):return em
+        return None
+    inline=[];special=[];sid=901
+    for d in resolved:
+        em=icon_of(d['title'])
+        if em:
+            special.append({'id':sid,'after':d['lesson'],'icon':em,'title':d['title'],'steps':d['steps']});sid+=1
+        else:
+            inline.append(d)
     return (H_DLG+"\n"
-     +js(resolved)
+     +js(inline)
      +".forEach(function(d){if(DATA[d.lesson])DATA[d.lesson].parts.push({t:d.title,steps:d.steps});});\n"
+     +js(special)
+     +".forEach(function(sp){DATA[sp.id]={parts:[{t:sp.title,steps:sp.steps}],icon:sp.icon};"
+     +"for(var ti=0;ti<THEMES.length;ti++){var ix=THEMES[ti].lessons.indexOf(sp.after);if(ix>=0){THEMES[ti].lessons.splice(ix+1,0,sp.id);break;}}});\n"
      +"var CROSSWORDS="+js(cw)+";\n")
 
 def build_wl():
