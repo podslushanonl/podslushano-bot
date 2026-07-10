@@ -1,6 +1,6 @@
 {
  "note": "Батч №2: предложения на слова официального словаря TaalCompleet A1 (не покрытые батчем №1).",
- "count": 218,
+ "count": 202,
  "items": [
   {
    "nl": "Het gezin is hier, denk ik.",
@@ -783,27 +783,9 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de snor?",
-   "ru": "Это усы?",
-   "lemma": "snor",
-   "theme": 4
-  },
-  {
-   "nl": "Mijn snor doet pijn.",
-   "ru": "У меня болит усы.",
-   "lemma": "snor",
-   "theme": 4
-  },
-  {
-   "nl": "Doet je snor pijn?",
-   "ru": "У тебя болит усы?",
-   "lemma": "snor",
-   "theme": 4
-  },
-  {
-   "nl": "Waar is de snor?",
-   "ru": "Где усы?",
-   "lemma": "snor",
+   "nl": "Is dit de wang?",
+   "ru": "Это щека?",
+   "lemma": "wang",
    "theme": 4
   },
   {
@@ -825,9 +807,9 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de wang?",
-   "ru": "Это щека?",
-   "lemma": "wang",
+   "nl": "Ik kan goed bellen.",
+   "ru": "Я хорошо умею звонить.",
+   "lemma": "bellen",
    "theme": 4
   },
   {
@@ -849,9 +831,9 @@
    "theme": 4
   },
   {
-   "nl": "Ik kan goed bellen.",
-   "ru": "Я хорошо умею звонить.",
-   "lemma": "bellen",
+   "nl": "Ik zie de controle niet.",
+   "ru": "Я не вижу осмотр.",
+   "lemma": "controle",
    "theme": 4
   },
   {
@@ -879,27 +861,15 @@
    "theme": 4
   },
   {
-   "nl": "Ik zie de controle niet.",
-   "ru": "Я не вижу осмотр.",
-   "lemma": "controle",
+   "nl": "Ik heb een keer nodig.",
+   "ru": "Мне нужен раз.",
+   "lemma": "keer",
    "theme": 4
   },
   {
-   "nl": "Dat is heel dagelijks.",
-   "ru": "Это очень ежедневно.",
-   "lemma": "dagelijks",
-   "theme": 4
-  },
-  {
-   "nl": "Is het dagelijks?",
-   "ru": "Это ежедневно?",
-   "lemma": "dagelijks",
-   "theme": 4
-  },
-  {
-   "nl": "Het is dagelijks.",
-   "ru": "Это ежедневно.",
-   "lemma": "dagelijks",
+   "nl": "Waar is de keer?",
+   "ru": "Где раз?",
+   "lemma": "keer",
    "theme": 4
   },
   {
@@ -921,24 +891,6 @@
    "theme": 4
   },
   {
-   "nl": "Ik heb een keer nodig.",
-   "ru": "Мне нужен раз.",
-   "lemma": "keer",
-   "theme": 4
-  },
-  {
-   "nl": "Waar is de keer?",
-   "ru": "Где раз?",
-   "lemma": "keer",
-   "theme": 4
-  },
-  {
-   "nl": "Het is elk.",
-   "ru": "Это каждо.",
-   "lemma": "elk",
-   "theme": 4
-  },
-  {
    "nl": "Dat is heel elk.",
    "ru": "Это очень каждо.",
    "lemma": "elk",
@@ -951,15 +903,9 @@
    "theme": 4
   },
   {
-   "nl": "Ik zie het gebit niet.",
-   "ru": "Я не вижу зубы.",
-   "lemma": "gebit",
-   "theme": 4
-  },
-  {
-   "nl": "Waar is het gebit?",
-   "ru": "Где зубы?",
-   "lemma": "gebit",
+   "nl": "Het is elk.",
+   "ru": "Это каждо.",
+   "lemma": "elk",
    "theme": 4
   },
   {
@@ -971,6 +917,18 @@
   {
    "nl": "Het gebit is hier, denk ik.",
    "ru": "Зубы здесь, я думаю.",
+   "lemma": "gebit",
+   "theme": 4
+  },
+  {
+   "nl": "Ik zie het gebit niet.",
+   "ru": "Я не вижу зубы.",
+   "lemma": "gebit",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is het gebit?",
+   "ru": "Где зубы?",
    "lemma": "gebit",
    "theme": 4
   },
@@ -1215,48 +1173,6 @@
    "theme": 5
   },
   {
-   "nl": "Dat is heel schoon.",
-   "ru": "Это очень чисто.",
-   "lemma": "schoon",
-   "theme": 5
-  },
-  {
-   "nl": "Is het schoon?",
-   "ru": "Это чисто?",
-   "lemma": "schoon",
-   "theme": 5
-  },
-  {
-   "nl": "Het is schoon.",
-   "ru": "Это чисто.",
-   "lemma": "schoon",
-   "theme": 5
-  },
-  {
-   "nl": "Is het vies?",
-   "ru": "Это грязно?",
-   "lemma": "vies",
-   "theme": 5
-  },
-  {
-   "nl": "Het is vies.",
-   "ru": "Это грязно.",
-   "lemma": "vies",
-   "theme": 5
-  },
-  {
-   "nl": "Dat is heel vies.",
-   "ru": "Это очень грязно.",
-   "lemma": "vies",
-   "theme": 5
-  },
-  {
-   "nl": "Het is warm.",
-   "ru": "Это тёпло.",
-   "lemma": "warm",
-   "theme": 5
-  },
-  {
    "nl": "Dat is heel warm.",
    "ru": "Это очень тёпло.",
    "lemma": "warm",
@@ -1265,6 +1181,12 @@
   {
    "nl": "Is het warm?",
    "ru": "Это тёпло?",
+   "lemma": "warm",
+   "theme": 5
+  },
+  {
+   "nl": "Het is warm.",
+   "ru": "Это тёпло.",
    "lemma": "warm",
    "theme": 5
   },
@@ -1291,24 +1213,6 @@
    "ru": "Я очень хочу путешествовать.",
    "lemma": "reizen",
    "theme": 6
-  },
-  {
-   "nl": "Het is dik.",
-   "ru": "Это толсто.",
-   "lemma": "dik",
-   "theme": 7
-  },
-  {
-   "nl": "Dat is heel dik.",
-   "ru": "Это очень толсто.",
-   "lemma": "dik",
-   "theme": 7
-  },
-  {
-   "nl": "Is het dik?",
-   "ru": "Это толсто?",
-   "lemma": "dik",
-   "theme": 7
   }
  ]
 }

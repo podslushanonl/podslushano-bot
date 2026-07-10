@@ -70,6 +70,8 @@ def build_dlg():
     except FileNotFoundError: pass
     try: parts=parts+J('phonetics_puzzles.json')['parts']
     except FileNotFoundError: pass
+    try: parts=parts+J('luister_stories.json')['parts']
+    except FileNotFoundError: pass
     try: cw=J('crosswords.json')['crosswords']
     except FileNotFoundError: cw={}
     # символьные ссылки {theme, idx} → номер урока (не ломаются при росте банка)
