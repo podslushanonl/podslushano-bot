@@ -1,6 +1,6 @@
 {
  "note": "Батч №2: предложения на слова официального словаря TaalCompleet A1 (не покрытые батчем №1).",
- "count": 202,
+ "count": 198,
  "items": [
   {
    "nl": "Het gezin is hier, denk ik.",
@@ -759,18 +759,6 @@
    "theme": 3
   },
   {
-   "nl": "Waar is het haar?",
-   "ru": "Где волосы?",
-   "lemma": "haar",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit het haar?",
-   "ru": "Это волосы?",
-   "lemma": "haar",
-   "theme": 4
-  },
-  {
    "nl": "Mijn haar doet pijn.",
    "ru": "У меня болит волосы.",
    "lemma": "haar",
@@ -783,27 +771,15 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de wang?",
-   "ru": "Это щека?",
-   "lemma": "wang",
+   "nl": "Doet je snor pijn?",
+   "ru": "У тебя болит усы?",
+   "lemma": "snor",
    "theme": 4
   },
   {
-   "nl": "Mijn wang doet pijn.",
-   "ru": "У меня болит щека.",
-   "lemma": "wang",
-   "theme": 4
-  },
-  {
-   "nl": "Doet je wang pijn?",
-   "ru": "У тебя болит щека?",
-   "lemma": "wang",
-   "theme": 4
-  },
-  {
-   "nl": "Waar is de wang?",
-   "ru": "Где щека?",
-   "lemma": "wang",
+   "nl": "Mijn snor doet pijn.",
+   "ru": "У меня болит усы.",
+   "lemma": "snor",
    "theme": 4
   },
   {

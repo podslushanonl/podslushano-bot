@@ -27,11 +27,90 @@ H_DLG="/* ===== Диалоги тем 3–8 (часть «Диалог» в пе
 H_WL="/* ===== Официальный словарь TaalCompleet A1 (data/taalcompleet_a1_woordenlijst.json) ===== */"
 END_ANCHOR="function renderNode(nd,off,th){"
 
+def enrich_manual(lessons):
+    """Ручные уроки 1–38 + новые механики: лишнее слово, анаграмма, диктант,
+    «сколько слов?», впиши по памяти, слух с похожими вариантами.
+    Детерминировано (без random) → сборка идемпотентна; исходный JSON не трогаем."""
+    import re as _re
+    vet=J('vetted_translations.json')['items']
+    VETL={}
+    for v in vet:
+        if v['quality']=='correct' and v['type'] in ('sentence','question_sentence'):
+            VETL.setdefault(v['lemma'],[]).append({'nl':v['nl'],'ru':v['ru_vetted']})
+    for bf in ('sentences_batch1.json','sentences_batch2.json','sentences_batch3.json','sentences_batch4.json'):
+        try:
+            for it in J(bf)['items']:
+                VETL.setdefault(it['lemma'],[]).insert(0,{'nl':it['nl'],'ru':it['ru']})
+        except FileNotFoundError:pass
+    def bare(d):return _re.sub(r'^(de|het|een)\s+','',d).strip()
+    pool=[]
+    for n,l in lessons.items():
+        for pt in l['parts']:
+            for st in pt['steps']:
+                if st.get('t')=='word' and st.get('nl') and st.get('tr'):
+                    pool.append((st['nl'],st['tr']))
+    def similar(c,n=3):
+        cw=bare(c);cands=[x[0] for x in pool if x[0]!=c]
+        same=[x for x in cands if bare(x)[:1].lower()==cw[:1].lower()]
+        near=[x for x in cands if x not in same and abs(len(bare(x))-len(cw))<=2]
+        out=[]
+        for grp in (same,near,cands):
+            for x in grp:
+                if x not in out:out.append(x)
+                if len(out)>=n:return out
+        return out[:n]
+    seen_sent=set()
+    for n,l in sorted(lessons.items(),key=lambda kv:int(kv[0])):
+        ni=int(n)
+        for pi,pt in enumerate(l['parts']):
+            words=[(st['nl'],st['tr']) for st in pt['steps'] if st.get('t')=='word' and st.get('nl') and len(bare(st['nl']))>1]
+            if len(words)<2:continue
+            add=[]
+            others=[w for w in pool if w not in words]
+            if others:
+                ow=others[(ni*7+pi)%len(others)]
+                add.append({'t':'quiz','k':'Лишнее слово','q':'Какое слово НЕ из этого урока?','opts':[ow[0]]+[w[0] for w in words[:3]]})
+            for d,tr in words:
+                lm=bare(d)
+                if 4<=len(lm)<=8 and lm.isalpha():
+                    add.append({'t':'build','k':'Пазл: собери слово','tr':tr+' ('+str(len(lm))+' букв)','words':list(lm),'ans':list(lm)})
+                    break
+            for d,tr in words:
+                lst=VETL.get(bare(d))
+                if lst:
+                    v=lst[(ni+pi)%len(lst)]
+                    if v['nl'] not in seen_sent and 3<=len(v['nl'].split())<=6:
+                        add.append({'t':'dict','k':'Диктант','audio':v['nl'],'answer':[v['nl']],'tr':v['ru']})
+                        seen_sent.add(v['nl']);break
+            for d,tr in words[::-1]:
+                lst=VETL.get(bare(d))
+                if lst:
+                    v=lst[(ni+pi+1)%len(lst)]
+                    nw=len(v['nl'].split())
+                    if v['nl'] not in seen_sent and nw>=4:
+                        add.append({'t':'quiz','k':'Сколько слов?','audio':v['nl'],'q':'Прослушай. Сколько слов в предложении?','opts':[str(nw),str(nw-1),str(nw+1),str(nw+2)]})
+                        seen_sent.add(v['nl']);break
+            done_gap=False
+            for d,tr in words:
+                if done_gap:break
+                lm=bare(d);lst=VETL.get(lm)
+                if not lst:continue
+                for v in lst:
+                    if v['nl'] in seen_sent:continue
+                    q=_re.sub(r'\b'+_re.escape(lm)+r'\b','___',v['nl'],count=1)
+                    if q!=v['nl']:
+                        add.append({'t':'gapType','k':'Впиши по памяти','q':q,'answer':[lm],'ph':lm[0]+'…','hint':'Первая буква: «'+lm[0]+'» · '+v['ru']})
+                        seen_sent.add(v['nl']);done_gap=True;break
+            d0=words[min(1,len(words)-1)][0]
+            add.append({'t':'listen','k':'Аудирование','audio':d0,'q':'Что прозвучало? Варианты похожи.','opts':[d0]+similar(d0)})
+            pt['steps']=pt['steps']+add
+    return lessons
+
 def build_manual():
     man=J('lessons_manual.json')
     return (H_MAN+"\n"
      +"const META="+js(man['meta'])+";\n"
-     +"const DATA="+js(man['lessons'])+";\n")
+     +"const DATA="+js(enrich_manual(man['lessons']))+";\n")
 
 def build_traintest():
     tr=J('training.json');te=J('test.json')

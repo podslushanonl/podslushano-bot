@@ -1,6 +1,6 @@
 {
  "note": "Батч №1 предложений A1 (тематические шаблоны + русская морфология). Источник уроков и пула экзаменов.",
- "count": 4969,
+ "count": 5657,
  "items": [
   {
    "nl": "De man is erg aardig.",
@@ -1545,30 +1545,6 @@
    "theme": 0
   },
   {
-   "nl": "Waar is de baard?",
-   "ru": "Где борода?",
-   "lemma": "baard",
-   "theme": 0
-  },
-  {
-   "nl": "Is dit de baard?",
-   "ru": "Это борода?",
-   "lemma": "baard",
-   "theme": 0
-  },
-  {
-   "nl": "Is dit de snor?",
-   "ru": "Это усы?",
-   "lemma": "snor",
-   "theme": 0
-  },
-  {
-   "nl": "Waar is de snor?",
-   "ru": "Где усы?",
-   "lemma": "snor",
-   "theme": 0
-  },
-  {
    "nl": "Is dit het kapsel?",
    "ru": "Это причёска?",
    "lemma": "kapsel",
@@ -1602,6 +1578,264 @@
    "nl": "Is dit de traan?",
    "ru": "Это слеза?",
    "lemma": "traan",
+   "theme": 0
+  },
+  {
+   "nl": "Ik heb de relatie nodig.",
+   "ru": "Мне нужна отношения.",
+   "lemma": "relatie",
+   "theme": 0
+  },
+  {
+   "nl": "Waar is de relatie?",
+   "ru": "Где отношения?",
+   "lemma": "relatie",
+   "theme": 0
+  },
+  {
+   "nl": "Is dit de relatie?",
+   "ru": "Это отношения?",
+   "lemma": "relatie",
+   "theme": 0
+  },
+  {
+   "nl": "Waar is de bruiloft?",
+   "ru": "Где свадьба?",
+   "lemma": "bruiloft",
+   "theme": 0
+  },
+  {
+   "nl": "Is dit de bruiloft?",
+   "ru": "Это свадьба?",
+   "lemma": "bruiloft",
+   "theme": 0
+  },
+  {
+   "nl": "Ik heb de bruiloft nodig.",
+   "ru": "Мне нужна свадьба.",
+   "lemma": "bruiloft",
+   "theme": 0
+  },
+  {
+   "nl": "De bejaarde helpt mij vaak.",
+   "ru": "Пожилой человек часто мне помогает.",
+   "lemma": "bejaarde",
+   "theme": 0
+  },
+  {
+   "nl": "Ken jij de bejaarde?",
+   "ru": "Ты знаешь пожилого человека?",
+   "lemma": "bejaarde",
+   "theme": 0
+  },
+  {
+   "nl": "De bejaarde is erg aardig.",
+   "ru": "Пожилой человек очень приятный.",
+   "lemma": "bejaarde",
+   "theme": 0
+  },
+  {
+   "nl": "Ik ken de bejaarde goed.",
+   "ru": "Я хорошо знаю пожилого человека.",
+   "lemma": "bejaarde",
+   "theme": 0
+  },
+  {
+   "nl": "Daar loopt de bejaarde.",
+   "ru": "Вон идёт пожилой человек.",
+   "lemma": "bejaarde",
+   "theme": 0
+  },
+  {
+   "nl": "Ken jij de jongere?",
+   "ru": "Ты знаешь молодого человека?",
+   "lemma": "jongere",
+   "theme": 0
+  },
+  {
+   "nl": "De jongere is erg aardig.",
+   "ru": "Молодой человек очень приятный.",
+   "lemma": "jongere",
+   "theme": 0
+  },
+  {
+   "nl": "Ik ken de jongere goed.",
+   "ru": "Я хорошо знаю молодого человека.",
+   "lemma": "jongere",
+   "theme": 0
+  },
+  {
+   "nl": "Daar loopt de jongere.",
+   "ru": "Вон идёт молодой человек.",
+   "lemma": "jongere",
+   "theme": 0
+  },
+  {
+   "nl": "De jongere helpt mij vaak.",
+   "ru": "Молодой человек часто мне помогает.",
+   "lemma": "jongere",
+   "theme": 0
+  },
+  {
+   "nl": "Is dit de vreemde?",
+   "ru": "Это незнакомец?",
+   "lemma": "vreemde",
+   "theme": 0
+  },
+  {
+   "nl": "Ik heb de vreemde nodig.",
+   "ru": "Мне нужен незнакомец.",
+   "lemma": "vreemde",
+   "theme": 0
+  },
+  {
+   "nl": "Waar is de vreemde?",
+   "ru": "Где незнакомец?",
+   "lemma": "vreemde",
+   "theme": 0
+  },
+  {
+   "nl": "Het is gul.",
+   "ru": "Это щедро.",
+   "lemma": "gul",
+   "theme": 0
+  },
+  {
+   "nl": "Dat is heel gul.",
+   "ru": "Это очень щедро.",
+   "lemma": "gul",
+   "theme": 0
+  },
+  {
+   "nl": "Is het gul?",
+   "ru": "Это щедро?",
+   "lemma": "gul",
+   "theme": 0
+  },
+  {
+   "nl": "Dat is heel dapper.",
+   "ru": "Это очень смело.",
+   "lemma": "dapper",
+   "theme": 0
+  },
+  {
+   "nl": "Is het dapper?",
+   "ru": "Это смело?",
+   "lemma": "dapper",
+   "theme": 0
+  },
+  {
+   "nl": "Het is dapper.",
+   "ru": "Это смело.",
+   "lemma": "dapper",
+   "theme": 0
+  },
+  {
+   "nl": "Het is somber.",
+   "ru": "Это мрачно.",
+   "lemma": "somber",
+   "theme": 0
+  },
+  {
+   "nl": "Dat is heel somber.",
+   "ru": "Это очень мрачно.",
+   "lemma": "somber",
+   "theme": 0
+  },
+  {
+   "nl": "Is het somber?",
+   "ru": "Это мрачно?",
+   "lemma": "somber",
+   "theme": 0
+  },
+  {
+   "nl": "Dat is heel serieus.",
+   "ru": "Это очень серьёзно.",
+   "lemma": "serieus",
+   "theme": 0
+  },
+  {
+   "nl": "Is het serieus?",
+   "ru": "Это серьёзно?",
+   "lemma": "serieus",
+   "theme": 0
+  },
+  {
+   "nl": "Het is serieus.",
+   "ru": "Это серьёзно.",
+   "lemma": "serieus",
+   "theme": 0
+  },
+  {
+   "nl": "Is het wijs?",
+   "ru": "Это мудро?",
+   "lemma": "wijs",
+   "theme": 0
+  },
+  {
+   "nl": "Het is wijs.",
+   "ru": "Это мудро.",
+   "lemma": "wijs",
+   "theme": 0
+  },
+  {
+   "nl": "Dat is heel wijs.",
+   "ru": "Это очень мудро.",
+   "lemma": "wijs",
+   "theme": 0
+  },
+  {
+   "nl": "Het is vreemd.",
+   "ru": "Это странно.",
+   "lemma": "vreemd",
+   "theme": 0
+  },
+  {
+   "nl": "Dat is heel vreemd.",
+   "ru": "Это очень странно.",
+   "lemma": "vreemd",
+   "theme": 0
+  },
+  {
+   "nl": "Is het vreemd?",
+   "ru": "Это странно?",
+   "lemma": "vreemd",
+   "theme": 0
+  },
+  {
+   "nl": "Dat is heel bekend.",
+   "ru": "Это очень известно.",
+   "lemma": "bekend",
+   "theme": 0
+  },
+  {
+   "nl": "Is het bekend?",
+   "ru": "Это известно?",
+   "lemma": "bekend",
+   "theme": 0
+  },
+  {
+   "nl": "Het is bekend.",
+   "ru": "Это известно.",
+   "lemma": "bekend",
+   "theme": 0
+  },
+  {
+   "nl": "Is het onbeleefd?",
+   "ru": "Это невежливо?",
+   "lemma": "onbeleefd",
+   "theme": 0
+  },
+  {
+   "nl": "Het is onbeleefd.",
+   "ru": "Это невежливо.",
+   "lemma": "onbeleefd",
+   "theme": 0
+  },
+  {
+   "nl": "Dat is heel onbeleefd.",
+   "ru": "Это очень невежливо.",
+   "lemma": "onbeleefd",
    "theme": 0
   },
   {
@@ -2418,6 +2652,168 @@
    "nl": "Waar is het afwasmiddel?",
    "ru": "Где средство для мытья посуды?",
    "lemma": "afwasmiddel",
+   "theme": 1
+  },
+  {
+   "nl": "Ik heb de snipperdag nodig.",
+   "ru": "Мне нужен отгул.",
+   "lemma": "snipperdag",
+   "theme": 1
+  },
+  {
+   "nl": "Waar is de snipperdag?",
+   "ru": "Где отгул?",
+   "lemma": "snipperdag",
+   "theme": 1
+  },
+  {
+   "nl": "Is dit de snipperdag?",
+   "ru": "Это отгул?",
+   "lemma": "snipperdag",
+   "theme": 1
+  },
+  {
+   "nl": "Ik heb de ventilator nodig.",
+   "ru": "Мне нужен вентилятор.",
+   "lemma": "ventilator",
+   "theme": 1
+  },
+  {
+   "nl": "Waar is de ventilator?",
+   "ru": "Где вентилятор?",
+   "lemma": "ventilator",
+   "theme": 1
+  },
+  {
+   "nl": "Is dit de ventilator?",
+   "ru": "Это вентилятор?",
+   "lemma": "ventilator",
+   "theme": 1
+  },
+  {
+   "nl": "Is dit de zakdoek?",
+   "ru": "Это носовой платок?",
+   "lemma": "zakdoek",
+   "theme": 1
+  },
+  {
+   "nl": "Ik heb de zakdoek nodig.",
+   "ru": "Мне нужен носовой платок.",
+   "lemma": "zakdoek",
+   "theme": 1
+  },
+  {
+   "nl": "Waar is de zakdoek?",
+   "ru": "Где носовой платок?",
+   "lemma": "zakdoek",
+   "theme": 1
+  },
+  {
+   "nl": "Ik heb het servet nodig.",
+   "ru": "Мне нужна салфетка.",
+   "lemma": "servet",
+   "theme": 1
+  },
+  {
+   "nl": "Waar is het servet?",
+   "ru": "Где салфетка?",
+   "lemma": "servet",
+   "theme": 1
+  },
+  {
+   "nl": "Is dit het servet?",
+   "ru": "Это салфетка?",
+   "lemma": "servet",
+   "theme": 1
+  },
+  {
+   "nl": "Is dit de mand?",
+   "ru": "Это корзина?",
+   "lemma": "mand",
+   "theme": 1
+  },
+  {
+   "nl": "Ik heb de mand nodig.",
+   "ru": "Мне нужна корзина.",
+   "lemma": "mand",
+   "theme": 1
+  },
+  {
+   "nl": "Waar is de mand?",
+   "ru": "Где корзина?",
+   "lemma": "mand",
+   "theme": 1
+  },
+  {
+   "nl": "Waar is de sleutelhanger?",
+   "ru": "Где брелок?",
+   "lemma": "sleutelhanger",
+   "theme": 1
+  },
+  {
+   "nl": "Is dit de sleutelhanger?",
+   "ru": "Это брелок?",
+   "lemma": "sleutelhanger",
+   "theme": 1
+  },
+  {
+   "nl": "Ik heb de sleutelhanger nodig.",
+   "ru": "Мне нужен брелок.",
+   "lemma": "sleutelhanger",
+   "theme": 1
+  },
+  {
+   "nl": "Dat is heel knus.",
+   "ru": "Это очень уютно.",
+   "lemma": "knus",
+   "theme": 1
+  },
+  {
+   "nl": "Is het knus?",
+   "ru": "Это уютно?",
+   "lemma": "knus",
+   "theme": 1
+  },
+  {
+   "nl": "Het is knus.",
+   "ru": "Это уютно.",
+   "lemma": "knus",
+   "theme": 1
+  },
+  {
+   "nl": "Is het stoffig?",
+   "ru": "Это пыльно?",
+   "lemma": "stoffig",
+   "theme": 1
+  },
+  {
+   "nl": "Het is stoffig.",
+   "ru": "Это пыльно.",
+   "lemma": "stoffig",
+   "theme": 1
+  },
+  {
+   "nl": "Dat is heel stoffig.",
+   "ru": "Это очень пыльно.",
+   "lemma": "stoffig",
+   "theme": 1
+  },
+  {
+   "nl": "Het is chaotisch.",
+   "ru": "Это хаотично.",
+   "lemma": "chaotisch",
+   "theme": 1
+  },
+  {
+   "nl": "Dat is heel chaotisch.",
+   "ru": "Это очень хаотично.",
+   "lemma": "chaotisch",
+   "theme": 1
+  },
+  {
+   "nl": "Is het chaotisch?",
+   "ru": "Это хаотично?",
+   "lemma": "chaotisch",
    "theme": 1
   },
   {
@@ -3357,20 +3753,14 @@
    "theme": 2
   },
   {
-   "nl": "Waar is het vraagteken?",
-   "ru": "Где вопросительный знак?",
-   "lemma": "vraagteken",
-   "theme": 2
-  },
-  {
    "nl": "Is dit het vraagteken?",
    "ru": "Это вопросительный знак?",
    "lemma": "vraagteken",
    "theme": 2
   },
   {
-   "nl": "Ik heb het vraagteken nodig.",
-   "ru": "Мне нужен вопросительный знак.",
+   "nl": "Waar is het vraagteken?",
+   "ru": "Где вопросительный знак?",
    "lemma": "vraagteken",
    "theme": 2
   },
@@ -3942,6 +4332,180 @@
    "nl": "Dat is heel foutloos.",
    "ru": "Это очень безошибочно.",
    "lemma": "foutloos",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is het werkwoord?",
+   "ru": "Где глагол?",
+   "lemma": "werkwoord",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit het werkwoord?",
+   "ru": "Это глагол?",
+   "lemma": "werkwoord",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit het lidwoord?",
+   "ru": "Это артикль?",
+   "lemma": "lidwoord",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is het lidwoord?",
+   "ru": "Где артикль?",
+   "lemma": "lidwoord",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is het voorzetsel?",
+   "ru": "Где предлог?",
+   "lemma": "voorzetsel",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit het voorzetsel?",
+   "ru": "Это предлог?",
+   "lemma": "voorzetsel",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is het synoniem?",
+   "ru": "Где синоним?",
+   "lemma": "synoniem",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit het synoniem?",
+   "ru": "Это синоним?",
+   "lemma": "synoniem",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit het antoniem?",
+   "ru": "Это антоним?",
+   "lemma": "antoniem",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is het antoniem?",
+   "ru": "Где антоним?",
+   "lemma": "antoniem",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit het leesteken?",
+   "ru": "Это знак препинания?",
+   "lemma": "leesteken",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is het leesteken?",
+   "ru": "Где знак препинания?",
+   "lemma": "leesteken",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is de apostrof?",
+   "ru": "Где апостроф?",
+   "lemma": "apostrof",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit de apostrof?",
+   "ru": "Это апостроф?",
+   "lemma": "apostrof",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb de taalfout nodig.",
+   "ru": "Мне нужна языковая ошибка.",
+   "lemma": "taalfout",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is de taalfout?",
+   "ru": "Где языковая ошибка?",
+   "lemma": "taalfout",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit de taalfout?",
+   "ru": "Это языковая ошибка?",
+   "lemma": "taalfout",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is de klassenfoto?",
+   "ru": "Где классное фото?",
+   "lemma": "klassenfoto",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit de klassenfoto?",
+   "ru": "Это классное фото?",
+   "lemma": "klassenfoto",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb de klassenfoto nodig.",
+   "ru": "Мне нужно классное фото.",
+   "lemma": "klassenfoto",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit de schoolbel?",
+   "ru": "Это школьный звонок?",
+   "lemma": "schoolbel",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb de schoolbel nodig.",
+   "ru": "Мне нужен школьный звонок.",
+   "lemma": "schoolbel",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is de schoolbel?",
+   "ru": "Где школьный звонок?",
+   "lemma": "schoolbel",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb de schooltas nodig.",
+   "ru": "Мне нужна школьный портфель.",
+   "lemma": "schooltas",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is de schooltas?",
+   "ru": "Где школьный портфель?",
+   "lemma": "schooltas",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit de schooltas?",
+   "ru": "Это школьный портфель?",
+   "lemma": "schooltas",
+   "theme": 2
+  },
+  {
+   "nl": "Waar is het schoolfeest?",
+   "ru": "Где школьный праздник?",
+   "lemma": "schoolfeest",
+   "theme": 2
+  },
+  {
+   "nl": "Is dit het schoolfeest?",
+   "ru": "Это школьный праздник?",
+   "lemma": "schoolfeest",
+   "theme": 2
+  },
+  {
+   "nl": "Ik heb het schoolfeest nodig.",
+   "ru": "Мне нужен школьный праздник.",
+   "lemma": "schoolfeest",
    "theme": 2
   },
   {
@@ -7917,6 +8481,822 @@
    "theme": 3
   },
   {
+   "nl": "Waar is de zeef?",
+   "ru": "Где сито?",
+   "lemma": "zeef",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de zeef?",
+   "ru": "Это сито?",
+   "lemma": "zeef",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de zeef nodig.",
+   "ru": "Мне нужно сито.",
+   "lemma": "zeef",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de garde?",
+   "ru": "Это венчик?",
+   "lemma": "garde",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de garde nodig.",
+   "ru": "Мне нужен венчик.",
+   "lemma": "garde",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de garde?",
+   "ru": "Где венчик?",
+   "lemma": "garde",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb het deksel nodig.",
+   "ru": "Мне нужна крышка.",
+   "lemma": "deksel",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is het deksel?",
+   "ru": "Где крышка?",
+   "lemma": "deksel",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit het deksel?",
+   "ru": "Это крышка?",
+   "lemma": "deksel",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de rasp?",
+   "ru": "Где тёрка?",
+   "lemma": "rasp",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de rasp?",
+   "ru": "Это тёрка?",
+   "lemma": "rasp",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de rasp nodig.",
+   "ru": "Мне нужна тёрка.",
+   "lemma": "rasp",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de pollepel?",
+   "ru": "Это половник?",
+   "lemma": "pollepel",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de pollepel nodig.",
+   "ru": "Мне нужен половник.",
+   "lemma": "pollepel",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de pollepel?",
+   "ru": "Где половник?",
+   "lemma": "pollepel",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de spatel nodig.",
+   "ru": "Мне нужна лопатка.",
+   "lemma": "spatel",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de spatel?",
+   "ru": "Где лопатка?",
+   "lemma": "spatel",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de spatel?",
+   "ru": "Это лопатка?",
+   "lemma": "spatel",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de opener?",
+   "ru": "Где открывалка?",
+   "lemma": "opener",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de opener?",
+   "ru": "Это открывалка?",
+   "lemma": "opener",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de opener nodig.",
+   "ru": "Мне нужна открывалка.",
+   "lemma": "opener",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de kurkentrekker?",
+   "ru": "Это штопор?",
+   "lemma": "kurkentrekker",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de kurkentrekker nodig.",
+   "ru": "Мне нужен штопор.",
+   "lemma": "kurkentrekker",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de kurkentrekker?",
+   "ru": "Где штопор?",
+   "lemma": "kurkentrekker",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de maatbeker nodig.",
+   "ru": "Мне нужен мерный стакан.",
+   "lemma": "maatbeker",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de maatbeker?",
+   "ru": "Где мерный стакан?",
+   "lemma": "maatbeker",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de maatbeker?",
+   "ru": "Это мерный стакан?",
+   "lemma": "maatbeker",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de wok?",
+   "ru": "Где вок?",
+   "lemma": "wok",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de wok?",
+   "ru": "Это вок?",
+   "lemma": "wok",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de wok nodig.",
+   "ru": "Мне нужен вок.",
+   "lemma": "wok",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit het bakblik?",
+   "ru": "Это противень?",
+   "lemma": "bakblik",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb het bakblik nodig.",
+   "ru": "Мне нужна противень.",
+   "lemma": "bakblik",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is het bakblik?",
+   "ru": "Где противень?",
+   "lemma": "bakblik",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de mixer nodig.",
+   "ru": "Мне нужен миксер.",
+   "lemma": "mixer",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de mixer?",
+   "ru": "Где миксер?",
+   "lemma": "mixer",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de mixer?",
+   "ru": "Это миксер?",
+   "lemma": "mixer",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is het aanrecht?",
+   "ru": "Где кухонная столешница?",
+   "lemma": "aanrecht",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit het aanrecht?",
+   "ru": "Это кухонная столешница?",
+   "lemma": "aanrecht",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb het aanrecht nodig.",
+   "ru": "Мне нужна кухонная столешница.",
+   "lemma": "aanrecht",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de afzuigkap?",
+   "ru": "Это вытяжка?",
+   "lemma": "afzuigkap",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de afzuigkap nodig.",
+   "ru": "Мне нужна вытяжка.",
+   "lemma": "afzuigkap",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de afzuigkap?",
+   "ru": "Где вытяжка?",
+   "lemma": "afzuigkap",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb het fornuis nodig.",
+   "ru": "Мне нужна плита.",
+   "lemma": "fornuis",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is het fornuis?",
+   "ru": "Где плита?",
+   "lemma": "fornuis",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit het fornuis?",
+   "ru": "Это плита?",
+   "lemma": "fornuis",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de gaspit?",
+   "ru": "Где конфорка?",
+   "lemma": "gaspit",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de gaspit?",
+   "ru": "Это конфорка?",
+   "lemma": "gaspit",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de gaspit nodig.",
+   "ru": "Мне нужна конфорка.",
+   "lemma": "gaspit",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de vriezer?",
+   "ru": "Это морозилка?",
+   "lemma": "vriezer",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de vriezer nodig.",
+   "ru": "Мне нужна морозилка.",
+   "lemma": "vriezer",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de vriezer?",
+   "ru": "Где морозилка?",
+   "lemma": "vriezer",
+   "theme": 3
+  },
+  {
+   "nl": "Ik koop de kool in de supermarkt.",
+   "ru": "Я покупаю капусту в супермаркете.",
+   "lemma": "kool",
+   "theme": 3
+  },
+  {
+   "nl": "Ik eet graag kool.",
+   "ru": "Я люблю есть капусту.",
+   "lemma": "kool",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je een kool?",
+   "ru": "Хочешь капусту?",
+   "lemma": "kool",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de kool?",
+   "ru": "Где капуста?",
+   "lemma": "kool",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de kool?",
+   "ru": "Это капуста?",
+   "lemma": "kool",
+   "theme": 3
+  },
+  {
+   "nl": "Ik eet graag broccoli.",
+   "ru": "Я люблю есть брокколи.",
+   "lemma": "broccoli",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je een broccoli?",
+   "ru": "Хочешь брокколи?",
+   "lemma": "broccoli",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de broccoli?",
+   "ru": "Где брокколи?",
+   "lemma": "broccoli",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de broccoli?",
+   "ru": "Это брокколи?",
+   "lemma": "broccoli",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de broccoli nodig.",
+   "ru": "Мне нужны брокколи.",
+   "lemma": "broccoli",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je een radijs?",
+   "ru": "Хочешь редис?",
+   "lemma": "radijs",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de radijs?",
+   "ru": "Где редис?",
+   "lemma": "radijs",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de radijs?",
+   "ru": "Это редис?",
+   "lemma": "radijs",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de radijs nodig.",
+   "ru": "Мне нужен редис.",
+   "lemma": "radijs",
+   "theme": 3
+  },
+  {
+   "nl": "De radijs is lekker.",
+   "ru": "Редис — вкусный.",
+   "lemma": "radijs",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de asperge?",
+   "ru": "Где спаржа?",
+   "lemma": "asperge",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de asperge?",
+   "ru": "Это спаржа?",
+   "lemma": "asperge",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de asperge nodig.",
+   "ru": "Мне нужна спаржа.",
+   "lemma": "asperge",
+   "theme": 3
+  },
+  {
+   "nl": "De asperge is lekker.",
+   "ru": "Спаржа — вкусная.",
+   "lemma": "asperge",
+   "theme": 3
+  },
+  {
+   "nl": "Ik koop de asperge in de supermarkt.",
+   "ru": "Я покупаю спаржу в супермаркете.",
+   "lemma": "asperge",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de granaatappel?",
+   "ru": "Это гранат?",
+   "lemma": "granaatappel",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de granaatappel nodig.",
+   "ru": "Мне нужен гранат.",
+   "lemma": "granaatappel",
+   "theme": 3
+  },
+  {
+   "nl": "De granaatappel is lekker.",
+   "ru": "Гранат — вкусный.",
+   "lemma": "granaatappel",
+   "theme": 3
+  },
+  {
+   "nl": "Ik koop de granaatappel in de supermarkt.",
+   "ru": "Я покупаю гранат в супермаркете.",
+   "lemma": "granaatappel",
+   "theme": 3
+  },
+  {
+   "nl": "Ik eet graag granaatappel.",
+   "ru": "Я люблю есть гранат.",
+   "lemma": "granaatappel",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de vijg nodig.",
+   "ru": "Мне нужен инжир.",
+   "lemma": "vijg",
+   "theme": 3
+  },
+  {
+   "nl": "De vijg is lekker.",
+   "ru": "Инжир — вкусный.",
+   "lemma": "vijg",
+   "theme": 3
+  },
+  {
+   "nl": "Ik koop de vijg in de supermarkt.",
+   "ru": "Я покупаю инжир в супермаркете.",
+   "lemma": "vijg",
+   "theme": 3
+  },
+  {
+   "nl": "Ik eet graag vijg.",
+   "ru": "Я люблю есть инжир.",
+   "lemma": "vijg",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je een vijg?",
+   "ru": "Хочешь инжир?",
+   "lemma": "vijg",
+   "theme": 3
+  },
+  {
+   "nl": "De dadel is lekker.",
+   "ru": "Финик — вкусный.",
+   "lemma": "dadel",
+   "theme": 3
+  },
+  {
+   "nl": "Ik koop de dadel in de supermarkt.",
+   "ru": "Я покупаю финик в супермаркете.",
+   "lemma": "dadel",
+   "theme": 3
+  },
+  {
+   "nl": "Ik eet graag dadel.",
+   "ru": "Я люблю есть финик.",
+   "lemma": "dadel",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je een dadel?",
+   "ru": "Хочешь финик?",
+   "lemma": "dadel",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de dadel?",
+   "ru": "Где финик?",
+   "lemma": "dadel",
+   "theme": 3
+  },
+  {
+   "nl": "Ik koop de gember in de supermarkt.",
+   "ru": "Я покупаю имбирь в супермаркете.",
+   "lemma": "gember",
+   "theme": 3
+  },
+  {
+   "nl": "Ik eet graag gember.",
+   "ru": "Я люблю есть имбирь.",
+   "lemma": "gember",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je een gember?",
+   "ru": "Хочешь имбирь?",
+   "lemma": "gember",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de gember?",
+   "ru": "Где имбирь?",
+   "lemma": "gember",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de gember?",
+   "ru": "Это имбирь?",
+   "lemma": "gember",
+   "theme": 3
+  },
+  {
+   "nl": "Ik eet graag basilicum.",
+   "ru": "Я люблю есть базилик.",
+   "lemma": "basilicum",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je een basilicum?",
+   "ru": "Хочешь базилик?",
+   "lemma": "basilicum",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de basilicum?",
+   "ru": "Где базилик?",
+   "lemma": "basilicum",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de basilicum?",
+   "ru": "Это базилик?",
+   "lemma": "basilicum",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de basilicum nodig.",
+   "ru": "Мне нужен базилик.",
+   "lemma": "basilicum",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je een peterselie?",
+   "ru": "Хочешь петрушку?",
+   "lemma": "peterselie",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de peterselie?",
+   "ru": "Где петрушка?",
+   "lemma": "peterselie",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de peterselie?",
+   "ru": "Это петрушка?",
+   "lemma": "peterselie",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de peterselie nodig.",
+   "ru": "Мне нужна петрушка.",
+   "lemma": "peterselie",
+   "theme": 3
+  },
+  {
+   "nl": "De peterselie is lekker.",
+   "ru": "Петрушка — вкусная.",
+   "lemma": "peterselie",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de dille?",
+   "ru": "Где укроп?",
+   "lemma": "dille",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de dille?",
+   "ru": "Это укроп?",
+   "lemma": "dille",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de dille nodig.",
+   "ru": "Мне нужен укроп.",
+   "lemma": "dille",
+   "theme": 3
+  },
+  {
+   "nl": "De dille is lekker.",
+   "ru": "Укроп — вкусный.",
+   "lemma": "dille",
+   "theme": 3
+  },
+  {
+   "nl": "Ik koop de dille in de supermarkt.",
+   "ru": "Я покупаю укроп в супермаркете.",
+   "lemma": "dille",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de bosui?",
+   "ru": "Это зелёный лук?",
+   "lemma": "bosui",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de bosui nodig.",
+   "ru": "Мне нужен зелёный лук.",
+   "lemma": "bosui",
+   "theme": 3
+  },
+  {
+   "nl": "De bosui is lekker.",
+   "ru": "Зелёный лук — вкусный.",
+   "lemma": "bosui",
+   "theme": 3
+  },
+  {
+   "nl": "Ik koop de bosui in de supermarkt.",
+   "ru": "Я покупаю зелёный лук в супермаркете.",
+   "lemma": "bosui",
+   "theme": 3
+  },
+  {
+   "nl": "Ik eet graag bosui.",
+   "ru": "Я люблю есть зелёный лук.",
+   "lemma": "bosui",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de augurk nodig.",
+   "ru": "Мне нужен маринованный огурчик.",
+   "lemma": "augurk",
+   "theme": 3
+  },
+  {
+   "nl": "De augurk is lekker.",
+   "ru": "Маринованный огурчик — вкусный.",
+   "lemma": "augurk",
+   "theme": 3
+  },
+  {
+   "nl": "Ik koop de augurk in de supermarkt.",
+   "ru": "Я покупаю маринованный огурчик в супермаркете.",
+   "lemma": "augurk",
+   "theme": 3
+  },
+  {
+   "nl": "Ik eet graag augurk.",
+   "ru": "Я люблю есть маринованный огурчик.",
+   "lemma": "augurk",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je een augurk?",
+   "ru": "Хочешь маринованный огурчик?",
+   "lemma": "augurk",
+   "theme": 3
+  },
+  {
+   "nl": "De zuurkool is lekker.",
+   "ru": "Квашеная капуста — вкусная.",
+   "lemma": "zuurkool",
+   "theme": 3
+  },
+  {
+   "nl": "Ik koop de zuurkool in de supermarkt.",
+   "ru": "Я покупаю квашеную капусту в супермаркете.",
+   "lemma": "zuurkool",
+   "theme": 3
+  },
+  {
+   "nl": "Ik eet graag zuurkool.",
+   "ru": "Я люблю есть квашеную капусту.",
+   "lemma": "zuurkool",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je een zuurkool?",
+   "ru": "Хочешь квашеную капусту?",
+   "lemma": "zuurkool",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de zuurkool?",
+   "ru": "Где квашеная капуста?",
+   "lemma": "zuurkool",
+   "theme": 3
+  },
+  {
+   "nl": "Ik koop de smoothie in de supermarkt.",
+   "ru": "Я покупаю смузи в супермаркете.",
+   "lemma": "smoothie",
+   "theme": 3
+  },
+  {
+   "nl": "Ik eet graag smoothie.",
+   "ru": "Я люблю есть смузи.",
+   "lemma": "smoothie",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je een smoothie?",
+   "ru": "Хочешь смузи?",
+   "lemma": "smoothie",
+   "theme": 3
+  },
+  {
+   "nl": "Waar is de smoothie?",
+   "ru": "Где смузи?",
+   "lemma": "smoothie",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit de smoothie?",
+   "ru": "Это смузи?",
+   "lemma": "smoothie",
+   "theme": 3
+  },
+  {
+   "nl": "Is dit het bruiswater?",
+   "ru": "Это газированная вода?",
+   "lemma": "bruiswater",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb het bruiswater nodig.",
+   "ru": "Мне нужна газированная вода.",
+   "lemma": "bruiswater",
+   "theme": 3
+  },
+  {
+   "nl": "Ik drink graag bruiswater.",
+   "ru": "Я люблю пить газированную воду.",
+   "lemma": "bruiswater",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je bruiswater?",
+   "ru": "Хочешь газированную воду?",
+   "lemma": "bruiswater",
+   "theme": 3
+  },
+  {
+   "nl": "Het bruiswater is lekker.",
+   "ru": "Газированная вода — вкусная.",
+   "lemma": "bruiswater",
+   "theme": 3
+  },
+  {
+   "nl": "Ik heb de kruidenthee nodig.",
+   "ru": "Мне нужен травяной чай.",
+   "lemma": "kruidenthee",
+   "theme": 3
+  },
+  {
+   "nl": "Ik drink graag kruidenthee.",
+   "ru": "Я люблю пить травяной чай.",
+   "lemma": "kruidenthee",
+   "theme": 3
+  },
+  {
+   "nl": "Wil je kruidenthee?",
+   "ru": "Хочешь травяной чай?",
+   "lemma": "kruidenthee",
+   "theme": 3
+  },
+  {
+   "nl": "De kruidenthee is lekker.",
+   "ru": "Травяной чай — вкусный.",
+   "lemma": "kruidenthee",
+   "theme": 3
+  },
+  {
+   "nl": "Ik neem kruidenthee, alstublieft.",
+   "ru": "Мне травяной чай, пожалуйста.",
+   "lemma": "kruidenthee",
+   "theme": 3
+  },
+  {
    "nl": "Is dit het lichaam?",
    "ru": "Это тело?",
    "lemma": "lichaam",
@@ -7935,20 +9315,14 @@
    "theme": 4
   },
   {
-   "nl": "Is dit het hoofd?",
-   "ru": "Это голова?",
+   "nl": "Doet je hoofd pijn?",
+   "ru": "У тебя болит голова?",
    "lemma": "hoofd",
    "theme": 4
   },
   {
    "nl": "Mijn hoofd doet pijn.",
    "ru": "У меня болит голова.",
-   "lemma": "hoofd",
-   "theme": 4
-  },
-  {
-   "nl": "Doet je hoofd pijn?",
-   "ru": "У тебя болит голова?",
    "lemma": "hoofd",
    "theme": 4
   },
@@ -7965,20 +9339,8 @@
    "theme": 4
   },
   {
-   "nl": "Is dit het gezicht?",
-   "ru": "Это лицо?",
-   "lemma": "gezicht",
-   "theme": 4
-  },
-  {
    "nl": "Doet je oog pijn?",
    "ru": "У тебя болит глаз?",
-   "lemma": "oog",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit het oog?",
-   "ru": "Это глаз?",
    "lemma": "oog",
    "theme": 4
   },
@@ -7986,12 +9348,6 @@
    "nl": "Mijn oog doet pijn.",
    "ru": "У меня болит глаз.",
    "lemma": "oog",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit het oor?",
-   "ru": "Это ухо?",
-   "lemma": "oor",
    "theme": 4
   },
   {
@@ -8007,20 +9363,14 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de neus?",
-   "ru": "Это нос?",
+   "nl": "Doet je neus pijn?",
+   "ru": "У тебя болит нос?",
    "lemma": "neus",
    "theme": 4
   },
   {
    "nl": "Mijn neus doet pijn.",
    "ru": "У меня болит нос.",
-   "lemma": "neus",
-   "theme": 4
-  },
-  {
-   "nl": "Doet je neus pijn?",
-   "ru": "У тебя болит нос?",
    "lemma": "neus",
    "theme": 4
   },
@@ -8037,20 +9387,8 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de mond?",
-   "ru": "Это рот?",
-   "lemma": "mond",
-   "theme": 4
-  },
-  {
    "nl": "Doet je lip pijn?",
    "ru": "У тебя болит губа?",
-   "lemma": "lip",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit de lip?",
-   "ru": "Это губа?",
    "lemma": "lip",
    "theme": 4
   },
@@ -8058,12 +9396,6 @@
    "nl": "Mijn lip doet pijn.",
    "ru": "У меня болит губа.",
    "lemma": "lip",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit de tand?",
-   "ru": "Это зуб?",
-   "lemma": "tand",
    "theme": 4
   },
   {
@@ -8079,20 +9411,14 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de kies?",
-   "ru": "Это коренной зуб?",
+   "nl": "Doet je kies pijn?",
+   "ru": "У тебя болит коренной зуб?",
    "lemma": "kies",
    "theme": 4
   },
   {
    "nl": "Mijn kies doet pijn.",
    "ru": "У меня болит коренной зуб.",
-   "lemma": "kies",
-   "theme": 4
-  },
-  {
-   "nl": "Doet je kies pijn?",
-   "ru": "У тебя болит коренной зуб?",
    "lemma": "kies",
    "theme": 4
   },
@@ -8109,20 +9435,8 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de kin?",
-   "ru": "Это подбородок?",
-   "lemma": "kin",
-   "theme": 4
-  },
-  {
    "nl": "Doet je nek pijn?",
    "ru": "У тебя болит шея?",
-   "lemma": "nek",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit de nek?",
-   "ru": "Это шея?",
    "lemma": "nek",
    "theme": 4
   },
@@ -8130,12 +9444,6 @@
    "nl": "Mijn nek doet pijn.",
    "ru": "У меня болит шея.",
    "lemma": "nek",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit de schouder?",
-   "ru": "Это плечо?",
-   "lemma": "schouder",
    "theme": 4
   },
   {
@@ -8151,20 +9459,14 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de arm?",
-   "ru": "Это рука?",
+   "nl": "Doet je arm pijn?",
+   "ru": "У тебя болит рука?",
    "lemma": "arm",
    "theme": 4
   },
   {
    "nl": "Mijn arm doet pijn.",
    "ru": "У меня болит рука.",
-   "lemma": "arm",
-   "theme": 4
-  },
-  {
-   "nl": "Doet je arm pijn?",
-   "ru": "У тебя болит рука?",
    "lemma": "arm",
    "theme": 4
   },
@@ -8181,20 +9483,8 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de hand?",
-   "ru": "Это кисть?",
-   "lemma": "hand",
-   "theme": 4
-  },
-  {
    "nl": "Doet je vinger pijn?",
    "ru": "У тебя болит палец руки?",
-   "lemma": "vinger",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit de vinger?",
-   "ru": "Это палец руки?",
    "lemma": "vinger",
    "theme": 4
   },
@@ -8202,12 +9492,6 @@
    "nl": "Mijn vinger doet pijn.",
    "ru": "У меня болит палец руки.",
    "lemma": "vinger",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit de buik?",
-   "ru": "Это живот?",
-   "lemma": "buik",
    "theme": 4
   },
   {
@@ -8223,20 +9507,14 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de rug?",
-   "ru": "Это спина?",
+   "nl": "Doet je rug pijn?",
+   "ru": "У тебя болит спина?",
    "lemma": "rug",
    "theme": 4
   },
   {
    "nl": "Mijn rug doet pijn.",
    "ru": "У меня болит спина.",
-   "lemma": "rug",
-   "theme": 4
-  },
-  {
-   "nl": "Doet je rug pijn?",
-   "ru": "У тебя болит спина?",
    "lemma": "rug",
    "theme": 4
   },
@@ -8253,20 +9531,8 @@
    "theme": 4
   },
   {
-   "nl": "Is dit het been?",
-   "ru": "Это нога?",
-   "lemma": "been",
-   "theme": 4
-  },
-  {
    "nl": "Doet je knie pijn?",
    "ru": "У тебя болит колено?",
-   "lemma": "knie",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit de knie?",
-   "ru": "Это колено?",
    "lemma": "knie",
    "theme": 4
   },
@@ -8274,12 +9540,6 @@
    "nl": "Mijn knie doet pijn.",
    "ru": "У меня болит колено.",
    "lemma": "knie",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit de voet?",
-   "ru": "Это ступня?",
-   "lemma": "voet",
    "theme": 4
   },
   {
@@ -8295,20 +9555,14 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de teen?",
-   "ru": "Это палец ноги?",
+   "nl": "Doet je teen pijn?",
+   "ru": "У тебя болит палец ноги?",
    "lemma": "teen",
    "theme": 4
   },
   {
    "nl": "Mijn teen doet pijn.",
    "ru": "У меня болит палец ноги.",
-   "lemma": "teen",
-   "theme": 4
-  },
-  {
-   "nl": "Doet je teen pijn?",
-   "ru": "У тебя болит палец ноги?",
    "lemma": "teen",
    "theme": 4
   },
@@ -8343,12 +9597,6 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de spier?",
-   "ru": "Это мышца?",
-   "lemma": "spier",
-   "theme": 4
-  },
-  {
    "nl": "Mijn spier doet pijn.",
    "ru": "У меня болит мышца.",
    "lemma": "spier",
@@ -8376,12 +9624,6 @@
    "nl": "Ik heb de griep nodig.",
    "ru": "Мне нужен грипп.",
    "lemma": "griep",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit de keel?",
-   "ru": "Это горло?",
-   "lemma": "keel",
    "theme": 4
   },
   {
@@ -9183,18 +10425,6 @@
    "theme": 4
   },
   {
-   "nl": "Waar is het bloed?",
-   "ru": "Где кровь?",
-   "lemma": "bloed",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit het bloed?",
-   "ru": "Это кровь?",
-   "lemma": "bloed",
-   "theme": 4
-  },
-  {
    "nl": "Mijn bloed doet pijn.",
    "ru": "У меня болит кровь.",
    "lemma": "bloed",
@@ -9207,26 +10437,14 @@
    "theme": 4
   },
   {
-   "nl": "Is dit de long?",
-   "ru": "Это лёгкое?",
-   "lemma": "long",
-   "theme": 4
-  },
-  {
-   "nl": "Mijn long doet pijn.",
-   "ru": "У меня болит лёгкое.",
-   "lemma": "long",
-   "theme": 4
-  },
-  {
    "nl": "Doet je long pijn?",
    "ru": "У тебя болит лёгкое?",
    "lemma": "long",
    "theme": 4
   },
   {
-   "nl": "Waar is de long?",
-   "ru": "Где лёгкое?",
+   "nl": "Mijn long doet pijn.",
+   "ru": "У меня болит лёгкое.",
    "lemma": "long",
    "theme": 4
   },
@@ -9243,32 +10461,8 @@
    "theme": 4
   },
   {
-   "nl": "Waar is het hart?",
-   "ru": "Где сердце?",
-   "lemma": "hart",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit het hart?",
-   "ru": "Это сердце?",
-   "lemma": "hart",
-   "theme": 4
-  },
-  {
    "nl": "Doet je maag pijn?",
    "ru": "У тебя болит желудок?",
-   "lemma": "maag",
-   "theme": 4
-  },
-  {
-   "nl": "Waar is de maag?",
-   "ru": "Где желудок?",
-   "lemma": "maag",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit de maag?",
-   "ru": "Это желудок?",
    "lemma": "maag",
    "theme": 4
   },
@@ -9276,18 +10470,6 @@
    "nl": "Mijn maag doet pijn.",
    "ru": "У меня болит желудок.",
    "lemma": "maag",
-   "theme": 4
-  },
-  {
-   "nl": "Waar is de nier?",
-   "ru": "Где почка?",
-   "lemma": "nier",
-   "theme": 4
-  },
-  {
-   "nl": "Is dit de nier?",
-   "ru": "Это почка?",
-   "lemma": "nier",
    "theme": 4
   },
   {
@@ -9303,26 +10485,14 @@
    "theme": 4
   },
   {
-   "nl": "Is dit het bot?",
-   "ru": "Это кость?",
-   "lemma": "bot",
-   "theme": 4
-  },
-  {
-   "nl": "Mijn bot doet pijn.",
-   "ru": "У меня болит кость.",
-   "lemma": "bot",
-   "theme": 4
-  },
-  {
    "nl": "Doet je bot pijn?",
    "ru": "У тебя болит кость?",
    "lemma": "bot",
    "theme": 4
   },
   {
-   "nl": "Waar is het bot?",
-   "ru": "Где кость?",
+   "nl": "Mijn bot doet pijn.",
+   "ru": "У меня болит кость.",
    "lemma": "bot",
    "theme": 4
   },
@@ -9630,6 +10800,330 @@
    "nl": "Ik heb het laboratorium nodig.",
    "ru": "Мне нужна лаборатория.",
    "lemma": "laboratorium",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je elleboog pijn?",
+   "ru": "У тебя болит локоть?",
+   "lemma": "elleboog",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn elleboog doet pijn.",
+   "ru": "У меня болит локоть.",
+   "lemma": "elleboog",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn pols doet pijn.",
+   "ru": "У меня болит запястье.",
+   "lemma": "pols",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je pols pijn?",
+   "ru": "У тебя болит запястье?",
+   "lemma": "pols",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je enkel pijn?",
+   "ru": "У тебя болит лодыжка?",
+   "lemma": "enkel",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn enkel doet pijn.",
+   "ru": "У меня болит лодыжка.",
+   "lemma": "enkel",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn heup doet pijn.",
+   "ru": "У меня болит бедро.",
+   "lemma": "heup",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je heup pijn?",
+   "ru": "У тебя болит бедро?",
+   "lemma": "heup",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je wang pijn?",
+   "ru": "У тебя болит щека?",
+   "lemma": "wang",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn wang doet pijn.",
+   "ru": "У меня болит щека.",
+   "lemma": "wang",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn voorhoofd doet pijn.",
+   "ru": "У меня болит лоб.",
+   "lemma": "voorhoofd",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je voorhoofd pijn?",
+   "ru": "У тебя болит лоб?",
+   "lemma": "voorhoofd",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je borst pijn?",
+   "ru": "У тебя болит грудь?",
+   "lemma": "borst",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn borst doet pijn.",
+   "ru": "У меня болит грудь.",
+   "lemma": "borst",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn nagel doet pijn.",
+   "ru": "У меня болит ноготь.",
+   "lemma": "nagel",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je nagel pijn?",
+   "ru": "У тебя болит ноготь?",
+   "lemma": "nagel",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je wenkbrauw pijn?",
+   "ru": "У тебя болит бровь?",
+   "lemma": "wenkbrauw",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn wenkbrauw doet pijn.",
+   "ru": "У меня болит бровь.",
+   "lemma": "wenkbrauw",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn wimper doet pijn.",
+   "ru": "У меня болит ресница.",
+   "lemma": "wimper",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je wimper pijn?",
+   "ru": "У тебя болит ресница?",
+   "lemma": "wimper",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je kaak pijn?",
+   "ru": "У тебя болит челюсть?",
+   "lemma": "kaak",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn kaak doet pijn.",
+   "ru": "У меня болит челюсть.",
+   "lemma": "kaak",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn rib doet pijn.",
+   "ru": "У меня болит ребро.",
+   "lemma": "rib",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je rib pijn?",
+   "ru": "У тебя болит ребро?",
+   "lemma": "rib",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je lever pijn?",
+   "ru": "У тебя болит печень?",
+   "lemma": "lever",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn lever doet pijn.",
+   "ru": "У меня болит печень.",
+   "lemma": "lever",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is de blaas?",
+   "ru": "Где мочевой пузырь?",
+   "lemma": "blaas",
+   "theme": 4
+  },
+  {
+   "nl": "Is dit de blaas?",
+   "ru": "Это мочевой пузырь?",
+   "lemma": "blaas",
+   "theme": 4
+  },
+  {
+   "nl": "Ik heb de blaas nodig.",
+   "ru": "Мне нужна мочевой пузырь.",
+   "lemma": "blaas",
+   "theme": 4
+  },
+  {
+   "nl": "Doet je darm pijn?",
+   "ru": "У тебя болит кишечник?",
+   "lemma": "darm",
+   "theme": 4
+  },
+  {
+   "nl": "Mijn darm doet pijn.",
+   "ru": "У меня болит кишечник.",
+   "lemma": "darm",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is het zweet?",
+   "ru": "Где пот?",
+   "lemma": "zweet",
+   "theme": 4
+  },
+  {
+   "nl": "Is dit het zweet?",
+   "ru": "Это пот?",
+   "lemma": "zweet",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is de loopneus?",
+   "ru": "Где насморк?",
+   "lemma": "loopneus",
+   "theme": 4
+  },
+  {
+   "nl": "Is dit de loopneus?",
+   "ru": "Это насморк?",
+   "lemma": "loopneus",
+   "theme": 4
+  },
+  {
+   "nl": "Ik heb de loopneus nodig.",
+   "ru": "Мне нужен насморк.",
+   "lemma": "loopneus",
+   "theme": 4
+  },
+  {
+   "nl": "Is dit de infectie?",
+   "ru": "Это инфекция?",
+   "lemma": "infectie",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is de infectie?",
+   "ru": "Где инфекция?",
+   "lemma": "infectie",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is het virus?",
+   "ru": "Где вирус?",
+   "lemma": "virus",
+   "theme": 4
+  },
+  {
+   "nl": "Is dit het virus?",
+   "ru": "Это вирус?",
+   "lemma": "virus",
+   "theme": 4
+  },
+  {
+   "nl": "Is dit de bacterie?",
+   "ru": "Это бактерия?",
+   "lemma": "bacterie",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is de bacterie?",
+   "ru": "Где бактерия?",
+   "lemma": "bacterie",
+   "theme": 4
+  },
+  {
+   "nl": "Is dit het infuus?",
+   "ru": "Это капельница?",
+   "lemma": "infuus",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is het infuus?",
+   "ru": "Где капельница?",
+   "lemma": "infuus",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is de echo?",
+   "ru": "Где УЗИ?",
+   "lemma": "echo",
+   "theme": 4
+  },
+  {
+   "nl": "Is dit de echo?",
+   "ru": "Это УЗИ?",
+   "lemma": "echo",
+   "theme": 4
+  },
+  {
+   "nl": "Ik heb de echo nodig.",
+   "ru": "Мне нужен УЗИ.",
+   "lemma": "echo",
+   "theme": 4
+  },
+  {
+   "nl": "Is dit de röntgenfoto?",
+   "ru": "Это рентгеновский снимок?",
+   "lemma": "röntgenfoto",
+   "theme": 4
+  },
+  {
+   "nl": "Ik heb de röntgenfoto nodig.",
+   "ru": "Мне нужен рентгеновский снимок.",
+   "lemma": "röntgenfoto",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is de röntgenfoto?",
+   "ru": "Где рентгеновский снимок?",
+   "lemma": "röntgenfoto",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is het gips?",
+   "ru": "Где гипс?",
+   "lemma": "gips",
+   "theme": 4
+  },
+  {
+   "nl": "Is dit het gips?",
+   "ru": "Это гипс?",
+   "lemma": "gips",
+   "theme": 4
+  },
+  {
+   "nl": "Waar is de narcose?",
+   "ru": "Где наркоз?",
+   "lemma": "narcose",
+   "theme": 4
+  },
+  {
+   "nl": "Is dit de narcose?",
+   "ru": "Это наркоз?",
+   "lemma": "narcose",
    "theme": 4
   },
   {
@@ -11865,6 +13359,186 @@
    "theme": 5
   },
   {
+   "nl": "Ik heb het textiel nodig.",
+   "ru": "Мне нужна текстиль.",
+   "lemma": "textiel",
+   "theme": 5
+  },
+  {
+   "nl": "Waar is het textiel?",
+   "ru": "Где текстиль?",
+   "lemma": "textiel",
+   "theme": 5
+  },
+  {
+   "nl": "Is dit het textiel?",
+   "ru": "Это текстиль?",
+   "lemma": "textiel",
+   "theme": 5
+  },
+  {
+   "nl": "Waar is de zijde?",
+   "ru": "Где шёлк?",
+   "lemma": "zijde",
+   "theme": 5
+  },
+  {
+   "nl": "Is dit de zijde?",
+   "ru": "Это шёлк?",
+   "lemma": "zijde",
+   "theme": 5
+  },
+  {
+   "nl": "Ik heb de zijde nodig.",
+   "ru": "Мне нужен шёлк.",
+   "lemma": "zijde",
+   "theme": 5
+  },
+  {
+   "nl": "Is dit het linnen?",
+   "ru": "Это лён?",
+   "lemma": "linnen",
+   "theme": 5
+  },
+  {
+   "nl": "Ik heb het linnen nodig.",
+   "ru": "Мне нужен лён.",
+   "lemma": "linnen",
+   "theme": 5
+  },
+  {
+   "nl": "Waar is het linnen?",
+   "ru": "Где лён?",
+   "lemma": "linnen",
+   "theme": 5
+  },
+  {
+   "nl": "Ik heb het fluweel nodig.",
+   "ru": "Мне нужен бархат.",
+   "lemma": "fluweel",
+   "theme": 5
+  },
+  {
+   "nl": "Waar is het fluweel?",
+   "ru": "Где бархат?",
+   "lemma": "fluweel",
+   "theme": 5
+  },
+  {
+   "nl": "Is dit het fluweel?",
+   "ru": "Это бархат?",
+   "lemma": "fluweel",
+   "theme": 5
+  },
+  {
+   "nl": "Is dit het klittenband?",
+   "ru": "Это липучка?",
+   "lemma": "klittenband",
+   "theme": 5
+  },
+  {
+   "nl": "Ik heb het klittenband nodig.",
+   "ru": "Мне нужна липучка.",
+   "lemma": "klittenband",
+   "theme": 5
+  },
+  {
+   "nl": "Waar is het klittenband?",
+   "ru": "Где липучка?",
+   "lemma": "klittenband",
+   "theme": 5
+  },
+  {
+   "nl": "Ik heb de schouderband nodig.",
+   "ru": "Мне нужна лямка.",
+   "lemma": "schouderband",
+   "theme": 5
+  },
+  {
+   "nl": "Waar is de schouderband?",
+   "ru": "Где лямка?",
+   "lemma": "schouderband",
+   "theme": 5
+  },
+  {
+   "nl": "Is dit de schouderband?",
+   "ru": "Это лямка?",
+   "lemma": "schouderband",
+   "theme": 5
+  },
+  {
+   "nl": "Waar is de coltrui?",
+   "ru": "Где водолазка?",
+   "lemma": "coltrui",
+   "theme": 5
+  },
+  {
+   "nl": "Is dit de coltrui?",
+   "ru": "Это водолазка?",
+   "lemma": "coltrui",
+   "theme": 5
+  },
+  {
+   "nl": "Ik heb de coltrui nodig.",
+   "ru": "Мне нужна водолазка.",
+   "lemma": "coltrui",
+   "theme": 5
+  },
+  {
+   "nl": "Is het comfortabel?",
+   "ru": "Это удобно?",
+   "lemma": "comfortabel",
+   "theme": 5
+  },
+  {
+   "nl": "Het is comfortabel.",
+   "ru": "Это удобно.",
+   "lemma": "comfortabel",
+   "theme": 5
+  },
+  {
+   "nl": "Dat is heel comfortabel.",
+   "ru": "Это очень удобно.",
+   "lemma": "comfortabel",
+   "theme": 5
+  },
+  {
+   "nl": "Het is praktisch.",
+   "ru": "Это практично.",
+   "lemma": "praktisch",
+   "theme": 5
+  },
+  {
+   "nl": "Dat is heel praktisch.",
+   "ru": "Это очень практично.",
+   "lemma": "praktisch",
+   "theme": 5
+  },
+  {
+   "nl": "Is het praktisch?",
+   "ru": "Это практично?",
+   "lemma": "praktisch",
+   "theme": 5
+  },
+  {
+   "nl": "Dat is heel stijlvol.",
+   "ru": "Это очень стильно.",
+   "lemma": "stijlvol",
+   "theme": 5
+  },
+  {
+   "nl": "Is het stijlvol?",
+   "ru": "Это стильно?",
+   "lemma": "stijlvol",
+   "theme": 5
+  },
+  {
+   "nl": "Het is stijlvol.",
+   "ru": "Это стильно.",
+   "lemma": "stijlvol",
+   "theme": 5
+  },
+  {
    "nl": "Waar is de fiets?",
    "ru": "Где велосипед?",
    "lemma": "fiets",
@@ -13803,20 +15477,14 @@
    "theme": 6
   },
   {
-   "nl": "Waar is het kenteken?",
-   "ru": "Где номерной знак?",
-   "lemma": "kenteken",
-   "theme": 6
-  },
-  {
    "nl": "Is dit het kenteken?",
    "ru": "Это номерной знак?",
    "lemma": "kenteken",
    "theme": 6
   },
   {
-   "nl": "Ik heb het kenteken nodig.",
-   "ru": "Мне нужен номерной знак.",
+   "nl": "Waar is het kenteken?",
+   "ru": "Где номерной знак?",
    "lemma": "kenteken",
    "theme": 6
   },
@@ -14118,6 +15786,234 @@
    "nl": "Ik heb de parasol nodig.",
    "ru": "Мне нужен зонт от солнца.",
    "lemma": "parasol",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is de badplaats?",
+   "ru": "Где приморский курорт?",
+   "lemma": "badplaats",
+   "theme": 6
+  },
+  {
+   "nl": "Is dit de badplaats?",
+   "ru": "Это приморский курорт?",
+   "lemma": "badplaats",
+   "theme": 6
+  },
+  {
+   "nl": "Ik heb de badplaats nodig.",
+   "ru": "Мне нужен приморский курорт.",
+   "lemma": "badplaats",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is het vakantiepark?",
+   "ru": "Где парк отдыха?",
+   "lemma": "vakantiepark",
+   "theme": 6
+  },
+  {
+   "nl": "Het vakantiepark is vandaag dicht.",
+   "ru": "Парк отдыха сегодня закрыт.",
+   "lemma": "vakantiepark",
+   "theme": 6
+  },
+  {
+   "nl": "Het vakantiepark is om de hoek.",
+   "ru": "Парк отдыха за углом.",
+   "lemma": "vakantiepark",
+   "theme": 6
+  },
+  {
+   "nl": "Is het vakantiepark ver?",
+   "ru": "Далеко ли парк отдыха?",
+   "lemma": "vakantiepark",
+   "theme": 6
+  },
+  {
+   "nl": "Ik ga naar het vakantiepark.",
+   "ru": "Я иду в парк отдыха.",
+   "lemma": "vakantiepark",
+   "theme": 6
+  },
+  {
+   "nl": "Ik heb de attractie nodig.",
+   "ru": "Мне нужен аттракцион.",
+   "lemma": "attractie",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is de attractie?",
+   "ru": "Где аттракцион?",
+   "lemma": "attractie",
+   "theme": 6
+  },
+  {
+   "nl": "Is dit de attractie?",
+   "ru": "Это аттракцион?",
+   "lemma": "attractie",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is de achtbaan?",
+   "ru": "Где американские горки?",
+   "lemma": "achtbaan",
+   "theme": 6
+  },
+  {
+   "nl": "Is dit de achtbaan?",
+   "ru": "Это американские горки?",
+   "lemma": "achtbaan",
+   "theme": 6
+  },
+  {
+   "nl": "Ik heb de achtbaan nodig.",
+   "ru": "Мне нужно американские горки.",
+   "lemma": "achtbaan",
+   "theme": 6
+  },
+  {
+   "nl": "Is dit het reuzenrad?",
+   "ru": "Это колесо обозрения?",
+   "lemma": "reuzenrad",
+   "theme": 6
+  },
+  {
+   "nl": "Ik heb het reuzenrad nodig.",
+   "ru": "Мне нужно колесо обозрения.",
+   "lemma": "reuzenrad",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is het reuzenrad?",
+   "ru": "Где колесо обозрения?",
+   "lemma": "reuzenrad",
+   "theme": 6
+  },
+  {
+   "nl": "Ik heb de stiltecoupé nodig.",
+   "ru": "Мне нужен вагон тишины.",
+   "lemma": "stiltecoupé",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is de stiltecoupé?",
+   "ru": "Где вагон тишины?",
+   "lemma": "stiltecoupé",
+   "theme": 6
+  },
+  {
+   "nl": "Is dit de stiltecoupé?",
+   "ru": "Это вагон тишины?",
+   "lemma": "stiltecoupé",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is de fietstas?",
+   "ru": "Где велосумка?",
+   "lemma": "fietstas",
+   "theme": 6
+  },
+  {
+   "nl": "Is dit de fietstas?",
+   "ru": "Это велосумка?",
+   "lemma": "fietstas",
+   "theme": 6
+  },
+  {
+   "nl": "Ik heb de fietstas nodig.",
+   "ru": "Мне нужна велосумка.",
+   "lemma": "fietstas",
+   "theme": 6
+  },
+  {
+   "nl": "Is dit de fietshelm?",
+   "ru": "Это велошлем?",
+   "lemma": "fietshelm",
+   "theme": 6
+  },
+  {
+   "nl": "Ik heb de fietshelm nodig.",
+   "ru": "Мне нужен велошлем.",
+   "lemma": "fietshelm",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is de fietshelm?",
+   "ru": "Где велошлем?",
+   "lemma": "fietshelm",
+   "theme": 6
+  },
+  {
+   "nl": "Ik heb de bagagekluis nodig.",
+   "ru": "Мне нужна камера хранения.",
+   "lemma": "bagagekluis",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is de bagagekluis?",
+   "ru": "Где камера хранения?",
+   "lemma": "bagagekluis",
+   "theme": 6
+  },
+  {
+   "nl": "Is dit de bagagekluis?",
+   "ru": "Это камера хранения?",
+   "lemma": "bagagekluis",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is de grenscontrole?",
+   "ru": "Где пограничный контроль?",
+   "lemma": "grenscontrole",
+   "theme": 6
+  },
+  {
+   "nl": "Is dit de grenscontrole?",
+   "ru": "Это пограничный контроль?",
+   "lemma": "grenscontrole",
+   "theme": 6
+  },
+  {
+   "nl": "Ik heb de grenscontrole nodig.",
+   "ru": "Мне нужна пограничный контроль.",
+   "lemma": "grenscontrole",
+   "theme": 6
+  },
+  {
+   "nl": "Is dit de noodrem?",
+   "ru": "Это стоп-кран?",
+   "lemma": "noodrem",
+   "theme": 6
+  },
+  {
+   "nl": "Ik heb de noodrem nodig.",
+   "ru": "Мне нужен стоп-кран.",
+   "lemma": "noodrem",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is de noodrem?",
+   "ru": "Где стоп-кран?",
+   "lemma": "noodrem",
+   "theme": 6
+  },
+  {
+   "nl": "Ik heb het reddingsvest nodig.",
+   "ru": "Мне нужен спасательный жилет.",
+   "lemma": "reddingsvest",
+   "theme": 6
+  },
+  {
+   "nl": "Waar is het reddingsvest?",
+   "ru": "Где спасательный жилет?",
+   "lemma": "reddingsvest",
+   "theme": 6
+  },
+  {
+   "nl": "Is dit het reddingsvest?",
+   "ru": "Это спасательный жилет?",
+   "lemma": "reddingsvest",
    "theme": 6
   },
   {
@@ -17361,6 +19257,942 @@
    "theme": 7
   },
   {
+   "nl": "De leeuw speelt in de tuin.",
+   "ru": "Лев играет в саду.",
+   "lemma": "leeuw",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de leeuw!",
+   "ru": "Смотри, лев!",
+   "lemma": "leeuw",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis leeuw.",
+   "ru": "У меня дома лев.",
+   "lemma": "leeuw",
+   "theme": 7
+  },
+  {
+   "nl": "Is de leeuw groot?",
+   "ru": "Лев большой?",
+   "lemma": "leeuw",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de tijger!",
+   "ru": "Смотри, тигр!",
+   "lemma": "tijger",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis tijger.",
+   "ru": "У меня дома тигр.",
+   "lemma": "tijger",
+   "theme": 7
+  },
+  {
+   "nl": "Is de tijger groot?",
+   "ru": "Тигр большой?",
+   "lemma": "tijger",
+   "theme": 7
+  },
+  {
+   "nl": "De tijger speelt in de tuin.",
+   "ru": "Тигр играет в саду.",
+   "lemma": "tijger",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis aap.",
+   "ru": "У меня дома обезьяна.",
+   "lemma": "aap",
+   "theme": 7
+  },
+  {
+   "nl": "Is de aap groot?",
+   "ru": "Обезьяна большая?",
+   "lemma": "aap",
+   "theme": 7
+  },
+  {
+   "nl": "De aap speelt in de tuin.",
+   "ru": "Обезьяна играет в саду.",
+   "lemma": "aap",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de aap!",
+   "ru": "Смотри, обезьяна!",
+   "lemma": "aap",
+   "theme": 7
+  },
+  {
+   "nl": "Is de beer groot?",
+   "ru": "Медведь большая?",
+   "lemma": "beer",
+   "theme": 7
+  },
+  {
+   "nl": "De beer speelt in de tuin.",
+   "ru": "Медведь играет в саду.",
+   "lemma": "beer",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de beer!",
+   "ru": "Смотри, медведь!",
+   "lemma": "beer",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis beer.",
+   "ru": "У меня дома медведь.",
+   "lemma": "beer",
+   "theme": 7
+  },
+  {
+   "nl": "De wolf speelt in de tuin.",
+   "ru": "Волк играет в саду.",
+   "lemma": "wolf",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de wolf!",
+   "ru": "Смотри, волк!",
+   "lemma": "wolf",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis wolf.",
+   "ru": "У меня дома волк.",
+   "lemma": "wolf",
+   "theme": 7
+  },
+  {
+   "nl": "Is de wolf groot?",
+   "ru": "Волк большой?",
+   "lemma": "wolf",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de vos!",
+   "ru": "Смотри, лиса!",
+   "lemma": "vos",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis vos.",
+   "ru": "У меня дома лиса.",
+   "lemma": "vos",
+   "theme": 7
+  },
+  {
+   "nl": "Is de vos groot?",
+   "ru": "Лиса большая?",
+   "lemma": "vos",
+   "theme": 7
+  },
+  {
+   "nl": "De vos speelt in de tuin.",
+   "ru": "Лиса играет в саду.",
+   "lemma": "vos",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis konijn.",
+   "ru": "У меня дома кролик.",
+   "lemma": "konijn",
+   "theme": 7
+  },
+  {
+   "nl": "Is het konijn groot?",
+   "ru": "Кролик большой?",
+   "lemma": "konijn",
+   "theme": 7
+  },
+  {
+   "nl": "Het konijn speelt in de tuin.",
+   "ru": "Кролик играет в саду.",
+   "lemma": "konijn",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, het konijn!",
+   "ru": "Смотри, кролик!",
+   "lemma": "konijn",
+   "theme": 7
+  },
+  {
+   "nl": "Is het hert groot?",
+   "ru": "Олень большая?",
+   "lemma": "hert",
+   "theme": 7
+  },
+  {
+   "nl": "Het hert speelt in de tuin.",
+   "ru": "Олень играет в саду.",
+   "lemma": "hert",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, het hert!",
+   "ru": "Смотри, олень!",
+   "lemma": "hert",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis hert.",
+   "ru": "У меня дома олень.",
+   "lemma": "hert",
+   "theme": 7
+  },
+  {
+   "nl": "De egel speelt in de tuin.",
+   "ru": "Ёж играет в саду.",
+   "lemma": "egel",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de egel!",
+   "ru": "Смотри, ёж!",
+   "lemma": "egel",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis egel.",
+   "ru": "У меня дома ёж.",
+   "lemma": "egel",
+   "theme": 7
+  },
+  {
+   "nl": "Is de egel groot?",
+   "ru": "Ёж большой?",
+   "lemma": "egel",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de eekhoorn!",
+   "ru": "Смотри, белка!",
+   "lemma": "eekhoorn",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis eekhoorn.",
+   "ru": "У меня дома белка.",
+   "lemma": "eekhoorn",
+   "theme": 7
+  },
+  {
+   "nl": "Is de eekhoorn groot?",
+   "ru": "Белка большая?",
+   "lemma": "eekhoorn",
+   "theme": 7
+  },
+  {
+   "nl": "De eekhoorn speelt in de tuin.",
+   "ru": "Белка играет в саду.",
+   "lemma": "eekhoorn",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis eend.",
+   "ru": "У меня дома утка.",
+   "lemma": "eend",
+   "theme": 7
+  },
+  {
+   "nl": "Is de eend groot?",
+   "ru": "Утка большая?",
+   "lemma": "eend",
+   "theme": 7
+  },
+  {
+   "nl": "De eend speelt in de tuin.",
+   "ru": "Утка играет в саду.",
+   "lemma": "eend",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de eend!",
+   "ru": "Смотри, утка!",
+   "lemma": "eend",
+   "theme": 7
+  },
+  {
+   "nl": "Is de zwaan groot?",
+   "ru": "Лебедь большая?",
+   "lemma": "zwaan",
+   "theme": 7
+  },
+  {
+   "nl": "De zwaan speelt in de tuin.",
+   "ru": "Лебедь играет в саду.",
+   "lemma": "zwaan",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de zwaan!",
+   "ru": "Смотри, лебедь!",
+   "lemma": "zwaan",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis zwaan.",
+   "ru": "У меня дома лебедь.",
+   "lemma": "zwaan",
+   "theme": 7
+  },
+  {
+   "nl": "De gans speelt in de tuin.",
+   "ru": "Гусь играет в саду.",
+   "lemma": "gans",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de gans!",
+   "ru": "Смотри, гусь!",
+   "lemma": "gans",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis gans.",
+   "ru": "У меня дома гусь.",
+   "lemma": "gans",
+   "theme": 7
+  },
+  {
+   "nl": "Is de gans groot?",
+   "ru": "Гусь большая?",
+   "lemma": "gans",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de uil!",
+   "ru": "Смотри, сова!",
+   "lemma": "uil",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis uil.",
+   "ru": "У меня дома сова.",
+   "lemma": "uil",
+   "theme": 7
+  },
+  {
+   "nl": "Is de uil groot?",
+   "ru": "Сова большая?",
+   "lemma": "uil",
+   "theme": 7
+  },
+  {
+   "nl": "De uil speelt in de tuin.",
+   "ru": "Сова играет в саду.",
+   "lemma": "uil",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis mus.",
+   "ru": "У меня дома воробей.",
+   "lemma": "mus",
+   "theme": 7
+  },
+  {
+   "nl": "Is de mus groot?",
+   "ru": "Воробей большой?",
+   "lemma": "mus",
+   "theme": 7
+  },
+  {
+   "nl": "De mus speelt in de tuin.",
+   "ru": "Воробей играет в саду.",
+   "lemma": "mus",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de mus!",
+   "ru": "Смотри, воробей!",
+   "lemma": "mus",
+   "theme": 7
+  },
+  {
+   "nl": "Is de duif groot?",
+   "ru": "Голубь большая?",
+   "lemma": "duif",
+   "theme": 7
+  },
+  {
+   "nl": "De duif speelt in de tuin.",
+   "ru": "Голубь играет в саду.",
+   "lemma": "duif",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de duif!",
+   "ru": "Смотри, голубь!",
+   "lemma": "duif",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis duif.",
+   "ru": "У меня дома голубь.",
+   "lemma": "duif",
+   "theme": 7
+  },
+  {
+   "nl": "De meeuw speelt in de tuin.",
+   "ru": "Чайка играет в саду.",
+   "lemma": "meeuw",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de meeuw!",
+   "ru": "Смотри, чайка!",
+   "lemma": "meeuw",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis meeuw.",
+   "ru": "У меня дома чайка.",
+   "lemma": "meeuw",
+   "theme": 7
+  },
+  {
+   "nl": "Is de meeuw groot?",
+   "ru": "Чайка большая?",
+   "lemma": "meeuw",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de reiger!",
+   "ru": "Смотри, цапля!",
+   "lemma": "reiger",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis reiger.",
+   "ru": "У меня дома цапля.",
+   "lemma": "reiger",
+   "theme": 7
+  },
+  {
+   "nl": "Is de reiger groot?",
+   "ru": "Цапля большая?",
+   "lemma": "reiger",
+   "theme": 7
+  },
+  {
+   "nl": "De reiger speelt in de tuin.",
+   "ru": "Цапля играет в саду.",
+   "lemma": "reiger",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis kikker.",
+   "ru": "У меня дома лягушка.",
+   "lemma": "kikker",
+   "theme": 7
+  },
+  {
+   "nl": "Is de kikker groot?",
+   "ru": "Лягушка большая?",
+   "lemma": "kikker",
+   "theme": 7
+  },
+  {
+   "nl": "De kikker speelt in de tuin.",
+   "ru": "Лягушка играет в саду.",
+   "lemma": "kikker",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de kikker!",
+   "ru": "Смотри, лягушка!",
+   "lemma": "kikker",
+   "theme": 7
+  },
+  {
+   "nl": "Is de slang groot?",
+   "ru": "Змея большая?",
+   "lemma": "slang",
+   "theme": 7
+  },
+  {
+   "nl": "De slang speelt in de tuin.",
+   "ru": "Змея играет в саду.",
+   "lemma": "slang",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de slang!",
+   "ru": "Смотри, змея!",
+   "lemma": "slang",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis slang.",
+   "ru": "У меня дома змея.",
+   "lemma": "slang",
+   "theme": 7
+  },
+  {
+   "nl": "De vlinder speelt in de tuin.",
+   "ru": "Бабочка играет в саду.",
+   "lemma": "vlinder",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de vlinder!",
+   "ru": "Смотри, бабочка!",
+   "lemma": "vlinder",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis vlinder.",
+   "ru": "У меня дома бабочка.",
+   "lemma": "vlinder",
+   "theme": 7
+  },
+  {
+   "nl": "Is de vlinder groot?",
+   "ru": "Бабочка большая?",
+   "lemma": "vlinder",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de bij!",
+   "ru": "Смотри, пчела!",
+   "lemma": "bij",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis bij.",
+   "ru": "У меня дома пчела.",
+   "lemma": "bij",
+   "theme": 7
+  },
+  {
+   "nl": "Is de bij groot?",
+   "ru": "Пчела большая?",
+   "lemma": "bij",
+   "theme": 7
+  },
+  {
+   "nl": "De bij speelt in de tuin.",
+   "ru": "Пчела играет в саду.",
+   "lemma": "bij",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis wesp.",
+   "ru": "У меня дома оса.",
+   "lemma": "wesp",
+   "theme": 7
+  },
+  {
+   "nl": "Is de wesp groot?",
+   "ru": "Оса большая?",
+   "lemma": "wesp",
+   "theme": 7
+  },
+  {
+   "nl": "De wesp speelt in de tuin.",
+   "ru": "Оса играет в саду.",
+   "lemma": "wesp",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de wesp!",
+   "ru": "Смотри, оса!",
+   "lemma": "wesp",
+   "theme": 7
+  },
+  {
+   "nl": "Is de mier groot?",
+   "ru": "Муравей большой?",
+   "lemma": "mier",
+   "theme": 7
+  },
+  {
+   "nl": "De mier speelt in de tuin.",
+   "ru": "Муравей играет в саду.",
+   "lemma": "mier",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de mier!",
+   "ru": "Смотри, муравей!",
+   "lemma": "mier",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis mier.",
+   "ru": "У меня дома муравей.",
+   "lemma": "mier",
+   "theme": 7
+  },
+  {
+   "nl": "De slak speelt in de tuin.",
+   "ru": "Улитка играет в саду.",
+   "lemma": "slak",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de slak!",
+   "ru": "Смотри, улитка!",
+   "lemma": "slak",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis slak.",
+   "ru": "У меня дома улитка.",
+   "lemma": "slak",
+   "theme": 7
+  },
+  {
+   "nl": "Is de slak groot?",
+   "ru": "Улитка большая?",
+   "lemma": "slak",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de worm!",
+   "ru": "Смотри, червяк!",
+   "lemma": "worm",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis worm.",
+   "ru": "У меня дома червяк.",
+   "lemma": "worm",
+   "theme": 7
+  },
+  {
+   "nl": "Is de worm groot?",
+   "ru": "Червяк большой?",
+   "lemma": "worm",
+   "theme": 7
+  },
+  {
+   "nl": "De worm speelt in de tuin.",
+   "ru": "Червяк играет в саду.",
+   "lemma": "worm",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis haai.",
+   "ru": "У меня дома акула.",
+   "lemma": "haai",
+   "theme": 7
+  },
+  {
+   "nl": "Is de haai groot?",
+   "ru": "Акула большая?",
+   "lemma": "haai",
+   "theme": 7
+  },
+  {
+   "nl": "De haai speelt in de tuin.",
+   "ru": "Акула играет в саду.",
+   "lemma": "haai",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de haai!",
+   "ru": "Смотри, акула!",
+   "lemma": "haai",
+   "theme": 7
+  },
+  {
+   "nl": "Is de dolfijn groot?",
+   "ru": "Дельфин большой?",
+   "lemma": "dolfijn",
+   "theme": 7
+  },
+  {
+   "nl": "De dolfijn speelt in de tuin.",
+   "ru": "Дельфин играет в саду.",
+   "lemma": "dolfijn",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de dolfijn!",
+   "ru": "Смотри, дельфин!",
+   "lemma": "dolfijn",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis dolfijn.",
+   "ru": "У меня дома дельфин.",
+   "lemma": "dolfijn",
+   "theme": 7
+  },
+  {
+   "nl": "De walvis speelt in de tuin.",
+   "ru": "Кит играет в саду.",
+   "lemma": "walvis",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de walvis!",
+   "ru": "Смотри, кит!",
+   "lemma": "walvis",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis walvis.",
+   "ru": "У меня дома кит.",
+   "lemma": "walvis",
+   "theme": 7
+  },
+  {
+   "nl": "Is de walvis groot?",
+   "ru": "Кит большой?",
+   "lemma": "walvis",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de zeehond!",
+   "ru": "Смотри, тюлень!",
+   "lemma": "zeehond",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis zeehond.",
+   "ru": "У меня дома тюлень.",
+   "lemma": "zeehond",
+   "theme": 7
+  },
+  {
+   "nl": "Is de zeehond groot?",
+   "ru": "Тюлень большая?",
+   "lemma": "zeehond",
+   "theme": 7
+  },
+  {
+   "nl": "De zeehond speelt in de tuin.",
+   "ru": "Тюлень играет в саду.",
+   "lemma": "zeehond",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb thuis krab.",
+   "ru": "У меня дома краб.",
+   "lemma": "krab",
+   "theme": 7
+  },
+  {
+   "nl": "Is de krab groot?",
+   "ru": "Краб большой?",
+   "lemma": "krab",
+   "theme": 7
+  },
+  {
+   "nl": "De krab speelt in de tuin.",
+   "ru": "Краб играет в саду.",
+   "lemma": "krab",
+   "theme": 7
+  },
+  {
+   "nl": "Kijk, de krab!",
+   "ru": "Смотри, краб!",
+   "lemma": "krab",
+   "theme": 7
+  },
+  {
+   "nl": "Ik vind het blad leuk.",
+   "ru": "Мне нравится лист.",
+   "lemma": "blad",
+   "theme": 7
+  },
+  {
+   "nl": "Waar is het blad?",
+   "ru": "Где лист?",
+   "lemma": "blad",
+   "theme": 7
+  },
+  {
+   "nl": "Is dit het blad?",
+   "ru": "Это лист?",
+   "lemma": "blad",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb het blad nodig.",
+   "ru": "Мне нужен лист.",
+   "lemma": "blad",
+   "theme": 7
+  },
+  {
+   "nl": "Waar is de tak?",
+   "ru": "Где ветка?",
+   "lemma": "tak",
+   "theme": 7
+  },
+  {
+   "nl": "Is dit de tak?",
+   "ru": "Это ветка?",
+   "lemma": "tak",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb de tak nodig.",
+   "ru": "Мне нужна ветка.",
+   "lemma": "tak",
+   "theme": 7
+  },
+  {
+   "nl": "Ik vind de tak leuk.",
+   "ru": "Мне нравится ветка.",
+   "lemma": "tak",
+   "theme": 7
+  },
+  {
+   "nl": "Is dit de stam?",
+   "ru": "Это ствол?",
+   "lemma": "stam",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb de stam nodig.",
+   "ru": "Мне нужен ствол.",
+   "lemma": "stam",
+   "theme": 7
+  },
+  {
+   "nl": "Ik vind de stam leuk.",
+   "ru": "Мне нравится ствол.",
+   "lemma": "stam",
+   "theme": 7
+  },
+  {
+   "nl": "Waar is de stam?",
+   "ru": "Где ствол?",
+   "lemma": "stam",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb de struik nodig.",
+   "ru": "Мне нужен куст.",
+   "lemma": "struik",
+   "theme": 7
+  },
+  {
+   "nl": "Ik vind de struik leuk.",
+   "ru": "Мне нравится куст.",
+   "lemma": "struik",
+   "theme": 7
+  },
+  {
+   "nl": "Waar is de struik?",
+   "ru": "Где куст?",
+   "lemma": "struik",
+   "theme": 7
+  },
+  {
+   "nl": "Is dit de struik?",
+   "ru": "Это куст?",
+   "lemma": "struik",
+   "theme": 7
+  },
+  {
+   "nl": "Ik vind het gras leuk.",
+   "ru": "Мне нравится трава.",
+   "lemma": "gras",
+   "theme": 7
+  },
+  {
+   "nl": "Waar is het gras?",
+   "ru": "Где трава?",
+   "lemma": "gras",
+   "theme": 7
+  },
+  {
+   "nl": "Is dit het gras?",
+   "ru": "Это трава?",
+   "lemma": "gras",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb het gras nodig.",
+   "ru": "Мне нужна трава.",
+   "lemma": "gras",
+   "theme": 7
+  },
+  {
+   "nl": "Waar is de paddenstoel?",
+   "ru": "Где гриб?",
+   "lemma": "paddenstoel",
+   "theme": 7
+  },
+  {
+   "nl": "Is dit de paddenstoel?",
+   "ru": "Это гриб?",
+   "lemma": "paddenstoel",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb de paddenstoel nodig.",
+   "ru": "Мне нужен гриб.",
+   "lemma": "paddenstoel",
+   "theme": 7
+  },
+  {
+   "nl": "Ik vind de paddenstoel leuk.",
+   "ru": "Мне нравится гриб.",
+   "lemma": "paddenstoel",
+   "theme": 7
+  },
+  {
+   "nl": "Is dit de eik?",
+   "ru": "Это дуб?",
+   "lemma": "eik",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb de eik nodig.",
+   "ru": "Мне нужен дуб.",
+   "lemma": "eik",
+   "theme": 7
+  },
+  {
+   "nl": "Ik vind de eik leuk.",
+   "ru": "Мне нравится дуб.",
+   "lemma": "eik",
+   "theme": 7
+  },
+  {
+   "nl": "Waar is de eik?",
+   "ru": "Где дуб?",
+   "lemma": "eik",
+   "theme": 7
+  },
+  {
+   "nl": "Ik heb de kastanje nodig.",
+   "ru": "Мне нужен каштан.",
+   "lemma": "kastanje",
+   "theme": 7
+  },
+  {
+   "nl": "Ik vind de kastanje leuk.",
+   "ru": "Мне нравится каштан.",
+   "lemma": "kastanje",
+   "theme": 7
+  },
+  {
+   "nl": "Waar is de kastanje?",
+   "ru": "Где каштан?",
+   "lemma": "kastanje",
+   "theme": 7
+  },
+  {
+   "nl": "Is dit de kastanje?",
+   "ru": "Это каштан?",
+   "lemma": "kastanje",
+   "theme": 7
+  },
+  {
    "nl": "Is dit het huis?",
    "ru": "Это дом?",
    "lemma": "huis",
@@ -19773,6 +22605,276 @@
    "theme": 8
   },
   {
+   "nl": "Ik heb de studentenkamer nodig.",
+   "ru": "Мне нужна студенческая комната.",
+   "lemma": "studentenkamer",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de studentenkamer?",
+   "ru": "Где студенческая комната?",
+   "lemma": "studentenkamer",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de studentenkamer?",
+   "ru": "Это студенческая комната?",
+   "lemma": "studentenkamer",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de zolderkamer?",
+   "ru": "Где комната на чердаке?",
+   "lemma": "zolderkamer",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de zolderkamer?",
+   "ru": "Это комната на чердаке?",
+   "lemma": "zolderkamer",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de zolderkamer nodig.",
+   "ru": "Мне нужна комната на чердаке.",
+   "lemma": "zolderkamer",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de plint?",
+   "ru": "Это плинтус?",
+   "lemma": "plint",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de plint nodig.",
+   "ru": "Мне нужен плинтус.",
+   "lemma": "plint",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de plint?",
+   "ru": "Где плинтус?",
+   "lemma": "plint",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de drempel nodig.",
+   "ru": "Мне нужен порог.",
+   "lemma": "drempel",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de drempel?",
+   "ru": "Где порог?",
+   "lemma": "drempel",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de drempel?",
+   "ru": "Это порог?",
+   "lemma": "drempel",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de regenpijp?",
+   "ru": "Где водосточная труба?",
+   "lemma": "regenpijp",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de regenpijp?",
+   "ru": "Это водосточная труба?",
+   "lemma": "regenpijp",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de regenpijp nodig.",
+   "ru": "Мне нужна водосточная труба.",
+   "lemma": "regenpijp",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de fauteuil?",
+   "ru": "Это кресло?",
+   "lemma": "fauteuil",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de fauteuil nodig.",
+   "ru": "Мне нужно кресло.",
+   "lemma": "fauteuil",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de fauteuil?",
+   "ru": "Где кресло?",
+   "lemma": "fauteuil",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de poef nodig.",
+   "ru": "Мне нужен пуф.",
+   "lemma": "poef",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de poef?",
+   "ru": "Где пуф?",
+   "lemma": "poef",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de poef?",
+   "ru": "Это пуф?",
+   "lemma": "poef",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de hangmat?",
+   "ru": "Где гамак?",
+   "lemma": "hangmat",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de hangmat?",
+   "ru": "Это гамак?",
+   "lemma": "hangmat",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de hangmat nodig.",
+   "ru": "Мне нужен гамак.",
+   "lemma": "hangmat",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit het stapelbed?",
+   "ru": "Это двухъярусная кровать?",
+   "lemma": "stapelbed",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb het stapelbed nodig.",
+   "ru": "Мне нужна двухъярусная кровать.",
+   "lemma": "stapelbed",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is het stapelbed?",
+   "ru": "Где двухъярусная кровать?",
+   "lemma": "stapelbed",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de kinderkamer nodig.",
+   "ru": "Мне нужна детская комната.",
+   "lemma": "kinderkamer",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de kinderkamer?",
+   "ru": "Где детская комната?",
+   "lemma": "kinderkamer",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de kinderkamer?",
+   "ru": "Это детская комната?",
+   "lemma": "kinderkamer",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de commode?",
+   "ru": "Где пеленальный комод?",
+   "lemma": "commode",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de commode?",
+   "ru": "Это пеленальный комод?",
+   "lemma": "commode",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de commode nodig.",
+   "ru": "Мне нужен пеленальный комод.",
+   "lemma": "commode",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit het dressoir?",
+   "ru": "Это сервант?",
+   "lemma": "dressoir",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb het dressoir nodig.",
+   "ru": "Мне нужен сервант.",
+   "lemma": "dressoir",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is het dressoir?",
+   "ru": "Где сервант?",
+   "lemma": "dressoir",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de salontafel nodig.",
+   "ru": "Мне нужен журнальный столик.",
+   "lemma": "salontafel",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de salontafel?",
+   "ru": "Где журнальный столик?",
+   "lemma": "salontafel",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de salontafel?",
+   "ru": "Это журнальный столик?",
+   "lemma": "salontafel",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de eettafel?",
+   "ru": "Где обеденный стол?",
+   "lemma": "eettafel",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de eettafel?",
+   "ru": "Это обеденный стол?",
+   "lemma": "eettafel",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de eettafel nodig.",
+   "ru": "Мне нужен обеденный стол.",
+   "lemma": "eettafel",
+   "theme": 8
+  },
+  {
+   "nl": "Is dit de schemerlamp?",
+   "ru": "Это торшер?",
+   "lemma": "schemerlamp",
+   "theme": 8
+  },
+  {
+   "nl": "Ik heb de schemerlamp nodig.",
+   "ru": "Мне нужен торшер.",
+   "lemma": "schemerlamp",
+   "theme": 8
+  },
+  {
+   "nl": "Waar is de schemerlamp?",
+   "ru": "Где торшер?",
+   "lemma": "schemerlamp",
+   "theme": 8
+  },
+  {
    "nl": "De collega is erg aardig.",
    "ru": "Коллега очень приятный.",
    "lemma": "collega",
@@ -21651,6 +24753,144 @@
    "theme": 9
   },
   {
+   "nl": "De uitzendkracht helpt mij vaak.",
+   "ru": "Временный работник часто мне помогает.",
+   "lemma": "uitzendkracht",
+   "theme": 9
+  },
+  {
+   "nl": "Ken jij de uitzendkracht?",
+   "ru": "Ты знаешь временного работника?",
+   "lemma": "uitzendkracht",
+   "theme": 9
+  },
+  {
+   "nl": "De uitzendkracht is erg aardig.",
+   "ru": "Временный работник очень приятный.",
+   "lemma": "uitzendkracht",
+   "theme": 9
+  },
+  {
+   "nl": "Ik ken de uitzendkracht goed.",
+   "ru": "Я хорошо знаю временного работника.",
+   "lemma": "uitzendkracht",
+   "theme": 9
+  },
+  {
+   "nl": "Daar loopt de uitzendkracht.",
+   "ru": "Вон идёт временный работник.",
+   "lemma": "uitzendkracht",
+   "theme": 9
+  },
+  {
+   "nl": "Is dit de vakman?",
+   "ru": "Это мастер-профессионал?",
+   "lemma": "vakman",
+   "theme": 9
+  },
+  {
+   "nl": "Ik heb de vakman nodig.",
+   "ru": "Мне нужен мастер-профессионал.",
+   "lemma": "vakman",
+   "theme": 9
+  },
+  {
+   "nl": "Waar is de vakman?",
+   "ru": "Где мастер-профессионал?",
+   "lemma": "vakman",
+   "theme": 9
+  },
+  {
+   "nl": "Ik heb de bijrijder nodig.",
+   "ru": "Мне нужен помощник водителя.",
+   "lemma": "bijrijder",
+   "theme": 9
+  },
+  {
+   "nl": "Waar is de bijrijder?",
+   "ru": "Где помощник водителя?",
+   "lemma": "bijrijder",
+   "theme": 9
+  },
+  {
+   "nl": "Is dit de bijrijder?",
+   "ru": "Это помощник водителя?",
+   "lemma": "bijrijder",
+   "theme": 9
+  },
+  {
+   "nl": "Waar is de orderpicker?",
+   "ru": "Где сборщик заказов?",
+   "lemma": "orderpicker",
+   "theme": 9
+  },
+  {
+   "nl": "Is dit de orderpicker?",
+   "ru": "Это сборщик заказов?",
+   "lemma": "orderpicker",
+   "theme": 9
+  },
+  {
+   "nl": "Ik heb de orderpicker nodig.",
+   "ru": "Мне нужен сборщик заказов.",
+   "lemma": "orderpicker",
+   "theme": 9
+  },
+  {
+   "nl": "Is dit de productiemedewerker?",
+   "ru": "Это рабочий на производстве?",
+   "lemma": "productiemedewerker",
+   "theme": 9
+  },
+  {
+   "nl": "Ik heb de productiemedewerker nodig.",
+   "ru": "Мне нужна рабочий на производстве.",
+   "lemma": "productiemedewerker",
+   "theme": 9
+  },
+  {
+   "nl": "Waar is de productiemedewerker?",
+   "ru": "Где рабочий на производстве?",
+   "lemma": "productiemedewerker",
+   "theme": 9
+  },
+  {
+   "nl": "Ik heb de betonmolen nodig.",
+   "ru": "Мне нужна бетономешалка.",
+   "lemma": "betonmolen",
+   "theme": 9
+  },
+  {
+   "nl": "Waar is de betonmolen?",
+   "ru": "Где бетономешалка?",
+   "lemma": "betonmolen",
+   "theme": 9
+  },
+  {
+   "nl": "Is dit de betonmolen?",
+   "ru": "Это бетономешалка?",
+   "lemma": "betonmolen",
+   "theme": 9
+  },
+  {
+   "nl": "Waar is de kruiwagen?",
+   "ru": "Где тачка?",
+   "lemma": "kruiwagen",
+   "theme": 9
+  },
+  {
+   "nl": "Is dit de kruiwagen?",
+   "ru": "Это тачка?",
+   "lemma": "kruiwagen",
+   "theme": 9
+  },
+  {
+   "nl": "Ik heb de kruiwagen nodig.",
+   "ru": "Мне нужна тачка.",
+   "lemma": "kruiwagen",
+   "theme": 9
+  },
+  {
    "nl": "Ik heb de huurder nodig.",
    "ru": "Мне нужен арендатор.",
    "lemma": "huurder",
@@ -22746,6 +25986,132 @@
    "nl": "Is dit de oppervlakte?",
    "ru": "Это площадь?",
    "lemma": "oppervlakte",
+   "theme": 10
+  },
+  {
+   "nl": "Ik heb de hypotheekadviseur nodig.",
+   "ru": "Мне нужен ипотечный консультант.",
+   "lemma": "hypotheekadviseur",
+   "theme": 10
+  },
+  {
+   "nl": "Waar is de hypotheekadviseur?",
+   "ru": "Где ипотечный консультант?",
+   "lemma": "hypotheekadviseur",
+   "theme": 10
+  },
+  {
+   "nl": "Is dit de hypotheekadviseur?",
+   "ru": "Это ипотечный консультант?",
+   "lemma": "hypotheekadviseur",
+   "theme": 10
+  },
+  {
+   "nl": "Is dit de notaris?",
+   "ru": "Это нотариус?",
+   "lemma": "notaris",
+   "theme": 10
+  },
+  {
+   "nl": "Ik heb de notaris nodig.",
+   "ru": "Мне нужен нотариус.",
+   "lemma": "notaris",
+   "theme": 10
+  },
+  {
+   "nl": "Waar is de notaris?",
+   "ru": "Где нотариус?",
+   "lemma": "notaris",
+   "theme": 10
+  },
+  {
+   "nl": "Waar is de koopwoning?",
+   "ru": "Где жильё в собственность?",
+   "lemma": "koopwoning",
+   "theme": 10
+  },
+  {
+   "nl": "Is dit de koopwoning?",
+   "ru": "Это жильё в собственность?",
+   "lemma": "koopwoning",
+   "theme": 10
+  },
+  {
+   "nl": "Ik heb de koopwoning nodig.",
+   "ru": "Мне нужно жильё в собственность.",
+   "lemma": "koopwoning",
+   "theme": 10
+  },
+  {
+   "nl": "Is dit de huurwoning?",
+   "ru": "Это съёмное жильё?",
+   "lemma": "huurwoning",
+   "theme": 10
+  },
+  {
+   "nl": "Ik heb de huurwoning nodig.",
+   "ru": "Мне нужно съёмное жильё.",
+   "lemma": "huurwoning",
+   "theme": 10
+  },
+  {
+   "nl": "Waar is de huurwoning?",
+   "ru": "Где съёмное жильё?",
+   "lemma": "huurwoning",
+   "theme": 10
+  },
+  {
+   "nl": "Ik heb het puntensysteem nodig.",
+   "ru": "Мне нужна балльная система аренды.",
+   "lemma": "puntensysteem",
+   "theme": 10
+  },
+  {
+   "nl": "Waar is het puntensysteem?",
+   "ru": "Где балльная система аренды?",
+   "lemma": "puntensysteem",
+   "theme": 10
+  },
+  {
+   "nl": "Is dit het puntensysteem?",
+   "ru": "Это балльная система аренды?",
+   "lemma": "puntensysteem",
+   "theme": 10
+  },
+  {
+   "nl": "Waar is de huurcommissie?",
+   "ru": "Где комиссия по аренде?",
+   "lemma": "huurcommissie",
+   "theme": 10
+  },
+  {
+   "nl": "Is dit de huurcommissie?",
+   "ru": "Это комиссия по аренде?",
+   "lemma": "huurcommissie",
+   "theme": 10
+  },
+  {
+   "nl": "Ik heb de huurcommissie nodig.",
+   "ru": "Мне нужна комиссия по аренде.",
+   "lemma": "huurcommissie",
+   "theme": 10
+  },
+  {
+   "nl": "Ik heb de aanbetaling nodig.",
+   "ru": "Мне нужен задаток.",
+   "lemma": "aanbetaling",
+   "theme": 10
+  },
+  {
+   "nl": "Waar is de aanbetaling?",
+   "ru": "Где задаток?",
+   "lemma": "aanbetaling",
+   "theme": 10
+  },
+  {
+   "nl": "Is dit de aanbetaling?",
+   "ru": "Это задаток?",
+   "lemma": "aanbetaling",
    "theme": 10
   },
   {
@@ -23904,6 +27270,102 @@
    "nl": "Ik heb de vlag nodig.",
    "ru": "Мне нужен флаг.",
    "lemma": "vlag",
+   "theme": 11
+  },
+  {
+   "nl": "Is dit de borrelplank?",
+   "ru": "Это доска с закусками?",
+   "lemma": "borrelplank",
+   "theme": 11
+  },
+  {
+   "nl": "Ik heb de borrelplank nodig.",
+   "ru": "Мне нужна доска с закусками.",
+   "lemma": "borrelplank",
+   "theme": 11
+  },
+  {
+   "nl": "Waar is de borrelplank?",
+   "ru": "Где доска с закусками?",
+   "lemma": "borrelplank",
+   "theme": 11
+  },
+  {
+   "nl": "Ik heb het verenigingsleven nodig.",
+   "ru": "Мне нужна клубная жизнь.",
+   "lemma": "verenigingsleven",
+   "theme": 11
+  },
+  {
+   "nl": "Waar is het verenigingsleven?",
+   "ru": "Где клубная жизнь?",
+   "lemma": "verenigingsleven",
+   "theme": 11
+  },
+  {
+   "nl": "Is dit het verenigingsleven?",
+   "ru": "Это клубная жизнь?",
+   "lemma": "verenigingsleven",
+   "theme": 11
+  },
+  {
+   "nl": "Is dit de inspraak?",
+   "ru": "Это право участия и голоса?",
+   "lemma": "inspraak",
+   "theme": 11
+  },
+  {
+   "nl": "Ik heb de inspraak nodig.",
+   "ru": "Мне нужно право участия и голоса.",
+   "lemma": "inspraak",
+   "theme": 11
+  },
+  {
+   "nl": "Waar is de inspraak?",
+   "ru": "Где право участия и голоса?",
+   "lemma": "inspraak",
+   "theme": 11
+  },
+  {
+   "nl": "Is dit de hittegolf?",
+   "ru": "Это волна жары?",
+   "lemma": "hittegolf",
+   "theme": 11
+  },
+  {
+   "nl": "Ik heb de hittegolf nodig.",
+   "ru": "Мне нужна волна жары.",
+   "lemma": "hittegolf",
+   "theme": 11
+  },
+  {
+   "nl": "Waar is de hittegolf?",
+   "ru": "Где волна жары?",
+   "lemma": "hittegolf",
+   "theme": 11
+  },
+  {
+   "nl": "Is dit de vorst?",
+   "ru": "Это мороз?",
+   "lemma": "vorst",
+   "theme": 11
+  },
+  {
+   "nl": "Waar is de vorst?",
+   "ru": "Где мороз?",
+   "lemma": "vorst",
+   "theme": 11
+  },
+  {
+   "nl": "Is dit de bui?",
+   "ru": "Это ливень?",
+   "lemma": "bui",
+   "theme": 11
+  },
+  {
+   "nl": "Waar is de bui?",
+   "ru": "Где ливень?",
+   "lemma": "bui",
    "theme": 11
   },
   {
@@ -25245,24 +28707,6 @@
    "theme": 12
   },
   {
-   "nl": "Ik heb de oorontsteking nodig.",
-   "ru": "Мне нужно воспаление уха.",
-   "lemma": "oorontsteking",
-   "theme": 12
-  },
-  {
-   "nl": "Waar is de oorontsteking?",
-   "ru": "Где воспаление уха?",
-   "lemma": "oorontsteking",
-   "theme": 12
-  },
-  {
-   "nl": "Is dit de oorontsteking?",
-   "ru": "Это воспаление уха?",
-   "lemma": "oorontsteking",
-   "theme": 12
-  },
-  {
    "nl": "Waar is het traphekje?",
    "ru": "Где калитка на лестницу?",
    "lemma": "traphekje",
@@ -25314,6 +28758,162 @@
    "nl": "Is dit het kinderzitje?",
    "ru": "Это детское кресло?",
    "lemma": "kinderzitje",
+   "theme": 12
+  },
+  {
+   "nl": "Is dit de kinderopvangtoeslag?",
+   "ru": "Это субсидия на детский сад?",
+   "lemma": "kinderopvangtoeslag",
+   "theme": 12
+  },
+  {
+   "nl": "Ik heb de kinderopvangtoeslag nodig.",
+   "ru": "Мне нужна субсидия на детский сад.",
+   "lemma": "kinderopvangtoeslag",
+   "theme": 12
+  },
+  {
+   "nl": "Waar is de kinderopvangtoeslag?",
+   "ru": "Где субсидия на детский сад?",
+   "lemma": "kinderopvangtoeslag",
+   "theme": 12
+  },
+  {
+   "nl": "Ik heb de voorschool nodig.",
+   "ru": "Мне нужна предшкола.",
+   "lemma": "voorschool",
+   "theme": 12
+  },
+  {
+   "nl": "Waar is de voorschool?",
+   "ru": "Где предшкола?",
+   "lemma": "voorschool",
+   "theme": 12
+  },
+  {
+   "nl": "Is dit de voorschool?",
+   "ru": "Это предшкола?",
+   "lemma": "voorschool",
+   "theme": 12
+  },
+  {
+   "nl": "Daar loopt de schoolarts.",
+   "ru": "Вон идёт школьный врач.",
+   "lemma": "schoolarts",
+   "theme": 12
+  },
+  {
+   "nl": "De schoolarts helpt mij vaak.",
+   "ru": "Школьный врач часто мне помогает.",
+   "lemma": "schoolarts",
+   "theme": 12
+  },
+  {
+   "nl": "Ken jij de schoolarts?",
+   "ru": "Ты знаешь школьного врача?",
+   "lemma": "schoolarts",
+   "theme": 12
+  },
+  {
+   "nl": "De schoolarts is erg aardig.",
+   "ru": "Школьный врач очень приятный.",
+   "lemma": "schoolarts",
+   "theme": 12
+  },
+  {
+   "nl": "Ik ken de schoolarts goed.",
+   "ru": "Я хорошо знаю школьного врача.",
+   "lemma": "schoolarts",
+   "theme": 12
+  },
+  {
+   "nl": "Is dit de leerplichtambtenaar?",
+   "ru": "Это инспектор по посещаемости?",
+   "lemma": "leerplichtambtenaar",
+   "theme": 12
+  },
+  {
+   "nl": "Ik heb de leerplichtambtenaar nodig.",
+   "ru": "Мне нужен инспектор по посещаемости.",
+   "lemma": "leerplichtambtenaar",
+   "theme": 12
+  },
+  {
+   "nl": "Waar is de leerplichtambtenaar?",
+   "ru": "Где инспектор по посещаемости?",
+   "lemma": "leerplichtambtenaar",
+   "theme": 12
+  },
+  {
+   "nl": "Ik heb het babybadje nodig.",
+   "ru": "Мне нужна детская ванночка.",
+   "lemma": "babybadje",
+   "theme": 12
+  },
+  {
+   "nl": "Waar is het babybadje?",
+   "ru": "Где детская ванночка?",
+   "lemma": "babybadje",
+   "theme": 12
+  },
+  {
+   "nl": "Is dit het babybadje?",
+   "ru": "Это детская ванночка?",
+   "lemma": "babybadje",
+   "theme": 12
+  },
+  {
+   "nl": "Waar is de rammelaar?",
+   "ru": "Где погремушка?",
+   "lemma": "rammelaar",
+   "theme": 12
+  },
+  {
+   "nl": "Is dit de rammelaar?",
+   "ru": "Это погремушка?",
+   "lemma": "rammelaar",
+   "theme": 12
+  },
+  {
+   "nl": "Ik heb de rammelaar nodig.",
+   "ru": "Мне нужна погремушка.",
+   "lemma": "rammelaar",
+   "theme": 12
+  },
+  {
+   "nl": "Is dit het geboortekaartje?",
+   "ru": "Это открытка о рождении?",
+   "lemma": "geboortekaartje",
+   "theme": 12
+  },
+  {
+   "nl": "Ik heb het geboortekaartje nodig.",
+   "ru": "Мне нужна открытка о рождении.",
+   "lemma": "geboortekaartje",
+   "theme": 12
+  },
+  {
+   "nl": "Waar is het geboortekaartje?",
+   "ru": "Где открытка о рождении?",
+   "lemma": "geboortekaartje",
+   "theme": 12
+  },
+  {
+   "nl": "Ik heb het kraamcadeau nodig.",
+   "ru": "Мне нужен подарок новорождённому.",
+   "lemma": "kraamcadeau",
+   "theme": 12
+  },
+  {
+   "nl": "Waar is het kraamcadeau?",
+   "ru": "Где подарок новорождённому?",
+   "lemma": "kraamcadeau",
+   "theme": 12
+  },
+  {
+   "nl": "Is dit het kraamcadeau?",
+   "ru": "Это подарок новорождённому?",
+   "lemma": "kraamcadeau",
    "theme": 12
   },
   {
@@ -26553,6 +30153,156 @@
    "theme": 13
   },
   {
+   "nl": "Is dit de koopzondag?",
+   "ru": "Это воскресенье покупок?",
+   "lemma": "koopzondag",
+   "theme": 13
+  },
+  {
+   "nl": "Ik heb de koopzondag nodig.",
+   "ru": "Мне нужно воскресенье покупок.",
+   "lemma": "koopzondag",
+   "theme": 13
+  },
+  {
+   "nl": "Waar is de koopzondag?",
+   "ru": "Где воскресенье покупок?",
+   "lemma": "koopzondag",
+   "theme": 13
+  },
+  {
+   "nl": "De avondwinkel is om de hoek.",
+   "ru": "Вечерний магазин за углом.",
+   "lemma": "avondwinkel",
+   "theme": 13
+  },
+  {
+   "nl": "Is de avondwinkel ver?",
+   "ru": "Далеко ли вечерний магазин?",
+   "lemma": "avondwinkel",
+   "theme": 13
+  },
+  {
+   "nl": "Ik ga naar de avondwinkel.",
+   "ru": "Я иду в вечерний магазин.",
+   "lemma": "avondwinkel",
+   "theme": 13
+  },
+  {
+   "nl": "Waar is de avondwinkel?",
+   "ru": "Где вечерний магазин?",
+   "lemma": "avondwinkel",
+   "theme": 13
+  },
+  {
+   "nl": "De avondwinkel is vandaag dicht.",
+   "ru": "Вечерний магазин сегодня закрыт.",
+   "lemma": "avondwinkel",
+   "theme": 13
+  },
+  {
+   "nl": "Ik ga naar de markthal.",
+   "ru": "Я иду на крытый рынок.",
+   "lemma": "markthal",
+   "theme": 13
+  },
+  {
+   "nl": "Waar is de markthal?",
+   "ru": "Где крытый рынок?",
+   "lemma": "markthal",
+   "theme": 13
+  },
+  {
+   "nl": "De markthal is vandaag dicht.",
+   "ru": "Крытый рынок сегодня закрыт.",
+   "lemma": "markthal",
+   "theme": 13
+  },
+  {
+   "nl": "De markthal is om de hoek.",
+   "ru": "Крытый рынок за углом.",
+   "lemma": "markthal",
+   "theme": 13
+  },
+  {
+   "nl": "Is de markthal ver?",
+   "ru": "Далеко ли крытый рынок?",
+   "lemma": "markthal",
+   "theme": 13
+  },
+  {
+   "nl": "Ik heb de versafdeling nodig.",
+   "ru": "Мне нужен отдел свежих продуктов.",
+   "lemma": "versafdeling",
+   "theme": 13
+  },
+  {
+   "nl": "Waar is de versafdeling?",
+   "ru": "Где отдел свежих продуктов?",
+   "lemma": "versafdeling",
+   "theme": 13
+  },
+  {
+   "nl": "Is dit de versafdeling?",
+   "ru": "Это отдел свежих продуктов?",
+   "lemma": "versafdeling",
+   "theme": 13
+  },
+  {
+   "nl": "Waar is de diepvries?",
+   "ru": "Где морозильный отдел?",
+   "lemma": "diepvries",
+   "theme": 13
+  },
+  {
+   "nl": "Is dit de diepvries?",
+   "ru": "Это морозильный отдел?",
+   "lemma": "diepvries",
+   "theme": 13
+  },
+  {
+   "nl": "Ik heb de diepvries nodig.",
+   "ru": "Мне нужен морозильный отдел.",
+   "lemma": "diepvries",
+   "theme": 13
+  },
+  {
+   "nl": "Is dit de zuivel?",
+   "ru": "Это молочные продукты?",
+   "lemma": "zuivel",
+   "theme": 13
+  },
+  {
+   "nl": "Ik heb de zuivel nodig.",
+   "ru": "Мне нужно молочные продукты.",
+   "lemma": "zuivel",
+   "theme": 13
+  },
+  {
+   "nl": "Waar is de zuivel?",
+   "ru": "Где молочные продукты?",
+   "lemma": "zuivel",
+   "theme": 13
+  },
+  {
+   "nl": "Ik heb de statiegeldautomaat nodig.",
+   "ru": "Мне нужен автомат приёма бутылок.",
+   "lemma": "statiegeldautomaat",
+   "theme": 13
+  },
+  {
+   "nl": "Waar is de statiegeldautomaat?",
+   "ru": "Где автомат приёма бутылок?",
+   "lemma": "statiegeldautomaat",
+   "theme": 13
+  },
+  {
+   "nl": "Is dit de statiegeldautomaat?",
+   "ru": "Это автомат приёма бутылок?",
+   "lemma": "statiegeldautomaat",
+   "theme": 13
+  },
+  {
    "nl": "Ik heb de pasta nodig.",
    "ru": "Мне нужна паста.",
    "lemma": "pasta",
@@ -26565,45 +30315,9 @@
    "theme": 13
   },
   {
-   "nl": "Wil je sap?",
-   "ru": "Хочешь сок?",
-   "lemma": "sap",
-   "theme": 13
-  },
-  {
-   "nl": "Het sap is lekker.",
-   "ru": "Сок — вкусный.",
-   "lemma": "sap",
-   "theme": 13
-  },
-  {
-   "nl": "Ik neem sap, alstublieft.",
-   "ru": "Мне сок, пожалуйста.",
-   "lemma": "sap",
-   "theme": 13
-  },
-  {
    "nl": "Is dit de limonade?",
    "ru": "Это лимонад?",
    "lemma": "limonade",
-   "theme": 13
-  },
-  {
-   "nl": "Ik heb de limonade nodig.",
-   "ru": "Мне нужен лимонад.",
-   "lemma": "limonade",
-   "theme": 13
-  },
-  {
-   "nl": "Ik zie het blik niet.",
-   "ru": "Я не вижу банку.",
-   "lemma": "blik",
-   "theme": 13
-  },
-  {
-   "nl": "Ik heb een blik nodig.",
-   "ru": "Мне нужна банка.",
-   "lemma": "blik",
    "theme": 13
   },
   {
@@ -26615,6 +30329,18 @@
   {
    "nl": "Het blik is hier, denk ik.",
    "ru": "Банка здесь, я думаю.",
+   "lemma": "blik",
+   "theme": 13
+  },
+  {
+   "nl": "Ik zie het blik niet.",
+   "ru": "Я не вижу банку.",
+   "lemma": "blik",
+   "theme": 13
+  },
+  {
+   "nl": "Ik heb een blik nodig.",
+   "ru": "Мне нужна банка.",
    "lemma": "blik",
    "theme": 13
   },
@@ -27195,6 +30921,108 @@
    "theme": 14
   },
   {
+   "nl": "Waar is de taalstage?",
+   "ru": "Где языковая стажировка?",
+   "lemma": "taalstage",
+   "theme": 14
+  },
+  {
+   "nl": "Is dit de taalstage?",
+   "ru": "Это языковая стажировка?",
+   "lemma": "taalstage",
+   "theme": 14
+  },
+  {
+   "nl": "Ik heb de taalstage nodig.",
+   "ru": "Мне нужна языковая стажировка.",
+   "lemma": "taalstage",
+   "theme": 14
+  },
+  {
+   "nl": "Is dit de examentraining?",
+   "ru": "Это подготовка к экзамену?",
+   "lemma": "examentraining",
+   "theme": 14
+  },
+  {
+   "nl": "Ik heb de examentraining nodig.",
+   "ru": "Мне нужна подготовка к экзамену.",
+   "lemma": "examentraining",
+   "theme": 14
+  },
+  {
+   "nl": "Waar is de examentraining?",
+   "ru": "Где подготовка к экзамену?",
+   "lemma": "examentraining",
+   "theme": 14
+  },
+  {
+   "nl": "Waar is de spiekbrief?",
+   "ru": "Где шпаргалка?",
+   "lemma": "spiekbrief",
+   "theme": 14
+  },
+  {
+   "nl": "Is dit de spiekbrief?",
+   "ru": "Это шпаргалка?",
+   "lemma": "spiekbrief",
+   "theme": 14
+  },
+  {
+   "nl": "Waar is de aanwezigheidsplicht?",
+   "ru": "Где обязательное присутствие?",
+   "lemma": "aanwezigheidsplicht",
+   "theme": 14
+  },
+  {
+   "nl": "Is dit de aanwezigheidsplicht?",
+   "ru": "Это обязательное присутствие?",
+   "lemma": "aanwezigheidsplicht",
+   "theme": 14
+  },
+  {
+   "nl": "Ik heb de aanwezigheidsplicht nodig.",
+   "ru": "Мне нужно обязательное присутствие.",
+   "lemma": "aanwezigheidsplicht",
+   "theme": 14
+  },
+  {
+   "nl": "Is dit de praktijkles?",
+   "ru": "Это практическое занятие?",
+   "lemma": "praktijkles",
+   "theme": 14
+  },
+  {
+   "nl": "Ik heb de praktijkles nodig.",
+   "ru": "Мне нужно практическое занятие.",
+   "lemma": "praktijkles",
+   "theme": 14
+  },
+  {
+   "nl": "Waar is de praktijkles?",
+   "ru": "Где практическое занятие?",
+   "lemma": "praktijkles",
+   "theme": 14
+  },
+  {
+   "nl": "Ik heb de theorieles nodig.",
+   "ru": "Мне нужно теоретическое занятие.",
+   "lemma": "theorieles",
+   "theme": 14
+  },
+  {
+   "nl": "Waar is de theorieles?",
+   "ru": "Где теоретическое занятие?",
+   "lemma": "theorieles",
+   "theme": 14
+  },
+  {
+   "nl": "Is dit de theorieles?",
+   "ru": "Это теоретическое занятие?",
+   "lemma": "theorieles",
+   "theme": 14
+  },
+  {
    "nl": "Is dit de sollicitatiebrief?",
    "ru": "Это мотивационное письмо?",
    "lemma": "sollicitatiebrief",
@@ -27642,6 +31470,132 @@
    "nl": "Is dit het nulurencontract?",
    "ru": "Это контракт «ноль часов»?",
    "lemma": "nulurencontract",
+   "theme": 15
+  },
+  {
+   "nl": "Is dit de vacaturebank?",
+   "ru": "Это банк вакансий?",
+   "lemma": "vacaturebank",
+   "theme": 15
+  },
+  {
+   "nl": "Ik heb de vacaturebank nodig.",
+   "ru": "Мне нужен банк вакансий.",
+   "lemma": "vacaturebank",
+   "theme": 15
+  },
+  {
+   "nl": "Waar is de vacaturebank?",
+   "ru": "Где банк вакансий?",
+   "lemma": "vacaturebank",
+   "theme": 15
+  },
+  {
+   "nl": "Ik heb de werving nodig.",
+   "ru": "Мне нужен набор персонала.",
+   "lemma": "werving",
+   "theme": 15
+  },
+  {
+   "nl": "Waar is de werving?",
+   "ru": "Где набор персонала?",
+   "lemma": "werving",
+   "theme": 15
+  },
+  {
+   "nl": "Is dit de werving?",
+   "ru": "Это набор персонала?",
+   "lemma": "werving",
+   "theme": 15
+  },
+  {
+   "nl": "Waar is de sollicitatietraining?",
+   "ru": "Где тренинг по собеседованиям?",
+   "lemma": "sollicitatietraining",
+   "theme": 15
+  },
+  {
+   "nl": "Is dit de sollicitatietraining?",
+   "ru": "Это тренинг по собеседованиям?",
+   "lemma": "sollicitatietraining",
+   "theme": 15
+  },
+  {
+   "nl": "Ik heb de sollicitatietraining nodig.",
+   "ru": "Мне нужен тренинг по собеседованиям.",
+   "lemma": "sollicitatietraining",
+   "theme": 15
+  },
+  {
+   "nl": "Is dit de competentie?",
+   "ru": "Это компетенция?",
+   "lemma": "competentie",
+   "theme": 15
+  },
+  {
+   "nl": "Ik heb de competentie nodig.",
+   "ru": "Мне нужна компетенция.",
+   "lemma": "competentie",
+   "theme": 15
+  },
+  {
+   "nl": "Waar is de competentie?",
+   "ru": "Где компетенция?",
+   "lemma": "competentie",
+   "theme": 15
+  },
+  {
+   "nl": "Ik heb de werkgeversverklaring nodig.",
+   "ru": "Мне нужна справка от работодателя.",
+   "lemma": "werkgeversverklaring",
+   "theme": 15
+  },
+  {
+   "nl": "Waar is de werkgeversverklaring?",
+   "ru": "Где справка от работодателя?",
+   "lemma": "werkgeversverklaring",
+   "theme": 15
+  },
+  {
+   "nl": "Is dit de werkgeversverklaring?",
+   "ru": "Это справка от работодателя?",
+   "lemma": "werkgeversverklaring",
+   "theme": 15
+  },
+  {
+   "nl": "Waar is de jaaropgave?",
+   "ru": "Где годовая справка о доходах?",
+   "lemma": "jaaropgave",
+   "theme": 15
+  },
+  {
+   "nl": "Is dit de jaaropgave?",
+   "ru": "Это годовая справка о доходах?",
+   "lemma": "jaaropgave",
+   "theme": 15
+  },
+  {
+   "nl": "Ik heb de jaaropgave nodig.",
+   "ru": "Мне нужна годовая справка о доходах.",
+   "lemma": "jaaropgave",
+   "theme": 15
+  },
+  {
+   "nl": "Ik heb de proefplaatsing nodig.",
+   "ru": "Мне нужно пробное трудоустройство.",
+   "lemma": "proefplaatsing",
+   "theme": 15
+  },
+  {
+   "nl": "Waar is de proefplaatsing?",
+   "ru": "Где пробное трудоустройство?",
+   "lemma": "proefplaatsing",
+   "theme": 15
+  },
+  {
+   "nl": "Is dit de proefplaatsing?",
+   "ru": "Это пробное трудоустройство?",
+   "lemma": "proefplaatsing",
    "theme": 15
   },
   {
@@ -28488,6 +32442,90 @@
    "nl": "Het is gastvrij.",
    "ru": "Это гостеприимно.",
    "lemma": "gastvrij",
+   "theme": 16
+  },
+  {
+   "nl": "Ik heb de arbeidsinspectie nodig.",
+   "ru": "Мне нужна трудовая инспекция.",
+   "lemma": "arbeidsinspectie",
+   "theme": 16
+  },
+  {
+   "nl": "Waar is de arbeidsinspectie?",
+   "ru": "Где трудовая инспекция?",
+   "lemma": "arbeidsinspectie",
+   "theme": 16
+  },
+  {
+   "nl": "Is dit de arbeidsinspectie?",
+   "ru": "Это трудовая инспекция?",
+   "lemma": "arbeidsinspectie",
+   "theme": 16
+  },
+  {
+   "nl": "Waar is de vakbond?",
+   "ru": "Где профсоюз?",
+   "lemma": "vakbond",
+   "theme": 16
+  },
+  {
+   "nl": "Is dit de vakbond?",
+   "ru": "Это профсоюз?",
+   "lemma": "vakbond",
+   "theme": 16
+  },
+  {
+   "nl": "Ik heb de vakbond nodig.",
+   "ru": "Мне нужен профсоюз.",
+   "lemma": "vakbond",
+   "theme": 16
+  },
+  {
+   "nl": "Is dit de ondernemingsraad?",
+   "ru": "Это совет работников?",
+   "lemma": "ondernemingsraad",
+   "theme": 16
+  },
+  {
+   "nl": "Ik heb de ondernemingsraad nodig.",
+   "ru": "Мне нужен совет работников.",
+   "lemma": "ondernemingsraad",
+   "theme": 16
+  },
+  {
+   "nl": "Waar is de ondernemingsraad?",
+   "ru": "Где совет работников?",
+   "lemma": "ondernemingsraad",
+   "theme": 16
+  },
+  {
+   "nl": "De bedrijfsarts is erg aardig.",
+   "ru": "Врач предприятия очень приятный.",
+   "lemma": "bedrijfsarts",
+   "theme": 16
+  },
+  {
+   "nl": "Ik ken de bedrijfsarts goed.",
+   "ru": "Я хорошо знаю врача предприятия.",
+   "lemma": "bedrijfsarts",
+   "theme": 16
+  },
+  {
+   "nl": "Daar loopt de bedrijfsarts.",
+   "ru": "Вон идёт врач предприятия.",
+   "lemma": "bedrijfsarts",
+   "theme": 16
+  },
+  {
+   "nl": "De bedrijfsarts helpt mij vaak.",
+   "ru": "Врач предприятия часто мне помогает.",
+   "lemma": "bedrijfsarts",
+   "theme": 16
+  },
+  {
+   "nl": "Ken jij de bedrijfsarts?",
+   "ru": "Ты знаешь врача предприятия?",
+   "lemma": "bedrijfsarts",
    "theme": 16
   },
   {
@@ -29814,6 +33852,96 @@
    "nl": "Ik heb de overtreding nodig.",
    "ru": "Мне нужно нарушение.",
    "lemma": "overtreding",
+   "theme": 17
+  },
+  {
+   "nl": "Waar is de groenbak?",
+   "ru": "Где контейнер для органики?",
+   "lemma": "groenbak",
+   "theme": 17
+  },
+  {
+   "nl": "Is dit de groenbak?",
+   "ru": "Это контейнер для органики?",
+   "lemma": "groenbak",
+   "theme": 17
+  },
+  {
+   "nl": "Ik heb de groenbak nodig.",
+   "ru": "Мне нужен контейнер для органики.",
+   "lemma": "groenbak",
+   "theme": 17
+  },
+  {
+   "nl": "Is dit de milieustraat?",
+   "ru": "Это пункт приёма отходов?",
+   "lemma": "milieustraat",
+   "theme": 17
+  },
+  {
+   "nl": "Ik heb de milieustraat nodig.",
+   "ru": "Мне нужен пункт приёма отходов.",
+   "lemma": "milieustraat",
+   "theme": 17
+  },
+  {
+   "nl": "Waar is de milieustraat?",
+   "ru": "Где пункт приёма отходов?",
+   "lemma": "milieustraat",
+   "theme": 17
+  },
+  {
+   "nl": "Waar is het testament?",
+   "ru": "Где завещание?",
+   "lemma": "testament",
+   "theme": 17
+  },
+  {
+   "nl": "Is dit het testament?",
+   "ru": "Это завещание?",
+   "lemma": "testament",
+   "theme": 17
+  },
+  {
+   "nl": "Is dit de volmacht?",
+   "ru": "Это доверенность?",
+   "lemma": "volmacht",
+   "theme": 17
+  },
+  {
+   "nl": "Waar is de volmacht?",
+   "ru": "Где доверенность?",
+   "lemma": "volmacht",
+   "theme": 17
+  },
+  {
+   "nl": "Waar is de alimentatie?",
+   "ru": "Где алименты?",
+   "lemma": "alimentatie",
+   "theme": 17
+  },
+  {
+   "nl": "Is dit de alimentatie?",
+   "ru": "Это алименты?",
+   "lemma": "alimentatie",
+   "theme": 17
+  },
+  {
+   "nl": "Ik heb het ouderschapsplan nodig.",
+   "ru": "Мне нужен план родительства.",
+   "lemma": "ouderschapsplan",
+   "theme": 17
+  },
+  {
+   "nl": "Waar is het ouderschapsplan?",
+   "ru": "Где план родительства?",
+   "lemma": "ouderschapsplan",
+   "theme": 17
+  },
+  {
+   "nl": "Is dit het ouderschapsplan?",
+   "ru": "Это план родительства?",
+   "lemma": "ouderschapsplan",
    "theme": 17
   }
  ]
