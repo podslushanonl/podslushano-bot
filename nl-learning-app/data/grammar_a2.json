@@ -647,6 +647,571 @@
    ],
    "theme": "На работе",
    "idx": 1
+  },
+  {
+   "theme": "Дети",
+   "idx": 3,
+   "title": "Грамматика: omdat, als — глагол в конец 🧩",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Правило из учебника (omdat/als)",
+     "b": "🧩 Придаточное предложение: глагол уезжает в КОНЕЦ",
+     "html": "<p>Союзы <b>omdat</b> (потому что), <b>als</b> (если/когда), <b>dat</b> (что) открывают придаточное — и глагол в нём встаёт <b>в самый конец</b>:</p><div class=\"rule\">Ik blijf thuis, <b>omdat</b> ik ziek <b>ben</b>. — Я остаюсь дома, потому что болею.<br><b>Als</b> het <b>regent</b>, blijven we thuis. — Если идёт дождь, мы остаёмся дома.</div><p>⚠️ Сравни с <b>want</b> (тоже «потому что») — после него порядок ПРЯМОЙ: …, want ik <b>ben</b> ziek. А <b>daarom</b> (поэтому) начинает новое предложение с инверсией: Ik ben ziek. <b>Daarom blijf ik</b> thuis.</p>",
+     "ex": [
+      [
+       "Ik blijf thuis, omdat ik ziek ben.",
+       "Я остаюсь дома, потому что болею."
+      ],
+      [
+       "Als het regent, blijven we thuis.",
+       "Если идёт дождь, мы сидим дома."
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Какое предложение верно?",
+     "q": "omdat — где глагол?",
+     "opts": [
+      "Ik blijf thuis, omdat ik ziek ben.",
+      "Ik blijf thuis, omdat ik ben ziek.",
+      "Ik blijf thuis, omdat ben ik ziek."
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Какое предложение верно?",
+     "q": "want — а тут?",
+     "opts": [
+      "Ik blijf thuis, want ik ben ziek.",
+      "Ik blijf thuis, want ik ziek ben.",
+      "Ik blijf thuis, want ben ik ziek."
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Помни разницу",
+     "q": "После какого союза порядок слов ПРЯМОЙ (глагол №2)?",
+     "opts": [
+      "want",
+      "omdat",
+      "als",
+      "dat"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери: als в начале → инверсия в главном",
+     "tr": "Если идёт дождь, мы остаёмся дома.",
+     "words": [
+      "Als",
+      "het",
+      "regent,",
+      "blijven",
+      "we",
+      "thuis"
+     ],
+     "ans": [
+      "Als",
+      "het",
+      "regent,",
+      "blijven",
+      "we",
+      "thuis"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши глагол (в конец!)",
+     "q": "Ik leer Nederlands, omdat ik hier ___. (wonen → я-форма)",
+     "answer": [
+      "woon"
+     ],
+     "ph": "w…",
+     "hint": "…потому что я здесь живу."
+    },
+    {
+     "t": "clozeBank",
+     "k": "Vul in · союзы",
+     "sents": [
+      [
+       "Ik neem een paraplu mee, ___ het regent.",
+       "omdat",
+       "Я беру зонт, потому что идёт дождь."
+      ],
+      [
+       "Het regent. ___ neem ik een paraplu mee.",
+       "Daarom",
+       "Идёт дождь. Поэтому я беру зонт."
+      ],
+      [
+       "___ je vragen hebt, kun je me bellen.",
+       "Als",
+       "Если есть вопросы — звони."
+      ]
+     ],
+     "bank": [
+      "omdat",
+      "Daarom",
+      "Als",
+      "want"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "После omdat глагол уходит в конец придаточного.",
+     "answer": true,
+     "note": "Да: …omdat ik ziek BEN."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Я рад(а), потому что моя семья живёт здесь.",
+     "words": [
+      "Ik",
+      "ben",
+      "blij,",
+      "omdat",
+      "mijn",
+      "familie",
+      "hier",
+      "woont"
+     ],
+     "ans": [
+      "Ik",
+      "ben",
+      "blij,",
+      "omdat",
+      "mijn",
+      "familie",
+      "hier",
+      "woont"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Ik leer Nederlands, omdat ik in Nederland woon.",
+     "tr": "Я учу нидерландский, потому что живу в Нидерландах."
+    }
+   ]
+  },
+  {
+   "theme": "Поиск работы",
+   "idx": 1,
+   "title": "Грамматика: om … te 🎯",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Правило из учебника (om…te)",
+     "b": "🎯 om … te — «чтобы …»",
+     "html": "<p>Цель («чтобы») выражается конструкцией <b>om … te + инфинитив</b>. <b>te</b> стоит прямо перед глаголом в конце:</p><div class=\"rule\">Ik ga naar de winkel <b>om</b> brood <b>te kopen</b>. — Я иду в магазин, чтобы купить хлеб.<br>Ik bel <b>om</b> een afspraak <b>te maken</b>. — Я звоню, чтобы записаться.<br>Het is moeilijk <b>om</b> Nederlands <b>te leren</b>. — Трудно учить нидерландский.</div>",
+     "ex": [
+      [
+       "Ik ga naar de winkel om brood te kopen.",
+       "Я иду в магазин, чтобы купить хлеб."
+      ],
+      [
+       "Ik leer Nederlands om hier te werken.",
+       "Я учу язык, чтобы здесь работать."
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Какое предложение верно?",
+     "q": "Где стоит te?",
+     "opts": [
+      "Ik ga naar de winkel om brood te kopen.",
+      "Ik ga naar de winkel om te brood kopen.",
+      "Ik ga naar de winkel voor brood te kopen."
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Скажи о цели",
+     "q": "«Я учу язык, ЧТОБЫ НАЙТИ РАБОТУ» — как правильно?",
+     "opts": [
+      "om werk te vinden",
+      "voor werk vinden",
+      "om te werk vinden",
+      "dat werk vinden"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Я звоню, чтобы записаться на приём.",
+     "words": [
+      "Ik",
+      "bel",
+      "om",
+      "een",
+      "afspraak",
+      "te",
+      "maken"
+     ],
+     "ans": [
+      "Ik",
+      "bel",
+      "om",
+      "een",
+      "afspraak",
+      "te",
+      "maken"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши слово",
+     "q": "Ik spaar geld ___ een auto te kopen.",
+     "answer": [
+      "om"
+     ],
+     "ph": "o…",
+     "hint": "Я коплю деньги, чтобы купить машину."
+    },
+    {
+     "t": "clozeBank",
+     "k": "Vul in · om и te",
+     "sents": [
+      [
+       "Ik ga naar school om Nederlands ___ leren.",
+       "te",
+       "Я хожу в школу, чтобы учить нидерландский."
+      ],
+      [
+       "Het is leuk ___ nieuwe mensen te ontmoeten.",
+       "om",
+       "Приятно знакомиться с новыми людьми."
+      ],
+      [
+       "Ik bel de gemeente om een afspraak ___ maken.",
+       "te",
+       "Я звоню в хементе, чтобы записаться."
+      ]
+     ],
+     "bank": [
+      "te",
+      "om",
+      "te",
+      "voor"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "te стоит прямо перед инфинитивом в конце: om brood TE KOPEN.",
+     "answer": true,
+     "note": "Да, всегда пара: te + глагол."
+    },
+    {
+     "t": "build",
+     "k": "Собери (het is … om … te)",
+     "tr": "Трудно учить нидерландский.",
+     "words": [
+      "Het",
+      "is",
+      "moeilijk",
+      "om",
+      "Nederlands",
+      "te",
+      "leren"
+     ],
+     "ans": [
+      "Het",
+      "is",
+      "moeilijk",
+      "om",
+      "Nederlands",
+      "te",
+      "leren"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Ik leer Nederlands om hier te werken.",
+     "tr": "Я учу нидерландский, чтобы здесь работать."
+    }
+   ]
+  },
+  {
+   "theme": "Магазины",
+   "idx": 2,
+   "title": "Грамматика: groter, grootst 📏",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Правило из учебника (сравнение)",
+     "b": "📏 groot → groter → grootst",
+     "html": "<p>Сравнительная степень = <b>-er</b>, превосходная = <b>-st</b>. Сравниваем через <b>dan</b>:</p><div class=\"rule\"><table style=\"width:100%;border-collapse:collapse;font-size:13.5px\"><tr style=\"color:var(--ink-2)\"><td><b>обычная</b></td><td><b>сравнит.</b></td><td><b>превосх.</b></td></tr><tr><td>groot</td><td>groter</td><td>grootst</td></tr><tr><td>duur (на -r!)</td><td>duur<b>der</b></td><td>duurst</td></tr><tr><td>goed</td><td><b>beter</b></td><td><b>best</b></td></tr><tr><td>veel</td><td><b>meer</b></td><td><b>meest</b></td></tr><tr><td>graag</td><td><b>liever</b></td><td><b>liefst</b></td></tr></table></div><p>Amsterdam is <b>groter dan</b> Utrecht. · De Albert Cuyp is <b>de grootste markt</b> van Nederland.</p>",
+     "ex": [
+      [
+       "Deze jas is duurder dan die.",
+       "Эта куртка дороже той."
+      ],
+      [
+       "Beter laat dan nooit!",
+       "Лучше поздно, чем никогда!"
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Выбери форму",
+     "q": "Amsterdam is ___ dan Utrecht. (groot)",
+     "opts": [
+      "groter",
+      "grootst",
+      "meer groot",
+      "groten"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Слова на -r → -der!",
+     "q": "Deze jas is ___ dan die. (duur)",
+     "opts": [
+      "duurder",
+      "duurer",
+      "duurst",
+      "meer duur"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Перед существительным",
+     "q": "De Albert Cuyp is de ___ markt van Nederland. (groot)",
+     "opts": [
+      "grootste",
+      "grootst",
+      "groter",
+      "grote"
+     ]
+    },
+    {
+     "t": "match",
+     "k": "Исключения — наизусть",
+     "pairs": [
+      [
+       "goed (хороший)",
+       "beter"
+      ],
+      [
+       "veel (много)",
+       "meer"
+      ],
+      [
+       "graag (охотно)",
+       "liever"
+      ],
+      [
+       "klein (маленький)",
+       "kleiner"
+      ]
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши форму",
+     "q": "Melk is gezond, maar water is nog ___. (gezond)",
+     "answer": [
+      "gezonder"
+     ],
+     "ph": "g…",
+     "hint": "Молоко полезно, а вода ещё полезнее."
+    },
+    {
+     "t": "clozeBank",
+     "k": "Vul in · сравнения",
+     "sents": [
+      [
+       "Deze appels zijn ___ dan die.",
+       "goedkoper",
+       "Эти яблоки дешевле тех."
+      ],
+      [
+       "Ik drink ___ thee dan koffie.",
+       "liever",
+       "Я охотнее пью чай, чем кофе."
+      ],
+      [
+       "Dit is het ___ huis van de straat.",
+       "mooiste",
+       "Это самый красивый дом на улице."
+      ]
+     ],
+     "bank": [
+      "goedkoper",
+      "liever",
+      "mooiste",
+      "duurder"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "Сравнивают через dan: «groter dan jij».",
+     "answer": true,
+     "note": "Да: на экзамене — dan."
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Мой брат старше меня.",
+     "words": [
+      "Mijn",
+      "broer",
+      "is",
+      "ouder",
+      "dan",
+      "ik"
+     ],
+     "ans": [
+      "Mijn",
+      "broer",
+      "is",
+      "ouder",
+      "dan",
+      "ik"
+     ]
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Beter laat dan nooit!",
+     "tr": "Лучше поздно, чем никогда!"
+    }
+   ]
+  },
+  {
+   "theme": "Gemeente",
+   "idx": 3,
+   "title": "Грамматика: zegt dat, vraagt of 💬",
+   "steps": [
+    {
+     "t": "explain",
+     "k": "Правило из учебника (8.x)",
+     "b": "💬 Косвенная речь: dat и of",
+     "html": "<p>Передаём чужие слова через <b>dat</b> (что) и вопросы через <b>of</b> (ли). Это придаточные — глагол снова <b>в конец</b>:</p><div class=\"rule\">Hij zegt <b>dat</b> hij morgen <b>komt</b>. — Он говорит, что придёт завтра.<br>Ze vraagt <b>of</b> ik tijd <b>heb</b>. — Она спрашивает, есть ли у меня время.<br>Ik denk <b>dat</b> het examen moeilijk <b>is</b>. — Думаю, что экзамен сложный.</div>",
+     "ex": [
+      [
+       "Hij zegt dat hij morgen komt.",
+       "Он говорит, что придёт завтра."
+      ],
+      [
+       "Ze vraagt of ik tijd heb.",
+       "Она спрашивает, есть ли у меня время."
+      ]
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "Какое предложение верно?",
+     "q": "dat — где глагол?",
+     "opts": [
+      "Hij zegt dat hij morgen komt.",
+      "Hij zegt dat hij komt morgen.",
+      "Hij zegt dat komt hij morgen."
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "dat или of?",
+     "q": "Ze vraagt ___ ik morgen kan. (вопрос «могу ли»)",
+     "opts": [
+      "of",
+      "dat",
+      "als",
+      "om"
+     ]
+    },
+    {
+     "t": "quiz",
+     "k": "dat или of?",
+     "q": "De medewerker zegt ___ het document klaar is.",
+     "opts": [
+      "dat",
+      "of",
+      "want",
+      "te"
+     ]
+    },
+    {
+     "t": "build",
+     "k": "Собери",
+     "tr": "Я думаю, что завтра будет дождь.",
+     "words": [
+      "Ik",
+      "denk",
+      "dat",
+      "het",
+      "morgen",
+      "regent"
+     ],
+     "ans": [
+      "Ik",
+      "denk",
+      "dat",
+      "het",
+      "morgen",
+      "regent"
+     ]
+    },
+    {
+     "t": "gapType",
+     "k": "Впиши глагол (в конец!)",
+     "q": "De dokter zegt dat ik veel water moet ___. (пить)",
+     "answer": [
+      "drinken"
+     ],
+     "ph": "d…",
+     "hint": "Врач говорит, что мне надо много пить."
+    },
+    {
+     "t": "clozeBank",
+     "k": "Vul in · dat и of",
+     "sents": [
+      [
+       "Hij zegt ___ hij ziek is.",
+       "dat",
+       "Он говорит, что болеет."
+      ],
+      [
+       "Ze vraagt ___ je morgen komt.",
+       "of",
+       "Она спрашивает, придёшь ли ты завтра."
+      ],
+      [
+       "Ik weet ___ het examen moeilijk is.",
+       "dat",
+       "Я знаю, что экзамен сложный."
+      ]
+     ],
+     "bank": [
+      "dat",
+      "of",
+      "dat",
+      "omdat"
+     ]
+    },
+    {
+     "t": "tf",
+     "k": "Верно?",
+     "q": "После dat и of глагол уходит в конец придаточного.",
+     "answer": true,
+     "note": "Да — как после omdat и als."
+    },
+    {
+     "t": "speak",
+     "k": "Говорение",
+     "phrase": "Ik denk dat Nederlands leuk is!",
+     "tr": "Я думаю, что нидерландский — классный!"
+    }
+   ]
   }
  ]
 }
