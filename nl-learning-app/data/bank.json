@@ -250,6 +250,82 @@
     [
      "de moedertaal",
      "родной язык"
+    ],
+    [
+     "de postcode",
+     "почтовый индекс"
+    ],
+    [
+     "het telefoonnummer",
+     "номер телефона"
+    ],
+    [
+     "de geboortedatum",
+     "дата рождения"
+    ],
+    [
+     "de geboorteplaats",
+     "место рождения"
+    ],
+    [
+     "de begroeting",
+     "приветствие"
+    ],
+    [
+     "het afscheid",
+     "прощание"
+    ],
+    [
+     "de kus",
+     "поцелуй"
+    ],
+    [
+     "het bezoek",
+     "визит"
+    ],
+    [
+     "de bezoeker",
+     "посетитель"
+    ],
+    [
+     "de afkomst",
+     "происхождение"
+    ],
+    [
+     "de kennismaking",
+     "знакомство"
+    ],
+    [
+     "de glimlach",
+     "улыбка"
+    ],
+    [
+     "beleefd",
+     "вежливый"
+    ],
+    [
+     "verlegen",
+     "застенчивый"
+    ],
+    [
+     "rustig",
+     "спокойный"
+    ],
+    [
+     "scheiden",
+     "разводиться"
+    ],
+    [
+     "voorstellen",
+     "представлять(ся)"
+    ],
+    [
+     "begroeten",
+     "приветствовать"
+    ],
+    [
+     "glimlachen",
+     "улыбаться"
     ]
    ]
   },
@@ -503,6 +579,94 @@
     [
      "klaar",
      "готовый"
+    ],
+    [
+     "de klus",
+     "дело, задачка"
+    ],
+    [
+     "de rust",
+     "покой"
+    ],
+    [
+     "de slaap",
+     "сон"
+    ],
+    [
+     "het dutje",
+     "дремота"
+    ],
+    [
+     "de tandenborstel",
+     "зубная щётка"
+    ],
+    [
+     "de tandpasta",
+     "зубная паста"
+    ],
+    [
+     "de kam",
+     "расчёска"
+    ],
+    [
+     "de borstel",
+     "щётка"
+    ],
+    [
+     "het toilet",
+     "туалет"
+    ],
+    [
+     "de post",
+     "почта"
+    ],
+    [
+     "de portemonnee",
+     "кошелёк"
+    ],
+    [
+     "de mobiel",
+     "мобильник"
+    ],
+    [
+     "de oplader",
+     "зарядка"
+    ],
+    [
+     "de batterij",
+     "батарейка"
+    ],
+    [
+     "wakker",
+     "проснувшийся"
+    ],
+    [
+     "stofzuigen",
+     "пылесосить"
+    ],
+    [
+     "poetsen",
+     "чистить"
+    ],
+    [
+     "aankleden",
+     "одеваться"
+    ],
+    [
+     "uitkleden",
+     "раздеваться"
+    ],
+    [
+     "kammen",
+     "причёсывать"
+    ],
+    [
+     "opladen",
+     "заряжать"
+    ],
+    [
+     "versturen",
+     "отправлять"
     ]
    ]
   },
@@ -804,6 +968,106 @@
     [
      "duidelijk",
      "понятный, ясный"
+    ],
+    [
+     "de spelling",
+     "орфография"
+    ],
+    [
+     "de klemtoon",
+     "ударение"
+    ],
+    [
+     "de lettergreep",
+     "слог"
+    ],
+    [
+     "de klinker",
+     "гласный звук"
+    ],
+    [
+     "de medeklinker",
+     "согласный звук"
+    ],
+    [
+     "de hoofdletter",
+     "заглавная буква"
+    ],
+    [
+     "de komma",
+     "запятая"
+    ],
+    [
+     "het vraagteken",
+     "вопросительный знак"
+    ],
+    [
+     "het voorbeeld",
+     "пример"
+    ],
+    [
+     "het hoofdstuk",
+     "глава"
+    ],
+    [
+     "de samenvatting",
+     "конспект"
+    ],
+    [
+     "het werkstuk",
+     "доклад, проект"
+    ],
+    [
+     "de aantekening",
+     "заметка"
+    ],
+    [
+     "de puntenslijper",
+     "точилка"
+    ],
+    [
+     "de markeerstift",
+     "маркер"
+    ],
+    [
+     "de beamer",
+     "проектор"
+    ],
+    [
+     "noteren",
+     "записывать"
+    ],
+    [
+     "onderstrepen",
+     "подчёркивать"
+    ],
+    [
+     "opschrijven",
+     "записывать"
+    ],
+    [
+     "nakijken",
+     "проверять (работы)"
+    ],
+    [
+     "verbeteren",
+     "исправлять"
+    ],
+    [
+     "uitspreken",
+     "произносить"
+    ],
+    [
+     "spellen",
+     "произносить по буквам"
+    ],
+    [
+     "twijfelen",
+     "сомневаться"
+    ],
+    [
+     "opletten",
+     "быть внимательным"
     ]
    ]
   },
@@ -1145,6 +1409,134 @@
     [
      "ruiken",
      "пахнуть, нюхать"
+    ],
+    [
+     "de courgette",
+     "кабачок"
+    ],
+    [
+     "de aubergine",
+     "баклажан"
+    ],
+    [
+     "de paprika",
+     "болгарский перец"
+    ],
+    [
+     "de champignon",
+     "шампиньон"
+    ],
+    [
+     "de knoflook",
+     "чеснок"
+    ],
+    [
+     "de spinazie",
+     "шпинат"
+    ],
+    [
+     "de erwt",
+     "горошина"
+    ],
+    [
+     "de perzik",
+     "персик"
+    ],
+    [
+     "de framboos",
+     "малина"
+    ],
+    [
+     "de kers",
+     "вишня"
+    ],
+    [
+     "de meloen",
+     "дыня"
+    ],
+    [
+     "de ananas",
+     "ананас"
+    ],
+    [
+     "het broodje",
+     "булочка"
+    ],
+    [
+     "de croissant",
+     "круассан"
+    ],
+    [
+     "de yoghurt",
+     "йогурт"
+    ],
+    [
+     "de kwark",
+     "творог"
+    ],
+    [
+     "de slagroom",
+     "взбитые сливки"
+    ],
+    [
+     "het toetje",
+     "десерт"
+    ],
+    [
+     "het snoepje",
+     "конфета"
+    ],
+    [
+     "de chips",
+     "чипсы"
+    ],
+    [
+     "de noot",
+     "орех"
+    ],
+    [
+     "de pinda",
+     "арахис"
+    ],
+    [
+     "de saus",
+     "соус"
+    ],
+    [
+     "de mosterd",
+     "горчица"
+    ],
+    [
+     "de mayonaise",
+     "майонез"
+    ],
+    [
+     "het blikje",
+     "баночка, жестянка"
+    ],
+    [
+     "de schil",
+     "кожура"
+    ],
+    [
+     "opwarmen",
+     "разогревать"
+    ],
+    [
+     "invriezen",
+     "замораживать"
+    ],
+    [
+     "schillen",
+     "чистить (овощи)"
+    ],
+    [
+     "roeren",
+     "мешать, помешивать"
+    ],
+    [
+     "serveren",
+     "подавать (еду)"
     ]
    ]
   },
@@ -1458,6 +1850,122 @@
     [
      "uitrusten",
      "отдыхать, восстанавливаться"
+    ],
+    [
+     "het spreekuur",
+     "приёмные часы"
+    ],
+    [
+     "de wachtkamer",
+     "зал ожидания"
+    ],
+    [
+     "de verwijzing",
+     "направление"
+    ],
+    [
+     "de specialist",
+     "специалист"
+    ],
+    [
+     "de chirurg",
+     "хирург"
+    ],
+    [
+     "de psycholoog",
+     "психолог"
+    ],
+    [
+     "de fysiotherapeut",
+     "физиотерапевт"
+    ],
+    [
+     "de apotheker",
+     "аптекарь"
+    ],
+    [
+     "de bijsluiter",
+     "инструкция к лекарству"
+    ],
+    [
+     "de bijwerking",
+     "побочный эффект"
+    ],
+    [
+     "de dosis",
+     "доза"
+    ],
+    [
+     "de prik",
+     "укол"
+    ],
+    [
+     "het vaccin",
+     "вакцина"
+    ],
+    [
+     "de bloeddruk",
+     "кровяное давление"
+    ],
+    [
+     "de hartslag",
+     "пульс"
+    ],
+    [
+     "het bloed",
+     "кровь"
+    ],
+    [
+     "de long",
+     "лёгкое"
+    ],
+    [
+     "het hart",
+     "сердце"
+    ],
+    [
+     "de maag",
+     "желудок"
+    ],
+    [
+     "de nier",
+     "почка"
+    ],
+    [
+     "het bot",
+     "кость"
+    ],
+    [
+     "de zwelling",
+     "отёк"
+    ],
+    [
+     "de keelpijn",
+     "боль в горле"
+    ],
+    [
+     "de buikpijn",
+     "боль в животе"
+    ],
+    [
+     "herstellen",
+     "выздоравливать"
+    ],
+    [
+     "genezen",
+     "излечиваться"
+    ],
+    [
+     "zweten",
+     "потеть"
+    ],
+    [
+     "rillen",
+     "дрожать"
+    ],
+    [
+     "flauwvallen",
+     "падать в обморок"
     ]
    ]
   },
@@ -1755,6 +2263,86 @@
     [
      "ruim",
      "просторный, свободный"
+    ],
+    [
+     "de capuchon",
+     "капюшон"
+    ],
+    [
+     "de panty",
+     "колготки"
+    ],
+    [
+     "de legging",
+     "леггинсы"
+    ],
+    [
+     "het jack",
+     "спортивная куртка"
+    ],
+    [
+     "de regenlaars",
+     "резиновый сапог"
+    ],
+    [
+     "de sandaal",
+     "сандалия"
+    ],
+    [
+     "de sneaker",
+     "кроссовок"
+    ],
+    [
+     "de pantoffel",
+     "тапочек"
+    ],
+    [
+     "het uniform",
+     "форма, униформа"
+    ],
+    [
+     "de zonnebril",
+     "солнечные очки"
+    ],
+    [
+     "de wasmand",
+     "корзина для белья"
+    ],
+    [
+     "het wasmiddel",
+     "стиральный порошок"
+    ],
+    [
+     "de hanger",
+     "вешалка"
+    ],
+    [
+     "de kledingkast",
+     "платяной шкаф"
+    ],
+    [
+     "de naald",
+     "игла"
+    ],
+    [
+     "naaien",
+     "шить"
+    ],
+    [
+     "wijd",
+     "широкий, свободный"
+    ],
+    [
+     "gestreept",
+     "полосатый"
+    ],
+    [
+     "geruit",
+     "клетчатый"
+    ],
+    [
+     "effen",
+     "однотонный"
     ]
    ]
   },
@@ -2104,6 +2692,118 @@
     [
      "rechtdoor",
      "прямо"
+    ],
+    [
+     "het vliegveld",
+     "аэропорт"
+    ],
+    [
+     "de vlucht",
+     "рейс"
+    ],
+    [
+     "de piloot",
+     "пилот"
+    ],
+    [
+     "de stewardess",
+     "стюардесса"
+    ],
+    [
+     "de instapkaart",
+     "посадочный талон"
+    ],
+    [
+     "de reisverzekering",
+     "туристическая страховка"
+    ],
+    [
+     "het visum",
+     "виза"
+    ],
+    [
+     "de bestemming",
+     "пункт назначения"
+    ],
+    [
+     "de route",
+     "маршрут"
+    ],
+    [
+     "de navigatie",
+     "навигатор"
+    ],
+    [
+     "de tunnel",
+     "тоннель"
+    ],
+    [
+     "de veerboot",
+     "паром"
+    ],
+    [
+     "de haven",
+     "порт"
+    ],
+    [
+     "de camper",
+     "автодом"
+    ],
+    [
+     "de caravan",
+     "жилой прицеп"
+    ],
+    [
+     "het hostel",
+     "хостел"
+    ],
+    [
+     "de toerist",
+     "турист"
+    ],
+    [
+     "de gids",
+     "гид"
+    ],
+    [
+     "de plattegrond",
+     "план города"
+    ],
+    [
+     "de bezienswaardigheid",
+     "достопримечательность"
+    ],
+    [
+     "het souvenir",
+     "сувенир"
+    ],
+    [
+     "verdwalen",
+     "заблудиться"
+    ],
+    [
+     "tanken",
+     "заправляться"
+    ],
+    [
+     "parkeren",
+     "парковаться"
+    ],
+    [
+     "inchecken",
+     "регистрироваться (на рейс)"
+    ],
+    [
+     "uitchecken",
+     "выписываться"
+    ],
+    [
+     "landen",
+     "приземляться"
+    ],
+    [
+     "opstijgen",
+     "взлетать"
     ]
    ]
   },
@@ -2481,6 +3181,138 @@
     [
      "grappig",
      "смешной, забавный"
+    ],
+    [
+     "de schilder",
+     "художник"
+    ],
+    [
+     "het schilderij",
+     "картина"
+    ],
+    [
+     "de tekening",
+     "рисунок"
+    ],
+    [
+     "de roman",
+     "роман"
+    ],
+    [
+     "het tijdschrift",
+     "журнал"
+    ],
+    [
+     "het stripboek",
+     "комикс"
+    ],
+    [
+     "de puzzel",
+     "пазл"
+    ],
+    [
+     "het kruiswoordraadsel",
+     "кроссворд"
+    ],
+    [
+     "het bordspel",
+     "настольная игра"
+    ],
+    [
+     "de gitaar",
+     "гитара"
+    ],
+    [
+     "de piano",
+     "пианино"
+    ],
+    [
+     "de viool",
+     "скрипка"
+    ],
+    [
+     "het koor",
+     "хор"
+    ],
+    [
+     "de band",
+     "музыкальная группа"
+    ],
+    [
+     "de zanger",
+     "певец"
+    ],
+    [
+     "de zangeres",
+     "певица"
+    ],
+    [
+     "het lied",
+     "песня"
+    ],
+    [
+     "de dans",
+     "танец"
+    ],
+    [
+     "de yoga",
+     "йога"
+    ],
+    [
+     "de scheidsrechter",
+     "судья (в спорте)"
+    ],
+    [
+     "het stadion",
+     "стадион"
+    ],
+    [
+     "de sauna",
+     "сауна"
+    ],
+    [
+     "de vijver",
+     "пруд"
+    ],
+    [
+     "de serie",
+     "сериал"
+    ],
+    [
+     "de aflevering",
+     "серия, эпизод"
+    ],
+    [
+     "het programma",
+     "программа"
+    ],
+    [
+     "de zender",
+     "телеканал"
+    ],
+    [
+     "hardlopen",
+     "бегать"
+    ],
+    [
+     "kamperen",
+     "жить в палатке"
+    ],
+    [
+     "duiken",
+     "нырять"
+    ],
+    [
+     "puzzelen",
+     "собирать пазлы"
+    ],
+    [
+     "gamen",
+     "играть в видеоигры"
+    ],
+    [
+     "knutselen",
+     "мастерить поделки"
     ]
    ]
   },
@@ -2826,6 +3658,94 @@
     [
      "licht",
      "светлый"
+    ],
+    [
+     "de hal",
+     "прихожая"
+    ],
+    [
+     "de logeerkamer",
+     "гостевая комната"
+    ],
+    [
+     "de werkkamer",
+     "кабинет"
+    ],
+    [
+     "de meterkast",
+     "щиток"
+    ],
+    [
+     "de rookmelder",
+     "датчик дыма"
+    ],
+    [
+     "de overlast",
+     "шум и неудобства"
+    ],
+    [
+     "het hek",
+     "забор"
+    ],
+    [
+     "de heg",
+     "живая изгородь"
+    ],
+    [
+     "de bloempot",
+     "цветочный горшок"
+    ],
+    [
+     "de gieter",
+     "лейка"
+    ],
+    [
+     "de radiator",
+     "батарея, радиатор"
+    ],
+    [
+     "de thermostaat",
+     "термостат"
+    ],
+    [
+     "de lekkage",
+     "протечка"
+    ],
+    [
+     "de schimmel",
+     "плесень"
+    ],
+    [
+     "de spin",
+     "паук"
+    ],
+    [
+     "de vlieg",
+     "муха"
+    ],
+    [
+     "de mug",
+     "комар"
+    ],
+    [
+     "lekken",
+     "протекать"
+    ],
+    [
+     "verbouwen",
+     "делать ремонт"
+    ],
+    [
+     "isoleren",
+     "утеплять"
+    ],
+    [
+     "behangen",
+     "клеить обои"
+    ],
+    [
+     "boren",
+     "сверлить"
     ]
    ]
   },
@@ -3127,6 +4047,126 @@
     [
      "parttime",
      "неполный рабочий день"
+    ],
+    [
+     "de sollicitant",
+     "соискатель"
+    ],
+    [
+     "de werkvergunning",
+     "разрешение на работу"
+    ],
+    [
+     "het loonstrookje",
+     "расчётный листок"
+    ],
+    [
+     "de ziekmelding",
+     "уведомление о болезни"
+    ],
+    [
+     "de vakantiedag",
+     "день отпуска"
+    ],
+    [
+     "het verlof",
+     "отпуск, освобождение"
+    ],
+    [
+     "de opdrachtgever",
+     "заказчик"
+    ],
+    [
+     "de leverancier",
+     "поставщик"
+    ],
+    [
+     "de werkplek",
+     "рабочее место"
+    ],
+    [
+     "de bouwvakker",
+     "строитель"
+    ],
+    [
+     "de schoonmaker",
+     "уборщик"
+    ],
+    [
+     "de kapper",
+     "парикмахер"
+    ],
+    [
+     "de slager",
+     "мясник"
+    ],
+    [
+     "de monteur",
+     "механик"
+    ],
+    [
+     "de elektricien",
+     "электрик"
+    ],
+    [
+     "de loodgieter",
+     "сантехник"
+    ],
+    [
+     "de tuinman",
+     "садовник"
+    ],
+    [
+     "de politieagent",
+     "полицейский"
+    ],
+    [
+     "de brandweerman",
+     "пожарный"
+    ],
+    [
+     "de verkoper",
+     "продавец"
+    ],
+    [
+     "de ober",
+     "официант"
+    ],
+    [
+     "de serveerster",
+     "официантка"
+    ],
+    [
+     "de kok",
+     "повар"
+    ],
+    [
+     "de boekhouder",
+     "бухгалтер"
+    ],
+    [
+     "de tolk",
+     "устный переводчик"
+    ],
+    [
+     "de vertaler",
+     "переводчик"
+    ],
+    [
+     "installeren",
+     "устанавливать"
+    ],
+    [
+     "bouwen",
+     "строить"
+    ],
+    [
+     "bedienen",
+     "обслуживать"
+    ],
+    [
+     "adviseren",
+     "консультировать"
     ]
    ]
   },
@@ -3304,6 +4344,102 @@
     [
      "ophangen",
      "вешать"
+    ],
+    [
+     "de woningcorporatie",
+     "жилищная корпорация"
+    ],
+    [
+     "de wachtlijst",
+     "лист ожидания"
+    ],
+    [
+     "de overeenkomst",
+     "договор, соглашение"
+    ],
+    [
+     "de opzegging",
+     "расторжение"
+    ],
+    [
+     "de sleuteloverdracht",
+     "передача ключей"
+    ],
+    [
+     "de eindschoonmaak",
+     "финальная уборка"
+    ],
+    [
+     "de verhuizer",
+     "грузчик"
+    ],
+    [
+     "het busje",
+     "микроавтобус"
+    ],
+    [
+     "de opslag",
+     "хранение, склад"
+    ],
+    [
+     "de kelderbox",
+     "кладовка в подвале"
+    ],
+    [
+     "het krat",
+     "ящик"
+    ],
+    [
+     "het plakband",
+     "скотч"
+    ],
+    [
+     "de stellingkast",
+     "стеллаж"
+    ],
+    [
+     "de matras",
+     "матрас"
+    ],
+    [
+     "de spullen",
+     "вещи"
+    ],
+    [
+     "de rommel",
+     "хлам, беспорядок"
+    ],
+    [
+     "de vuilniszak",
+     "мусорный пакет"
+    ],
+    [
+     "de kringloopwinkel",
+     "комиссионный магазин"
+    ],
+    [
+     "aansluiten",
+     "подключать"
+    ],
+    [
+     "afsluiten",
+     "отключать; закрывать"
+    ],
+    [
+     "overschrijven",
+     "переоформлять"
+    ],
+    [
+     "sjouwen",
+     "таскать (тяжести)"
+    ],
+    [
+     "uitzoeken",
+     "разбирать, перебирать"
+    ],
+    [
+     "weggooien",
+     "выбрасывать"
     ],
     [
      "de woning",
@@ -3551,6 +4687,90 @@
      "исторический"
     ],
     [
+     "de zeespiegel",
+     "уровень моря"
+    ],
+    [
+     "de overstroming",
+     "наводнение"
+    ],
+    [
+     "de sluis",
+     "шлюз"
+    ],
+    [
+     "het platteland",
+     "сельская местность"
+    ],
+    [
+     "de spits",
+     "час пик"
+    ],
+    [
+     "de minister",
+     "министр"
+    ],
+    [
+     "de premier",
+     "премьер-министр"
+    ],
+    [
+     "de verkiezing",
+     "выборы"
+    ],
+    [
+     "de partij",
+     "партия"
+    ],
+    [
+     "de gelijkheid",
+     "равенство"
+    ],
+    [
+     "de discriminatie",
+     "дискриминация"
+    ],
+    [
+     "de godsdienst",
+     "религия"
+    ],
+    [
+     "de moskee",
+     "мечеть"
+    ],
+    [
+     "de synagoge",
+     "синагога"
+    ],
+    [
+     "de drop",
+     "лакричные конфеты"
+    ],
+    [
+     "de fietsenstalling",
+     "велопарковка"
+    ],
+    [
+     "nat",
+     "мокрый"
+    ],
+    [
+     "bewolkt",
+     "облачно"
+    ],
+    [
+     "zonnig",
+     "солнечно"
+    ],
+    [
+     "winderig",
+     "ветрено"
+    ],
+    [
+     "glad",
+     "скользкий"
+    ],
+    [
      "het kaartje",
      "билетик"
     ],
@@ -3601,10 +4821,6 @@
     [
      "leeg",
      "пустой"
-    ],
-    [
-     "nat",
-     "мокрый"
     ],
     [
      "licht",
@@ -3832,6 +5048,114 @@
      "милый, послушный"
     ],
     [
+     "de babyvoeding",
+     "детское питание"
+    ],
+    [
+     "het flesje",
+     "бутылочка"
+    ],
+    [
+     "de speen",
+     "соска"
+    ],
+    [
+     "de box",
+     "манеж"
+    ],
+    [
+     "de kinderstoel",
+     "детский стульчик"
+    ],
+    [
+     "de crèche",
+     "ясли"
+    ],
+    [
+     "de gastouder",
+     "приходящая няня"
+    ],
+    [
+     "de peuterspeelzaal",
+     "игровая группа для малышей"
+    ],
+    [
+     "de groep",
+     "группа, класс"
+    ],
+    [
+     "het schoolplein",
+     "школьный двор"
+    ],
+    [
+     "de gymles",
+     "урок физкультуры"
+    ],
+    [
+     "de beloning",
+     "награда, поощрение"
+    ],
+    [
+     "de straf",
+     "наказание"
+    ],
+    [
+     "de driftbui",
+     "истерика"
+    ],
+    [
+     "het gedrag",
+     "поведение"
+    ],
+    [
+     "het kinderfeestje",
+     "детский праздник"
+    ],
+    [
+     "de ballon",
+     "воздушный шар"
+    ],
+    [
+     "de slinger",
+     "гирлянда"
+    ],
+    [
+     "het cadeautje",
+     "подарочек"
+    ],
+    [
+     "de kaars",
+     "свеча"
+    ],
+    [
+     "zwaaien",
+     "махать"
+    ],
+    [
+     "kruipen",
+     "ползать"
+    ],
+    [
+     "groeien",
+     "расти"
+    ],
+    [
+     "delen",
+     "делиться"
+    ],
+    [
+     "pesten",
+     "дразнить, травить"
+    ],
+    [
+     "kleuren",
+     "раскрашивать"
+    ],
+    [
+     "voorlezen",
+     "читать вслух"
+    ],
+    [
      "de persoon",
      "человек / лицо"
     ],
@@ -4007,6 +5331,102 @@
     [
      "wegen",
      "взвешивать"
+    ],
+    [
+     "de drogisterij",
+     "магазин косметики и аптечных товаров"
+    ],
+    [
+     "de bakkerij",
+     "пекарня"
+    ],
+    [
+     "de slagerij",
+     "мясная лавка"
+    ],
+    [
+     "de groenteboer",
+     "овощная лавка"
+    ],
+    [
+     "de bloemenwinkel",
+     "цветочный магазин"
+    ],
+    [
+     "de boekhandel",
+     "книжный магазин"
+    ],
+    [
+     "de kledingwinkel",
+     "магазин одежды"
+    ],
+    [
+     "het tuincentrum",
+     "садовый центр"
+    ],
+    [
+     "de bouwmarkt",
+     "строительный магазин"
+    ],
+    [
+     "de zelfscankassa",
+     "касса самообслуживания"
+    ],
+    [
+     "de geldautomaat",
+     "банкомат"
+    ],
+    [
+     "het wisselgeld",
+     "сдача"
+    ],
+    [
+     "de levering",
+     "доставка"
+    ],
+    [
+     "het pakketpunt",
+     "пункт выдачи"
+    ],
+    [
+     "de beoordeling",
+     "отзыв, оценка"
+    ],
+    [
+     "de spaarkaart",
+     "накопительная карта"
+    ],
+    [
+     "het etiket",
+     "этикетка"
+    ],
+    [
+     "de houdbaarheidsdatum",
+     "срок годности"
+    ],
+    [
+     "vergelijken",
+     "сравнивать"
+    ],
+    [
+     "reserveren",
+     "резервировать"
+    ],
+    [
+     "retourneren",
+     "возвращать (заказ)"
+    ],
+    [
+     "scannen",
+     "сканировать"
+    ],
+    [
+     "pinnen",
+     "платить картой"
+    ],
+    [
+     "contant",
+     "наличными"
     ],
     [
      "de aardbei",
@@ -4246,6 +5666,110 @@
      "выпускаться, защищаться"
     ],
     [
+     "de inburgeringscursus",
+     "курс интеграции"
+    ],
+    [
+     "het taalniveau",
+     "языковой уровень"
+    ],
+    [
+     "de taaltoets",
+     "языковой тест"
+    ],
+    [
+     "het certificaat",
+     "сертификат"
+    ],
+    [
+     "de herkansing",
+     "пересдача"
+    ],
+    [
+     "de aanmelding",
+     "запись, регистрация"
+    ],
+    [
+     "het lesgeld",
+     "плата за обучение"
+    ],
+    [
+     "de werkgroep",
+     "семинар, рабочая группа"
+    ],
+    [
+     "het college",
+     "лекция"
+    ],
+    [
+     "de scriptie",
+     "дипломная работа"
+    ],
+    [
+     "de stageplaats",
+     "место стажировки"
+    ],
+    [
+     "de decaan",
+     "декан, консультант"
+    ],
+    [
+     "de taalcoach",
+     "языковой коуч"
+    ],
+    [
+     "het taalmaatje",
+     "языковой напарник"
+    ],
+    [
+     "het oefenexamen",
+     "пробный экзамен"
+    ],
+    [
+     "het resultaat",
+     "результат"
+    ],
+    [
+     "de verbetering",
+     "исправление, улучшение"
+    ],
+    [
+     "de vooruitgang",
+     "прогресс"
+    ],
+    [
+     "de toelating",
+     "допуск, зачисление"
+    ],
+    [
+     "verplicht",
+     "обязательный"
+    ],
+    [
+     "vrijwillig",
+     "добровольный"
+    ],
+    [
+     "aanwezig",
+     "присутствующий"
+    ],
+    [
+     "afwezig",
+     "отсутствующий"
+    ],
+    [
+     "aanmelden",
+     "записываться"
+    ],
+    [
+     "afmelden",
+     "отменять запись"
+    ],
+    [
+     "voorbereiden",
+     "готовить(ся)"
+    ],
+    [
      "onthouden",
      "запоминать"
     ]
@@ -4373,6 +5897,78 @@
     [
      "geschikt",
      "подходящий"
+    ],
+    [
+     "de banenmarkt",
+     "ярмарка вакансий"
+    ],
+    [
+     "de reiskostenvergoeding",
+     "компенсация проезда"
+    ],
+    [
+     "de deeltijdbaan",
+     "работа на неполный день"
+    ],
+    [
+     "de nachtdienst",
+     "ночная смена"
+    ],
+    [
+     "de dagdienst",
+     "дневная смена"
+    ],
+    [
+     "het talent",
+     "талант"
+    ],
+    [
+     "de zwakte",
+     "слабая сторона"
+    ],
+    [
+     "de eigenschap",
+     "качество, черта"
+    ],
+    [
+     "de indruk",
+     "впечатление"
+    ],
+    [
+     "de afwijzing",
+     "отказ"
+    ],
+    [
+     "het aanbod",
+     "предложение"
+    ],
+    [
+     "de onderhandeling",
+     "переговоры"
+    ],
+    [
+     "de proefdag",
+     "пробный день"
+    ],
+    [
+     "zelfstandig",
+     "самостоятельный"
+    ],
+    [
+     "betrouwbaar",
+     "надёжный"
+    ],
+    [
+     "punctueel",
+     "пунктуальный"
+    ],
+    [
+     "overtuigen",
+     "убеждать"
+    ],
+    [
+     "doorgroeien",
+     "расти по карьере"
     ],
     [
      "de rekening",
@@ -4534,6 +6130,114 @@
     [
      "professioneel",
      "профессиональный"
+    ],
+    [
+     "de werkweek",
+     "рабочая неделя"
+    ],
+    [
+     "het dienstrooster",
+     "график смен"
+    ],
+    [
+     "de ochtenddienst",
+     "утренняя смена"
+    ],
+    [
+     "de avonddienst",
+     "вечерняя смена"
+    ],
+    [
+     "de leidinggevende",
+     "руководитель"
+    ],
+    [
+     "de directie",
+     "дирекция"
+    ],
+    [
+     "de personeelszaken",
+     "отдел кадров"
+    ],
+    [
+     "het bedrijfsuitje",
+     "корпоратив"
+    ],
+    [
+     "de borrel",
+     "посиделки с напитками"
+    ],
+    [
+     "het functioneringsgesprek",
+     "оценочная беседа"
+    ],
+    [
+     "de loonsverhoging",
+     "прибавка к зарплате"
+    ],
+    [
+     "het ongeval",
+     "несчастный случай"
+    ],
+    [
+     "de werkdruk",
+     "рабочая нагрузка"
+    ],
+    [
+     "de offerte",
+     "смета, коммерческое предложение"
+    ],
+    [
+     "de factuur",
+     "счёт-фактура"
+    ],
+    [
+     "de betaling",
+     "оплата"
+    ],
+    [
+     "de administratie",
+     "документация, учёт"
+    ],
+    [
+     "het archief",
+     "архив"
+    ],
+    [
+     "het besluit",
+     "решение"
+    ],
+    [
+     "het voorstel",
+     "предложение, идея"
+    ],
+    [
+     "de terugkoppeling",
+     "обратная связь"
+    ],
+    [
+     "het succes",
+     "успех"
+    ],
+    [
+     "mislukken",
+     "провалиться, не удаться"
+    ],
+    [
+     "lukken",
+     "удаваться"
+    ],
+    [
+     "uitstellen",
+     "откладывать"
+    ],
+    [
+     "overleggen",
+     "советоваться"
+    ],
+    [
+     "notuleren",
+     "вести протокол"
     ],
     [
      "de werkgever",
@@ -4783,6 +6487,106 @@
     [
      "inleveren",
      "сдавать (документы)"
+    ],
+    [
+     "de asielzoeker",
+     "проситель убежища"
+    ],
+    [
+     "de vluchteling",
+     "беженец"
+    ],
+    [
+     "de bijstand",
+     "социальное пособие"
+    ],
+    [
+     "de voedselbank",
+     "продуктовый банк"
+    ],
+    [
+     "de wijkagent",
+     "участковый"
+    ],
+    [
+     "het wijkcentrum",
+     "районный центр"
+    ],
+    [
+     "de vrijwilliger",
+     "волонтёр"
+    ],
+    [
+     "de taalles",
+     "урок языка"
+    ],
+    [
+     "de verklaring",
+     "справка, заявление"
+    ],
+    [
+     "het bewijs",
+     "доказательство, подтверждение"
+    ],
+    [
+     "de geboorteakte",
+     "свидетельство о рождении"
+    ],
+    [
+     "de trouwakte",
+     "свидетельство о браке"
+    ],
+    [
+     "de apostille",
+     "апостиль"
+    ],
+    [
+     "de vertaling",
+     "перевод (документа)"
+    ],
+    [
+     "de ceremonie",
+     "церемония"
+    ],
+    [
+     "de stempas",
+     "приглашение на выборы"
+    ],
+    [
+     "het stembureau",
+     "избирательный участок"
+    ],
+    [
+     "de bekeuring",
+     "штраф-квитанция"
+    ],
+    [
+     "het bezwaarschrift",
+     "письменное возражение"
+    ],
+    [
+     "de verlenging",
+     "продление"
+    ],
+    [
+     "de boete",
+     "штраф"
+    ],
+    [
+     "stemmen",
+     "голосовать"
+    ],
+    [
+     "legaal",
+     "легальный"
+    ],
+    [
+     "illegaal",
+     "нелегальный"
+    ],
+    [
+     "officieel",
+     "официальный"
     ],
     [
      "de handtekening",
