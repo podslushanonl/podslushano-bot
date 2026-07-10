@@ -173,6 +173,22 @@ def similar_distr(pool,correct,n=3):
             if len(out)>=n:return out
     return out[:n]
 
+def anagram_ok(lm):
+    return 4<=len(lm)<=8 and lm.isalpha()
+
+def qa_distr(cor,salt):
+    """Дистракторы для «Твой ответ»: конкретные ответы из ДРУГИХ доменов,
+    без Ja/Nee-начала (иначе «все варианты подходят»)."""
+    cand=[x['a_nl'] for x in QA if x['a_nl']!=cor
+          and not x['a_nl'].startswith(('Ja','Nee'))
+          and x['a_nl'].split(' ')[0]!=cor.split(' ')[0]]
+    out=[]
+    for k2 in range(len(cand)):
+        v=cand[(salt+k2)%len(cand)]
+        if v not in out:out.append(v)
+        if len(out)>=3:break
+    return out
+
 def words_html(name,ws):
     rows=''.join('<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--brd)"><b>'+d+'</b><span style="color:var(--ink-2)">'+ru+'</span></div>' for d,ru,ty in ws)
     return '<p>Новые слова темы «'+name+'». Сначала познакомься со ВСЕМИ словами — прослушай каждое (▶ ниже), потом закрепим заданиями.</p><div style="margin-top:8px">'+rows+'</div>'
@@ -194,6 +210,33 @@ for ti in range(2,len(BANK)):
         for j,(d,ru,ty) in enumerate(p1w[:2]):
             st.append({'t':'quiz','k':'Выбор','q':'Как будет «'+ru+'»?','opts':[d]+pick_distractors(pool,d,0,3,salt=j+ci)})
         st.append({'t':'match','k':'Пары','pairs':[[d,ru] for d,ru,ty in p1w]})
+        # что означает эмодзи? (картинка → слово)
+        emq=0
+        for d,ru,ty in p1w:
+            em=EMOJI_NL.get(bare(d))
+            if em and emq<2:
+                st.append({'t':'quiz','k':'Картинка','q':'Что означает '+em+'?','opts':[d]+pick_distractors(pool,d,0,3,salt=n+emq*3)})
+                emq+=1
+        if len(p1w)>2:
+            d2,ru2,ty2=p1w[2]
+            st.append({'t':'quiz','k':'Значение','q':'«'+d2+'» — это…','opts':[ru2]+pick_distractors(pool,ru2,1,3,salt=n+13)})
+        # слух: слово с похожими вариантами
+        d0,ru0,ty0=p1w[0]
+        st.append({'t':'listen','k':'Аудирование','audio':d0,'q':'Что прозвучало?','opts':[d0]+similar_distr(pool,d0)})
+        if len(p1w)>1:
+            d1b,ru1b,ty1b=p1w[1]
+            st.append({'t':'listen','k':'Аудирование','audio':d1b,'q':'А теперь? Варианты похожи.','opts':[d1b]+similar_distr(pool,d1b)})
+        # перевод-набор (пиши сам)
+        st.append({'t':'translate','k':'Перевод','q':'«'+p1w[-1][1]+'»','answer':[p1w[-1][0]],'ph':'…'})
+        # анаграмма: собери слово из букв
+        for d,ru,ty in p1w:
+            lm=bare(d)
+            if anagram_ok(lm):
+                st.append({'t':'build','k':'Пазл: собери слово','tr':ru+' ('+str(len(lm))+' букв)','words':list(lm),'ans':list(lm)})
+                break
+        # верно/неверно
+        wr1=pick_distractors(pool,p1w[0][1],1,1,salt=n+5)[0]
+        st.append({'t':'tf','k':'Верно?','q':'«'+p1w[0][0]+'» значит «'+wr1+'».','answer':False,'note':'Нет: '+p1w[0][0]+' — '+p1w[0][1]+'.'})
         # лишнее слово (как в книге: welk woord past niet in het rijtje?)
         oti=(ti*3+ci+2)%10
         if oti==ti:oti=(oti+1)%10
@@ -214,6 +257,26 @@ for ti in range(2,len(BANK)):
             st.append({'t':'listen','k':'Аудирование','audio':d1,'q':'А теперь? Варианты снова похожи.','opts':[d1]+similar_distr(pool,d1)})
         wrong=pick_distractors(pool,p2w[0][1],1,1,salt=ci+9)[0]
         st.append({'t':'tf','k':'Верно?','q':'«'+p2w[0][0]+'» значит «'+wrong+'».','answer':False,'note':'Нет: '+p2w[0][0]+' — '+p2w[0][1]+'.'})
+        if len(p2w)>=3:
+            st.append({'t':'match','k':'Пары','pairs':[[d,ru] for d,ru,ty in p2w]})
+        emq2=0
+        for d,ru,ty in p2w:
+            em=EMOJI_NL.get(bare(d))
+            if em and emq2<1:
+                st.append({'t':'quiz','k':'Картинка','q':'Что означает '+em+'?','opts':[d]+pick_distractors(pool,d,0,3,salt=n+11)})
+                emq2+=1
+        own2=[d for d,ru,ty in p2w[:3]]
+        if len(own2)>=3:
+            oti2=(ti*5+ci+3)%10
+            if oti2==ti:oti2=(oti2+1)%10
+            ow2=BANK[oti2][1][(n*11)%len(BANK[oti2][1])]
+            st.append({'t':'quiz','k':'Лишнее слово','q':'Какое слово НЕ подходит к теме «'+name+'»?','opts':[ow2[0]]+own2})
+        for d,ru,ty in p2w:
+            lm=bare(d)
+            if anagram_ok(lm):
+                st.append({'t':'build','k':'Пазл: собери слово','tr':ru+' ('+str(len(lm))+' букв)','words':list(lm),'ans':list(lm)})
+                break
+        st.append({'t':'translate','k':'Перевод','q':'«'+p2w[0][1]+'»','answer':[p2w[0][0]],'ph':'…'})
         parts.append({'t':'Новые слова 2','steps':st})
         # ---------- ЧАСТЬ 3: Формы и фразы (мой/этот/мн.число) ----------
         st=[{'t':'explain','k':'Шаг 3 из 5','b':'📖 Формы слова','html':'<p>Слово живёт в формах: <b>mijn/jouw</b> (мой/твой), <b>deze/die</b> (этот/тот) и множественное число. Потренируем на словах урока.</p><div class="rule">mijn huis — мой дом · deze man — этот мужчина · de man → de mannen</div>'}]
@@ -244,7 +307,37 @@ for ti in range(2,len(BANK)):
                 if len(distr)>=2:
                     st.append({'t':'quiz','k':'Мн. число','q':'Множественное число от «'+d+'» ('+ru+') — ?','opts':[pl['nl']]+distr[:3]})
                     used_pl+=1
-        for d,ru,ty in p1w[:2]:
+        # второй квиз «этот/тот» (deze/die)
+        dm2=0
+        for d,ru,ty in chunk[::-1]:
+            lm=bare(d);dv=DEMV.get(lm)
+            if dv and len(dv)>=2 and dm2<1:
+                v=dv[(ci+1)%len(dv)]
+                distr=[x['nl'] for x in dv if x['nl']!=v['nl']][:2]
+                if POSSV.get(lm):distr+=[x['nl'] for x in POSSV[lm] if x['nl'] not in distr][:3-len(distr)]
+                if len(distr)>=2:
+                    st.append({'t':'quiz','k':'Этот, тот…','q':'Как сказать «'+v['ru']+'»?','opts':[v['nl']]+distr[:3]})
+                    dm2+=1
+        arts=0
+        for d,ru,ty in chunk:
+            if d.startswith(('de ','het ')) and arts<2:
+                art=d.split(' ')[0];lmx=bare(d)
+                st.append({'t':'quiz','k':'de или het?','q':'Какой артикль: ___ '+lmx+' ('+ru+')?','opts':[art,'het' if art=='de' else 'de']})
+                arts+=1
+        for d,ru,ty in chunk:
+            pl=PLUV.get(bare(d))
+            if pl:
+                if (ci+n)%2==0:
+                    st.append({'t':'tf','k':'Верно?','q':'Множественное число от «'+d+'» — «'+pl['nl']+'».','answer':True,'note':'Да: '+pl['nl']+'.'})
+                else:
+                    wrongpl=None;ii=n+3;pool_lms2=[bare(x[0]) for x in pool]
+                    for _ in range(len(pool_lms2)):
+                        cand=PLUV.get(pool_lms2[ii%len(pool_lms2)]);ii+=1
+                        if cand and cand['nl']!=pl['nl']:wrongpl=cand['nl'];break
+                    if wrongpl:
+                        st.append({'t':'tf','k':'Верно?','q':'Множественное число от «'+d+'» — «'+wrongpl+'».','answer':False,'note':'Нет: '+pl['nl']+'.'})
+                break
+        for d,ru,ty in p1w[:2]+p2w[2:4]:
             st.append({'t':'translate','k':'Перевод','q':'«'+ru+'»','answer':[d],'ph':'…'})
         if len(st)>=5: parts.append({'t':'Формы и фразы','steps':st})
         else: parts[-1]['steps'].extend(st[1:])
@@ -253,7 +346,7 @@ for ti in range(2,len(BANK)):
         addedS=0;usedNl=set()
         for d,ru,ty in chunk:
             v=vet_pick(bare(d),ci+addedS*2+1)
-            if v and addedS<2 and v['nl'] not in usedNl:
+            if v and addedS<4 and v['nl'] not in usedNl:
                 import re as _re
                 toks=_re.sub(r'[.?!]$','',v['nl']).split(' ')
                 st.append({'t':'build','k':'Предложение','tr':v['ru'],'words':toks,'ans':toks})
@@ -262,7 +355,7 @@ for ti in range(2,len(BANK)):
         sl=0
         for d,ru,ty in chunk:
             v=vet_pick(bare(d),ci+7)
-            if v and sl<1 and len(ALL_NL)>=4 and v['nl'] not in usedNl:
+            if v and sl<2 and len(ALL_NL)>=4 and v['nl'] not in usedNl:
                 others=[x for x in ALL_NL if x!=v['nl']]
                 sd=[];ii=ci*7+3
                 for _ in range(len(others)):
@@ -271,10 +364,25 @@ for ti in range(2,len(BANK)):
                     if len(sd)>=3:break
                 st.append({'t':'listen','k':'Аудирование','audio':v['nl'],'q':'Какое предложение прозвучало?','opts':[v['nl']]+sd})
                 usedNl.add(v['nl']);sl+=1
+        gp=0
         for d,ru,ty in chunk:
-            lm=bare(d);v=vet_pick(lm,ci+11)
-            if v and lm in v['nl'] and v['nl'] not in usedNl:
+            lm=bare(d);v=vet_pick(lm,ci+11+gp)
+            if v and gp<2 and lm in v['nl'] and v['nl'] not in usedNl:
                 st.append({'t':'gapType','k':'На слух','audio':v['nl'],'q':v['nl'].replace(lm,'___',1),'answer':[lm],'ph':'…'})
+                usedNl.add(v['nl']);gp+=1
+        # сколько слов в предложении? (на слух, как в книге)
+        for d,ru,ty in chunk:
+            v=vet_pick(bare(d),ci+17)
+            if v and v['nl'] not in usedNl:
+                nw=len(v['nl'].split())
+                if nw>=4:
+                    st.append({'t':'quiz','k':'Сколько слов?','audio':v['nl'],'q':'Прослушай предложение. Сколько в нём слов?','opts':[str(nw),str(nw-1),str(nw+1),str(nw+2)]})
+                    usedNl.add(v['nl']);break
+        # диктант: запиши предложение целиком (как в книге «Wat hoor je?»)
+        for d,ru,ty in chunk:
+            v=vet_pick(bare(d),ci+19)
+            if v and v['nl'] not in usedNl and 3<=len(v['nl'].split())<=5:
+                st.append({'t':'dict','k':'Диктант','audio':v['nl'],'answer':[v['nl']],'tr':v['ru']})
                 usedNl.add(v['nl']);break
         # Vul in из списка — одно слово лишнее (как в книге)
         cb=[];cb_l=set()
@@ -294,6 +402,24 @@ for ti in range(2,len(BANK)):
                 if lmx not in cb_l:extra=lmx;break
             if extra:
                 st.append({'t':'clozeBank','k':'Vul in','sents':cb,'bank':[c[1] for c in cb]+[extra]})
+        # второй Vul in — ещё 3 предложения
+        cb2=[]
+        for d,ru,ty in list(chunk)+[w for w in ws if w not in chunk]:
+            if len(cb2)>=3:break
+            lm=bare(d)
+            if lm in cb_l:continue
+            v=vet_pick(lm,ci*7+9)
+            if not v or v['nl'] in usedNl:continue
+            q2=re.sub(r'\b'+re.escape(lm)+r'\b','___',v['nl'],count=1)
+            if q2==v['nl']:continue
+            cb2.append([q2,lm,v['ru']]);cb_l.add(lm);usedNl.add(v['nl'])
+        if len(cb2)==3:
+            extra2=None
+            for k2 in range(len(pool)):
+                lmx=bare(pool[(n*3+k2)%len(pool)][0])
+                if lmx not in cb_l:extra2=lmx;break
+            if extra2:
+                st.append({'t':'clozeBank','k':'Vul in · раунд 2','sents':cb2,'bank':[c[1] for c in cb2]+[extra2]})
         if len(st)>=4: parts.append({'t':'Предложения и слух','steps':st})
         else: parts[-1]['steps'].extend(st[1:])
         # ---------- ЧАСТЬ 5: Говорим и закрепляем ----------
@@ -308,18 +434,34 @@ for ti in range(2,len(BANK)):
                 if q!=v['nl']:
                     st.append({'t':'gapType','k':'Впиши по памяти','q':q,'answer':[lm],'ph':lm[0]+'…','hint':'Первая буква: «'+lm[0]+'» · '+v['ru']})
                     usedNl.add(v['nl']);break
+        # слух-повторение слова из части 1
+        dL,ruL,tyL=p1w[min(2,len(p1w)-1)]
+        st.append({'t':'listen','k':'Повторение на слух','audio':dL,'q':'Что прозвучало?','opts':[dL]+similar_distr(pool,dL)})
         spoken=0
         for d,ru,ty in (p2w+p1w):
-            if d.startswith(('de ','het ','een ')) and spoken<2:
+            if d.startswith(('de ','het ','een ')) and spoken<3:
                 st.append({'t':'speak','k':'Говорение','phrase':'Dit is '+d+'.','tr':'Это '+ru+'.'})
                 spoken+=1
         qa_pool=[q for q in QA if q['theme']==ti] or QA
         if qa_pool:
             q=qa_pool[(ci+n)%len(qa_pool)]
-            others=[x['a_nl'] for x in QA if x['a_nl']!=q['a_nl']][(n*3)%(len(QA)-4):][:3]
             st.append({'t':'listen','k':'Вопрос на слух','audio':q['q_nl'],'q':'Тебя спросили: … Что прозвучало?','opts':[q['q_nl']]+[x['q_nl'] for x in QA if x['q_nl']!=q['q_nl']][(n*5)%(len(QA)-4):][:3]})
-            st.append({'t':'quiz','k':'Твой ответ','q':'«'+q['q_nl']+'» — что ответишь?','opts':[q['a_nl']]+others})
+            st.append({'t':'quiz','k':'Твой ответ','q':'Тебя спрашивают: «'+q['q_nl']+'» ('+q['q_ru']+'). Что ответишь?','opts':[q['a_nl']]+qa_distr(q['a_nl'],n*3)})
             st.append({'t':'speak','k':'Говорение','phrase':q['a_nl'],'tr':q['a_ru']})
+            q2=qa_pool[(ci+n+3)%len(qa_pool)]
+            if q2['q_nl']!=q['q_nl']:
+                st.append({'t':'quiz','k':'Твой ответ','q':'«'+q2['q_nl']+'» ('+q2['q_ru']+'). Что ответишь?','opts':[q2['a_nl']]+qa_distr(q2['a_nl'],n*5+7)})
+        # диктант в финал
+        for d,ru,ty in p1w:
+            v=vet_pick(bare(d),ci+23)
+            if v and v['nl'] not in usedNl and 3<=len(v['nl'].split())<=6:
+                st.append({'t':'dict','k':'Диктант','audio':v['nl'],'answer':[v['nl']],'tr':v['ru']})
+                usedNl.add(v['nl']);break
+        for d,ru,ty in p1w[::-1]:
+            lm=bare(d)
+            if anagram_ok(lm):
+                st.append({'t':'build','k':'Пазл: собери слово','tr':ru+' ('+str(len(lm))+' букв)','words':list(lm),'ans':list(lm)})
+                break
         mix=[ [d,ru] for d,ru,ty in (p1w[2:4]+p2w[2:4]) ]
         if len(mix)>=3: st.append({'t':'match','k':'Пары · всё вместе','pairs':mix[:4]})
         parts.append({'t':'Говорим и закрепляем','steps':st})

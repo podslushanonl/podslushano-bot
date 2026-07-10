@@ -68,6 +68,8 @@ def build_dlg():
     except FileNotFoundError: pass
     try: parts=parts+J('documents_a2.json')['parts']
     except FileNotFoundError: pass
+    try: parts=parts+J('phonetics_puzzles.json')['parts']
+    except FileNotFoundError: pass
     return (H_DLG+"\n"
      +js(parts)
      +".forEach(function(d){if(DATA[d.lesson])DATA[d.lesson].parts.push({t:d.title,steps:d.steps});});\n")
