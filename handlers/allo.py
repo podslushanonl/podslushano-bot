@@ -7,13 +7,15 @@
 from __future__ import annotations
 
 import logging
+import os
 from datetime import datetime, timedelta
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from aiogram.types import (CallbackQuery, FSInputFile, InlineKeyboardButton,
+                           InlineKeyboardMarkup, InputMediaPhoto, Message)
 from sqlalchemy import and_, func, or_, select
 
 import config
@@ -38,6 +40,25 @@ def _p(price: str) -> str:
         return str(int(f)) if f == int(f) else f"{f:.2f}"
     except (TypeError, ValueError):
         return str(price)
+
+
+_ASSETS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "allo")
+# Порядок: групповое фото (доверие) → природа → маршрут.
+_INTRO_PHOTOS = ("group.jpg", "cows.jpg", "path.jpg")
+
+
+async def _send_intro_photos(message: Message) -> None:
+    """Альбом с фото прошлой прогулки — для первого впечатления. Молча пропускаем,
+    если файлов нет или Telegram не принял."""
+    media = [InputMediaPhoto(media=FSInputFile(p))
+             for name in _INTRO_PHOTOS
+             if os.path.exists(p := os.path.join(_ASSETS_DIR, name))]
+    if not media:
+        return
+    try:
+        await message.answer_media_group(media)
+    except Exception as e:  # noqa: BLE001
+        log.warning("Не удалось отправить фото Allo: %s", e)
 
 
 ALLO_INTRO = (
@@ -308,7 +329,8 @@ def _short_date(w: dict) -> str:
     return w["date"].split(" · ")[0]
 
 
-async def show_allo(message: Message, state: FSMContext) -> None:
+async def show_allo(message: Message, state: FSMContext,
+                    with_photos: bool = False) -> None:
     await state.clear()
     if not config.payments_enabled():
         await message.answer("Запись временно недоступна 🙏 Напиши нам через /contact.",
@@ -360,6 +382,8 @@ async def show_allo(message: Message, state: FSMContext) -> None:
         InlineKeyboardButton(text="📜 Правила", callback_data="allo:terms"),
         InlineKeyboardButton(text=f"🎁 Привести друга +€{config.ALLO_REFERRAL_BONUS}",
                              callback_data="allo:invite")])
+    if with_photos:
+        await _send_intro_photos(message)
     await message.answer(
         ALLO_INTRO.format(cap=config.ALLO_WALK_CAPACITY,
                           single=_p(config.ALLO_PRICE_SINGLE)),
@@ -369,7 +393,7 @@ async def show_allo(message: Message, state: FSMContext) -> None:
 
 @router.message(Command("allo"))
 async def cmd_allo(message: Message, state: FSMContext) -> None:
-    await show_allo(message, state)
+    await show_allo(message, state, with_photos=True)
 
 
 @router.callback_query(F.data == "allo:menu")

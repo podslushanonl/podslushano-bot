@@ -146,7 +146,7 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
     # Пришёл по кнопке «Подробнее» из анонса Allo Walks (?start=allo)
     if command.args == "allo":
         from handlers.allo import show_allo
-        await show_allo(message, state)
+        await show_allo(message, state, with_photos=True)
         return
     # Пришёл по реф-ссылке участника Allo Walks (?start=alloref_<uid>)
     if command.args and command.args.startswith("alloref_"):
@@ -157,7 +157,7 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
             ref_uid = 0
         if ref_uid:
             await register_referral(ref_uid, message.from_user.id)
-        await show_allo(message, state)
+        await show_allo(message, state, with_photos=True)
         return
     # Пришёл по личной ссылке оплаты карточки из старого гайда (?start=claim_<id>)
     if command.args and command.args.startswith("claim_"):
