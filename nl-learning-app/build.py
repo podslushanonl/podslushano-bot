@@ -143,6 +143,8 @@ def build_dlg():
     except FileNotFoundError: pass
     try: parts=parts+J('grammar_a2.json')['parts']
     except FileNotFoundError: pass
+    try: parts=parts+J('grammar_b1.json')['parts']
+    except FileNotFoundError: pass
     try: parts=parts+J('handige_zinnen.json')['parts']
     except FileNotFoundError: pass
     try: parts=parts+J('documents_a2.json')['parts']

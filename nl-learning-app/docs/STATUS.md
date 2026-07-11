@@ -1,8 +1,25 @@
 # STATUS — текущее состояние проекта
 
-> Обновлять в конце каждой сессии. Дата последнего апдейта: 2026-07-09.
+> Обновлять в конце каждой сессии. Дата последнего апдейта: 2026-07-11.
 
 
+
+## 🆕 Уровень B1 создан с нуля (2026-07-11)
+- **3 темы B1** после A2 (THEMES[18..20], lv:'B1'): 🌍 Общество и среда, 📈 Карьера,
+  🧾 Здоровье и инстанции. По 12 автоуроков каждая (254–289).
+- **+300 слов B1** через `data/extra_words.json` → new_themes (tools/add_b1.py). Абстрактная
+  и официальная лексика: samenleving/overheid/verkiezing/milieu/klimaat/duurzaam (общество),
+  sollicitatie/functioneringsgesprek/ontslag/UWV/zzp'er/omzet (карьера), zorgverzekering/
+  eigen risico/DigiD/beschikking/bezwaar/verblijfsvergunning (инстанции). Словарь: 3618 слов.
+- **6 грамматик B1** (`data/grammar_b1.json`, tools/gen_grammar_b1.py) — спец-узлы 📐 на карте:
+  пассив (worden+deelwoord), «er» (4 роли), die/dat (relatief), hoewel/terwijl, будущее
+  zullen/gaan, te+инфинитив. build.py подключает grammar_b1.json в build_dlg().
+- **Гейтинг**: `b1Passed()` = exams.A2≥80 || b1open. Выпускной экзамен A2 (finalIntroA2/
+  startFinalA2/examPoolA2, 24 вопроса, зачёт 80%) → открывает B1. Кнопка «🔓 Открыть B1 без
+  экзамена» (data-b1skip) и тест уровня «Продвинутый» (userLevel==='B1') тоже открывают.
+  Персист: progress.b1open в save/load.
+- Проверено Playwright: 3 темы B1 видны после A2, автоуроки и грамм-узлы проходятся без
+  ошибок, экзамен A2 (пул 3788) открывает B1, до сдачи — заперто.
 
 ## 🆕 KNM-курс — отдельный путь (2026-07-10)
 - **45 фото учебника KNM владельца** прочитаны 5 параллельными субагентами → конспекты фактов
