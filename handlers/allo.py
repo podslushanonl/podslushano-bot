@@ -41,23 +41,47 @@ def _p(price: str) -> str:
 
 
 ALLO_INTRO = (
-    "🚶 <b>Allo Walks</b> — прогулки для своих от Podslushano.nl 🇳🇱\n\n"
-    "Неспешные прогулки по красивым местам Нидерландов в небольшой компании "
-    "(до {cap} человек). Приезжаешь на поезде, встречаемся у станции — и уже через "
-    "10–15 минут идём среди зелени, знакомимся и общаемся. В конце — кофе для тех, "
-    "кто хочет остаться подольше.\n\n"
-    "🌿 <b>Первая прогулка уже прошла</b> — и участникам очень понравилось:\n"
-    "<i>«Сегодняшняя встреча была как глоток свежего воздуха. Всё легко и "
-    "ненапряжно» — Карина</i>\n"
-    "<i>«Мне очень понравилось, надеюсь увидимся на следующих прогулках!» — "
-    "Юлия</i>\n"
-    "<i>«Спасибо за прекрасный день! Было здорово 🫶» — Sheryl</i>\n\n"
-    "<b>Как это работает:</b>\n"
-    "1️⃣ Выбираешь прогулку ниже.\n"
-    "2️⃣ Оплачиваешь через iDEAL.\n"
-    "3️⃣ Получаешь подтверждение — и приходишь в назначенный день.\n\n"
+    "🚶 <b>Allo Walks</b> — прогулки для своих 🇳🇱\n\n"
+    "Собираемся небольшой компанией (до {cap} человек) и идём спокойным темпом "
+    "по красивым местам Нидерландов. Знакомимся, общаемся, а в конце пьём кофе. "
+    "Это не экскурсия с гидом — это тёплая прогулка со своими.\n\n"
     "💶 <b>€{single}</b> за прогулку.\n\n"
-    "Выбирай 👇"
+    "Выбери дату ниже 👇 А если хочешь понять формат до записи — загляни "
+    "в «Как это работает» и «Отзывы»."
+)
+
+ALLO_ABOUT = (
+    "ℹ️ <b>Как проходит прогулка Allo Walks</b>\n\n"
+    "📍 <b>Встреча.</b> Собираемся у станции — точное место и время указаны в "
+    "карточке каждой прогулки. Приезжаешь на поезде, через 10–15 минут уже идём.\n\n"
+    "🚶 <b>Маршрут.</b> Продуманный маршрут в спокойном темпе. Подстраиваемся под "
+    "группу: где-то притормозим, где-то свернём к красивому виду. По пути "
+    "останавливаемся, знакомимся, разговариваем.\n\n"
+    "👥 <b>Компания.</b> Группа маленькая — до {cap} человек. Так по-домашнему и все "
+    "успевают пообщаться, а не теряются в толпе.\n\n"
+    "☕️ <b>Финал.</b> В конце — кофе для тех, кто хочет остаться подольше и "
+    "продолжить общение.\n\n"
+    "💶 <b>За что платишь.</b> €{single} — это продуманный и проверенный маршрут, "
+    "организация встречи, сопровождение и забота о группе на всём пути, и — главное — "
+    "тёплая компания своих, с которой не хочется расходиться. Ты приходишь на "
+    "готовое: не нужно ничего планировать, просто приезжай и наслаждайся.\n\n"
+    "🎒 <b>Что взять:</b> удобную обувь, воду и одежду по погоде.\n\n"
+    "Как оплатить: выбираешь дату → принимаешь правила → оплата через iDEAL → "
+    "получаешь подтверждение и ссылку на чат участников."
+)
+
+ALLO_REVIEWS = (
+    "💬 <b>Отзывы участников первой прогулки</b>\n\n"
+    "<b>Карина:</b>\n<i>«Не утомились 😌 За разговорами расстояние не показалось "
+    "таким внушительным — думаю, мы готовы к таким подвигам и дальше :) Хочется "
+    "сказать слова благодарности: за организованную встречу, чёткие инструкции где "
+    "и когда, за то, что по ходу меняли маршрут под аппетиты группы — и при этом "
+    "всё было легко и ненапряжно. Сегодняшняя встреча с вами была как глоток "
+    "свежего воздуха для меня».</i>\n\n"
+    "<b>Юлия:</b>\n<i>«Спасибо Алексу и другим участникам! Мне очень понравилось, "
+    "надеюсь, увидимся на следующих прогулках!»</i>\n\n"
+    "<b>Sheryl:</b>\n<i>«Спасибо за прекрасный день!! Было здорово!! До новых "
+    "встреч 🫶»</i>"
 )
 
 ALLO_TERMS = (
@@ -322,15 +346,16 @@ async def show_allo(message: Message, state: FSMContext) -> None:
         else:
             rows.append([InlineKeyboardButton(text=f"🚫 {_short_date(w)} · {w['title']} — мест нет",
                                               callback_data="allo:full")])
-    rows.append([InlineKeyboardButton(
-        text=f"🎁 Привести друга (+€{config.ALLO_REFERRAL_BONUS} тебе)",
-        callback_data="allo:invite")])
-    rows.append([InlineKeyboardButton(text="📜 Правила Allo Walks", callback_data="allo:terms")])
+    rows.append([
+        InlineKeyboardButton(text="ℹ️ Как это работает", callback_data="allo:about"),
+        InlineKeyboardButton(text="💬 Отзывы", callback_data="allo:reviews")])
+    rows.append([
+        InlineKeyboardButton(text="📜 Правила", callback_data="allo:terms"),
+        InlineKeyboardButton(text=f"🎁 Привести друга +€{config.ALLO_REFERRAL_BONUS}",
+                             callback_data="allo:invite")])
     await message.answer(
         ALLO_INTRO.format(cap=config.ALLO_WALK_CAPACITY,
-                          single=_p(config.ALLO_PRICE_SINGLE),
-                          pass_=_p(config.ALLO_PRICE_PASS),
-                          credits=config.ALLO_PASS_CREDITS),
+                          single=_p(config.ALLO_PRICE_SINGLE)),
         reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
         disable_web_page_preview=True)
 
@@ -357,9 +382,31 @@ async def allo_booked(callback: CallbackQuery) -> None:
     await callback.answer("Ты уже записан на эту прогулку ✅", show_alert=True)
 
 
+def _back_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="⬅️ К прогулкам", callback_data="allo:menu")]])
+
+
+@router.callback_query(F.data == "allo:about")
+async def allo_about(callback: CallbackQuery) -> None:
+    await callback.message.answer(
+        ALLO_ABOUT.format(cap=config.ALLO_WALK_CAPACITY,
+                          single=_p(config.ALLO_PRICE_SINGLE)),
+        reply_markup=_back_kb(), disable_web_page_preview=True)
+    await callback.answer()
+
+
+@router.callback_query(F.data == "allo:reviews")
+async def allo_reviews(callback: CallbackQuery) -> None:
+    await callback.message.answer(ALLO_REVIEWS, reply_markup=_back_kb(),
+                                  disable_web_page_preview=True)
+    await callback.answer()
+
+
 @router.callback_query(F.data == "allo:terms")
 async def allo_terms(callback: CallbackQuery) -> None:
-    await callback.message.answer(_terms_text(), disable_web_page_preview=True)
+    await callback.message.answer(_terms_text(), reply_markup=_back_kb(),
+                                  disable_web_page_preview=True)
     await callback.answer()
 
 
