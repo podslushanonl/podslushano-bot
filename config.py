@@ -142,24 +142,13 @@ except ValueError:
 ALLO_REFERRAL_BONUS: int = 10
 ALLO_MIN_CHARGE: float = 5.0
 try:
-    ALLO_WALK_CAPACITY: int = int(os.getenv("ALLO_WALK_CAPACITY", "5"))
+    ALLO_WALK_CAPACITY: int = int(os.getenv("ALLO_WALK_CAPACITY", "7"))
 except ValueError:
-    ALLO_WALK_CAPACITY = 5
+    ALLO_WALK_CAPACITY = 7
 # Закрытый чат участников — ссылку шлём каждому после оплаты.
 ALLO_CHAT_URL: str = os.getenv("ALLO_CHAT_URL", "https://t.me/+peVFBZ4hOdY1ZDg6")
 # Расписание прогулок. key — устойчивый идентификатор (дата), по нему считаем места.
 ALLO_WALKS: list[dict] = [
-    {
-        "key": "2026-07-11",
-        "date": "11 июля · суббота",
-        "title": "Zuid-Kennemerland",
-        "meet": "station Overveen · 10:00",
-        "finish": "Bezoekerscentrum De Kennemerduinen",
-        "dur": "≈3 часа + кофе",
-        "desc": ("Маршрут «Rondje Konijnenberg» (зелёный, 3,5 км): дюны, озеро ’t Wed, "
-                 "обзорная точка Konijnenberg, сосны. Спокойный темп, кофе после. "
-                 "⚠️ Без колясок и без животных."),
-    },
     {
         "key": "2026-07-25",
         "date": "25 июля · суббота",
