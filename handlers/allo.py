@@ -48,7 +48,7 @@ ALLO_INTRO = (
     "кто хочет остаться подольше.\n\n"
     "<b>Как это работает:</b>\n"
     "1️⃣ Выбираешь прогулку ниже.\n"
-    "2️⃣ Оплачиваешь картой или iDEAL.\n"
+    "2️⃣ Оплачиваешь через iDEAL.\n"
     "3️⃣ Получаешь подтверждение — и приходишь в назначенный день.\n\n"
     "💶 <b>€{single}</b> за прогулку. Или <b>абонемент</b>: {credits} прогулки за "
     "<b>€{pass_}</b> — на любые наши прогулки в течение 2 месяцев (новые маршруты "
@@ -568,7 +568,7 @@ async def allo_email(message: Message, state: FSMContext) -> None:
         f"Allo Walks: {_walk_title(key)}",
         {"kind": "allo", "walk": key, "plan": plan,
          "booking_id": bid, "user_id": message.from_user.id, "email": email},
-        pay_amount)
+        pay_amount, method="ideal")
     if not payment or not payment.get("checkout_url"):
         # Оплата не создалась — вернём зарезервированные бонусы
         async with get_session() as session:
@@ -585,9 +585,10 @@ async def allo_email(message: Message, state: FSMContext) -> None:
     disc = f"\n🎁 Скидка за друзей: −€{discount}." if discount else ""
     await message.answer(
         f"К оплате: <b>€{_p(pay_amount)}</b> — {_walk_title(key)}.{disc}\n"
-        "После оплаты пришлём подтверждение сюда и чек на e-mail. 👇",
+        "Оплата через <b>iDEAL</b>. После оплаты пришлём подтверждение сюда и чек "
+        "на e-mail. 👇",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
-            InlineKeyboardButton(text=f"💳 Оплатить €{_p(pay_amount)}",
+            InlineKeyboardButton(text=f"Оплатить €{_p(pay_amount)} через iDEAL",
                                  url=payment["checkout_url"])]]))
 
 

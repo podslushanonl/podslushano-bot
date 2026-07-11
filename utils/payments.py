@@ -23,10 +23,13 @@ def _headers() -> dict:
     }
 
 
-async def create_payment(description: str, metadata: dict, amount: str) -> dict | None:
+async def create_payment(description: str, metadata: dict, amount: str,
+                         method: str | None = None) -> dict | None:
     """Создаёт платёж в Mollie на сумму amount. Возвращает id и ссылку на оплату.
 
     {"id": "tr_...", "checkout_url": "https://..."} или None при ошибке.
+
+    method — ограничить способ оплаты (напр. "ideal"). None = все доступные.
     """
     sid = metadata.get("specialist_id")
     if sid and config.WEBHOOK_BASE_URL:
@@ -41,6 +44,8 @@ async def create_payment(description: str, metadata: dict, amount: str) -> dict 
         "webhookUrl": f"{config.WEBHOOK_BASE_URL}/mollie-webhook",
         "metadata": metadata,
     }
+    if method:
+        body["method"] = method
     try:
         async with aiohttp.ClientSession() as session:
             async with session.post(
