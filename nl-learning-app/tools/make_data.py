@@ -235,7 +235,10 @@ def words_html(name,ws):
 for ti in range(0,len(BANK)):
     name,ws=BANK[ti]
     chunks=[ws[i:i+8] for i in range(0,len(ws),8)]
-    chunks=[c for c in chunks if len(c)>=6][:12]
+    # короткий «хвост» (<6 слов) вливаем в предыдущий урок — чтобы НИ ОДНО слово не выпало
+    if len(chunks)>=2 and len(chunks[-1])<6:
+        chunks[-2]=chunks[-2]+chunks[-1];chunks.pop()
+    # БЕЗ лимита: каждое слово темы попадает в урок (раньше стоял [:12] и ~45% банка не учились)
     nums=[]
     for ci,chunk in enumerate(chunks):
         n=lesson_num;lesson_num+=1;nums.append(n)
