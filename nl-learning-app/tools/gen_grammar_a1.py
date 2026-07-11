@@ -1,0 +1,142 @@
+# -*- coding: utf-8 -*-
+"""Генерирует data/grammar_a1.json — 7 базовых грамматических блоков уровня A1.
+Заголовки начинаются с «Грамматика» → на карте это отдельные узлы 📐."""
+import json,os
+ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+def rule(rows):
+    h='<div class="rule"><table style="width:100%;border-collapse:collapse">'
+    for r in rows:
+        h+='<tr>'+''.join('<td style="padding:4px 8px;border:1px solid var(--brd)">'+c+'</td>' for c in r)+'</tr>'
+    return h+'</table></div>'
+
+parts=[
+# 1) de / het
+{'title':'Грамматика: de или het? 🔵','theme':'Знакомство','idx':2,'steps':[
+ {'t':'explain','k':'Правило A1 · артикли','b':'🔵 de / het — «этот/эта/это»',
+  'html':'<p>У каждого существительного в нидерландском есть артикль — <b>de</b> или <b>het</b>. Его надо учить <u>вместе со словом</u>.</p>'
+   +rule([['<b>de</b>','~75% слов, все люди, множ. число','<b>de</b> man, <b>de</b> vrouw, <b>de</b> kinderen'],
+          ['<b>het</b>','~25%, часто маленькое/абстрактное','<b>het</b> kind, <b>het</b> huis, <b>het</b> water']])
+   +'<p>💡 Уменьшительные на <b>-je</b> — всегда <b>het</b>: het meisje, het kopje. Множественное число — всегда <b>de</b>: het boek → <b>de</b> boeken.</p>',
+  'ex':[['de vrouw','женщина'],['het huis','дом'],['het meisje','девочка'],['de boeken','книги']]},
+ {'t':'quiz','k':'de или het?','q':'___ man (мужчина)','opts':['de','het']},
+ {'t':'quiz','k':'de или het?','q':'___ kind (ребёнок)','opts':['het','de']},
+ {'t':'quiz','k':'-je → всегда het','q':'___ meisje (девочка)','opts':['het','de']},
+ {'t':'quiz','k':'Множ. → всегда de','q':'___ huizen (дома)','opts':['de','het']},
+ {'t':'gapType','k':'Впиши артикль','q':'___ water is koud. (вода)','ans':'het','hint':'абстрактное/жидкость'},
+ {'t':'tf','k':'Верно?','q':'Все слова во множественном числе берут артикль «de».','answer':True,'note':'Да: het boek → de boeken.'},
+ {'t':'match','k':'Соедини слово и артикль','pairs':[['de vrouw','женщина'],['het huis','дом'],['de auto','машина'],['het kind','ребёнок']]},
+]},
+# 2) множественное число
+{'title':'Грамматика: множественное число (-en, -s) ➕','theme':'Школа','idx':2,'steps':[
+ {'t':'explain','k':'Правило A1 · meervoud','b':'➕ Один → много: -en или -s',
+  'html':'<p>Множественное число образуется двумя окончаниями:</p>'
+   +rule([['<b>-en</b> (чаще)','boek → boek<b>en</b>, huis → huiz<b>en</b>'],
+          ['<b>-s</b>','после -el,-em,-en,-er,-je и гласной','tafel → tafel<b>s</b>, meisje → meisje<b>s</b>, foto → foto\'<b>s</b>']])
+   +'<p>⚠️ При <b>-en</b> часто меняется корень: короткий гласный удваивает согласную (man → man<b>nen</b>), долгий — теряет букву (b<b>oo</b>t → b<b>o</b>ten). После гласной перед <b>-s</b> ставится апостроф: auto → auto\'s.</p>',
+  'ex':[['boek → boeken','книга → книги'],['tafel → tafels','стол → столы'],['man → mannen','мужчина → мужчины'],['foto → foto\'s','фото']]},
+ {'t':'quiz','k':'Как во множ.?','q':'de tafel (стол) →','opts':['tafels','tafelen','taflen','tafele']},
+ {'t':'quiz','k':'Удвоение согласной','q':'de man (мужчина) →','opts':['mannen','manen','mans','mannens']},
+ {'t':'quiz','k':'После гласной','q':'de foto →','opts':["foto's",'fotos','fotoen','foto'+'es']},
+ {'t':'gapType','k':'Впиши множ. число','q':'Ik heb twee ___. (boek)','ans':'boeken','hint':'-en'},
+ {'t':'gapType','k':'Впиши множ. число','q':'Er staan drie ___. (stoel)','ans':'stoelen','hint':'-en'},
+ {'t':'tf','k':'Верно?','q':'Слова на -je (meisje, kopje) во множ. берут -s.','answer':True,'note':'Да: meisje → meisjes, kopje → kopjes.'},
+]},
+# 3) настоящее время
+{'title':'Грамматика: настоящее время (ik werk) 🟢','theme':'Каждый день','idx':2,'steps':[
+ {'t':'explain','k':'Правило A1 · tegenwoordige tijd','b':'🟢 Спряжение: основа, +t, +t',
+  'html':'<p>Берём инфинитив (werken), убираем <b>-en</b> → основа <b>werk</b>. Дальше:</p>'
+   +rule([['ik','основа','ik <b>werk</b>'],
+          ['jij / je','основа + <b>t</b>','jij <b>werkt</b>'],
+          ['hij / zij / het','основа + <b>t</b>','hij <b>werkt</b>'],
+          ['wij / jullie / zij','инфинитив','wij <b>werken</b>']])
+   +'<p>⚠️ Инверсия: если <b>jij</b> идёт ПОСЛЕ глагола (в вопросе) — <b>t</b> исчезает: <b>Werk jij?</b> (не «werkt jij»).</p>',
+  'ex':[['ik woon','я живу'],['jij woont','ты живёшь'],['hij werkt','он работает'],['wij wonen','мы живём']]},
+ {'t':'quiz','k':'Форма для jij','q':'jij ___ (wonen)','opts':['woont','woon','wonen','wone']},
+ {'t':'quiz','k':'Форма для ik','q':'ik ___ (werken)','opts':['werk','werkt','werken','werke']},
+ {'t':'quiz','k':'Инверсия: t исчезает','q':'Вопрос: «Ты живёшь здесь?»','opts':['Woon jij hier?','Woont jij hier?','Wonen jij hier?','Jij woont hier?']},
+ {'t':'gapType','k':'Впиши форму','q':'Hij ___ in Amsterdam. (wonen)','ans':'woont','hint':'hij → +t'},
+ {'t':'gapType','k':'Впиши форму','q':'Wij ___ Nederlands. (leren)','ans':'leren','hint':'wij → инфинитив'},
+ {'t':'build','k':'Собери предложение','tr':'Я работаю в Гааге.','words':['Ik','werk','in','Den','Haag'],'ans':['Ik','werk','in','Den','Haag']},
+ {'t':'tf','k':'Верно?','q':'В вопросе «Werk jij?» глагол теряет -t.','answer':True,'note':'Да: jij после глагола → без t.'},
+]},
+# 4) hebben & zijn
+{'title':'Грамматика: hebben и zijn (иметь/быть) ⭐','theme':'Знакомство','idx':4,'steps':[
+ {'t':'explain','k':'Правило A1 · главные глаголы','b':'⭐ Два неправильных: zijn, hebben',
+  'html':'<p>Два самых важных глагола — их надо знать наизусть.</p>'
+   +rule([['','<b>zijn</b> (быть)','<b>hebben</b> (иметь)'],
+          ['ik','ben','heb'],
+          ['jij','bent','hebt'],
+          ['hij/zij/het','is','heeft'],
+          ['wij/jullie/zij','zijn','hebben']]),
+  'ex':[['Ik ben Anna.','Я — Анна.'],['Jij bent aardig.','Ты милый.'],['Hij heeft een hond.','У него есть собака.'],['Wij hebben tijd.','У нас есть время.']]},
+ {'t':'quiz','k':'zijn для ik','q':'Ik ___ moe. (устал)','opts':['ben','bent','is','zijn']},
+ {'t':'quiz','k':'hebben для hij','q':'Hij ___ een auto.','opts':['heeft','heb','hebt','hebben']},
+ {'t':'quiz','k':'zijn для hij','q':'Zij ___ mijn zus.','opts':['is','ben','bent','zijn']},
+ {'t':'gapType','k':'Впиши форму zijn','q':'Jij ___ heel aardig.','ans':'bent','hint':'jij → bent'},
+ {'t':'gapType','k':'Впиши форму hebben','q':'Wij ___ twee kinderen.','ans':'hebben','hint':'wij → hebben'},
+ {'t':'build','k':'Собери','tr':'У меня есть вопрос.','words':['Ik','heb','een','vraag'],'ans':['Ik','heb','een','vraag']},
+ {'t':'speak','k':'Говорение','phrase':'Ik ben nieuw hier en ik heb een vraag.','tr':'Я здесь новенький, и у меня есть вопрос.'},
+]},
+# 5) niet / geen
+{'title':'Грамматика: niet или geen? 🚫','theme':'Еда и напитки','idx':2,'steps':[
+ {'t':'explain','k':'Правило A1 · отрицание','b':'🚫 niet / geen — «не / нет»',
+  'html':'<p>Два способа сказать «нет». Выбор простой:</p>'
+   +rule([['<b>geen</b>','перед существительным с een или без артикля','Ik heb <b>geen</b> tijd. Ik drink <b>geen</b> koffie.'],
+          ['<b>niet</b>','всё остальное: глаголы, прилагательные, de/het-слова','Ik werk <b>niet</b>. Het is <b>niet</b> lekker.']])
+   +'<p>💡 Правило-подсказка: если можно вставить «никакой» — ставь <b>geen</b>. «Ik heb <b>geen</b> auto» = у меня нет (никакой) машины.</p>',
+  'ex':[['Ik heb geen geld.','У меня нет денег.'],['Ik drink niet.','Я не пью.'],['Het is niet duur.','Это не дорого.'],['Zij heeft geen tijd.','У неё нет времени.']]},
+ {'t':'quiz','k':'niet или geen?','q':'Ik heb ___ brood. (нет хлеба)','opts':['geen','niet']},
+ {'t':'quiz','k':'niet или geen?','q':'Het is ___ lekker. (невкусно)','opts':['niet','geen']},
+ {'t':'quiz','k':'niet или geen?','q':'Ik werk vandaag ___. (не работаю)','opts':['niet','geen']},
+ {'t':'gapType','k':'Впиши niet/geen','q':'Zij drinkt ___ melk.','ans':'geen','hint':'перед существительным'},
+ {'t':'gapType','k':'Впиши niet/geen','q':'De film is ___ leuk.','ans':'niet','hint':'перед прилагательным'},
+ {'t':'tf','k':'Верно?','q':'Перед существительным (без de/het) для отрицания ставим «geen».','answer':True,'note':'Да: geen tijd, geen auto, geen koffie.'},
+ {'t':'build','k':'Собери','tr':'У меня нет машины.','words':['Ik','heb','geen','auto'],'ans':['Ik','heb','geen','auto']},
+]},
+# 6) вопросы
+{'title':'Грамматика: вопросы (Waar? Hoe?) ❓','theme':'Каждый день','idx':4,'steps':[
+ {'t':'explain','k':'Правило A1 · вопросы','b':'❓ Два типа вопросов',
+  'html':'<p><b>1. Да/нет-вопрос</b> — глагол на первое место (инверсия):</p>'
+   +rule([['Утверждение','Jij woont hier.'],['Вопрос','<b>Woon</b> jij hier?']])
+   +'<p><b>2. Вопрос со словом</b> — вопросительное слово, потом глагол:</p>'
+   +rule([['<b>Wie?</b>','кто','<b>Wie</b> ben jij?'],
+          ['<b>Wat?</b>','что','<b>Wat</b> doe je?'],
+          ['<b>Waar?</b>','где','<b>Waar</b> woon je?'],
+          ['<b>Wanneer?</b>','когда','<b>Wanneer</b> kom je?'],
+          ['<b>Hoe?</b>','как','<b>Hoe</b> heet je?'],
+          ['<b>Waarom?</b>','почему','<b>Waarom</b> niet?']]),
+  'ex':[['Hoe heet je?','Как тебя зовут?'],['Waar woon je?','Где ты живёшь?'],['Wat doe je?','Чем ты занимаешься?'],['Woon jij hier?','Ты живёшь здесь?']]},
+ {'t':'quiz','k':'Да/нет-вопрос','q':'«Ты работаешь?» —','opts':['Werk jij?','Jij werkt?','Werkt jij?','Jij werk?']},
+ {'t':'quiz','k':'Какое слово?','q':'«___ тебя зовут?» (как)','opts':['Hoe','Wat','Waar','Wie']},
+ {'t':'quiz','k':'Какое слово?','q':'«___ ты живёшь?» (где)','opts':['Waar','Wanneer','Hoe','Wie']},
+ {'t':'gapType','k':'Впиши вопросительное слово','q':'___ doe je? (что) — Ik werk.','ans':'Wat','hint':'что'},
+ {'t':'build','k':'Собери вопрос','tr':'Где ты живёшь?','words':['Waar','woon','je'],'ans':['Waar','woon','je']},
+ {'t':'tf','k':'Верно?','q':'В да/нет-вопросе глагол стоит на первом месте.','answer':True,'note':'Да: Woon jij hier? — глагол Woon первый.'},
+ {'t':'speak','k':'Говорение','phrase':'Hoe heet je en waar woon je?','tr':'Как тебя зовут и где ты живёшь?'},
+]},
+# 7) притяжательные
+{'title':'Грамматика: мой, твой (mijn, jouw) 👉','theme':'Знакомство','idx':6,'steps':[
+ {'t':'explain','k':'Правило A1 · bezittelijk','b':'👉 Чей? mijn, jouw, zijn, haar',
+  'html':'<p>Притяжательные местоимения — «чей»:</p>'
+   +rule([['ik → <b>mijn</b>','мой','<b>mijn</b> naam'],
+          ['jij → <b>jouw / je</b>','твой','<b>jouw</b> huis'],
+          ['hij → <b>zijn</b>','его','<b>zijn</b> auto'],
+          ['zij → <b>haar</b>','её','<b>haar</b> tas'],
+          ['wij → <b>ons / onze</b>','наш','<b>onze</b> stad'],
+          ['zij → <b>hun</b>','их','<b>hun</b> kinderen']])
+   +'<p>💡 <b>ons</b> — перед het-словом (ons huis), <b>onze</b> — перед de-словом и множ. (onze auto, onze kinderen).</p>',
+  'ex':[['mijn naam','моё имя'],['zijn auto','его машина'],['haar tas','её сумка'],['onze buurt','наш район']]},
+ {'t':'quiz','k':'мой','q':'___ naam is Anna. (моё)','opts':['Mijn','Jouw','Zijn','Haar']},
+ {'t':'quiz','k':'его','q':'Dat is ___ auto. (его)','opts':['zijn','haar','mijn','hun']},
+ {'t':'quiz','k':'её','q':'Ik ken ___ zus. (её)','opts':['haar','zijn','jouw','ons']},
+ {'t':'quiz','k':'ons или onze?','q':'___ huis is klein. (наш дом, het huis)','opts':['ons','onze']},
+ {'t':'gapType','k':'Впиши местоимение','q':'Is dit ___ tas? (твоя)','ans':'jouw','hint':'jij → jouw'},
+ {'t':'tf','k':'Верно?','q':'Перед het-словом «наш» — это «ons» (ons huis).','answer':True,'note':'Да: ons huis, но onze auto (de-слово).'},
+]},
+]
+
+out={'note':'Грамматика A1: de/het, множ. число, наст. время, hebben/zijn, niet/geen, вопросы, притяжательные. Символьные ссылки {theme,idx} → узлы 📐 после A1-уроков.','parts':parts}
+json.dump(out,open(ROOT+'/data/grammar_a1.json','w',encoding='utf-8'),ensure_ascii=False,indent=1)
+print('grammar_a1.json:',len(parts),'частей')
+for p in parts:print('  ',p['title'],'| theme=',p['theme'],'idx=',p['idx'],'| шагов',len(p['steps']))

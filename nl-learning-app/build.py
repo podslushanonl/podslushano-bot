@@ -141,6 +141,8 @@ def build_dlg():
     parts=d['dialogues']
     try: parts=parts+J('stories.json')['stories']
     except FileNotFoundError: pass
+    try: parts=parts+J('grammar_a1.json')['parts']
+    except FileNotFoundError: pass
     try: parts=parts+J('grammar_a2.json')['parts']
     except FileNotFoundError: pass
     try: parts=parts+J('grammar_b1.json')['parts']
