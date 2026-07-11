@@ -46,15 +46,17 @@ ALLO_INTRO = (
     "(до {cap} человек). Приезжаешь на поезде, встречаемся у станции — и уже через "
     "10–15 минут идём среди зелени, знакомимся и общаемся. В конце — кофе для тех, "
     "кто хочет остаться подольше.\n\n"
+    "🌿 <b>Первая прогулка уже прошла</b> — и участникам очень понравилось:\n"
+    "<i>«Сегодняшняя встреча была как глоток свежего воздуха. Всё легко и "
+    "ненапряжно» — Карина</i>\n"
+    "<i>«Мне очень понравилось, надеюсь увидимся на следующих прогулках!» — "
+    "Юлия</i>\n"
+    "<i>«Спасибо за прекрасный день! Было здорово 🫶» — Sheryl</i>\n\n"
     "<b>Как это работает:</b>\n"
     "1️⃣ Выбираешь прогулку ниже.\n"
     "2️⃣ Оплачиваешь через iDEAL.\n"
     "3️⃣ Получаешь подтверждение — и приходишь в назначенный день.\n\n"
-    "💶 <b>€{single}</b> за прогулку. Или <b>абонемент</b>: {credits} прогулки за "
-    "<b>€{pass_}</b> — на любые наши прогулки в течение 2 месяцев (новые маршруты "
-    "добавляем).\n\n"
-    "🌟 Allo Walks — только начало нашего нового проекта Allo (закрытый клуб). "
-    "Абонемент сейчас зачтётся в будущее членство клуба — подробнее в абонементе.\n\n"
+    "💶 <b>€{single}</b> за прогулку.\n\n"
     "Выбирай 👇"
 )
 
@@ -321,9 +323,6 @@ async def show_allo(message: Message, state: FSMContext) -> None:
             rows.append([InlineKeyboardButton(text=f"🚫 {_short_date(w)} · {w['title']} — мест нет",
                                               callback_data="allo:full")])
     rows.append([InlineKeyboardButton(
-        text=f"🎟 Абонемент · {config.ALLO_PASS_CREDITS} прогулки · €{_p(config.ALLO_PRICE_PASS)}",
-        callback_data="allo:pick:pass")])
-    rows.append([InlineKeyboardButton(
         text=f"🎁 Привести друга (+€{config.ALLO_REFERRAL_BONUS} тебе)",
         callback_data="allo:invite")])
     rows.append([InlineKeyboardButton(text="📜 Правила Allo Walks", callback_data="allo:terms")])
@@ -476,31 +475,17 @@ def _pick_kb(key: str) -> InlineKeyboardMarkup:
          InlineKeyboardButton(text="⬅️ Назад", callback_data="allo:menu")]])
 
 
-def _pass_card() -> str:
-    return (f"🎟 <b>Абонемент Allo Walks</b>\n\n"
-            f"{config.ALLO_PASS_CREDITS} прогулки за <b>€{_p(config.ALLO_PRICE_PASS)}</b> "
-            "(с BTW). Ходишь на любые наши прогулки в течение 2 месяцев с оплаты — "
-            "включая <b>новые маршруты</b>, которые мы будем добавлять (в том числе в "
-            "августе).\n\nПосле оплаты открой Allo Walks и выбирай даты — за каждую "
-            "спишется одна прогулка.\n\n"
-            "🌟 <b>Allo Walks — это только начало</b> нашего нового проекта <b>Allo</b> — "
-            "закрытый клуб, больше чем прогулки. Поэтому в первые 2 месяца действует "
-            f"особый бонус: <b>€{_p(config.ALLO_PRICE_PASS)} за абонемент зачтём в будущее "
-            "членство клуба «Всё включено».</b> Возьмёшь абонемент сейчас — считай, уже "
-            "вложился в клуб.\n\n"
-            "Оплачивая, ты принимаешь Правила Allo Walks.")
-
-
 @router.callback_query(F.data.startswith("allo:pick:"))
 async def allo_pick(callback: CallbackQuery, state: FSMContext) -> None:
     key = callback.data.split(":", 2)[2]
-    if key != "pass" and not config.allo_walk(key):
-        await callback.answer("Прогулка не найдена", show_alert=True)
-        return
     if key == "pass":
-        await callback.message.answer(_pass_card(), reply_markup=_pick_kb(key),
-                                      disable_web_page_preview=True)
-        await callback.answer()
+        # Абонемент больше не продаётся (цена была только для первых прогулок).
+        await callback.answer("Абонемент сейчас не продаётся — выбери прогулку.",
+                              show_alert=True)
+        await show_allo(callback.message, state)
+        return
+    if not config.allo_walk(key):
+        await callback.answer("Прогулка не найдена", show_alert=True)
         return
     async with get_session() as session:
         free = await _remaining(session, key) > 0
@@ -522,6 +507,11 @@ async def allo_pick(callback: CallbackQuery, state: FSMContext) -> None:
 @router.callback_query(F.data.startswith("allo:agree:"))
 async def allo_agree(callback: CallbackQuery, state: FSMContext) -> None:
     key = callback.data.split(":", 2)[2]
+    if key == "pass":
+        await callback.answer("Абонемент сейчас не продаётся — выбери прогулку.",
+                              show_alert=True)
+        await show_allo(callback.message, state)
+        return
     await state.set_state(AlloBook.waiting_email)
     await state.update_data(allo_walk=key)
     await callback.message.answer(
@@ -539,16 +529,19 @@ async def allo_email(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     key = data.get("allo_walk")
     await state.clear()
-    is_pass = key == "pass"
-    if not is_pass and not config.allo_walk(key):
+    if key == "pass":
+        await message.answer("Абонемент сейчас не продаётся. Выбери прогулку: /allo",
+                             reply_markup=main_menu())
+        return
+    if not config.allo_walk(key):
         await message.answer("Прогулка не найдена — начни заново: /allo",
                              reply_markup=main_menu())
         return
-    plan = "pass" if is_pass else "single"
-    amount = config.ALLO_PRICE_PASS if is_pass else config.ALLO_PRICE_SINGLE
+    plan = "single"
+    amount = config.ALLO_PRICE_SINGLE
 
     async with get_session() as session:
-        if not is_pass and not await _remaining(session, key) > 0:
+        if not await _remaining(session, key) > 0:
             await message.answer("Пока ты вводил e-mail, места закончились 😔 "
                                  "Выбери другую дату: /allo", reply_markup=main_menu())
             return
