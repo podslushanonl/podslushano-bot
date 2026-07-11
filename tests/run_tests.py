@@ -172,17 +172,18 @@ async def test_allo_capacity() -> None:
         _p, rem, _vu = await A._active_pass(s, 901)
         check("у абонемента списалась 1 прогулка",
               rem == config.ALLO_PASS_CREDITS - 1, f"осталось {rem}")
-    # просроченная неоплата не держит место
+    # просроченная неоплата не держит место (отдельный служебный ключ-дата)
+    other = "2099-12-31"
     async with db.get_session() as s:
-        before = await A._taken(s, keys[2])
-        old = AlloBooking(walk_key=keys[2], plan="single", user_id=903, status="pending")
+        before = await A._taken(s, other)
+        old = AlloBooking(walk_key=other, plan="single", user_id=903, status="pending")
         s.add(old)
         await s.commit()
         old.created_at = datetime.utcnow() - timedelta(hours=3)
         await s.commit()
     async with db.get_session() as s:
         check("просроченная неоплата не занимает место",
-              await A._taken(s, keys[2]) == before)
+              await A._taken(s, other) == before)
     # ручное закрытие даты (/alloclose): свободных мест нет, хотя броней нет
     async with db.get_session() as s:
         check("до закрытия есть свободные места",
