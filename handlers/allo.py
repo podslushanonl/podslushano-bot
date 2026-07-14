@@ -15,7 +15,7 @@ from aiogram.enums import ChatType
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import (CallbackQuery, FSInputFile, InlineKeyboardButton,
-                           InlineKeyboardMarkup, InputMediaPhoto, Message)
+                           InlineKeyboardMarkup, Message)
 from sqlalchemy import and_, func, or_, select
 
 import config
@@ -43,20 +43,17 @@ def _p(price: str) -> str:
 
 
 _ASSETS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "allo")
-# Порядок: групповое фото (доверие) → природа → маршрут.
-_INTRO_PHOTOS = ("group.jpg", "cows.jpg", "path.jpg")
+_INTRO_PHOTO = "group.jpg"  # групповое фото с прошлой прогулки — для доверия
 
 
 async def _send_intro_photos(message: Message) -> None:
-    """Альбом с фото прошлой прогулки — для первого впечатления. Молча пропускаем,
-    если файлов нет или Telegram не принял."""
-    media = [InputMediaPhoto(media=FSInputFile(p))
-             for name in _INTRO_PHOTOS
-             if os.path.exists(p := os.path.join(_ASSETS_DIR, name))]
-    if not media:
+    """Фото с прошлой прогулки — для первого впечатления. Молча пропускаем,
+    если файла нет или Telegram не принял."""
+    path = os.path.join(_ASSETS_DIR, _INTRO_PHOTO)
+    if not os.path.exists(path):
         return
     try:
-        await message.answer_media_group(media)
+        await message.answer_photo(FSInputFile(path))
     except Exception as e:  # noqa: BLE001
         log.warning("Не удалось отправить фото Allo: %s", e)
 
