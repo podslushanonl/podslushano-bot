@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#F7F9FC">
+<title>allo — preview v2</title>
+<link rel="stylesheet" href="styles.css?v=2">
+</head><body>
+<div class="app">
+<section id="home" class="screen active">
+  <div class="hero"><img class="approved-hero" id="heroImg" alt="allo — нидерландский для жизни и inburgering"></div>
+  <div class="stats">
+    <div class="stat"><div class="icon fire">🔥</div><div class="n">12</div><small>дней подряд</small></div>
+    <div class="stat"><div class="ring"><span>63%</span></div><strong>Прогресс</strong><small>Уровень A1<br>Урок 18 из 30</small></div>
+    <div class="stat"><div class="icon heart">❤</div><div class="n">5</div><small>жизней<br>Полные ❤</small></div>
+  </div>
+  <div class="path-card">
+    <div class="path-head"><div class="path-title"><div class="level">A1</div><div><b>Ваш маршрут A1</b><small>Базовый уровень</small></div></div><button class="info">О маршруте ⓘ</button></div>
+    <div class="lesson"><div class="step">1</div><div class="li">👋</div><div class="lt"><b>Groeten</b><small>Приветствия</small></div><button class="pill done">Пройдено ✓</button></div>
+    <div class="lesson"><div class="step">2</div><div class="li">🛒</div><div class="lt"><b>Winkelen</b><small>Покупки</small></div><button class="pill go" onclick="openLesson()">Продолжить</button></div>
+    <div class="lesson"><div class="step">3</div><div class="li">🚆</div><div class="lt"><b>Vervoer</b><small>Транспорт</small></div><button class="pill lock" aria-label="Закрыто">⌾</button></div>
+    <div class="lesson locked"><div class="step">4</div><div class="li">🩺</div><div class="lt"><b>Huisarts</b><small>У врача</small></div><button class="pill lock" aria-label="Закрыто">⌾</button></div>
+    <div class="lesson locked"><div class="step">5</div><div class="li">🏛</div><div class="lt"><b>Gemeente</b><small>Муниципалитет</small></div><button class="pill lock" aria-label="Закрыто">⌾</button></div>
+    <div class="callout"><div class="bike">🚲</div><div><strong>Учитесь шаг за шагом и достигайте цели!</strong>Каждый урок приближает вас к свободному общению.</div><div style="margin-left:auto;color:var(--blue);font-size:24px">›</div></div>
+  </div>
+</section>
+<section id="lesson" class="screen">
+ <div class="lesson-top"><button class="close" onclick="show('home')">×</button><div class="progress"><small><span>Урок 18 • Покупки</span><span>2 / 7</span></small><div class="bar"><i></i></div></div><div class="hearts">❤️❤️🤍</div></div>
+ <div class="question-card"><div class="kicker">Выберите правильный ответ</div><h1>Как сказать по-нидерландски: «Доброе утро»?</h1><p>Выберите живую фразу, которую действительно используют.</p><img class="mini-mascot" id="helperImg" alt="Подсказка от маскота"></div>
+ <div class="answers">
+  <button class="answer" data-ok="1" onclick="selectAnswer(this)"><span class="letter">A</span><span><b>Goedemorgen</b><small>Доброе утро</small></span></button>
+  <button class="answer" data-ok="0" onclick="selectAnswer(this)"><span class="letter">B</span><span><b>Tot ziens</b><small>До свидания</small></span></button>
+  <button class="answer" data-ok="0" onclick="selectAnswer(this)"><span class="letter">C</span><span><b>Dank je</b><small>Спасибо</small></span></button>
+  <button class="answer" data-ok="0" onclick="selectAnswer(this)"><span class="letter">D</span><span><b>Alstublieft</b><small>Пожалуйста</small></span></button>
+ </div>
+ <div class="tip">💡 Буквальный перевод не всегда звучит естественно. В allo вы учите фразы для реальной жизни.</div>
+ <button id="check" class="action" disabled onclick="checkAnswer()">Проверить</button>
+ <div id="good" class="feedback good"><h3>Верно! 🎉</h3><p><b>Goedemorgen</b> — это «Доброе утро».</p><button class="next" onclick="show('finish')">Дальше</button></div>
+ <div id="bad" class="feedback bad"><h3>Почти получилось</h3><p>Правильный ответ: <b>Goedemorgen</b>. Повторите фразу вслух и попробуйте запомнить.</p><button class="next" onclick="resetLesson()">Попробовать ещё раз</button></div>
+</section>
+<section id="finish" class="screen finish">
+ <img class="celebrate" id="celebrateImg" alt="Маскот поздравляет">
+ <h1>Урок завершён</h1><p>Вы сделали ещё один практический шаг к нидерландскому для жизни и inburgering.</p>
+ <div class="rewards"><div class="reward"><b style="color:var(--orange)">+15 XP</b><small>Опыт</small></div><div class="reward"><b style="color:var(--orange)">🔥 12</b><small>Серия дней</small></div><div class="reward"><b style="color:var(--green)">92%</b><small>Точность</small></div></div>
+ <div class="route-mini"><b>Ваш маршрут</b><div class="dots"></div><small style="color:var(--muted)">Открыт следующий урок: A1 • В кафе</small></div>
+ <button class="action" onclick="show('home')">Следующий урок</button><button class="secondary" onclick="show('home')">На главную</button>
+</section>
+<nav class="nav" id="nav">
+ <button class="active" onclick="navTo(this,'home')"><span>🎓</span>Учиться</button>
+ <button onclick="navToast(this,'Тренировки')"><span>🏋️</span>Тренировки</button>
+ <button onclick="navToast(this,'Лига')"><span>🏆</span>Лига</button>
+ <button onclick="navToast(this,'Словарь')"><span>📖</span>Словарь</button>
+ <button onclick="navToast(this,'Профиль')"><span>👤</span>Профиль</button>
+</nav>
+</div>
+<script src="app.js?v=2"></script></body></html>
