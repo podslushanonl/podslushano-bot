@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#f8fbff">
+<title>allo — интерактивный дизайн</title>
+<link rel="stylesheet" href="styles.css?v=3">
+</head>
+<body>
+<div class="app-shell">
+  <main>
+    <section class="screen is-active" id="home-screen" aria-label="Главная">
+      <header class="hero">
+        <div class="top-row">
+          <div>
+            <div class="logo">allo</div>
+            <p class="subtitle">Нидерландский<br>для жизни и inburgering</p>
+          </div>
+          <button class="icon-button notification" aria-label="Уведомления">
+            <span class="bell-icon"></span><b>3</b>
+          </button>
+        </div>
+        <div class="skyline" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="bike-road" aria-hidden="true"><i></i></div>
+        <div class="speech">Hoi! Готовы продолжить маршрут? <span>👋</span></div>
+        <img class="mascot hero-mascot" alt="Фирменный персонаж allo">
+      </header>
+
+      <div class="content-stack">
+        <section class="stats-grid" aria-label="Прогресс">
+          <article class="stat-card">
+            <div class="stat-icon stat-fire">🔥</div>
+            <div><strong>12</strong><span>дней подряд</span></div>
+            <div class="streak-dots"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i class="off"></i></div>
+          </article>
+          <article class="stat-card progress-card">
+            <div class="progress-ring" style="--value:63"><span>63%</span></div>
+            <div><b>Прогресс</b><span>Уровень A1<br>Урок 18 из 30</span></div>
+            <div class="mini-progress"><i style="width:63%"></i></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-icon stat-heart">♥</div>
+            <div><strong>5</strong><span>жизней</span></div>
+            <small>Полные <em>♥</em></small>
+          </article>
+        </section>
+
+        <section class="route-card">
+          <div class="route-header">
+            <div class="route-title">
+              <div class="level-badge">A1</div>
+              <div><h1>Ваш маршрут A1</h1><p>Базовый уровень</p></div>
+            </div>
+            <button class="route-info">О маршруте <span>i</span></button>
+          </div>
+
+          <div class="route-list">
+            <article class="route-item done-item">
+              <div class="route-number">1</div><div class="route-icon"><span class="hand-icon">✋</span></div>
+              <div class="route-copy"><h2>Groeten</h2><p>Приветствия</p></div>
+              <div class="route-status status-done">Пройдено <span>✓</span></div>
+            </article>
+            <article class="route-item current-item">
+              <div class="route-number">2</div><div class="route-icon"><span class="basket-icon">▦</span></div>
+              <div class="route-copy"><h2>Winkelen</h2><p>Покупки</p></div>
+              <button class="route-status status-current" id="continue-button">Продолжить<small>Урок 18</small></button>
+            </article>
+            <article class="route-item">
+              <div class="route-number">3</div><div class="route-icon"><span class="train-icon">▤</span></div>
+              <div class="route-copy"><h2>Vervoer</h2><p>Транспорт</p></div>
+              <div class="route-status status-locked"><span class="lock-shape"></span></div>
+            </article>
+            <article class="route-item locked-item">
+              <div class="route-number">4</div><div class="route-icon"><span class="medical-icon">＋</span></div>
+              <div class="route-copy"><h2>Huisarts</h2><p>У врача</p></div>
+              <div class="route-status status-locked"><span class="lock-shape"></span></div>
+            </article>
+            <article class="route-item locked-item">
+              <div class="route-number">5</div><div class="route-icon"><span class="building-icon">▥</span></div>
+              <div class="route-copy"><h2>Gemeente</h2><p>Муниципалитет</p></div>
+              <div class="route-status status-locked"><span class="lock-shape"></span></div>
+            </article>
+          </div>
+
+          <div class="route-tip">
+            <div class="bike-round"><span>⌁</span></div>
+            <div><b>Учитесь шаг за шагом и достигайте цели!</b><p>Каждый урок приближает вас к свободному общению.</p></div>
+            <span class="chevron">›</span>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="screen lesson-screen" id="lesson-screen" aria-label="Урок">
+      <div class="lesson-header">
+        <button class="icon-button close-button" data-go-home aria-label="Закрыть">×</button>
+        <div class="lesson-progress">
+          <div><span>Урок 18 · Покупки</span><b>2 / 7</b></div>
+          <div class="lesson-bar"><i></i></div>
+        </div>
+        <div class="lives">♥ ♥ <span>♥</span></div>
+      </div>
+
+      <article class="question-card">
+        <div class="question-copy">
+          <span class="eyebrow">Выберите правильный ответ</span>
+          <h1>Как сказать по-нидерландски: «Доброе утро»?</h1>
+          <p>Выберите живую фразу, которую действительно используют.</p>
+        </div>
+        <img class="mascot helper-mascot" alt="Персонаж подсказывает">
+      </article>
+
+      <div class="answers" id="answers">
+        <button class="answer" data-correct="true"><span>A</span><div><b>Goedemorgen</b><small>Доброе утро</small></div></button>
+        <button class="answer" data-correct="false"><span>B</span><div><b>Tot ziens</b><small>До свидания</small></div></button>
+        <button class="answer" data-correct="false"><span>C</span><div><b>Dank je</b><small>Спасибо</small></div></button>
+        <button class="answer" data-correct="false"><span>D</span><div><b>Alstublieft</b><small>Пожалуйста</small></div></button>
+      </div>
+
+      <div class="hint">💡 В allo вы учите фразы, которые пригодятся в реальной жизни.</div>
+      <button class="primary-action" id="check-answer" disabled>Проверить</button>
+      <div class="feedback feedback-good" id="feedback-good"><h2>Верно! 🎉</h2><p><b>Goedemorgen</b> — это «Доброе утро».</p><button id="next-step">Дальше</button></div>
+      <div class="feedback feedback-bad" id="feedback-bad"><h2>Почти получилось</h2><p>Правильный ответ: <b>Goedemorgen</b>.</p><button id="try-again">Попробовать ещё раз</button></div>
+    </section>
+
+    <section class="screen finish-screen" id="finish-screen" aria-label="Урок завершён">
+      <div class="celebration-art"><div class="confetti"></div><img class="mascot celebration-mascot" alt="Персонаж поздравляет"></div>
+      <span class="eyebrow">Урок завершён</span>
+      <h1>Отличная работа!</h1>
+      <p>Вы сделали ещё один шаг к нидерландскому для жизни и inburgering.</p>
+      <div class="reward-grid">
+        <article><strong>+15 XP</strong><span>Опыт</span></article>
+        <article><strong>🔥 12</strong><span>Серия дней</span></article>
+        <article><strong>92%</strong><span>Точность</span></article>
+      </div>
+      <div class="next-route"><div><b>Ваш маршрут</b><span>Открыт следующий урок: A1 · В кафе</span></div><div class="route-meter"><i></i><em>⚑</em></div></div>
+      <button class="primary-action" data-go-home>Продолжить маршрут</button>
+      <button class="secondary-action" data-go-home>На главную</button>
+    </section>
+  </main>
+
+  <nav class="bottom-nav" id="bottom-nav">
+    <button class="active"><span class="nav-icon graduation">⌂</span><b>Учиться</b></button>
+    <button><span class="nav-icon dumbbell">≋</span><b>Тренировки</b></button>
+    <button><span class="nav-icon trophy">♕</span><b>Лига</b><i></i></button>
+    <button><span class="nav-icon book">▤</span><b>Словарь</b></button>
+    <button><span class="nav-icon profile">○</span><b>Профиль</b></button>
+  </nav>
+</div>
+<script src="app.js?v=3"></script>
+</body>
+</html>
