@@ -19,6 +19,7 @@ from aiogram.types import (
 )
 from sqlalchemy import select
 
+import config
 from database.db import get_session
 from database.models import EventListing
 from handlers.afisha import _card_text, _month_label
@@ -55,19 +56,39 @@ async def events_start(message: Message, state: FSMContext) -> None:
     await state.clear()
     s = current_season()
     month_label = _month_label(f"{date.today():%Y-%m}")
-    kb = InlineKeyboardMarkup(inline_keyboard=[
+    rows = [
         [InlineKeyboardButton(text=f"📅 Афиша · {month_label.capitalize()}",
                               callback_data="ev_afisha")],
         [InlineKeyboardButton(text="🔎 Найти события в моём городе",
                               callback_data="ev_search")],
-    ])
-    await message.answer(
+    ]
+    walks = config.available_allo_walks()
+    if walks:
+        rows.insert(0, [InlineKeyboardButton(
+            text=f"🚶 Allo Walks · {walks[0]['date'].split(' · ')[0]}",
+            callback_data="ev_allo")])
+    kb = InlineKeyboardMarkup(inline_keyboard=rows)
+    allo_line = ("🚶 <b>Allo Walks</b> — прогулки для знакомств и общения.\n"
+                 if walks else "")
+    text = (
         f"{s['emoji']} <b>Чем заняться {s['phrase']}</b> 🎉\n\n"
+        f"{allo_line}"
         "📅 <b>Афиша месяца</b> — наши проверенные мероприятия с постерами.\n"
         "🔎 <b>Найти в городе</b> — подберу события под твой город.\n\n"
-        "<i>Организуете мероприятие? Разместите его в нашей афише: /afisha_add</i>",
+        "<i>Организуете мероприятие? Разместите его в нашей афише: /afisha_add</i>"
+    )
+    await message.answer(
+        text,
         reply_markup=kb,
     )
+
+
+@router.callback_query(F.data == "ev_allo")
+async def events_allo(callback: CallbackQuery, state: FSMContext) -> None:
+    from handlers.allo import show_allo
+
+    await callback.answer()
+    await show_allo(callback.message, state, with_photos=True)
 
 
 def _ticket_url(ev: EventListing) -> str | None:
