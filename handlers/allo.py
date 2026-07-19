@@ -22,7 +22,7 @@ from database.db import get_session
 from database.models import AlloBooking, AlloReferral, Meta
 from keyboards.menus import cancel_menu, main_menu
 from states.forms import AlloBook
-from utils.payments import create_payment
+from utils.payments import create_payment, get_payment
 
 router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
@@ -232,16 +232,47 @@ async def _active_pass(session, uid: int):
 
 
 async def _user_booked_dates(session, uid: int) -> set:
-    """Даты, на которые пользователь уже записан (разово или абонементом)."""
-    cutoff = datetime.utcnow() - timedelta(minutes=_HOLD_MINUTES)
+    """Только оплаченные даты — незавершённая оплата ещё не является записью."""
     rows = (await session.scalars(
         select(AlloBooking.walk_key).where(
-            AlloBooking.user_id == uid, AlloBooking.plan.in_(_SEAT_PLANS),
-            or_(AlloBooking.status == "paid", and_(
-                AlloBooking.status == "pending",
-                AlloBooking.created_at >= cutoff,
-            ))))).all()
+            AlloBooking.user_id == uid,
+            AlloBooking.plan.in_(_SEAT_PLANS),
+            AlloBooking.status == "paid",
+        ))).all()
     return set(rows)
+
+
+async def _user_pending_bookings(session, uid: int) -> dict[str, AlloBooking]:
+    """Свежая незавершённая оплата по каждой дате (последняя попытка)."""
+    cutoff = datetime.utcnow() - timedelta(minutes=_HOLD_MINUTES)
+    rows = (await session.scalars(
+        select(AlloBooking).where(
+            AlloBooking.user_id == uid,
+            AlloBooking.plan == "single",
+            AlloBooking.status == "pending",
+            AlloBooking.created_at >= cutoff,
+        ).order_by(AlloBooking.created_at.desc(), AlloBooking.id.desc())
+    )).all()
+    result: dict[str, AlloBooking] = {}
+    for booking in rows:
+        result.setdefault(booking.walk_key, booking)
+    return result
+
+
+async def _cancel_pending(session, uid: int, key: str) -> int:
+    """Отменяет прежние попытки оплаты этой даты и освобождает их места."""
+    rows = (await session.scalars(select(AlloBooking).where(
+        AlloBooking.user_id == uid,
+        AlloBooking.walk_key == key,
+        AlloBooking.plan == "single",
+        AlloBooking.status == "pending",
+    ))).all()
+    for booking in rows:
+        booking.status = "canceled"
+        await _settle_credits(session, booking.id, paid=False)
+    if rows:
+        await session.commit()
+    return len(rows)
 
 
 # --- Реферальная программа («приведи друга») ---------------------------------
@@ -384,6 +415,7 @@ async def show_allo(message: Message, state: FSMContext,
         pass_b, remaining, valid_until = await _active_pass(session, uid)
         rem = {w["key"]: await _remaining(session, w["key"]) for w in walks}
         booked = await _user_booked_dates(session, uid)
+        pending = await _user_pending_bookings(session, uid)
 
     if not walks:
         await message.answer(
@@ -398,6 +430,10 @@ async def show_allo(message: Message, state: FSMContext,
             if w["key"] in booked:
                 rows.append([InlineKeyboardButton(text=f"✅ {label} — ты записан",
                                                   callback_data=f"allo:mine:{w['key']}")])
+            elif w["key"] in pending:
+                rows.append([InlineKeyboardButton(
+                    text=f"💳 {label} — завершить оплату",
+                    callback_data=f"allo:pending:{w['key']}")])
             elif rem[w["key"]] > 0:
                 rows.append([InlineKeyboardButton(text=label,
                                                   callback_data=f"allo:use:{w['key']}")])
@@ -419,6 +455,10 @@ async def show_allo(message: Message, state: FSMContext,
         if w["key"] in booked:
             rows.append([InlineKeyboardButton(text=f"✅ {_short_date(w)} · {w['title']} — ты записан",
                                               callback_data=f"allo:mine:{w['key']}")])
+        elif w["key"] in pending:
+            rows.append([InlineKeyboardButton(
+                text=f"💳 {_short_date(w)} · Оплата не завершена",
+                callback_data=f"allo:pending:{w['key']}")])
         elif rem[w["key"]] > 0:
             rows.append([InlineKeyboardButton(text=label, callback_data=f"allo:pick:{w['key']}")])
         else:
@@ -471,7 +511,11 @@ async def allo_my_booking(callback: CallbackQuery) -> None:
         return
     async with get_session() as session:
         booking = await _user_paid_booking(session, callback.from_user.id, key)
+        pending = (await _user_pending_bookings(session, callback.from_user.id)).get(key)
     if not booking:
+        if pending:
+            await _show_pending_payment(callback, key, pending)
+            return
         await callback.answer("Активная запись не найдена. Обнови /allo.", show_alert=True)
         return
     rows = [[InlineKeyboardButton(text="💬 В чат участников", url=config.ALLO_CHAT_URL)]]
@@ -488,6 +532,78 @@ async def allo_my_booking(callback: CallbackQuery) -> None:
         reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
         disable_web_page_preview=True)
     await callback.answer()
+
+
+async def _show_pending_payment(callback: CallbackQuery, key: str,
+                                booking: AlloBooking) -> None:
+    """Показывает старую ссылку Mollie или предлагает начать оплату заново."""
+    payment = await get_payment(booking.payment_id) if booking.payment_id else None
+    status = (payment or {}).get("status")
+    if status == "paid":
+        await on_allo_payment_paid(callback.bot, booking.payment_id, payment)
+        await callback.answer("Оплата найдена и обработана ✅", show_alert=True)
+        return
+    if status in ("failed", "canceled", "expired"):
+        async with get_session() as session:
+            current = await session.get(AlloBooking, booking.id)
+            if current and current.status == "pending":
+                current.status = "canceled"
+                await session.commit()
+                await _settle_credits(session, current.id, paid=False)
+        await callback.message.answer(
+            "Предыдущая оплата уже недоступна. Можно начать запись заново:\n\n"
+            + _walk_card(key)
+            + f"\n\n💶 <b>€{_p(config.ALLO_PRICE_SINGLE)}</b> (с BTW).",
+            reply_markup=_pick_kb(key), disable_web_page_preview=True)
+        await callback.answer("Предыдущая оплата закрыта")
+        return
+    checkout = (payment or {}).get("_links", {}).get("checkout", {}).get("href")
+    rows = []
+    if checkout:
+        rows.append([InlineKeyboardButton(
+            text=f"Оплатить €{_p(booking.amount or config.ALLO_PRICE_SINGLE)} через iDEAL",
+            url=checkout)])
+    rows.append([InlineKeyboardButton(
+        text="🔄 Отменить эту попытку и начать заново",
+        callback_data=f"allo:restart:{key}")])
+    rows.append([InlineKeyboardButton(text="⬅️ К прогулкам", callback_data="allo:menu")])
+    await callback.message.answer(
+        "💳 <b>Оплата ещё не завершена</b>\n\n"
+        f"{_walk_title(key)}\n\n"
+        + ("Можно вернуться к той же оплате или начать заново."
+           if checkout else "Ссылка больше недоступна — начни оплату заново."),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=rows))
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("allo:pending:"))
+async def allo_pending(callback: CallbackQuery) -> None:
+    key = callback.data.split(":", 2)[2]
+    if not _available_walk(key):
+        await callback.answer("Эта прогулка уже недоступна", show_alert=True)
+        return
+    async with get_session() as session:
+        booking = (await _user_pending_bookings(session, callback.from_user.id)).get(key)
+    if not booking:
+        await callback.answer("Незавершённая оплата не найдена. Обнови /allo.",
+                              show_alert=True)
+        return
+    await _show_pending_payment(callback, key, booking)
+
+
+@router.callback_query(F.data.startswith("allo:restart:"))
+async def allo_restart(callback: CallbackQuery, state: FSMContext) -> None:
+    key = callback.data.split(":", 2)[2]
+    if not _available_walk(key):
+        await callback.answer("Эта прогулка уже недоступна", show_alert=True)
+        return
+    async with get_session() as session:
+        await _cancel_pending(session, callback.from_user.id, key)
+    await callback.message.answer(
+        _walk_card(key) + f"\n\n💶 <b>€{_p(config.ALLO_PRICE_SINGLE)}</b> (с BTW). "
+        "Оплачивая, ты принимаешь Правила Allo Walks.",
+        reply_markup=_pick_kb(key), disable_web_page_preview=True)
+    await callback.answer("Предыдущая попытка отменена")
 
 
 @router.callback_query(F.data.startswith("allo:cancelask:"))
@@ -853,6 +969,14 @@ async def allo_email(message: Message, state: FSMContext) -> None:
 
     async with get_session() as session:
         await _expire_stale_holds(session, message.from_user.id)
+        if key in await _user_booked_dates(session, message.from_user.id):
+            await message.answer(
+                "Ты уже записан(а) на эту прогулку ✅ Открой /allo, чтобы посмотреть запись.",
+                reply_markup=main_menu())
+            return
+        # Пользователь мог открыть iDEAL, закрыть его и пройти форму повторно.
+        # Новая попытка заменяет прежнюю, чтобы один человек не держал два места.
+        await _cancel_pending(session, message.from_user.id, key)
         if not await _remaining(session, key) > 0:
             await message.answer("Пока ты вводил e-mail, места закончились 😔 "
                                  "Выбери другую дату: /allo", reply_markup=main_menu())
@@ -983,9 +1107,12 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
             return
         if status != "paid" or booking.status == "paid":
             return
-        if booking.status == "expired":
-            # Место уже освободилось после часового hold. Поздний платёж нельзя
-            # молча превратить в запись: это могло бы переполнить группу.
+        if booking.status != "pending":
+            # Место уже освободилось после истечения hold или пользователь начал
+            # оплату заново. Старую ссылку всё ещё могли оплатить, но такой платёж
+            # нельзя молча превратить в запись: группа могла уже заполниться.
+            if booking.status in ("refund_requested", "refunded"):
+                return
             booking.status = "refund_requested"
             uid = booking.user_id
             first, uname = booking.first_name, booking.username
