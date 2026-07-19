@@ -188,6 +188,38 @@ async def test_allo_capacity() -> None:
               other not in await A._user_booked_dates(s, 903))
         check("протухшая бронь переведена в expired",
               await A._expire_stale_holds(s, 903) == 1)
+    # Свежая неоплата держит место, но не выдаётся за подтверждённую запись.
+    pending_key = "2099-12-28"
+    async with db.get_session() as s:
+        pending = AlloBooking(walk_key=pending_key, plan="single", user_id=904,
+                              status="pending", payment_id="tr_open")
+        s.add(pending)
+        await s.commit()
+        await s.refresh(pending)
+        pending_id = pending.id
+    async with db.get_session() as s:
+        check("свежая неоплата временно держит место",
+              await A._taken(s, pending_key) == 1)
+        check("неоплата не помечает пользователя записанным",
+              pending_key not in await A._user_booked_dates(s, 904))
+        pending_rows = await A._user_pending_bookings(s, 904)
+        check("незавершённую оплату можно продолжить",
+              pending_rows.get(pending_key) is not None)
+        check("повторная попытка освобождает прежнее место",
+              await A._cancel_pending(s, 904, pending_key) == 1)
+    async with db.get_session() as s:
+        check("отменённая попытка больше не держит место",
+              await A._taken(s, pending_key) == 0)
+    class _Bot:
+        async def send_message(self, *args, **kwargs):
+            return None
+    await A.on_allo_payment_paid(
+        _Bot(), "tr_open",
+        {"status": "paid", "metadata": {"booking_id": pending_id}})
+    async with db.get_session() as s:
+        canceled = await s.get(AlloBooking, pending_id)
+        check("оплата по отменённой старой ссылке отправляется на возврат",
+              canceled.status == "refund_requested")
     # ручное закрытие даты (/alloclose): свободных мест нет, хотя броней нет
     close_key = "2099-12-29"
     async with db.get_session() as s:
