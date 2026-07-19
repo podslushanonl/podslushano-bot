@@ -167,7 +167,7 @@ async def test_allo_capacity() -> None:
     async with db.get_session() as s:
         check("разовая+списание заняли 2 места", await A._taken(s, keys[0]) == b0 + 2)
         check("покупка абонемента не занимает место на других датах",
-              await A._taken(s, keys[1]) == 0)
+              await A._taken(s, "2099-12-30") == 0)
         # абонемент активен, 1 списание → осталось credits-1
         _p, rem, _vu = await A._active_pass(s, 901)
         check("у абонемента списалась 1 прогулка",
@@ -184,21 +184,59 @@ async def test_allo_capacity() -> None:
     async with db.get_session() as s:
         check("просроченная неоплата не занимает место",
               await A._taken(s, other) == before)
+        check("просроченная неоплата не блокирует пользователя",
+              other not in await A._user_booked_dates(s, 903))
+        check("протухшая бронь переведена в expired",
+              await A._expire_stale_holds(s, 903) == 1)
     # ручное закрытие даты (/alloclose): свободных мест нет, хотя броней нет
+    close_key = "2099-12-29"
     async with db.get_session() as s:
         check("до закрытия есть свободные места",
-              await A._remaining(s, keys[1]) > 0)
-        await s.merge(Meta(key=A._closed_key(keys[1]), value="closed"))
+              await A._remaining(s, close_key) > 0)
+        await s.merge(Meta(key=A._closed_key(close_key), value="closed"))
         await s.commit()
     async with db.get_session() as s:
         check("закрытая дата показывает 0 мест",
-              await A._remaining(s, keys[1]) == 0)
-        m = await s.get(Meta, A._closed_key(keys[1]))
+              await A._remaining(s, close_key) == 0)
+        m = await s.get(Meta, A._closed_key(close_key))
         await s.delete(m)
         await s.commit()
     async with db.get_session() as s:
         check("после открытия места вернулись",
-              await A._remaining(s, keys[1]) > 0)
+              await A._remaining(s, close_key) > 0)
+
+    # Отмена списания абонемента: раньше 24 ч возвращает кредит; поздняя
+    # отмена помечается forfeited и остаётся использованной.
+    async with db.get_session() as s:
+        used = (await s.scalars(select(AlloBooking).where(
+            AlloBooking.user_id == 901, AlloBooking.plan == "use"))).first()
+        used.status = "canceled"
+        await s.commit()
+    async with db.get_session() as s:
+        _p, rem, _vu = await A._active_pass(s, 901)
+        check("своевременная отмена вернула прогулку в абонемент",
+              rem == config.ALLO_PASS_CREDITS)
+        used = (await s.scalars(select(AlloBooking).where(
+            AlloBooking.user_id == 901, AlloBooking.plan == "use"))).first()
+        used.status = "forfeited"
+        await s.commit()
+    async with db.get_session() as s:
+        _p, rem, _vu = await A._active_pass(s, 901)
+        check("поздняя отмена не вернула прогулку в абонемент",
+              rem == config.ALLO_PASS_CREDITS - 1)
+
+
+def test_allo_schedule() -> None:
+    """В боте одна прогулка; после старта она автоматически исчезает."""
+    from datetime import datetime
+    before = datetime.fromisoformat("2026-07-19T10:00:00+02:00")
+    after = datetime.fromisoformat("2026-07-25T11:01:00+02:00")
+    walks = config.available_allo_walks(before)
+    check("доступна только прогулка Nijmegen 25 июля",
+          len(walks) == 1 and walks[0]["key"] == "2026-07-25")
+    check("вместимость Allo Walks = 8", config.ALLO_WALK_CAPACITY == 8)
+    check("прошедшая прогулка автоматически скрывается",
+          config.available_allo_walks(after) == [])
 
 
 async def test_allo_referral() -> None:
@@ -284,6 +322,7 @@ async def main() -> None:
     await test_reseed_keeps_edited_premium_card()
     await test_premiums_query()
     await test_allo_capacity()
+    test_allo_schedule()
     await test_allo_referral()
     test_wordpress_util()
     test_detect_category_basic()

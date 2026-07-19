@@ -271,7 +271,8 @@ class AlloBooking(Base):
     first_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     email: Mapped[str | None] = mapped_column(String(200), nullable=True)
     amount: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    # pending (ждёт оплаты) | paid | canceled | failed | refunded
+    # pending | paid | expired | canceled | forfeited | canceled_no_refund |
+    # refund_requested | refunded
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     payment_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     agreed: Mapped[bool] = mapped_column(Boolean, default=False)
