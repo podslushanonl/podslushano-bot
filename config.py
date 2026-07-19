@@ -127,7 +127,7 @@ LISTING_PRICE_YEAR_PREMIUM: str = os.getenv("LISTING_PRICE_YEAR_PREMIUM", "199.0
 # Лояльный тариф для «старожилов» — карточек из старого бессрочного контакт-гайда
 LISTING_PRICE_MONTH_LEGACY: str = os.getenv("LISTING_PRICE_MONTH_LEGACY", "4.99")
 LISTING_PRICE_YEAR_LEGACY: str = os.getenv("LISTING_PRICE_YEAR_LEGACY", "29.00")
-# --- Allo Walks (прогулки: разовая или абонемент на 3) -----------------------
+# --- Allo Walks (разовая прогулка; ранее проданные абонементы продолжают жить) -
 # Цены строкой, как требует Mollie. С BTW 21% внутри.
 ALLO_PRICE_SINGLE: str = os.getenv("ALLO_PRICE_SINGLE", "35.00")
 ALLO_PRICE_PASS: str = os.getenv("ALLO_PRICE_PASS", "90.00")
@@ -142,15 +142,16 @@ except ValueError:
 ALLO_REFERRAL_BONUS: int = 10
 ALLO_MIN_CHARGE: float = 5.0
 try:
-    ALLO_WALK_CAPACITY: int = int(os.getenv("ALLO_WALK_CAPACITY", "7"))
+    ALLO_WALK_CAPACITY: int = int(os.getenv("ALLO_WALK_CAPACITY", "8"))
 except ValueError:
-    ALLO_WALK_CAPACITY = 7
+    ALLO_WALK_CAPACITY = 8
 # Закрытый чат участников — ссылку шлём каждому после оплаты.
 ALLO_CHAT_URL: str = os.getenv("ALLO_CHAT_URL", "https://t.me/+peVFBZ4hOdY1ZDg6")
 # Расписание прогулок. key — устойчивый идентификатор (дата), по нему считаем места.
 ALLO_WALKS: list[dict] = [
     {
         "key": "2026-07-25",
+        "starts_at": "2026-07-25T11:00:00+02:00",
         "date": "25 июля · суббота",
         "title": "Nijmegen + Ooijpolder",
         "meet": "Nijmegen Centraal · 11:00",
@@ -160,22 +161,23 @@ ALLO_WALKS: list[dict] = [
                  "старые кирпичные заводы и виды. Природный маршрут, часть — по "
                  "грунтовым тропам. Собаки — на поводке."),
     },
-    {
-        "key": "2026-08-08",
-        "date": "8 августа · суббота",
-        "title": "Utrecht — каналы и werven",
-        "meet": "Utrecht Centraal · 11:00",
-        "finish": "центр Utrecht / Oudegracht",
-        "dur": "≈3 часа + кофе",
-        "desc": ("Wandelroute «Grachten en Werven» (2,6 км): каналы Oudegracht, werven "
-                 "и werfkelders, Dom, Stadhuis. Лёгкая городская прогулка + кофе у воды."),
-    },
 ]
 
 
 def allo_walk(key: str) -> dict | None:
     """Прогулка по ключу-дате, или None."""
     return next((w for w in ALLO_WALKS if w["key"] == key), None)
+
+
+def available_allo_walks(now: "datetime | None" = None) -> list[dict]:
+    """Только будущие прогулки — прошедшие автоматически исчезают из бота."""
+    current = now or datetime.now().astimezone()
+    if current.tzinfo is None:
+        current = current.astimezone()
+    return [
+        w for w in ALLO_WALKS
+        if datetime.fromisoformat(w["starts_at"]).astimezone(current.tzinfo) > current
+    ]
 
 
 # Цена размещения одного мероприятия в афише месяца (строкой, как требует Mollie)
