@@ -26,7 +26,7 @@ import database.db as db  # noqa: E402
 importlib.reload(db)
 
 from sqlalchemy import select  # noqa: E402
-from database.models import Meta, Specialist  # noqa: E402
+from database.models import Meta, Specialist, SpecialistReminderLog  # noqa: E402
 
 _fails: list[str] = []
 
@@ -148,6 +148,108 @@ async def test_reseed_keeps_edited_premium_card() -> None:
           bool(sp) and "fancy_beauty_space" in (sp.contact or ""),
           f"контакт: {sp.contact if sp else '—'}")
     check("id правленой карточки сохранён", bool(sp) and sp.id == old_id)
+
+
+async def test_specialist_reminder_delivery_log() -> None:
+    """Флаг ставится только после доставки; успех и ошибка видны в журнале."""
+    import handlers.selfadd as S
+    from datetime import datetime, timedelta
+
+    now = datetime.utcnow()
+    async with db.get_session() as session:
+        ok = Specialist(
+            name="Reminder OK", category="еда", city="", province="Gelderland",
+            source="self", status="active", submitter_user_id=8801,
+            paid_until=now + timedelta(days=3), plan="month",
+            renewal_reminded=False,
+        )
+        fail = Specialist(
+            name="Reminder FAIL", category="еда", city="", province="Gelderland",
+            source="self", status="active", submitter_user_id=8802,
+            paid_until=now + timedelta(days=3), plan="month",
+            renewal_reminded=False,
+        )
+        expired = Specialist(
+            name="Reminder EXPIRED", category="еда", city="", province="Gelderland",
+            source="self", status="active", submitter_user_id=8803,
+            paid_until=now - timedelta(hours=1), plan="month",
+            renewal_reminded=True,
+        )
+        historical = Specialist(
+            name="Reminder HISTORICAL", category="еда", city="", province="Gelderland",
+            source="self", status="expired", submitter_user_id=8804,
+            paid_until=now - timedelta(hours=1), plan="month",
+            renewal_reminded=True,
+        )
+        session.add_all([ok, fail, expired, historical])
+        await session.commit()
+        await session.refresh(ok); await session.refresh(fail); await session.refresh(expired)
+        await session.refresh(historical)
+        ok_id, fail_id, expired_id, historical_id = (
+            ok.id, fail.id, expired.id, historical.id,
+        )
+
+    class _Msg:
+        message_id = 4321
+
+    class _Bot:
+        def __init__(self):
+            self.user_calls = []
+
+        async def send_message(self, chat_id, *args, **kwargs):
+            if chat_id in (8801, 8802, 8803, 8804):
+                self.user_calls.append(chat_id)
+            if chat_id == 8802:
+                raise RuntimeError("bot was blocked")
+            return _Msg()
+
+    bot = _Bot()
+    await S._send_renewal_reminders(bot)
+    async with db.get_session() as session:
+        ok = await session.get(Specialist, ok_id)
+        fail = await session.get(Specialist, fail_id)
+        ok_log = (await session.scalars(select(SpecialistReminderLog).where(
+            SpecialistReminderLog.specialist_id == ok_id,
+            SpecialistReminderLog.kind == "renewal"))).first()
+        fail_log = (await session.scalars(select(SpecialistReminderLog).where(
+            SpecialistReminderLog.specialist_id == fail_id,
+            SpecialistReminderLog.kind == "renewal"))).first()
+    check("успешное напоминание отмечено только после доставки",
+          ok.renewal_reminded is True and ok_log.status == "sent"
+          and ok_log.telegram_message_id == 4321)
+    check("ошибка доставки оставляет напоминание неотправленным",
+          fail.renewal_reminded is False and fail_log.status == "failed"
+          and "bot was blocked" in (fail_log.error_text or ""))
+
+    # Повторный 12-часовой цикл не должен долбить пользователя: после ошибки
+    # повторяем не чаще раза в сутки.
+    before = bot.user_calls.count(8802)
+    await S._send_renewal_reminders(bot)
+    check("ошибка не повторяется чаще раза в сутки",
+          bot.user_calls.count(8802) == before)
+
+    await S._send_expiry_notices(bot)
+    async with db.get_session() as session:
+        expired = await session.get(Specialist, expired_id)
+        expiry_log = (await session.scalars(select(SpecialistReminderLog).where(
+            SpecialistReminderLog.specialist_id == expired_id,
+            SpecialistReminderLog.kind == "expiry"))).first()
+        historical_log = (await session.scalars(select(SpecialistReminderLog).where(
+            SpecialistReminderLog.specialist_id == historical_id,
+            SpecialistReminderLog.kind == "expiry"))).first()
+    check("истёкшая карточка скрыта", expired.status == "expired")
+    check("доставка уведомления об окончании записана",
+          bool(expiry_log) and expiry_log.status == "sent")
+    check("старым истёкшим карточкам не шлём задним числом",
+          historical_log is None and 8804 not in bot.user_calls)
+
+    import handlers.admin as Admin
+    dashboard = await Admin._renewals_dashboard_text()
+    check("админ видит подтверждённые и неудачные отправки",
+          "Reminder OK" in dashboard and "Reminder FAIL" in dashboard
+          and "msg 4321" in dashboard and "ошибка" in dashboard)
+    check("панель напоминаний помещается в сообщение Telegram",
+          len(dashboard) < 4096, f"символов: {len(dashboard)}")
 
 
 async def test_allo_capacity() -> None:
@@ -352,6 +454,7 @@ async def main() -> None:
     await test_reseed_preserves_premium()
     await test_reseed_ids_stable_all()
     await test_reseed_keeps_edited_premium_card()
+    await test_specialist_reminder_delivery_log()
     await test_premiums_query()
     await test_allo_capacity()
     test_allo_schedule()

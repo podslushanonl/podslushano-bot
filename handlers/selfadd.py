@@ -23,7 +23,7 @@ from sqlalchemy import select
 
 import config
 from database.db import get_session
-from database.models import Meta, Specialist
+from database.models import Meta, Specialist, SpecialistReminderLog
 from keyboards.menus import BTN_SELF_ADD, cancel_menu, main_menu
 from states.forms import ClaimPay, SelfAddSpecialist
 from utils.ai import extract_specialist_query
@@ -501,6 +501,136 @@ async def _safe_send(bot, chat_id, text, reply_markup=None) -> None:
         log.warning("Не удалось отправить сообщение %s: %s", chat_id, e)
 
 
+def renewal_reminder_text(sp: Specialist) -> str:
+    """Точный текст автоматического напоминания за 7 дней."""
+    return (
+        f"⏳ Размещение «{html.escape(sp.name)}» в гайде заканчивается "
+        f"{sp.paid_until:%d.%m.%Y}.\n"
+        f"Продлить ({_price_str(sp.plan or 'year')})?"
+    )
+
+
+def expiry_notice_text(sp: Specialist) -> str:
+    """Точный текст уведомления после скрытия просроченной карточки."""
+    return (
+        f"❌ Срок размещения «{html.escape(sp.name)}» в гайде истёк, "
+        f"и карточка скрыта из поиска.\n"
+        f"Хочешь вернуть её? Продли ({_price_str(sp.plan or 'year')}) 👇"
+    )
+
+
+def _renewal_kb(sid: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[[
+            InlineKeyboardButton(text="🔁 Продлить", callback_data=f"specrenew:{sid}")
+        ]]
+    )
+
+
+async def _reminder_attempt_allowed(sp: Specialist, kind: str) -> bool:
+    """Не дублирует успешную доставку и повторяет ошибку не чаще раза в сутки."""
+    async with get_session() as session:
+        last = (
+            await session.scalars(
+                select(SpecialistReminderLog)
+                .where(
+                    SpecialistReminderLog.specialist_id == sp.id,
+                    SpecialistReminderLog.kind == kind,
+                    SpecialistReminderLog.paid_until == sp.paid_until,
+                )
+                .order_by(SpecialistReminderLog.created_at.desc(),
+                          SpecialistReminderLog.id.desc())
+                .limit(1)
+            )
+        ).first()
+    if last is None:
+        return True
+    if last.status == "sent":
+        return False
+    attempted = last.created_at or datetime.min
+    return attempted <= datetime.utcnow() - timedelta(hours=24)
+
+
+async def _notify_admin_reminder_result(bot, sp: Specialist, kind: str,
+                                        sent: bool, message_id: int | None,
+                                        error: str | None) -> None:
+    label = "за 7 дней" if kind == "renewal" else "об окончании срока"
+    if sent:
+        text = (
+            f"✅ <b>Telegram подтвердил отправку</b>\n"
+            f"#{sp.id} {html.escape(sp.name)} · {label}\n"
+            f"Telegram message ID: <code>{message_id}</code>"
+        )
+    else:
+        text = (
+            f"❌ <b>Telegram не отправил напоминание</b>\n"
+            f"#{sp.id} {html.escape(sp.name)} · {label}\n"
+            f"Причина: <code>{html.escape((error or 'неизвестная ошибка')[:500])}</code>\n"
+            f"Повторить вручную: <code>/renewalsend {sp.id} {kind}</code>"
+        )
+    for admin_id in config.ADMIN_IDS:
+        try:
+            await bot.send_message(admin_id, text)
+        except Exception as e:  # noqa: BLE001
+            log.warning("Не удалось отправить результат напоминания админу %s: %s",
+                        admin_id, e)
+
+
+async def send_specialist_reminder(bot, sp: Specialist, kind: str,
+                                   *, force: bool = False) -> bool:
+    """Отправляет, логирует результат и возвращает подтверждение Telegram API.
+
+    ``force`` используется только админ-командой ручной повторной отправки.
+    Автоматический цикл не дублирует уже доставленное сообщение и повторяет
+    неудачную попытку максимум раз в 24 часа.
+    """
+    if kind not in ("renewal", "expiry"):
+        raise ValueError(f"unknown reminder kind: {kind}")
+    if not sp.submitter_user_id or not sp.paid_until:
+        return False
+    if not force and not await _reminder_attempt_allowed(sp, kind):
+        return False
+
+    text = renewal_reminder_text(sp) if kind == "renewal" else expiry_notice_text(sp)
+    sent = False
+    message_id = None
+    error = None
+    try:
+        msg = await bot.send_message(
+            sp.submitter_user_id,
+            text,
+            reply_markup=_renewal_kb(sp.id),
+        )
+        sent = True
+        message_id = getattr(msg, "message_id", None)
+    except Exception as e:  # noqa: BLE001
+        error = f"{type(e).__name__}: {e}"
+        log.warning("Не удалось доставить напоминание карточки #%s пользователю %s: %s",
+                    sp.id, sp.submitter_user_id, error)
+
+    async with get_session() as session:
+        session.add(SpecialistReminderLog(
+            specialist_id=sp.id,
+            user_id=sp.submitter_user_id,
+            kind=kind,
+            paid_until=sp.paid_until,
+            status="sent" if sent else "failed",
+            message_text=text,
+            telegram_message_id=message_id,
+            error_text=error,
+        ))
+        current = await session.get(Specialist, sp.id)
+        # Галочка означает только подтверждённую Telegram-доставку и только для
+        # того же оплаченного периода (за время отправки карточку могли продлить).
+        if (sent and kind == "renewal" and current
+                and current.paid_until == sp.paid_until):
+            current.renewal_reminded = True
+        await session.commit()
+
+    await _notify_admin_reminder_result(bot, sp, kind, sent, message_id, error)
+    return sent
+
+
 # --- Реферальная программа в гайде ------------------------------------------
 
 async def start_specialist_referral(message: Message, ref_sid: int) -> None:
@@ -859,26 +989,18 @@ async def _send_renewal_reminders(bot) -> None:
                 )
             )
         ).all()
-        targets = [(s.submitter_user_id, s.id, s.name, s.paid_until, s.plan or "year") for s in rows]
-        for s in rows:
-            s.renewal_reminded = True
-        await session.commit()
-
-    for uid, sid, name, until, plan in targets:
-        kb = InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text="🔁 Продлить", callback_data=f"specrenew:{sid}")]]
-        )
-        await _safe_send(
-            bot, uid,
-            f"⏳ Размещение «{name}» в гайде заканчивается {until:%d.%m.%Y}.\n"
-            f"Продлить ({_price_str(plan)})?",
-            kb,
-        )
+    for sp in rows:
+        await send_specialist_reminder(bot, sp, "renewal")
 
 
 async def _send_expiry_notices(bot) -> None:
-    """Уведомляет, когда оплаченный срок истёк: карточку скрываем (expired)
-    и предлагаем продлить. Шлём один раз — статус меняется на expired."""
+    """Скрывает просроченные карточки и контролирует доставку уведомления.
+
+    Неудачную доставку повторяем раз в сутки в течение 7 дней. Карточкам,
+    которые были скрыты старой версией бота до появления журнала, ничего
+    задним числом автоматически не отправляем: админ может сделать это явно
+    командой /renewalsend.
+    """
     now = datetime.utcnow()
     async with get_session() as session:
         rows = (
@@ -892,18 +1014,43 @@ async def _send_expiry_notices(bot) -> None:
                 )
             )
         ).all()
-        targets = [(s.submitter_user_id, s.id, s.name, s.plan or "year") for s in rows]
+        newly_expired_ids = {s.id for s in rows}
         for s in rows:
             s.status = "expired"
         await session.commit()
 
-    for uid, sid, name, plan in targets:
-        kb = InlineKeyboardMarkup(
-            inline_keyboard=[[InlineKeyboardButton(text="🔁 Продлить", callback_data=f"specrenew:{sid}")]]
-        )
-        await _safe_send(
-            bot, uid,
-            f"❌ Срок размещения «{name}» в гайде истёк, и карточка скрыта из поиска.\n"
-            f"Хочешь вернуть её? Продли ({_price_str(plan)}) 👇",
-            kb,
-        )
+    async with get_session() as session:
+        recent_expired = (
+            await session.scalars(
+                select(Specialist).where(
+                    Specialist.source == "self",
+                    Specialist.status == "expired",
+                    Specialist.paid_until.is_not(None),
+                    Specialist.paid_until <= now,
+                    Specialist.paid_until >= now - timedelta(days=7),
+                    Specialist.submitter_user_id.is_not(None),
+                )
+            )
+        ).all()
+    for sp in recent_expired:
+        if sp.id in newly_expired_ids:
+            await send_specialist_reminder(bot, sp, "expiry")
+            continue
+        # Повторяем только документированную неудачную попытку новой системы.
+        # Отсутствие лога означает старую карточку — её не трогаем автоматически.
+        async with get_session() as session:
+            last = (
+                await session.scalars(
+                    select(SpecialistReminderLog)
+                    .where(
+                        SpecialistReminderLog.specialist_id == sp.id,
+                        SpecialistReminderLog.kind == "expiry",
+                        SpecialistReminderLog.paid_until == sp.paid_until,
+                    )
+                    .order_by(SpecialistReminderLog.created_at.desc(),
+                              SpecialistReminderLog.id.desc())
+                    .limit(1)
+                )
+            ).first()
+        if last is not None and last.status == "failed":
+            await send_specialist_reminder(bot, sp, "expiry")
