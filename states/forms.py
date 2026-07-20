@@ -35,6 +35,14 @@ class EventsSearch(StatesGroup):
     waiting_city = State()
 
 
+class DigestSetup(StatesGroup):
+    """Настройка города, радиуса и тем еженедельной подборки."""
+
+    waiting_city = State()
+    choosing_radius = State()
+    choosing_topics = State()
+
+
 class SupportContact(StatesGroup):
     """Обращение в поддержку: пользователь пишет, бот пересылает админам."""
 

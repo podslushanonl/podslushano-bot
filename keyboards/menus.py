@@ -27,6 +27,7 @@ BTN_CABINET = "👤 Личный кабинет"
 BTN_STICKERS = "🎨 Наши стикеры"
 BTN_CONTACT = "✉️ Связаться с нами"
 BTN_SHARE = "📣 Поделиться ботом"
+BTN_SUBSCRIPTIONS = "🔔 Мои подписки"
 BTN_CANCEL = "❌ Отмена"
 # Разделы главного меню — открывают подменю (чтобы не было «стены» кнопок)
 BTN_SERVICES = "🛠 Сервисы"
@@ -42,6 +43,7 @@ def main_menu() -> ReplyKeyboardMarkup:
         [KeyboardButton(text=BTN_GUIDE)],
         [KeyboardButton(text=BTN_BOARD)],
         [KeyboardButton(text=events_button_label())],  # ☀️/🍂/❄️/🌷 Чем заняться
+        [KeyboardButton(text=BTN_SUBSCRIPTIONS)],
         [KeyboardButton(text=BTN_SUBMIT)],
         [KeyboardButton(text=BTN_SERVICES), KeyboardButton(text=BTN_FOR_SPECIALISTS)],
         [KeyboardButton(text=BTN_MORE)],

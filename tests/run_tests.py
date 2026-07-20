@@ -26,7 +26,16 @@ import database.db as db  # noqa: E402
 importlib.reload(db)
 
 from sqlalchemy import select  # noqa: E402
-from database.models import Meta, Specialist, SpecialistReminderLog  # noqa: E402
+from database.models import (  # noqa: E402
+    BotUser,
+    DigestDeliveryLog,
+    DigestPreference,
+    EventListing,
+    Listing,
+    Meta,
+    Specialist,
+    SpecialistReminderLog,
+)
 
 _fails: list[str] = []
 
@@ -417,6 +426,78 @@ async def test_premiums_query() -> None:
           "Fancy Beauty Space" in names, f"в списке: {sorted(names)}")
 
 
+async def test_personal_digest() -> None:
+    """Георадиус и секции персональной подборки работают на данных бота."""
+    from datetime import date
+    from handlers.digest import build_digest, location_matches
+
+    pref = DigestPreference(
+        user_id=7001, city="Utrecht", province="Utrecht", radius_km=25,
+        topics_csv="events,specialists,board", enabled=True,
+    )
+    check("подборка: Amersfoort попадает в радиус 25 км",
+          location_matches(pref, "Amersfoort"))
+    check("подборка: Amsterdam не попадает в радиус 25 км",
+          not location_matches(pref, "Amsterdam"))
+    exact = DigestPreference(
+        user_id=7002, city="Utrecht", province="Utrecht", radius_km=0,
+        topics_csv="events", enabled=True,
+    )
+    check("подборка: режим города не захватывает соседний город",
+          not location_matches(exact, "Amersfoort"))
+
+    month = f"{date.today():%Y-%m}"
+    async with db.get_session() as session:
+        session.add(BotUser(user_id=7001, first_name="Digest", is_blocked=False))
+        session.add(pref)
+        session.add(EventListing(
+            title="Digest test event", description="test", city="Amersfoort",
+            is_nationwide=False, event_date="суббота", month_key=month,
+            status="approved",
+        ))
+        session.add(Specialist(
+            name="Digest test specialist", category="фотограф", city="Amersfoort",
+            province="Utrecht", description="test", contact="@test", source="self",
+            status="active",
+        ))
+        session.add(Listing(
+            category="goods", title="Digest test listing", city="Amersfoort",
+            is_nationwide=False, status="approved",
+        ))
+        await session.commit()
+    text = await build_digest(pref)
+    check("подборка содержит локальное мероприятие", "Digest test event" in text)
+    check("подборка содержит локального специалиста", "Digest test specialist" in text)
+    check("подборка содержит локальное объявление", "Digest test listing" in text)
+    check("подборка помещается в сообщение Telegram", len(text) < 4096, str(len(text)))
+
+    class FakeBot:
+        def __init__(self):
+            self.calls = []
+
+        async def send_message(self, chat_id, text, **kwargs):
+            self.calls.append(chat_id)
+            return type("Sent", (), {"message_id": 991})()
+
+    from handlers.digest import _send_all_digests, _week_key
+    bot = FakeBot()
+    await _send_all_digests(bot, admin_id=1)
+    async with db.get_session() as session:
+        saved = await session.get(DigestPreference, 7001)
+        delivery = (await session.scalars(select(DigestDeliveryLog).where(
+            DigestDeliveryLog.user_id == 7001,
+            DigestDeliveryLog.week_key == _week_key(),
+        ))).first()
+    check("успешная подборка отмечена отправленной на этой неделе",
+          saved.last_sent_week == _week_key())
+    check("доставка подборки записана с Telegram message ID",
+          bool(delivery) and delivery.status == "sent" and delivery.telegram_message_id == 991)
+    before = bot.calls.count(7001)
+    await _send_all_digests(bot, admin_id=1)
+    check("одна подборка не отправляется дважды за неделю",
+          bot.calls.count(7001) == before)
+
+
 def test_wordpress_util() -> None:
     import utils.wordpress as wp
     check("публикация на сайт выключена без настроек", wp.wp_enabled() is False)
@@ -456,6 +537,7 @@ async def main() -> None:
     await test_reseed_keeps_edited_premium_card()
     await test_specialist_reminder_delivery_log()
     await test_premiums_query()
+    await test_personal_digest()
     await test_allo_capacity()
     test_allo_schedule()
     await test_allo_referral()

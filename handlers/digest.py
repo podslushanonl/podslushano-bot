@@ -1,0 +1,623 @@
+"""Персональная еженедельная подборка «Планы на выходные».
+
+Пользователь сам выбирает город, радиус и темы. Рассылка использует только
+проверяемые данные бота; живой веб-поиск запускается отдельной кнопкой.
+Автоматический цикл по четвергам готовит напоминание админу, но ничего не
+рассылает без явного подтверждения.
+"""
+import asyncio
+import html
+import logging
+import math
+from datetime import date, datetime, timedelta
+from zoneinfo import ZoneInfo
+
+from aiogram import F, Router
+from aiogram.enums import ChatType
+from aiogram.exceptions import TelegramForbiddenError
+from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+from sqlalchemy import func, or_, select
+
+import config
+from database.db import get_session
+from database.models import (
+    BotUser,
+    DigestDeliveryLog,
+    DigestPreference,
+    EventListing,
+    Listing,
+    Meta,
+    Specialist,
+)
+from keyboards.menus import BTN_SUBSCRIPTIONS, cancel_menu, main_menu
+from states.forms import DigestSetup
+from utils.geo import detect_city, province_of_city
+
+log = logging.getLogger(__name__)
+router = Router()
+router.message.filter(F.chat.type == ChatType.PRIVATE)
+
+TOPICS = {
+    "events": "🎭 События",
+    "walks": "🚶 Allo Walks",
+    "specialists": "🔍 Новые специалисты",
+    "board": "📋 Объявления",
+    "guides": "📚 Полезное о жизни в NL",
+}
+DEFAULT_TOPICS = {"events", "walks"}
+RADIUS_LABELS = {0: "только мой город", 25: "до 25 км", 50: "до 50 км", 999: "вся страна"}
+
+# Координаты нужны только для локальной фильтрации уже сохранённых карточек.
+# Если города нет в справочнике, безопасный fallback — точное совпадение города.
+CITY_COORDS = {
+    "Amsterdam": (52.3676, 4.9041), "Haarlem": (52.3874, 4.6462),
+    "Alkmaar": (52.6324, 4.7534), "Zaandam": (52.4385, 4.8264),
+    "Hilversum": (52.2292, 5.1669), "Amstelveen": (52.3026, 4.8462),
+    "Hoofddorp": (52.3061, 4.6907), "Rotterdam": (51.9244, 4.4777),
+    "Den Haag": (52.0705, 4.3007), "Leiden": (52.1601, 4.4970),
+    "Delft": (52.0116, 4.3571), "Dordrecht": (51.8133, 4.6901),
+    "Zoetermeer": (52.0607, 4.4940), "Utrecht": (52.0907, 5.1214),
+    "Amersfoort": (52.1561, 5.3878), "Eindhoven": (51.4416, 5.4697),
+    "Tilburg": (51.5555, 5.0913), "Breda": (51.5719, 4.7683),
+    "Den Bosch": (51.6978, 5.3037), "Helmond": (51.4793, 5.6570),
+    "Maastricht": (50.8514, 5.6910), "Venlo": (51.3704, 6.1724),
+    "Heerlen": (50.8882, 5.9795), "Arnhem": (51.9851, 5.8987),
+    "Nijmegen": (51.8426, 5.8528), "Apeldoorn": (52.2112, 5.9699),
+    "Ede": (52.0402, 5.6649), "Zwolle": (52.5168, 6.0830),
+    "Enschede": (52.2215, 6.8937), "Deventer": (52.2661, 6.1552),
+    "Almere": (52.3508, 5.2647), "Lelystad": (52.5185, 5.4714),
+    "Groningen": (53.2194, 6.5665), "Leeuwarden": (53.2012, 5.7999),
+    "Assen": (52.9928, 6.5642), "Emmen": (52.7858, 6.8976),
+    "Middelburg": (51.4988, 3.6109),
+}
+
+
+def _topics(csv: str | None) -> set[str]:
+    return {x for x in (csv or "").split(",") if x in TOPICS}
+
+
+def _topics_csv(items: set[str]) -> str:
+    return ",".join(key for key in TOPICS if key in items)
+
+
+def _week_key(now: datetime | None = None) -> str:
+    current = now or datetime.now(ZoneInfo("Europe/Amsterdam"))
+    year, week, _ = current.isocalendar()
+    return f"{year}-W{week:02d}"
+
+
+def _weekend_label(today: date | None = None) -> str:
+    current = today or datetime.now(ZoneInfo("Europe/Amsterdam")).date()
+    days = (5 - current.weekday()) % 7
+    saturday = current + timedelta(days=days)
+    sunday = saturday + timedelta(days=1)
+    return f"{saturday:%d.%m}–{sunday:%d.%m}"
+
+
+def _canonical_city(raw: str) -> tuple[str, str]:
+    known = detect_city(raw)
+    if known:
+        return known
+    city = " ".join(raw.strip().split())[:100]
+    return city, province_of_city(city) or ""
+
+
+def _distance_km(a: str, b: str) -> float | None:
+    ca, cb = CITY_COORDS.get(a), CITY_COORDS.get(b)
+    if not ca or not cb:
+        return None
+    lat1, lon1, lat2, lon2 = map(math.radians, (*ca, *cb))
+    dlat, dlon = lat2 - lat1, lon2 - lon1
+    h = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    return 6371 * 2 * math.asin(math.sqrt(h))
+
+
+def location_matches(pref: DigestPreference, target_city: str,
+                     *, nationwide: bool = False, target_province: str = "") -> bool:
+    """Проверяем, попадает ли карточка в выбранный пользователем радиус."""
+    if nationwide or pref.radius_km == 999:
+        return True
+    city, province = _canonical_city(target_city) if target_city else ("", target_province)
+    if city.casefold() == pref.city.casefold():
+        return True
+    if pref.radius_km == 0 or not city:
+        return False
+    distance = _distance_km(pref.city, city)
+    if distance is not None:
+        return distance <= pref.radius_km
+    # Для неизвестных координат ничего не угадываем; при 50 км допускаем ту же
+    # провинцию как прозрачный и достаточно консервативный fallback.
+    return bool(pref.radius_km >= 50 and pref.province and province == pref.province)
+
+
+def _radius_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="🏙 Только мой город", callback_data="dg:r:0")],
+        [InlineKeyboardButton(text="🚲 До 25 км", callback_data="dg:r:25"),
+         InlineKeyboardButton(text="🚆 До 50 км", callback_data="dg:r:50")],
+        [InlineKeyboardButton(text="🇳🇱 Вся страна", callback_data="dg:r:999")],
+    ])
+
+
+def _topics_kb(selected: set[str]) -> InlineKeyboardMarkup:
+    rows = []
+    for key, label in TOPICS.items():
+        mark = "✅" if key in selected else "▫️"
+        rows.append([InlineKeyboardButton(text=f"{mark} {label}", callback_data=f"dg:t:{key}")])
+    rows.append([InlineKeyboardButton(text="Готово →", callback_data="dg:t:done")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def _settings_kb(pref: DigestPreference) -> InlineKeyboardMarkup:
+    toggle = "🔕 Отключить подборку" if pref.enabled else "🔔 Включить подборку"
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="👀 Посмотреть пример", callback_data="dg:preview")],
+        [InlineKeyboardButton(text="📍 Изменить город", callback_data="dg:city"),
+         InlineKeyboardButton(text="🗺 Изменить радиус", callback_data="dg:radius")],
+        [InlineKeyboardButton(text="🎛 Выбрать темы", callback_data="dg:topics")],
+        [InlineKeyboardButton(text=toggle, callback_data="dg:toggle")],
+    ])
+
+
+def _settings_text(pref: DigestPreference) -> str:
+    selected = _topics(pref.topics_csv)
+    topics = ", ".join(TOPICS[x] for x in TOPICS if x in selected) or "не выбраны"
+    status = "включена" if pref.enabled else "выключена"
+    return (
+        "🔔 <b>Моя подборка на выходные</b>\n\n"
+        f"📍 Город: <b>{html.escape(pref.city)}</b>\n"
+        f"🗺 Радиус: <b>{RADIUS_LABELS.get(pref.radius_km, f'{pref.radius_km} км')}</b>\n"
+        f"🎛 Темы: {topics}\n"
+        f"📨 Рассылка: <b>{status}</b>\n\n"
+        "Подборка приходит по четвергам. Город, темы и радиус можно изменить в любой момент."
+    )
+
+
+async def _get_pref(user_id: int) -> DigestPreference | None:
+    async with get_session() as session:
+        return await session.get(DigestPreference, user_id)
+
+
+@router.message(Command("digest", "subscriptions"))
+@router.message(F.text == BTN_SUBSCRIPTIONS)
+async def digest_start(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    pref = await _get_pref(message.from_user.id)
+    if pref:
+        await message.answer(_settings_text(pref), reply_markup=_settings_kb(pref))
+        return
+    await state.set_state(DigestSetup.waiting_city)
+    await message.answer(
+        "🔔 <b>Планы на выходные — лично для тебя</b>\n\n"
+        "Каждый четверг буду присылать интересное рядом: события, прогулки и другие "
+        "выбранные темы. Никакой геолокации или адреса — нужен только город.\n\n"
+        "📍 В каком городе ты живёшь?",
+        reply_markup=cancel_menu(),
+    )
+
+
+@router.message(DigestSetup.waiting_city)
+async def digest_city_input(message: Message, state: FSMContext) -> None:
+    raw = (message.text or "").strip()
+    if len(raw) < 2:
+        await message.answer("Напиши название города текстом 🙂")
+        return
+    city, province = _canonical_city(raw)
+    await state.update_data(dg_city=city, dg_province=province)
+    await state.set_state(DigestSetup.choosing_radius)
+    await message.answer(
+        f"Запомнил: <b>{html.escape(city)}</b> 📍\n\nКак далеко готов ехать ради интересного события?",
+        reply_markup=_radius_kb(),
+    )
+
+
+@router.callback_query(F.data.startswith("dg:r:"))
+async def digest_radius_pick(callback: CallbackQuery, state: FSMContext) -> None:
+    radius = int(callback.data.rsplit(":", 1)[1])
+    current = await state.get_state()
+    pref = await _get_pref(callback.from_user.id)
+    if current == DigestSetup.choosing_radius.state:
+        data = await state.get_data()
+        selected = set(data.get("dg_topics") or (pref and _topics(pref.topics_csv)) or DEFAULT_TOPICS)
+        await state.update_data(dg_radius=radius, dg_topics=list(selected))
+        await state.set_state(DigestSetup.choosing_topics)
+        await callback.message.answer(
+            "Что включать в твою подборку? Можно выбрать несколько тем 👇",
+            reply_markup=_topics_kb(selected),
+        )
+    elif pref:
+        async with get_session() as session:
+            row = await session.get(DigestPreference, callback.from_user.id)
+            row.radius_km = radius
+            await session.commit()
+        updated = await _get_pref(callback.from_user.id)
+        await callback.message.answer("Радиус обновлён ✅", reply_markup=_settings_kb(updated))
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("dg:t:"))
+async def digest_topic_pick(callback: CallbackQuery, state: FSMContext) -> None:
+    key = callback.data.rsplit(":", 1)[1]
+    data = await state.get_data()
+    choosing = await state.get_state() == DigestSetup.choosing_topics.state
+    pref = await _get_pref(callback.from_user.id)
+    selected = set(data.get("dg_topics", [])) if choosing else _topics(pref.topics_csv if pref else "")
+    if key != "done":
+        selected.symmetric_difference_update({key})
+        await state.update_data(dg_topics=list(selected))
+        await callback.message.edit_reply_markup(reply_markup=_topics_kb(selected))
+        await callback.answer("Выбрано" if key in selected else "Убрано")
+        return
+    if not selected:
+        await callback.answer("Выбери хотя бы одну тему", show_alert=True)
+        return
+    if pref:
+        async with get_session() as session:
+            row = await session.get(DigestPreference, callback.from_user.id)
+            row.topics_csv = _topics_csv(selected)
+            if data.get("dg_city"):
+                row.city = data["dg_city"]
+                row.province = data.get("dg_province", "")
+                row.radius_km = int(data.get("dg_radius", row.radius_km))
+            await session.commit()
+        await state.clear()
+        await callback.message.answer("Настройки обновлены ✅", reply_markup=_settings_kb(await _get_pref(callback.from_user.id)))
+    else:
+        city, province = data["dg_city"], data.get("dg_province", "")
+        async with get_session() as session:
+            session.add(DigestPreference(
+                user_id=callback.from_user.id, city=city, province=province,
+                radius_km=int(data.get("dg_radius", 25)),
+                topics_csv=_topics_csv(selected), enabled=True,
+            ))
+            await session.commit()
+        await state.clear()
+        saved = await _get_pref(callback.from_user.id)
+        await callback.message.answer(
+            "Готово — подборка включена 🙌\n\n" + _settings_text(saved),
+            reply_markup=_settings_kb(saved),
+        )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "dg:city")
+async def digest_change_city(callback: CallbackQuery, state: FSMContext) -> None:
+    pref = await _get_pref(callback.from_user.id)
+    await state.set_state(DigestSetup.waiting_city)
+    if pref:
+        await state.update_data(
+            dg_topics=list(_topics(pref.topics_csv)), dg_radius=pref.radius_km,
+            dg_edit_city=True,
+        )
+    await callback.message.answer("📍 Напиши новый город:", reply_markup=cancel_menu())
+    await callback.answer()
+
+
+@router.callback_query(F.data == "dg:radius")
+async def digest_change_radius(callback: CallbackQuery) -> None:
+    await callback.message.answer("Какой радиус использовать?", reply_markup=_radius_kb())
+    await callback.answer()
+
+
+@router.callback_query(F.data == "dg:topics")
+async def digest_change_topics(callback: CallbackQuery, state: FSMContext) -> None:
+    pref = await _get_pref(callback.from_user.id)
+    if not pref:
+        await callback.answer("Сначала настрой подборку", show_alert=True)
+        return
+    await state.set_state(DigestSetup.choosing_topics)
+    await state.update_data(dg_topics=list(_topics(pref.topics_csv)), dg_edit=True)
+    await callback.message.answer("Выбери темы:", reply_markup=_topics_kb(_topics(pref.topics_csv)))
+    await callback.answer()
+
+
+@router.callback_query(F.data == "dg:toggle")
+async def digest_toggle(callback: CallbackQuery) -> None:
+    async with get_session() as session:
+        pref = await session.get(DigestPreference, callback.from_user.id)
+        if not pref:
+            await callback.answer("Сначала настрой подборку", show_alert=True)
+            return
+        pref.enabled = not pref.enabled
+        enabled = pref.enabled
+        await session.commit()
+    updated = await _get_pref(callback.from_user.id)
+    await callback.message.answer(
+        "Подборка включена 🔔" if enabled else "Подборка отключена. Вернуться можно в любой момент 🔕",
+        reply_markup=_settings_kb(updated),
+    )
+    await callback.answer()
+
+
+def _next_month_key(day: date) -> str:
+    first = (day.replace(day=28) + timedelta(days=4)).replace(day=1)
+    return f"{first:%Y-%m}"
+
+
+async def build_digest(pref: DigestPreference) -> str:
+    """Собирает компактный персональный выпуск только из данных бота."""
+    selected = _topics(pref.topics_csv)
+    today = datetime.now(ZoneInfo("Europe/Amsterdam")).date()
+    month_keys = [f"{today:%Y-%m}", _next_month_key(today)]
+    async with get_session() as session:
+        events = (await session.scalars(
+            select(EventListing).where(
+                EventListing.status == "approved", EventListing.month_key.in_(month_keys)
+            ).order_by(EventListing.month_key, EventListing.id)
+        )).all()
+        specialists = (await session.scalars(
+            select(Specialist).where(Specialist.status == "active", Specialist.source == "self")
+            .order_by(Specialist.id.desc()).limit(30)
+        )).all()
+        listings = (await session.scalars(
+            select(Listing).where(
+                Listing.status == "approved",
+                or_(Listing.expires_at.is_(None), Listing.expires_at > datetime.utcnow()),
+            ).order_by(Listing.bumped_at.desc(), Listing.id.desc()).limit(40)
+        )).all()
+
+    local_events = [x for x in events if location_matches(pref, x.city, nationwide=x.is_nationwide)][:4]
+    local_specs = [x for x in specialists if location_matches(
+        pref, x.city, nationwide=x.is_online, target_province=x.province
+    )][:3]
+    local_listings = [x for x in listings if location_matches(pref, x.city, nationwide=x.is_nationwide)][:3]
+    walks = []
+    for walk in config.available_allo_walks():
+        walk_city, _ = _canonical_city(f"{walk.get('title', '')} {walk.get('meet', '')}")
+        if location_matches(pref, walk_city):
+            walks.append(walk)
+
+    radius = RADIUS_LABELS.get(pref.radius_km, f"до {pref.radius_km} км")
+    lines = [
+        f"☀️ <b>Планы на выходные · {_weekend_label(today)}</b>",
+        f"📍 {html.escape(pref.city)} · {radius}",
+    ]
+    useful = 0
+    if "events" in selected:
+        lines.extend(["", "<b>🎭 События рядом</b>"])
+        if local_events:
+            for ev in local_events:
+                when = f" · {html.escape(ev.event_date)}" if ev.event_date else ""
+                where = "онлайн / вся страна" if ev.is_nationwide else ev.city
+                lines.append(f"• <b>{html.escape(ev.title)}</b>{when}\n  {html.escape(where)}")
+                useful += 1
+        else:
+            lines.append("В нашей афише пока нет подходящих карточек — свежие варианты можно найти кнопкой ниже.")
+    if "walks" in selected and walks:
+        lines.extend(["", "<b>🚶 Allo Walks</b>"])
+        for walk in walks[:2]:
+            lines.append(f"• <b>{html.escape(walk['date'])}</b> · {html.escape(walk['title'])}")
+            useful += 1
+    if "specialists" in selected:
+        lines.extend(["", "<b>🔍 Новые специалисты</b>"])
+        if local_specs:
+            for sp in local_specs:
+                where = "онлайн" if sp.is_online else (sp.city or sp.province)
+                lines.append(f"• {html.escape(sp.name)} · {html.escape(sp.category)} · {html.escape(where)}")
+                useful += 1
+        else:
+            lines.append("Новых карточек рядом на этой неделе нет.")
+    if "board" in selected:
+        lines.extend(["", "<b>📋 Свежие объявления</b>"])
+        if local_listings:
+            for item in local_listings:
+                lines.append(f"• {html.escape(item.title)} · {html.escape(item.city or 'вся страна')}")
+                useful += 1
+        else:
+            lines.append("Свежих объявлений рядом пока нет.")
+    if "guides" in selected:
+        lines.extend(["", "<b>📚 Полезное</b>", "На выходных можно спокойно закрыть один бытовой вопрос — открой нужную тему в разделе «Полезное о жизни в NL»."])
+        useful += 1
+    lines.extend([
+        "",
+        ("Выбирай, что открыть подробнее 👇" if useful else
+         "Пока рядом немного карточек, но живой поиск уже доступен по кнопке ниже 👇"),
+        "<i>Настройки города и тем — /digest</i>",
+    ])
+    return "\n".join(lines)
+
+
+def _digest_kb(pref: DigestPreference) -> InlineKeyboardMarkup:
+    rows = []
+    if "events" in _topics(pref.topics_csv):
+        rows.append([InlineKeyboardButton(text="🔎 Найти свежие события рядом", callback_data="dg:live")])
+        rows.append([InlineKeyboardButton(text="📅 Открыть афишу", callback_data="ev_afisha")])
+    if "walks" in _topics(pref.topics_csv) and config.available_allo_walks():
+        rows.append([InlineKeyboardButton(text="🚶 Allo Walks", callback_data="ev_allo")])
+    rows.append([InlineKeyboardButton(text="⚙️ Настроить подборку", callback_data="dg:settings")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+@router.callback_query(F.data == "dg:preview")
+async def digest_preview_user(callback: CallbackQuery) -> None:
+    pref = await _get_pref(callback.from_user.id)
+    if pref:
+        await callback.message.answer(await build_digest(pref), reply_markup=_digest_kb(pref))
+    await callback.answer()
+
+
+@router.callback_query(F.data == "dg:settings")
+async def digest_settings_callback(callback: CallbackQuery) -> None:
+    pref = await _get_pref(callback.from_user.id)
+    if pref:
+        await callback.message.answer(_settings_text(pref), reply_markup=_settings_kb(pref))
+    await callback.answer()
+
+
+@router.callback_query(F.data == "dg:live")
+async def digest_live_events(callback: CallbackQuery, state: FSMContext) -> None:
+    pref = await _get_pref(callback.from_user.id)
+    if not pref:
+        await callback.answer("Сначала настрой город", show_alert=True)
+        return
+    await callback.answer()
+    from handlers.events import _show_events
+    await _show_events(callback.message, state, pref.city, callback.from_user.id)
+
+
+async def _digest_admin_summary() -> str:
+    async with get_session() as session:
+        total = await session.scalar(select(func.count()).select_from(DigestPreference)) or 0
+        enabled = await session.scalar(select(func.count()).select_from(DigestPreference).where(DigestPreference.enabled.is_(True))) or 0
+        cities = (await session.execute(
+            select(DigestPreference.city, func.count()).where(DigestPreference.enabled.is_(True))
+            .group_by(DigestPreference.city).order_by(func.count().desc()).limit(10)
+        )).all()
+        sent = await session.scalar(select(func.count()).select_from(DigestDeliveryLog).where(
+            DigestDeliveryLog.week_key == _week_key(), DigestDeliveryLog.status == "sent"
+        )) or 0
+        failed = await session.scalar(select(func.count()).select_from(DigestDeliveryLog).where(
+            DigestDeliveryLog.week_key == _week_key(), DigestDeliveryLog.status == "failed"
+        )) or 0
+    city_lines = "\n".join(f"• {html.escape(city)} — {count}" for city, count in cities) or "Пока нет городов."
+    return (
+        "☀️ <b>Персональная подборка на выходные</b>\n\n"
+        f"Подписки: {enabled} включено · {total} настроено\n"
+        f"Текущая неделя: ✅ {sent} · ❌ {failed}\n\n"
+        f"<b>Города</b>\n{city_lines}\n\n"
+        "Предпросмотр: <code>/digestpreview Amsterdam</code>\n"
+        "Отправка: <code>/digestsend</code>"
+    )
+
+
+@router.message(Command("digeststats"), F.from_user.id.in_(config.ADMIN_IDS))
+async def digest_stats(message: Message) -> None:
+    await message.answer(await _digest_admin_summary())
+
+
+@router.callback_query(F.data == "admin:digest", F.from_user.id.in_(config.ADMIN_IDS))
+async def digest_admin_button(callback: CallbackQuery) -> None:
+    await callback.message.answer(await _digest_admin_summary())
+    await callback.answer()
+
+
+@router.message(Command("digestpreview"), F.from_user.id.in_(config.ADMIN_IDS))
+async def digest_preview_admin(message: Message) -> None:
+    raw = (message.text or "").partition(" ")[2].strip() or "Amsterdam"
+    city, province = _canonical_city(raw)
+    pref = DigestPreference(
+        user_id=message.from_user.id, city=city, province=province, radius_km=25,
+        topics_csv=_topics_csv(set(TOPICS)), enabled=True,
+    )
+    await message.answer(
+        f"👁 <b>Пример для {html.escape(city)} · до 25 км</b>\n\n" + await build_digest(pref),
+        reply_markup=_digest_kb(pref),
+    )
+
+
+def _send_confirm_kb(count: int) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=f"✅ Отправить персонально ({count})", callback_data="dg:send:yes")],
+        [InlineKeyboardButton(text="❌ Отмена", callback_data="dg:send:no")],
+    ])
+
+
+@router.message(Command("digestsend"), F.from_user.id.in_(config.ADMIN_IDS))
+async def digest_send_confirm(message: Message) -> None:
+    async with get_session() as session:
+        count = await session.scalar(
+            select(func.count()).select_from(DigestPreference)
+            .join(BotUser, BotUser.user_id == DigestPreference.user_id)
+            .where(DigestPreference.enabled.is_(True), BotUser.is_blocked.is_(False),
+                   or_(DigestPreference.last_sent_week.is_(None), DigestPreference.last_sent_week != _week_key()))
+        ) or 0
+    await message.answer(
+        f"Подготовлена персональная рассылка на неделю {_week_key()}.\n"
+        f"Получателей без отправки на этой неделе: <b>{count}</b>.\n\nОтправить?",
+        reply_markup=_send_confirm_kb(count),
+    )
+
+
+@router.callback_query(F.data == "dg:send:no", F.from_user.id.in_(config.ADMIN_IDS))
+async def digest_send_cancel(callback: CallbackQuery) -> None:
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer("Рассылка отменена 👌")
+    await callback.answer()
+
+
+@router.callback_query(F.data == "dg:send:yes", F.from_user.id.in_(config.ADMIN_IDS))
+async def digest_send_start(callback: CallbackQuery) -> None:
+    await callback.message.edit_reply_markup(reply_markup=None)
+    await callback.message.answer("🚀 Персональная рассылка запущена. Итог пришлю сюда.")
+    asyncio.create_task(_send_all_digests(callback.bot, callback.from_user.id))
+    await callback.answer()
+
+
+async def _send_all_digests(bot, admin_id: int) -> None:
+    week = _week_key()
+    async with get_session() as session:
+        rows = (await session.scalars(
+            select(DigestPreference).join(BotUser, BotUser.user_id == DigestPreference.user_id)
+            .where(DigestPreference.enabled.is_(True), BotUser.is_blocked.is_(False),
+                   or_(DigestPreference.last_sent_week.is_(None), DigestPreference.last_sent_week != week))
+        )).all()
+    sent = failed = 0
+    rendered: dict[tuple[str, str, int, str], str] = {}
+    for pref in rows:
+        segment = (pref.city, pref.province, pref.radius_km, pref.topics_csv)
+        text = rendered.get(segment)
+        if text is None:
+            text = await build_digest(pref)
+            rendered[segment] = text
+        message_id = None
+        error = None
+        try:
+            msg = await bot.send_message(pref.user_id, text, reply_markup=_digest_kb(pref), disable_web_page_preview=True)
+            message_id = getattr(msg, "message_id", None)
+            sent += 1
+        except TelegramForbiddenError as exc:
+            error = f"{type(exc).__name__}: {exc}"
+            failed += 1
+            async with get_session() as session:
+                user = await session.get(BotUser, pref.user_id)
+                if user:
+                    user.is_blocked = True
+                    await session.commit()
+        except Exception as exc:  # noqa: BLE001
+            error = f"{type(exc).__name__}: {exc}"
+            failed += 1
+        async with get_session() as session:
+            session.add(DigestDeliveryLog(
+                user_id=pref.user_id, week_key=week, city=pref.city,
+                status="sent" if error is None else "failed", message_text=text,
+                telegram_message_id=message_id, error_text=error,
+            ))
+            current = await session.get(DigestPreference, pref.user_id)
+            if current and error is None:
+                current.last_sent_week = week
+            await session.commit()
+        await asyncio.sleep(0.05)
+    try:
+        await bot.send_message(admin_id, f"✅ Подборка {_week_key()} завершена.\nДоставлено: {sent}\nНе доставлено: {failed}")
+    except Exception:  # noqa: BLE001
+        pass
+
+
+async def digest_draft_loop(bot) -> None:
+    """По четвергам один раз напоминает админам проверить и запустить выпуск."""
+    while True:
+        try:
+            now = datetime.now(ZoneInfo("Europe/Amsterdam"))
+            if now.weekday() == 3:
+                key = f"digest_draft:{_week_key(now)}"
+                async with get_session() as session:
+                    done = await session.get(Meta, key)
+                    if done is None:
+                        await session.merge(Meta(key=key, value=now.isoformat()[:19]))
+                        await session.commit()
+                        for admin_id in config.ADMIN_IDS:
+                            try:
+                                await bot.send_message(
+                                    admin_id,
+                                    "☀️ <b>Пора подготовить подборку на выходные</b>\n\n"
+                                    "Посмотри сегменты: /digeststats\n"
+                                    "Проверь пример: /digestpreview Amsterdam\n"
+                                    "Запусти после проверки: /digestsend",
+                                )
+                            except Exception as exc:  # noqa: BLE001
+                                log.warning("Не удалось напомнить админу %s о подборке: %s", admin_id, exc)
+        except Exception as exc:  # noqa: BLE001
+            log.warning("Ошибка цикла еженедельной подборки: %s", exc)
+        await asyncio.sleep(6 * 3600)
