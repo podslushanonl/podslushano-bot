@@ -31,7 +31,7 @@ from sqlalchemy import func, or_, select
 
 import config
 from database.db import get_session
-from database.models import BotUser, Meta, Specialist
+from database.models import BotUser, Meta, Specialist, SpecialistReminderLog
 from keyboards.menus import cancel_menu, main_menu
 from states.forms import (
     AdminAddSpecialist,
@@ -102,6 +102,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="📅 Афиша в канал", callback_data="admin:afisha")],
             [InlineKeyboardButton(text="🆕 В афишу месяца (вручную)", callback_data="admin:afishanew")],
             [InlineKeyboardButton(text="📋 Старый гайд: ссылки на продление", callback_data="admin:legacyexport")],
+            [InlineKeyboardButton(text="📨 Напоминания гайда", callback_data="admin:renewals")],
             [InlineKeyboardButton(text="📊 Статистика", callback_data="admin:stats")],
             [InlineKeyboardButton(text="⭐ Отзывы", callback_data="admin:reviews")],
         ]
@@ -139,6 +140,10 @@ _ADMIN_COMMANDS_HELP = (
     "📇 <b>Гайд и продление</b>\n"
     "/legacy_export — CSV со ссылками на продление\n"
     "/listcat — сколько специалистов по категориям\n\n"
+    "📨 <b>Напоминания о продлении</b>\n"
+    "/renewals — расписание и журнал доставки\n"
+    "/renewalpreview ID — точный текст для карточки\n"
+    "/renewalsend ID renewal|expiry — отправить вручную\n\n"
     "📣 <b>Контент и рассылки</b>\n"
     "/sitepost — статья на сайт (WordPress, черновик)\n"
     "/wptest — проверить связь бота с сайтом (диагностика)\n"
@@ -1962,6 +1967,188 @@ async def cmd_findspec(message: Message, state: FSMContext) -> None:
             f"\n• фото: {'есть' if s.photo_file_id else 'нет'}" + paid
         )
     await message.answer("\n".join(blocks), disable_web_page_preview=True)
+
+
+async def _renewals_dashboard_text() -> str:
+    """Ближайшие напоминания и проверяемый журнал Telegram-доставки."""
+    now = datetime.utcnow()
+    async with get_session() as session:
+        upcoming = (
+            await session.scalars(
+                select(Specialist)
+                .where(
+                    Specialist.source == "self",
+                    Specialist.status == "active",
+                    Specialist.paid_until.is_not(None),
+                    Specialist.paid_until > now,
+                    Specialist.paid_until <= now + timedelta(days=30),
+                )
+                .order_by(Specialist.paid_until.asc())
+                .limit(10)
+            )
+        ).all()
+        recently_expired = (
+            await session.scalars(
+                select(Specialist)
+                .where(
+                    Specialist.source == "self",
+                    Specialist.status == "expired",
+                    Specialist.paid_until.is_not(None),
+                    Specialist.paid_until <= now,
+                    Specialist.paid_until >= now - timedelta(days=14),
+                )
+                .order_by(Specialist.paid_until.desc())
+                .limit(10)
+            )
+        ).all()
+        logs = (
+            await session.scalars(
+                select(SpecialistReminderLog)
+                .order_by(SpecialistReminderLog.created_at.desc(),
+                          SpecialistReminderLog.id.desc())
+                .limit(100)
+            )
+        ).all()
+        specialist_ids = {x.specialist_id for x in logs[:10]}
+        names = {}
+        for sid in specialist_ids:
+            sp = await session.get(Specialist, sid)
+            names[sid] = sp.name if sp else f"карточка #{sid}"
+
+    latest = {}
+    for item in logs:
+        key = (item.specialist_id, item.kind, item.paid_until)
+        latest.setdefault(key, item)
+
+    lines = [
+        "📨 <b>Напоминания о продлении</b>",
+        "Автопроверка: каждые 12 часов · первое сообщение: за 7 дней.",
+        "✅ означает подтверждённую отправку Telegram с message ID.",
+        "",
+        "<b>Ближайшие 30 дней</b>",
+    ]
+    if not upcoming:
+        lines.append("Нет активных карточек с окончанием в ближайшие 30 дней.")
+    for sp in upcoming:
+        remind_at = sp.paid_until - timedelta(days=7)
+        last = latest.get((sp.id, "renewal", sp.paid_until))
+        if last and last.status == "sent":
+            stamp = last.created_at.strftime("%d.%m %H:%M") if last.created_at else "—"
+            state = f"✅ отправлено {stamp} · msg {last.telegram_message_id or '—'}"
+        elif last and last.status == "failed":
+            stamp = last.created_at.strftime("%d.%m %H:%M") if last.created_at else "—"
+            state = f"❌ ошибка {stamp}"
+        elif sp.renewal_reminded:
+            state = "⚪ старый флаг · доставка не подтверждена"
+        elif remind_at <= now:
+            state = "🟡 ожидает ближайшего запуска"
+        else:
+            state = f"⏳ запланировано {remind_at:%d.%m.%Y}"
+        lines.append(
+            f"• <code>#{sp.id}</code> {html.escape(sp.name)}\n"
+            f"  до {sp.paid_until:%d.%m.%Y} · {state}"
+        )
+
+    lines.extend(["", "<b>Истекли за последние 14 дней</b>"])
+    if not recently_expired:
+        lines.append("Нет недавно истёкших карточек.")
+    for sp in recently_expired:
+        last = latest.get((sp.id, "expiry", sp.paid_until))
+        if last and last.status == "sent":
+            stamp = last.created_at.strftime("%d.%m %H:%M") if last.created_at else "—"
+            state = f"✅ отправлено {stamp} · msg {last.telegram_message_id or '—'}"
+        elif last and last.status == "failed":
+            stamp = last.created_at.strftime("%d.%m %H:%M") if last.created_at else "—"
+            state = f"❌ ошибка {stamp}"
+        else:
+            state = "⚪ старый срок · доставка не подтверждена"
+        lines.append(
+            f"• <code>#{sp.id}</code> {html.escape(sp.name)}\n"
+            f"  истекло {sp.paid_until:%d.%m.%Y} · {state}"
+        )
+
+    lines.extend(["", "<b>Последние попытки</b>"])
+    if not logs:
+        lines.append("Журнал пока пуст — он начнёт заполняться после обновления бота.")
+    for item in logs[:10]:
+        mark = "✅" if item.status == "sent" else "❌"
+        kind = "за 7 дней" if item.kind == "renewal" else "окончание"
+        stamp = item.created_at.strftime("%d.%m %H:%M") if item.created_at else "—"
+        detail = (f"msg {item.telegram_message_id}" if item.status == "sent"
+                  else html.escape((item.error_text or "ошибка")[:90]))
+        lines.append(
+            f"{mark} {stamp} · <code>#{item.specialist_id}</code> "
+            f"{html.escape(names.get(item.specialist_id, ''))} · {kind} · {detail}"
+        )
+
+    lines.extend([
+        "",
+        "Точный текст: <code>/renewalpreview ID</code>",
+        "Ручная отправка: <code>/renewalsend ID renewal</code> или "
+        "<code>/renewalsend ID expiry</code>",
+    ])
+    return "\n".join(lines)
+
+
+@router.message(Command("renewals"))
+async def cmd_renewals(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    await message.answer(await _renewals_dashboard_text(), disable_web_page_preview=True)
+
+
+@router.callback_query(F.data == "admin:renewals")
+async def renewals_btn(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.clear()
+    await callback.message.answer(await _renewals_dashboard_text(),
+                                  disable_web_page_preview=True)
+    await callback.answer()
+
+
+@router.message(Command("renewalpreview"))
+async def cmd_renewal_preview(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    parts = (message.text or "").split()
+    if len(parts) != 2 or not parts[1].isdigit():
+        await message.answer("Использование: <code>/renewalpreview ID</code>")
+        return
+    async with get_session() as session:
+        sp = await session.get(Specialist, int(parts[1]))
+    if sp is None or sp.paid_until is None:
+        await message.answer("Карточка не найдена или у неё нет даты окончания.")
+        return
+    from handlers.selfadd import expiry_notice_text, renewal_reminder_text
+    await message.answer(
+        f"👁 <b>Что получит специалист #{sp.id}</b>\n\n"
+        f"<b>За 7 дней:</b>\n{renewal_reminder_text(sp)}\n\n"
+        f"<b>После окончания:</b>\n{expiry_notice_text(sp)}",
+    )
+
+
+@router.message(Command("renewalsend"))
+async def cmd_renewal_send(message: Message, state: FSMContext) -> None:
+    """Осознанная ручная отправка специалисту с тем же журналированием."""
+    await state.clear()
+    parts = (message.text or "").split()
+    if (len(parts) != 3 or not parts[1].isdigit()
+            or parts[2] not in ("renewal", "expiry")):
+        await message.answer(
+            "Использование: <code>/renewalsend ID renewal</code> или "
+            "<code>/renewalsend ID expiry</code>"
+        )
+        return
+    async with get_session() as session:
+        sp = await session.get(Specialist, int(parts[1]))
+    if sp is None or sp.paid_until is None or not sp.submitter_user_id:
+        await message.answer("Карточка не найдена или не привязана к Telegram-пользователю.")
+        return
+    from handlers.selfadd import send_specialist_reminder
+    delivered = await send_specialist_reminder(
+        message.bot, sp, parts[2], force=True,
+    )
+    await message.answer(
+        "✅ Telegram подтвердил отправку." if delivered
+        else "❌ Telegram не подтвердил отправку. Причина записана в /renewals."
+    )
 
 
 # --- Отзывы: кто и что оставил ----------------------------------------------

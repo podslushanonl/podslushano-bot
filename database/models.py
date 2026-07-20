@@ -73,6 +73,31 @@ class Specialist(Base):
     referred_by_specialist_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
 
+class SpecialistReminderLog(Base):
+    """Попытка отправить специалисту напоминание о продлении.
+
+    В отличие от ``Specialist.renewal_reminded`` эта таблица хранит проверяемый
+    результат каждой попытки: Telegram message_id при успехе либо текст ошибки.
+    ``paid_until`` привязывает запись к конкретному оплаченному периоду, чтобы
+    после продления история не смешивалась с новым сроком.
+    """
+
+    __tablename__ = "specialist_reminder_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    specialist_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    # renewal = напоминание за 7 дней | expiry = карточка уже скрыта
+    kind: Mapped[str] = mapped_column(String(20), index=True)
+    paid_until: Mapped[datetime] = mapped_column(DateTime, index=True)
+    # sent | failed
+    status: Mapped[str] = mapped_column(String(20), index=True)
+    message_text: Mapped[str] = mapped_column(Text)
+    telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
+
+
 class SpecialistEdit(Base):
     """Предложенная специалистом правка своей карточки — ждёт одобрения модератора."""
 
