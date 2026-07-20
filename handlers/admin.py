@@ -103,6 +103,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🆕 В афишу месяца (вручную)", callback_data="admin:afishanew")],
             [InlineKeyboardButton(text="📋 Старый гайд: ссылки на продление", callback_data="admin:legacyexport")],
             [InlineKeyboardButton(text="📨 Напоминания гайда", callback_data="admin:renewals")],
+            [InlineKeyboardButton(text="☀️ Подборка на выходные", callback_data="admin:digest")],
             [InlineKeyboardButton(text="📊 Статистика", callback_data="admin:stats")],
             [InlineKeyboardButton(text="⭐ Отзывы", callback_data="admin:reviews")],
         ]
@@ -144,6 +145,10 @@ _ADMIN_COMMANDS_HELP = (
     "/renewals — расписание и журнал доставки\n"
     "/renewalpreview ID — точный текст для карточки\n"
     "/renewalsend ID renewal|expiry — отправить вручную\n\n"
+    "☀️ <b>Персональная подборка</b>\n"
+    "/digeststats — подписки, города и доставки\n"
+    "/digestpreview CITY — пример выпуска для города\n"
+    "/digestsend — отправить выпуск после подтверждения\n\n"
     "📣 <b>Контент и рассылки</b>\n"
     "/sitepost — статья на сайт (WordPress, черновик)\n"
     "/wptest — проверить связь бота с сайтом (диагностика)\n"

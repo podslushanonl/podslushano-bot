@@ -86,7 +86,7 @@ def _switch(page: str, lang: str) -> str:
 
 _PRIVACY_RU = """
 <h1>Политика конфиденциальности</h1>
-<p class="upd">Обновлено: 23.06.2026</p>
+<p class="upd">Обновлено: 20.07.2026</p>
 <p>Эта политика объясняет, как сервис «Подслушано в Нидерландах»
 (Telegram-бот @podslushano_nl_bot) обрабатывает персональные данные.
 Ответственный за обработку (verwerkingsverantwoordelijke) — компания,
@@ -95,6 +95,7 @@ _PRIVACY_RU = """
 <h2>Какие данные мы обрабатываем</h2>
 <ul>
  <li>данные Telegram: ваш ID, имя и имя пользователя;</li>
+ <li>настройки добровольных подборок: выбранный город, радиус, темы и статус подписки;</li>
  <li>содержимое, которое вы присылаете: истории, вопросы, видео, заявки на
   рекламу и размещение, а также указанные вами контакты;</li>
  <li>объявления на доске: заголовок, описание, фото, цена, город, контакт;</li>
@@ -174,7 +175,7 @@ _PRIVACY_RU = """
 
 _PRIVACY_NL = """
 <h1>Privacyverklaring</h1>
-<p class="upd">Laatst bijgewerkt: 23-06-2026</p>
+<p class="upd">Laatst bijgewerkt: 20-07-2026</p>
 <p>Deze verklaring legt uit hoe de dienst «Podslushano in Nederland»
 (Telegram-bot @podslushano_nl_bot) persoonsgegevens verwerkt. De
 verwerkingsverantwoordelijke is het bedrijf vermeld in de bedrijfsgegevens
@@ -183,6 +184,7 @@ onderaan deze pagina.</p>
 <h2>Welke gegevens we verwerken</h2>
 <ul>
  <li>Telegram-gegevens: je ID, naam en gebruikersnaam;</li>
+ <li>instellingen voor vrijwillige overzichten: gekozen stad, afstand, onderwerpen en abonnementsstatus;</li>
  <li>inhoud die je instuurt: verhalen, vragen, video's, advertentie- en
   vermeldingsaanvragen en de door jou opgegeven contactgegevens;</li>
  <li>advertenties op het prikbord: titel, omschrijving, foto, prijs, plaats, contact;</li>

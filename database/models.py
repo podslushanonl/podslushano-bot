@@ -225,6 +225,43 @@ class BotUser(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class DigestPreference(Base):
+    """Настройки нативной персональной подборки пользователя."""
+
+    __tablename__ = "digest_preferences"
+
+    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    city: Mapped[str] = mapped_column(String(100), default="")
+    province: Mapped[str] = mapped_column(String(50), default="")
+    # 0 — только город, 25/50 — радиус в километрах, 999 — вся страна.
+    radius_km: Mapped[int] = mapped_column(Integer, default=25)
+    # CSV из events,walks,specialists,board,guides.
+    topics_csv: Mapped[str] = mapped_column(
+        String(120), default="events,walks"
+    )
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    last_sent_week: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class DigestDeliveryLog(Base):
+    """Проверяемый результат доставки еженедельной подборки."""
+
+    __tablename__ = "digest_delivery_logs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    week_key: Mapped[str] = mapped_column(String(8), index=True)
+    city: Mapped[str] = mapped_column(String(100), default="")
+    status: Mapped[str] = mapped_column(String(10))  # sent | failed
+    message_text: Mapped[str] = mapped_column(Text)
+    telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class EventListing(Base):
     """Платное мероприятие в «Афише месяца» (подаёт организатор, после оплаты и
     проверки админом публикуется)."""
