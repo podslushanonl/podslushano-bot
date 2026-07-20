@@ -50,6 +50,8 @@ def check(name: str, cond: bool, detail: str = "") -> None:
 def test_import_bot() -> None:
     import bot  # noqa: F401
     check("импорт bot без ошибок", True)
+    check("прямая ссылка открывает добавление специалиста",
+          config.specialist_add_url().endswith("?start=selfadd"))
 
 
 async def _category_of(session, name: str):

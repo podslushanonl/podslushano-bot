@@ -75,6 +75,11 @@ def bot_handle() -> str:
     u = bot_username()
     return f"@{u}" if u else ""
 
+
+def specialist_add_url() -> str:
+    """Публичная ссылка, которая сразу открывает анкету специалиста."""
+    return f"{BOT_URL.rstrip('/')}?start=selfadd"
+
 # --- Искусственный интеллект (Claude) ---------------------------------------
 # Ключ берётся в консоли Anthropic: https://console.anthropic.com/ → API Keys.
 # Если ключа нет — бот продолжит работать на правилах, просто без «живого» ИИ.
