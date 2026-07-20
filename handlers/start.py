@@ -148,6 +148,12 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from handlers.allo import show_allo
         await show_allo(message, state, with_photos=True)
         return
+    # Прямая ссылка для постов и рекламы: ?start=selfadd сразу открывает
+    # анкету добавления специалиста, без поиска команды в меню.
+    if command.args == "selfadd":
+        from handlers.selfadd import self_start
+        await self_start(message, state)
+        return
     # Пришёл по реф-ссылке участника Allo Walks (?start=alloref_<uid>)
     if command.args and command.args.startswith("alloref_"):
         from handlers.allo import register_referral, show_allo
