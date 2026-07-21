@@ -1,7 +1,7 @@
 """Описание таблиц базы данных."""
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, Text, func
+from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -257,6 +257,28 @@ class DigestDeliveryLog(Base):
     city: Mapped[str] = mapped_column(String(100), default="")
     status: Mapped[str] = mapped_column(String(10))  # sent | failed
     message_text: Mapped[str] = mapped_column(Text)
+    telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class AnnouncementDelivery(Base):
+    """Поштучный журнал разовой массовой рассылки.
+
+    Пара ``campaign_key + user_id`` не позволяет отправить один и тот же анонс
+    повторно после рестарта, а отсутствие записи позволяет продолжить рассылку
+    с оставшихся пользователей.
+    """
+
+    __tablename__ = "announcement_deliveries"
+    __table_args__ = (
+        UniqueConstraint("campaign_key", "user_id", name="uq_announcement_campaign_user"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    campaign_key: Mapped[str] = mapped_column(String(80), index=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    status: Mapped[str] = mapped_column(String(10))  # sent | blocked | failed
     telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
