@@ -27,7 +27,7 @@ from database.models import DiscoveredEvent, EventListing
 from handlers.afisha import _card_text, _month_label
 from keyboards.menus import cancel_menu, main_menu
 from states.forms import EventsSearch
-from utils.ai import ai_enabled, ai_event_cards
+from utils.ai import ai_enabled, ai_event_cards, ai_event_search_places
 from utils.analytics import log_event
 from utils.limits import allow_ai
 from utils.season import EVENTS_LABEL_CORE, current_season
@@ -257,6 +257,8 @@ async def _auto_batch(city: str, radius_km: int) -> tuple[str, list[DiscoveredEv
                 DiscoveredEvent.query_city == city,
                 DiscoveredEvent.radius_km == radius_km,
                 DiscoveredEvent.expires_at > now,
+                DiscoveredEvent.ends_at.is_not(None),
+                DiscoveredEvent.ends_at > now,
             )
             .order_by(DiscoveredEvent.fetched_at.desc())
             .limit(1)
@@ -265,7 +267,11 @@ async def _auto_batch(city: str, radius_km: int) -> tuple[str, list[DiscoveredEv
             return None
         rows = (await session.scalars(
             select(DiscoveredEvent)
-            .where(DiscoveredEvent.batch_key == batch)
+            .where(
+                DiscoveredEvent.batch_key == batch,
+                DiscoveredEvent.ends_at.is_not(None),
+                DiscoveredEvent.ends_at > now,
+            )
             .order_by(DiscoveredEvent.id)
         )).all()
     return (batch, list(rows)) if rows else None
@@ -278,7 +284,10 @@ async def ensure_auto_afisha(city: str, radius_km: int, uid: int) -> tuple[str, 
         return cached
     if not ai_enabled() or not allow_ai(uid):
         return None
-    cards = await ai_event_cards(city, radius_km)
+    # Географию определяем динамически: пользователь может жить в любом городе
+    # или деревне, а не только в одном из заранее известных крупных городов.
+    search_cities = await ai_event_search_places(city, radius_km)
+    cards = await ai_event_cards(city, radius_km, search_cities=search_cities)
     if not cards:
         return None
     batch = secrets.token_hex(6)
@@ -296,6 +305,8 @@ async def ensure_auto_afisha(city: str, radius_km: int, uid: int) -> tuple[str, 
                 city=card["city"] or city,
                 link=card["url"],
                 source_name=card["source"],
+                starts_at=card["starts_at"],
+                ends_at=card["ends_at"],
                 expires_at=expires,
             ))
         await session.commit()
@@ -330,10 +341,15 @@ def _auto_event_kb(batch: str, idx: int, total: int, ev: DiscoveredEvent) -> Inl
 
 
 async def _show_auto_card(msg: Message, batch: str, idx: int, edit: bool = False) -> None:
+    now = datetime.utcnow()
     async with get_session() as session:
         rows = (await session.scalars(
             select(DiscoveredEvent)
-            .where(DiscoveredEvent.batch_key == batch)
+            .where(
+                DiscoveredEvent.batch_key == batch,
+                DiscoveredEvent.ends_at.is_not(None),
+                DiscoveredEvent.ends_at > now,
+            )
             .order_by(DiscoveredEvent.id)
         )).all()
     if not rows:
@@ -364,8 +380,9 @@ async def show_auto_afisha(message: Message, city: str, radius_km: int, uid: int
     result = cached or await ensure_auto_afisha(city, radius_km, uid)
     if not result:
         await message.answer(
-            "Не получилось найти достаточно проверяемых событий с рабочими ссылками. "
-            "Попробуй чуть позже или увеличь радиус.",
+            "Пока не получилось собрать актуальные карточки с подтверждённой датой и "
+            "отдельной рабочей ссылкой. Я уже проверил город и ближайшие города в "
+            "выбранном радиусе — попробуй обновить подборку немного позже.",
             reply_markup=main_menu(),
         )
         return

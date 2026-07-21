@@ -14,8 +14,9 @@ import json
 import html as html_lib
 import logging
 import re
-from datetime import date
+from datetime import date, datetime, time, timedelta, timezone
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 import config
 
@@ -119,7 +120,7 @@ OFFICIAL_SOURCES = [
 ]
 
 
-def _web_search_tool(allowed_domains: list | None = None) -> list | None:
+def _web_search_tool(allowed_domains: list | None = None, *, max_uses: int | None = None) -> list | None:
     """Инструмент веб-поиска (если включён) — даёт ИИ доступ к свежим данным.
 
     allowed_domains — белый список доменов (для постов: только госсайты и
@@ -129,7 +130,7 @@ def _web_search_tool(allowed_domains: list | None = None) -> list | None:
     tool = {
         "type": "web_search_20250305",
         "name": "web_search",
-        "max_uses": config.AI_WEB_MAX_USES,
+        "max_uses": max_uses or config.AI_WEB_MAX_USES,
         # Подсказываем местоположение — результаты релевантнее для NL
         "user_location": {
             "type": "approximate",
@@ -1012,7 +1013,25 @@ async def ai_events(city: str, season_phrase: str) -> str | None:
     return _finalize(resp)
 
 
-def parse_event_cards(text: str) -> list[dict[str, str]]:
+def _event_moment(raw: str, *, end: bool = False) -> datetime | None:
+    """ISO date/datetime from search output -> naive UTC for SQLite."""
+    value = (raw or "").strip()
+    if not value:
+        return None
+    try:
+        if len(value) == 10:
+            day = date.fromisoformat(value)
+            local = datetime.combine(day, time.max if end else time.min, ZoneInfo("Europe/Amsterdam"))
+        else:
+            local = datetime.fromisoformat(value.replace("Z", "+00:00"))
+            if local.tzinfo is None:
+                local = local.replace(tzinfo=ZoneInfo("Europe/Amsterdam"))
+        return local.astimezone(timezone.utc).replace(tzinfo=None)
+    except ValueError:
+        return None
+
+
+def parse_event_cards(text: str, *, now: datetime | None = None) -> list[dict[str, str]]:
     """Разбирает строгий XML-подобный ответ поиска и отбрасывает карточки без URL."""
     cards: list[dict[str, str]] = []
     seen: set[tuple[str, str]] = set()
@@ -1024,19 +1043,30 @@ def parse_event_cards(text: str) -> list[dict[str, str]]:
 
     for block in re.findall(r"<event>(.*?)</event>", text or "", re.I | re.S):
         card = {name: field(block, name) for name in (
-            "title", "start", "date", "venue", "city", "description", "url", "source"
+            "title", "start", "end", "date", "venue", "city", "description", "url", "source"
         )}
         url = card["url"].strip().rstrip(".,)")
         parsed = urlparse(url)
-        try:
-            starts_on = date.fromisoformat(card["start"][:10])
-        except ValueError:
+        starts_at = _event_moment(card["start"])
+        explicit_end = _event_moment(card["end"], end=True)
+        if starts_at is None:
             continue
+        # Если источник не указал окончание: событие с одной датой действует до
+        # конца дня, а событию со временем даём разумное окно в шесть часов.
+        if explicit_end is not None:
+            ends_at = explicit_end
+        elif len(card["start"]) == 10:
+            ends_at = _event_moment(card["start"], end=True)
+        else:
+            ends_at = starts_at + timedelta(hours=6)
+        current = now or datetime.now(timezone.utc).replace(tzinfo=None)
         if (
-            not card["title"] or not card["date"] or starts_on < date.today()
+            not card["title"] or not card["date"] or ends_at is None or ends_at <= current
             or parsed.scheme not in {"http", "https"} or not parsed.netloc
         ):
             continue
+        card["starts_at"] = starts_at
+        card["ends_at"] = ends_at
         card["url"] = url
         card["title"] = card["title"][:240]
         card["date"] = card["date"][:160]
@@ -1051,7 +1081,60 @@ def parse_event_cards(text: str) -> list[dict[str, str]]:
     return cards[:12]
 
 
-async def ai_event_cards(city: str, radius_km: int = 25) -> list[dict[str, str]]:
+def parse_event_search_places(text: str, origin: str, *, limit: int = 10) -> list[str]:
+    """Разбирает безопасный список населённых пунктов для поиска афиши."""
+    places: list[str] = []
+    seen: set[str] = set()
+    for raw in [origin, *re.findall(r"<place>(.*?)</place>", text or "", re.I | re.S)]:
+        place = html_lib.unescape(re.sub(r"\s+", " ", raw)).strip(" ,.;:-")[:100]
+        key = place.casefold()
+        if place and key not in seen:
+            seen.add(key)
+            places.append(place)
+        if len(places) >= limit:
+            break
+    return places
+
+
+async def ai_event_search_places(city: str, radius_km: int) -> list[str]:
+    """Определяет реальные города и деревни внутри радиуса без статического списка."""
+    if radius_km <= 0 or radius_km == 999 or not ai_enabled():
+        return [city]
+    system = (
+        "Ты помогаешь искать локальные мероприятия в Нидерландах. Используй веб-поиск, "
+        "чтобы определить населённые пункты внутри указанного радиуса от места пользователя. "
+        "Не ограничивайся крупными городами: включай города, деревни и соседние муниципалитеты, "
+        "потому что пользователь может жить в небольшом населённом пункте. Не включай места за "
+        "пределами радиуса. Верни только 6–10 названий в нидерландском написании, каждое строго "
+        "в виде <place>Naam</place>, без markdown и пояснений. Первым укажи исходное место."
+    )
+    kwargs = dict(
+        model=config.AI_CHAT_MODEL,
+        max_tokens=500,
+        system=system,
+        messages=[{
+            "role": "user",
+            "content": (
+                f"Исходное место: {city}, Nederland. Радиус: {radius_km} км. "
+                "Определи населённые пункты, по локальным афишам которых нужно искать события."
+            ),
+        }],
+    )
+    tools = _web_search_tool(max_uses=2)
+    if tools:
+        kwargs["tools"] = tools
+    try:
+        response = await _get_client().messages.create(**kwargs)
+    except Exception as exc:  # noqa: BLE001 — поиск событий продолжится по исходному месту
+        log.warning("Не удалось определить населённые пункты рядом с %s: %s", city, exc)
+        return [city]
+    text, _ = _extract_text_and_sources(response)
+    return parse_event_search_places(text, city)
+
+
+async def ai_event_cards(
+    city: str, radius_km: int = 25, search_cities: list[str] | None = None
+) -> list[dict[str, str]]:
     """Ищет реальные будущие события и возвращает данные для отдельных карточек."""
     if not ai_enabled():
         return []
@@ -1059,35 +1142,90 @@ async def ai_event_cards(city: str, radius_km: int = 25) -> list[dict[str, str]]
     radius = "по всей стране" if radius_km == 999 else (
         "только в границах города" if radius_km == 0 else f"в радиусе примерно {radius_km} км"
     )
+    places = search_cities or [city]
+    place_instruction = ", ".join(places)
+    dynamic_radius_instruction = (
+        "Список ниже уже определён отдельным географическим поиском. Ищи в каждом месте, "
+        "а не только в исходном городе. "
+        if search_cities else
+        "Самостоятельно определи также небольшие города и деревни внутри радиуса; "
+        "не ограничивай поиск крупными городами. "
+    )
     system = (
         "Ты редактор подробной афиши Нидерландов. ОБЯЗАТЕЛЬНО используй веб-поиск. "
-        f"Найди 6–10 реальных мероприятий для {city}, {radius}, на ближайшие 14 дней, начиная с {today}. "
-        "Проверяй дату, место и рабочую прямую ссылку на официальную страницу события, "
+        f"Постарайся найти 6–10 реальных мероприятий для {city}, {radius}, на ближайшие 14 дней, начиная с {today}. "
+        "Если подтверждено меньше, всё равно верни найденные карточки: одна реальная карточка лучше пустого ответа. "
+        f"{dynamic_radius_instruction}Ищи отдельно в этих населённых пунктах внутри выбранной зоны: "
+        f"{place_instruction}. "
+        "Сделай несколько поисковых запросов на нидерландском: сначала по самому городу, "
+        "затем по соседним городам. Проверяй lokale uitagenda, gemeente/VVV, сайты площадок, "
+        "музеев, театров, poppodium и билетные сервисы. Не ограничивайся фестивалями: нужны "
+        "также концерты, выставки, маркеты, театр, спорт, семейные и городские мероприятия. "
+        "Проверяй дату, время окончания, место и рабочую прямую ссылку на официальную страницу события, "
         "организатора, площадки или билетов. Не добавляй общие достопримечательности, "
         "регулярные занятия без конкретной даты и уже прошедшие события. "
+        "URL каждого события скопируй из результата веб-поиска; не придумывай адреса страниц. "
         "Верни только блоки следующего формата, без markdown и без текста до или после:\n"
-        "<event><title>Название</title><start>YYYY-MM-DD</start><date>Дата и время для читателя</date>"
+        "<event><title>Название</title><start>ISO 8601 с часовым поясом или YYYY-MM-DD</start>"
+        "<end>ISO 8601 с часовым поясом или YYYY-MM-DD, если известно</end>"
+        "<date>Дата и время для читателя</date>"
         "<venue>Площадка или адрес</venue><city>Город</city>"
         "<description>Одно-два конкретных предложения: что будет и для кого</description>"
         "<url>https://прямая-ссылка</url><source>Название источника</source></event>"
     )
     client = _get_client()
-    try:
+
+    async def request(prompt: str):
         kwargs = dict(
             model=config.AI_CHAT_MODEL,
             max_tokens=2600,
             system=system,
-            messages=[{"role": "user", "content": f"Собери афишу для {city}. Сегодня {today}."}],
+            messages=[{"role": "user", "content": prompt}],
         )
-        tools = _web_search_tool()
+        # Афише нужно проверить несколько локальных источников. Общий лимит для
+        # чата остаётся прежним; повышенный бюджет действует только здесь.
+        tools = _web_search_tool(max_uses=max(5, config.AI_WEB_MAX_USES))
         if tools:
             kwargs["tools"] = tools
-        response = await client.messages.create(**kwargs)
+        return await client.messages.create(**kwargs)
+
+    try:
+        response = await request(
+            f"Собери афишу для {city}. Сегодня {today}. Сначала ищи события именно в {city}; "
+            f"затем дополни событиями из: {place_instruction}."
+        )
     except Exception as exc:  # noqa: BLE001 — афиша не должна ронять бота
         log.warning("Не удалось собрать структурированную афишу для %s: %s", city, exc)
         return []
     text, _ = _extract_text_and_sources(response)
-    return parse_event_cards(text)
+    cards = parse_event_cards(text)
+    if len(cards) >= 4:
+        return cards
+
+    # Маленькие города часто требуют иных формулировок запроса. Делаем второй
+    # проход только при бедном результате, а не для каждой обычной подборки.
+    retry_places = ", ".join(places[:5])
+    try:
+        response = await request(
+            f"Первый поиск дал мало результатов. Повтори независимый поиск для {city} и {retry_places}. "
+            f"Используй запросы на нидерландском вида «{city} uitagenda {today[:7]}», "
+            f"«{city} evenementen weekend», а также agenda/programma местных музеев, театров, "
+            "культурных центров и gemeente. Верни даже 1–3 события, если только столько удалось "
+            "подтвердить; каждое — со своей прямой URL."
+        )
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Повторный локальный поиск афиши для %s не сработал: %s", city, exc)
+        return cards
+    retry_text, _ = _extract_text_and_sources(response)
+    combined = cards + parse_event_cards(retry_text)
+    unique: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+    for card in combined:
+        key = (card["title"].casefold(), card["url"].casefold())
+        if key not in seen:
+            seen.add(key)
+            unique.append(card)
+    return unique[:12]
 
 
 async def ai_afisha_channel(city: str, season_phrase: str) -> str | None:

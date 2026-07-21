@@ -311,6 +311,10 @@ class DiscoveredEvent(Base):
     city: Mapped[str] = mapped_column(String(100), default="")
     link: Mapped[str] = mapped_column(String(700))
     source_name: Mapped[str] = mapped_column(String(120), default="")
+    # Нормализованное время начала. Для событий без указанного времени хранится
+    # конец календарного дня, чтобы дневное событие не исчезало утром.
+    starts_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
     fetched_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
 

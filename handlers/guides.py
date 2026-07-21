@@ -327,15 +327,19 @@ WEEKLY_TIPS = [
     {
         "key": "docs",
         "title": "Не пропускай письма от государства",
+        "url": "https://mijn.overheid.nl/wat-is-de-berichtenbox/",
+        "button": "📬 Открыть Berichtenbox",
         "text": (
-            "Зайди в MijnOverheid, открой Berichtenbox и включи уведомления на e-mail. "
-            "Туда приходят письма от госорганов, а срок ответа может уже идти, даже если "
-            "бумажное письмо ты ещё не увидел(а)."
+            "В Berichtenbox можно включить не только e-mail о новом письме, но и отдельное "
+            "напоминание о непрочитанном. Проверь оба переключателя в Instellingen: уведомление "
+            "само по себе не имеет юридического статуса, поэтому пропущенный e-mail не отменяет срок ответа."
         ),
     },
     {
         "key": "housing",
         "title": "Проверь цену аренды",
+        "url": "https://www.huurcommissie.nl/huurcommissie-helpt/huurprijscheck",
+        "button": "🏠 Открыть Huurprijscheck",
         "text": (
             "Если аренда кажется завышенной, проверь жильё через Huurprijscheck на сайте "
             "Huurcommissie. Результат не заменяет решение комиссии, но покажет, есть ли "
@@ -345,6 +349,8 @@ WEEKLY_TIPS = [
     {
         "key": "money",
         "title": "Проверь, не положен ли тебе zorgtoeslag",
+        "url": "https://www.belastingdienst.nl/wps/wcm/connect/nl/toeslagen/content/hulpmiddel-proefberekening-toeslagen",
+        "button": "🧮 Сделать proefberekening",
         "text": (
             "Пособие на медицинскую страховку зависит от дохода и не включается само. "
             "Сделай proefberekening на Toeslagen.nl — это быстрее, чем весь год платить "
@@ -354,6 +360,8 @@ WEEKLY_TIPS = [
     {
         "key": "health",
         "title": "Запиши номер huisartsenpost заранее",
+        "url": "https://www.rijksoverheid.nl/onderwerpen/eerstelijnszorg/vraag-en-antwoord/huisartsenpost-spoedeisende-hulp",
+        "button": "🏥 Когда обращаться в huisartsenpost",
         "text": (
             "Huisartsenpost нужен вечером, ночью и в выходные, когда huisarts закрыт. "
             "Найди отделение своего региона и сохрани номер сейчас — в срочной ситуации "
@@ -361,12 +369,15 @@ WEEKLY_TIPS = [
         ),
     },
     {
-        "key": "transport",
-        "title": "Проверь подписку NS перед поездкой",
+        "key": "health",
+        "title": "На встречу с gemeente можно взять бесплатного помощника",
+        "url": "https://www.rijksoverheid.nl/vraag-en-antwoord/zorg-en-ondersteuning-thuis/ondersteuning-gemeente-wmo-2015-aanvragen",
+        "button": "♿ Как получить поддержку",
         "text": (
-            "Если часто ездишь вне часа пик или по выходным, сравни обычную стоимость с "
-            "NS Flex. Даже одна-две дальние поездки иногда меняют расчёт, но обязательно "
-            "проверь время действия скидки."
+            "Если обращаешься в gemeente за Wmo-поддержкой — например, из-за здоровья, "
+            "инвалидности или необходимости помощи дома — попроси onafhankelijke cliëntondersteuner. "
+            "Этот человек не представляет gemeente: он бесплатно помогает подготовиться, объяснить "
+            "ситуацию и может присутствовать на разговоре."
         ),
     },
 ]

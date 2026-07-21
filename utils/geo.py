@@ -9,6 +9,8 @@
 Города пишем и по-русски, и по-английски/нидерландски (как люди реально пишут).
 """
 
+import math
+
 # --- Соседние провинции -----------------------------------------------------
 NEIGHBORS: dict[str, list[str]] = {
     "Groningen": ["Friesland", "Drenthe"],
@@ -77,6 +79,15 @@ CITY_TO_PROVINCE: dict[str, tuple[str, str]] = {
     "ден бос": ("Den Bosch", "Noord-Brabant"),
     "helmond": ("Helmond", "Noord-Brabant"),
     "хелмонд": ("Helmond", "Noord-Brabant"),
+    "oss": ("Oss", "Noord-Brabant"),
+    "осc": ("Oss", "Noord-Brabant"),
+    "осс": ("Oss", "Noord-Brabant"),
+    "uden": ("Uden", "Noord-Brabant"),
+    "юден": ("Uden", "Noord-Brabant"),
+    "veghel": ("Veghel", "Noord-Brabant"),
+    "вегел": ("Veghel", "Noord-Brabant"),
+    "wijchen": ("Wijchen", "Gelderland"),
+    "вейхен": ("Wijchen", "Gelderland"),
     # Limburg
     "maastricht": ("Maastricht", "Limburg"),
     "маастрихт": ("Maastricht", "Limburg"),
@@ -120,6 +131,57 @@ CITY_TO_PROVINCE: dict[str, tuple[str, str]] = {
     "middelburg": ("Middelburg", "Zeeland"),
     "мидделбург": ("Middelburg", "Zeeland"),
 }
+
+# Координаты центров нужны не для слежения за пользователем, а чтобы превратить
+# абстрактное «25/50 км» в конкретный список городов для поиска мероприятий.
+CITY_COORDS: dict[str, tuple[float, float]] = {
+    "Amsterdam": (52.3676, 4.9041), "Haarlem": (52.3874, 4.6462),
+    "Alkmaar": (52.6324, 4.7534), "Zaandam": (52.4385, 4.8264),
+    "Hilversum": (52.2292, 5.1669), "Amstelveen": (52.3026, 4.8462),
+    "Hoofddorp": (52.3061, 4.6907), "Rotterdam": (51.9244, 4.4777),
+    "Den Haag": (52.0705, 4.3007), "Leiden": (52.1601, 4.4970),
+    "Delft": (52.0116, 4.3571), "Dordrecht": (51.8133, 4.6901),
+    "Zoetermeer": (52.0607, 4.4940), "Utrecht": (52.0907, 5.1214),
+    "Amersfoort": (52.1561, 5.3878), "Eindhoven": (51.4416, 5.4697),
+    "Tilburg": (51.5555, 5.0913), "Breda": (51.5719, 4.7683),
+    "Den Bosch": (51.6978, 5.3037), "Helmond": (51.4793, 5.6570),
+    "Oss": (51.7650, 5.5180), "Uden": (51.6608, 5.6194),
+    "Veghel": (51.6167, 5.5486), "Wijchen": (51.8090, 5.7250),
+    "Maastricht": (50.8514, 5.6910), "Venlo": (51.3704, 6.1724),
+    "Heerlen": (50.8882, 5.9795), "Arnhem": (51.9851, 5.8987),
+    "Nijmegen": (51.8426, 5.8528), "Apeldoorn": (52.2112, 5.9699),
+    "Ede": (52.0402, 5.6649), "Zwolle": (52.5168, 6.0830),
+    "Enschede": (52.2215, 6.8937), "Deventer": (52.2661, 6.1552),
+    "Almere": (52.3508, 5.2647), "Lelystad": (52.5185, 5.4714),
+    "Groningen": (53.2194, 6.5665), "Leeuwarden": (53.2012, 5.7999),
+    "Assen": (52.9928, 6.5642), "Emmen": (52.7858, 6.8976),
+    "Middelburg": (51.4988, 3.6109),
+}
+
+
+def distance_km(city_a: str, city_b: str) -> float | None:
+    """Примерное расстояние между центрами городов по прямой."""
+    a, b = CITY_COORDS.get(city_a), CITY_COORDS.get(city_b)
+    if not a or not b:
+        return None
+    lat1, lon1, lat2, lon2 = map(math.radians, (*a, *b))
+    dlat, dlon = lat2 - lat1, lon2 - lon1
+    h = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    return 6371 * 2 * math.asin(math.sqrt(h))
+
+
+def cities_within_radius(city: str, radius_km: int, *, limit: int = 8) -> list[str]:
+    """Город пользователя + ближайшие известные города внутри его радиуса."""
+    if radius_km == 999:
+        return [city]
+    if radius_km <= 0 or city not in CITY_COORDS:
+        return [city]
+    nearby = []
+    for candidate in CITY_COORDS:
+        distance = distance_km(city, candidate)
+        if distance is not None and distance <= radius_km:
+            nearby.append((distance, candidate))
+    return [name for _, name in sorted(nearby)[:limit]] or [city]
 
 # --- Категории специалистов и слова для распознавания ------------------------
 # Ключ — каноничная категория (так же она хранится у специалиста в базе).
