@@ -11,6 +11,7 @@ None, и вызывающий код мягко откатится на прав
 from __future__ import annotations
 
 import json
+import html as html_lib
 import logging
 import re
 from datetime import date
@@ -1009,6 +1010,84 @@ async def ai_events(city: str, season_phrase: str) -> str | None:
             log.warning("Ошибка ai_events: %s", e2)
             return None
     return _finalize(resp)
+
+
+def parse_event_cards(text: str) -> list[dict[str, str]]:
+    """Разбирает строгий XML-подобный ответ поиска и отбрасывает карточки без URL."""
+    cards: list[dict[str, str]] = []
+    seen: set[tuple[str, str]] = set()
+
+    def field(block: str, name: str) -> str:
+        match = re.search(rf"<{name}>(.*?)</{name}>", block, re.I | re.S)
+        value = html_lib.unescape(match.group(1).strip()) if match else ""
+        return re.sub(r"\s+", " ", value)
+
+    for block in re.findall(r"<event>(.*?)</event>", text or "", re.I | re.S):
+        card = {name: field(block, name) for name in (
+            "title", "start", "date", "venue", "city", "description", "url", "source"
+        )}
+        url = card["url"].strip().rstrip(".,)")
+        parsed = urlparse(url)
+        try:
+            starts_on = date.fromisoformat(card["start"][:10])
+        except ValueError:
+            continue
+        if (
+            not card["title"] or not card["date"] or starts_on < date.today()
+            or parsed.scheme not in {"http", "https"} or not parsed.netloc
+        ):
+            continue
+        card["url"] = url
+        card["title"] = card["title"][:240]
+        card["date"] = card["date"][:160]
+        card["venue"] = card["venue"][:200]
+        card["city"] = card["city"][:100]
+        card["description"] = card["description"][:700]
+        card["source"] = (card["source"] or parsed.netloc.removeprefix("www."))[:120]
+        key = (card["title"].casefold(), card["url"].casefold())
+        if key not in seen:
+            seen.add(key)
+            cards.append(card)
+    return cards[:12]
+
+
+async def ai_event_cards(city: str, radius_km: int = 25) -> list[dict[str, str]]:
+    """Ищет реальные будущие события и возвращает данные для отдельных карточек."""
+    if not ai_enabled():
+        return []
+    today = date.today().isoformat()
+    radius = "по всей стране" if radius_km == 999 else (
+        "только в границах города" if radius_km == 0 else f"в радиусе примерно {radius_km} км"
+    )
+    system = (
+        "Ты редактор подробной афиши Нидерландов. ОБЯЗАТЕЛЬНО используй веб-поиск. "
+        f"Найди 6–10 реальных мероприятий для {city}, {radius}, на ближайшие 14 дней, начиная с {today}. "
+        "Проверяй дату, место и рабочую прямую ссылку на официальную страницу события, "
+        "организатора, площадки или билетов. Не добавляй общие достопримечательности, "
+        "регулярные занятия без конкретной даты и уже прошедшие события. "
+        "Верни только блоки следующего формата, без markdown и без текста до или после:\n"
+        "<event><title>Название</title><start>YYYY-MM-DD</start><date>Дата и время для читателя</date>"
+        "<venue>Площадка или адрес</venue><city>Город</city>"
+        "<description>Одно-два конкретных предложения: что будет и для кого</description>"
+        "<url>https://прямая-ссылка</url><source>Название источника</source></event>"
+    )
+    client = _get_client()
+    try:
+        kwargs = dict(
+            model=config.AI_CHAT_MODEL,
+            max_tokens=2600,
+            system=system,
+            messages=[{"role": "user", "content": f"Собери афишу для {city}. Сегодня {today}."}],
+        )
+        tools = _web_search_tool()
+        if tools:
+            kwargs["tools"] = tools
+        response = await client.messages.create(**kwargs)
+    except Exception as exc:  # noqa: BLE001 — афиша не должна ронять бота
+        log.warning("Не удалось собрать структурированную афишу для %s: %s", city, exc)
+        return []
+    text, _ = _extract_text_and_sources(response)
+    return parse_event_cards(text)
 
 
 async def ai_afisha_channel(city: str, season_phrase: str) -> str | None:
