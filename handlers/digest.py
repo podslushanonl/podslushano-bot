@@ -23,6 +23,7 @@ from sqlalchemy import func, or_, select
 import config
 from database.db import get_session
 from database.models import (
+    AnnouncementDelivery,
     BotUser,
     DigestDeliveryLog,
     DigestPreference,
@@ -48,8 +49,7 @@ TOPICS = {
 }
 DEFAULT_TOPICS = {"events", "walks"}
 RADIUS_LABELS = {0: "только мой город", 25: "до 25 км", 50: "до 50 км", 999: "вся страна"}
-ANNOUNCEMENT_AT = datetime(2026, 7, 21, 8, 0, tzinfo=ZoneInfo("Europe/Amsterdam"))
-ANNOUNCEMENT_KEY = "digest_announcement_2026-07-21"
+ANNOUNCEMENT_KEY = "digest-subscriptions-ready-2026-07-21"
 
 # Координаты нужны только для локальной фильтрации уже сохранённых карточек.
 # Если города нет в справочнике, безопасный fallback — точное совпадение города.
@@ -768,20 +768,34 @@ async def digest_announcement_preview(message: Message) -> None:
 
 
 async def _send_digest_announcement(bot) -> tuple[int, int]:
-    """Один раз рассылает анонс всем активным пользователям бота."""
+    """Рассылает анонс всем активным пользователям, продолжая после рестарта."""
     async with get_session() as session:
+        already_sent = select(AnnouncementDelivery.user_id).where(
+            AnnouncementDelivery.campaign_key == ANNOUNCEMENT_KEY,
+            AnnouncementDelivery.status == "sent",
+        )
         user_ids = (await session.scalars(
-            select(BotUser.user_id).where(BotUser.is_blocked.is_(False))
+            select(BotUser.user_id).where(
+                BotUser.is_blocked.is_(False),
+                BotUser.user_id.not_in(already_sent),
+            )
         )).all()
     sent = failed = 0
     for user_id in user_ids:
+        message_id = None
+        error = None
+        status = "failed"
         try:
-            await bot.send_message(
+            message = await bot.send_message(
                 user_id, digest_announcement_text(),
                 reply_markup=digest_announcement_kb(), disable_web_page_preview=True,
             )
+            message_id = getattr(message, "message_id", None)
+            status = "sent"
             sent += 1
-        except TelegramForbiddenError:
+        except TelegramForbiddenError as exc:
+            error = f"{type(exc).__name__}: {exc}"
+            status = "blocked"
             failed += 1
             async with get_session() as session:
                 user = await session.get(BotUser, user_id)
@@ -789,26 +803,37 @@ async def _send_digest_announcement(bot) -> tuple[int, int]:
                     user.is_blocked = True
                     await session.commit()
         except Exception as exc:  # noqa: BLE001
+            error = f"{type(exc).__name__}: {exc}"
             failed += 1
             log.warning("Не удалось отправить анонс подписок пользователю %s: %s", user_id, exc)
+        async with get_session() as session:
+            previous = await session.scalar(select(AnnouncementDelivery).where(
+                AnnouncementDelivery.campaign_key == ANNOUNCEMENT_KEY,
+                AnnouncementDelivery.user_id == user_id,
+            ))
+            if previous:
+                previous.status = status
+                previous.telegram_message_id = message_id
+                previous.error_text = error
+            else:
+                session.add(AnnouncementDelivery(
+                    campaign_key=ANNOUNCEMENT_KEY,
+                    user_id=user_id,
+                    status=status,
+                    telegram_message_id=message_id,
+                    error_text=error,
+                ))
+            await session.commit()
         await asyncio.sleep(0.05)
     return sent, failed
 
 
 async def digest_announcement_loop(bot) -> None:
-    """Разовая отправка 21.07.2026 в 08:00 Europe/Amsterdam, строго один раз."""
-    now = datetime.now(ZoneInfo("Europe/Amsterdam"))
-    if now.date() > ANNOUNCEMENT_AT.date():
-        return
-    if now < ANNOUNCEMENT_AT:
-        await asyncio.sleep((ANNOUNCEMENT_AT - now).total_seconds())
-
+    """Сразу после деплоя запускает одну возобновляемую массовую отправку."""
     async with get_session() as session:
         marker = await session.get(Meta, ANNOUNCEMENT_KEY)
-        if marker is not None:
+        if marker is not None and marker.value.startswith("done:"):
             return
-        # Ставим защиту до массовой отправки: рестарт процесса не должен создать
-        # повторную рассылку тем, кто уже получил сообщение.
         await session.merge(Meta(
             key=ANNOUNCEMENT_KEY,
             value=f"started:{datetime.now(ZoneInfo('Europe/Amsterdam')):%Y-%m-%dT%H:%M}",
