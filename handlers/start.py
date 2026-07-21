@@ -154,6 +154,16 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from handlers.selfadd import self_start
         await self_start(message, state)
         return
+    # Кликабельная карточка из персональной подборки (?start=spec_<id>).
+    if command.args and command.args.startswith("spec_"):
+        try:
+            sid = int(command.args[5:])
+        except ValueError:
+            sid = 0
+        if sid:
+            from handlers.contacts import show_specialist_card
+            await show_specialist_card(message, state, sid)
+            return
     # Пришёл по реф-ссылке участника Allo Walks (?start=alloref_<uid>)
     if command.args and command.args.startswith("alloref_"):
         from handlers.allo import register_referral, show_allo
