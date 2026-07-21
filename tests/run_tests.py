@@ -440,7 +440,7 @@ async def test_personal_digest() -> None:
 
     pref = DigestPreference(
         user_id=7001, city="Utrecht", province="Utrecht", radius_km=25,
-        topics_csv="events,specialists,board", enabled=True,
+        topics_csv="events,specialists,board,guides", enabled=True,
     )
     check("подборка: Amersfoort попадает в радиус 25 км",
           location_matches(pref, "Amersfoort"))
@@ -475,7 +475,10 @@ async def test_personal_digest() -> None:
     text = await build_digest(pref)
     check("подборка содержит локальное мероприятие", "Digest test event" in text)
     check("подборка содержит локального специалиста", "Digest test specialist" in text)
+    check("имя специалиста ведёт в его полную карточку", "?start=spec_" in text)
     check("подборка содержит локальное объявление", "Digest test listing" in text)
+    check("полезное содержит самостоятельный совет, а не ссылку-заглушку",
+          "Полезное на этой неделе" in text and "открой нужную тему" not in text)
     check("подборка помещается в сообщение Telegram", len(text) < 4096, str(len(text)))
     announcement = digest_announcement_text()
     announcement_callbacks = [
@@ -488,6 +491,19 @@ async def test_personal_digest() -> None:
     check("анонс запускает настройку и поиск событий",
           announcement_callbacks == ["dg:announce:setup", "ev_search"],
           str(announcement_callbacks))
+
+    from utils.ai import parse_event_cards
+    today_iso = date.today().isoformat()
+    cards = parse_event_cards(
+        f"<event><title>Festival</title><start>{today_iso}</start><date>25 juli · 19:00</date>"
+        "<venue>De Hallen</venue><city>Amsterdam</city>"
+        "<description>Музыка и еда.</description>"
+        "<url>https://example.nl/event</url><source>Example</source></event>"
+        f"<event><title>Без ссылки</title><start>{today_iso}</start><date>26 juli</date>"
+        "<url></url></event>"
+    )
+    check("структурированная афиша создаёт только карточки с рабочей ссылкой",
+          len(cards) == 1 and cards[0]["venue"] == "De Hallen", str(cards))
 
     class FakeBot:
         def __init__(self):

@@ -1,7 +1,7 @@
 """Персональная еженедельная подборка «Планы на выходные».
 
-Пользователь сам выбирает город, радиус и темы. Рассылка использует только
-проверяемые данные бота; живой веб-поиск запускается отдельной кнопкой.
+Пользователь сам выбирает город, радиус и темы. События наполняются живым
+веб-поиском и сохраняются в общую кэшированную карусель города.
 Автоматический цикл по четвергам готовит напоминание админу, но ничего не
 рассылает без явного подтверждения.
 """
@@ -350,10 +350,18 @@ def _next_month_key(day: date) -> str:
 
 
 async def build_digest(pref: DigestPreference) -> str:
-    """Собирает компактный персональный выпуск только из данных бота."""
+    """Собирает персональный выпуск с рабочими переходами и реальной пользой."""
     selected = _topics(pref.topics_csv)
     today = datetime.now(ZoneInfo("Europe/Amsterdam")).date()
     month_keys = [f"{today:%Y-%m}", _next_month_key(today)]
+    discovered = []
+    if "events" in selected:
+        # Поиск общий для сегмента и кэшируется на сутки, поэтому не создаёт
+        # отдельный AI-запрос на каждого получателя рассылки.
+        from handlers.events import ensure_auto_afisha
+        result = await ensure_auto_afisha(pref.city, pref.radius_km, pref.user_id)
+        if result:
+            _, discovered = result
     async with get_session() as session:
         events = (await session.scalars(
             select(EventListing).where(
@@ -390,14 +398,27 @@ async def build_digest(pref: DigestPreference) -> str:
     useful = 0
     if "events" in selected:
         lines.extend(["", "<b>🎭 События рядом</b>"])
-        if local_events:
+        if discovered:
+            for ev in discovered[:4]:
+                title = f'<a href="{html.escape(ev.link, quote=True)}">{html.escape(ev.title)}</a>'
+                place = " · ".join(x for x in (ev.venue, ev.city) if x)
+                lines.append(
+                    f"• <b>{title}</b> · {html.escape(ev.event_date)}\n"
+                    f"  {html.escape(place)}"
+                )
+                useful += 1
+        elif local_events:
             for ev in local_events:
                 when = f" · {html.escape(ev.event_date)}" if ev.event_date else ""
                 where = "онлайн / вся страна" if ev.is_nationwide else ev.city
-                lines.append(f"• <b>{html.escape(ev.title)}</b>{when}\n  {html.escape(where)}")
+                title = html.escape(ev.title)
+                if ev.link:
+                    url = ev.link if ev.link.startswith(("http://", "https://")) else f"https://{ev.link}"
+                    title = f'<a href="{html.escape(url, quote=True)}">{title}</a>'
+                lines.append(f"• <b>{title}</b>{when}\n  {html.escape(where)}")
                 useful += 1
         else:
-            lines.append("В нашей афише пока нет подходящих карточек — свежие варианты можно найти кнопкой ниже.")
+            lines.append("Не удалось найти проверяемые события с рабочими ссылками — попробуй обновить афишу кнопкой ниже.")
     if "walks" in selected and walks:
         lines.extend(["", "<b>🚶 Allo Walks</b>"])
         for walk in walks[:2]:
@@ -408,7 +429,11 @@ async def build_digest(pref: DigestPreference) -> str:
         if local_specs:
             for sp in local_specs:
                 where = "онлайн" if sp.is_online else (sp.city or sp.province)
-                lines.append(f"• {html.escape(sp.name)} · {html.escape(sp.category)} · {html.escape(where)}")
+                name = (
+                    f'<a href="{html.escape(config.specialist_url(sp.id), quote=True)}">'
+                    f'{html.escape(sp.name)}</a>'
+                )
+                lines.append(f"• <b>{name}</b> · {html.escape(sp.category)} · {html.escape(where)}")
                 useful += 1
         else:
             lines.append("Новых карточек рядом на этой неделе нет.")
@@ -421,7 +446,13 @@ async def build_digest(pref: DigestPreference) -> str:
         else:
             lines.append("Свежих объявлений рядом пока нет.")
     if "guides" in selected:
-        lines.extend(["", "<b>📚 Полезное</b>", "На выходных можно спокойно закрыть один бытовой вопрос — открой нужную тему в разделе «Полезное о жизни в NL»."])
+        from handlers.guides import weekly_tip
+        tip = weekly_tip(today.isocalendar().week)
+        lines.extend([
+            "",
+            f"<b>📚 Полезное на этой неделе: {html.escape(tip['title'])}</b>",
+            html.escape(tip["text"]),
+        ])
         useful += 1
     lines.extend([
         "",
@@ -435,10 +466,13 @@ async def build_digest(pref: DigestPreference) -> str:
 def _digest_kb(pref: DigestPreference) -> InlineKeyboardMarkup:
     rows = []
     if "events" in _topics(pref.topics_csv):
-        rows.append([InlineKeyboardButton(text="🔎 Найти свежие события рядом", callback_data="dg:live")])
-        rows.append([InlineKeyboardButton(text="📅 Открыть афишу", callback_data="ev_afisha")])
+        rows.append([InlineKeyboardButton(text="🎭 Листать афишу рядом", callback_data="dg:afisha")])
     if "walks" in _topics(pref.topics_csv) and config.available_allo_walks():
         rows.append([InlineKeyboardButton(text="🚶 Allo Walks", callback_data="ev_allo")])
+    if "guides" in _topics(pref.topics_csv):
+        from handlers.guides import weekly_tip
+        tip = weekly_tip(datetime.now(ZoneInfo("Europe/Amsterdam")).isocalendar().week)
+        rows.append([InlineKeyboardButton(text="📚 Подробнее по совету", callback_data=f"g:{tip['key']}")])
     rows.append([InlineKeyboardButton(text="⚙️ Настроить подборку", callback_data="dg:settings")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
@@ -468,6 +502,20 @@ async def digest_live_events(callback: CallbackQuery, state: FSMContext) -> None
     await callback.answer()
     from handlers.events import _show_events
     await _show_events(callback.message, state, pref.city, callback.from_user.id)
+
+
+@router.callback_query(F.data == "dg:afisha")
+async def digest_auto_afisha(callback: CallbackQuery, state: FSMContext) -> None:
+    pref = await _get_pref(callback.from_user.id)
+    if not pref:
+        await callback.answer("Сначала настрой город", show_alert=True)
+        return
+    await callback.answer()
+    await state.clear()
+    from handlers.events import show_auto_afisha
+    await show_auto_afisha(
+        callback.message, pref.city, pref.radius_km, callback.from_user.id
+    )
 
 
 async def _digest_admin_summary() -> str:
@@ -508,15 +556,41 @@ async def digest_admin_button(callback: CallbackQuery) -> None:
 
 @router.message(Command("digestpreview"), F.from_user.id.in_(config.ADMIN_IDS))
 async def digest_preview_admin(message: Message) -> None:
-    raw = (message.text or "").partition(" ")[2].strip() or "Amsterdam"
-    city, province = _canonical_city(raw)
-    pref = DigestPreference(
-        user_id=message.from_user.id, city=city, province=province, radius_km=25,
-        topics_csv=_topics_csv(set(TOPICS)), enabled=True,
-    )
+    raw = (message.text or "").partition(" ")[2].strip()
+    pref = await _get_pref(message.from_user.id) if not raw else None
+    if pref is None:
+        city, province = _canonical_city(raw or "Amsterdam")
+        pref = DigestPreference(
+            user_id=message.from_user.id, city=city, province=province, radius_km=25,
+            topics_csv=_topics_csv(set(TOPICS)), enabled=True,
+        )
     await message.answer(
-        f"👁 <b>Пример для {html.escape(city)} · до 25 км</b>\n\n" + await build_digest(pref),
+        f"👁 <b>Предпросмотр: {html.escape(pref.city)} · "
+        f"{html.escape(RADIUS_LABELS.get(pref.radius_km, f'{pref.radius_km} км'))}</b>\n\n"
+        + await build_digest(pref),
         reply_markup=_digest_kb(pref),
+    )
+
+
+@router.message(Command("digesttest"), F.from_user.id.in_(config.ADMIN_IDS))
+async def digest_test_admin(message: Message) -> None:
+    """Отправляет админу точную копию его будущей рассылки без журнала доставки."""
+    pref = await _get_pref(message.from_user.id)
+    if pref is None:
+        await message.answer(
+            "Сначала настрой свою подборку через /digest, а затем повтори /digesttest."
+        )
+        return
+    await message.answer(
+        "🧪 <b>Тестовая отправка только тебе</b>\n"
+        "Следующее сообщение — точно такой вид будет иметь еженедельная подборка. "
+        "Тест не засчитывается как рассылка."
+    )
+    await message.bot.send_message(
+        message.from_user.id,
+        await build_digest(pref),
+        reply_markup=_digest_kb(pref),
+        disable_web_page_preview=True,
     )
 
 
@@ -644,11 +718,12 @@ def digest_announcement_text() -> str:
         "свой город, выбираешь, как далеко готов(а) ехать — только по городу, "
         "до 25 или 50 км — и отмечаешь, что тебе интересно.\n\n"
         "По четвергам я буду присылать:\n\n"
-        "🎭 события рядом;\n"
+        "🎭 события рядом — с датой, местом и прямой ссылкой;\n"
         "🚶 новые Allo Walks;\n"
-        "🔍 новых специалистов;\n"
+        "🔍 новых специалистов — имя открывает карточку и контакты;\n"
         "📋 свежие объявления;\n"
-        "📚 полезное о жизни в Нидерландах.\n\n"
+        "📚 один практический совет о жизни в Нидерландах прямо в сообщении.\n\n"
+        "События можно листать по одной карточке, как афишу.\n\n"
         "Можно выбрать только нужные темы, изменить город или отключить подборку "
         "в любой момент.\n\n"
         "Адрес и геолокация мне не нужны — сохраняется только выбранный город.\n\n"

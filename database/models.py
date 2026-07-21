@@ -291,6 +291,30 @@ class EventListing(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class DiscoveredEvent(Base):
+    """Проверяемое мероприятие, найденное живым поиском и сохранённое для карусели.
+
+    Один поиск создаёт batch_key. Благодаря этому один и тот же результат можно
+    показать всем пользователям сегмента, не оплачивая новый AI-запрос на каждого.
+    """
+
+    __tablename__ = "discovered_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    batch_key: Mapped[str] = mapped_column(String(24), index=True)
+    query_city: Mapped[str] = mapped_column(String(100), index=True)
+    radius_km: Mapped[int] = mapped_column(Integer, default=25)
+    title: Mapped[str] = mapped_column(String(240))
+    description: Mapped[str] = mapped_column(Text, default="")
+    event_date: Mapped[str] = mapped_column(String(160), default="")
+    venue: Mapped[str] = mapped_column(String(200), default="")
+    city: Mapped[str] = mapped_column(String(100), default="")
+    link: Mapped[str] = mapped_column(String(700))
+    source_name: Mapped[str] = mapped_column(String(120), default="")
+    fetched_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+
+
 class Listing(Base):
     """Объявление на доске (бесплатная подача, модерация, платное «поднятие»)."""
 
