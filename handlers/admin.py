@@ -148,6 +148,7 @@ _ADMIN_COMMANDS_HELP = (
     "☀️ <b>Персональная подборка</b>\n"
     "/digeststats — подписки, города и доставки\n"
     "/digestpreview CITY — пример выпуска для города\n"
+    "/digestannouncepreview — анонс подписок перед рассылкой\n"
     "/digestsend — отправить выпуск после подтверждения\n\n"
     "📣 <b>Контент и рассылки</b>\n"
     "/sitepost — статья на сайт (WordPress, черновик)\n"
