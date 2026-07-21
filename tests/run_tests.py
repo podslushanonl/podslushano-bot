@@ -27,6 +27,7 @@ importlib.reload(db)
 
 from sqlalchemy import select  # noqa: E402
 from database.models import (  # noqa: E402
+    AnnouncementDelivery,
     BotUser,
     DiscoveredEvent,
     DigestDeliveryLog,
@@ -567,7 +568,12 @@ async def test_personal_digest() -> None:
             self.calls.append(chat_id)
             return type("Sent", (), {"message_id": 991})()
 
-    from handlers.digest import _send_all_digests, _week_key
+    from handlers.digest import (
+        ANNOUNCEMENT_KEY,
+        _send_all_digests,
+        _send_digest_announcement,
+        _week_key,
+    )
     bot = FakeBot()
     await _send_all_digests(bot, admin_id=1)
     async with db.get_session() as session:
@@ -584,6 +590,21 @@ async def test_personal_digest() -> None:
     await _send_all_digests(bot, admin_id=1)
     check("одна подборка не отправляется дважды за неделю",
           bot.calls.count(7001) == before)
+
+    announcement_bot = FakeBot()
+    sent, failed = await _send_digest_announcement(announcement_bot)
+    check("разовый анонс отправляется активным пользователям",
+          sent > 0 and failed == 0 and announcement_bot.calls.count(7001) == 1)
+    sent_again, _ = await _send_digest_announcement(announcement_bot)
+    async with db.get_session() as session:
+        announcement_log = (await session.scalars(select(AnnouncementDelivery).where(
+            AnnouncementDelivery.campaign_key == ANNOUNCEMENT_KEY,
+            AnnouncementDelivery.user_id == 7001,
+        ))).first()
+    check("разовый анонс не дублируется после повторного запуска",
+          sent_again == 0 and announcement_bot.calls.count(7001) == 1)
+    check("доставка разового анонса записывается по пользователю",
+          bool(announcement_log) and announcement_log.status == "sent")
 
 
 def test_wordpress_util() -> None:
