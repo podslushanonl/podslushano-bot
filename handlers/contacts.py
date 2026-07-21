@@ -372,6 +372,22 @@ async def _spec_show(msg: Message, state: FSMContext, idx: int, replace: bool) -
     await bot.send_message(chat_id, text, reply_markup=kb, disable_web_page_preview=True)
 
 
+async def show_specialist_card(message: Message, state: FSMContext, specialist_id: int) -> bool:
+    """Открывает одну полноценную карточку по публичной ссылке ``spec_<id>``."""
+    async with get_session() as session:
+        spec = await session.get(Specialist, specialist_id)
+    if spec is None or spec.status != "active":
+        await message.answer(
+            "Эта карточка больше не активна. Можно найти другого специалиста через меню 🙂",
+            reply_markup=main_menu(),
+        )
+        return False
+    await state.clear()
+    await state.update_data(sp_ids=[specialist_id], sp_labels=[])
+    await _spec_show(message, state, 0, replace=False)
+    return True
+
+
 async def _send_results(message: Message, state: FSMContext, sections: list) -> None:
     """Складывает результаты в карусель: одна карточка за раз с навигацией ◀️ ▶️."""
     await state.clear()
