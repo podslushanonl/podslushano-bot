@@ -431,7 +431,12 @@ async def test_premiums_query() -> None:
 async def test_personal_digest() -> None:
     """Георадиус и секции персональной подборки работают на данных бота."""
     from datetime import date
-    from handlers.digest import build_digest, location_matches
+    from handlers.digest import (
+        build_digest,
+        digest_announcement_kb,
+        digest_announcement_text,
+        location_matches,
+    )
 
     pref = DigestPreference(
         user_id=7001, city="Utrecht", province="Utrecht", radius_km=25,
@@ -472,6 +477,17 @@ async def test_personal_digest() -> None:
     check("подборка содержит локального специалиста", "Digest test specialist" in text)
     check("подборка содержит локальное объявление", "Digest test listing" in text)
     check("подборка помещается в сообщение Telegram", len(text) < 4096, str(len(text)))
+    announcement = digest_announcement_text()
+    announcement_callbacks = [
+        button.callback_data
+        for row in digest_announcement_kb().inline_keyboard
+        for button in row
+    ]
+    check("анонс подписок помещается в сообщение Telegram",
+          len(announcement) < 4096, str(len(announcement)))
+    check("анонс запускает настройку и поиск событий",
+          announcement_callbacks == ["dg:announce:setup", "ev_search"],
+          str(announcement_callbacks))
 
     class FakeBot:
         def __init__(self):

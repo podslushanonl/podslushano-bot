@@ -48,6 +48,8 @@ TOPICS = {
 }
 DEFAULT_TOPICS = {"events", "walks"}
 RADIUS_LABELS = {0: "только мой город", 25: "до 25 км", 50: "до 50 км", 999: "вся страна"}
+ANNOUNCEMENT_AT = datetime(2026, 7, 21, 8, 0, tzinfo=ZoneInfo("Europe/Amsterdam"))
+ANNOUNCEMENT_KEY = "digest_announcement_2026-07-21"
 
 # Координаты нужны только для локальной фильтрации уже сохранённых карточек.
 # Если города нет в справочнике, безопасный fallback — точное совпадение города.
@@ -180,11 +182,10 @@ async def _get_pref(user_id: int) -> DigestPreference | None:
         return await session.get(DigestPreference, user_id)
 
 
-@router.message(Command("digest", "subscriptions"))
-@router.message(F.text == BTN_SUBSCRIPTIONS)
-async def digest_start(message: Message, state: FSMContext) -> None:
+async def _open_digest_settings(message: Message, state: FSMContext, user_id: int) -> None:
+    """Открывает настройки как из команды, так и из кнопки в рассылке."""
     await state.clear()
-    pref = await _get_pref(message.from_user.id)
+    pref = await _get_pref(user_id)
     if pref:
         await message.answer(_settings_text(pref), reply_markup=_settings_kb(pref))
         return
@@ -196,6 +197,18 @@ async def digest_start(message: Message, state: FSMContext) -> None:
         "📍 В каком городе ты живёшь?",
         reply_markup=cancel_menu(),
     )
+
+
+@router.message(Command("digest", "subscriptions"))
+@router.message(F.text == BTN_SUBSCRIPTIONS)
+async def digest_start(message: Message, state: FSMContext) -> None:
+    await _open_digest_settings(message, state, message.from_user.id)
+
+
+@router.callback_query(F.data == "dg:announce:setup")
+async def digest_announcement_setup(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await _open_digest_settings(callback.message, state, callback.from_user.id)
 
 
 @router.message(DigestSetup.waiting_city)
@@ -621,3 +634,105 @@ async def digest_draft_loop(bot) -> None:
         except Exception as exc:  # noqa: BLE001
             log.warning("Ошибка цикла еженедельной подборки: %s", exc)
         await asyncio.sleep(6 * 3600)
+
+
+def digest_announcement_text() -> str:
+    """Утверждённый анонс добровольных персональных подписок."""
+    return (
+        "☀️ <b>Теперь я могу собирать планы на выходные именно для тебя</b>\n\n"
+        "Не общую афишу на всю страну, а подборку рядом с домом. Ты указываешь "
+        "свой город, выбираешь, как далеко готов(а) ехать — только по городу, "
+        "до 25 или 50 км — и отмечаешь, что тебе интересно.\n\n"
+        "По четвергам я буду присылать:\n\n"
+        "🎭 события рядом;\n"
+        "🚶 новые Allo Walks;\n"
+        "🔍 новых специалистов;\n"
+        "📋 свежие объявления;\n"
+        "📚 полезное о жизни в Нидерландах.\n\n"
+        "Можно выбрать только нужные темы, изменить город или отключить подборку "
+        "в любой момент.\n\n"
+        "Адрес и геолокация мне не нужны — сохраняется только выбранный город.\n\n"
+        "Настроим твою подборку? 👇"
+    )
+
+
+def digest_announcement_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text="🔔 Настроить мою подборку", callback_data="dg:announce:setup")],
+        [InlineKeyboardButton(
+            text="☀️ Найти события сейчас", callback_data="ev_search")],
+    ])
+
+
+@router.message(Command("digestannouncepreview"), F.from_user.id.in_(config.ADMIN_IDS))
+async def digest_announcement_preview(message: Message) -> None:
+    await message.answer(
+        digest_announcement_text(), reply_markup=digest_announcement_kb(),
+        disable_web_page_preview=True,
+    )
+
+
+async def _send_digest_announcement(bot) -> tuple[int, int]:
+    """Один раз рассылает анонс всем активным пользователям бота."""
+    async with get_session() as session:
+        user_ids = (await session.scalars(
+            select(BotUser.user_id).where(BotUser.is_blocked.is_(False))
+        )).all()
+    sent = failed = 0
+    for user_id in user_ids:
+        try:
+            await bot.send_message(
+                user_id, digest_announcement_text(),
+                reply_markup=digest_announcement_kb(), disable_web_page_preview=True,
+            )
+            sent += 1
+        except TelegramForbiddenError:
+            failed += 1
+            async with get_session() as session:
+                user = await session.get(BotUser, user_id)
+                if user:
+                    user.is_blocked = True
+                    await session.commit()
+        except Exception as exc:  # noqa: BLE001
+            failed += 1
+            log.warning("Не удалось отправить анонс подписок пользователю %s: %s", user_id, exc)
+        await asyncio.sleep(0.05)
+    return sent, failed
+
+
+async def digest_announcement_loop(bot) -> None:
+    """Разовая отправка 21.07.2026 в 08:00 Europe/Amsterdam, строго один раз."""
+    now = datetime.now(ZoneInfo("Europe/Amsterdam"))
+    if now.date() > ANNOUNCEMENT_AT.date():
+        return
+    if now < ANNOUNCEMENT_AT:
+        await asyncio.sleep((ANNOUNCEMENT_AT - now).total_seconds())
+
+    async with get_session() as session:
+        marker = await session.get(Meta, ANNOUNCEMENT_KEY)
+        if marker is not None:
+            return
+        # Ставим защиту до массовой отправки: рестарт процесса не должен создать
+        # повторную рассылку тем, кто уже получил сообщение.
+        await session.merge(Meta(
+            key=ANNOUNCEMENT_KEY,
+            value=f"started:{datetime.now(ZoneInfo('Europe/Amsterdam')):%Y-%m-%dT%H:%M}",
+        ))
+        await session.commit()
+
+    sent, failed = await _send_digest_announcement(bot)
+    async with get_session() as session:
+        marker = await session.get(Meta, ANNOUNCEMENT_KEY)
+        if marker:
+            marker.value = f"done:sent={sent}:failed={failed}"
+            await session.commit()
+    for admin_id in config.ADMIN_IDS:
+        try:
+            await bot.send_message(
+                admin_id,
+                "✅ <b>Анонс персональных подписок отправлен</b>\n"
+                f"Доставлено: {sent}\nНе доставлено: {failed}",
+            )
+        except Exception:  # noqa: BLE001
+            pass

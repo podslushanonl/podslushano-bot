@@ -14,7 +14,7 @@ from handlers import (
     letters, moderation, salary, selfadd, share, spotlight, start, submissions, support,
 )
 from handlers.selfadd import reminder_loop
-from handlers.digest import digest_draft_loop
+from handlers.digest import digest_announcement_loop, digest_draft_loop
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
 from utils.webserver import start_webserver
@@ -132,6 +132,7 @@ async def main() -> None:
         await start_webserver(bot)
         asyncio.create_task(reminder_loop(bot))
         asyncio.create_task(digest_draft_loop(bot))
+        asyncio.create_task(digest_announcement_loop(bot))
     except Exception as e:  # noqa: BLE001 — без веб-сервера бот всё равно работает
         logging.warning("Веб-сервер не запустился: %s", e)
 
