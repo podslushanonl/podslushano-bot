@@ -28,6 +28,7 @@ importlib.reload(db)
 from sqlalchemy import select  # noqa: E402
 from database.models import (  # noqa: E402
     BotUser,
+    DiscoveredEvent,
     DigestDeliveryLog,
     DigestPreference,
     EventListing,
@@ -430,11 +431,12 @@ async def test_premiums_query() -> None:
 
 async def test_personal_digest() -> None:
     """Георадиус и секции персональной подборки работают на данных бота."""
-    from datetime import date
+    from datetime import date, datetime, timedelta
     from handlers.digest import (
         build_digest,
         digest_announcement_kb,
         digest_announcement_text,
+        _listing_event_day,
         location_matches,
     )
 
@@ -446,6 +448,12 @@ async def test_personal_digest() -> None:
           location_matches(pref, "Amersfoort"))
     check("подборка: Amsterdam не попадает в радиус 25 км",
           not location_matches(pref, "Amsterdam"))
+    oss = DigestPreference(
+        user_id=7003, city="Oss", province="Noord-Brabant", radius_km=25,
+        topics_csv="events", enabled=True,
+    )
+    check("подборка: Den Bosch попадает в радиус 25 км от Oss",
+          location_matches(oss, "Den Bosch"))
     exact = DigestPreference(
         user_id=7002, city="Utrecht", province="Utrecht", radius_km=0,
         topics_csv="events", enabled=True,
@@ -459,8 +467,15 @@ async def test_personal_digest() -> None:
         session.add(pref)
         session.add(EventListing(
             title="Digest test event", description="test", city="Amersfoort",
-            is_nationwide=False, event_date="суббота", month_key=month,
-            status="approved",
+            is_nationwide=False,
+            event_date=(date.today() + timedelta(days=2)).strftime("%d.%m.%Y"),
+            month_key=month, status="approved", link="https://example.nl/upcoming",
+        ))
+        session.add(EventListing(
+            title="Past digest event", description="test", city="Amersfoort",
+            is_nationwide=False,
+            event_date=(date.today() - timedelta(days=2)).strftime("%d.%m.%Y"),
+            month_key=month, status="approved", link="https://example.nl/past",
         ))
         session.add(Specialist(
             name="Digest test specialist", category="фотограф", city="Amersfoort",
@@ -474,6 +489,9 @@ async def test_personal_digest() -> None:
         await session.commit()
     text = await build_digest(pref)
     check("подборка содержит локальное мероприятие", "Digest test event" in text)
+    check("подборка не содержит уже прошедшее мероприятие", "Past digest event" not in text)
+    check("ручная афиша не угадывает дату из слова «суббота»",
+          _listing_event_day("суббота") is None)
     check("подборка содержит локального специалиста", "Digest test specialist" in text)
     check("имя специалиста ведёт в его полную карточку", "?start=spec_" in text)
     check("подборка содержит локальное объявление", "Digest test listing" in text)
@@ -492,18 +510,54 @@ async def test_personal_digest() -> None:
           announcement_callbacks == ["dg:announce:setup", "ev_search"],
           str(announcement_callbacks))
 
-    from utils.ai import parse_event_cards
-    today_iso = date.today().isoformat()
+    from utils.ai import parse_event_cards, parse_event_search_places
+    fixed_now = datetime(2026, 7, 21, 12, 0)
     cards = parse_event_cards(
-        f"<event><title>Festival</title><start>{today_iso}</start><date>25 juli · 19:00</date>"
+        "<event><title>Festival</title><start>2026-07-25T19:00:00+02:00</start>"
+        "<end>2026-07-25T23:00:00+02:00</end><date>25 juli · 19:00</date>"
         "<venue>De Hallen</venue><city>Amsterdam</city>"
         "<description>Музыка и еда.</description>"
         "<url>https://example.nl/event</url><source>Example</source></event>"
-        f"<event><title>Без ссылки</title><start>{today_iso}</start><date>26 juli</date>"
+        "<event><title>Без ссылки</title><start>2026-07-26</start><date>26 juli</date>"
         "<url></url></event>"
+        "<event><title>Уже прошло</title><start>2026-07-20T10:00:00+02:00</start>"
+        "<end>2026-07-20T12:00:00+02:00</end><date>20 juli</date>"
+        "<url>https://example.nl/past-event</url></event>",
+        now=fixed_now,
     )
-    check("структурированная афиша создаёт только карточки с рабочей ссылкой",
+    check("афиша оставляет только будущие карточки с отдельной ссылкой",
           len(cards) == 1 and cards[0]["venue"] == "De Hallen", str(cards))
+    places = parse_event_search_places(
+        "<place>Woudrichem</place><place>Werkendam</place>"
+        "<place>Gorinchem</place><place>Woudrichem</place>",
+        "Woudrichem",
+    )
+    check("афиша поддерживает любой небольшой город без статического списка",
+          places == ["Woudrichem", "Werkendam", "Gorinchem"], str(places))
+
+    from handlers.events import _auto_batch
+    real_now = datetime.utcnow()
+    async with db.get_session() as session:
+        session.add(DiscoveredEvent(
+            batch_key="past-batch", query_city="Pastville", radius_km=25,
+            title="Finished", description="", event_date="вчера", venue="",
+            city="Pastville", link="https://example.nl/finished", source_name="Example",
+            starts_at=real_now - timedelta(hours=4), ends_at=real_now - timedelta(hours=1),
+            expires_at=real_now + timedelta(hours=20),
+        ))
+        session.add(DiscoveredEvent(
+            batch_key="future-batch", query_city="Futureville", radius_km=25,
+            title="Upcoming", description="", event_date="завтра", venue="",
+            city="Futureville", link="https://example.nl/upcoming-card", source_name="Example",
+            starts_at=real_now + timedelta(hours=4), ends_at=real_now + timedelta(hours=7),
+            expires_at=real_now + timedelta(hours=20),
+        ))
+        await session.commit()
+    check("суточный кэш не возвращает уже закончившееся событие",
+          await _auto_batch("Pastville", 25) is None)
+    future_batch = await _auto_batch("Futureville", 25)
+    check("суточный кэш возвращает будущее событие",
+          bool(future_batch) and future_batch[1][0].title == "Upcoming")
 
     class FakeBot:
         def __init__(self):

@@ -57,6 +57,11 @@ _AD_LATER_COLUMNS = {
     "phone": "VARCHAR(40)",
 }
 
+_DISCOVERED_EVENT_LATER_COLUMNS = {
+    "starts_at": "DATETIME",
+    "ends_at": "DATETIME",
+}
+
 
 async def init_db() -> None:
     """Создаёт таблицы, добавляет недостающие колонки и засевает специалистов."""
@@ -102,6 +107,20 @@ async def _migrate() -> None:
                 if name not in acols:
                     await conn.exec_driver_sql(
                         f"ALTER TABLE ad_bookings ADD COLUMN {name} {ddl}"
+                    )
+
+        def discovered_event_cols(sync_conn):
+            insp = inspect(sync_conn)
+            if "discovered_events" not in insp.get_table_names():
+                return None
+            return {c["name"] for c in insp.get_columns("discovered_events")}
+
+        ecols = await conn.run_sync(discovered_event_cols)
+        if ecols is not None:
+            for name, ddl in _DISCOVERED_EVENT_LATER_COLUMNS.items():
+                if name not in ecols:
+                    await conn.exec_driver_sql(
+                        f"ALTER TABLE discovered_events ADD COLUMN {name} {ddl}"
                     )
 
 

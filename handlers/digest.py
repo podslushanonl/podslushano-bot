@@ -8,7 +8,7 @@
 import asyncio
 import html
 import logging
-import math
+import re
 from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
@@ -33,7 +33,7 @@ from database.models import (
 )
 from keyboards.menus import BTN_SUBSCRIPTIONS, cancel_menu, main_menu
 from states.forms import DigestSetup
-from utils.geo import detect_city, province_of_city
+from utils.geo import detect_city, distance_km, province_of_city
 
 log = logging.getLogger(__name__)
 router = Router()
@@ -53,29 +53,6 @@ ANNOUNCEMENT_KEY = "digest_announcement_2026-07-21"
 
 # Координаты нужны только для локальной фильтрации уже сохранённых карточек.
 # Если города нет в справочнике, безопасный fallback — точное совпадение города.
-CITY_COORDS = {
-    "Amsterdam": (52.3676, 4.9041), "Haarlem": (52.3874, 4.6462),
-    "Alkmaar": (52.6324, 4.7534), "Zaandam": (52.4385, 4.8264),
-    "Hilversum": (52.2292, 5.1669), "Amstelveen": (52.3026, 4.8462),
-    "Hoofddorp": (52.3061, 4.6907), "Rotterdam": (51.9244, 4.4777),
-    "Den Haag": (52.0705, 4.3007), "Leiden": (52.1601, 4.4970),
-    "Delft": (52.0116, 4.3571), "Dordrecht": (51.8133, 4.6901),
-    "Zoetermeer": (52.0607, 4.4940), "Utrecht": (52.0907, 5.1214),
-    "Amersfoort": (52.1561, 5.3878), "Eindhoven": (51.4416, 5.4697),
-    "Tilburg": (51.5555, 5.0913), "Breda": (51.5719, 4.7683),
-    "Den Bosch": (51.6978, 5.3037), "Helmond": (51.4793, 5.6570),
-    "Maastricht": (50.8514, 5.6910), "Venlo": (51.3704, 6.1724),
-    "Heerlen": (50.8882, 5.9795), "Arnhem": (51.9851, 5.8987),
-    "Nijmegen": (51.8426, 5.8528), "Apeldoorn": (52.2112, 5.9699),
-    "Ede": (52.0402, 5.6649), "Zwolle": (52.5168, 6.0830),
-    "Enschede": (52.2215, 6.8937), "Deventer": (52.2661, 6.1552),
-    "Almere": (52.3508, 5.2647), "Lelystad": (52.5185, 5.4714),
-    "Groningen": (53.2194, 6.5665), "Leeuwarden": (53.2012, 5.7999),
-    "Assen": (52.9928, 6.5642), "Emmen": (52.7858, 6.8976),
-    "Middelburg": (51.4988, 3.6109),
-}
-
-
 def _topics(csv: str | None) -> set[str]:
     return {x for x in (csv or "").split(",") if x in TOPICS}
 
@@ -107,13 +84,7 @@ def _canonical_city(raw: str) -> tuple[str, str]:
 
 
 def _distance_km(a: str, b: str) -> float | None:
-    ca, cb = CITY_COORDS.get(a), CITY_COORDS.get(b)
-    if not ca or not cb:
-        return None
-    lat1, lon1, lat2, lon2 = map(math.radians, (*ca, *cb))
-    dlat, dlon = lat2 - lat1, lon2 - lon1
-    h = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
-    return 6371 * 2 * math.asin(math.sqrt(h))
+    return distance_km(a, b)
 
 
 def location_matches(pref: DigestPreference, target_city: str,
@@ -349,6 +320,43 @@ def _next_month_key(day: date) -> str:
     return f"{first:%Y-%m}"
 
 
+_MONTHS = {
+    "januari": 1, "январ": 1, "februari": 2, "феврал": 2,
+    "maart": 3, "март": 3, "april": 4, "апрел": 4,
+    "mei": 5, "май": 5, "июн": 6, "juni": 6, "июл": 7, "juli": 7,
+    "augustus": 8, "август": 8, "september": 9, "сентябр": 9,
+    "oktober": 10, "октябр": 10, "november": 11, "ноябр": 11,
+    "december": 12, "декабр": 12,
+}
+
+
+def _listing_event_day(raw: str | None, *, today: date | None = None) -> date | None:
+    """Консервативно извлекает дату ручной афиши; непонятную дату не угадывает."""
+    text = (raw or "").strip().casefold()
+    current = today or datetime.now(ZoneInfo("Europe/Amsterdam")).date()
+    match = re.search(r"\b(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})\b", text)
+    if match:
+        try:
+            return date(*map(int, match.groups()))
+        except ValueError:
+            return None
+    match = re.search(r"\b(\d{1,2})[-/.](\d{1,2})(?:[-/.](20\d{2}))?\b", text)
+    if match:
+        day, month, year = match.groups()
+        try:
+            return date(int(year or current.year), int(month), int(day))
+        except ValueError:
+            return None
+    for word, month in _MONTHS.items():
+        match = re.search(rf"\b(\d{{1,2}})\s+{word}\w*(?:\s+(20\d{{2}}))?", text)
+        if match:
+            try:
+                return date(int(match.group(2) or current.year), month, int(match.group(1)))
+            except ValueError:
+                return None
+    return None
+
+
 async def build_digest(pref: DigestPreference) -> str:
     """Собирает персональный выпуск с рабочими переходами и реальной пользой."""
     selected = _topics(pref.topics_csv)
@@ -379,7 +387,15 @@ async def build_digest(pref: DigestPreference) -> str:
             ).order_by(Listing.bumped_at.desc(), Listing.id.desc()).limit(40)
         )).all()
 
-    local_events = [x for x in events if location_matches(pref, x.city, nationwide=x.is_nationwide)][:4]
+    # Ручная афиша — только с распознаваемой будущей датой и отдельной ссылкой.
+    # Так старые карточки текущего месяца не возвращаются в подборку.
+    local_events = [
+        x for x in events
+        if location_matches(pref, x.city, nationwide=x.is_nationwide)
+        and _listing_event_day(x.event_date, today=today) is not None
+        and _listing_event_day(x.event_date, today=today) >= today
+        and bool(x.link)
+    ][:4]
     local_specs = [x for x in specialists if location_matches(
         pref, x.city, nationwide=x.is_online, target_province=x.province
     )][:3]
@@ -472,7 +488,10 @@ def _digest_kb(pref: DigestPreference) -> InlineKeyboardMarkup:
     if "guides" in _topics(pref.topics_csv):
         from handlers.guides import weekly_tip
         tip = weekly_tip(datetime.now(ZoneInfo("Europe/Amsterdam")).isocalendar().week)
-        rows.append([InlineKeyboardButton(text="📚 Подробнее по совету", callback_data=f"g:{tip['key']}")])
+        rows.append([InlineKeyboardButton(
+            text=tip.get("button", "📚 Официальный источник"),
+            url=tip["url"],
+        )])
     rows.append([InlineKeyboardButton(text="⚙️ Настроить подборку", callback_data="dg:settings")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
