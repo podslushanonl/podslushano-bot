@@ -80,6 +80,11 @@ def specialist_add_url() -> str:
     """Публичная ссылка, которая сразу открывает анкету специалиста."""
     return f"{BOT_URL.rstrip('/')}?start=selfadd"
 
+
+def specialist_url(specialist_id: int) -> str:
+    """Публичная ссылка, которая открывает конкретную карточку специалиста."""
+    return f"{BOT_URL.rstrip('/')}?start=spec_{specialist_id}"
+
 # --- Искусственный интеллект (Claude) ---------------------------------------
 # Ключ берётся в консоли Anthropic: https://console.anthropic.com/ → API Keys.
 # Если ключа нет — бот продолжит работать на правилах, просто без «живого» ИИ.
