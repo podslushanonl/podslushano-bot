@@ -571,6 +571,9 @@ def _browse_kb(l: Listing, idx: int, total: int) -> InlineKeyboardMarkup:
     url = _contact_url(l.contact)
     if url:
         rows.append([InlineKeyboardButton(text="✍️ Написать", url=url)])
+    rows.append([InlineKeyboardButton(
+        text="♡ Сохранить", callback_data=f"save:listing:{l.id}"
+    )])
     rows.append([InlineKeyboardButton(text="🚩 Пожаловаться", callback_data=f"lrep:{l.id}")])
     if total > 1:
         p, n = (idx - 1) % total, (idx + 1) % total
