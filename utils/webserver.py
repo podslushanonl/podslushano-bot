@@ -7,6 +7,7 @@ Mollie после оплаты дёргает POST /mollie-webhook с полем
 import html as html_lib
 import logging
 import re
+from pathlib import Path
 from datetime import datetime
 
 from aiohttp import web
@@ -1152,9 +1153,35 @@ fillOpt();toggleType();
 </body></html>"""
 
 
-async def _ads(request: web.Request) -> web.Response:
+_ADS_SITE_DIR = Path(__file__).resolve().parent.parent / "static" / "ads-site"
+
+
+def _ads_site_page(filename: str) -> web.FileResponse:
+    """Serve the redesigned booking flow from the Railway /ads URL."""
+    return web.FileResponse(_ADS_SITE_DIR / filename, headers={
+        "Cache-Control": "no-cache",
+        "X-Content-Type-Options": "nosniff",
+    })
+
+
+async def _ads(request: web.Request) -> web.StreamResponse:
+    return _ads_site_page("index.html")
+
+
+async def _ads_questions(request: web.Request) -> web.StreamResponse:
+    return _ads_site_page("questions.html")
+
+
+async def _ads_payment_success(request: web.Request) -> web.StreamResponse:
+    return _ads_site_page("payment-success.html")
+
+
+async def _ads_availability(request: web.Request) -> web.Response:
     from handlers.ads import _taken
-    return web.Response(text=_ads_html(await _taken()), content_type="text/html")
+    return web.json_response(
+        {"taken": sorted(await _taken())},
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 async def _ads_book(request: web.Request) -> web.Response:
@@ -1278,7 +1305,12 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/api/guide.json", _api_guide)
     app.router.add_get("/c/{key}", _contact_page)   # короткая ссылка по slug
     app.router.add_get("/s/{key}", _contact_page)   # короткая ссылка по id
-    app.router.add_get("/ads", _ads)            # приватная страница брони с ценами
+    app.router.add_get("/ads", _ads)            # рекламная страница и бронь
+    app.router.add_get("/ads/questions", _ads_questions)
+    app.router.add_get("/ads/payment-success", _ads_payment_success)
+    app.router.add_get("/ads/availability", _ads_availability)
+    app.router.add_get("/api/availability", _ads_availability)
+    app.router.add_static("/ads-static/", _ADS_SITE_DIR, show_index=False)
     app.router.add_post("/ads/book", _ads_book)  # оформление брони → оплата Mollie
     app.router.add_get("/reklama", _reklama)            # публичная заявка на рекламу (без цен)
     app.router.add_post("/reklama/submit", _reklama_submit)
