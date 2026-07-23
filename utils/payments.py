@@ -32,10 +32,15 @@ async def create_payment(description: str, metadata: dict, amount: str,
     method — ограничить способ оплаты (напр. "ideal"). None = все доступные.
     """
     sid = metadata.get("specialist_id")
-    if sid and config.WEBHOOK_BASE_URL:
+    if metadata.get("kind") == "ad" and config.WEBHOOK_BASE_URL:
+        booking_id = metadata.get("booking_id")
+        redirect = f"{config.WEBHOOK_BASE_URL}/ads/payment-success"
+        if booking_id:
+            redirect += f"?booking_id={booking_id}"
+    elif sid and config.WEBHOOK_BASE_URL:
         redirect = f"{config.WEBHOOK_BASE_URL}/thanks?sid={sid}"
     else:
-        # Платежи без карточки специалиста (напр. мероприятие афиши) — назад в бота
+        # Остальные платежи без карточки специалиста — назад в бота
         redirect = config.BOT_URL or config.SITE_URL or "https://www.mollie.com"
     body = {
         "amount": {"currency": config.LISTING_CURRENCY, "value": amount},

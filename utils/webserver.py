@@ -5,8 +5,10 @@ Mollie после оплаты дёргает POST /mollie-webhook с полем
 на GET / (нужен Railway).
 """
 import html as html_lib
+import json
 import logging
 import re
+from pathlib import Path
 from datetime import datetime
 
 from aiohttp import web
@@ -1152,9 +1154,81 @@ fillOpt();toggleType();
 </body></html>"""
 
 
-async def _ads(request: web.Request) -> web.Response:
+_ADS_SITE_DIR = Path(__file__).resolve().parent.parent / "static" / "ads-site"
+
+
+def _ads_site_page(filename: str) -> web.FileResponse:
+    """Serve the redesigned booking flow from the Railway /ads URL."""
+    return web.FileResponse(_ADS_SITE_DIR / filename, headers={
+        "Cache-Control": "no-cache",
+        "X-Content-Type-Options": "nosniff",
+    })
+
+
+async def _ads(request: web.Request) -> web.StreamResponse:
+    return _ads_site_page("index.html")
+
+
+async def _ads_questions(request: web.Request) -> web.StreamResponse:
+    return _ads_site_page("questions.html")
+
+
+async def _ads_payment_success(request: web.Request) -> web.Response:
+    """Verify the Mollie result before showing the final payment state."""
+    from database.models import AdBooking
+    from handlers.ads import on_ad_payment_paid
+
+    bid = request.query.get("booking_id", "")
+    booking = None
+    payment = None
+    if bid.isdigit():
+        async with get_session() as session:
+            booking = await session.get(AdBooking, int(bid))
+        if booking and booking.payment_id:
+            payment = await get_payment(booking.payment_id)
+
+    status = (payment or {}).get("status")
+    if status == "paid" and booking:
+        try:
+            await on_ad_payment_paid(request.app["bot"], booking.payment_id, payment)
+        except Exception as exc:  # final page must remain available
+            log.warning("Не обработал рекламную оплату на return URL: %s", exc)
+        icon, eyebrow = "✓", "Оплата подтверждена"
+        title = "Спасибо за оплату!"
+        text = ("Дата закреплена за вами. Оплаченная фактура будет отправлена "
+                "на e-mail, указанный при оформлении.")
+    elif status in ("failed", "canceled", "expired"):
+        icon, eyebrow = "!", "Оплата не завершена"
+        title = "Платёж не прошёл"
+        text = "Деньги не списаны, дата не закреплена. Вернитесь и попробуйте ещё раз."
+    else:
+        icon, eyebrow = "…", "Проверяем платёж"
+        title = "Оплата обрабатывается"
+        text = ("Mollie ещё не подтвердил платёж. Обновите эту страницу через "
+                "несколько секунд.")
+
+    page = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>{title} — Podslushano.nl</title>
+<link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css"></head>
+<body><main class="standalone-shell"><div class="standalone-top">
+<span>Podslushano.nl</span></div><section class="success payment-success-page">
+<div class="success-icon">{icon}</div><p class="eyebrow">{eyebrow}</p>
+<h1>{title}</h1><p>{text}</p><div class="success-actions">
+<a class="primary" href="/ads">Вернуться на рекламную страницу</a>
+<a class="secondary" href="/ads/questions">Есть вопросы?</a>
+</div></section></main></body></html>"""
+    return web.Response(
+        text=page, content_type="text/html",
+        headers={"Cache-Control": "no-store"})
+
+
+async def _ads_availability(request: web.Request) -> web.Response:
     from handlers.ads import _taken
-    return web.Response(text=_ads_html(await _taken()), content_type="text/html")
+    return web.json_response(
+        {"taken": sorted(await _taken())},
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 async def _ads_book(request: web.Request) -> web.Response:
@@ -1170,7 +1244,35 @@ async def _ads_book(request: web.Request) -> web.Response:
         (data.get("fmt") or "").strip(), (data.get("opt") or "").strip(),
         dates, fields)
     if checkout:
-        raise web.HTTPFound(location=checkout)
+        # Mollie refuses to render inside embedded frames. Instead of returning
+        # a bare 302 (which produces "content blocked" in those browsers), show
+        # a short hand-off page that escapes the frame and includes a reliable
+        # new-tab fallback.
+        checkout_href = html_lib.escape(checkout, quote=True)
+        checkout_json = json.dumps(checkout)
+        page = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex"><title>Переход к оплате — Podslushano.nl</title>
+<link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css"></head>
+<body><main class="standalone-shell"><div class="standalone-top">
+<span>Podslushano.nl</span></div><section class="success payment-success-page">
+<div class="success-icon">↗</div><p class="eyebrow">Безопасная оплата</p>
+<h1>Открываем Mollie</h1><p>Платёжная страница откроется отдельно.</p>
+<div class="success-actions"><a class="primary" href="{checkout_href}"
+target="_blank" rel="noopener">Открыть оплату Mollie</a>
+<a class="secondary" href="/ads">Вернуться назад</a></div>
+</section></main><script>
+(function(){{
+  var url={checkout_json};
+  try {{
+    if (window.top && window.top !== window.self) window.top.location.href=url;
+    else window.location.replace(url);
+  }} catch (e) {{}}
+}})();
+</script></body></html>"""
+        return web.Response(
+            text=page, content_type="text/html",
+            headers={"Cache-Control": "no-store"})
     return web.Response(
         text=_ads_html(await _taken(), error=err or "Не удалось оформить бронь."),
         content_type="text/html", status=400)
@@ -1278,7 +1380,12 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/api/guide.json", _api_guide)
     app.router.add_get("/c/{key}", _contact_page)   # короткая ссылка по slug
     app.router.add_get("/s/{key}", _contact_page)   # короткая ссылка по id
-    app.router.add_get("/ads", _ads)            # приватная страница брони с ценами
+    app.router.add_get("/ads", _ads)            # рекламная страница и бронь
+    app.router.add_get("/ads/questions", _ads_questions)
+    app.router.add_get("/ads/payment-success", _ads_payment_success)
+    app.router.add_get("/ads/availability", _ads_availability)
+    app.router.add_get("/api/availability", _ads_availability)
+    app.router.add_static("/ads-static/", _ADS_SITE_DIR, show_index=False)
     app.router.add_post("/ads/book", _ads_book)  # оформление брони → оплата Mollie
     app.router.add_get("/reklama", _reklama)            # публичная заявка на рекламу (без цен)
     app.router.add_post("/reklama/submit", _reklama_submit)
