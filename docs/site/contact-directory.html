@@ -255,10 +255,12 @@ document.addEventListener('DOMContentLoaded',function(){
   }
   function kgNormalize(data){
     var out=[];
-    function push(name,desc,prov,cat,photo,html,premium,slug){
+    function push(name,desc,prov,cat,cats,photo,html,premium,slug){
       if(!name)return;
       desc=String(desc==null?'':desc).trim();
-      out.push({name:String(name).trim(),desc:desc,descHtml:(html||kgLinkify(desc)),prov:String(prov||'').trim(),cat:cat||detectCat(name+' '+desc),link:'',photo:photo||'',premium:!!premium,slug:slug||''});
+      cat=cat||detectCat(name+' '+desc);
+      cats=Array.isArray(cats)&&cats.length?cats:[cat];
+      out.push({name:String(name).trim(),desc:desc,descHtml:(html||kgLinkify(desc)),prov:String(prov||'').trim(),cat:cat,cats:cats,link:'',photo:photo||'',premium:!!premium,slug:slug||''});
     }
     function fromItem(it,prov){
       if(typeof it==='string'){push(it,'',prov);return;}
@@ -268,11 +270,12 @@ document.addEventListener('DOMContentLoaded',function(){
       if(Array.isArray(desc))desc=desc.join(' · ');
       var prov2=it.prov||it.province||it['провинция']||prov;
       var cat=it.cat||it.category||it['категория'];
+      var cats=it.cats||it.categories||[];
       var photo=it.photo||it.image||it.avatar||'';
       var html=it.html||it.descHtml||'';
       var premium=it.premium||it.top||it.is_premium||false;
       var slug=it.slug||'';
-      if(name){push(name,desc,prov2,cat,photo,html,premium,slug);}
+      if(name){push(name,desc,prov2,cat,cats,photo,html,premium,slug);}
       else{Object.keys(it).forEach(function(k){if(typeof it[k]==='string')push(k,it[k],prov);});}
     }
     if(Array.isArray(data)){
@@ -392,8 +395,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
   function render(){
     var f=allData.filter(function(s){
-      var cOk=activeCat==='all'||s.cat===activeCat;
-      var sOk=!searchVal||[s.name,s.desc,s.prov,s.cat].some(function(v){return v.toLowerCase().includes(searchVal);});
+      var cOk=activeCat==='all'||(s.cats||[s.cat]).indexOf(activeCat)>-1;
+      var sOk=!searchVal||[s.name,s.desc,s.prov,s.cat,(s.cats||[]).join(' ')].some(function(v){return v.toLowerCase().includes(searchVal);});
       return cOk&&sOk;
     });
     var count=document.getElementById('kg-count');
