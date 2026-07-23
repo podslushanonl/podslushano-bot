@@ -145,6 +145,17 @@ def _settings_kb(pref: DigestPreference) -> InlineKeyboardMarkup:
     ])
 
 
+def _profile_return_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="⬅️ Настройки профиля", callback_data="home:profile"
+            )
+        ],
+        [InlineKeyboardButton(text="🏠 Мой Podslushano", callback_data="home:open")],
+    ])
+
+
 def _settings_text(pref: DigestPreference) -> str:
     selected = _topics(pref.topics_csv)
     topics = ", ".join(TOPICS[x] for x in TOPICS if x in selected) or "не выбраны"
@@ -212,9 +223,9 @@ async def digest_city_input(message: Message, state: FSMContext) -> None:
 async def digest_radius_pick(callback: CallbackQuery, state: FSMContext) -> None:
     radius = int(callback.data.rsplit(":", 1)[1])
     current = await state.get_state()
+    data = await state.get_data()
     pref = await _get_pref(callback.from_user.id)
     if current == DigestSetup.choosing_radius.state:
-        data = await state.get_data()
         selected = set(data.get("dg_topics") or (pref and _topics(pref.topics_csv)) or DEFAULT_TOPICS)
         await state.update_data(dg_radius=radius, dg_topics=list(selected))
         await state.set_state(DigestSetup.choosing_topics)
@@ -228,7 +239,15 @@ async def digest_radius_pick(callback: CallbackQuery, state: FSMContext) -> None
             row.radius_km = radius
             await session.commit()
         updated = await _get_pref(callback.from_user.id)
-        await callback.message.answer("Радиус обновлён ✅", reply_markup=_settings_kb(updated))
+        if data.get("dg_origin") == "profile":
+            await state.clear()
+            await callback.message.answer(
+                "Радиус профиля обновлён ✅", reply_markup=_profile_return_kb()
+            )
+        else:
+            await callback.message.answer(
+                "Радиус обновлён ✅", reply_markup=_settings_kb(updated)
+            )
     await callback.answer()
 
 
@@ -257,23 +276,40 @@ async def digest_topic_pick(callback: CallbackQuery, state: FSMContext) -> None:
                 row.province = data.get("dg_province", "")
                 row.radius_km = int(data.get("dg_radius", row.radius_km))
             await session.commit()
+        origin = data.get("dg_origin")
         await state.clear()
-        await callback.message.answer("Настройки обновлены ✅", reply_markup=_settings_kb(await _get_pref(callback.from_user.id)))
+        if origin == "profile":
+            await callback.message.answer(
+                "Профиль обновлён ✅", reply_markup=_profile_return_kb()
+            )
+        else:
+            await callback.message.answer(
+                "Настройки обновлены ✅",
+                reply_markup=_settings_kb(await _get_pref(callback.from_user.id)),
+            )
     else:
         city, province = data["dg_city"], data.get("dg_province", "")
+        origin = data.get("dg_origin")
         async with get_session() as session:
             session.add(DigestPreference(
                 user_id=callback.from_user.id, city=city, province=province,
                 radius_km=int(data.get("dg_radius", 25)),
-                topics_csv=_topics_csv(selected), enabled=True,
+                topics_csv=_topics_csv(selected), enabled=origin != "profile",
             ))
             await session.commit()
         await state.clear()
         saved = await _get_pref(callback.from_user.id)
-        await callback.message.answer(
-            "Готово — подборка включена 🙌\n\n" + _settings_text(saved),
-            reply_markup=_settings_kb(saved),
-        )
+        if origin == "profile":
+            await callback.message.answer(
+                "Профиль настроен ✅\n\n"
+                "Теперь бот сможет учитывать твой город и интересы.",
+                reply_markup=_profile_return_kb(),
+            )
+        else:
+            await callback.message.answer(
+                "Готово — подборка включена 🙌\n\n" + _settings_text(saved),
+                reply_markup=_settings_kb(saved),
+            )
     await callback.answer()
 
 
