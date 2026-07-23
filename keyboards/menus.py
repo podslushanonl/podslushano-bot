@@ -28,6 +28,7 @@ BTN_STICKERS = "🎨 Наши стикеры"
 BTN_CONTACT = "✉️ Связаться с нами"
 BTN_SHARE = "📣 Поделиться ботом"
 BTN_SUBSCRIPTIONS = "🔔 Мои подписки"
+BTN_HOME = "🏠 Мой Podslushano"
 BTN_CANCEL = "❌ Отмена"
 # Разделы главного меню — открывают подменю (чтобы не было «стены» кнопок)
 BTN_SERVICES = "🛠 Сервисы"
@@ -39,11 +40,11 @@ BTN_BACK = "⬅️ Назад в меню"
 def main_menu() -> ReplyKeyboardMarkup:
     """Главное меню — только основное, редкое убрано в подменю (Сервисы / Ещё)."""
     keyboard = [
+        [KeyboardButton(text=BTN_HOME)],
         [KeyboardButton(text=BTN_CONTACTS)],
         [KeyboardButton(text=BTN_GUIDE)],
         [KeyboardButton(text=BTN_BOARD)],
         [KeyboardButton(text=events_button_label())],  # ☀️/🍂/❄️/🌷 Чем заняться
-        [KeyboardButton(text=BTN_SUBSCRIPTIONS)],
         [KeyboardButton(text=BTN_SUBMIT)],
         [KeyboardButton(text=BTN_SERVICES), KeyboardButton(text=BTN_FOR_SPECIALISTS)],
         [KeyboardButton(text=BTN_MORE)],
