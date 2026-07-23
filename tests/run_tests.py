@@ -562,6 +562,22 @@ async def test_personal_digest() -> None:
     )
     check("подборка: режим города не захватывает соседний город",
           not location_matches(exact, "Amersfoort"))
+    province_wide = DigestPreference(
+        user_id=7004, city="Utrecht", province="Utrecht", radius_km=50,
+        topics_csv="specialists", enabled=True,
+    )
+    check("подборка: карточка без города находится по провинции при 50 км",
+          location_matches(
+              province_wide, "", target_province="Utrecht"
+          ))
+    check("подборка: карточка другой провинции без города не попадает в радиус",
+          not location_matches(
+              province_wide, "", target_province="Noord-Holland"
+          ))
+    check("подборка: точный город не подбирает карточку только по провинции",
+          not location_matches(
+              exact, "", target_province="Utrecht"
+          ))
 
     rotation_rows = []
     for sid, source in enumerate(
