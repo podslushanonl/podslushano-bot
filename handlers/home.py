@@ -1,6 +1,7 @@
 """Персональный центр пользователя «Мой Podslushano»."""
 import html
-from datetime import datetime
+from dataclasses import dataclass
+from datetime import date, datetime, timedelta
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
@@ -13,6 +14,7 @@ from database.db import get_session
 from database.models import (
     AlloBooking,
     DigestPreference,
+    DiscoveredEvent,
     EventListing,
     Listing,
     SavedItem,
@@ -48,16 +50,44 @@ STATUS_LABELS = {
 }
 
 
-def _home_kb(has_profile: bool) -> InlineKeyboardMarkup:
+@dataclass(frozen=True)
+class HomeEvent:
+    title: str
+    date_label: str
+    city: str
+    url: str
+    starts_on: date
+
+
+@dataclass(frozen=True)
+class HomeSnapshot:
+    saved_count: int
+    action_count: int
+    events: tuple[HomeEvent, ...]
+    new_listings: tuple[Listing, ...]
+
+
+def _home_kb(has_profile: bool, snapshot: HomeSnapshot) -> InlineKeyboardMarkup:
     profile = "⚙️ Настроить профиль" if has_profile else "📍 Указать город и интересы"
-    return InlineKeyboardMarkup(inline_keyboard=[
+    rows = [
+        [
+            InlineKeyboardButton(
+                text=f"📅 События рядом · {len(snapshot.events)}",
+                callback_data="home:events",
+            ),
+            InlineKeyboardButton(
+                text=f"🆕 Новые объявления · {len(snapshot.new_listings)}",
+                callback_data="home:new",
+            ),
+        ],
         [
             InlineKeyboardButton(text="❤️ Сохранённое", callback_data="home:saved"),
             InlineKeyboardButton(text="🗂 Мои действия", callback_data="home:actions"),
         ],
         [InlineKeyboardButton(text=profile, callback_data="home:profile")],
         [InlineKeyboardButton(text="🔔 Настройки подборки", callback_data="home:digest")],
-    ])
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def _profile_kb() -> InlineKeyboardMarkup:
@@ -85,43 +115,172 @@ def _profile_text(pref: DigestPreference) -> str:
         "Эти данные используются для персональных рекомендаций в «Мой Podslushano»."
     )
 
-async def _counts(user_id: int) -> tuple[int, int]:
-    now = datetime.utcnow()
+async def _action_count(session, user_id: int, now: datetime) -> int:
+    listings = await session.scalar(
+        select(func.count()).select_from(Listing).where(
+            Listing.submitter_user_id == user_id,
+            Listing.status.in_(("pending", "approved", "awaiting_payment")),
+            or_(Listing.expires_at.is_(None), Listing.expires_at > now),
+        )
+    ) or 0
+    submissions = await session.scalar(
+        select(func.count()).select_from(Submission).where(
+            Submission.user_id == user_id, Submission.status == "pending"
+        )
+    ) or 0
+    walks = await session.scalar(
+        select(func.count()).select_from(AlloBooking).where(
+            AlloBooking.user_id == user_id,
+            AlloBooking.status.in_(("pending", "paid", "refund_requested")),
+        )
+    ) or 0
+    events = await session.scalar(
+        select(func.count()).select_from(EventListing).where(
+            EventListing.submitter_user_id == user_id,
+            EventListing.status.in_(("awaiting_payment", "pending", "approved")),
+        )
+    ) or 0
+    cards = await session.scalar(
+        select(func.count()).select_from(Specialist).where(
+            Specialist.submitter_user_id == user_id,
+            Specialist.status.in_(("awaiting_payment", "pending", "active")),
+        )
+    ) or 0
+    return listings + submissions + walks + events + cards
+
+
+async def _home_snapshot(
+    user_id: int,
+    pref: DigestPreference | None,
+    *,
+    now: datetime | None = None,
+) -> HomeSnapshot:
+    """Собирает только актуальные персональные данные для главного экрана."""
+    from handlers.digest import _listing_event_day, location_matches
+
+    current = now or datetime.utcnow()
+    today = current.date()
+    event_limit = today + timedelta(days=30)
+    listing_since = current - timedelta(days=7)
+
     async with get_session() as session:
-        saved = await session.scalar(
-            select(func.count()).select_from(SavedItem).where(SavedItem.user_id == user_id)
-        ) or 0
-        listings = await session.scalar(
-            select(func.count()).select_from(Listing).where(
-                Listing.submitter_user_id == user_id,
-                Listing.status.in_(("pending", "approved", "awaiting_payment")),
-                or_(Listing.expires_at.is_(None), Listing.expires_at > now),
+        saved_count = await session.scalar(
+            select(func.count()).select_from(SavedItem).where(
+                SavedItem.user_id == user_id
             )
         ) or 0
-        submissions = await session.scalar(
-            select(func.count()).select_from(Submission).where(
-                Submission.user_id == user_id, Submission.status == "pending"
+        action_count = await _action_count(session, user_id, current)
+
+        manual_events = (await session.scalars(
+            select(EventListing).where(EventListing.status == "approved")
+            .order_by(EventListing.created_at.desc()).limit(100)
+        )).all()
+        discovered_events = (await session.scalars(
+            select(DiscoveredEvent).where(
+                DiscoveredEvent.expires_at > current,
+                or_(
+                    DiscoveredEvent.ends_at >= current,
+                    DiscoveredEvent.ends_at.is_(None),
+                ),
+            ).order_by(DiscoveredEvent.starts_at.asc()).limit(100)
+        )).all()
+        listings = (await session.scalars(
+            select(Listing).where(
+                Listing.status == "approved",
+                Listing.created_at >= listing_since,
+                or_(Listing.expires_at.is_(None), Listing.expires_at > current),
+            ).order_by(
+                Listing.bumped_at.desc(), Listing.created_at.desc()
+            ).limit(100)
+        )).all()
+
+    if pref is None:
+        return HomeSnapshot(
+            saved_count=saved_count,
+            action_count=action_count,
+            events=(),
+            new_listings=(),
+        )
+
+    events: list[HomeEvent] = []
+    seen: set[tuple[str, str, date]] = set()
+    for item in manual_events:
+        event_day = _listing_event_day(item.event_date, today=today)
+        if (
+            event_day is None
+            or not today <= event_day <= event_limit
+            or not item.link
+            or not location_matches(
+                pref, item.city, nationwide=item.is_nationwide
             )
-        ) or 0
-        walks = await session.scalar(
-            select(func.count()).select_from(AlloBooking).where(
-                AlloBooking.user_id == user_id,
-                AlloBooking.status.in_(("pending", "paid", "refund_requested")),
-            )
-        ) or 0
-        events = await session.scalar(
-            select(func.count()).select_from(EventListing).where(
-                EventListing.submitter_user_id == user_id,
-                EventListing.status.in_(("awaiting_payment", "pending", "approved")),
-            )
-        ) or 0
-        cards = await session.scalar(
-            select(func.count()).select_from(Specialist).where(
-                Specialist.submitter_user_id == user_id,
-                Specialist.status.in_(("awaiting_payment", "pending", "active")),
-            )
-        ) or 0
-    return saved, listings + submissions + walks + events + cards
+        ):
+            continue
+        key = (item.title.casefold(), item.city.casefold(), event_day)
+        if key in seen:
+            continue
+        seen.add(key)
+        events.append(HomeEvent(
+            title=item.title,
+            date_label=item.event_date or f"{event_day:%d.%m}",
+            city=item.city or "Нидерланды",
+            url=item.link,
+            starts_on=event_day,
+        ))
+    for item in discovered_events:
+        event_day = item.starts_at.date() if item.starts_at else None
+        if (
+            event_day is None
+            or not today <= event_day <= event_limit
+            or not item.link
+            or not location_matches(pref, item.city)
+        ):
+            continue
+        key = (item.title.casefold(), item.city.casefold(), event_day)
+        if key in seen:
+            continue
+        seen.add(key)
+        events.append(HomeEvent(
+            title=item.title,
+            date_label=item.event_date or f"{event_day:%d.%m}",
+            city=item.city or pref.city,
+            url=item.link,
+            starts_on=event_day,
+        ))
+    events.sort(key=lambda item: (item.starts_on, item.title.casefold()))
+
+    nearby_listings = tuple(
+        item for item in listings
+        if location_matches(
+            pref, item.city, nationwide=item.is_nationwide
+        )
+    )
+    return HomeSnapshot(
+        saved_count=saved_count,
+        action_count=action_count,
+        events=tuple(events[:20]),
+        new_listings=nearby_listings[:20],
+    )
+
+
+def _snapshot_text(snapshot: HomeSnapshot) -> str:
+    lines = [
+        "<b>📌 Сейчас для тебя</b>",
+        f"❤️ Сохранено: <b>{snapshot.saved_count}</b>",
+        f"📅 Событий рядом на 30 дней: <b>{len(snapshot.events)}</b>",
+        f"🆕 Новых объявлений за 7 дней: <b>{len(snapshot.new_listings)}</b>",
+        f"🗂 Незавершённых действий: <b>{snapshot.action_count}</b>",
+    ]
+    if snapshot.events:
+        event = snapshot.events[0]
+        lines.append(
+            f"\nБлижайшее: <b>{html.escape(event.title)}</b> · "
+            f"{html.escape(event.date_label)}"
+        )
+    if snapshot.new_listings:
+        lines.append(
+            f"Новое: <b>{html.escape(snapshot.new_listings[0].title)}</b>"
+        )
+    return "\n".join(lines)
 
 
 def _profile_summary(pref: DigestPreference | None) -> str:
@@ -147,15 +306,14 @@ def _profile_summary(pref: DigestPreference | None) -> str:
 async def _open_home(message: Message, user_id: int, first_name: str | None) -> None:
     async with get_session() as session:
         pref = await session.get(DigestPreference, user_id)
-    saved, actions = await _counts(user_id)
+    snapshot = await _home_snapshot(user_id, pref)
     await message.answer(
         "🏠 <b>Мой Podslushano</b>\n\n"
-        f"{html.escape(first_name or 'друг')}, здесь всё твоё: профиль, "
-        "сохранённые карточки, подписка и действия.\n\n"
+        f"{html.escape(first_name or 'друг')}, здесь собрана твоя актуальная "
+        "сводка.\n\n"
         f"{_profile_summary(pref)}\n\n"
-        f"❤️ Сохранено: <b>{saved}</b>\n"
-        f"🗂 Активных действий: <b>{actions}</b>",
-        reply_markup=_home_kb(pref is not None),
+        f"{_snapshot_text(snapshot)}",
+        reply_markup=_home_kb(pref is not None, snapshot),
     )
     await log_product_event(user_id, "home_open")
 
@@ -200,6 +358,100 @@ async def home_digest(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     await log_product_event(callback.from_user.id, "digest_open", source="home")
     await _open_digest_settings(callback.message, state, callback.from_user.id)
+
+
+@router.callback_query(F.data == "home:events")
+async def home_events_open(callback: CallbackQuery) -> None:
+    async with get_session() as session:
+        pref = await session.get(DigestPreference, callback.from_user.id)
+    snapshot = await _home_snapshot(callback.from_user.id, pref)
+    await log_product_event(callback.from_user.id, "home_events_open")
+    back = [InlineKeyboardButton(
+        text="⬅️ Мой Podslushano", callback_data="home:open"
+    )]
+    if pref is None:
+        await callback.message.answer(
+            "📅 <b>События рядом</b>\n\n"
+            "Сначала укажи город и радиус — тогда здесь появятся подходящие события.",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(
+                    text="📍 Настроить профиль", callback_data="home:profile"
+                )],
+                back,
+            ]),
+        )
+        await callback.answer()
+        return
+    if not snapshot.events:
+        await callback.message.answer(
+            "📅 <b>События рядом</b>\n\n"
+            "На ближайшие 30 дней подходящих событий пока нет.",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[back]),
+        )
+        await callback.answer()
+        return
+    lines = ["📅 <b>События рядом на ближайшие 30 дней</b>"]
+    buttons = []
+    for item in snapshot.events[:10]:
+        lines.append(
+            f"\n• <b>{html.escape(item.title)}</b>\n"
+            f"  {html.escape(item.date_label)} · {html.escape(item.city)}"
+        )
+        buttons.append([InlineKeyboardButton(
+            text=f"Открыть · {item.title}"[:60], url=item.url
+        )])
+    buttons.append(back)
+    await callback.message.answer(
+        "\n".join(lines),
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+        disable_web_page_preview=True,
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "home:new")
+async def home_new_listings_open(callback: CallbackQuery) -> None:
+    async with get_session() as session:
+        pref = await session.get(DigestPreference, callback.from_user.id)
+    snapshot = await _home_snapshot(callback.from_user.id, pref)
+    await log_product_event(callback.from_user.id, "home_new_listings_open")
+    back = [InlineKeyboardButton(
+        text="⬅️ Мой Podslushano", callback_data="home:open"
+    )]
+    if pref is None:
+        await callback.message.answer(
+            "🆕 <b>Новые объявления</b>\n\n"
+            "Сначала укажи город и радиус — тогда здесь появятся объявления рядом.",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(
+                    text="📍 Настроить профиль", callback_data="home:profile"
+                )],
+                back,
+            ]),
+        )
+        await callback.answer()
+        return
+    if not snapshot.new_listings:
+        await callback.message.answer(
+            "🆕 <b>Новые объявления</b>\n\n"
+            "За последние 7 дней подходящих объявлений пока нет.",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[back]),
+        )
+        await callback.answer()
+        return
+    buttons = [
+        [InlineKeyboardButton(
+            text=f"📋 {item.title}"[:60], callback_data=f"home:li:{item.id}"
+        )]
+        for item in snapshot.new_listings[:10]
+    ]
+    buttons.append(back)
+    await callback.message.answer(
+        "🆕 <b>Новые объявления за 7 дней</b>\n\n"
+        "Выбери объявление, чтобы открыть:",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
+    )
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("save:"))

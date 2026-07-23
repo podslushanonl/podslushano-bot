@@ -8,7 +8,7 @@ import asyncio
 import os
 import sys
 import tempfile
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 # корень проекта в путь (скрипт лежит в tests/)
@@ -100,6 +100,63 @@ async def test_saved_items() -> None:
         ))).first()
     check("избранное сохраняется за конкретным пользователем",
           saved is not None and saved.item_id == specialist.id)
+
+
+async def test_personal_home_snapshot() -> None:
+    from handlers.home import _home_kb, _home_snapshot
+
+    now = datetime(2026, 7, 23, 12, 0)
+    pref = DigestPreference(
+        user_id=4243, city="Utrecht", province="Utrecht", radius_km=25,
+        topics_csv="events,board", enabled=True,
+    )
+    async with db.get_session() as session:
+        session.add(pref)
+        session.add_all([
+            EventListing(
+                title="Home nearby event", description="test",
+                city="Amersfoort", is_nationwide=False,
+                event_date="26.07.2026", month_key="2026-07",
+                status="approved", link="https://example.nl/home-event",
+                created_at=now,
+            ),
+            EventListing(
+                title="Home past event", description="test",
+                city="Amersfoort", is_nationwide=False,
+                event_date="20.07.2026", month_key="2026-07",
+                status="approved", link="https://example.nl/past-home-event",
+                created_at=now,
+            ),
+            Listing(
+                category="goods", title="Home nearby listing",
+                city="Amersfoort", is_nationwide=False, status="approved",
+                created_at=now - timedelta(days=2),
+            ),
+            Listing(
+                category="goods", title="Home old listing",
+                city="Amersfoort", is_nationwide=False, status="approved",
+                created_at=now - timedelta(days=8),
+            ),
+        ])
+        await session.commit()
+
+    snapshot = await _home_snapshot(4243, pref, now=now)
+    check("персональная главная показывает ближайшее актуальное событие",
+          [item.title for item in snapshot.events] == ["Home nearby event"],
+          str([item.title for item in snapshot.events]))
+    check("персональная главная показывает только новые объявления рядом",
+          [item.title for item in snapshot.new_listings] == ["Home nearby listing"],
+          str([item.title for item in snapshot.new_listings]))
+    callbacks = [
+        button.callback_data
+        for row in _home_kb(True, snapshot).inline_keyboard
+        for button in row
+    ]
+    check("живая главная открывает события и новые объявления",
+          callbacks[:2] == ["home:events", "home:new"], str(callbacks))
+    empty = await _home_snapshot(4244, None, now=now)
+    check("без профиля главная не угадывает рекомендации",
+          not empty.events and not empty.new_listings)
 
 
 async def test_product_analytics() -> None:
@@ -905,6 +962,7 @@ async def main() -> None:
     test_ad_promotion_deadline()
     await test_db_and_categories()
     await test_saved_items()
+    await test_personal_home_snapshot()
     await test_product_analytics()
     await test_repair_luxar_category()
     test_fix_category_no_override()
