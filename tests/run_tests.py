@@ -80,14 +80,114 @@ async def test_db_and_categories() -> None:
                   f"в базе: {sp.category if sp else 'нет карточки'}")
 
 
+async def test_repair_luxar_category() -> None:
+    """Детейлинг не должен теряться в домашнем клининге."""
+    async with db.get_session() as s:
+        s.add(Specialist(
+            name="@luxar_auto_detailing",
+            category="клининг",
+            city="Amsterdam",
+            province="Noord-Holland",
+            description=(
+                "Детейлинг, защита кузова плёнками PPF, химчистка салона, "
+                "полировка кузова и реставрация фар."
+            ),
+            contact="+31643620017",
+            source="self",
+            status="active",
+        ))
+        s.add(Specialist(
+            name="Фея Чистоты",
+            category="клининг",
+            city="Amsterdam",
+            province="Noord-Holland",
+            description="Уборка домов и мойка окон.",
+            contact="@home_cleaning",
+            source="self",
+            status="active",
+        ))
+        await s.commit()
+
+    await db._repair_misclassified_specialists()
+
+    async with db.get_session() as s:
+        luxar = await _category_of(s, "@luxar_auto_detailing")
+        home = await _category_of(s, "Фея Чистоты")
+    check("Luxar Detail исправлен на автосервис",
+          bool(luxar) and luxar.category == "автосервис")
+    check("домашний клининг не переклассифицирован",
+          bool(home) and home.category == "клининг")
+
+
 def test_fix_category_no_override() -> None:
-    # Курируемая категория главнее имени (баг «Space» → «spa» → косметолог)
-    from utils.geo import detect_category
-    # detect по имени может ошибаться — это норма, главное что её не применяют
+    # Курируемая категория главнее имени; дополнительно не ловим короткое spa
+    # внутри названия Space.
+    from utils.geo import _keyword_matches, detect_category
     item = {"name": "Fancy Beauty Space", "category": "мастер маникюра"}
     result = item.get("category") or detect_category(item["name"])
     check("категория из данных, а не по имени", result == "мастер маникюра",
           f"получили {result}")
+    check("Space не содержит отдельное слово spa",
+          not _keyword_matches("Fancy Beauty Space", "spa"))
+
+
+def test_taxonomy_and_seed_categories() -> None:
+    """Все карточки и интерфейсы используют одну актуальную таксономию."""
+    from seeds.specialists_seed import SEED_SPECIALISTS
+    from utils.geo import CATEGORIES, THEMES
+    from utils.webserver import _SITE_GROUP
+
+    used = {row["category"] for row in SEED_SPECIALISTS}
+    check("в исходных карточках нет устаревших категорий",
+          used <= set(CATEGORIES), f"лишние: {sorted(used - set(CATEGORIES))}")
+
+    themed = [category for categories in THEMES.values() for category in categories]
+    check("каждая категория показана в теме",
+          set(themed) == set(CATEGORIES),
+          f"разница: {sorted(set(themed) ^ set(CATEGORIES))}")
+    check("категория не дублируется между темами",
+          len(themed) == len(set(themed)))
+    check("каждая категория привязана к разделу сайта",
+          set(CATEGORIES) <= set(_SITE_GROUP),
+          f"не привязаны: {sorted(set(CATEGORIES) - set(_SITE_GROUP))}")
+
+    expected = {
+        "Онлайн-школа разговорного английского языка Speak Up Online": "языковые курсы",
+        "Преподаватель вокала": "музыкальные занятия",
+        "Event United Agency": "организация мероприятий",
+        "Диджей / DJ HAMMER": "музыкант и диджей",
+        "Икорная лавка": "продукты и магазины",
+        "Amulet Huis": "ремонт",
+        "WEB-разработчик/ Digital-Promo": "it и веб",
+    }
+    by_name = {row["name"]: row["category"] for row in SEED_SPECIALISTS}
+    for name, category in expected.items():
+        check(f"аудит категории «{name}»",
+              by_name.get(name) == category,
+              f"в данных: {by_name.get(name)}")
+
+
+def test_multi_category_discovery() -> None:
+    """Карточка находится по дополнительной услуге без создания дубля."""
+    from types import SimpleNamespace
+    from utils.geo import specialist_matches_category
+
+    photo_video = SimpleNamespace(
+        name="Фотограф / видеограф",
+        category="фотограф",
+        description="Фото и видеосъёмка мероприятий.",
+    )
+    psych_career = SimpleNamespace(
+        name="Психолог / Карьерный коуч",
+        category="психолог",
+        description="Помогаю искать работу и готовиться к собеседованию.",
+    )
+    check("фотограф-видеограф находится как фотограф",
+          specialist_matches_category(photo_video, "фотограф"))
+    check("фотограф-видеограф находится как видеограф",
+          specialist_matches_category(photo_video, "видеограф"))
+    check("психолог-карьерный коуч находится как карьерный консультант",
+          specialist_matches_category(psych_career, "карьерный консультант"))
 
 
 async def test_reseed_preserves_premium() -> None:
@@ -658,12 +758,37 @@ def test_detect_category_basic() -> None:
     from utils.geo import detect_category
     check("«маникюр» → мастер маникюра", detect_category("маникюр") == "мастер маникюра")
     check("«юрист» → юрист", detect_category("нужен юрист") == "юрист")
+    check("«автомастерская» → автосервис",
+          detect_category("ищу автомастерскую в Гааге") == "автосервис")
+    check("«детейлинг» → автосервис",
+          detect_category("химчистка салона и детейлинг авто") == "автосервис")
+    check("домашняя химчистка → клининг",
+          detect_category("нужна химчистка дивана") == "клининг")
+    check("«ситуация» не превращается в тату",
+          detect_category("помощь в сложной ситуации") is None)
+    check("уроки вокала → музыкальные занятия",
+          detect_category("ищу уроки вокала") == "музыкальные занятия")
+    check("диджей → музыкант и диджей",
+          detect_category("нужен DJ на праздник") == "музыкант и диджей")
+
+
+def test_general_place_routing() -> None:
+    from handlers.chat import is_general_place_query
+    check("поиск мест идёт не в справочник",
+          is_general_place_query("Найди интересные места в Гааге"))
+    check("поиск кафе идёт не в справочник",
+          is_general_place_query("Посоветуй кафе в Амстердаме"))
+    check("автомастерская остаётся поиском контакта",
+          not is_general_place_query("Ищу автомастерскую в Гааге"))
 
 
 async def main() -> None:
     test_import_bot()
     await test_db_and_categories()
+    await test_repair_luxar_category()
     test_fix_category_no_override()
+    test_taxonomy_and_seed_categories()
+    test_multi_category_discovery()
     await test_reseed_preserves_premium()
     await test_reseed_ids_stable_all()
     await test_reseed_keeps_edited_premium_card()
@@ -675,6 +800,7 @@ async def main() -> None:
     await test_allo_referral()
     test_wordpress_util()
     test_detect_category_basic()
+    test_general_place_routing()
     print()
     if _fails:
         print(f"❌ Провалено проверок: {len(_fails)} -> {', '.join(_fails)}")

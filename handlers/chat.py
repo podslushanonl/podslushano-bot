@@ -40,6 +40,15 @@ SEARCH_HINTS = (
     "порекоменд", "контакт", "специалист", "мастер", "кто может", "подскажи кого",
 )
 
+# Обычные места и досуг ищем в интернете, а не в справочнике специалистов.
+# Используется как безопасный запасной маршрут, если ИИ-классификатор временно
+# недоступен.
+GENERAL_PLACE_HINTS = (
+    "мест", "куда сходить", "кафе", "ресторан", "бар ", "музей", "парк",
+    "магазин", "пляж", "смотров", "достопримеч", "отель", "гостиниц",
+    "зоопарк", "кинотеатр",
+)
+
 GREETING_REPLIES = [
     "Привет, {name}! 👋 Рад тебя видеть!",
     "Привет-привет, {name}! 😊",
@@ -81,6 +90,12 @@ def _matches_word(text: str, patterns: tuple[str, ...]) -> bool:
     return any(
         re.search(rf"(?<!\w){re.escape(p)}(?!\w)", text) for p in patterns
     )
+
+
+def is_general_place_query(text: str) -> bool:
+    """True для поиска обычных мест, которые не относятся к нашему гайду."""
+    low = (text or "").lower()
+    return any(hint in low for hint in GENERAL_PLACE_HINTS)
 
 
 @router.message(F.text)
@@ -136,7 +151,10 @@ async def free_chat(message: Message, state: FSMContext) -> None:
         # ИИ недоступен — запасной режим по ключевым словам, консервативно:
         # в поиск только при явном намёке или коротком запросе-профессии без вопроса.
         is_question = "?" in text or len(text.split()) > 12
-        if _matches(low, SEARCH_HINTS) or (detect_category(text) and not is_question):
+        if (
+            not is_general_place_query(text)
+            and (_matches(low, SEARCH_HINTS) or (detect_category(text) and not is_question))
+        ):
             await process_query(message, state, text)
             return
         if await reply_with_ai(message, state):

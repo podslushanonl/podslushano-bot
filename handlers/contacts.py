@@ -13,7 +13,7 @@ from aiogram import F, Router
 from aiogram.enums import ChatType
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-from sqlalchemy import func, or_, select
+from sqlalchemy import or_, select
 
 import config
 from database.db import get_session
@@ -31,7 +31,14 @@ from utils.reviews import (
     specialist_key,
     texts_for,
 )
-from utils.geo import CATEGORIES, NEIGHBORS, THEMES, detect_category, detect_city
+from utils.geo import (
+    CATEGORIES,
+    NEIGHBORS,
+    THEMES,
+    detect_category,
+    detect_city,
+    specialist_matches_category,
+)
 
 router = Router()
 # Поиск специалистов — только в личных чатах
@@ -112,11 +119,14 @@ CATEGORY_EMOJI = {
     "фитнес": "🏋",
     "юрист": "⚖️", "бухгалтер": "📊", "переводчик": "🌐", "риелтор": "🏠", "it и веб": "💻",
     "маркетинг": "📣", "дизайнер": "🎨", "бизнес-консалтинг": "💼", "карьерный консультант": "📄",
-    "фотограф": "📷", "видеограф": "🎥", "ведущий": "🎤", "музыкант": "🎵", "декор": "🎈",
+    "фотограф": "📷", "видеограф": "🎥", "ведущий": "🎤",
+    "музыкант и диджей": "🎵", "организация мероприятий": "🎉", "декор": "🎈",
     "аниматор": "🤡", "кондитер": "🧁", "кейтеринг": "🍽",
+    "продукты и магазины": "🛍",
     "ремонт": "🔧", "мастер на час": "🛠", "клининг": "🧹", "переезды": "📦",
     "автосервис": "🚙", "автошкола": "🚗",
-    "репетитор": "📚", "языковые курсы": "🗣", "няня": "🍼", "детские занятия": "🧸",
+    "репетитор": "📚", "языковые курсы": "🗣", "музыкальные занятия": "🎹",
+    "няня": "🍼", "детские занятия": "🧸",
     "гид": "🗺", "творчество": "🎭",
 }
 THEME_LIST = list(THEMES.keys())
@@ -124,20 +134,23 @@ POPULAR_CITIES = ["Amsterdam", "Rotterdam", "Den Haag", "Utrecht", "Eindhoven", 
 
 
 async def _active_category_counts() -> dict[str, int]:
-    """Сколько активных специалистов в каждой категории."""
+    """Сколько активных карточек можно найти в каждой категории.
+
+    Одна карточка может учитываться в нескольких направлениях, если в названии
+    или описании явно указана дополнительная услуга.
+    """
     now = datetime.utcnow()
     async with get_session() as session:
-        rows = (
-            await session.execute(
-                select(Specialist.category, func.count())
-                .where(
-                    Specialist.status == "active",
-                    or_(Specialist.paid_until.is_(None), Specialist.paid_until > now),
-                )
-                .group_by(Specialist.category)
+        rows = (await session.scalars(
+            select(Specialist).where(
+                Specialist.status == "active",
+                or_(Specialist.paid_until.is_(None), Specialist.paid_until > now),
             )
-        ).all()
-    return {cat: n for cat, n in rows}
+        )).all()
+    return {
+        category: sum(specialist_matches_category(row, category) for row in rows)
+        for category in CATEGORIES
+    }
 
 
 def _themes_kb() -> InlineKeyboardMarkup:
@@ -231,12 +244,12 @@ async def pick_city(callback: CallbackQuery, state: FSMContext) -> None:
             allspecs = (
                 await session.scalars(
                     select(Specialist).where(
-                        Specialist.category == cat,
                         Specialist.status == "active",
                         or_(Specialist.paid_until.is_(None), Specialist.paid_until > now),
                     )
                 )
             ).all()
+        allspecs = [s for s in allspecs if specialist_matches_category(s, cat)]
         if allspecs:
             # локальные сгруппированы, онлайн — в конце
             allspecs = sorted(allspecs, key=lambda s: (s.is_online, s.province or "", s.city or ""))
@@ -600,14 +613,17 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
         async def fetch(*conds):
             result = await session.scalars(
                 select(Specialist).where(
-                    Specialist.category == category,
                     Specialist.status == "active",
                     # бессрочные (seed/admin) или ещё оплаченные
                     or_(Specialist.paid_until.is_(None), Specialist.paid_until > now),
                     *conds,
                 )
             )
-            return result.all()
+            return [
+                specialist
+                for specialist in result.all()
+                if specialist_matches_category(specialist, category)
+            ]
 
         online = await fetch(Specialist.is_online.is_(True))
         in_province = await fetch(
