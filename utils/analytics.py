@@ -65,6 +65,8 @@ _PRODUCT_LABELS = {
     "saved_add": "Сохранили карточку",
     "saved_remove": "Удалили из сохранённого",
     "actions_open": "Открыли «Мои действия»",
+    "home_events_open": "Открыли события с персональной главной",
+    "home_new_listings_open": "Открыли новые объявления с персональной главной",
     "specialist_open": "Открыли специалиста",
     "listing_open": "Открыли объявление",
     "submission_created": "Отправили заявку",
