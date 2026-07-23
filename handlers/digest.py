@@ -95,7 +95,16 @@ def location_matches(pref: DigestPreference, target_city: str,
     city, province = _canonical_city(target_city) if target_city else ("", target_province)
     if city.casefold() == pref.city.casefold():
         return True
-    if pref.radius_km == 0 or not city:
+    if not city:
+        # У части карточек старого гайда указан только регион. Для широкого
+        # радиуса учитываем их по провинции, иначе они никогда не попадают в
+        # микс с новыми специалистами.
+        return bool(
+            pref.radius_km >= 50
+            and pref.province
+            and province == pref.province
+        )
+    if pref.radius_km == 0:
         return False
     distance = _distance_km(pref.city, city)
     if distance is not None:
