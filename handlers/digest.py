@@ -43,7 +43,7 @@ router.message.filter(F.chat.type == ChatType.PRIVATE)
 TOPICS = {
     "events": "🎭 События",
     "walks": "🚶 Allo Walks",
-    "specialists": "🔍 Новые специалисты",
+    "specialists": "🔍 Специалисты",
     "board": "📋 Объявления",
     "guides": "📚 Полезное о жизни в NL",
 }
@@ -357,6 +357,55 @@ def _listing_event_day(raw: str | None, *, today: date | None = None) -> date | 
     return None
 
 
+def _rotated(items: list[Specialist], *, week: int, take: int) -> list[Specialist]:
+    """Берёт очередной фрагмент списка, меняя его каждую календарную неделю."""
+    if not items or take <= 0:
+        return []
+    ordered = sorted(items, key=lambda item: item.id or 0, reverse=True)
+    start = ((week - 1) * take) % len(ordered)
+    return [
+        ordered[(start + offset) % len(ordered)]
+        for offset in range(min(take, len(ordered)))
+    ]
+
+
+def _rotate_specialists(
+    specialists: list[Specialist], *, today: date, limit: int = 3
+) -> list[Specialist]:
+    """Миксует свежие добавления с проверенными карточками гайда.
+
+    ``self`` и ``admin`` — карточки, добавленные после первоначального гайда.
+    Если обе группы доступны, в выпуск обязательно попадают представители обеих:
+    до двух новых и хотя бы одна старая карточка. Внутри каждой группы выбор
+    сдвигается раз в неделю, поэтому один и тот же набор не закрепляется навсегда.
+    """
+    if limit <= 0:
+        return []
+    week = today.isocalendar().week
+    newer = [item for item in specialists if item.source in {"self", "admin"}]
+    established = [item for item in specialists if item.source not in {"self", "admin"}]
+
+    if newer and established:
+        newer_take = min(2, limit, len(newer))
+        established_take = min(limit - newer_take, len(established))
+        selected = (
+            _rotated(newer, week=week, take=newer_take)
+            + _rotated(established, week=week, take=established_take)
+        )
+        if len(selected) < limit:
+            selected_ids = {item.id for item in selected}
+            remaining = [
+                item for item in specialists
+                if item.id not in selected_ids
+            ]
+            selected.extend(_rotated(
+                remaining, week=week, take=limit - len(selected)
+            ))
+        return selected[:limit]
+
+    return _rotated(newer or established, week=week, take=limit)
+
+
 async def build_digest(pref: DigestPreference) -> str:
     """Собирает персональный выпуск с рабочими переходами и реальной пользой."""
     selected = _topics(pref.topics_csv)
@@ -377,8 +426,8 @@ async def build_digest(pref: DigestPreference) -> str:
             ).order_by(EventListing.month_key, EventListing.id)
         )).all()
         specialists = (await session.scalars(
-            select(Specialist).where(Specialist.status == "active", Specialist.source == "self")
-            .order_by(Specialist.id.desc()).limit(30)
+            select(Specialist).where(Specialist.status == "active")
+            .order_by(Specialist.id.desc())
         )).all()
         listings = (await session.scalars(
             select(Listing).where(
@@ -396,9 +445,10 @@ async def build_digest(pref: DigestPreference) -> str:
         and _listing_event_day(x.event_date, today=today) >= today
         and bool(x.link)
     ][:4]
-    local_specs = [x for x in specialists if location_matches(
+    matching_specs = [x for x in specialists if location_matches(
         pref, x.city, nationwide=x.is_online, target_province=x.province
-    )][:3]
+    )]
+    local_specs = _rotate_specialists(matching_specs, today=today)
     local_listings = [x for x in listings if location_matches(pref, x.city, nationwide=x.is_nationwide)][:3]
     walks = []
     for walk in config.available_allo_walks():
@@ -441,7 +491,7 @@ async def build_digest(pref: DigestPreference) -> str:
             lines.append(f"• <b>{html.escape(walk['date'])}</b> · {html.escape(walk['title'])}")
             useful += 1
     if "specialists" in selected:
-        lines.extend(["", "<b>🔍 Новые специалисты</b>"])
+        lines.extend(["", "<b>🔍 Специалисты для вас</b>"])
         if local_specs:
             for sp in local_specs:
                 where = "онлайн" if sp.is_online else (sp.city or sp.province)
@@ -452,7 +502,7 @@ async def build_digest(pref: DigestPreference) -> str:
                 lines.append(f"• <b>{name}</b> · {html.escape(sp.category)} · {html.escape(where)}")
                 useful += 1
         else:
-            lines.append("Новых карточек рядом на этой неделе нет.")
+            lines.append("Подходящих карточек рядом на этой неделе нет.")
     if "board" in selected:
         lines.extend(["", "<b>📋 Свежие объявления</b>"])
         if local_listings:
