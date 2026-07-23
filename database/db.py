@@ -13,8 +13,8 @@ engine = create_async_engine(config.DB_URL, echo=False)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 # Версия засева базы специалистов. Повышай число, когда меняешь данные/логику —
-# при следующем запуске бот пересоздаст таблицу специалистов заново.
-SEED_VERSION = "9"
+# при следующем запуске бот синхронизирует исходные карточки на месте.
+SEED_VERSION = "10"
 # В скольких провинциях должна встречаться карточка, чтобы считать её
 # «онлайн-специалистом» (работает по всей стране) и хранить одной записью.
 ONLINE_PROVINCE_THRESHOLD = 6
@@ -72,6 +72,43 @@ async def init_db() -> None:
 
     await _migrate()
     await _seed_if_needed()
+    await _repair_misclassified_specialists()
+
+
+async def _repair_misclassified_specialists() -> None:
+    """Исправляет очевидные старые ошибки категорий без потери карточек.
+
+    Раньше «химчистка салона» отправляла автомобильный детейлинг в «клининг».
+    Кроме того, в базе остались названия категорий из старого справочника,
+    которых уже нет в интерфейсе. Контакты, оплата, владелец, фото и остальные
+    поля при исправлении остаются нетронутыми.
+    """
+    from utils.geo import CATEGORIES, detect_category
+
+    legacy_defaults = {
+        "музыка": "музыкальные занятия",
+        "еда": "продукты и магазины",
+        "веб-разработчик": "it и веб",
+    }
+
+    async with async_session() as session:
+        rows = (await session.scalars(select(Specialist))).all()
+        changed = False
+        for specialist in rows:
+            text = f"{specialist.name} {specialist.description or ''}"
+            detected = detect_category(text)
+            new_category = None
+            if specialist.category == "клининг" and detected == "автосервис":
+                new_category = "автосервис"
+            elif specialist.category in legacy_defaults:
+                new_category = detected or legacy_defaults[specialist.category]
+            elif specialist.category == "услуги" and detected in CATEGORIES:
+                new_category = detected
+            if new_category and new_category != specialist.category:
+                specialist.category = new_category
+                changed = True
+        if changed:
+            await session.commit()
 
 
 async def _migrate() -> None:
