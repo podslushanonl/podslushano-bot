@@ -61,6 +61,31 @@ def test_import_bot() -> None:
     labels = [button.text for row in main_menu().keyboard for button in row]
     check("Мой Podslushano — первый пункт главного меню",
           labels[0] == BTN_HOME)
+    from handlers.home import (
+        _home_kb,
+        _profile_settings_kb,
+        _profile_settings_text,
+    )
+    home_callbacks = [
+        button.callback_data
+        for row in _home_kb(True).inline_keyboard
+        for button in row
+    ]
+    check("профиль и подборка открываются разными callback",
+          "home:profile" in home_callbacks and "home:digest" in home_callbacks)
+    pref = DigestPreference(
+        user_id=1, city="Amsterdam", province="Noord-Holland",
+        radius_km=25, topics_csv="events,guides", enabled=True,
+    )
+    profile_text = _profile_settings_text(pref)
+    profile_callbacks = [
+        button.callback_data
+        for row in _profile_settings_kb(pref).inline_keyboard
+        for button in row
+    ]
+    check("настройки профиля не показывают текст рассылки",
+          "четверг" not in profile_text.casefold()
+          and "home:profile:city" in profile_callbacks)
 
 
 def test_ad_promotion_deadline() -> None:

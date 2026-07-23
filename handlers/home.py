@@ -118,6 +118,41 @@ def _profile_summary(pref: DigestPreference | None) -> str:
     )
 
 
+def _profile_settings_kb(pref: DigestPreference) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(
+                text="📍 Изменить город", callback_data="home:profile:city"
+            ),
+            InlineKeyboardButton(
+                text="🗺 Изменить радиус", callback_data="home:profile:radius"
+            ),
+        ],
+        [
+            InlineKeyboardButton(
+                text="🎛 Изменить интересы", callback_data="home:profile:topics"
+            )
+        ],
+        [InlineKeyboardButton(text="⬅️ Мой Podslushano", callback_data="home:open")],
+    ])
+
+
+def _profile_settings_text(pref: DigestPreference) -> str:
+    topics = [
+        TOPIC_LABELS[key]
+        for key in (pref.topics_csv or "").split(",")
+        if key in TOPIC_LABELS
+    ]
+    return (
+        "⚙️ <b>Настройки профиля</b>\n\n"
+        f"📍 Город: <b>{html.escape(pref.city)}</b>\n"
+        f"🗺 Радиус: <b>"
+        f"{RADIUS_LABELS.get(pref.radius_km, f'{pref.radius_km} км')}</b>\n"
+        f"🎛 Интересы: {html.escape(', '.join(topics) or 'не выбраны')}\n\n"
+        "Эти настройки помогают показывать подходящие материалы и услуги рядом."
+    )
+
+
 async def _open_home(message: Message, user_id: int, first_name: str | None) -> None:
     async with get_session() as session:
         pref = await session.get(DigestPreference, user_id)
@@ -147,12 +182,77 @@ async def home_open_callback(callback: CallbackQuery, state: FSMContext) -> None
     await _open_home(callback.message, callback.from_user.id, callback.from_user.first_name)
 
 
-@router.callback_query(F.data.in_({"home:profile", "home:digest"}))
+@router.callback_query(F.data == "home:profile")
 async def home_profile(callback: CallbackQuery, state: FSMContext) -> None:
+    from keyboards.menus import cancel_menu
+    from states.forms import DigestSetup
+
+    await state.clear()
+    await callback.answer()
+    async with get_session() as session:
+        pref = await session.get(DigestPreference, callback.from_user.id)
+    if pref:
+        await callback.message.answer(
+            _profile_settings_text(pref), reply_markup=_profile_settings_kb(pref)
+        )
+        return
+    await state.update_data(dg_origin="profile")
+    await state.set_state(DigestSetup.waiting_city)
+    await callback.message.answer(
+        "⚙️ <b>Настройка профиля</b>\n\n"
+        "Укажи город, радиус и интересы — бот сможет показывать подходящие "
+        "материалы и услуги рядом.\n\n"
+        "📍 В каком городе ты живёшь?",
+        reply_markup=cancel_menu(),
+    )
+
+
+@router.callback_query(F.data == "home:digest")
+async def home_digest(callback: CallbackQuery, state: FSMContext) -> None:
     from handlers.digest import _open_digest_settings
 
     await callback.answer()
     await _open_digest_settings(callback.message, state, callback.from_user.id)
+
+
+@router.callback_query(F.data.startswith("home:profile:"))
+async def home_profile_edit(callback: CallbackQuery, state: FSMContext) -> None:
+    from handlers.digest import _get_pref, _radius_kb, _topics, _topics_kb
+    from keyboards.menus import cancel_menu
+    from states.forms import DigestSetup
+
+    action = callback.data.rsplit(":", 1)[1]
+    pref = await _get_pref(callback.from_user.id)
+    if not pref:
+        await callback.answer("Сначала настрой профиль", show_alert=True)
+        return
+    await state.clear()
+    await state.update_data(dg_origin="profile")
+    if action == "city":
+        await state.set_state(DigestSetup.waiting_city)
+        await state.update_data(
+            dg_topics=list(_topics(pref.topics_csv)),
+            dg_radius=pref.radius_km,
+            dg_edit_city=True,
+        )
+        await callback.message.answer(
+            "📍 Напиши новый город:", reply_markup=cancel_menu()
+        )
+    elif action == "radius":
+        await callback.message.answer(
+            "Какой радиус использовать?", reply_markup=_radius_kb()
+        )
+    elif action == "topics":
+        selected = _topics(pref.topics_csv)
+        await state.set_state(DigestSetup.choosing_topics)
+        await state.update_data(dg_topics=list(selected), dg_edit=True)
+        await callback.message.answer(
+            "Выбери интересы:", reply_markup=_topics_kb(selected)
+        )
+    else:
+        await callback.answer("Неизвестная настройка", show_alert=True)
+        return
+    await callback.answer()
 
 
 @router.callback_query(F.data.startswith("save:"))
