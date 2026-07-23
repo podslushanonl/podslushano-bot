@@ -378,41 +378,64 @@ def _rotated(items: list[Specialist], *, week: int, take: int) -> list[Specialis
     ]
 
 
+def _shown_specialist_ids(messages: list[str]) -> set[int]:
+    """Извлекает карточки, уже отправленные пользователю в прошлых подборках."""
+    return {
+        int(raw_id)
+        for message in messages
+        for raw_id in re.findall(r"[?&]start=spec_(\d+)", message or "")
+    }
+
+
 def _rotate_specialists(
-    specialists: list[Specialist], *, today: date, limit: int = 3
+    specialists: list[Specialist], *, today: date, limit: int = 3,
+    shown_ids: set[int] | None = None,
 ) -> list[Specialist]:
-    """Миксует свежие добавления с проверенными карточками гайда.
+    """Миксует свежие и проверенные карточки без недавних повторов.
 
     ``self`` и ``admin`` — карточки, добавленные после первоначального гайда.
-    Если обе группы доступны, в выпуск обязательно попадают представители обеих:
-    до двух новых и хотя бы одна старая карточка. Внутри каждой группы выбор
-    сдвигается раз в неделю, поэтому один и тот же набор не закрепляется навсегда.
+    Из них берём до двух карточек с наибольшими id — это последние реальные
+    добавления. Хотя бы одно место отдаём старому гайду. Карточки из предыдущих
+    доставленных выпусков исключаем, пока рядом остаются другие варианты.
     """
     if limit <= 0:
         return []
+    shown_ids = shown_ids or set()
     week = today.isocalendar().week
-    newer = [item for item in specialists if item.source in {"self", "admin"}]
-    established = [item for item in specialists if item.source not in {"self", "admin"}]
+    unseen = [item for item in specialists if item.id not in shown_ids]
+    pool = unseen or specialists
+    newer = sorted(
+        (item for item in pool if item.source in {"self", "admin"}),
+        key=lambda item: item.id or 0,
+        reverse=True,
+    )
+    established = [
+        item for item in pool if item.source not in {"self", "admin"}
+    ]
 
-    if newer and established:
-        newer_take = min(2, limit, len(newer))
-        established_take = min(limit - newer_take, len(established))
-        selected = (
-            _rotated(newer, week=week, take=newer_take)
-            + _rotated(established, week=week, take=established_take)
-        )
-        if len(selected) < limit:
-            selected_ids = {item.id for item in selected}
-            remaining = [
-                item for item in specialists
-                if item.id not in selected_ids
-            ]
-            selected.extend(_rotated(
-                remaining, week=week, take=limit - len(selected)
-            ))
-        return selected[:limit]
+    selected = newer[:min(2, limit)]
+    if established and len(selected) < limit:
+        selected.extend(_rotated(
+            established, week=week, take=1
+        ))
 
-    return _rotated(newer or established, week=week, take=limit)
+    selected_ids = {item.id for item in selected}
+    remaining = [item for item in pool if item.id not in selected_ids]
+    selected.extend(_rotated(
+        remaining, week=week, take=limit - len(selected)
+    ))
+
+    # Если непоказанных карточек меньше лимита, дополняем выпуск прежними,
+    # но не дублируем уже выбранные позиции.
+    if len(selected) < limit:
+        selected_ids = {item.id for item in selected}
+        fallback = [
+            item for item in specialists if item.id not in selected_ids
+        ]
+        selected.extend(_rotated(
+            fallback, week=week, take=limit - len(selected)
+        ))
+    return selected[:limit]
 
 
 async def build_digest(pref: DigestPreference) -> str:
@@ -438,6 +461,12 @@ async def build_digest(pref: DigestPreference) -> str:
             select(Specialist).where(Specialist.status == "active")
             .order_by(Specialist.id.desc())
         )).all()
+        previous_digest_texts = (await session.scalars(
+            select(DigestDeliveryLog.message_text).where(
+                DigestDeliveryLog.user_id == pref.user_id,
+                DigestDeliveryLog.status == "sent",
+            ).order_by(DigestDeliveryLog.created_at.desc()).limit(8)
+        )).all()
         listings = (await session.scalars(
             select(Listing).where(
                 Listing.status == "approved",
@@ -457,7 +486,11 @@ async def build_digest(pref: DigestPreference) -> str:
     matching_specs = [x for x in specialists if location_matches(
         pref, x.city, nationwide=x.is_online, target_province=x.province
     )]
-    local_specs = _rotate_specialists(matching_specs, today=today)
+    local_specs = _rotate_specialists(
+        matching_specs,
+        today=today,
+        shown_ids=_shown_specialist_ids(list(previous_digest_texts)),
+    )
     local_listings = [x for x in listings if location_matches(pref, x.city, nationwide=x.is_nationwide)][:3]
     walks = []
     for walk in config.available_allo_walks():
@@ -719,13 +752,8 @@ async def _send_all_digests(bot, admin_id: int) -> None:
                    or_(DigestPreference.last_sent_week.is_(None), DigestPreference.last_sent_week != week))
         )).all()
     sent = failed = 0
-    rendered: dict[tuple[str, str, int, str], str] = {}
     for pref in rows:
-        segment = (pref.city, pref.province, pref.radius_km, pref.topics_csv)
-        text = rendered.get(segment)
-        if text is None:
-            text = await build_digest(pref)
-            rendered[segment] = text
+        text = await build_digest(pref)
         message_id = None
         error = None
         try:

@@ -535,6 +535,7 @@ async def test_personal_digest() -> None:
     from datetime import date, datetime, timedelta
     from handlers.digest import (
         _rotate_specialists,
+        _shown_specialist_ids,
         build_digest,
         digest_announcement_kb,
         digest_announcement_text,
@@ -593,13 +594,23 @@ async def test_personal_digest() -> None:
     first_mix = _rotate_specialists(
         rotation_rows, today=date(2026, 7, 23)
     )
+    check("подборка берёт действительно последние новые карточки",
+          {row.id for row in first_mix if row.source != "seed"} == {102, 103})
     next_mix = _rotate_specialists(
-        rotation_rows, today=date(2026, 7, 30)
+        rotation_rows, today=date(2026, 7, 30),
+        shown_ids={row.id for row in first_mix},
     )
     check("подборка специалистов миксует новые и карточки старого гайда",
           {row.source == "seed" for row in first_mix} == {True, False})
-    check("подборка специалистов меняется на следующей неделе",
-          {row.id for row in first_mix} != {row.id for row in next_mix})
+    check("следующая подборка не повторяет уже доставленные карточки",
+          {row.id for row in first_mix}.isdisjoint(
+              row.id for row in next_mix
+          ))
+    check("история доставки распознаёт ссылки на карточки",
+          _shown_specialist_ids([
+              "https://t.me/test?start=spec_102",
+              "https://t.me/test?start=spec_107",
+          ]) == {102, 107})
 
     month = f"{date.today():%Y-%m}"
     async with db.get_session() as session:
