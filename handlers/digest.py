@@ -35,6 +35,7 @@ from database.models import (
 )
 from keyboards.menus import BTN_SUBSCRIPTIONS, cancel_menu, main_menu
 from states.forms import DigestSetup
+from utils.analytics import log_product_event
 from utils.geo import detect_city, distance_km, province_of_city
 
 log = logging.getLogger(__name__)
@@ -227,6 +228,11 @@ async def digest_radius_pick(callback: CallbackQuery, state: FSMContext) -> None
             row = await session.get(DigestPreference, callback.from_user.id)
             row.radius_km = radius
             await session.commit()
+        await log_product_event(
+            callback.from_user.id,
+            "profile_updated",
+            entity_type="radius",
+        )
         updated = await _get_pref(callback.from_user.id)
         await callback.message.answer("Радиус обновлён ✅", reply_markup=_settings_kb(updated))
     await callback.answer()
@@ -257,6 +263,11 @@ async def digest_topic_pick(callback: CallbackQuery, state: FSMContext) -> None:
                 row.province = data.get("dg_province", "")
                 row.radius_km = int(data.get("dg_radius", row.radius_km))
             await session.commit()
+        await log_product_event(
+            callback.from_user.id,
+            "profile_updated",
+            entity_type="city" if data.get("dg_city") else "topics",
+        )
         await state.clear()
         await callback.message.answer("Настройки обновлены ✅", reply_markup=_settings_kb(await _get_pref(callback.from_user.id)))
     else:
@@ -268,6 +279,7 @@ async def digest_topic_pick(callback: CallbackQuery, state: FSMContext) -> None:
                 topics_csv=_topics_csv(selected), enabled=True,
             ))
             await session.commit()
+        await log_product_event(callback.from_user.id, "profile_completed")
         await state.clear()
         saved = await _get_pref(callback.from_user.id)
         await callback.message.answer(
@@ -318,6 +330,10 @@ async def digest_toggle(callback: CallbackQuery) -> None:
         pref.enabled = not pref.enabled
         enabled = pref.enabled
         await session.commit()
+    await log_product_event(
+        callback.from_user.id,
+        "digest_enabled" if enabled else "digest_disabled",
+    )
     updated = await _get_pref(callback.from_user.id)
     await callback.message.answer(
         "Подборка включена 🔔" if enabled else "Подборка отключена. Вернуться можно в любой момент 🔕",

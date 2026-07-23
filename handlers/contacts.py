@@ -21,7 +21,7 @@ from database.models import Specialist
 from keyboards.menus import BTN_CONTACTS, BTN_SELF_ADD, cancel_menu, feedback_kb, main_menu
 from states.forms import ContactSearch, ReviewForm
 from utils.ai import extract_specialist_query, reply_with_ai
-from utils.analytics import log_event
+from utils.analytics import log_event, log_product_event
 from utils.contact_links import TELEGRAM_TYPES, parse_contact_links
 from utils.reviews import (
     add_or_update_review,
@@ -367,6 +367,7 @@ async def _spec_show(msg: Message, state: FSMContext, idx: int, replace: bool) -
     if spec is None:
         await msg.answer("Эта карточка пропала — поищи заново 🙂", reply_markup=main_menu())
         return
+    source = data.get("sp_source") or "search"
     key = specialist_key(spec.name, spec.contact)
     badge = rating_badge((await ratings_for([key])).get(key))
     revs = (await texts_for([key])).get(key)
@@ -382,13 +383,33 @@ async def _spec_show(msg: Message, state: FSMContext, idx: int, replace: bool) -
     if spec.photo_file_id and len(text) <= 1024:
         try:
             await bot.send_photo(chat_id, spec.photo_file_id, caption=text, reply_markup=kb)
+            await log_product_event(
+                state.key.user_id,
+                "specialist_open",
+                entity_type="specialist",
+                entity_id=spec.id,
+                source=source,
+            )
             return
         except Exception:  # noqa: BLE001 — фото недоступно → текстом
             pass
     await bot.send_message(chat_id, text, reply_markup=kb, disable_web_page_preview=True)
+    await log_product_event(
+        state.key.user_id,
+        "specialist_open",
+        entity_type="specialist",
+        entity_id=spec.id,
+        source=source,
+    )
 
 
-async def show_specialist_card(message: Message, state: FSMContext, specialist_id: int) -> bool:
+async def show_specialist_card(
+    message: Message,
+    state: FSMContext,
+    specialist_id: int,
+    *,
+    source: str = "direct",
+) -> bool:
     """Открывает одну полноценную карточку по публичной ссылке ``spec_<id>``."""
     async with get_session() as session:
         spec = await session.get(Specialist, specialist_id)
@@ -399,7 +420,11 @@ async def show_specialist_card(message: Message, state: FSMContext, specialist_i
         )
         return False
     await state.clear()
-    await state.update_data(sp_ids=[specialist_id], sp_labels=[])
+    await state.update_data(
+        sp_ids=[specialist_id],
+        sp_labels=[],
+        sp_source=source,
+    )
     await _spec_show(message, state, 0, replace=False)
     return True
 
@@ -434,7 +459,7 @@ async def _send_results(message: Message, state: FSMContext, sections: list) -> 
             reply_markup=main_menu(),
         )
         return
-    await state.update_data(sp_ids=ids, sp_labels=labels)
+    await state.update_data(sp_ids=ids, sp_labels=labels, sp_source="search")
     note = f" (показываю первых {len(ids)} — уточни город, найду ближе)" if overflow else ""
     await message.answer(
         f"🔍 Нашёл подходящих: <b>{len(ids)}</b>{note}.\n"

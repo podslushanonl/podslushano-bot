@@ -196,6 +196,27 @@ class Event(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class ProductEvent(Base):
+    """Псевдонимизированное продуктовое действие конкретного пользователя.
+
+    Telegram ID нужен для уникальных пользователей и retention; текст сообщений,
+    имя, username и контактные данные не сохраняются. Отдельная
+    таблица сохраняет совместимость со старой агрегированной таблицей ``events``.
+    """
+
+    __tablename__ = "product_events"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    name: Mapped[str] = mapped_column(String(50), index=True)
+    entity_type: Mapped[str] = mapped_column(String(30), default="", index=True)
+    entity_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    source: Mapped[str] = mapped_column(String(30), default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), index=True
+    )
+
+
 class Review(Base):
     """Отзыв и оценка специалиста. Привязка по стабильному ключу (имя+контакт),
     чтобы оценки не терялись при пере-засеве базы (где меняются id)."""
