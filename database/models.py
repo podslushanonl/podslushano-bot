@@ -262,6 +262,22 @@ class DigestDeliveryLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class SavedItem(Base):
+    """Карточка, которую пользователь сохранил в «Мой Podslushano»."""
+
+    __tablename__ = "saved_items"
+    __table_args__ = (
+        UniqueConstraint("user_id", "item_type", "item_id", name="uq_saved_user_item"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    # specialist | listing. Тип расширяем для будущих событий и гайдов.
+    item_type: Mapped[str] = mapped_column(String(20), index=True)
+    item_id: Mapped[int] = mapped_column(Integer, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class AnnouncementDelivery(Base):
     """Поштучный журнал разовой массовой рассылки.
 
