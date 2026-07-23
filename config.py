@@ -1,6 +1,7 @@
 """Загрузка настроек из файла .env."""
 import os
 from datetime import datetime
+from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -339,13 +340,53 @@ AD_FORMATS: dict[str, dict] = {
     },
 }
 
+# Акция запущена 23 июля 2026 и действует семь полных календарных суток.
+# После этого срока сервер сам возвращает цену €180; это не зависит от баннера.
+AD_PROMO_END_ISO = os.getenv("AD_PROMO_END_ISO", "2026-07-30T23:59:59+02:00")
 
-def ad_option(fmt: str, opt: str) -> dict | None:
-    """Вариант формата (длительность) по ключам, или None."""
+
+def ad_promotion_active(now: datetime | None = None) -> bool:
+    """Действует ли ограниченная акция на формат «Продвижение»."""
+    current = now or datetime.now(ZoneInfo("Europe/Amsterdam"))
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=ZoneInfo("Europe/Amsterdam"))
+    try:
+        deadline = datetime.fromisoformat(AD_PROMO_END_ISO)
+    except ValueError:
+        return False  # некорректная дата не должна оставлять скидку бессрочно
+    if deadline.tzinfo is None:
+        deadline = deadline.replace(tzinfo=ZoneInfo("Europe/Amsterdam"))
+    return current <= deadline
+
+
+def ad_option(fmt: str, opt: str, now: datetime | None = None) -> dict | None:
+    """Серверный вариант формата с актуальной, а не только показанной ценой."""
     f = AD_FORMATS.get(fmt)
     if not f:
         return None
-    return next((o for o in f["options"] if o["key"] == opt), None)
+    option = next((o for o in f["options"] if o["key"] == opt), None)
+    if option is None:
+        return None
+    effective = dict(option)
+    if fmt == "promo" and not ad_promotion_active(now):
+        effective["price"] = effective.get("original_price", "180.00")
+        effective.pop("original_price", None)
+    return effective
+
+
+def ad_formats(now: datetime | None = None) -> dict[str, dict]:
+    """Форматы для интерфейса с тем же сроком и ценой, что использует Mollie."""
+    result: dict[str, dict] = {}
+    active = ad_promotion_active(now)
+    for key, source in AD_FORMATS.items():
+        item = dict(source)
+        item["options"] = [
+            ad_option(key, option["key"], now) for option in source["options"]
+        ]
+        if key == "promo" and not active:
+            item["badge"] = ""
+        result[key] = item
+    return result
 
 
 def ad_addon(fmt: str) -> dict | None:

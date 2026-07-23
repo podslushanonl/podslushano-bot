@@ -336,6 +336,9 @@ def _spec_card_kb(spec: Specialist, idx: int, total: int) -> InlineKeyboardMarku
         share = f"https://t.me/share/url?url={quote(config.WEBHOOK_BASE_URL + '/s/' + str(spec.id))}&text={quote(spec.name)}"
         actions.append(InlineKeyboardButton(text="📤 Поделиться", url=share))
     rows.append(actions)
+    rows.append([InlineKeyboardButton(
+        text="♡ Сохранить", callback_data=f"save:specialist:{spec.id}"
+    )])
     if total > 1:
         prev, nxt = (idx - 1) % total, (idx + 1) % total
         rows.append([

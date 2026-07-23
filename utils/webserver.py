@@ -979,7 +979,8 @@ def _calendar_html(taken: set) -> str:
 def _ads_html(taken: set, error: str = "") -> str:
     import json
     cards = []
-    for key, f in config.AD_FORMATS.items():
+    effective_formats = config.ad_formats()
+    for key, f in effective_formats.items():
         badge = f'<span class="badge">{html_lib.escape(f["badge"])}</span>' if f.get("badge") else ""
         flag = " flag" if key == "expert" else ""
         opts = f["options"]
@@ -1001,10 +1002,10 @@ def _ads_html(taken: set, error: str = "") -> str:
             f'<div class="who"><b>Кому подходит:</b> {html_lib.escape(f["who"])}.</div></div>'
         )
     fmt_opts = "".join(f'<option value="{k}">{html_lib.escape(f["name"])}</option>'
-                       for k, f in config.AD_FORMATS.items())
+                       for k, f in effective_formats.items())
     fmap = {k: {"name": f["name"], "options": f["options"], "addon": f.get("addon"),
                 "dates": f.get("dates", 1)}
-            for k, f in config.AD_FORMATS.items()}
+            for k, f in effective_formats.items()}
     faq_html = "".join(
         f"<details><summary>{html_lib.escape(q)}</summary><p>{html_lib.escape(a)}</p></details>"
         for q, a in config.AD_FAQ)
@@ -1166,7 +1167,52 @@ def _ads_site_page(filename: str) -> web.FileResponse:
 
 
 async def _ads(request: web.Request) -> web.StreamResponse:
-    return _ads_site_page("index.html")
+    """Страница рекламы с серверным ограничителем срока акции.
+
+    Сборка витрины статическая, поэтому после дедлайна добавляем маленький
+    runtime-guard: он убирает акционные плашки и возвращает €180 даже при
+    повторном рендере React. Сумма Mollie независимо проверяется в ad_option().
+    """
+    page = (_ADS_SITE_DIR / "index.html").read_text(encoding="utf-8")
+    deadline = json.dumps(config.AD_PROMO_END_ISO)
+    guard = f"""<script>
+(function(){{
+  var deadline=new Date({deadline});
+  if(!Number.isFinite(deadline.getTime()) || new Date()<=deadline)return;
+  function restore(root){{
+    (root||document).querySelectorAll('.sale-banner,.sale-strip').forEach(function(x){{x.remove();}});
+    (root||document).querySelectorAll('.sale-card').forEach(function(x){{x.classList.remove('sale-card');}});
+    var walker=document.createTreeWalker(root||document.body,NodeFilter.SHOW_TEXT);
+    var node;
+    while(node=walker.nextNode()){{
+      if(node.nodeValue&&node.nodeValue.indexOf('€150')>=0){{
+        node.nodeValue=node.nodeValue.replace(/€150(?:\\.00)?/g,'€180');
+      }}
+      if(node.nodeValue&&node.nodeValue.indexOf('−€30')>=0&&node.parentElement){{
+        node.parentElement.remove();
+      }}
+    }}
+    (root||document).querySelectorAll('s').forEach(function(x){{
+      if((x.textContent||'').indexOf('€180')>=0)x.remove();
+    }});
+  }}
+  document.addEventListener('DOMContentLoaded',function(){{
+    restore(document);
+    new MutationObserver(function(list){{
+      list.forEach(function(change){{
+        change.addedNodes.forEach(function(node){{
+          if(node.nodeType===1)restore(node);
+        }});
+      }});
+    }}).observe(document.body,{{childList:true,subtree:true}});
+  }});
+}})();
+</script>"""
+    page = page.replace("</body>", guard + "</body>")
+    return web.Response(
+        text=page, content_type="text/html",
+        headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+    )
 
 
 async def _ads_questions(request: web.Request) -> web.StreamResponse:

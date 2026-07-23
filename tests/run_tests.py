@@ -8,6 +8,8 @@ import asyncio
 import os
 import sys
 import tempfile
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 # корень проекта в путь (скрипт лежит в tests/)
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -35,6 +37,7 @@ from database.models import (  # noqa: E402
     EventListing,
     Listing,
     Meta,
+    SavedItem,
     Specialist,
     SpecialistReminderLog,
 )
@@ -54,6 +57,45 @@ def test_import_bot() -> None:
     check("импорт bot без ошибок", True)
     check("прямая ссылка открывает добавление специалиста",
           config.specialist_add_url().endswith("?start=selfadd"))
+    from keyboards.menus import BTN_HOME, main_menu
+    labels = [button.text for row in main_menu().keyboard for button in row]
+    check("Мой Podslushano — первый пункт главного меню",
+          labels[0] == BTN_HOME)
+
+
+def test_ad_promotion_deadline() -> None:
+    amsterdam = ZoneInfo("Europe/Amsterdam")
+    during = config.ad_option(
+        "promo", "std", datetime(2026, 7, 30, 12, 0, tzinfo=amsterdam)
+    )
+    after = config.ad_option(
+        "promo", "std", datetime(2026, 7, 31, 0, 0, tzinfo=amsterdam)
+    )
+    check("акционная цена действует в пределах семи дней",
+          during and during["price"] == "150.00")
+    check("после дедлайна сервер возвращает цену €180",
+          after and after["price"] == "180.00")
+    expired_formats = config.ad_formats(
+        datetime(2026, 7, 31, 0, 0, tzinfo=amsterdam)
+    )
+    check("после дедлайна интерфейс больше не получает акционный бейдж",
+          expired_formats["promo"]["badge"] == "")
+
+
+async def test_saved_items() -> None:
+    async with db.get_session() as session:
+        specialist = (await session.scalars(select(Specialist).limit(1))).first()
+        session.add(SavedItem(
+            user_id=4242, item_type="specialist", item_id=specialist.id
+        ))
+        await session.commit()
+    async with db.get_session() as session:
+        saved = (await session.scalars(select(SavedItem).where(
+            SavedItem.user_id == 4242,
+            SavedItem.item_type == "specialist",
+        ))).first()
+    check("избранное сохраняется за конкретным пользователем",
+          saved is not None and saved.item_id == specialist.id)
 
 
 async def _category_of(session, name: str):
@@ -811,7 +853,9 @@ def test_general_place_routing() -> None:
 
 async def main() -> None:
     test_import_bot()
+    test_ad_promotion_deadline()
     await test_db_and_categories()
+    await test_saved_items()
     await test_repair_luxar_category()
     test_fix_category_no_override()
     test_taxonomy_and_seed_categories()

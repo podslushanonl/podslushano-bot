@@ -132,8 +132,12 @@ async def _safe_send(bot, chat_id, text, reply_markup=None) -> None:
 @router.message(F.text == "👤 Мой кабинет специалиста")  # старая надпись: у кого
 # ещё закеширована прежняя клавиатура — кабинет всё равно откроется (до /start)
 async def cabinet_open(message: Message, state: FSMContext) -> None:
+    await open_cabinet_for(message, state, message.from_user.id)
+
+
+async def open_cabinet_for(message: Message, state: FSMContext, uid: int) -> None:
+    """Открывает кабинет для uid; подходит и для перехода из inline-меню."""
     await state.clear()
-    uid = message.from_user.id
     async with get_session() as session:
         rows = (
             await session.scalars(

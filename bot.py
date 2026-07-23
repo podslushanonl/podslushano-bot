@@ -10,7 +10,7 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 import config
 from database.db import init_db
 from handlers import (
-    admin, ads, afisha, allo, board, cabinet, chat, contacts, digest, errors, events, guides,
+    admin, ads, afisha, allo, board, cabinet, chat, contacts, digest, errors, events, guides, home,
     letters, moderation, salary, selfadd, share, spotlight, start, submissions, support,
 )
 from handlers.selfadd import reminder_loop
@@ -36,6 +36,7 @@ async def configure_profile(bot: Bot) -> None:
                 BotCommand(command="guide", description="Полезное о жизни в Нидерландах"),
                 BotCommand(command="afisha", description="Чем заняться: афиша и идеи 🎉"),
                 BotCommand(command="digest", description="Настроить подборку на выходные 🔔"),
+                BotCommand(command="my", description="Мой Podslushano: профиль и сохранённое"),
                 BotCommand(command="afisha_add", description="Разместить мероприятие в афише 📅"),
                 BotCommand(command="board", description="Доска объявлений 📋"),
                 BotCommand(command="letter", description="Разобрать письмо по фото"),
@@ -107,6 +108,7 @@ async def main() -> None:
     dp.include_router(guides.router)  # 📚 Полезное — справочник о жизни в NL
     dp.include_router(events.router)  # ☀️ Чем заняться — афиша и сезонные идеи
     dp.include_router(digest.router)  # 🔔 персональная подборка на выходные
+    dp.include_router(home.router)  # 🏠 профиль, избранное и действия пользователя
     dp.include_router(letters.router)  # 📩 разбор официальных писем по фото
     dp.include_router(salary.router)  # 🧮 калькулятор netto-зарплаты
     dp.include_router(share.router)  # 📣 поделиться ботом / рефералы
