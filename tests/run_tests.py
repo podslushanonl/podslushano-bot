@@ -434,6 +434,7 @@ async def test_personal_digest() -> None:
     """Георадиус и секции персональной подборки работают на данных бота."""
     from datetime import date, datetime, timedelta
     from handlers.digest import (
+        _rotate_specialists,
         build_digest,
         digest_announcement_kb,
         digest_announcement_text,
@@ -461,6 +462,28 @@ async def test_personal_digest() -> None:
     )
     check("подборка: режим города не захватывает соседний город",
           not location_matches(exact, "Amersfoort"))
+
+    rotation_rows = []
+    for sid, source in enumerate(
+        ["self", "admin", "self", "self", "seed", "seed", "seed", "seed"],
+        start=100,
+    ):
+        row = Specialist(
+            name=f"Rotation {sid}", category="фотограф", city="Utrecht",
+            province="Utrecht", source=source, status="active",
+        )
+        row.id = sid
+        rotation_rows.append(row)
+    first_mix = _rotate_specialists(
+        rotation_rows, today=date(2026, 7, 23)
+    )
+    next_mix = _rotate_specialists(
+        rotation_rows, today=date(2026, 7, 30)
+    )
+    check("подборка специалистов миксует новые и карточки старого гайда",
+          {row.source == "seed" for row in first_mix} == {True, False})
+    check("подборка специалистов меняется на следующей неделе",
+          {row.id for row in first_mix} != {row.id for row in next_mix})
 
     month = f"{date.today():%Y-%m}"
     async with db.get_session() as session:
