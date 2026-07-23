@@ -30,6 +30,7 @@ from database.models import (
     EventListing,
     Listing,
     Meta,
+    SavedItem,
     Specialist,
 )
 from keyboards.menus import BTN_SUBSCRIPTIONS, cancel_menu, main_menu
@@ -140,6 +141,7 @@ def _settings_kb(pref: DigestPreference) -> InlineKeyboardMarkup:
          InlineKeyboardButton(text="🗺 Изменить радиус", callback_data="dg:radius")],
         [InlineKeyboardButton(text="🎛 Выбрать темы", callback_data="dg:topics")],
         [InlineKeyboardButton(text=toggle, callback_data="dg:toggle")],
+        [InlineKeyboardButton(text="⬅️ Мой Podslushano", callback_data="home:open")],
     ])
 
 
@@ -473,6 +475,19 @@ async def build_digest(pref: DigestPreference) -> str:
                 or_(Listing.expires_at.is_(None), Listing.expires_at > datetime.utcnow()),
             ).order_by(Listing.bumped_at.desc(), Listing.id.desc()).limit(40)
         )).all()
+        saved_rows = (await session.scalars(
+            select(SavedItem).where(SavedItem.user_id == pref.user_id)
+            .order_by(SavedItem.created_at.desc()).limit(10)
+        )).all()
+
+    saved_spec_ids = [
+        row.item_id for row in saved_rows if row.item_type == "specialist"
+    ]
+    saved_listing_ids = [
+        row.item_id for row in saved_rows if row.item_type == "listing"
+    ]
+    saved_specs = [x for x in specialists if x.id in saved_spec_ids]
+    saved_listings = [x for x in listings if x.id in saved_listing_ids]
 
     # Ручная афиша — только с распознаваемой будущей датой и отдельной ссылкой.
     # Так старые карточки текущего месяца не возвращаются в подборку.
@@ -553,6 +568,20 @@ async def build_digest(pref: DigestPreference) -> str:
                 useful += 1
         else:
             lines.append("Свежих объявлений рядом пока нет.")
+    saved_lines = []
+    if "specialists" in selected:
+        saved_lines.extend(
+            f"• 🔍 {html.escape(item.name)} — карточка активна"
+            for item in saved_specs[:2]
+        )
+    if "board" in selected:
+        saved_lines.extend(
+            f"• 📋 {html.escape(item.title)} — объявление активно"
+            for item in saved_listings[:2]
+        )
+    if saved_lines:
+        lines.extend(["", "<b>❤️ Из сохранённого</b>", *saved_lines[:3]])
+        useful += len(saved_lines[:3])
     if "guides" in selected:
         from handlers.guides import weekly_tip
         tip = weekly_tip(today.isocalendar().week)
