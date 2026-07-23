@@ -17,6 +17,7 @@ from database.db import get_session
 from database.models import AdLead, Specialist
 from handlers.selfadd import on_payment_paid
 from utils.contact_links import parse_contact_links
+from utils.geo import CATEGORIES, specialist_matches_category
 from utils.reviews import rating_badge, ratings_for, specialist_key
 from utils.payments import get_payment
 
@@ -719,17 +720,34 @@ async def _sp_photo(request: web.Request) -> web.Response:
 
 # Карта granular-категорий бота → 8 укрупнённых групп виджета каталога на сайте
 _SITE_GROUP = {
-    "нутрициолог": "Здоровье", "психолог": "Здоровье", "стоматолог": "Здоровье", "врач": "Здоровье",
+    # Здоровье
+    "нутрициолог": "Здоровье", "психолог": "Здоровье", "коуч": "Здоровье",
+    "стоматолог": "Здоровье", "врач": "Здоровье",
+    # Красота и уход
     "массаж": "Бьюти", "парикмахер": "Бьюти", "косметолог": "Бьюти",
-    "мастер маникюра": "Бьюти", "тату": "Бьюти", "стилист": "Бьюти",
-    "риелтор": "Дом", "дизайнер": "Дом", "ремонт": "Дом", "мастер на час": "Дом", "клининг": "Дом",
-    "репетитор": "Образование", "автошкола": "Образование", "музыка": "Образование",
-    "кондитер": "Вкус", "еда": "Вкус",
-    "няня": "Дети", "аниматор": "Дети",
-    "ведущий": "Впечатления", "фотограф": "Впечатления", "гид": "Впечатления",
+    "мастер маникюра": "Бьюти", "брови и ресницы": "Бьюти",
+    "перманентный макияж": "Бьюти", "визажист": "Бьюти", "эпиляция": "Бьюти",
+    "тату и пирсинг": "Бьюти", "стилист": "Бьюти",
+    # Дом
+    "риелтор": "Дом", "дизайнер": "Дом", "ремонт": "Дом",
+    "мастер на час": "Дом", "клининг": "Дом", "переезды": "Дом",
+    # Образование
+    "репетитор": "Образование", "языковые курсы": "Образование",
+    "музыкальные занятия": "Образование", "автошкола": "Образование",
+    # Еда
+    "кондитер": "Вкус", "кейтеринг": "Вкус", "продукты и магазины": "Вкус",
+    # Дети
+    "няня": "Дети", "детские занятия": "Дети", "аниматор": "Дети",
+    # Впечатления
+    "ведущий": "Впечатления", "музыкант и диджей": "Впечатления",
+    "организация мероприятий": "Впечатления", "декор": "Впечатления",
+    "фотограф": "Впечатления", "видеограф": "Впечатления", "гид": "Впечатления",
     "фитнес": "Впечатления", "творчество": "Впечатления",
-    "юрист": "Услуги", "бухгалтер": "Услуги", "веб-разработчик": "Услуги",
-    "автосервис": "Услуги", "услуги": "Услуги",
+    # Услуги
+    "юрист": "Услуги", "бухгалтер": "Услуги", "переводчик": "Услуги",
+    "it и веб": "Услуги", "маркетинг": "Услуги",
+    "бизнес-консалтинг": "Услуги", "карьерный консультант": "Услуги",
+    "автосервис": "Услуги",
 }
 
 
@@ -797,6 +815,14 @@ async def _api_guide(request: web.Request) -> web.Response:
     rows = sorted(rows, key=lambda s: (0 if s.is_premium else 1, s.category, s.name))
     data = []
     for s in rows:
+        site_categories = list(dict.fromkeys(
+            _SITE_GROUP[category]
+            for category in CATEGORIES
+            if specialist_matches_category(s, category)
+        ))
+        primary_site_category = _SITE_GROUP.get(s.category, "Услуги")
+        if primary_site_category not in site_categories:
+            site_categories.insert(0, primary_site_category)
         descr = _clean(s.description or "")
         # контакты — в одну строку через · (как было), отдельно от описания
         cparts = [_clean(p) for p in re.split(r"\s*·\s*|\n+", s.contact or "")]
@@ -819,7 +845,8 @@ async def _api_guide(request: web.Request) -> web.Response:
             "desc": desc,
             "html": rich,
             "prov": "онлайн" if s.is_online else (s.province or ""),
-            "cat": _SITE_GROUP.get(s.category, "Услуги"),
+            "cat": primary_site_category,
+            "cats": site_categories,
             "premium": bool(s.is_premium),
             "photo": _photo_url(s) or "",
         })
