@@ -61,6 +61,9 @@ def test_import_bot() -> None:
     labels = [button.text for row in main_menu().keyboard for button in row]
     check("Мой Podslushano — первый пункт главного меню",
           labels[0] == BTN_HOME)
+    from handlers.home import home_digest, home_profile
+    check("профиль и подборка используют разные обработчики",
+          home_profile is not home_digest)
 
 
 def test_ad_promotion_deadline() -> None:

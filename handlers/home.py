@@ -59,6 +59,31 @@ def _home_kb(has_profile: bool) -> InlineKeyboardMarkup:
     ])
 
 
+def _profile_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="📍 Изменить город", callback_data="dg:city"),
+            InlineKeyboardButton(text="🗺 Изменить радиус", callback_data="dg:radius"),
+        ],
+        [InlineKeyboardButton(text="🎛 Изменить интересы", callback_data="dg:topics")],
+        [InlineKeyboardButton(text="⬅️ Мой Podslushano", callback_data="home:open")],
+    ])
+
+
+def _profile_text(pref: DigestPreference) -> str:
+    topics = [
+        TOPIC_LABELS[key]
+        for key in (pref.topics_csv or "").split(",")
+        if key in TOPIC_LABELS
+    ]
+    return (
+        "⚙️ <b>Настройка профиля</b>\n\n"
+        f"📍 Город: <b>{html.escape(pref.city)}</b>\n"
+        f"🗺 Радиус: <b>{RADIUS_LABELS.get(pref.radius_km, f'{pref.radius_km} км')}</b>\n"
+        f"🎛 Интересы: {html.escape(', '.join(topics) or 'не выбраны')}\n\n"
+        "Эти данные используются для персональных рекомендаций в «Мой Podslushano»."
+    )
+
 async def _counts(user_id: int) -> tuple[int, int]:
     now = datetime.utcnow()
     async with get_session() as session:
@@ -147,8 +172,22 @@ async def home_open_callback(callback: CallbackQuery, state: FSMContext) -> None
     await _open_home(callback.message, callback.from_user.id, callback.from_user.first_name)
 
 
-@router.callback_query(F.data.in_({"home:profile", "home:digest"}))
+@router.callback_query(F.data == "home:profile")
 async def home_profile(callback: CallbackQuery, state: FSMContext) -> None:
+    from handlers.digest import _open_digest_settings
+
+    await state.clear()
+    async with get_session() as session:
+        pref = await session.get(DigestPreference, callback.from_user.id)
+    await callback.answer()
+    if pref is None:
+        await _open_digest_settings(callback.message, state, callback.from_user.id)
+        return
+    await callback.message.answer(_profile_text(pref), reply_markup=_profile_kb())
+
+
+@router.callback_query(F.data == "home:digest")
+async def home_digest(callback: CallbackQuery, state: FSMContext) -> None:
     from handlers.digest import _open_digest_settings
 
     await callback.answer()
