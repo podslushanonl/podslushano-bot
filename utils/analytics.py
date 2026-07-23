@@ -1,10 +1,19 @@
 """Простая аналитика: лог событий и сводка для админа."""
 import logging
+from collections import defaultdict
+from datetime import date, datetime, timedelta
 
 from sqlalchemy import func, select
 
 from database.db import get_session
-from database.models import BotUser, Event, Review, Specialist, Submission
+from database.models import (
+    BotUser,
+    Event,
+    ProductEvent,
+    Review,
+    Specialist,
+    Submission,
+)
 
 log = logging.getLogger(__name__)
 
@@ -19,6 +28,152 @@ async def log_event(type_: str, key: str | None = None) -> None:
             await session.commit()
     except Exception as e:  # noqa: BLE001
         log.warning("Не удалось записать событие %s: %s", type_, e)
+
+
+async def log_product_event(
+    user_id: int,
+    name: str,
+    *,
+    entity_type: str = "",
+    entity_id: int | None = None,
+    source: str = "",
+) -> None:
+    """Записывает действие без содержимого сообщений и контактных данных."""
+    try:
+        async with get_session() as session:
+            session.add(ProductEvent(
+                user_id=user_id,
+                name=name[:50],
+                entity_type=entity_type[:30],
+                entity_id=entity_id,
+                source=source[:30],
+            ))
+            await session.commit()
+    except Exception as e:  # noqa: BLE001 — аналитика не должна ломать сценарий
+        log.warning("Не удалось записать продуктовое событие %s: %s", name, e)
+
+
+_PRODUCT_LABELS = {
+    "home_open": "Открыли «Мой Podslushano»",
+    "profile_open": "Открыли настройки профиля",
+    "profile_completed": "Заполнили профиль",
+    "profile_updated": "Изменили профиль",
+    "digest_open": "Открыли настройки подборки",
+    "digest_enabled": "Включили подборку",
+    "digest_disabled": "Отключили подборку",
+    "saved_open": "Открыли сохранённое",
+    "saved_add": "Сохранили карточку",
+    "saved_remove": "Удалили из сохранённого",
+    "actions_open": "Открыли «Мои действия»",
+    "specialist_open": "Открыли специалиста",
+    "listing_open": "Открыли объявление",
+    "submission_created": "Отправили заявку",
+}
+
+
+def _as_date(value) -> date:
+    if isinstance(value, date):
+        return value
+    return date.fromisoformat(str(value)[:10])
+
+
+async def gather_product_stats(now: datetime | None = None) -> str:
+    """Сводка продуктовой активности, воронки и D1/D7/D30 retention."""
+    current = now or datetime.utcnow()
+    today = current.date()
+    cutoff_7 = current - timedelta(days=7)
+    cutoff_30 = current - timedelta(days=30)
+
+    async with get_session() as session:
+        recent = (await session.execute(
+            select(ProductEvent.name, ProductEvent.user_id, ProductEvent.created_at)
+            .where(ProductEvent.created_at >= cutoff_30)
+        )).all()
+        activity_days = (await session.execute(
+            select(
+                ProductEvent.user_id,
+                func.date(ProductEvent.created_at),
+            ).distinct()
+        )).all()
+
+    by_name_7: dict[str, set[int]] = defaultdict(set)
+    by_name_30: dict[str, set[int]] = defaultdict(set)
+    active_1: set[int] = set()
+    active_7: set[int] = set()
+    active_30: set[int] = set()
+    cutoff_1 = current - timedelta(days=1)
+    for name, user_id, created_at in recent:
+        active_30.add(user_id)
+        by_name_30[name].add(user_id)
+        if created_at >= cutoff_7:
+            active_7.add(user_id)
+            by_name_7[name].add(user_id)
+        if created_at >= cutoff_1:
+            active_1.add(user_id)
+
+    days_by_user: dict[int, set[date]] = defaultdict(set)
+    for user_id, day in activity_days:
+        days_by_user[user_id].add(_as_date(day))
+
+    def retention(day_number: int) -> tuple[int, int]:
+        eligible = returned = 0
+        for days in days_by_user.values():
+            first = min(days)
+            target = first + timedelta(days=day_number)
+            if target <= today:
+                eligible += 1
+                returned += target in days
+        return returned, eligible
+
+    def pct(value: tuple[int, int]) -> str:
+        returned, eligible = value
+        if not eligible:
+            return "—"
+        return f"{returned}/{eligible} ({returned / eligible:.0%})"
+
+    funnel = (
+        ("home_open", "открыли"),
+        ("profile_completed", "заполнили профиль"),
+        ("saved_add", "сохранили"),
+        ("specialist_open", "открыли специалиста"),
+        ("submission_created", "отправили заявку"),
+    )
+    lines = [
+        "📈 <b>Продуктовая аналитика</b>",
+        "",
+        "<b>Уникальные пользователи:</b>",
+        f"• за 24 часа: <b>{len(active_1)}</b>",
+        f"• за 7 дней: <b>{len(active_7)}</b>",
+        f"• за 30 дней: <b>{len(active_30)}</b>",
+        "",
+        "<b>Возвращение от первого действия:</b>",
+        f"• D1: <b>{pct(retention(1))}</b>",
+        f"• D7: <b>{pct(retention(7))}</b>",
+        f"• D30: <b>{pct(retention(30))}</b>",
+        "",
+        "<b>Воронка за 30 дней:</b>",
+    ]
+    lines.extend(
+        f"• {label}: <b>{len(by_name_30[name])}</b>"
+        for name, label in funnel
+    )
+    used = [
+        (name, len(users))
+        for name, users in by_name_7.items()
+        if users and name in _PRODUCT_LABELS
+    ]
+    if used:
+        lines += ["", "<b>Действия за 7 дней:</b>"]
+        lines.extend(
+            f"• {_PRODUCT_LABELS[name]}: <b>{count}</b>"
+            for name, count in sorted(used, key=lambda item: (-item[1], item[0]))
+        )
+    lines += [
+        "",
+        "<i>Счётчики начнут заполняться после выхода этого релиза. "
+        "D7 и D30 появятся, когда пройдёт достаточно времени.</i>",
+    ]
+    return "\n".join(lines)
 
 
 async def gather_stats() -> str:

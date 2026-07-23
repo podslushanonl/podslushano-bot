@@ -25,7 +25,7 @@ from keyboards.menus import (
 )
 from states.forms import AdForm, QuestionForm, StoryForm, VideoForm
 from utils.ai import ai_enabled, ai_reply
-from utils.analytics import log_event
+from utils.analytics import log_event, log_product_event
 from utils.limits import allow_ai
 from utils.notify import send_to_admins
 
@@ -245,6 +245,12 @@ async def create_submission(
 
     await send_to_admins(bot, submission)
     await log_event("submission", sub_type)
+    await log_product_event(
+        user.id,
+        "submission_created",
+        entity_type=sub_type,
+        entity_id=submission.id,
+    )
     return submission
 
 

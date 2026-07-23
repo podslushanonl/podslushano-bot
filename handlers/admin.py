@@ -70,7 +70,7 @@ from utils.slides import make_cta_url, make_slide_url, slides_enabled
 from utils.places import fetch_place_candidates, fetch_place_photo, places_enabled
 from utils.video import ffmpeg_available, make_circle
 from utils.season import current_season
-from utils.analytics import gather_stats
+from utils.analytics import gather_product_stats, gather_stats
 from utils.reviews import recent_reviews
 from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
 
@@ -105,6 +105,9 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="📨 Напоминания гайда", callback_data="admin:renewals")],
             [InlineKeyboardButton(text="☀️ Подборка на выходные", callback_data="admin:digest")],
             [InlineKeyboardButton(text="📊 Статистика", callback_data="admin:stats")],
+            [InlineKeyboardButton(
+                text="📈 Продуктовая аналитика", callback_data="admin:productstats"
+            )],
             [InlineKeyboardButton(text="⭐ Отзывы", callback_data="admin:reviews")],
         ]
     )
@@ -151,6 +154,8 @@ _ADMIN_COMMANDS_HELP = (
     "/digesttest — отправить точную копию будущей рассылки только себе\n"
     "/digestannouncepreview — анонс подписок перед рассылкой\n"
     "/digestsend — отправить выпуск после подтверждения\n\n"
+    "📈 <b>Продуктовая аналитика</b>\n"
+    "/productstats — активность, воронка и D1/D7/D30\n\n"
     "📣 <b>Контент и рассылки</b>\n"
     "/sitepost — статья на сайт (WordPress, черновик)\n"
     "/wptest — проверить связь бота с сайтом (диагностика)\n"
@@ -1941,6 +1946,18 @@ async def cmd_stats(message: Message, state: FSMContext) -> None:
 @router.callback_query(F.data == "admin:stats")
 async def stats_btn(callback: CallbackQuery) -> None:
     await callback.message.answer(await gather_stats())
+    await callback.answer()
+
+
+@router.message(Command("productstats"))
+async def cmd_product_stats(message: Message, state: FSMContext) -> None:
+    await state.clear()
+    await message.answer(await gather_product_stats(), reply_markup=main_menu())
+
+
+@router.callback_query(F.data == "admin:productstats")
+async def product_stats_btn(callback: CallbackQuery) -> None:
+    await callback.message.answer(await gather_product_stats())
     await callback.answer()
 
 

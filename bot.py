@@ -75,6 +75,7 @@ async def configure_profile(bot: Bot) -> None:
                         BotCommand(command="findspec", description="Найти карточку специалиста"),
                         BotCommand(command="premiums", description="Премиум-карточки"),
                         BotCommand(command="stats", description="Статистика"),
+                        BotCommand(command="productstats", description="Продуктовая аналитика"),
                         BotCommand(command="contact", description="Связаться с нами / поддержка"),
                     ],
                     scope=BotCommandScopeChat(chat_id=admin_id),

@@ -37,6 +37,7 @@ from database.models import (  # noqa: E402
     EventListing,
     Listing,
     Meta,
+    ProductEvent,
     SavedItem,
     Specialist,
     SpecialistReminderLog,
@@ -99,6 +100,51 @@ async def test_saved_items() -> None:
         ))).first()
     check("избранное сохраняется за конкретным пользователем",
           saved is not None and saved.item_id == specialist.id)
+
+
+async def test_product_analytics() -> None:
+    from utils.analytics import gather_product_stats, log_product_event
+
+    now = datetime(2026, 7, 23, 12, 0)
+    async with db.get_session() as session:
+        session.add_all([
+            ProductEvent(
+                user_id=8101, name="home_open",
+                created_at=datetime(2026, 7, 16, 10, 0),
+            ),
+            ProductEvent(
+                user_id=8101, name="saved_add", entity_type="specialist",
+                entity_id=12, created_at=datetime(2026, 7, 17, 10, 0),
+            ),
+            ProductEvent(
+                user_id=8101, name="specialist_open", entity_type="specialist",
+                entity_id=12, source="saved",
+                created_at=datetime(2026, 7, 23, 10, 0),
+            ),
+            ProductEvent(
+                user_id=8102, name="home_open",
+                created_at=datetime(2026, 7, 16, 11, 0),
+            ),
+        ])
+        await session.commit()
+    await log_product_event(
+        8103,
+        "submission_created",
+        entity_type="question",
+        entity_id=44,
+    )
+    report = await gather_product_stats(now)
+    check("продуктовая аналитика считает D1 по уникальным пользователям",
+          "D1: <b>1/2 (50%)</b>" in report)
+    check("продуктовая аналитика строит воронку",
+          "открыли специалиста: <b>1</b>" in report)
+    async with db.get_session() as session:
+        event = (await session.scalars(select(ProductEvent).where(
+            ProductEvent.user_id == 8103,
+        ))).first()
+    check("продуктовое событие хранит действие без текста и контактов",
+          bool(event) and event.name == "submission_created"
+          and not hasattr(event, "text") and not hasattr(event, "username"))
 
 
 async def _category_of(session, name: str):
@@ -859,6 +905,7 @@ async def main() -> None:
     test_ad_promotion_deadline()
     await test_db_and_categories()
     await test_saved_items()
+    await test_product_analytics()
     await test_repair_luxar_category()
     test_fix_category_no_override()
     test_taxonomy_and_seed_categories()

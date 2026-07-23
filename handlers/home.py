@@ -20,6 +20,7 @@ from database.models import (
     Submission,
 )
 from keyboards.menus import BTN_HOME
+from utils.analytics import log_product_event
 
 router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
@@ -156,6 +157,7 @@ async def _open_home(message: Message, user_id: int, first_name: str | None) -> 
         f"🗂 Активных действий: <b>{actions}</b>",
         reply_markup=_home_kb(pref is not None),
     )
+    await log_product_event(user_id, "home_open")
 
 
 @router.message(Command("my", "home"))
@@ -180,6 +182,11 @@ async def home_profile(callback: CallbackQuery, state: FSMContext) -> None:
     async with get_session() as session:
         pref = await session.get(DigestPreference, callback.from_user.id)
     await callback.answer()
+    await log_product_event(
+        callback.from_user.id,
+        "profile_open",
+        source="existing" if pref else "new",
+    )
     if pref is None:
         await _open_digest_settings(callback.message, state, callback.from_user.id)
         return
@@ -191,6 +198,7 @@ async def home_digest(callback: CallbackQuery, state: FSMContext) -> None:
     from handlers.digest import _open_digest_settings
 
     await callback.answer()
+    await log_product_event(callback.from_user.id, "digest_open", source="home")
     await _open_digest_settings(callback.message, state, callback.from_user.id)
 
 
@@ -226,6 +234,12 @@ async def toggle_saved(callback: CallbackQuery) -> None:
             ))
             added = True
         await session.commit()
+    await log_product_event(
+        callback.from_user.id,
+        "saved_add" if added else "saved_remove",
+        entity_type=item_type,
+        entity_id=item_id,
+    )
     await callback.answer(
         "Сохранено в «Мой Podslushano» ❤️" if added else "Удалено из сохранённого",
         show_alert=True,
@@ -250,6 +264,7 @@ async def toggle_saved(callback: CallbackQuery) -> None:
 
 @router.callback_query(F.data == "home:saved")
 async def saved_open(callback: CallbackQuery) -> None:
+    await log_product_event(callback.from_user.id, "saved_open")
     async with get_session() as session:
         rows = (await session.scalars(
             select(SavedItem).where(SavedItem.user_id == callback.from_user.id)
@@ -305,7 +320,10 @@ async def saved_specialist_open(callback: CallbackQuery, state: FSMContext) -> N
 
     await callback.answer()
     await show_specialist_card(
-        callback.message, state, int(callback.data.rsplit(":", 1)[1])
+        callback.message,
+        state,
+        int(callback.data.rsplit(":", 1)[1]),
+        source="saved",
     )
 
 
@@ -319,6 +337,13 @@ async def saved_listing_open(callback: CallbackQuery) -> None:
     if listing is None or listing.status != "approved":
         await callback.answer("Объявление больше не активно", show_alert=True)
         return
+    await log_product_event(
+        callback.from_user.id,
+        "listing_open",
+        entity_type="listing",
+        entity_id=listing.id,
+        source="saved",
+    )
     rows = [[InlineKeyboardButton(
         text="💔 Удалить из сохранённого", callback_data=f"save:listing:{listing.id}"
     )]]
@@ -344,6 +369,7 @@ async def saved_listing_open(callback: CallbackQuery) -> None:
 @router.callback_query(F.data == "home:actions")
 async def actions_open(callback: CallbackQuery) -> None:
     uid = callback.from_user.id
+    await log_product_event(uid, "actions_open")
     async with get_session() as session:
         submissions = (await session.scalars(
             select(Submission).where(Submission.user_id == uid)
