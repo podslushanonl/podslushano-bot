@@ -72,6 +72,15 @@ def test_import_bot() -> None:
 
 def test_ad_promotion_deadline() -> None:
     amsterdam = ZoneInfo("Europe/Amsterdam")
+    countdown = config.ad_promotion_countdown_label(
+        datetime(2026, 7, 24, 12, 0, tzinfo=amsterdam)
+    )
+    penultimate = config.ad_promotion_countdown_label(
+        datetime(2026, 7, 29, 12, 0, tzinfo=amsterdam)
+    )
+    final_day = config.ad_promotion_countdown_label(
+        datetime(2026, 7, 30, 12, 0, tzinfo=amsterdam)
+    )
     during = config.ad_option(
         "promo", "std", datetime(2026, 7, 30, 12, 0, tzinfo=amsterdam)
     )
@@ -80,6 +89,12 @@ def test_ad_promotion_deadline() -> None:
     )
     check("акционная цена действует в пределах семи дней",
           during and during["price"] == "150.00")
+    check("24 июля интерфейс показывает остаток 6 дней",
+          countdown == "Осталось 6 дней")
+    check("за день до финала используется верная форма слова",
+          penultimate == "Остался 1 день")
+    check("30 июля интерфейс показывает последний день",
+          final_day == "Последний день")
     check("после дедлайна сервер возвращает цену €180",
           after and after["price"] == "180.00")
     expired_formats = config.ad_formats(
@@ -87,6 +102,11 @@ def test_ad_promotion_deadline() -> None:
     )
     check("после дедлайна интерфейс больше не получает акционный бейдж",
           expired_formats["promo"]["badge"] == "")
+    active_formats = config.ad_formats(
+        datetime(2026, 7, 24, 12, 0, tzinfo=amsterdam)
+    )
+    check("акционный бейдж получает автоматический обратный отсчёт",
+          active_formats["promo"]["badge"] == "−€30 · осталось 6 дней")
 
 
 async def test_saved_items() -> None:

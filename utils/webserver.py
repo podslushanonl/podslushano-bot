@@ -1179,10 +1179,32 @@ async def _ads(request: web.Request) -> web.StreamResponse:
     """
     page = (_ADS_SITE_DIR / "index.html").read_text(encoding="utf-8")
     deadline = json.dumps(config.AD_PROMO_END_ISO)
+    countdown = json.dumps(
+        config.ad_promotion_countdown_label(), ensure_ascii=False
+    )
+    countdown_badge = json.dumps(
+        f"−€30 · {config.ad_promotion_countdown_label().lower()}",
+        ensure_ascii=False,
+    )
     guard = f"""<script>
 (function(){{
   var deadline=new Date({deadline});
-  if(!Number.isFinite(deadline.getTime()) || new Date()<=deadline)return;
+  var countdown={countdown};
+  var countdownBadge={countdown_badge};
+  var active=Number.isFinite(deadline.getTime())&&new Date()<=deadline&&countdown;
+  function updateCountdown(root){{
+    var walker=document.createTreeWalker(root||document.body,NodeFilter.SHOW_TEXT);
+    var node;
+    while(node=walker.nextNode()){{
+      if(!node.nodeValue)continue;
+      if(node.nodeValue.indexOf('Только 7 дней')>=0){{
+        node.nodeValue=node.nodeValue.replace(/Только 7 дней/g,countdown);
+      }}
+      if(node.nodeValue.indexOf('−€30 · 7 дней')>=0){{
+        node.nodeValue=node.nodeValue.replace(/−€30 · 7 дней/g,countdownBadge);
+      }}
+    }}
+  }}
   function restore(root){{
     (root||document).querySelectorAll('.sale-banner,.sale-strip').forEach(function(x){{x.remove();}});
     (root||document).querySelectorAll('.sale-card').forEach(function(x){{x.classList.remove('sale-card');}});
@@ -1201,11 +1223,13 @@ async def _ads(request: web.Request) -> web.StreamResponse:
     }});
   }}
   document.addEventListener('DOMContentLoaded',function(){{
-    restore(document);
+    if(active)updateCountdown(document);else restore(document);
     new MutationObserver(function(list){{
       list.forEach(function(change){{
         change.addedNodes.forEach(function(node){{
-          if(node.nodeType===1)restore(node);
+          if(node.nodeType===1){{
+            if(active)updateCountdown(node);else restore(node);
+          }}
         }});
       }});
     }}).observe(document.body,{{childList:true,subtree:true}});
