@@ -345,18 +345,41 @@ AD_FORMATS: dict[str, dict] = {
 AD_PROMO_END_ISO = os.getenv("AD_PROMO_END_ISO", "2026-07-30T23:59:59+02:00")
 
 
-def ad_promotion_active(now: datetime | None = None) -> bool:
-    """Действует ли ограниченная акция на формат «Продвижение»."""
+def _ad_promotion_times(now: datetime | None = None) -> tuple[datetime, datetime] | None:
+    """Текущее время и дедлайн акции в часовом поясе Амстердама."""
     current = now or datetime.now(ZoneInfo("Europe/Amsterdam"))
     if current.tzinfo is None:
         current = current.replace(tzinfo=ZoneInfo("Europe/Amsterdam"))
+    current = current.astimezone(ZoneInfo("Europe/Amsterdam"))
     try:
         deadline = datetime.fromisoformat(AD_PROMO_END_ISO)
     except ValueError:
-        return False  # некорректная дата не должна оставлять скидку бессрочно
+        return None
     if deadline.tzinfo is None:
         deadline = deadline.replace(tzinfo=ZoneInfo("Europe/Amsterdam"))
-    return current <= deadline
+    deadline = deadline.astimezone(ZoneInfo("Europe/Amsterdam"))
+    return current, deadline
+
+
+def ad_promotion_active(now: datetime | None = None) -> bool:
+    """Действует ли ограниченная акция на формат «Продвижение»."""
+    times = _ad_promotion_times(now)
+    return bool(times and times[0] <= times[1])
+
+
+def ad_promotion_countdown_label(now: datetime | None = None) -> str:
+    """Календарный остаток акции для интерфейса по времени Амстердама."""
+    times = _ad_promotion_times(now)
+    if not times or times[0] > times[1]:
+        return ""
+    days = max(0, (times[1].date() - times[0].date()).days)
+    if days == 0:
+        return "Последний день"
+    if days % 10 == 1 and days % 100 != 11:
+        return f"Остался {days} день"
+    if days % 10 in {2, 3, 4} and days % 100 not in {12, 13, 14}:
+        return f"Осталось {days} дня"
+    return f"Осталось {days} дней"
 
 
 def ad_option(fmt: str, opt: str, now: datetime | None = None) -> dict | None:
@@ -378,13 +401,14 @@ def ad_formats(now: datetime | None = None) -> dict[str, dict]:
     """Форматы для интерфейса с тем же сроком и ценой, что использует Mollie."""
     result: dict[str, dict] = {}
     active = ad_promotion_active(now)
+    countdown = ad_promotion_countdown_label(now)
     for key, source in AD_FORMATS.items():
         item = dict(source)
         item["options"] = [
             ad_option(key, option["key"], now) for option in source["options"]
         ]
-        if key == "promo" and not active:
-            item["badge"] = ""
+        if key == "promo":
+            item["badge"] = f"−€30 · {countdown.lower()}" if active else ""
         result[key] = item
     return result
 
