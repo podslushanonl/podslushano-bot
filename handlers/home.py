@@ -27,7 +27,12 @@ from utils.analytics import log_product_event
 router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
-TYPE_LABELS = {"specialist": "Специалисты", "listing": "Объявления"}
+TYPE_LABELS = {
+    "specialist": "Специалисты",
+    "listing": "Объявления",
+    "event": "События",
+    "discovered_event": "События",
+}
 RADIUS_LABELS = {0: "мой город", 25: "до 25 км", 50: "до 50 км", 999: "вся страна"}
 TOPIC_LABELS = {
     "events": "события",
@@ -52,11 +57,14 @@ STATUS_LABELS = {
 
 @dataclass(frozen=True)
 class HomeEvent:
+    item_type: str
+    item_id: int
     title: str
     date_label: str
     city: str
     url: str
     starts_on: date
+    saved: bool = False
 
 
 @dataclass(frozen=True)
@@ -84,6 +92,9 @@ def _home_kb(has_profile: bool, snapshot: HomeSnapshot) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="❤️ Сохранённое", callback_data="home:saved"),
             InlineKeyboardButton(text="🗂 Мои действия", callback_data="home:actions"),
         ],
+        [InlineKeyboardButton(
+            text="🔔 Центр уведомлений", callback_data="home:notifications"
+        )],
         [InlineKeyboardButton(text=profile, callback_data="home:profile")],
         [InlineKeyboardButton(text="🔔 Настройки подборки", callback_data="home:digest")],
     ]
@@ -169,6 +180,13 @@ async def _home_snapshot(
                 SavedItem.user_id == user_id
             )
         ) or 0
+        saved_events = {
+            (item.item_type, item.item_id)
+            for item in (await session.scalars(select(SavedItem).where(
+                SavedItem.user_id == user_id,
+                SavedItem.item_type.in_(("event", "discovered_event")),
+            ))).all()
+        }
         action_count = await _action_count(session, user_id, current)
 
         manual_events = (await session.scalars(
@@ -220,11 +238,14 @@ async def _home_snapshot(
             continue
         seen.add(key)
         events.append(HomeEvent(
+            item_type="event",
+            item_id=item.id,
             title=item.title,
             date_label=item.event_date or f"{event_day:%d.%m}",
             city=item.city or "Нидерланды",
             url=item.link,
             starts_on=event_day,
+            saved=("event", item.id) in saved_events,
         ))
     for item in discovered_events:
         event_day = item.starts_at.date() if item.starts_at else None
@@ -240,11 +261,14 @@ async def _home_snapshot(
             continue
         seen.add(key)
         events.append(HomeEvent(
+            item_type="discovered_event",
+            item_id=item.id,
             title=item.title,
             date_label=item.event_date or f"{event_day:%d.%m}",
             city=item.city or pref.city,
             url=item.link,
             starts_on=event_day,
+            saved=("discovered_event", item.id) in saved_events,
         ))
     events.sort(key=lambda item: (item.starts_on, item.title.casefold()))
 
@@ -397,9 +421,13 @@ async def home_events_open(callback: CallbackQuery) -> None:
             f"\n• <b>{html.escape(item.title)}</b>\n"
             f"  {html.escape(item.date_label)} · {html.escape(item.city)}"
         )
-        buttons.append([InlineKeyboardButton(
-            text=f"Открыть · {item.title}"[:60], url=item.url
-        )])
+        buttons.append([
+            InlineKeyboardButton(text=f"Открыть · {item.title}"[:45], url=item.url),
+            InlineKeyboardButton(
+                text="❤️" if item.saved else "♡",
+                callback_data=f"save:{item.item_type}:{item.item_id}",
+            ),
+        ])
     buttons.append(back)
     await callback.message.answer(
         "\n".join(lines),
@@ -466,10 +494,24 @@ async def toggle_saved(callback: CallbackQuery) -> None:
         await callback.answer("Этот тип пока нельзя сохранить", show_alert=True)
         return
 
-    model = Specialist if item_type == "specialist" else Listing
+    models = {
+        "specialist": Specialist,
+        "listing": Listing,
+        "event": EventListing,
+        "discovered_event": DiscoveredEvent,
+    }
+    model = models[item_type]
     async with get_session() as session:
         item = await session.get(model, item_id)
-        if item is None:
+        event_unavailable = (
+            item_type == "event" and item is not None and item.status != "approved"
+        )
+        discovered_unavailable = (
+            item_type == "discovered_event"
+            and item is not None
+            and item.expires_at <= datetime.utcnow()
+        )
+        if item is None or event_unavailable or discovered_unavailable:
             await callback.answer("Карточка больше недоступна", show_alert=True)
             return
         saved = (await session.scalars(select(SavedItem).where(
@@ -493,7 +535,13 @@ async def toggle_saved(callback: CallbackQuery) -> None:
         entity_id=item_id,
     )
     await callback.answer(
-        "Сохранено в «Мой Podslushano» ❤️" if added else "Удалено из сохранённого",
+        (
+            "Событие сохранено. Напоминания включаются в центре уведомлений 🔔"
+            if added and item_type in {"event", "discovered_event"}
+            else "Сохранено в «Мой Podslushano» ❤️"
+            if added
+            else "Удалено из сохранённого"
+        ),
         show_alert=True,
     )
     # Сразу отражаем состояние на карточке, чтобы повторное нажатие было понятным.
@@ -503,7 +551,11 @@ async def toggle_saved(callback: CallbackQuery) -> None:
         for row in keyboard:
             updated.append([
                 button.model_copy(update={
-                    "text": ("❤️ Сохранено" if added else "♡ Сохранить")
+                    "text": (
+                        ("❤️" if added else "♡")
+                        if item_type in {"event", "discovered_event"}
+                        else ("❤️ Сохранено" if added else "♡ Сохранить")
+                    )
                 }) if button.callback_data == callback.data else button
                 for button in row
             ])
@@ -524,6 +576,10 @@ async def saved_open(callback: CallbackQuery) -> None:
         )).all()
         spec_ids = [x.item_id for x in rows if x.item_type == "specialist"]
         listing_ids = [x.item_id for x in rows if x.item_type == "listing"]
+        event_ids = [x.item_id for x in rows if x.item_type == "event"]
+        discovered_ids = [
+            x.item_id for x in rows if x.item_type == "discovered_event"
+        ]
         specialists = {
             x.id: x for x in (await session.scalars(
                 select(Specialist).where(Specialist.id.in_(spec_ids or [-1]))
@@ -534,16 +590,38 @@ async def saved_open(callback: CallbackQuery) -> None:
                 select(Listing).where(Listing.id.in_(listing_ids or [-1]))
             )).all()
         }
+        events = {
+            x.id: x for x in (await session.scalars(
+                select(EventListing).where(
+                    EventListing.id.in_(event_ids or [-1]),
+                    EventListing.status == "approved",
+                    EventListing.link.is_not(None),
+                )
+            )).all()
+        }
+        discovered = {
+            x.id: x for x in (await session.scalars(
+                select(DiscoveredEvent).where(
+                    DiscoveredEvent.id.in_(discovered_ids or [-1]),
+                    DiscoveredEvent.expires_at > datetime.utcnow(),
+                )
+            )).all()
+        }
     valid = [
         row for row in rows
         if (row.item_type == "specialist" and row.item_id in specialists)
         or (row.item_type == "listing" and row.item_id in listings)
+        or (row.item_type == "event" and row.item_id in events)
+        or (
+            row.item_type == "discovered_event"
+            and row.item_id in discovered
+        )
     ]
     back = [InlineKeyboardButton(text="⬅️ Мой Podslushano", callback_data="home:open")]
     if not valid:
         await callback.message.answer(
             "❤️ <b>Сохранённое</b>\n\nПока пусто. Нажимай «♡ Сохранить» "
-            "на карточках специалистов и объявлений.",
+            "на карточках специалистов, объявлений и событий.",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=[back]),
         )
         await callback.answer()
@@ -554,10 +632,21 @@ async def saved_open(callback: CallbackQuery) -> None:
         if row.item_type == "specialist":
             title = f"🔍 {specialists[row.item_id].name}"
             data = f"home:sp:{row.item_id}"
-        else:
+            buttons.append([InlineKeyboardButton(text=title[:60], callback_data=data)])
+        elif row.item_type == "listing":
             title = f"📋 {listings[row.item_id].title}"
             data = f"home:li:{row.item_id}"
-        buttons.append([InlineKeyboardButton(text=title[:60], callback_data=data)])
+            buttons.append([InlineKeyboardButton(text=title[:60], callback_data=data)])
+        else:
+            event = (
+                events[row.item_id]
+                if row.item_type == "event"
+                else discovered[row.item_id]
+            )
+            buttons.append([InlineKeyboardButton(
+                text=f"📅 {event.title}"[:60],
+                url=event.link,
+            )])
     buttons.append(back)
     await callback.message.answer(
         f"❤️ <b>Сохранённое</b>\n\nКарточек: <b>{len(valid)}</b>. Выбери, чтобы открыть:",

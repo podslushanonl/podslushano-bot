@@ -293,10 +293,73 @@ class SavedItem(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(BigInteger, index=True)
-    # specialist | listing. Тип расширяем для будущих событий и гайдов.
+    # specialist | listing | event | discovered_event.
     item_type: Mapped[str] = mapped_column(String(20), index=True)
     item_id: Mapped[int] = mapped_column(Integer, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class NotificationPreference(Base):
+    """Добровольные оперативные уведомления пользователя.
+
+    Еженедельная подборка остаётся в ``DigestPreference``: здесь только
+    напоминания о сохранённых событиях, новые локальные объявления и изменения
+    статусов собственных действий.
+    """
+
+    __tablename__ = "notification_preferences"
+
+    user_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    event_reminders: Mapped[bool] = mapped_column(Boolean, default=False)
+    new_listings: Mapped[bool] = mapped_column(Boolean, default=False)
+    action_updates: Mapped[bool] = mapped_column(Boolean, default=False)
+    # daily | weekly. Напоминания о событиях всегда приходят накануне.
+    frequency: Mapped[str] = mapped_column(String(10), default="daily")
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class NotificationDelivery(Base):
+    """Проверяемая доставка одного элемента персонального уведомления."""
+
+    __tablename__ = "notification_deliveries"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "delivery_key", name="uq_notification_user_delivery"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    # event:event:12:2026-07-24 | listing:44 | status:listing:9:approved
+    delivery_key: Mapped[str] = mapped_column(String(120), index=True)
+    kind: Mapped[str] = mapped_column(String(30), index=True)
+    status: Mapped[str] = mapped_column(String(10), default="sent")
+    telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class NotificationState(Base):
+    """Последний известный статус собственного действия пользователя."""
+
+    __tablename__ = "notification_states"
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id", "entity_type", "entity_id",
+            name="uq_notification_user_entity",
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    entity_type: Mapped[str] = mapped_column(String(30), index=True)
+    entity_id: Mapped[int] = mapped_column(Integer, index=True)
+    last_status: Mapped[str] = mapped_column(String(30))
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
 
 
 class AnnouncementDelivery(Base):

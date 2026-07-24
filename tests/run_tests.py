@@ -37,6 +37,9 @@ from database.models import (  # noqa: E402
     EventListing,
     Listing,
     Meta,
+    NotificationDelivery,
+    NotificationPreference,
+    NotificationState,
     ProductEvent,
     SavedItem,
     Specialist,
@@ -154,6 +157,11 @@ async def test_personal_home_snapshot() -> None:
     ]
     check("живая главная открывает события и новые объявления",
           callbacks[:2] == ["home:events", "home:new"], str(callbacks))
+    check("из личной главной открывается отдельный центр уведомлений",
+          "home:notifications" in callbacks)
+    check("событие можно сохранить для напоминания",
+          snapshot.events[0].item_type == "event"
+          and snapshot.events[0].item_id > 0)
     empty = await _home_snapshot(4244, None, now=now)
     check("без профиля главная не угадывает рекомендации",
           not empty.events and not empty.new_listings)
@@ -202,6 +210,83 @@ async def test_product_analytics() -> None:
     check("продуктовое событие хранит действие без текста и контактов",
           bool(event) and event.name == "submission_created"
           and not hasattr(event, "text") and not hasattr(event, "username"))
+
+
+async def test_notification_center() -> None:
+    from handlers.notifications import _sync_action_states, run_notification_cycle
+
+    now = datetime(2026, 7, 23, 10, 5, tzinfo=ZoneInfo("Europe/Amsterdam"))
+    naive_now = now.replace(tzinfo=None)
+    async with db.get_session() as session:
+        session.add(DigestPreference(
+            user_id=9201, city="Amersfoort", province="Utrecht",
+            radius_km=25, topics_csv="events,board", enabled=True,
+        ))
+        session.add(NotificationPreference(
+            user_id=9201, event_reminders=True, new_listings=True,
+            action_updates=True, frequency="daily",
+        ))
+        event = EventListing(
+            title="Saved tomorrow event", city="Amersfoort",
+            event_date="24.07.2026", month_key="2026-07",
+            status="approved", link="https://example.nl/tomorrow",
+            created_at=naive_now,
+        )
+        listing = Listing(
+            category="goods", title="Notification listing",
+            city="Amersfoort", status="approved",
+            created_at=naive_now,
+        )
+        action_listing = Listing(
+            category="services", title="My status listing",
+            city="Amersfoort", status="pending",
+            submitter_user_id=9201, created_at=naive_now,
+        )
+        session.add_all([event, listing, action_listing])
+        await session.flush()
+        session.add(SavedItem(
+            user_id=9201, item_type="event", item_id=event.id
+        ))
+        await session.commit()
+        listing_id = action_listing.id
+
+    await _sync_action_states(9201)
+    async with db.get_session() as session:
+        listing = await session.get(Listing, listing_id)
+        listing.status = "closed"
+        await session.commit()
+
+    class FakeBot:
+        def __init__(self):
+            self.messages = []
+
+        async def send_message(self, chat_id, text, **kwargs):
+            self.messages.append((chat_id, text))
+            return type("Sent", (), {"message_id": 812})()
+
+    bot = FakeBot()
+    sent, failed = await run_notification_cycle(bot, now=now)
+    check("центр уведомлений собирает события, объявления и статусы одним пакетом",
+          sent == 1 and failed == 0 and len(bot.messages) == 1
+          and "Saved tomorrow event" in bot.messages[0][1]
+          and "Notification listing" in bot.messages[0][1]
+          and "закрыто" in bot.messages[0][1])
+    sent_again, _ = await run_notification_cycle(bot, now=now)
+    check("персональные уведомления не дублируются при повторном цикле",
+          sent_again == 0 and len(bot.messages) == 1)
+    async with db.get_session() as session:
+        deliveries = (await session.scalars(select(NotificationDelivery).where(
+            NotificationDelivery.user_id == 9201
+        ))).all()
+        state = (await session.scalars(select(NotificationState).where(
+            NotificationState.user_id == 9201,
+            NotificationState.entity_type == "listing",
+            NotificationState.entity_id == listing_id,
+        ))).first()
+    check("доставки уведомлений записываются по отдельным элементам",
+          len(deliveries) == 3, str(len(deliveries)))
+    check("статус действия обновляется только после успешной доставки",
+          bool(state) and state.last_status == "closed")
 
 
 async def _category_of(session, name: str):
@@ -964,6 +1049,7 @@ async def main() -> None:
     await test_saved_items()
     await test_personal_home_snapshot()
     await test_product_analytics()
+    await test_notification_center()
     await test_repair_luxar_category()
     test_fix_category_no_override()
     test_taxonomy_and_seed_categories()

@@ -11,10 +11,12 @@ import config
 from database.db import init_db
 from handlers import (
     admin, ads, afisha, allo, board, cabinet, chat, contacts, digest, errors, events, guides, home,
-    letters, moderation, salary, selfadd, share, spotlight, start, submissions, support,
+    letters, moderation, notifications, salary, selfadd, share, spotlight, start, submissions,
+    support,
 )
 from handlers.selfadd import reminder_loop
 from handlers.digest import digest_announcement_loop, digest_draft_loop
+from handlers.notifications import notification_loop
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
 from utils.webserver import start_webserver
@@ -37,6 +39,7 @@ async def configure_profile(bot: Bot) -> None:
                 BotCommand(command="afisha", description="Чем заняться: афиша и идеи 🎉"),
                 BotCommand(command="digest", description="Настроить подборку на выходные 🔔"),
                 BotCommand(command="my", description="Мой Podslushano: профиль и сохранённое"),
+                BotCommand(command="notifications", description="Настроить личные уведомления"),
                 BotCommand(command="afisha_add", description="Разместить мероприятие в афише 📅"),
                 BotCommand(command="board", description="Доска объявлений 📋"),
                 BotCommand(command="letter", description="Разобрать письмо по фото"),
@@ -110,6 +113,7 @@ async def main() -> None:
     dp.include_router(events.router)  # ☀️ Чем заняться — афиша и сезонные идеи
     dp.include_router(digest.router)  # 🔔 персональная подборка на выходные
     dp.include_router(home.router)  # 🏠 профиль, избранное и действия пользователя
+    dp.include_router(notifications.router)  # 🔔 оперативные персональные уведомления
     dp.include_router(letters.router)  # 📩 разбор официальных писем по фото
     dp.include_router(salary.router)  # 🧮 калькулятор netto-зарплаты
     dp.include_router(share.router)  # 📣 поделиться ботом / рефералы
@@ -138,6 +142,7 @@ async def main() -> None:
     asyncio.create_task(reminder_loop(bot))
     asyncio.create_task(digest_draft_loop(bot))
     asyncio.create_task(digest_announcement_loop(bot))
+    asyncio.create_task(notification_loop(bot))
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)
