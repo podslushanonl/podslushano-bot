@@ -10,10 +10,11 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 import config
 from database.db import init_db
 from handlers import (
-    admin, ads, afisha, allo, board, cabinet, chat, contacts, digest, errors, events, guides, home,
-    letters, moderation, notifications, salary, selfadd, share, spotlight, start, submissions,
-    support,
+    admin, ads, afisha, allo, board, cabinet, chat, contacts, content, digest, errors, events,
+    guides, home, letters, moderation, notifications, salary, selfadd, share, spotlight, start,
+    submissions, support,
 )
+from handlers.content import content_publisher_loop
 from handlers.selfadd import reminder_loop
 from handlers.digest import digest_announcement_loop, digest_draft_loop
 from handlers.notifications import notification_loop
@@ -118,6 +119,7 @@ async def main() -> None:
     dp.include_router(salary.router)  # 🧮 калькулятор netto-зарплаты
     dp.include_router(share.router)  # 📣 поделиться ботом / рефералы
     dp.include_router(support.router)  # связь с командой / возвраты
+    dp.include_router(content.router)  # автоматический Контент-центр
     dp.include_router(admin.router)  # /admin — управление базой (только админы)
     dp.include_router(board.router)  # 📋 доска объявлений
     dp.include_router(afisha.router)  # 📅 платная «Афиша месяца» (мероприятия)
@@ -143,6 +145,7 @@ async def main() -> None:
     asyncio.create_task(digest_draft_loop(bot))
     asyncio.create_task(digest_announcement_loop(bot))
     asyncio.create_task(notification_loop(bot))
+    asyncio.create_task(content_publisher_loop(bot))
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)

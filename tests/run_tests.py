@@ -31,6 +31,8 @@ from sqlalchemy import select  # noqa: E402
 from database.models import (  # noqa: E402
     AnnouncementDelivery,
     BotUser,
+    ContentClick,
+    ContentPost,
     DiscoveredEvent,
     DigestDeliveryLog,
     DigestPreference,
@@ -1010,6 +1012,68 @@ async def test_personal_digest() -> None:
           bool(announcement_log) and announcement_log.status == "sent")
 
 
+async def test_content_center() -> None:
+    from handlers.content import (
+        INITIAL_SCHEDULE,
+        TEMPLATES,
+        publish_content_post,
+        seed_content_calendar,
+    )
+
+    await seed_content_calendar()
+    await seed_content_calendar()
+    async with db.get_session() as session:
+        rows = (await session.scalars(
+            select(ContentPost).order_by(ContentPost.scheduled_at)
+        )).all()
+    keys = [row.campaign_key for row in rows]
+    check("контент-календарь создаётся без дублей",
+          len(rows) >= len(INITIAL_SCHEDULE) and len(keys) == len(set(keys)),
+          str(len(rows)))
+    check("первый слот назначен на 28 июля 12:30",
+          rows[0].scheduled_at == datetime(2026, 7, 28, 12, 30))
+    check("в календаре нет повторяющихся типов подряд",
+          all(
+              TEMPLATES[a.template_key].kind != TEMPLATES[b.template_key].kind
+              for a, b in zip(rows, rows[1:])
+          ))
+    check("после первого месяца календарь продолжается автоматически",
+          rows[-1].scheduled_at.date() > datetime(2026, 8, 23).date())
+
+    class FakeMessage:
+        message_id = 501
+
+    class FakeBot:
+        def __init__(self):
+            self.channel_calls = []
+            self.admin_calls = []
+
+        async def send_message(self, chat_id, text, **kwargs):
+            if chat_id == "@test_channel":
+                self.channel_calls.append((chat_id, text, kwargs))
+            else:
+                self.admin_calls.append((chat_id, text, kwargs))
+            return FakeMessage()
+
+    old_channel = config.ANNOUNCE_CHANNEL
+    config.ANNOUNCE_CHANNEL = "@test_channel"
+    bot = FakeBot()
+    try:
+        first = await publish_content_post(bot, rows[0].id)
+        repeated = await publish_content_post(bot, rows[0].id)
+    finally:
+        config.ANNOUNCE_CHANNEL = old_channel
+    async with db.get_session() as session:
+        saved = await session.get(ContentPost, rows[0].id)
+    check("Контент-центр публикует пост с одной прямой кнопкой",
+          first and len(bot.channel_calls) == 1
+          and len(bot.channel_calls[0][2]["reply_markup"].inline_keyboard) == 1)
+    check("один слот нельзя отправить повторно",
+          repeated is False and saved.status == "sent")
+    check("успешная публикация хранит Telegram message_id",
+          saved.telegram_message_id == 501)
+
+
 def test_wordpress_util() -> None:
     import utils.wordpress as wp
     check("публикация на сайт выключена без настроек", wp.wp_enabled() is False)
@@ -1070,6 +1134,7 @@ async def main() -> None:
     await test_personal_home_snapshot()
     await test_product_analytics()
     await test_notification_center()
+    await test_content_center()
     await test_repair_luxar_category()
     test_fix_category_no_override()
     test_taxonomy_and_seed_categories()

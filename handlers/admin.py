@@ -97,6 +97,7 @@ def _admin_panel() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🔎 Найти и удалить", callback_data="admin:find")],
             [InlineKeyboardButton(text="📇 Весь гайд (выгрузка)", callback_data="admin:guideexport")],
             [InlineKeyboardButton(text="📣 Рассылка-анонс", callback_data="admin:broadcast")],
+            [InlineKeyboardButton(text="🗓 Контент-центр", callback_data="content:plan")],
             [InlineKeyboardButton(text="📝 Пост в канал по теме", callback_data="admin:post")],
             [InlineKeyboardButton(text="📸 Instagram-карусель (Make)", callback_data="admin:ig")],
             [InlineKeyboardButton(text="📅 Афиша в канал", callback_data="admin:afisha")],
@@ -157,6 +158,12 @@ _ADMIN_COMMANDS_HELP = (
     "📈 <b>Продуктовая аналитика</b>\n"
     "/productstats — активность, воронка и D1/D7/D30\n\n"
     "📣 <b>Контент и рассылки</b>\n"
+    "/contentplan — календарь автоматических публикаций\n"
+    "/contentpreview — следующий пост до публикации\n"
+    "/contentpause — пауза или продолжение автопубликаций\n"
+    "/contentskip — пропустить следующий пост\n"
+    "/contentsendnext — опубликовать следующий пост сейчас\n"
+    "/contentstats — публикации, переходы и открытия функций\n"
     "/sitepost — статья на сайт (WordPress, черновик)\n"
     "/wptest — проверить связь бота с сайтом (диагностика)\n"
     "/announce — пост в канал: твой текст + своя кнопка (ссылка)\n"
