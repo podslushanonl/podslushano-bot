@@ -384,6 +384,44 @@ class AnnouncementDelivery(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class ContentPost(Base):
+    """Запланированная публикация Контент-центра в Telegram-канал."""
+
+    __tablename__ = "content_posts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    campaign_key: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    template_key: Mapped[str] = mapped_column(String(40), index=True)
+    content_kind: Mapped[str] = mapped_column(String(30), index=True)
+    scheduled_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    # scheduled | sending | sent | skipped | failed
+    status: Mapped[str] = mapped_column(String(12), default="scheduled", index=True)
+    text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    button_label: Mapped[str] = mapped_column(String(60))
+    start_payload: Mapped[str] = mapped_column(String(64), unique=True)
+    dynamic_refs: Mapped[str] = mapped_column(Text, default="")
+    telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class ContentClick(Base):
+    """Уникальный переход пользователя из публикации в нужный раздел бота."""
+
+    __tablename__ = "content_clicks"
+    __table_args__ = (
+        UniqueConstraint("campaign_key", "user_id", name="uq_content_campaign_user"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    campaign_key: Mapped[str] = mapped_column(String(64), index=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    is_new_user: Mapped[bool] = mapped_column(Boolean, default=False)
+    destination_opened: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class EventListing(Base):
     """Платное мероприятие в «Афише месяца» (подаёт организатор, после оплаты и
     проверки админом публикуется)."""

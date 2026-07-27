@@ -133,6 +133,12 @@ async def _attribute_referral(user_id: int, payload: str | None) -> None:
 @router.message(CommandStart())
 async def cmd_start(message: Message, state: FSMContext, command: CommandObject) -> None:
     await state.clear()
+    # Переход из автоматического поста: учитываем источник и открываем обещанный
+    # раздел, а не общую главную.
+    if command.args and command.args.startswith("content_"):
+        from handlers.content import open_content_destination
+        if await open_content_destination(message, state, command.args):
+            return
     # Пришёл по кнопке «Задать свой вопрос» из поста-предложки — сразу открываем форму
     if command.args == "ask":
         from handlers.submissions import ask_question
