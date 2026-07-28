@@ -1048,9 +1048,12 @@ def parse_event_cards(text: str, *, now: datetime | None = None) -> list[dict[st
 
     for block in re.findall(r"<event>(.*?)</event>", text or "", re.I | re.S):
         card = {name: field(block, name) for name in (
-            "title", "start", "end", "date", "venue", "city", "description", "url", "source"
+            "title", "start", "end", "date", "venue", "city", "description",
+            "url", "source_url", "ticket_url", "source", "territory",
         )}
-        url = card["url"].strip().rstrip(".,)")
+        source_url = (card["source_url"] or card["url"]).strip().rstrip(".,)")
+        ticket_url = card["ticket_url"].strip().rstrip(".,)")
+        url = source_url or ticket_url
         parsed = urlparse(url)
         starts_at = _event_moment(card["start"])
         explicit_end = _event_moment(card["end"], end=True)
@@ -1073,12 +1076,20 @@ def parse_event_cards(text: str, *, now: datetime | None = None) -> list[dict[st
         card["starts_at"] = starts_at
         card["ends_at"] = ends_at
         card["url"] = url
+        card["source_url"] = source_url or url
+        ticket = urlparse(ticket_url)
+        card["ticket_url"] = (
+            ticket_url
+            if ticket.scheme in {"http", "https"} and ticket.netloc and ticket_url != card["source_url"]
+            else ""
+        )
         card["title"] = card["title"][:240]
         card["date"] = card["date"][:160]
         card["venue"] = card["venue"][:200]
         card["city"] = card["city"][:100]
         card["description"] = card["description"][:700]
         card["source"] = (card["source"] or parsed.netloc.removeprefix("www."))[:120]
+        card["territory"] = (card["territory"] or "Nederland")[:100]
         key = (card["title"].casefold(), card["url"].casefold())
         if key not in seen:
             seen.add(key)
@@ -1138,7 +1149,12 @@ async def ai_event_search_places(city: str, radius_km: int) -> list[str]:
 
 
 async def ai_event_cards(
-    city: str, radius_km: int = 25, search_cities: list[str] | None = None
+    city: str,
+    radius_km: int = 25,
+    search_cities: list[str] | None = None,
+    *,
+    section_label: str = "",
+    horizon_days: int = 90,
 ) -> list[dict[str, str]]:
     """Ищет реальные будущие события и возвращает данные для отдельных карточек."""
     if not ai_enabled():
@@ -1156,10 +1172,28 @@ async def ai_event_cards(
         "Самостоятельно определи также небольшие города и деревни внутри радиуса; "
         "не ограничивай поиск крупными городами. "
     )
+    horizon_days = max(7, min(horizon_days, 120))
+    category_instruction = (
+        f"Тематика этой подборки: {section_label}. Не добавляй события вне этой тематики. "
+        if section_label else ""
+    )
+    coverage_instruction = (
+        "Это общенациональная подборка. Распредели события по разным провинциям и городам "
+        "Нидерландов; не заполняй весь список только Amsterdam, Rotterdam и Den Haag. "
+        if radius_km == 999 and "остров" not in section_label.casefold() else ""
+    )
+    island_instruction = (
+        "Ищи только на Aruba, Curaçao, Sint Maarten, Bonaire, Saba и Sint Eustatius. "
+        "Указывай остров в поле territory. Проверяй локальные туристические календари, "
+        "площадки, организаторов и билетные сервисы каждого острова. "
+        if "остров" in section_label.casefold() else ""
+    )
     system = (
         "Ты редактор подробной афиши Нидерландов. ОБЯЗАТЕЛЬНО используй веб-поиск. "
-        f"Постарайся найти 6–10 реальных мероприятий для {city}, {radius}, на ближайшие 14 дней, начиная с {today}. "
+        f"Постарайся найти 10–12 реальных мероприятий для {city}, {radius}, на ближайшие "
+        f"{horizon_days} дней, начиная с {today}. "
         "Если подтверждено меньше, всё равно верни найденные карточки: одна реальная карточка лучше пустого ответа. "
+        f"{category_instruction}{coverage_instruction}{island_instruction}"
         f"{dynamic_radius_instruction}Ищи отдельно в этих населённых пунктах внутри выбранной зоны: "
         f"{place_instruction}. "
         "Сделай несколько поисковых запросов на нидерландском: сначала по самому городу, "
@@ -1170,13 +1204,18 @@ async def ai_event_cards(
         "организатора, площадки или билетов. Не добавляй общие достопримечательности, "
         "регулярные занятия без конкретной даты и уже прошедшие события. "
         "URL каждого события скопируй из результата веб-поиска; не придумывай адреса страниц. "
+        "В source_url укажи официальную страницу с описанием. В ticket_url укажи отдельную "
+        "прямую страницу покупки билетов, только если она реально найдена; для бесплатного события "
+        "или одной общей страницы оставь ticket_url пустым. "
         "Верни только блоки следующего формата, без markdown и без текста до или после:\n"
         "<event><title>Название</title><start>ISO 8601 с часовым поясом или YYYY-MM-DD</start>"
         "<end>ISO 8601 с часовым поясом или YYYY-MM-DD, если известно</end>"
         "<date>Дата и время для читателя</date>"
         "<venue>Площадка или адрес</venue><city>Город</city>"
         "<description>Одно-два конкретных предложения: что будет и для кого</description>"
-        "<url>https://прямая-ссылка</url><source>Название источника</source></event>"
+        "<source_url>https://официальная-страница</source_url>"
+        "<ticket_url>https://отдельная-страница-билетов-или-пусто</ticket_url>"
+        "<source>Название источника</source><territory>Nederland или остров</territory></event>"
     )
     client = _get_client()
 

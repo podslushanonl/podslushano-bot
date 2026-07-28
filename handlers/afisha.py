@@ -10,7 +10,9 @@ e-mail) → выбор месяца → оплата Mollie → webhook → за
 """
 import html
 import logging
-from datetime import date
+import re
+from datetime import date, datetime, time, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
@@ -62,24 +64,54 @@ def _month_label(key: str) -> str:
 
 
 def _month_options() -> list[tuple[str, str]]:
-    """Текущий и следующий месяц — обычно афишу готовят на следующий."""
+    """Текущий и три следующих месяца — тот же горизонт, что у общей афиши."""
     today = date.today()
-    cur = (today.year, today.month)
-    nxt = (today.year + (today.month // 12), today.month % 12 + 1)
-    return [
-        (_month_key(*cur), _month_label(_month_key(*cur))),
-        (_month_key(*nxt), _month_label(_month_key(*nxt))),
-    ]
+    months: list[tuple[str, str]] = []
+    for offset in range(4):
+        absolute = today.year * 12 + today.month - 1 + offset
+        key = _month_key(absolute // 12, absolute % 12 + 1)
+        months.append((key, _month_label(key)))
+    return months
 
 
 def _next_month_key() -> str:
     return _month_options()[1][0]
 
 
-def _month_kb() -> InlineKeyboardMarkup:
+def _event_period(raw: str) -> tuple[datetime, datetime] | None:
+    """Разбирает 12.08.2026 или 12–14.08.2026 в точные UTC-границы."""
+    value = re.sub(r"\s+", "", (raw or "").strip()).replace("—", "-").replace("–", "-")
+    single = re.fullmatch(r"(\d{1,2})[./-](\d{1,2})[./-](\d{4})", value)
+    period = re.fullmatch(
+        r"(\d{1,2})-(\d{1,2})[./](\d{1,2})[./](\d{4})", value
+    )
+    try:
+        if period:
+            first, last, month, year = map(int, period.groups())
+            start_day, end_day = date(year, month, first), date(year, month, last)
+        elif single:
+            day, month, year = map(int, single.groups())
+            start_day = end_day = date(year, month, day)
+        else:
+            return None
+    except ValueError:
+        return None
+    if end_day < start_day:
+        return None
+    tz = ZoneInfo("Europe/Amsterdam")
+    starts = datetime.combine(start_day, time.min, tz).astimezone(timezone.utc).replace(tzinfo=None)
+    ends = datetime.combine(end_day, time.max, tz).astimezone(timezone.utc).replace(tzinfo=None)
+    return starts, ends
+
+
+def _month_kb(only_key: str | None = None) -> InlineKeyboardMarkup:
+    options = [
+        (key, label) for key, label in _month_options()
+        if only_key is None or key == only_key
+    ]
     rows = [
         [InlineKeyboardButton(text=f"📅 {label.capitalize()}", callback_data=f"afm:{key}")]
-        for key, label in _month_options()
+        for key, label in options
     ]
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
@@ -199,18 +231,35 @@ async def afisha_description(message: Message, state: FSMContext) -> None:
     await state.update_data(af_desc=message.text.strip())
     await state.set_state(AfishaSubmit.date)
     await message.answer(
-        "Шаг 3/7. Дата или период проведения? Напр. <b>12–14 июля</b> или "
-        "<b>каждую субботу июля</b>.",
+        "Шаг 3/7. Укажите точную дату: <b>12.08.2026</b>.\n"
+        "Если событие длится несколько дней: <b>12–14.08.2026</b>.\n\n"
+        "Точная дата нужна, чтобы прошедшее мероприятие автоматически исчезло из афиши.",
         reply_markup=cancel_menu(),
     )
 
 
 @router.message(AfishaSubmit.date)
 async def afisha_date(message: Message, state: FSMContext) -> None:
-    if not message.text:
-        await message.answer("Напишите дату текстом 🙂")
+    raw = (message.text or "").strip()
+    period = _event_period(raw)
+    if not period:
+        await message.answer(
+            "Не получилось распознать дату. Напишите в формате "
+            "<b>12.08.2026</b> или <b>12–14.08.2026</b> 🙂"
+        )
         return
-    await state.update_data(af_date=message.text.strip()[:120])
+    starts_at, ends_at = period
+    if ends_at <= datetime.utcnow():
+        await message.answer("Эта дата уже прошла. Укажите будущую дату мероприятия 🙂")
+        return
+    if starts_at.date() > date.today() + timedelta(days=120):
+        await message.answer("Сейчас можно добавить событие максимум на четыре месяца вперёд 🙂")
+        return
+    await state.update_data(
+        af_date=raw[:120],
+        af_starts_at=starts_at.isoformat(),
+        af_ends_at=ends_at.isoformat(),
+    )
     await state.set_state(AfishaSubmit.city)
     await message.answer(
         "Шаг 4/7. Город проведения? Или напишите <b>по всей стране</b>, если "
@@ -261,7 +310,8 @@ async def afisha_photo(message: Message, state: FSMContext) -> None:
         # Ручное добавление админом — без e-mail и оплаты, сразу к выбору месяца
         await state.set_state(AfishaSubmit.month)
         await message.answer(
-            "Готово! В афишу какого месяца добавить мероприятие?", reply_markup=_month_kb()
+            "Готово! Подтвердите месяц мероприятия:",
+            reply_markup=_month_kb(data["af_starts_at"][:7]),
         )
         return
     await state.set_state(AfishaSubmit.email)
@@ -279,10 +329,11 @@ async def afisha_email(message: Message, state: FSMContext) -> None:
         await message.answer("Похоже, это не e-mail 🙂 Напишите адрес вида mail@example.com")
         return
     await state.update_data(af_email=email)
+    data = await state.get_data()
     await state.set_state(AfishaSubmit.month)
     await message.answer(
-        "Почти готово! В афишу какого месяца разместить мероприятие?",
-        reply_markup=_month_kb(),
+        "Почти готово! Подтвердите месяц мероприятия:",
+        reply_markup=_month_kb(data["af_starts_at"][:7]),
     )
 
 
@@ -293,6 +344,7 @@ async def afisha_month(callback: CallbackQuery, state: FSMContext) -> None:
     if month_key not in valid:
         month_key = _next_month_key()
     data = await state.get_data()
+    month_key = data["af_starts_at"][:7]
     manual = bool(data.get("af_manual"))
     async with get_session() as session:
         ev = EventListing(
@@ -303,6 +355,8 @@ async def afisha_month(callback: CallbackQuery, state: FSMContext) -> None:
             city=data.get("af_city", ""),
             is_nationwide=data.get("af_nationwide", False),
             event_date=data.get("af_date"),
+            starts_at=datetime.fromisoformat(data["af_starts_at"]),
+            ends_at=datetime.fromisoformat(data["af_ends_at"]),
             month_key=month_key,
             submitter_user_id=None if manual else callback.from_user.id,
             invoice_email=data.get("af_email"),
