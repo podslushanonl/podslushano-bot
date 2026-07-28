@@ -440,6 +440,10 @@ class EventListing(Base):
     is_nationwide: Mapped[bool] = mapped_column(Boolean, default=False)
     # Дата или период проведения (свободным текстом, напр. «12–14 июля»)
     event_date: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    # Точные границы для автоматического скрытия после завершения. У старых
+    # заявок могут быть NULL; новые анкеты требуют однозначную цифровую дату.
+    starts_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
+    ends_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)
     # Месяц афиши в формате ГГГГ-ММ (напр. «2026-07»)
     month_key: Mapped[str] = mapped_column(String(7), index=True)
     # Кто подал (Telegram-id) и e-mail для счёта
@@ -471,6 +475,14 @@ class DiscoveredEvent(Base):
     city: Mapped[str] = mapped_column(String(100), default="")
     link: Mapped[str] = mapped_column(String(700))
     source_name: Mapped[str] = mapped_column(String(120), default="")
+    # Раздел общей афиши: highlights | music | culture | family | markets |
+    # islands | nearby. Старое поле link остаётся канонической страницей
+    # события; отдельная билетная ссылка показывается второй кнопкой.
+    section_key: Mapped[str] = mapped_column(String(24), default="nearby", index=True)
+    source_url: Mapped[str] = mapped_column(String(700), default="")
+    ticket_url: Mapped[str] = mapped_column(String(700), default="")
+    photo_url: Mapped[str] = mapped_column(String(1000), default="")
+    territory: Mapped[str] = mapped_column(String(100), default="Nederland")
     # Нормализованное время начала. Для событий без указанного времени хранится
     # конец календарного дня, чтобы дневное событие не исчезало утром.
     starts_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True, index=True)

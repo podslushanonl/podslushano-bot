@@ -933,6 +933,20 @@ async def test_personal_digest() -> None:
     )
     check("афиша оставляет только будущие карточки с отдельной ссылкой",
           len(cards) == 1 and cards[0]["venue"] == "De Hallen", str(cards))
+    separated = parse_event_cards(
+        "<event><title>Ticketed</title><start>2026-10-10</start><end>2026-10-10</end>"
+        "<date>10 oktober</date><venue>TivoliVredenburg</venue><city>Utrecht</city>"
+        "<description>Concert.</description>"
+        "<source_url>https://venue.example/event</source_url>"
+        "<ticket_url>https://tickets.example/buy</ticket_url>"
+        "<source>Venue</source><territory>Nederland</territory></event>",
+        now=fixed_now,
+    )
+    check("афиша хранит источник и билеты как две независимые ссылки",
+          bool(separated)
+          and separated[0]["source_url"] == "https://venue.example/event"
+          and separated[0]["ticket_url"] == "https://tickets.example/buy",
+          str(separated))
     places = parse_event_search_places(
         "<place>Woudrichem</place><place>Werkendam</place>"
         "<place>Gorinchem</place><place>Woudrichem</place>",
@@ -941,7 +955,48 @@ async def test_personal_digest() -> None:
     check("афиша поддерживает любой небольшой город без статического списка",
           places == ["Woudrichem", "Werkendam", "Gorinchem"], str(places))
 
-    from handlers.events import _auto_batch
+    from handlers.afisha import _event_period
+    period = _event_period("12–14.08.2026")
+    check("точный период мероприятия распознаётся для автоматического скрытия",
+          bool(period) and period[0] < period[1], str(period))
+
+    from handlers.events import AFISHA_SECTIONS, _auto_batch, _auto_event_kb, _catalog_kb
+    catalog_callbacks = [
+        button.callback_data
+        for row in _catalog_kb().inline_keyboard
+        for button in row
+    ]
+    check("общая афиша содержит отдельный раздел островов",
+          "islands" in AFISHA_SECTIONS and "evcat:islands" in catalog_callbacks,
+          str(catalog_callbacks))
+    action_event = DiscoveredEvent(
+        batch_key="actions", query_city="Nederland", radius_km=999,
+        title="Event", description="Details", event_date="10 oktober",
+        venue="TivoliVredenburg", city="Utrecht",
+        link="https://venue.example/event", source_url="https://venue.example/event",
+        ticket_url="https://tickets.example/buy", photo_url="https://img.example/event.jpg",
+        source_name="Venue", territory="Nederland", section_key="music",
+        starts_at=datetime(2026, 10, 10), ends_at=datetime(2026, 10, 11),
+        expires_at=datetime(2026, 7, 24),
+    )
+    action_urls = [
+        button.url
+        for row in _auto_event_kb("actions", 0, 1, action_event).inline_keyboard
+        for button in row if button.url
+    ]
+    check("карточка события содержит источник, билеты и Google Maps",
+          len(action_urls) == 3
+          and "venue.example" in action_urls[0]
+          and "tickets.example" in action_urls[1]
+          and "google.com/maps" in action_urls[2],
+          str(action_urls))
+    from utils.webpage import _meta_image
+    check("фото берётся из официальной страницы мероприятия",
+          _meta_image(
+              '<meta property="og:image" content="/media/event.jpg">',
+              "https://venue.example/program/event",
+          ) == "https://venue.example/media/event.jpg")
+
     real_now = datetime.utcnow()
     async with db.get_session() as session:
         session.add(DiscoveredEvent(

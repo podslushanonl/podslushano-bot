@@ -60,6 +60,16 @@ _AD_LATER_COLUMNS = {
 _DISCOVERED_EVENT_LATER_COLUMNS = {
     "starts_at": "DATETIME",
     "ends_at": "DATETIME",
+    "section_key": "VARCHAR(24) DEFAULT 'nearby'",
+    "source_url": "VARCHAR(700) DEFAULT ''",
+    "ticket_url": "VARCHAR(700) DEFAULT ''",
+    "photo_url": "VARCHAR(1000) DEFAULT ''",
+    "territory": "VARCHAR(100) DEFAULT 'Nederland'",
+}
+
+_EVENT_LISTING_LATER_COLUMNS = {
+    "starts_at": "DATETIME",
+    "ends_at": "DATETIME",
 }
 
 
@@ -158,6 +168,20 @@ async def _migrate() -> None:
                 if name not in ecols:
                     await conn.exec_driver_sql(
                         f"ALTER TABLE discovered_events ADD COLUMN {name} {ddl}"
+                    )
+
+        def event_listing_cols(sync_conn):
+            insp = inspect(sync_conn)
+            if "event_listings" not in insp.get_table_names():
+                return None
+            return {c["name"] for c in insp.get_columns("event_listings")}
+
+        lcols = await conn.run_sync(event_listing_cols)
+        if lcols is not None:
+            for name, ddl in _EVENT_LISTING_LATER_COLUMNS.items():
+                if name not in lcols:
+                    await conn.exec_driver_sql(
+                        f"ALTER TABLE event_listings ADD COLUMN {name} {ddl}"
                     )
 
 

@@ -1,12 +1,14 @@
 """Раздел «Чем заняться» — афиша и сезонные идеи по городу.
 
-Опирается на живой веб-поиск ИИ: реальные события на ближайшие дни + сезонные
-идеи. Сезон определяется по дате автоматически («этим летом / этой осенью…»).
+Опирается на живой веб-поиск ИИ: общая афиша Нидерландов на 90 дней по разделам,
+отдельный каталог островов и локальная подборка рядом с пользователем.
 """
+import asyncio
 import html
 import logging
 import secrets
 from datetime import date, datetime, timedelta
+from urllib.parse import quote_plus, urlparse
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
@@ -19,7 +21,7 @@ from aiogram.types import (
     InputMediaPhoto,
     Message,
 )
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 import config
 from database.db import get_session
@@ -31,6 +33,7 @@ from utils.ai import ai_enabled, ai_event_cards, ai_event_search_places
 from utils.analytics import log_event
 from utils.limits import allow_ai
 from utils.season import EVENTS_LABEL_CORE, current_season
+from utils.webpage import fetch_page_image
 
 log = logging.getLogger(__name__)
 
@@ -38,6 +41,44 @@ router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 POPULAR_CITIES = ["Amsterdam", "Rotterdam", "Den Haag", "Utrecht", "Eindhoven", "Groningen"]
+
+AFISHA_SECTIONS = {
+    "highlights": (
+        "🔥 Главное в Нидерландах",
+        "главные заметные события разных форматов: фестивали, городские праздники, "
+        "крупные концерты, выставки, спортивные события и необычные мероприятия",
+    ),
+    "music": (
+        "🎵 Музыка и фестивали",
+        "концерты, музыкальные фестивали, open-air, клубные программы и культурные фестивали",
+    ),
+    "culture": (
+        "🖼 Культура и выставки",
+        "выставки, музеи, театр, кинофестивали, дизайн, архитектура и культурные программы",
+    ),
+    "family": (
+        "👨‍👩‍👧 С детьми",
+        "семейные и детские события, интерактивные музеи, фестивали, спектакли и мастер-классы",
+    ),
+    "markets": (
+        "🛍 Маркеты и еда",
+        "маркеты, ярмарки, food festivals, винтажные рынки, локальная еда и гастрономия",
+    ),
+    "islands": (
+        "🏝 Афиша островов",
+        "события на нидерландских островах Aruba, Curaçao, Sint Maarten, Bonaire, "
+        "Saba и Sint Eustatius",
+    ),
+}
+
+
+def _catalog_kb() -> InlineKeyboardMarkup:
+    rows = [
+        [InlineKeyboardButton(text=label, callback_data=f"evcat:{key}")]
+        for key, (label, _) in AFISHA_SECTIONS.items()
+    ]
+    rows.append([InlineKeyboardButton(text="📍 Афиша рядом со мной", callback_data="ev_search")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def _cities_kb() -> InlineKeyboardMarkup:
@@ -57,13 +98,13 @@ def _is_events_button(message: Message) -> bool:
 async def events_start(message: Message, state: FSMContext) -> None:
     await state.clear()
     s = current_season()
-    month_label = _month_label(f"{date.today():%Y-%m}")
-    rows = [
-        [InlineKeyboardButton(text="🎭 Собрать свежую афишу рядом",
-                              callback_data="ev_search")],
-        [InlineKeyboardButton(text=f"📅 Афиша · {month_label.capitalize()}",
-                              callback_data="ev_afisha")],
-    ]
+    rows = list(_catalog_kb().inline_keyboard)
+    community_events = await _afisha_events(f"{date.today():%Y-%m}")
+    if community_events:
+        rows.insert(0, [InlineKeyboardButton(
+            text=f"📣 От организаторов · {len(community_events)}",
+            callback_data="ev_afisha",
+        )])
     walks = config.available_allo_walks()
     if walks:
         rows.insert(0, [InlineKeyboardButton(
@@ -73,10 +114,12 @@ async def events_start(message: Message, state: FSMContext) -> None:
     allo_line = ("🚶 <b>Allo Walks</b> — прогулки для знакомств и общения.\n"
                  if walks else "")
     text = (
-        f"{s['emoji']} <b>Чем заняться {s['phrase']}</b> 🎉\n\n"
+        f"{s['emoji']} <b>Афиша Нидерландов</b>\n\n"
         f"{allo_line}"
-        "🎭 <b>Свежая афиша рядом</b> — отдельные карточки с датой, местом и ссылкой.\n"
-        "📅 <b>Афиша месяца</b> — мероприятия, добавленные организаторами.\n\n"
+        "События по всей стране на ближайшие три месяца: концерты, фестивали, "
+        "выставки, семейные планы, маркеты и отдельная афиша островов.\n\n"
+        "В каждой карточке есть официальный источник, билеты (если нужны) и "
+        "маршрут в Google Maps. Прошедшие события исчезают автоматически.\n\n"
         "<i>Организуете мероприятие? Разместите его в нашей афише: /afisha_add</i>"
     )
     await message.answer(
@@ -101,12 +144,29 @@ def _ticket_url(ev: EventListing) -> str | None:
     return link if link.startswith(("http://", "https://")) else f"https://{link}"
 
 
+def _valid_url(raw: str | None) -> str | None:
+    value = (raw or "").strip()
+    parsed = urlparse(value)
+    return value if parsed.scheme in {"http", "https"} and parsed.netloc else None
+
+
+def _maps_url(venue: str, city: str, territory: str = "") -> str | None:
+    query = ", ".join(part.strip() for part in (venue, city, territory) if part.strip())
+    return (
+        f"https://www.google.com/maps/search/?api=1&query={quote_plus(query)}"
+        if query else None
+    )
+
+
 def _afisha_kb(month_key: str, idx: int, total: int, ev: EventListing) -> InlineKeyboardMarkup:
     """Клавиатура карточки афиши: «Билеты» + навигация ◀️ N/M ▶️."""
     rows: list[list[InlineKeyboardButton]] = []
     url = _ticket_url(ev)
     if url:
-        rows.append([InlineKeyboardButton(text="🎟 Билеты / подробнее", url=url)])
+        rows.append([InlineKeyboardButton(text="ℹ️ Подробнее / билеты", url=url)])
+    maps = _maps_url("", ev.city, "Nederland")
+    if maps and not ev.is_nationwide:
+        rows.append([InlineKeyboardButton(text="📍 Google Maps", url=maps)])
     if total > 1:
         prev, nxt = (idx - 1) % total, (idx + 1) % total
         rows.append([
@@ -118,11 +178,16 @@ def _afisha_kb(month_key: str, idx: int, total: int, ev: EventListing) -> Inline
 
 
 async def _afisha_events(month_key: str) -> list[EventListing]:
+    now = datetime.utcnow()
     async with get_session() as session:
         return (
             await session.scalars(
                 select(EventListing)
-                .where(EventListing.month_key == month_key, EventListing.status == "approved")
+                .where(
+                    EventListing.month_key == month_key,
+                    EventListing.status == "approved",
+                    or_(EventListing.ends_at.is_(None), EventListing.ends_at > now),
+                )
                 .order_by(EventListing.is_nationwide, EventListing.city, EventListing.id)
             )
         ).all()
@@ -225,6 +290,17 @@ async def events_search(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.message.answer("📍 Города:", reply_markup=_cities_kb())
 
 
+@router.callback_query(F.data.startswith("evcat:"))
+async def events_catalog_section(callback: CallbackQuery, state: FSMContext) -> None:
+    section_key = callback.data.split(":", 1)[1]
+    if section_key not in AFISHA_SECTIONS:
+        await callback.answer("Раздел не найден", show_alert=True)
+        return
+    await state.clear()
+    await callback.answer()
+    await show_catalog_section(callback.message, section_key, callback.from_user.id)
+
+
 @router.callback_query(F.data.startswith("ev|"))
 async def events_city_cb(callback: CallbackQuery, state: FSMContext) -> None:
     city = callback.data.split("|", 1)[1]
@@ -247,7 +323,9 @@ async def _show_events(message: Message, state: FSMContext, city: str, uid: int)
     await show_auto_afisha(message, query_city, 999 if city == "__all__" else 25, uid)
 
 
-async def _auto_batch(city: str, radius_km: int) -> tuple[str, list[DiscoveredEvent]] | None:
+async def _auto_batch(
+    city: str, radius_km: int, section_key: str = "nearby"
+) -> tuple[str, list[DiscoveredEvent]] | None:
     """Возвращает свежий кэш одного поиска, если он уже существует."""
     now = datetime.utcnow()
     async with get_session() as session:
@@ -256,6 +334,7 @@ async def _auto_batch(city: str, radius_km: int) -> tuple[str, list[DiscoveredEv
             .where(
                 DiscoveredEvent.query_city == city,
                 DiscoveredEvent.radius_km == radius_km,
+                DiscoveredEvent.section_key == section_key,
                 DiscoveredEvent.expires_at > now,
                 DiscoveredEvent.ends_at.is_not(None),
                 DiscoveredEvent.ends_at > now,
@@ -272,28 +351,49 @@ async def _auto_batch(city: str, radius_km: int) -> tuple[str, list[DiscoveredEv
                 DiscoveredEvent.ends_at.is_not(None),
                 DiscoveredEvent.ends_at > now,
             )
-            .order_by(DiscoveredEvent.id)
+            .order_by(DiscoveredEvent.starts_at, DiscoveredEvent.id)
         )).all()
     return (batch, list(rows)) if rows else None
 
 
-async def ensure_auto_afisha(city: str, radius_km: int, uid: int) -> tuple[str, list[DiscoveredEvent]] | None:
+async def ensure_auto_afisha(
+    city: str,
+    radius_km: int,
+    uid: int,
+    *,
+    section_key: str = "nearby",
+    section_label: str = "",
+    force: bool = False,
+) -> tuple[str, list[DiscoveredEvent]] | None:
     """Берёт общий кэш сегмента либо один раз наполняет его живым веб-поиском."""
-    cached = await _auto_batch(city, radius_km)
+    cached = await _auto_batch(city, radius_km, section_key)
     if cached:
         return cached
-    if not ai_enabled() or not allow_ai(uid):
+    if not ai_enabled() or (not force and not allow_ai(uid)):
         return None
     # Географию определяем динамически: пользователь может жить в любом городе
     # или деревне, а не только в одном из заранее известных крупных городов.
     search_cities = await ai_event_search_places(city, radius_km)
-    cards = await ai_event_cards(city, radius_km, search_cities=search_cities)
+    cards = await ai_event_cards(
+        city,
+        radius_km,
+        search_cities=search_cities,
+        section_label=section_label,
+        horizon_days=90,
+    )
     if not cards:
         return None
+    semaphore = asyncio.Semaphore(4)
+
+    async def event_photo(card: dict) -> str:
+        async with semaphore:
+            return await fetch_page_image(card["source_url"] or card["url"]) or ""
+
+    photo_urls = await asyncio.gather(*(event_photo(card) for card in cards))
     batch = secrets.token_hex(6)
-    expires = datetime.utcnow() + timedelta(hours=24)
+    expires = datetime.utcnow() + timedelta(hours=72 if section_key != "nearby" else 24)
     async with get_session() as session:
-        for card in cards:
+        for card, photo_url in zip(cards, photo_urls):
             session.add(DiscoveredEvent(
                 batch_key=batch,
                 query_city=city,
@@ -305,32 +405,51 @@ async def ensure_auto_afisha(city: str, radius_km: int, uid: int) -> tuple[str, 
                 city=card["city"] or city,
                 link=card["url"],
                 source_name=card["source"],
+                section_key=section_key,
+                source_url=card["source_url"],
+                ticket_url=card["ticket_url"],
+                photo_url=photo_url,
+                territory=card["territory"],
                 starts_at=card["starts_at"],
                 ends_at=card["ends_at"],
                 expires_at=expires,
             ))
         await session.commit()
-    return await _auto_batch(city, radius_km)
+    return await _auto_batch(city, radius_km, section_key)
 
 
 def _auto_event_text(ev: DiscoveredEvent) -> str:
     place = " · ".join(x for x in (ev.venue, ev.city) if x)
+    if ev.territory and ev.territory != "Nederland" and ev.territory.casefold() not in place.casefold():
+        place = " · ".join(x for x in (place, ev.territory) if x)
     lines = [
-        f"🎭 <b>{html.escape(ev.title)}</b>",
+        f"🎭 <b>{html.escape(ev.title[:180])}</b>",
         "",
-        f"📅 <b>{html.escape(ev.event_date)}</b>",
+        f"📅 <b>{html.escape(ev.event_date[:120])}</b>",
     ]
     if place:
-        lines.append(f"📍 {html.escape(place)}")
+        lines.append(f"📍 {html.escape(place[:180])}")
     if ev.description:
-        lines.extend(["", html.escape(ev.description)])
+        lines.extend(["", html.escape(ev.description[:320])])
     if ev.source_name:
-        lines.extend(["", f"<i>Источник: {html.escape(ev.source_name)}</i>"])
+        lines.extend(["", f"<i>Источник: {html.escape(ev.source_name[:80])}</i>"])
     return "\n".join(lines)
 
 
 def _auto_event_kb(batch: str, idx: int, total: int, ev: DiscoveredEvent) -> InlineKeyboardMarkup:
-    rows = [[InlineKeyboardButton(text="🔗 Страница мероприятия", url=ev.link)]]
+    rows: list[list[InlineKeyboardButton]] = []
+    source = _valid_url(ev.source_url) or _valid_url(ev.link)
+    tickets = _valid_url(ev.ticket_url)
+    maps = _maps_url(ev.venue, ev.city, ev.territory)
+    actions: list[InlineKeyboardButton] = []
+    if source:
+        actions.append(InlineKeyboardButton(text="ℹ️ Подробнее / источник", url=source))
+    if tickets and tickets != source:
+        actions.append(InlineKeyboardButton(text="🎟 Билеты", url=tickets))
+    if actions:
+        rows.append(actions)
+    if maps:
+        rows.append([InlineKeyboardButton(text="📍 Google Maps", url=maps)])
     if total > 1:
         rows.append([
             InlineKeyboardButton(text="◀️", callback_data=f"aev:{batch}:{(idx - 1) % total}"),
@@ -350,7 +469,7 @@ async def _show_auto_card(msg: Message, batch: str, idx: int, edit: bool = False
                 DiscoveredEvent.ends_at.is_not(None),
                 DiscoveredEvent.ends_at > now,
             )
-            .order_by(DiscoveredEvent.id)
+            .order_by(DiscoveredEvent.starts_at, DiscoveredEvent.id)
         )).all()
     if not rows:
         await msg.answer("Эта афиша уже обновилась — открой раздел ещё раз 🙂")
@@ -359,17 +478,44 @@ async def _show_auto_card(msg: Message, batch: str, idx: int, edit: bool = False
     text = _auto_event_text(rows[idx])
     kb = _auto_event_kb(batch, idx, len(rows), rows[idx])
     if edit:
+        if rows[idx].photo_url:
+            try:
+                await msg.edit_media(
+                    InputMediaPhoto(
+                        media=rows[idx].photo_url,
+                        caption=text,
+                        parse_mode="HTML",
+                    ),
+                    reply_markup=kb,
+                )
+                return
+            except Exception:  # noqa: BLE001 — источник мог запретить загрузку фото
+                pass
         try:
             await msg.edit_text(text, reply_markup=kb, disable_web_page_preview=True)
             return
         except Exception:  # noqa: BLE001 — тип старого сообщения мог отличаться
             pass
+    if rows[idx].photo_url:
+        try:
+            await msg.answer_photo(rows[idx].photo_url, caption=text, reply_markup=kb)
+            return
+        except Exception:  # noqa: BLE001 — карточка остаётся доступной без изображения
+            pass
     await msg.answer(text, reply_markup=kb, disable_web_page_preview=True)
 
 
-async def show_auto_afisha(message: Message, city: str, radius_km: int, uid: int) -> None:
+async def show_auto_afisha(
+    message: Message,
+    city: str,
+    radius_km: int,
+    uid: int,
+    *,
+    section_key: str = "nearby",
+    section_label: str = "",
+) -> None:
     """Показывает наполненную афишу: каждое мероприятие — отдельная карточка."""
-    cached = await _auto_batch(city, radius_km)
+    cached = await _auto_batch(city, radius_km, section_key)
     if not cached:
         radius = "по всей стране" if radius_km == 999 else f"в радиусе {radius_km} км"
         await message.answer(
@@ -377,7 +523,13 @@ async def show_auto_afisha(message: Message, city: str, radius_km: int, uid: int
             "Проверяю даты и ссылки — это может занять до минуты ⏳"
         )
         await message.bot.send_chat_action(message.chat.id, action="typing")
-    result = cached or await ensure_auto_afisha(city, radius_km, uid)
+    result = cached or await ensure_auto_afisha(
+        city,
+        radius_km,
+        uid,
+        section_key=section_key,
+        section_label=section_label,
+    )
     if not result:
         await message.answer(
             "Пока не получилось собрать актуальные карточки с подтверждённой датой и "
@@ -394,6 +546,48 @@ async def show_auto_afisha(message: Message, city: str, radius_km: int, uid: int
         reply_markup=main_menu(),
     )
     await _show_auto_card(message, batch, 0)
+
+
+async def show_catalog_section(message: Message, section_key: str, uid: int) -> None:
+    """Открывает один тематический раздел общей афиши на 90 дней."""
+    label, search_label = AFISHA_SECTIONS[section_key]
+    city = (
+        "Aruba, Curaçao, Sint Maarten, Bonaire, Saba en Sint Eustatius"
+        if section_key == "islands" else "Nederland"
+    )
+    await show_auto_afisha(
+        message,
+        city,
+        999,
+        uid,
+        section_key=section_key,
+        section_label=search_label,
+    )
+
+
+async def afisha_catalog_loop(bot) -> None:
+    """Фоном наполняет и раз в три дня обновляет все разделы общей афиши."""
+    await asyncio.sleep(20)
+    while True:
+        for section_key, (_, search_label) in AFISHA_SECTIONS.items():
+            city = (
+                "Aruba, Curaçao, Sint Maarten, Bonaire, Saba en Sint Eustatius"
+                if section_key == "islands" else "Nederland"
+            )
+            try:
+                if not await _auto_batch(city, 999, section_key):
+                    await ensure_auto_afisha(
+                        city,
+                        999,
+                        config.ADMIN_IDS[0] if config.ADMIN_IDS else 0,
+                        section_key=section_key,
+                        section_label=search_label,
+                        force=True,
+                    )
+            except Exception as exc:  # noqa: BLE001 — один раздел не останавливает остальные
+                log.warning("Не удалось обновить раздел афиши %s: %s", section_key, exc)
+            await asyncio.sleep(30)
+        await asyncio.sleep(6 * 3600)
 
 
 @router.callback_query(F.data.startswith("aev:"))

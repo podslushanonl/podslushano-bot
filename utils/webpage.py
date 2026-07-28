@@ -7,6 +7,7 @@
 import html as _html
 import logging
 import re
+from urllib.parse import urljoin, urlparse
 
 import aiohttp
 
@@ -23,6 +24,64 @@ _BLOCK_RE = re.compile(
 )
 _TAG_RE = re.compile(r"<[^>]+>")
 _TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.I | re.S)
+_META_RE = re.compile(r"<meta\b[^>]*>", re.I)
+_ATTR_RE = re.compile(
+    r"""([:\w-]+)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))""",
+    re.I,
+)
+
+
+def _meta_image(html: str, page_url: str) -> str | None:
+    """Возвращает абсолютный og:image/twitter:image с HTML страницы."""
+    candidates: list[str] = []
+    for tag in _META_RE.findall(html[:500_000]):
+        attrs = {
+            name.casefold(): _html.unescape(double or single or bare)
+            for name, double, single, bare in _ATTR_RE.findall(tag)
+        }
+        key = (attrs.get("property") or attrs.get("name") or "").casefold()
+        if key in {"og:image", "og:image:url", "twitter:image", "twitter:image:src"}:
+            candidates.append(attrs.get("content", ""))
+    for raw in candidates:
+        image_url = urljoin(page_url, raw.strip())
+        parsed = urlparse(image_url)
+        if parsed.scheme in {"http", "https"} and parsed.netloc:
+            return image_url[:1000]
+    return None
+
+
+async def fetch_page_image(url: str) -> str | None:
+    """Берёт официальное preview-фото события с его страницы, без поиска по картинкам."""
+    url = (url or "").strip()
+    if not url:
+        return None
+    if not url.lower().startswith(("http://", "https://")):
+        url = "https://" + url
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) "
+            "AppleWebKit/605.1.15 Version/18.0 Mobile/15E148 Safari/604.1"
+        ),
+        "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
+        "Accept-Language": "nl,en;q=0.8",
+    }
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                url,
+                headers=headers,
+                timeout=aiohttp.ClientTimeout(total=15),
+                allow_redirects=True,
+            ) as response:
+                ctype = (response.headers.get("Content-Type") or "").casefold()
+                if response.status >= 400 or ("html" not in ctype and ctype):
+                    return None
+                raw = await response.content.read(600_000)
+                page_url = str(response.url)
+    except Exception as exc:  # noqa: BLE001 — отсутствие фото не скрывает событие
+        log.info("Не удалось получить фото страницы %s: %s", url, exc)
+        return None
+    return _meta_image(raw.decode("utf-8", errors="ignore"), page_url)
 
 
 async def fetch_page_text(url: str, max_chars: int = 12000) -> tuple[str, str] | None:
