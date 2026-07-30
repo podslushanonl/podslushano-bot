@@ -10,9 +10,9 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 import config
 from database.db import init_db
 from handlers import (
-    admin, ads, afisha, allo, board, cabinet, chat, contacts, content, digest, errors, events,
-    guides, home, letters, moderation, notifications, salary, selfadd, share, spotlight, start,
-    submissions, support,
+    admin, ads, afisha, ai_sales, allo, board, cabinet, chat, contacts, content, digest, errors,
+    events, guides, home, letters, moderation, notifications, salary, selfadd, share,
+    spotlight, start, submissions, support,
 )
 from handlers.content import content_publisher_loop
 from handlers.selfadd import reminder_loop
@@ -25,12 +25,7 @@ from utils.webserver import start_webserver
 
 
 async def configure_profile(bot: Bot) -> None:
-    """Настраивает «витрину» бота: команды, краткое и полное описание.
-
-    Полное описание показывается на стартовом экране (пустой чат, кнопка
-    «Что может делать этот бот / Запустить»). Меняется при каждом запуске,
-    поэтому всегда актуально.
-    """
+    """Настраивает «витрину» бота: команды, краткое и полное описание."""
     try:
         await bot.set_my_commands(
             [
@@ -66,12 +61,8 @@ async def configure_profile(bot: Bot) -> None:
             f"Сайт сообщества: {config.SITE_URL}\n\n"
             "Нажми «Запустить», чтобы начать 👇"
         )
-        # Для админов в меню добавляем команду /admin
         for admin_id in config.ADMIN_IDS:
             try:
-                # Короткое меню по «/» — только частое. Полный список команд
-                # по полкам открывается через /admin; редкие команды всё равно
-                # работают, если набрать их вручную.
                 await bot.set_my_commands(
                     [
                         BotCommand(command="start", description="Запустить бота и открыть меню"),
@@ -87,60 +78,55 @@ async def configure_profile(bot: Bot) -> None:
                 )
             except Exception:  # noqa: BLE001
                 pass
-    except Exception as e:  # noqa: BLE001 — витрина не критична для работы
+    except Exception as e:  # noqa: BLE001
         logging.warning("Не удалось настроить профиль бота: %s", e)
 
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO)
-    config.validate()  # упадём с понятной ошибкой, если не настроен .env
-
-    await init_db()  # создаём таблицы и заливаем примеры специалистов
+    config.validate()
+    await init_db()
 
     bot = Bot(
         token=config.BOT_TOKEN,
         default=DefaultBotProperties(parse_mode=ParseMode.HTML),
     )
     dp = Dispatcher()
-    dp.message.middleware(ThrottleMiddleware())  # антиспам по частоте сообщений
-    dp.message.middleware(RegisterUserMiddleware())  # учёт пользователей для рассылок
+    dp.message.middleware(ThrottleMiddleware())
+    dp.message.middleware(RegisterUserMiddleware())
     dp.callback_query.middleware(RegisterUserMiddleware())
 
-    await configure_profile(bot)  # описание/команды на стартовом экране
+    await configure_profile(bot)
 
-    # Порядок важен: сначала команды и кнопки меню, СВОБОДНЫЙ ЧАТ — последним,
-    # чтобы он ловил только то, что не поймали остальные
     dp.include_router(start.router)
-    dp.include_router(guides.router)  # 📚 Полезное — справочник о жизни в NL
-    dp.include_router(events.router)  # ☀️ Чем заняться — афиша и сезонные идеи
-    dp.include_router(digest.router)  # 🔔 персональная подборка на выходные
-    dp.include_router(home.router)  # 🏠 профиль, избранное и действия пользователя
-    dp.include_router(notifications.router)  # 🔔 оперативные персональные уведомления
-    dp.include_router(letters.router)  # 📩 разбор официальных писем по фото
-    dp.include_router(salary.router)  # 🧮 калькулятор netto-зарплаты
-    dp.include_router(share.router)  # 📣 поделиться ботом / рефералы
-    dp.include_router(support.router)  # связь с командой / возвраты
-    dp.include_router(content.router)  # автоматический Контент-центр
-    dp.include_router(admin.router)  # /admin — управление базой (только админы)
-    dp.include_router(board.router)  # 📋 доска объявлений
-    dp.include_router(afisha.router)  # 📅 платная «Афиша месяца» (мероприятия)
-    dp.include_router(ads.router)  # 🗓 бронь рекламных слотов (/slots, /closeslot)
-    dp.include_router(spotlight.router)  # ⭐ «Специалист месяца» в канал (/spotlight)
-    dp.include_router(allo.router)  # 🚶 Allo Walks — запись и оплата прогулок
-    dp.include_router(selfadd.router)  # платное само-добавление в гайд
-    dp.include_router(cabinet.router)  # 👤 личный кабинет специалиста (с модерацией правок)
+    dp.include_router(guides.router)
+    dp.include_router(events.router)
+    dp.include_router(digest.router)
+    dp.include_router(home.router)
+    dp.include_router(notifications.router)
+    dp.include_router(letters.router)
+    dp.include_router(salary.router)
+    dp.include_router(share.router)
+    dp.include_router(support.router)
+    dp.include_router(content.router)
+    dp.include_router(admin.router)
+    dp.include_router(board.router)
+    dp.include_router(afisha.router)
+    dp.include_router(ads.router)
+    dp.include_router(spotlight.router)
+    dp.include_router(allo.router)
+    dp.include_router(selfadd.router)
+    dp.include_router(cabinet.router)
     dp.include_router(submissions.router)
     dp.include_router(contacts.router)
+    dp.include_router(ai_sales.router)
     dp.include_router(moderation.router)
     dp.include_router(chat.router)
-    dp.include_router(errors.router)  # глобальный перехват ошибок (краш-репорт)
-    # В группах/обсуждениях бот молчит: все хендлеры выше работают только
-    # в личных чатах (router.message.filter PRIVATE), а группового нет.
+    dp.include_router(errors.router)
 
-    # Веб-сервер (webhook оплаты + health-check) и фоновые напоминания
     try:
         await start_webserver(bot)
-    except Exception as e:  # noqa: BLE001 — без веб-сервера бот всё равно работает
+    except Exception as e:  # noqa: BLE001
         logging.warning("Веб-сервер не запустился: %s", e)
     asyncio.create_task(reminder_loop(bot))
     asyncio.create_task(digest_draft_loop(bot))

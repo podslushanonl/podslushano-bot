@@ -1,10 +1,12 @@
 """Отправка заявок администраторам в личку (или в общий модер-чат)."""
 from aiogram import Bot
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 
 import config
 from database.db import get_session
 from database.models import Meta, Submission
 from keyboards.menus import moderation_buttons
+from utils.ai_sales import ADS_URL, analyze_ad_submission, format_admin_block
 
 
 async def get_mod_chat() -> int | None:
@@ -18,7 +20,7 @@ async def get_mod_chat() -> int | None:
             return None
     return None
 
-# Человекочитаемые названия типов заявок
+
 TYPE_TITLES = {
     "story": "📰 Новая история / сплетня",
     "question": "❓ Новый вопрос (предложка)",
@@ -42,10 +44,50 @@ def _header(submission: Submission) -> str:
     return "\n".join(lines)
 
 
+def _ad_keyboard(submission_id: int) -> InlineKeyboardMarkup:
+    """Кнопки рекламной заявки: AI-ответ, ручной ответ и модерация."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="📤 Отправить AI-ответ",
+                    callback_data=f"aisend:{submission_id}",
+                )
+            ],
+            [InlineKeyboardButton(text="🌐 Форматы и оплата", url=ADS_URL)],
+            [
+                InlineKeyboardButton(
+                    text="✍️ Ответить вручную",
+                    callback_data=f"subreply:{submission_id}",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="✅ Одобрить", callback_data=f"approve:{submission_id}"
+                ),
+                InlineKeyboardButton(
+                    text="❌ Отклонить", callback_data=f"reject:{submission_id}"
+                ),
+            ],
+        ]
+    )
+
+
 async def send_to_admins(bot: Bot, submission: Submission) -> None:
     """Шлёт заявку в общий модер-чат (если задан) или каждому админу в личку."""
     caption = _header(submission)
     keyboard = moderation_buttons(submission.id)
+
+    if submission.type == "ad":
+        analysis = await analyze_ad_submission(submission)
+        if analysis:
+            caption += format_admin_block(analysis)
+            keyboard = _ad_keyboard(submission.id)
+        else:
+            caption += (
+                "\n\n⚠️ <b>AI Sales Manager недоступен.</b> "
+                "Проверьте ANTHROPIC_API_KEY или ответьте вручную."
+            )
 
     mod_chat = await get_mod_chat()
     targets = [mod_chat] if mod_chat else list(config.ADMIN_IDS)
@@ -53,17 +95,26 @@ async def send_to_admins(bot: Bot, submission: Submission) -> None:
         try:
             if submission.file_id and submission.file_type == "video":
                 await bot.send_video(
-                    admin_id, submission.file_id, caption=caption, reply_markup=keyboard
+                    admin_id,
+                    submission.file_id,
+                    caption=caption,
+                    reply_markup=keyboard,
                 )
             elif submission.file_id and submission.file_type == "photo":
                 await bot.send_photo(
-                    admin_id, submission.file_id, caption=caption, reply_markup=keyboard
+                    admin_id,
+                    submission.file_id,
+                    caption=caption,
+                    reply_markup=keyboard,
                 )
             elif submission.file_id and submission.file_type == "document":
                 await bot.send_document(
-                    admin_id, submission.file_id, caption=caption, reply_markup=keyboard
+                    admin_id,
+                    submission.file_id,
+                    caption=caption,
+                    reply_markup=keyboard,
                 )
             else:
                 await bot.send_message(admin_id, caption, reply_markup=keyboard)
-        except Exception as e:  # noqa: BLE001 — не роняем бота, если один админ недоступен
+        except Exception as e:  # noqa: BLE001
             print(f"Не удалось отправить заявку админу {admin_id}: {e}")
