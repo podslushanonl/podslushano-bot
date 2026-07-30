@@ -37,6 +37,7 @@ def _header(submission: Submission) -> str:
         f"<b>{title}</b>",
         f"🆔 Заявка №{submission.id}",
         f"👤 От: {author} (id {submission.user_id})",
+        "📌 Статус: 🆕 Новая",
     ]
     if submission.text:
         lines.append("")
@@ -45,7 +46,7 @@ def _header(submission: Submission) -> str:
 
 
 def _ad_keyboard(submission_id: int) -> InlineKeyboardMarkup:
-    """Кнопки рекламной заявки: AI-ответ, ручной ответ и модерация."""
+    """Кнопки рекламной заявки: ответ, этап сделки и модерация."""
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [
@@ -57,17 +58,29 @@ def _ad_keyboard(submission_id: int) -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="🌐 Форматы и оплата", url=ADS_URL)],
             [
                 InlineKeyboardButton(
-                    text="✍️ Ответить вручную",
-                    callback_data=f"subreply:{submission_id}",
+                    text="⏳ Ожидает оплату",
+                    callback_data=f"aistatus:awaiting_payment:{submission_id}",
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text="✅ Одобрить", callback_data=f"approve:{submission_id}"
+                    text="✅ Оплачено", callback_data=f"aistatus:paid:{submission_id}"
                 ),
                 InlineKeyboardButton(
-                    text="❌ Отклонить", callback_data=f"reject:{submission_id}"
+                    text="❌ Отказ", callback_data=f"aistatus:rejected:{submission_id}"
                 ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔔 Напомнить клиенту",
+                    callback_data=f"aifollow:{submission_id}",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="✍️ Ответить вручную",
+                    callback_data=f"subreply:{submission_id}",
+                )
             ],
         ]
     )

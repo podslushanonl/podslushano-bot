@@ -14,6 +14,7 @@ from handlers import (
     events, guides, home, letters, moderation, notifications, salary, selfadd, share,
     spotlight, start, submissions, support,
 )
+from handlers.ai_sales import ad_lead_reminder_loop
 from handlers.content import content_publisher_loop
 from handlers.selfadd import reminder_loop
 from handlers.digest import digest_announcement_loop, digest_draft_loop
@@ -134,6 +135,7 @@ async def main() -> None:
     asyncio.create_task(notification_loop(bot))
     asyncio.create_task(content_publisher_loop(bot))
     asyncio.create_task(afisha_catalog_loop(bot))
+    asyncio.create_task(ad_lead_reminder_loop(bot))
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)
