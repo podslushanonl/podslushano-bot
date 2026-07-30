@@ -10,8 +10,8 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 import config
 from database.db import init_db
 from handlers import (
-    admin, ads, afisha, ai_sales, allo, board, cabinet, chat, contacts, content, digest, errors,
-    events, guides, home, letters, moderation, notifications, salary, selfadd, share,
+    ad_crm, admin, ads, afisha, ai_sales, allo, board, cabinet, chat, contacts, content, digest,
+    errors, events, guides, home, letters, moderation, notifications, salary, selfadd, share,
     spotlight, start, submissions, support,
 )
 from handlers.ai_sales import ad_lead_reminder_loop
@@ -69,6 +69,8 @@ async def configure_profile(bot: Bot) -> None:
                         BotCommand(command="start", description="Запустить бота и открыть меню"),
                         BotCommand(command="menu", description="Показать меню"),
                         BotCommand(command="admin", description="Админ-панель: все команды по полкам"),
+                        BotCommand(command="adleads", description="CRM рекламных заявок"),
+                        BotCommand(command="adstats", description="Статистика рекламных заявок"),
                         BotCommand(command="findspec", description="Найти карточку специалиста"),
                         BotCommand(command="premiums", description="Премиум-карточки"),
                         BotCommand(command="stats", description="Статистика"),
@@ -120,6 +122,7 @@ async def main() -> None:
     dp.include_router(cabinet.router)
     dp.include_router(submissions.router)
     dp.include_router(contacts.router)
+    dp.include_router(ad_crm.router)
     dp.include_router(ai_sales.router)
     dp.include_router(moderation.router)
     dp.include_router(chat.router)
