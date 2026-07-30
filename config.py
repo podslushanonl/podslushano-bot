@@ -340,9 +340,9 @@ AD_FORMATS: dict[str, dict] = {
     },
 }
 
-# Акция запущена 23 июля 2026 и действует семь полных календарных суток.
+# Акция продлена до конца месяца — включительно по 31 июля 2026.
 # После этого срока сервер сам возвращает цену €180; это не зависит от баннера.
-AD_PROMO_END_ISO = os.getenv("AD_PROMO_END_ISO", "2026-07-30T23:59:59+02:00")
+AD_PROMO_END_ISO = os.getenv("AD_PROMO_END_ISO", "2026-07-31T23:59:59+02:00")
 
 
 def _ad_promotion_times(now: datetime | None = None) -> tuple[datetime, datetime] | None:
