@@ -789,8 +789,12 @@ async def test_personal_digest() -> None:
     """Георадиус и секции персональной подборки работают на данных бота."""
     from datetime import date, datetime, timedelta
     from handlers.digest import (
+        _event_overlaps_weekend,
+        _listing_is_on_weekend,
         _rotate_specialists,
+        _specialist_identity,
         _shown_specialist_ids,
+        _weekend_label,
         build_digest,
         digest_announcement_kb,
         digest_announcement_text,
@@ -834,6 +838,30 @@ async def test_personal_digest() -> None:
           not location_matches(
               exact, "", target_province="Utrecht"
           ))
+    check("подборка считает ближайшие выходные после четверга",
+          _weekend_label(date(2026, 7, 30)) == "01.08–02.08")
+    check("событие 2 августа входит в выпуск 1–2 августа",
+          _event_overlaps_weekend(
+              datetime(2026, 8, 2, 10),
+              datetime(2026, 8, 2, 18),
+              today=date(2026, 7, 30),
+          ))
+    check("событие 13 августа не входит в выпуск 1–2 августа",
+          not _event_overlaps_weekend(
+              datetime(2026, 8, 13, 10),
+              datetime(2026, 8, 19, 18),
+              today=date(2026, 7, 30),
+          ))
+    spanning_event = EventListing(
+        title="Weekend festival",
+        month_key="2026-08",
+        starts_at=datetime(2026, 7, 31, 10),
+        ends_at=datetime(2026, 8, 2, 18),
+    )
+    check("многодневный фестиваль остаётся, если захватывает выходные",
+          _listing_is_on_weekend(
+              spanning_event, today=date(2026, 7, 30)
+          ))
 
     rotation_rows = []
     for sid, source in enumerate(
@@ -866,7 +894,31 @@ async def test_personal_digest() -> None:
               "https://t.me/test?start=spec_102",
               "https://t.me/test?start=spec_107",
           ]) == {102, 107})
+    duplicate = Specialist(
+        name=rotation_rows[2].name,
+        category="фотограф",
+        city="Utrecht",
+        province="Utrecht",
+        contact=rotation_rows[2].contact,
+        source="seed",
+        status="active",
+    )
+    duplicate.id = 999
+    deduped_mix = _rotate_specialists(
+        [*rotation_rows, duplicate],
+        today=date(2026, 7, 30),
+        shown_ids={rotation_rows[2].id},
+    )
+    check("региональная копия показанной карточки не считается новым специалистом",
+          _specialist_identity(rotation_rows[2]) not in {
+              _specialist_identity(item) for item in deduped_mix
+          })
+    check("в одном выпуске нет дублей специалистов с разными ID",
+          len({_specialist_identity(item) for item in deduped_mix}) == len(deduped_mix))
 
+    digest_saturday = date.today() + timedelta(
+        days=(5 - date.today().weekday()) % 7
+    )
     month = f"{date.today():%Y-%m}"
     async with db.get_session() as session:
         session.add(BotUser(user_id=7001, first_name="Digest", is_blocked=False))
@@ -874,7 +926,7 @@ async def test_personal_digest() -> None:
         session.add(EventListing(
             title="Digest test event", description="test", city="Amersfoort",
             is_nationwide=False,
-            event_date=(date.today() + timedelta(days=2)).strftime("%d.%m.%Y"),
+            event_date=digest_saturday.strftime("%d.%m.%Y"),
             month_key=month, status="approved", link="https://example.nl/upcoming",
         ))
         session.add(EventListing(
@@ -882,6 +934,12 @@ async def test_personal_digest() -> None:
             is_nationwide=False,
             event_date=(date.today() - timedelta(days=2)).strftime("%d.%m.%Y"),
             month_key=month, status="approved", link="https://example.nl/past",
+        ))
+        session.add(EventListing(
+            title="Later digest event", description="test", city="Amersfoort",
+            is_nationwide=False,
+            event_date=(date.today() + timedelta(days=14)).strftime("%d.%m.%Y"),
+            month_key=month, status="approved", link="https://example.nl/later",
         ))
         session.add(Specialist(
             name="Digest test specialist", category="фотограф", city="Amersfoort",
@@ -896,6 +954,8 @@ async def test_personal_digest() -> None:
     text = await build_digest(pref)
     check("подборка содержит локальное мероприятие", "Digest test event" in text)
     check("подборка не содержит уже прошедшее мероприятие", "Past digest event" not in text)
+    check("подборка не содержит мероприятие после ближайших выходных",
+          "Later digest event" not in text)
     check("ручная афиша не угадывает дату из слова «суббота»",
           _listing_event_day("суббота") is None)
     check("подборка содержит локального специалиста", "Digest test specialist" in text)

@@ -9,7 +9,7 @@ import asyncio
 import html
 import logging
 import re
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
 
 from aiogram import F, Router
@@ -70,11 +70,51 @@ def _week_key(now: datetime | None = None) -> str:
 
 
 def _weekend_label(today: date | None = None) -> str:
-    current = today or datetime.now(ZoneInfo("Europe/Amsterdam")).date()
-    days = (5 - current.weekday()) % 7
-    saturday = current + timedelta(days=days)
-    sunday = saturday + timedelta(days=1)
+    saturday, sunday = _weekend_dates(today)
     return f"{saturday:%d.%m}–{sunday:%d.%m}"
+
+
+def _weekend_dates(today: date | None = None) -> tuple[date, date]:
+    """Ближайшие суббота и воскресенье по времени Амстердама."""
+    current = today or datetime.now(ZoneInfo("Europe/Amsterdam")).date()
+    saturday = current + timedelta(days=(5 - current.weekday()) % 7)
+    return saturday, saturday + timedelta(days=1)
+
+
+def _weekend_utc_bounds(today: date | None = None) -> tuple[datetime, datetime]:
+    """Точные границы ближайших выходных в формате naive UTC для SQLite."""
+    saturday, sunday = _weekend_dates(today)
+    amsterdam = ZoneInfo("Europe/Amsterdam")
+    starts_at = datetime.combine(saturday, time.min, amsterdam)
+    ends_at = datetime.combine(sunday, time.max, amsterdam)
+    return (
+        starts_at.astimezone(timezone.utc).replace(tzinfo=None),
+        ends_at.astimezone(timezone.utc).replace(tzinfo=None),
+    )
+
+
+def _event_overlaps_weekend(
+    starts_at: datetime | None,
+    ends_at: datetime | None,
+    *,
+    today: date | None = None,
+) -> bool:
+    """Событие действительно идёт хотя бы часть ближайших выходных."""
+    if starts_at is None or ends_at is None:
+        return False
+    weekend_start, weekend_end = _weekend_utc_bounds(today)
+    return starts_at <= weekend_end and ends_at >= weekend_start
+
+
+def _listing_is_on_weekend(item: EventListing, *, today: date) -> bool:
+    """Проверяет ручную карточку по точному периоду или её старому тексту даты."""
+    if item.starts_at is not None and item.ends_at is not None:
+        return _event_overlaps_weekend(
+            item.starts_at, item.ends_at, today=today
+        )
+    event_day = _listing_event_day(item.event_date, today=today)
+    saturday, sunday = _weekend_dates(today)
+    return event_day is not None and saturday <= event_day <= sunday
 
 
 def _canonical_city(raw: str) -> tuple[str, str]:
@@ -405,6 +445,12 @@ def _shown_specialist_ids(messages: list[str]) -> set[int]:
     }
 
 
+def _specialist_identity(item: Specialist) -> str:
+    """Одинаковые региональные копии одной карточки имеют один ключ."""
+    normalize = lambda value: re.sub(r"\s+", " ", (value or "").strip().casefold())
+    return f"{normalize(item.name)}|{normalize(item.contact)}"
+
+
 def _rotate_specialists(
     specialists: list[Specialist], *, today: date, limit: int = 3,
     shown_ids: set[int] | None = None,
@@ -420,8 +466,26 @@ def _rotate_specialists(
         return []
     shown_ids = shown_ids or set()
     week = today.isocalendar().week
-    unseen = [item for item in specialists if item.id not in shown_ids]
-    pool = unseen or specialists
+    shown_keys = {
+        _specialist_identity(item)
+        for item in specialists
+        if item.id in shown_ids
+    }
+    # В seed-каталоге одна карточка могла быть создана для нескольких провинций.
+    # Сохраняем только наиболее актуальную копию и не считаем другой ID новым
+    # специалистом.
+    unique: list[Specialist] = []
+    seen_keys: set[str] = set()
+    for item in sorted(specialists, key=lambda row: row.id or 0, reverse=True):
+        key = _specialist_identity(item)
+        if key not in seen_keys:
+            seen_keys.add(key)
+            unique.append(item)
+    unseen = [
+        item for item in unique
+        if item.id not in shown_ids and _specialist_identity(item) not in shown_keys
+    ]
+    pool = unseen or unique
     newer = sorted(
         (item for item in pool if item.source in {"self", "admin"}),
         key=lambda item: item.id or 0,
@@ -448,7 +512,7 @@ def _rotate_specialists(
     if len(selected) < limit:
         selected_ids = {item.id for item in selected}
         fallback = [
-            item for item in specialists if item.id not in selected_ids
+            item for item in unique if item.id not in selected_ids
         ]
         selected.extend(_rotated(
             fallback, week=week, take=limit - len(selected)
@@ -460,15 +524,37 @@ async def build_digest(pref: DigestPreference) -> str:
     """Собирает персональный выпуск с рабочими переходами и реальной пользой."""
     selected = _topics(pref.topics_csv)
     today = datetime.now(ZoneInfo("Europe/Amsterdam")).date()
+    weekend_start, weekend_end = _weekend_dates(today)
     month_keys = [f"{today:%Y-%m}", _next_month_key(today)]
     discovered = []
     if "events" in selected:
         # Поиск общий для сегмента и кэшируется на сутки, поэтому не создаёт
         # отдельный AI-запрос на каждого получателя рассылки.
         from handlers.events import ensure_auto_afisha
-        result = await ensure_auto_afisha(pref.city, pref.radius_km, pref.user_id)
+        year, week, _ = weekend_start.isocalendar()
+        result = await ensure_auto_afisha(
+            pref.city,
+            pref.radius_km,
+            pref.user_id,
+            section_key=f"digest-{year}-W{week:02d}",
+            section_label=(
+                "локальные события, городские праздники, фестивали, концерты, "
+                f"выставки и маркеты, которые проходят только {weekend_start:%d.%m.%Y} "
+                f"или {weekend_end:%d.%m.%Y}"
+            ),
+            horizon_days=7,
+        )
         if result:
-            _, discovered = result
+            _, found = result
+            # Ответ поиска не является источником истины по датам: даже если он
+            # вернул более позднее событие, в выпуск проходят только события,
+            # пересекающиеся с субботой или воскресеньем из заголовка.
+            discovered = [
+                item for item in found
+                if _event_overlaps_weekend(
+                    item.starts_at, item.ends_at, today=today
+                )
+            ][:4]
     async with get_session() as session:
         events = (await session.scalars(
             select(EventListing).where(
@@ -505,13 +591,12 @@ async def build_digest(pref: DigestPreference) -> str:
     saved_specs = [x for x in specialists if x.id in saved_spec_ids]
     saved_listings = [x for x in listings if x.id in saved_listing_ids]
 
-    # Ручная афиша — только с распознаваемой будущей датой и отдельной ссылкой.
-    # Так старые карточки текущего месяца не возвращаются в подборку.
+    # Ручная афиша — только с датой именно ближайших выходных и отдельной
+    # ссылкой. Более поздние события текущего месяца сюда не попадают.
     local_events = [
         x for x in events
         if location_matches(pref, x.city, nationwide=x.is_nationwide)
-        and _listing_event_day(x.event_date, today=today) is not None
-        and _listing_event_day(x.event_date, today=today) >= today
+        and _listing_is_on_weekend(x, today=today)
         and bool(x.link)
     ][:4]
     matching_specs = [x for x in specialists if location_matches(

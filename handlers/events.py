@@ -363,6 +363,7 @@ async def ensure_auto_afisha(
     *,
     section_key: str = "nearby",
     section_label: str = "",
+    horizon_days: int = 90,
     force: bool = False,
 ) -> tuple[str, list[DiscoveredEvent]] | None:
     """Берёт общий кэш сегмента либо один раз наполняет его живым веб-поиском."""
@@ -379,7 +380,7 @@ async def ensure_auto_afisha(
         radius_km,
         search_cities=search_cities,
         section_label=section_label,
-        horizon_days=90,
+        horizon_days=horizon_days,
     )
     if not cards:
         return None
