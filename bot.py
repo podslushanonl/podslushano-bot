@@ -8,12 +8,14 @@ from aiogram.enums import ParseMode
 from aiogram.types import BotCommand, BotCommandScopeChat
 
 import config
+import database.ad_sales_models  # noqa: F401 — регистрирует таблицы в Base.metadata
 from database.db import init_db
 from handlers import (
-    ad_crm, admin, ads, afisha, ai_sales, allo, board, cabinet, chat, contacts, content, digest,
-    errors, events, guides, home, letters, moderation, notifications, salary, selfadd, share,
-    spotlight, start, submissions, support,
+    ad_crm, ad_sales_pipeline, admin, ads, afisha, ai_sales, allo, board, cabinet, chat,
+    contacts, content, digest, errors, events, guides, home, letters, moderation,
+    notifications, salary, selfadd, share, spotlight, start, submissions, support,
 )
+from handlers.ad_sales_pipeline import ad_payment_reconciliation_loop
 from handlers.ai_sales import ad_lead_reminder_loop
 from handlers.content import content_publisher_loop
 from handlers.selfadd import reminder_loop
@@ -125,6 +127,8 @@ async def main() -> None:
     dp.include_router(ad_crm.router)
     dp.include_router(ai_sales.router)
     dp.include_router(moderation.router)
+    # После всех форм и служебных обработчиков, но раньше общего свободного чата.
+    dp.include_router(ad_sales_pipeline.router)
     dp.include_router(chat.router)
     dp.include_router(errors.router)
 
@@ -139,6 +143,7 @@ async def main() -> None:
     asyncio.create_task(content_publisher_loop(bot))
     asyncio.create_task(afisha_catalog_loop(bot))
     asyncio.create_task(ad_lead_reminder_loop(bot))
+    asyncio.create_task(ad_payment_reconciliation_loop(bot))
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)
