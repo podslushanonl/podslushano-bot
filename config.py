@@ -161,16 +161,58 @@ ALLO_CHAT_URL: str = os.getenv("ALLO_CHAT_URL", "https://t.me/+peVFBZ4hOdY1ZDg6"
 # Расписание прогулок. key — устойчивый идентификатор (дата), по нему считаем места.
 ALLO_WALKS: list[dict] = [
     {
-        "key": "2026-07-25",
-        "starts_at": "2026-07-25T11:00:00+02:00",
-        "date": "25 июля · суббота",
-        "title": "Nijmegen + Ooijpolder",
-        "meet": "Nijmegen Centraal · 11:00",
-        "finish": "центр Nijmegen / Waalkade",
-        "dur": "≈4–5 часов",
+        "key": "2026-07-25", "starts_at": "2026-07-25T11:00:00+02:00",
+        "status": "archived", "date": "25 июля · суббота",
+        "title": "Nijmegen + Ooijpolder", "place": "Nijmegen",
+        "meet": "Nijmegen Centraal · 11:00", "finish": "центр Nijmegen / Waalkade",
+        "dur": "≈4–5 часов", "price": "35.00", "tag": "Архив", "tone": "blue",
         "desc": ("Wandelroute Ooijpolder (7,5 км): река Waal, uiterwaarden, коники, "
-                 "старые кирпичные заводы и виды. Природный маршрут, часть — по "
-                 "грунтовым тропам. Собаки — на поводке."),
+                 "старые кирпичные заводы и виды."),
+    },
+    {
+        "key": "bbq-2026-08", "starts_at": None, "status": "waitlist",
+        "date": "август · дата скоро", "title": "Прогулка с шашлыками",
+        "place": "Красивое место в Нидерландах", "meet": "Место сообщим перед стартом",
+        "finish": "возвращаемся к точке старта", "dur": "≈5–6 часов",
+        "price": None, "tag": "Еда + природа", "tone": "lime",
+        "desc": ("Идём по красивому маршруту, останавливаемся на длинный обед с "
+                 "шашлыками и возвращаемся вместе. Еда и всё необходимое — на нас."),
+    },
+    {
+        "key": "gastro-2026", "starts_at": None, "status": "waitlist",
+        "date": "август / сентябрь", "title": "Гастрономический маршрут",
+        "place": "Город уточняется", "meet": "Несколько гастрономических точек",
+        "finish": "в центре города", "dur": "≈4 часа", "price": None,
+        "tag": "Гастро", "tone": "orange",
+        "desc": ("Неспешная прогулка по городу с остановками в небанальных местах: "
+                 "пробуем, делимся впечатлениями и знакомимся за общим столом."),
+    },
+    {
+        "key": "oyster-2026-09", "starts_at": None, "status": "waitlist",
+        "date": "сентябрь", "title": "Поездка за устрицами",
+        "place": "Зеландия", "meet": "Точка сбора будет объявлена",
+        "finish": "в точке старта", "dur": "почти весь день", "price": None,
+        "tag": "Special trip", "tone": "blue",
+        "desc": ("Отправляемся к морю за устрицами: прогулка по побережью, сбор, "
+                 "дегустация и день в небольшой компании."),
+    },
+    {
+        "key": "winery-2026-10", "starts_at": None, "status": "waitlist",
+        "date": "октябрь", "title": "Винодельня в Лимбурге",
+        "place": "Limburg", "meet": "Винодельня · адрес после подтверждения",
+        "finish": "на винодельне", "dur": "≈4–5 часов", "price": None,
+        "tag": "Wine experience", "tone": "wine",
+        "desc": ("Едем на нидерландскую винодельню: прогулка, история местного вина "
+                 "и дегустация разных сортов в камерной группе."),
+    },
+    {
+        "key": "utrecht-boat-2026", "starts_at": None, "status": "waitlist",
+        "date": "дата уточняется", "title": "Каналы Утрехта на лодке",
+        "place": "Utrecht", "meet": "У воды в центре Утрехта",
+        "finish": "центр Утрехта", "dur": "≈3–4 часа", "price": None,
+        "tag": "Лодка", "tone": "violet",
+        "desc": ("Смотрим на Утрехт с воды, общаемся на борту и продолжаем прогулку "
+                 "по старому городу. Откроем запись после выбора лодки."),
     },
 ]
 
@@ -187,7 +229,9 @@ def available_allo_walks(now: "datetime | None" = None) -> list[dict]:
         current = current.astimezone()
     return [
         w for w in ALLO_WALKS
-        if datetime.fromisoformat(w["starts_at"]).astimezone(current.tzinfo) > current
+        if w.get("starts_at")
+        and w.get("status", "open") == "open"
+        and datetime.fromisoformat(w["starts_at"]).astimezone(current.tzinfo) > current
     ]
 
 
@@ -340,9 +384,9 @@ AD_FORMATS: dict[str, dict] = {
     },
 }
 
-# Акция продлена до конца месяца — включительно по 31 июля 2026.
+# Акция запущена 23 июля 2026 и действует семь полных календарных суток.
 # После этого срока сервер сам возвращает цену €180; это не зависит от баннера.
-AD_PROMO_END_ISO = os.getenv("AD_PROMO_END_ISO", "2026-07-31T23:59:59+02:00")
+AD_PROMO_END_ISO = os.getenv("AD_PROMO_END_ISO", "2026-07-30T23:59:59+02:00")
 
 
 def _ad_promotion_times(now: datetime | None = None) -> tuple[datetime, datetime] | None:

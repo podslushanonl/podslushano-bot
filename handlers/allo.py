@@ -1099,11 +1099,12 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
                 await session.commit()
             await _settle_credits(session, bid, paid=False)  # вернуть бонусы
             uid = booking.user_id
-            try:
-                await bot.send_message(
-                    uid, "Оплата не прошла 🙈 Место не забронировано. Снова: /allo")
-            except Exception:  # noqa: BLE001
-                pass
+            if uid:
+                try:
+                    await bot.send_message(
+                        uid, "Оплата не прошла 🙈 Место не забронировано. Снова: /allo")
+                except Exception:  # noqa: BLE001
+                    pass
             return
         if status != "paid" or booking.status == "paid":
             return
@@ -1162,10 +1163,11 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
                 "Возьми удобную обувь, воду и одежду по погоде. Все детали и связь с "
                 "участниками — в чате ниже. До встречи! 🚶")
         body += _chat_invite()
-    try:
-        await bot.send_message(uid, body, disable_web_page_preview=True)
-    except Exception as e:  # noqa: BLE001
-        log.warning("Не удалось отправить подтверждение Allo: %s", e)
+    if uid:
+        try:
+            await bot.send_message(uid, body, disable_web_page_preview=True)
+        except Exception as e:  # noqa: BLE001
+            log.warning("Не удалось отправить подтверждение Allo: %s", e)
 
     if email:
         try:

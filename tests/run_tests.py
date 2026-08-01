@@ -78,29 +78,29 @@ def test_ad_promotion_deadline() -> None:
         datetime(2026, 7, 24, 12, 0, tzinfo=amsterdam)
     )
     penultimate = config.ad_promotion_countdown_label(
-        datetime(2026, 7, 30, 12, 0, tzinfo=amsterdam)
+        datetime(2026, 7, 29, 12, 0, tzinfo=amsterdam)
     )
     final_day = config.ad_promotion_countdown_label(
-        datetime(2026, 7, 31, 12, 0, tzinfo=amsterdam)
+        datetime(2026, 7, 30, 12, 0, tzinfo=amsterdam)
     )
     during = config.ad_option(
-        "promo", "std", datetime(2026, 7, 31, 23, 59, 59, tzinfo=amsterdam)
+        "promo", "std", datetime(2026, 7, 30, 12, 0, tzinfo=amsterdam)
     )
     after = config.ad_option(
-        "promo", "std", datetime(2026, 8, 1, 0, 0, tzinfo=amsterdam)
+        "promo", "std", datetime(2026, 7, 31, 0, 0, tzinfo=amsterdam)
     )
-    check("акционная цена действует до конца 31 июля",
+    check("акционная цена действует в пределах семи дней",
           during and during["price"] == "150.00")
-    check("24 июля интерфейс показывает остаток 7 дней",
-          countdown == "Осталось 7 дней")
+    check("24 июля интерфейс показывает остаток 6 дней",
+          countdown == "Осталось 6 дней")
     check("за день до финала используется верная форма слова",
           penultimate == "Остался 1 день")
-    check("31 июля интерфейс показывает последний день",
+    check("30 июля интерфейс показывает последний день",
           final_day == "Последний день")
     check("после дедлайна сервер возвращает цену €180",
           after and after["price"] == "180.00")
     expired_formats = config.ad_formats(
-        datetime(2026, 8, 1, 0, 0, tzinfo=amsterdam)
+        datetime(2026, 7, 31, 0, 0, tzinfo=amsterdam)
     )
     check("после дедлайна интерфейс больше не получает акционный бейдж",
           expired_formats["promo"]["badge"] == "")
@@ -108,7 +108,7 @@ def test_ad_promotion_deadline() -> None:
         datetime(2026, 7, 24, 12, 0, tzinfo=amsterdam)
     )
     check("акционный бейдж получает автоматический обратный отсчёт",
-          active_formats["promo"]["badge"] == "−€30 · осталось 7 дней")
+          active_formats["promo"]["badge"] == "−€30 · осталось 6 дней")
 
 
 async def test_saved_items() -> None:
@@ -729,16 +729,32 @@ async def test_allo_capacity() -> None:
 
 
 def test_allo_schedule() -> None:
-    """В боте одна прогулка; после старта она автоматически исчезает."""
+    """Планируемые форматы видны на сайте, но не продаются в боте без даты."""
     from datetime import datetime
-    before = datetime.fromisoformat("2026-07-19T10:00:00+02:00")
-    after = datetime.fromisoformat("2026-07-25T11:01:00+02:00")
-    walks = config.available_allo_walks(before)
-    check("доступна только прогулка Nijmegen 25 июля",
-          len(walks) == 1 and walks[0]["key"] == "2026-07-25")
+    now = datetime.fromisoformat("2026-08-01T10:00:00+02:00")
+    check("на сайте подготовлено пять форматов Allo Walks",
+          len([w for w in config.ALLO_WALKS if w.get("status") != "archived"]) == 5)
+    check("планируемые прогулки пока не продаются в боте",
+          config.available_allo_walks(now) == [])
+    check("все ключи прогулок помещаются в поле базы",
+          all(len(w["key"]) <= 20 for w in config.ALLO_WALKS))
     check("вместимость Allo Walks = 8", config.ALLO_WALK_CAPACITY == 8)
-    check("прошедшая прогулка автоматически скрывается",
-          config.available_allo_walks(after) == [])
+
+
+async def test_allo_website() -> None:
+    """Витрина отдаёт только актуальные форматы и содержит ключевой интерфейс."""
+    import json
+    from pathlib import Path
+    from utils.allo_web import api_walks
+    response = await api_walks(None)
+    payload = json.loads(response.text)
+    check("API сайта отдаёт пять будущих форматов", len(payload["walks"]) == 5)
+    check("архивная прогулка не попадает на витрину",
+          all(w["status"] != "archived" for w in payload["walks"]))
+    page = (Path(__file__).resolve().parent.parent / "static" / "allo-walks" /
+            "index.html").read_text(encoding="utf-8")
+    check("страница содержит запись и лист ожидания",
+          "/allo-walks/book" in page and "/allo-walks/waitlist" in page)
 
 
 async def test_allo_referral() -> None:
@@ -1262,6 +1278,7 @@ async def main() -> None:
     await test_personal_digest()
     await test_allo_capacity()
     test_allo_schedule()
+    await test_allo_website()
     await test_allo_referral()
     test_wordpress_util()
     test_detect_category_basic()

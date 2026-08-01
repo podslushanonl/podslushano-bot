@@ -22,6 +22,7 @@ from utils.contact_links import parse_contact_links
 from utils.geo import CATEGORIES, specialist_matches_category
 from utils.reviews import rating_badge, ratings_for, specialist_key
 from utils.payments import get_payment
+from utils import allo_web
 
 log = logging.getLogger(__name__)
 
@@ -1463,6 +1464,13 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_post("/ads/book", _ads_book)  # оформление брони → оплата Mollie
     app.router.add_get("/reklama", _reklama)            # публичная заявка на рекламу (без цен)
     app.router.add_post("/reklama/submit", _reklama_submit)
+    app.router.add_get("/allo-walks", allo_web.page)
+    app.router.add_get("/allo-walks/success", allo_web.success)
+    app.router.add_get("/api/allo-walks", allo_web.api_walks)
+    app.router.add_post("/allo-walks/waitlist", allo_web.waitlist)
+    app.router.add_post("/allo-walks/book", allo_web.book)
+    app.router.add_static("/allo-assets/", Path(__file__).resolve().parent.parent / "assets" / "allo")
+    app.router.add_static("/allo-fonts/", Path(__file__).resolve().parent.parent / "assets" / "fonts")
     app.router.add_post("/mollie-webhook", _mollie_webhook)
 
     runner = web.AppRunner(app)
