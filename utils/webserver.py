@@ -1163,6 +1163,55 @@ fillOpt();toggleType();
 _ADS_SITE_DIR = Path(__file__).resolve().parent.parent / "static" / "ads-site"
 
 
+def _find_ads_promo_bundle() -> Path | None:
+    """Find the generated storefront chunk that contains the ad formats."""
+    for path in (_ADS_SITE_DIR / "assets").glob("page-*.js"):
+        try:
+            if 'badge:"−€30 · 7 дней"' in path.read_text(encoding="utf-8"):
+                return path
+        except OSError:
+            continue
+    return None
+
+
+_ADS_PROMO_BUNDLE = _find_ads_promo_bundle()
+
+
+def _ads_promo_bundle_source(now: datetime | None = None) -> str:
+    """Return the storefront bundle with the promotion state fixed server-side.
+
+    The exported storefront was built with the temporary €150 promotion baked
+    into its React state. Once the deadline passes, change that state before it
+    reaches the browser so React cannot restore the stale promotional price.
+    """
+    if _ADS_PROMO_BUNDLE is None:
+        raise FileNotFoundError("Ads promotion bundle was not found")
+    source = _ADS_PROMO_BUNDLE.read_text(encoding="utf-8")
+    if config.ad_promotion_active(now):
+        return source
+    replacements = {
+        'badge:"−€30 · 7 дней"': 'badge:""',
+        'price:150,originalPrice:180': 'price:180',
+        'className:"product-card "+("promo"===e?"sale-card":"")':
+            'className:"product-card "',
+        'className:"modal-price "+("promo"===x?"sale-modal-price":"")':
+            'className:"modal-price "',
+    }
+    for old, new in replacements.items():
+        source = source.replace(old, new)
+    return source
+
+
+async def _ads_promo_bundle_asset(request: web.Request) -> web.Response:
+    """Serve the generated storefront state using the server's promo clock."""
+    return web.Response(
+        text=_ads_promo_bundle_source(),
+        content_type="application/javascript",
+        charset="utf-8",
+        headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+    )
+
+
 def _ads_site_page(filename: str) -> web.FileResponse:
     """Serve the redesigned booking flow from the Railway /ads URL."""
     return web.FileResponse(_ADS_SITE_DIR / filename, headers={
@@ -1179,6 +1228,20 @@ async def _ads(request: web.Request) -> web.StreamResponse:
     повторном рендере React. Сумма Mollie независимо проверяется в ad_option().
     """
     page = (_ADS_SITE_DIR / "index.html").read_text(encoding="utf-8")
+    promotion_active = config.ad_promotion_active()
+    if not promotion_active:
+        # Do not ship the expired offer in the server-rendered first screen.
+        # The CSS also prevents a flash if React hydrates before its bundle is
+        # replaced with the regular €180 state by _ads_promo_bundle_asset().
+        page = re.sub(
+            r'<button class="sale-banner".*?</button>', "", page,
+            count=1, flags=re.DOTALL,
+        )
+        page = page.replace(
+            "</head>",
+            "<style>.sale-banner,.sale-strip{display:none!important}</style></head>",
+            1,
+        )
     deadline = json.dumps(config.AD_PROMO_END_ISO)
     countdown = json.dumps(
         config.ad_promotion_countdown_label(), ensure_ascii=False
@@ -1460,6 +1523,11 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/ads/payment-success", _ads_payment_success)
     app.router.add_get("/ads/availability", _ads_availability)
     app.router.add_get("/api/availability", _ads_availability)
+    if _ADS_PROMO_BUNDLE is not None:
+        app.router.add_get(
+            f"/ads-static/assets/{_ADS_PROMO_BUNDLE.name}",
+            _ads_promo_bundle_asset,
+        )
     app.router.add_static("/ads-static/", _ADS_SITE_DIR, show_index=False)
     app.router.add_post("/ads/book", _ads_book)  # оформление брони → оплата Mollie
     app.router.add_get("/reklama", _reklama)            # публичная заявка на рекламу (без цен)
