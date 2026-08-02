@@ -109,6 +109,14 @@ def test_ad_promotion_deadline() -> None:
     )
     check("акционный бейдж получает автоматический обратный отсчёт",
           active_formats["promo"]["badge"] == "−€30 · осталось 6 дней")
+    from utils import webserver
+    expired_bundle = webserver._ads_promo_bundle_source(
+        datetime(2026, 7, 31, 0, 0, tzinfo=amsterdam)
+    )
+    check("после дедлайна React получает обычную цену €180",
+          'price:180' in expired_bundle and 'originalPrice:180' not in expired_bundle)
+    check("после дедлайна React не получает акционный бейдж",
+          'badge:"−€30 · 7 дней"' not in expired_bundle)
 
 
 async def test_saved_items() -> None:
