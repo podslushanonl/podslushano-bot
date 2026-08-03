@@ -79,8 +79,12 @@ def test_specialist_premium_six_month_plan() -> None:
     check("тариф на полгода остаётся Премиумом",
           info["premium"] is True and info["title"] == "6 месяцев 🌟 Премиум")
 
-    from handlers.selfadd import _plan_kb
-    callbacks = [button.callback_data for row in _plan_kb().inline_keyboard for button in row]
+    from handlers.selfadd import _plan_duration_kb
+    callbacks = [
+        button.callback_data
+        for row in _plan_duration_kb("premium").inline_keyboard
+        for button in row
+    ]
     check("вариант на полгода показан при выборе тарифа",
           "selfplan:6m_premium" in callbacks)
 
@@ -91,6 +95,75 @@ def test_specialist_premium_six_month_plan() -> None:
           six_month < monthly_total)
     check("годовой тариф остаётся самым выгодным в пересчёте на месяц",
           annual_monthly < six_month / 6)
+
+
+def test_specialist_onboarding_ux() -> None:
+    from handlers.selfadd import (
+        _category_options_kb,
+        _plan_duration_kb,
+        _preview_text,
+        _valid_contact,
+        _valid_description,
+        _valid_email,
+        _valid_name,
+    )
+    from states.forms import SelfAddSpecialist
+    from utils.geo import THEMES
+
+    check("анкета принимает нормальное имя", _valid_name("Anna Nails"))
+    check("анкета отклоняет пустое имя", not _valid_name("-"))
+    check(
+        "анкета принимает содержательное описание",
+        _valid_description("Маникюр, педикюр и наращивание. Работаю по записи."),
+    )
+    check("анкета отклоняет случайный ответ", not _valid_description("выпвпкнл"))
+    check("анкета принимает телефон и Telegram", _valid_contact("+31 6 12345678, @username"))
+    check("анкета отклоняет текст вместо контакта", not _valid_contact("выпвпкнл"))
+    check("анкета принимает корректный e-mail", _valid_email("mail@example.com"))
+    check("анкета отклоняет неполный e-mail", not _valid_email("mail@example"))
+
+    callbacks = [
+        button.callback_data
+        for index in range(len(THEMES))
+        for row in _category_options_kb(index).inline_keyboard
+        for button in row
+        if button.callback_data
+    ]
+    check("все кнопки категорий помещаются в лимит Telegram",
+          max(len(value.encode()) for value in callbacks) <= 64)
+
+    standard = [
+        button.callback_data
+        for row in _plan_duration_kb("standard").inline_keyboard
+        for button in row
+    ]
+    premium = [
+        button.callback_data
+        for row in _plan_duration_kb("premium").inline_keyboard
+        for button in row
+    ]
+    check("Стандарт предлагает месяц и год",
+          standard[:2] == ["selfplan:month", "selfplan:year"])
+    check("Премиум предлагает месяц, полгода и год", premium[:3] == [
+        "selfplan:month_premium", "selfplan:6m_premium", "selfplan:year_premium"
+    ])
+    referral_labels = [
+        button.text
+        for row in _plan_duration_kb("premium", referral=True).inline_keyboard
+        for button in row
+    ]
+    check("реферальная скидка видна до оплаты",
+          any("€159,20" in label and "скидка 20%" in label for label in referral_labels))
+
+    preview = _preview_text({
+        "sp_name": "<Anna>", "sp_category": "фитнес", "sp_online": True,
+        "sp_description": "Персональные тренировки онлайн для начинающих.",
+        "sp_contact": "@username", "sp_email": "mail@example.com",
+    })
+    check("предпросмотр экранирует пользовательский HTML",
+          "&lt;Anna&gt;" in preview and "<Anna>" not in preview)
+    check("у анкеты есть предпросмотр и подтверждение оплаты",
+          bool(SelfAddSpecialist.review) and bool(SelfAddSpecialist.confirm))
 
 
 def test_ad_promotion_deadline() -> None:
@@ -362,6 +435,76 @@ async def test_db_and_categories() -> None:
             check(f"категория «{name}» = {cat}",
                   bool(sp) and sp.category == cat,
                   f"в базе: {sp.category if sp else 'нет карточки'}")
+
+
+async def test_specialist_payment_retry_keeps_form() -> None:
+    import handlers.selfadd as selfadd
+
+    class FakeState:
+        def __init__(self) -> None:
+            self.data = {
+                "sp_name": "Retry Studio",
+                "sp_category": "фитнес",
+                "sp_city": "Amsterdam",
+                "sp_province": "Noord-Holland",
+                "sp_description": "Персональные тренировки для начинающих в Amsterdam.",
+                "sp_contact": "@retry_studio",
+                "sp_online": False,
+                "sp_email": "retry@example.com",
+                "sp_plan": "month",
+            }
+            self.current_state = None
+            self.cleared = False
+
+        async def get_data(self):
+            return dict(self.data)
+
+        async def update_data(self, **values):
+            self.data.update(values)
+
+        async def set_state(self, value):
+            self.current_state = value
+
+        async def clear(self):
+            self.cleared = True
+            self.data.clear()
+
+    class FakeMessage:
+        def __init__(self) -> None:
+            self.answers = []
+
+        async def answer(self, text, **kwargs):
+            self.answers.append((text, kwargs))
+
+    state, message = FakeState(), FakeMessage()
+    real_create_payment = selfadd.create_payment
+
+    async def failed_payment(*_args, **_kwargs):
+        return None
+
+    async def successful_payment(*_args, **_kwargs):
+        return {"id": "tr_retry", "checkout_url": "https://pay.example/retry"}
+
+    try:
+        selfadd.create_payment = failed_payment
+        await selfadd._create_listing_and_pay(message, state, "month", None, 99001)
+        first_id = state.data.get("sp_listing_id")
+        check("ошибка Mollie не стирает заполненную анкету",
+              bool(first_id) and not state.cleared and state.data.get("sp_name") == "Retry Studio")
+        check("после ошибки оплаты можно повторить попытку",
+              state.current_state == selfadd.SelfAddSpecialist.confirm)
+
+        selfadd.create_payment = successful_payment
+        await selfadd._create_listing_and_pay(message, state, "month", None, 99001)
+        async with db.get_session() as session:
+            rows = list((await session.scalars(
+                select(Specialist).where(Specialist.submitter_user_id == 99001)
+            )).all())
+        check("повтор оплаты не создаёт дубликат карточки",
+              len(rows) == 1 and rows[0].id == first_id and rows[0].payment_id == "tr_retry")
+        check("анкета очищается только после создания ссылки", state.cleared)
+    finally:
+        selfadd.create_payment = real_create_payment
 
 
 async def test_repair_luxar_category() -> None:
@@ -1289,8 +1432,10 @@ def test_general_place_routing() -> None:
 async def main() -> None:
     test_import_bot()
     test_specialist_premium_six_month_plan()
+    test_specialist_onboarding_ux()
     test_ad_promotion_deadline()
     await test_db_and_categories()
+    await test_specialist_payment_retry_keeps_form()
     await test_saved_items()
     await test_personal_home_snapshot()
     await test_product_analytics()

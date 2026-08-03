@@ -7,11 +7,12 @@ Mollie → после оплаты (webhook) заявка приходит ад�
 import asyncio
 import html
 import logging
+import re
 from datetime import datetime, timedelta
 
 from aiogram import F, Router
-from aiogram.filters import Command
 from aiogram.enums import ChatType
+from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import (
     CallbackQuery,
@@ -28,7 +29,7 @@ from keyboards.menus import BTN_SELF_ADD, cancel_menu, main_menu
 from states.forms import ClaimPay, SelfAddSpecialist
 from utils.ai import extract_specialist_query
 from utils.analytics import log_event
-from utils.geo import CATEGORIES, NEIGHBORS, detect_category, detect_city, province_of_city
+from utils.geo import CATEGORIES, NEIGHBORS, THEMES, detect_category, detect_city
 from utils.payments import create_payment, get_payment
 
 log = logging.getLogger(__name__)
@@ -37,6 +38,11 @@ router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 ONLINE_WORDS = {"онлайн", "online", "по всей стране"}
+SELFADD_PLANS = ("month", "year", "month_premium", "6m_premium", "year_premium")
+_EMAIL_RE = re.compile(
+    r"^[A-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Z0-9-]+(?:\.[A-Z0-9-]+)+$",
+    re.IGNORECASE,
+)
 
 # Описание платежа (видно в Mollie/банке) — на нидерландском
 DESC_NEW = "Vermelding in Podslushano-gids"
@@ -45,29 +51,199 @@ DESC_RENEW = "Verlenging vermelding Podslushano-gids"
 
 def _price_str(plan: str) -> str:
     info = config.plan_info(plan)
-    return f"{info['price']} {config.LISTING_CURRENCY} / {info['title']}"
+    try:
+        price = f"€{float(info['price']):.2f}".replace(".", ",")
+    except (TypeError, ValueError):
+        price = f"€{info['price']}"
+    return f"{price} · {info['title']}"
 
 
-def _plan_kb() -> InlineKeyboardMarkup:
-    cur = config.LISTING_CURRENCY
-    m, y = config.plan_info("month"), config.plan_info("year")
-    mp = config.plan_info("month_premium")
-    six_mp = config.plan_info("6m_premium")
-    yp = config.plan_info("year_premium")
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [InlineKeyboardButton(text=f"📅 Обычное · {m['price']} {cur}/мес",
-                                  callback_data="selfplan:month")],
-            [InlineKeyboardButton(text=f"📅 Обычное · {y['price']} {cur}/год (выгоднее)",
-                                  callback_data="selfplan:year")],
-            [InlineKeyboardButton(text=f"🌟 Премиум · {mp['price']} {cur}/мес",
-                                  callback_data="selfplan:month_premium")],
-            [InlineKeyboardButton(text=f"🌟 Премиум · {six_mp['price']} {cur}/6 мес",
-                                  callback_data="selfplan:6m_premium")],
-            [InlineKeyboardButton(text=f"🌟 Премиум · {yp['price']} {cur}/год",
-                                  callback_data="selfplan:year_premium")],
-        ]
+def _format_euro(value: str) -> str:
+    """Показывает цену привычно для NL/RU-интерфейса, не меняя значение Mollie."""
+    try:
+        return f"€{float(value):.2f}".replace(".", ",")
+    except (TypeError, ValueError):
+        return f"€{value}"
+
+
+def _clean_text(value: str) -> str:
+    return " ".join(value.split())
+
+
+def _valid_name(value: str) -> bool:
+    return 2 <= len(value) <= 80 and len(re.findall(r"[A-Za-zА-Яа-яЁё0-9]", value)) >= 2
+
+
+def _valid_description(value: str) -> bool:
+    words = re.findall(r"[A-Za-zА-Яа-яЁё0-9]+", value)
+    letters = re.findall(r"[A-Za-zА-Яа-яЁё]", value)
+    return 20 <= len(value) <= 500 and len(words) >= 3 and len(letters) >= 12
+
+
+def _valid_contact(value: str) -> bool:
+    """Принимает телефон, Telegram, e-mail или ссылку, но не случайный текст."""
+    if not 5 <= len(value) <= 300:
+        return False
+    has_phone = len(re.sub(r"\D", "", value)) >= 7
+    has_username = bool(re.search(r"(?<!\w)@[A-Za-z0-9_]{5,32}\b", value))
+    has_email = any(_EMAIL_RE.fullmatch(part.strip(" ,;()<>")) for part in value.split())
+    has_url = bool(re.search(
+        r"(?:https?://|www\.)\S+|\b[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+\b",
+        value,
+        re.IGNORECASE,
+    ))
+    return has_phone or has_username or has_email or has_url
+
+
+def _valid_email(value: str) -> bool:
+    return len(value) <= 200 and bool(_EMAIL_RE.fullmatch(value))
+
+
+def _category_groups_kb(back_callback: str = "selfnav:name") -> InlineKeyboardMarkup:
+    rows = [
+        [InlineKeyboardButton(text=title, callback_data=f"selfcatgroup:{index}")]
+        for index, title in enumerate(THEMES)
+    ]
+    rows.append([InlineKeyboardButton(text="✍️ Моей категории нет", callback_data="selfcatcustom")])
+    rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=back_callback)])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def _category_options_kb(group_index: int) -> InlineKeyboardMarkup:
+    categories = list(THEMES.values())[group_index]
+    rows = [
+        [InlineKeyboardButton(text=category.capitalize(), callback_data=f"selfcat:{category}")]
+        for category in categories
+    ]
+    rows.append([InlineKeyboardButton(text="⬅️ К разделам", callback_data="selfcatgroups")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def _nav_kb(back_callback: str, *, online: bool = False) -> InlineKeyboardMarkup:
+    rows = []
+    if online:
+        rows.append([InlineKeyboardButton(
+            text="🌍 Онлайн / по всей стране", callback_data="selfloc:online"
+        )])
+    rows.append([InlineKeyboardButton(text="⬅️ Назад", callback_data=back_callback)])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def _form_review_kb(has_plan: bool = False) -> InlineKeyboardMarkup:
+    primary_text = "✅ Сохранить и вернуться к заказу" if has_plan else "✅ Всё верно — выбрать тариф"
+    primary_callback = "selfreview:confirm" if has_plan else "selfreview:plans"
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=primary_text, callback_data=primary_callback)],
+        [InlineKeyboardButton(text="✏️ Изменить данные", callback_data="selfreview:edit")],
+    ])
+
+
+def _edit_fields_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Имя / название", callback_data="selfedit:name"),
+            InlineKeyboardButton(text="Категория", callback_data="selfedit:category"),
+        ],
+        [
+            InlineKeyboardButton(text="Город / онлайн", callback_data="selfedit:location"),
+            InlineKeyboardButton(text="Описание", callback_data="selfedit:description"),
+        ],
+        [
+            InlineKeyboardButton(text="Контакты", callback_data="selfedit:contact"),
+            InlineKeyboardButton(text="E-mail для factuur", callback_data="selfedit:email"),
+        ],
+        [InlineKeyboardButton(text="⬅️ К анкете", callback_data="selfedit:back")],
+    ])
+
+
+def _tier_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Стандарт", callback_data="selftier:standard")],
+        [InlineKeyboardButton(text="🌟 Премиум", callback_data="selftier:premium")],
+        [InlineKeyboardButton(text="⬅️ К анкете", callback_data="selftier:back")],
+    ])
+
+
+def _saving_suffix(plan: str) -> str:
+    comparisons = {
+        "year": (config.LISTING_PRICE_MONTH, 12),
+        "6m_premium": (config.LISTING_PRICE_MONTH_PREMIUM, 6),
+        "year_premium": (config.LISTING_PRICE_MONTH_PREMIUM, 12),
+    }
+    if plan not in comparisons:
+        return ""
+    monthly, months = comparisons[plan]
+    try:
+        saving = float(monthly) * months - float(config.plan_info(plan)["price"])
+    except (TypeError, ValueError):
+        return ""
+    return f" · экономия {_format_euro(f'{saving:.2f}')}" if saving > 0 else ""
+
+
+def _plan_duration_kb(tier: str, *, referral: bool = False) -> InlineKeyboardMarkup:
+    plans = ("month", "year") if tier == "standard" else (
+        "month_premium", "6m_premium", "year_premium"
     )
+    labels = {
+        "month": "1 месяц",
+        "year": "12 месяцев",
+        "month_premium": "1 месяц",
+        "6m_premium": "6 месяцев",
+        "year_premium": "12 месяцев",
+    }
+    rows = []
+    for plan in plans:
+        price = config.plan_info(plan)["price"]
+        if referral and plan in ("year", "year_premium"):
+            price = config.discounted_price(price)
+            suffix = " · ваша скидка 20%"
+        else:
+            suffix = _saving_suffix(plan)
+        rows.append([InlineKeyboardButton(
+            text=f"{labels[plan]} — {_format_euro(price)}{suffix}",
+            callback_data=f"selfplan:{plan}",
+        )])
+    rows.append([InlineKeyboardButton(text="⬅️ Сравнить тарифы", callback_data="selfplanback")])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def _confirm_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="💳 Создать ссылку на оплату", callback_data="selfconfirm:pay")],
+        [InlineKeyboardButton(text="↔️ Изменить тариф", callback_data="selfconfirm:plan")],
+        [InlineKeyboardButton(text="✏️ Изменить анкету", callback_data="selfconfirm:edit")],
+    ])
+
+
+def _preview_text(data: dict) -> str:
+    where = "Онлайн / по всей стране" if data.get("sp_online") else data.get("sp_city", "—")
+    return (
+        "<b>Проверьте будущую карточку</b>\n\n"
+        f"<b>Имя / название:</b> {html.escape(data.get('sp_name', '—'))}\n"
+        f"<b>Категория:</b> {html.escape(data.get('sp_category', '—'))}\n"
+        f"<b>Где работаете:</b> {html.escape(where)}\n"
+        f"<b>Описание:</b> {html.escape(data.get('sp_description') or '—')}\n"
+        f"<b>Контакты:</b> {html.escape(data.get('sp_contact', '—'))}\n\n"
+        f"<b>E-mail для factuur:</b> {html.escape(data.get('sp_email', '—'))}\n"
+        "<i>E-mail нужен только для счёта и не публикуется в карточке, если вы "
+        "не указали его отдельно в контактах.</i>"
+    )
+
+
+def _plan_title(plan: str) -> str:
+    titles = {
+        "month": "Стандарт · 1 месяц",
+        "year": "Стандарт · 12 месяцев",
+        "month_premium": "Премиум · 1 месяц",
+        "6m_premium": "Премиум · 6 месяцев",
+        "year_premium": "Премиум · 12 месяцев",
+    }
+    return titles[plan]
+
+
+def _actual_plan_amount(plan: str, *, referral: bool) -> str:
+    price = config.plan_info(plan)["price"]
+    return config.discounted_price(price) if referral and plan in ("year", "year_premium") else price
 
 
 def _where(sp: Specialist) -> str:
@@ -100,11 +276,130 @@ def _pay_kb(checkout_url: str, plan: str, amount: str | None = None) -> InlineKe
     price = amount or config.plan_info(plan)["price"]
     return InlineKeyboardMarkup(
         inline_keyboard=[[InlineKeyboardButton(
-            text=f"💳 Оплатить {price} {config.LISTING_CURRENCY}", url=checkout_url)]]
+            text=f"💳 Оплатить {_format_euro(price)}", url=checkout_url)]]
     )
 
 
 # --- Анкета ------------------------------------------------------------------
+
+async def _has_referral(uid: int) -> bool:
+    async with get_session() as session:
+        ref_meta = await session.get(Meta, f"spref:{uid}")
+        return bool(ref_meta and ref_meta.value.isdigit())
+
+
+async def _return_or_continue(message: Message, state: FSMContext, field: str,
+                              next_prompt) -> None:
+    data = await state.get_data()
+    if data.get("sp_editing") == field:
+        await state.update_data(sp_editing=None)
+        await _show_review(message, state)
+        return
+    await next_prompt(message, state)
+
+
+def _back_for(data: dict, normal_target: str) -> str:
+    return "selfedit:back" if data.get("sp_editing") else f"selfnav:{normal_target}"
+
+
+async def _ask_name(message: Message, state: FSMContext) -> None:
+    await state.set_state(SelfAddSpecialist.name)
+    await message.answer(
+        "<b>1/6 · Имя или название</b>\n\n"
+        "Как указать вас в гайде? Напишите имя, название бренда или компании.",
+        reply_markup=cancel_menu(),
+    )
+
+
+async def _ask_category(message: Message, state: FSMContext) -> None:
+    await state.set_state(SelfAddSpecialist.category)
+    await state.update_data(sp_custom_category_mode=False)
+    data = await state.get_data()
+    await message.answer(
+        "<b>2/6 · Категория</b>\n\n"
+        "Выберите раздел, а затем свою специализацию. Если подходящего варианта нет, "
+        "можно указать собственную категорию.",
+        reply_markup=_category_groups_kb(_back_for(data, "name")),
+    )
+
+
+async def _ask_location(message: Message, state: FSMContext) -> None:
+    await state.set_state(SelfAddSpecialist.location)
+    data = await state.get_data()
+    await message.answer(
+        "<b>3/6 · Где вы работаете?</b>\n\n"
+        "Напишите один основной город, например <b>Amsterdam</b>. Если принимаете "
+        "клиентов по всей стране или работаете удалённо, нажмите кнопку ниже.\n\n"
+        "<i>Другие города можно указать в описании.</i>",
+        reply_markup=_nav_kb(_back_for(data, "category"), online=True),
+    )
+
+
+async def _ask_description(message: Message, state: FSMContext) -> None:
+    await state.set_state(SelfAddSpecialist.description)
+    data = await state.get_data()
+    await message.answer(
+        "<b>4/6 · Что вы предлагаете?</b>\n\n"
+        "Коротко опишите основные услуги, формат работы и важные детали. От 20 до "
+        "500 символов.\n\n"
+        "<i>Например: Маникюр, педикюр и наращивание. Принимаю в домашней студии, "
+        "работаю по записи.</i>",
+        reply_markup=_nav_kb(_back_for(data, "location")),
+    )
+
+
+async def _ask_contact(message: Message, state: FSMContext) -> None:
+    await state.set_state(SelfAddSpecialist.contact)
+    data = await state.get_data()
+    await message.answer(
+        "<b>5/6 · Контакты для клиентов</b>\n\n"
+        "Укажите хотя бы один способ связи: телефон, Telegram, e-mail или сайт. "
+        "Можно добавить несколько.\n\n"
+        "<i>Например: +31 6 12345678 · @username · example.nl</i>",
+        reply_markup=_nav_kb(_back_for(data, "description")),
+    )
+
+
+async def _ask_email(message: Message, state: FSMContext) -> None:
+    await state.set_state(SelfAddSpecialist.email)
+    data = await state.get_data()
+    await message.answer(
+        "<b>6/6 · E-mail для счёта</b>\n\n"
+        "После успешной оплаты мы автоматически отправим factuur на этот адрес. "
+        "В самой карточке он не появится.\n\n"
+        "<i>Например: mail@example.com</i>",
+        reply_markup=_nav_kb(_back_for(data, "contact")),
+    )
+
+
+async def _show_review(message: Message, state: FSMContext) -> None:
+    await state.set_state(SelfAddSpecialist.review)
+    data = await state.get_data()
+    await message.answer(
+        _preview_text(data),
+        reply_markup=_form_review_kb(has_plan=data.get("sp_plan") in SELFADD_PLANS),
+    )
+
+
+async def _save_category(message: Message, state: FSMContext, category: str,
+                         *, custom: bool = False) -> None:
+    await state.update_data(
+        sp_category=category,
+        sp_custom_category=custom,
+        sp_custom_category_mode=False,
+    )
+    await _return_or_continue(message, state, "category", _ask_location)
+
+
+async def _save_location(message: Message, state: FSMContext, *, online: bool,
+                         city: str = "", province: str = "") -> None:
+    await state.update_data(
+        sp_online=online,
+        sp_city=city,
+        sp_province=province,
+        sp_pending_city=None,
+    )
+    await _return_or_continue(message, state, "location", _ask_description)
 
 @router.message(Command("selfadd", "addme"))
 @router.message(F.text == BTN_SELF_ADD)
@@ -114,44 +409,89 @@ async def self_start(message: Message, state: FSMContext) -> None:
             "Само-добавление пока недоступно — скоро включим 🙌", reply_markup=main_menu()
         )
         return
-    await state.set_state(SelfAddSpecialist.name)
-    m, y = config.plan_info("month"), config.plan_info("year")
+    await state.clear()
+    referral = await _has_referral(message.from_user.id)
+    await state.update_data(sp_referral=referral)
     await message.answer(
-        "Отлично, давай добавим тебя в гайд! 🎉\n\n"
-        f"Размещение — <b>{m['price']} {config.LISTING_CURRENCY}/мес</b> или "
-        f"<b>{y['price']} {config.LISTING_CURRENCY}/год</b> (тариф выберешь в конце), "
-        "с проверкой нашей командой.\n\n"
-        "Шаг 1/6. Имя или название (как показать в гайде)?",
-        reply_markup=cancel_menu(),
+        "<b>Добавление в Контакт-гайд Podslushano.nl</b>\n\n"
+        "Заполнение займёт около 3 минут. Перед оплатой вы увидите будущую карточку, "
+        "сможете изменить данные и сравнить тарифы.\n\n"
+        "После оплаты мы проверим анкету и сообщим, когда карточка появится в поиске. "
+        "Factuur придёт на e-mail автоматически.\n\n"
+        f"Размещение — от <b>{_format_euro(config.LISTING_PRICE_MONTH)} в месяц</b>. "
+        "Оплата разовая, без автоматического продления."
     )
+    await _ask_name(message, state)
 
 
 @router.message(SelfAddSpecialist.name)
 async def self_name(message: Message, state: FSMContext) -> None:
-    if not message.text:
-        await message.answer("Напиши имя/название текстом 🙂")
+    name = _clean_text(message.text or "")
+    if not _valid_name(name):
+        await message.answer(
+            "Не получилось распознать имя или название. Напишите от 2 до 80 символов, "
+            "например: <b>Anna Nails</b> или <b>Studio Noord</b>."
+        )
         return
-    await state.update_data(sp_name=message.text.strip())
-    await state.set_state(SelfAddSpecialist.category)
-    cats = ", ".join(CATEGORIES.keys())
-    await message.answer(
-        "Шаг 2/6. Категория? Напиши одну из списка ниже.\n"
-        "<i>Например: стоматолог, юрист, мастер маникюра…</i>\n\n"
-        f"{cats}",
-        reply_markup=cancel_menu(),
+    await state.update_data(sp_name=name)
+    await _return_or_continue(message, state, "name", _ask_category)
+
+
+@router.callback_query(SelfAddSpecialist.category, F.data.startswith("selfcatgroup:"))
+async def self_category_group(callback: CallbackQuery, state: FSMContext) -> None:
+    try:
+        group_index = int(callback.data.split(":", 1)[1])
+        title = list(THEMES)[group_index]
+    except (ValueError, IndexError):
+        await callback.answer("Раздел не найден", show_alert=True)
+        return
+    await callback.message.edit_text(
+        f"<b>{html.escape(title)}</b>\n\nВыберите специализацию:",
+        reply_markup=_category_options_kb(group_index),
     )
+    await callback.answer()
+
+
+@router.callback_query(SelfAddSpecialist.category, F.data == "selfcatgroups")
+async def self_category_groups(callback: CallbackQuery, state: FSMContext) -> None:
+    data = await state.get_data()
+    await callback.message.edit_text(
+        "<b>2/6 · Категория</b>\n\nВыберите раздел:",
+        reply_markup=_category_groups_kb(_back_for(data, "name")),
+    )
+    await callback.answer()
+
+
+@router.callback_query(SelfAddSpecialist.category, F.data.startswith("selfcat:"))
+async def self_category_button(callback: CallbackQuery, state: FSMContext) -> None:
+    category = callback.data.split(":", 1)[1]
+    if category not in CATEGORIES:
+        await callback.answer("Категория не найдена", show_alert=True)
+        return
+    await callback.answer()
+    await _save_category(callback.message, state, category)
+
+
+@router.callback_query(SelfAddSpecialist.category, F.data == "selfcatcustom")
+async def self_category_custom(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.update_data(sp_custom_category_mode=True)
+    await callback.message.answer(
+        "Напишите свою категорию коротко и понятно — так, как её будут искать клиенты.\n\n"
+        "<i>Например: страховой консультант</i>"
+    )
+    await callback.answer()
 
 
 @router.message(SelfAddSpecialist.category)
 async def self_category(message: Message, state: FSMContext) -> None:
-    text = (message.text or "").strip()
+    text = _clean_text(message.text or "")
+    data = await state.get_data()
+    custom_mode = bool(data.get("sp_custom_category_mode"))
     if not text:
-        await message.answer("Напиши категорию текстом 🙂", reply_markup=cancel_menu())
+        await message.answer("Напишите категорию текстом или выберите её кнопками.")
         return
-    # 1) Пробуем сопоставить с существующей категорией (ключевые слова / точное имя)
     cat = detect_category(text) or next((c for c in CATEGORIES if c.lower() == text.lower()), None)
-    # 2) Не вышло — пробуем ИИ (синонимы/опечатки), но только если он вернёт нашу
-    if not cat:
+    if not cat and not custom_mode:
         try:
             extracted = await extract_specialist_query(
                 text, list(CATEGORIES.keys()), list(NEIGHBORS.keys())
@@ -161,123 +501,302 @@ async def self_category(message: Message, state: FSMContext) -> None:
         ai_cat = extracted.get("category")
         if ai_cat and ai_cat in CATEGORIES:
             cat = ai_cat
-    # 3) Ничего не подошло — НЕ блокируем клиента: принимаем его категорию как есть,
-    # пометим как новую (админу прилетит подсказка добавить её в список)
-    custom = False
-    if not cat:
-        cat = text.lower()[:50]
-        custom = True
-    await state.update_data(sp_category=cat, sp_custom_category=custom)
-    await state.set_state(SelfAddSpecialist.location)
-    note = " (добавим как есть, мы проверим)" if custom else ""
-    await message.answer(
-        f"Категория: <b>{html.escape(cat)}</b> ✅{note}\n\n"
-        "Шаг 3/6. Город? Или напиши <b>онлайн</b>, если работаешь по всей стране.",
-        reply_markup=cancel_menu(),
-    )
+    if cat:
+        await _save_category(message, state, cat)
+        return
+    if not custom_mode:
+        await message.answer(
+            "Не удалось определить категорию. Выберите её кнопками или нажмите "
+            "«Моей категории нет», чтобы добавить свой вариант.",
+            reply_markup=_category_groups_kb(_back_for(data, "name")),
+        )
+        return
+    if not 3 <= len(text) <= 50 or len(re.findall(r"[A-Za-zА-Яа-яЁё]", text)) < 3:
+        await message.answer(
+            "Категория должна быть коротким понятным названием от 3 до 50 символов. "
+            "Например: <b>страховой консультант</b>."
+        )
+        return
+    await _save_category(message, state, text.lower(), custom=True)
 
 
 @router.message(SelfAddSpecialist.location)
 async def self_location(message: Message, state: FSMContext) -> None:
-    loc = (message.text or "").strip()
+    loc = _clean_text(message.text or "")
     if not loc:
-        await message.answer("Напиши город или «онлайн» 🙂")
+        await message.answer("Напишите город или нажмите «Онлайн / по всей стране».")
         return
     if loc.lower() in ONLINE_WORDS:
-        await state.update_data(sp_online=True, sp_city="", sp_province="")
-    else:
-        known = detect_city(loc)
-        if known:
-            city, province = known
-        else:
-            city = loc
-            extracted = await extract_specialist_query(
-                loc, list(CATEGORIES.keys()), list(NEIGHBORS.keys())
-            )
-            province = extracted.get("province") or province_of_city(loc) or ""
-        await state.update_data(sp_online=False, sp_city=city, sp_province=province)
-    await state.set_state(SelfAddSpecialist.description)
+        await _save_location(message, state, online=True)
+        return
+    known = detect_city(loc)
+    if known:
+        await _save_location(message, state, online=False, city=known[0], province=known[1])
+        return
+    if not 2 <= len(loc) <= 80 or len(re.findall(r"[A-Za-zА-Яа-яЁё]", loc)) < 2:
+        await message.answer("Не получилось распознать город. Проверьте написание и попробуйте ещё раз.")
+        return
+    await state.update_data(sp_pending_city=loc)
     await message.answer(
-        "Шаг 4/6. Коротко опиши свои услуги (или поставь «-», чтобы пропустить).\n"
-        "<i>Например: «Маникюр, педикюр, наращивание. Работаю на дому»</i>",
-        reply_markup=cancel_menu(),
+        f"Города <b>{html.escape(loc)}</b> пока нет в нашем списке. Если название "
+        "написано верно, его можно сохранить — мы проверим перед публикацией.",
+        reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+            [InlineKeyboardButton(text="✅ Сохранить этот город", callback_data="selfloc:confirm")],
+            [InlineKeyboardButton(text="✏️ Ввести другой", callback_data="selfloc:retry")],
+        ]),
     )
+
+
+@router.callback_query(SelfAddSpecialist.location, F.data.startswith("selfloc:"))
+async def self_location_button(callback: CallbackQuery, state: FSMContext) -> None:
+    action = callback.data.split(":", 1)[1]
+    data = await state.get_data()
+    await callback.answer()
+    if action == "online":
+        await _save_location(callback.message, state, online=True)
+    elif action == "confirm" and data.get("sp_pending_city"):
+        await _save_location(
+            callback.message, state, online=False, city=data["sp_pending_city"]
+        )
+    elif action == "retry":
+        await state.update_data(sp_pending_city=None)
+        await _ask_location(callback.message, state)
 
 
 @router.message(SelfAddSpecialist.description)
 async def self_description(message: Message, state: FSMContext) -> None:
-    desc = (message.text or "").strip()
-    await state.update_data(sp_description=None if desc == "-" else desc)
-    await state.set_state(SelfAddSpecialist.contact)
-    await message.answer(
-        "Шаг 5/6. Как с тобой связаться клиентам? Телефон, @username, e-mail или сайт.\n"
-        "<i>Например: +31 6 12345678, @username, mail@example.com</i>",
-        reply_markup=cancel_menu(),
-    )
+    desc = _clean_text(message.text or "")
+    if not _valid_description(desc):
+        await message.answer(
+            "Описание получилось слишком коротким или непонятным. Напишите 2–4 коротких "
+            "предложения об услугах — от 20 до 500 символов."
+        )
+        return
+    await state.update_data(sp_description=desc)
+    await _return_or_continue(message, state, "description", _ask_contact)
 
 
 @router.message(SelfAddSpecialist.contact)
 async def self_contact(message: Message, state: FSMContext) -> None:
-    if not message.text:
-        await message.answer("Напиши контакты текстом 🙂")
+    contact = _clean_text(message.text or "")
+    if not _valid_contact(contact):
+        await message.answer(
+            "Не нашёл контакт для связи. Укажите телефон, @username, e-mail или ссылку "
+            "на сайт/соцсеть. Например: <b>+31 6 12345678</b>."
+        )
         return
-    await state.update_data(sp_contact=message.text.strip())
-    await state.set_state(SelfAddSpecialist.email)
-    await message.answer(
-        "Шаг 6/6. На какой <b>e-mail</b> прислать счёт (factuur) после оплаты?\n"
-        "<i>Например: mail@example.com</i>",
-        reply_markup=cancel_menu(),
-    )
+    await state.update_data(sp_contact=contact)
+    await _return_or_continue(message, state, "contact", _ask_email)
 
 
 @router.message(SelfAddSpecialist.email)
 async def self_email(message: Message, state: FSMContext) -> None:
-    email = (message.text or "").strip()
-    if "@" not in email or "." not in email or " " in email:
-        await message.answer("Похоже, это не e-mail 🙂 Напиши адрес вида mail@example.com")
+    email = _clean_text(message.text or "").lower()
+    if not _valid_email(email):
+        await message.answer("Проверьте e-mail и отправьте его в формате <b>mail@example.com</b>.")
         return
     await state.update_data(sp_email=email)
-    await state.set_state(SelfAddSpecialist.plan)
-    await message.answer(
-        "Отлично, анкета готова! 🎉 Выбери тариф размещения:\n\n"
-        "🌟 <b>Премиум</b> — карточка показывается <b>выше</b> в выдаче и с бейджем, "
-        "тебя замечают первым.",
-        reply_markup=_plan_kb(),
+    await _return_or_continue(message, state, "email", _show_review)
+
+
+@router.callback_query(SelfAddSpecialist.review, F.data.startswith("selfreview:"))
+async def self_review_action(callback: CallbackQuery, state: FSMContext) -> None:
+    action = callback.data.split(":", 1)[1]
+    await callback.answer()
+    if action == "edit":
+        await callback.message.answer("Что нужно изменить?", reply_markup=_edit_fields_kb())
+    elif action == "plans":
+        await state.set_state(SelfAddSpecialist.plan)
+        await _show_tiers(callback.message, state)
+    elif action == "confirm":
+        await _show_order_confirmation(callback.message, state)
+
+
+@router.callback_query(F.data.startswith("selfedit:"))
+async def self_edit_field(callback: CallbackQuery, state: FSMContext) -> None:
+    field = callback.data.split(":", 1)[1]
+    await callback.answer()
+    if field == "back":
+        await state.update_data(sp_editing=None)
+        await _show_review(callback.message, state)
+        return
+    prompts = {
+        "name": _ask_name,
+        "category": _ask_category,
+        "location": _ask_location,
+        "description": _ask_description,
+        "contact": _ask_contact,
+        "email": _ask_email,
+    }
+    prompt = prompts.get(field)
+    if not prompt:
+        return
+    await state.update_data(sp_editing=field)
+    await prompt(callback.message, state)
+
+
+@router.callback_query(F.data.startswith("selfnav:"))
+async def self_navigate_back(callback: CallbackQuery, state: FSMContext) -> None:
+    target = callback.data.split(":", 1)[1]
+    prompts = {
+        "name": _ask_name,
+        "category": _ask_category,
+        "location": _ask_location,
+        "description": _ask_description,
+        "contact": _ask_contact,
+    }
+    prompt = prompts.get(target)
+    await callback.answer()
+    if prompt:
+        await prompt(callback.message, state)
+
+
+async def _show_tiers(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    referral_note = (
+        "\n\n🎁 По приглашению у вас действует скидка <b>20% на годовое размещение</b>."
+        if data.get("sp_referral") else ""
     )
+    await message.answer(
+        "<b>Выберите формат размещения</b>\n\n"
+        "<b>Стандарт</b>\n"
+        "— имя, категория, город, описание и контакты\n"
+        "— обычная позиция в результатах поиска\n"
+        "— без фото\n\n"
+        "🌟 <b>Премиум</b>\n"
+        "— всё из Стандарта\n"
+        "— фото или логотип\n"
+        "— бейдж 🌟 и позиция выше стандартных карточек\n\n"
+        "Оба формата проходят одинаковую проверку перед публикацией."
+        f"{referral_note}",
+        reply_markup=_tier_kb(),
+    )
+
+
+@router.callback_query(SelfAddSpecialist.plan, F.data.startswith("selftier:"))
+async def self_tier(callback: CallbackQuery, state: FSMContext) -> None:
+    tier = callback.data.split(":", 1)[1]
+    await callback.answer()
+    if tier == "back":
+        await _show_review(callback.message, state)
+        return
+    if tier not in ("standard", "premium"):
+        return
+    data = await state.get_data()
+    title = "Стандарт" if tier == "standard" else "🌟 Премиум"
+    await callback.message.answer(
+        f"<b>{title}: выберите срок размещения</b>\n\n"
+        "Чем дольше срок, тем ниже стоимость одного месяца.",
+        reply_markup=_plan_duration_kb(tier, referral=bool(data.get("sp_referral"))),
+    )
+
+
+@router.callback_query(SelfAddSpecialist.plan, F.data == "selfplanback")
+async def self_plan_back(callback: CallbackQuery, state: FSMContext) -> None:
+    await callback.answer()
+    await _show_tiers(callback.message, state)
 
 
 @router.callback_query(SelfAddSpecialist.plan, F.data.startswith("selfplan:"))
 async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
     plan = callback.data.split(":", 1)[1]
-    if plan not in ("month", "year", "month_premium", "6m_premium", "year_premium"):
-        plan = "year"
-    # Премиум показывает фото — попросим его перед оплатой
+    if plan not in SELFADD_PLANS:
+        await callback.answer("Тариф не найден", show_alert=True)
+        return
+    await state.update_data(sp_plan=plan)
     if config.plan_info(plan)["premium"]:
-        await state.update_data(sp_plan=plan)
         await state.set_state(SelfAddSpecialist.photo)
         await callback.message.answer(
-            "🌟 <b>Премиум показывает фото</b> — пришли фото (логотип или твоё фото) "
-            "одним сообщением. Или напиши «-», чтобы пропустить.",
-            reply_markup=cancel_menu(),
+            "<b>Фото для Премиум-карточки</b>\n\n"
+            "Пришлите одним сообщением фото или логотип, который увидят клиенты. "
+            "Лучше использовать квадратное изображение хорошего качества.\n\n"
+            "Можно продолжить без фото и добавить его позднее.",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text="Продолжить без фото", callback_data="selfphoto:skip")],
+                [InlineKeyboardButton(text="⬅️ Изменить тариф", callback_data="selfphoto:back")],
+            ]),
         )
         await callback.answer()
         return
-    await _create_listing_and_pay(callback.message, state, plan, None, callback.from_user.id)
+    await state.update_data(sp_photo_id=None)
+    await _show_order_confirmation(callback.message, state)
     await callback.answer()
 
 
 @router.message(SelfAddSpecialist.photo)
 async def self_photo(message: Message, state: FSMContext) -> None:
-    data = await state.get_data()
-    plan = data.get("sp_plan", "year_premium")
     if message.photo:
         photo_id = message.photo[-1].file_id
     elif message.text and message.text.strip().lower() in ("-", "пропустить", "skip", "нет"):
         photo_id = None
     else:
-        await message.answer("Пришли фото картинкой или «-», чтобы пропустить 🙂")
+        await message.answer("Пришлите изображение как фото или нажмите «Продолжить без фото».")
         return
-    await _create_listing_and_pay(message, state, plan, photo_id, message.from_user.id)
+    await state.update_data(sp_photo_id=photo_id)
+    await _show_order_confirmation(message, state)
+
+
+@router.callback_query(SelfAddSpecialist.photo, F.data.startswith("selfphoto:"))
+async def self_photo_action(callback: CallbackQuery, state: FSMContext) -> None:
+    action = callback.data.split(":", 1)[1]
+    await callback.answer()
+    if action == "skip":
+        await state.update_data(sp_photo_id=None)
+        await _show_order_confirmation(callback.message, state)
+    elif action == "back":
+        await state.set_state(SelfAddSpecialist.plan)
+        await _show_tiers(callback.message, state)
+
+
+async def _show_order_confirmation(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    plan = data.get("sp_plan")
+    if plan not in SELFADD_PLANS:
+        await state.set_state(SelfAddSpecialist.plan)
+        await _show_tiers(message, state)
+        return
+    amount = _actual_plan_amount(plan, referral=bool(data.get("sp_referral")))
+    photo_note = "\n<b>Фото:</b> добавлено" if data.get("sp_photo_id") else ""
+    await state.set_state(SelfAddSpecialist.confirm)
+    await message.answer(
+        "<b>Заказ готов</b>\n\n"
+        f"<b>Тариф:</b> {_plan_title(plan)}\n"
+        f"<b>К оплате:</b> {_format_euro(amount)}\n"
+        f"<b>Срок:</b> {config.plan_info(plan)['days']} дней"
+        f"{photo_note}\n\n"
+        "После оплаты:\n"
+        f"1. Factuur придёт на <b>{html.escape(data.get('sp_email', ''))}</b>.\n"
+        "2. Мы проверим данные и оформление карточки.\n"
+        "3. Бот сообщит о публикации или необходимых исправлениях.\n\n"
+        "Оплата разовая. Автоматического списания и продления нет.",
+        reply_markup=_confirm_kb(),
+    )
+
+
+@router.callback_query(SelfAddSpecialist.confirm, F.data.startswith("selfconfirm:"))
+async def self_confirm(callback: CallbackQuery, state: FSMContext) -> None:
+    action = callback.data.split(":", 1)[1]
+    await callback.answer()
+    if action == "plan":
+        await state.set_state(SelfAddSpecialist.plan)
+        await _show_tiers(callback.message, state)
+    elif action == "edit":
+        await _show_review(callback.message, state)
+    elif action == "pay":
+        data = await state.get_data()
+        plan = data.get("sp_plan")
+        if plan not in SELFADD_PLANS:
+            await state.set_state(SelfAddSpecialist.plan)
+            await _show_tiers(callback.message, state)
+            return
+        await callback.message.answer("Создаём безопасную ссылку на оплату…")
+        await _create_listing_and_pay(
+            callback.message,
+            state,
+            plan,
+            data.get("sp_photo_id"),
+            callback.from_user.id,
+        )
 
 
 async def _create_listing_and_pay(message, state: FSMContext, plan: str,
@@ -289,28 +808,27 @@ async def _create_listing_and_pay(message, state: FSMContext, plan: str,
         # Пришёл ли пользователь по реф-ссылке специалиста (?start=spref_<id>)
         ref_meta = await session.get(Meta, f"spref:{uid}")
         ref_sid = int(ref_meta.value) if ref_meta and ref_meta.value.isdigit() else None
-        sp = Specialist(
-            name=data["sp_name"],
-            category=data["sp_category"],
-            city=data.get("sp_city", ""),
-            province=data.get("sp_province", ""),
-            description=data.get("sp_description"),
-            contact=data.get("sp_contact", ""),
-            is_online=data.get("sp_online", False),
-            is_premium=info["premium"],
-            photo_file_id=photo_file_id,
-            status="awaiting_payment",
-            source="self",
-            submitter_user_id=uid,
-            invoice_email=data.get("sp_email"),
-            plan=plan,
-            referred_by_specialist_id=ref_sid,
-        )
-        session.add(sp)
+        existing_id = data.get("sp_listing_id")
+        sp = await session.get(Specialist, existing_id) if existing_id else None
+        if sp is None or sp.submitter_user_id != uid or sp.status != "awaiting_payment":
+            sp = Specialist(status="awaiting_payment", source="self", submitter_user_id=uid)
+            session.add(sp)
+        sp.name = data["sp_name"]
+        sp.category = data["sp_category"]
+        sp.city = data.get("sp_city", "")
+        sp.province = data.get("sp_province", "")
+        sp.description = data.get("sp_description")
+        sp.contact = data.get("sp_contact", "")
+        sp.is_online = data.get("sp_online", False)
+        sp.is_premium = info["premium"]
+        sp.photo_file_id = photo_file_id
+        sp.invoice_email = data.get("sp_email")
+        sp.plan = plan
+        sp.referred_by_specialist_id = ref_sid
         await session.commit()
         await session.refresh(sp)
         sid, name = sp.id, sp.name
-    await state.clear()
+    await state.update_data(sp_listing_id=sid)
 
     # Скидка -20% приглашённому на ГОДОВОЕ размещение (Стандарт/Премиум)
     referral_year = bool(ref_sid) and plan in ("year", "year_premium")
@@ -322,9 +840,11 @@ async def _create_listing_and_pay(message, state: FSMContext, plan: str,
         amount,
     )
     if not payment or not payment.get("checkout_url"):
+        await state.set_state(SelfAddSpecialist.confirm)
         await message.answer(
-            "Не получилось создать ссылку на оплату 😔 Попробуй позже или напиши нам.",
-            reply_markup=main_menu(),
+            "Ссылку на оплату сейчас создать не удалось. Данные анкеты сохранены — "
+            "попробуйте ещё раз через минуту.",
+            reply_markup=_confirm_kb(),
         )
         return
     async with get_session() as session:
@@ -332,22 +852,24 @@ async def _create_listing_and_pay(message, state: FSMContext, plan: str,
         if sp:
             sp.payment_id = payment["id"]
             await session.commit()
+    await state.clear()
     # Возвращаем обычное меню (убираем клавиатуру «Отмена» из анкеты)
     tariff = (
-        f"<s>{info['price']}</s> → <b>{amount} {config.LISTING_CURRENCY}</b> "
-        f"(−20% по приглашению, {info['title']})"
-        if referral_year else f"<b>{_price_str(plan)}</b>"
+        f"<b>{_plan_title(plan)}</b> · <s>{_format_euro(info['price'])}</s> → "
+        f"<b>{_format_euro(amount)}</b> (скидка 20% по приглашению)"
+        if referral_year else f"<b>{_plan_title(plan)}</b> · <b>{_format_euro(amount)}</b>"
     )
     await message.answer(
-        f"Почти готово! 🎉 Тариф: {tariff}.\n\n"
-        "После оплаты мы проверим анкету и опубликуем карточку — я напишу тебе ✅\n\n"
-        f'Оплачивая, ты соглашаешься с <a href="{config.terms_url()}">Условиями</a> '
+        f"<b>Ссылка на оплату готова</b>\n\nТариф: {tariff}.\n\n"
+        "После успешной оплаты factuur придёт на указанный e-mail, а анкета отправится "
+        "нам на проверку. Бот сообщит, когда карточка будет опубликована.\n\n"
+        f'Оплачивая, вы соглашаетесь с <a href="{config.terms_url()}">Условиями</a> '
         f'и <a href="{config.privacy_url()}">Политикой конфиденциальности</a>.',
         reply_markup=main_menu(),
         disable_web_page_preview=True,
     )
     await message.answer(
-        "👇 Кнопка для оплаты:",
+        "Нажмите кнопку, чтобы перейти к оплате:",
         reply_markup=_pay_kb(payment["checkout_url"], plan, amount),
     )
 
@@ -489,8 +1011,8 @@ async def on_payment_paid(bot, payment_id: str) -> None:
     if sub:
         await _safe_send(
             bot, sub,
-            "Оплата получена, спасибо! 🙌 Мы проверим анкету и опубликуем карточку — "
-            "я напишу, как только всё готово ✅",
+            "Оплата получена, спасибо! 🙌 Анкета отправлена на проверку. Бот сообщит, "
+            "когда карточка будет опубликована или если понадобятся исправления.",
         )
 
     # Реферальная награда: пригласивший получает бонусный Премиум на 3 месяца
@@ -519,7 +1041,7 @@ def expiry_notice_text(sp: Specialist) -> str:
     return (
         f"❌ Срок размещения «{html.escape(sp.name)}» в гайде истёк, "
         f"и карточка скрыта из поиска.\n"
-        f"Хочешь вернуть её? Продли ({_price_str(sp.plan or 'year')}) 👇"
+        f"Чтобы вернуть её в поиск, продлите размещение ({_price_str(sp.plan or 'year')}) 👇"
     )
 
 

@@ -163,8 +163,10 @@ class SelfAddSpecialist(StatesGroup):
     description = State()
     contact = State()
     email = State()
+    review = State()
     plan = State()
     photo = State()
+    confirm = State()
 
 
 class AfishaSubmit(StatesGroup):
