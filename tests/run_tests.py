@@ -99,7 +99,10 @@ def test_specialist_premium_six_month_plan() -> None:
 
 def test_specialist_onboarding_ux() -> None:
     from handlers.selfadd import (
+        _build_public_contacts,
         _category_options_kb,
+        _contact_hub_kb,
+        _normalize_public_contact,
         _plan_duration_kb,
         _preview_text,
         _valid_contact,
@@ -121,6 +124,87 @@ def test_specialist_onboarding_ux() -> None:
     check("анкета отклоняет текст вместо контакта", not _valid_contact("выпвпкнл"))
     check("анкета принимает корректный e-mail", _valid_email("mail@example.com"))
     check("анкета отклоняет неполный e-mail", not _valid_email("mail@example"))
+
+    contact_data = {
+        "sp_contact_instagram": _normalize_public_contact(
+            "instagram", "https://instagram.com/anna.nails/"
+        ),
+        "sp_contact_telegram": _normalize_public_contact("telegram", "@anna_nails"),
+        "sp_contact_email": _normalize_public_contact("email", "HELLO@EXAMPLE.COM"),
+        "sp_contact_website": _normalize_public_contact("website", "www.example.nl/book"),
+        "sp_contact_phone": _normalize_public_contact("phone", "06 12345678"),
+    }
+    check("Instagram нормализуется в username",
+          contact_data["sp_contact_instagram"] == "@anna.nails")
+    check("Telegram проверяется отдельно от Instagram",
+          contact_data["sp_contact_telegram"] == "@anna_nails")
+    check("публичная почта нормализуется",
+          contact_data["sp_contact_email"] == "hello@example.com")
+    check("сайт получает безопасный https URL",
+          contact_data["sp_contact_website"] == "https://example.nl/book")
+    check("нидерландский номер получает код страны",
+          contact_data["sp_contact_phone"] == "+31612345678")
+    check("неверные контакты не принимаются",
+          _normalize_public_contact("telegram", "просто текст") is None
+          and _normalize_public_contact("website", "не сайт") is None)
+
+    empty_contact_callbacks = [
+        button.callback_data
+        for row in _contact_hub_kb({}).inline_keyboard
+        for button in row
+    ]
+    filled_contact_buttons = [
+        button
+        for row in _contact_hub_kb(contact_data).inline_keyboard
+        for button in row
+    ]
+    check("анкета предлагает пять отдельных типов контактов",
+          set(empty_contact_callbacks[:5]) == {
+              "selfcontact:add:instagram", "selfcontact:add:telegram",
+              "selfcontact:add:email", "selfcontact:add:website",
+              "selfcontact:add:phone",
+          })
+    check("без контакта нельзя продолжить",
+          "selfcontact:done" not in empty_contact_callbacks)
+    check("заполненные контакты отмечены и разрешают продолжить",
+          sum(button.text.startswith("✅") for button in filled_contact_buttons) == 5
+          and any(button.callback_data == "selfcontact:done" for button in filled_contact_buttons))
+
+    public_contacts = _build_public_contacts(contact_data)
+    from utils.contact_links import parse_contact_links
+    parsed = parse_contact_links(public_contacts)
+    check("все пять контактов превращаются в кликабельные ссылки",
+          {item["type"] for item in parsed} == {
+              "instagram", "telegram", "email", "website", "phone"
+          })
+    check("телефон не создаёт неподтверждённую кнопку WhatsApp",
+          all(item["type"] != "whatsapp" for item in parsed))
+
+    from database.models import Specialist
+    from handlers.contacts import _spec_card_kb, _spec_text
+    old_webhook_base = config.WEBHOOK_BASE_URL
+    config.WEBHOOK_BASE_URL = "https://bot.example"
+    try:
+        specialist = Specialist(
+            id=321, name="Anna", category="маникюр", city="Amsterdam",
+            province="Noord-Holland", contact=public_contacts,
+        )
+        card_buttons = [
+            button
+            for row in _spec_card_kb(specialist, 0, 1).inline_keyboard
+            for button in row
+        ]
+        contact_buttons = {button.text: button.url for button in card_buttons if button.url}
+        check("в Telegram-карточке есть все пять контактных кнопок",
+              {"📷 Instagram", "✈️ Telegram", "✉️ Почта", "🌐 Сайт", "📞 Телефон"}
+              <= set(contact_buttons))
+        check("почта и телефон открываются через безопасные HTTPS-кнопки",
+              contact_buttons["✉️ Почта"].endswith("/contact-action/321/email")
+              and contact_buttons["📞 Телефон"].endswith("/contact-action/321/phone"))
+        check("контакты не дублируются текстом рядом с кнопками",
+              public_contacts not in _spec_text(specialist))
+    finally:
+        config.WEBHOOK_BASE_URL = old_webhook_base
 
     callbacks = [
         button.callback_data
@@ -158,10 +242,13 @@ def test_specialist_onboarding_ux() -> None:
     preview = _preview_text({
         "sp_name": "<Anna>", "sp_category": "фитнес", "sp_online": True,
         "sp_description": "Персональные тренировки онлайн для начинающих.",
-        "sp_contact": "@username", "sp_email": "mail@example.com",
+        **contact_data, "sp_contact": public_contacts, "sp_email": "mail@example.com",
     })
     check("предпросмотр экранирует пользовательский HTML",
           "&lt;Anna&gt;" in preview and "<Anna>" not in preview)
+    check("предпросмотр показывает контакты раздельно",
+          "<b>Instagram:</b> @anna.nails" in preview
+          and "<b>Телефон:</b> +31612345678" in preview)
     check("у анкеты есть предпросмотр и подтверждение оплаты",
           bool(SelfAddSpecialist.review) and bool(SelfAddSpecialist.confirm))
 

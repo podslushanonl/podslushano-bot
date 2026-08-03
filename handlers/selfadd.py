@@ -9,6 +9,7 @@ import html
 import logging
 import re
 from datetime import datetime, timedelta
+from urllib.parse import urlsplit, urlunsplit
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
@@ -97,6 +98,119 @@ def _valid_contact(value: str) -> bool:
 
 def _valid_email(value: str) -> bool:
     return len(value) <= 200 and bool(_EMAIL_RE.fullmatch(value))
+
+
+_CONTACT_FIELDS = {
+    "instagram": ("sp_contact_instagram", "Instagram", "📷"),
+    "telegram": ("sp_contact_telegram", "Telegram", "✈️"),
+    "email": ("sp_contact_email", "Почта", "✉️"),
+    "website": ("sp_contact_website", "Сайт", "🌐"),
+    "phone": ("sp_contact_phone", "Телефон", "📞"),
+}
+
+
+def _normalize_public_contact(kind: str, value: str) -> str | None:
+    """Проверяет один явно выбранный контакт и возвращает каноничное значение."""
+    value = _clean_text(value).strip(" ,;")
+    if kind == "instagram":
+        match = re.fullmatch(
+            r"(?:https?://)?(?:www\.)?instagram\.com/([A-Za-z0-9._]{1,30})/?(?:\?.*)?",
+            value,
+            re.IGNORECASE,
+        )
+        handle = match.group(1) if match else value.lstrip("@")
+        if not re.fullmatch(r"[A-Za-z0-9._]{1,30}", handle):
+            return None
+        return f"@{handle}"
+    if kind == "telegram":
+        match = re.fullmatch(
+            r"(?:https?://)?(?:www\.)?t\.me/([A-Za-z][A-Za-z0-9_]{4,31})/?(?:\?.*)?",
+            value,
+            re.IGNORECASE,
+        )
+        handle = match.group(1) if match else value.lstrip("@")
+        if not re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{4,31}", handle):
+            return None
+        return f"@{handle}"
+    if kind == "email":
+        value = value.lower()
+        return value if _valid_email(value) else None
+    if kind == "website":
+        if not re.match(r"^https?://", value, re.IGNORECASE):
+            value = "https://" + value.removeprefix("www.")
+        try:
+            parsed = urlsplit(value)
+        except ValueError:
+            return None
+        host = parsed.hostname or ""
+        if parsed.scheme not in ("http", "https") or "." not in host or " " in value:
+            return None
+        return urlunsplit((parsed.scheme.lower(), parsed.netloc, parsed.path or "", parsed.query, ""))
+    if kind == "phone":
+        digits = re.sub(r"\D", "", value)
+        if digits.startswith("00"):
+            digits = digits[2:]
+        elif value.startswith("0") and not value.startswith("00"):
+            digits = "31" + digits[1:]
+        if not 8 <= len(digits) <= 15:
+            return None
+        return f"+{digits}"
+    return None
+
+
+def _build_public_contacts(data: dict) -> str:
+    """Собирает совместимую со старыми карточками строку из отдельных полей."""
+    labels = {
+        "instagram": "Instagram",
+        "telegram": "Telegram",
+        "email": "E-mail",
+        "website": "Сайт",
+        "phone": "Телефон",
+    }
+    parts = []
+    for kind, (field, _title, _icon) in _CONTACT_FIELDS.items():
+        value = data.get(field)
+        if value:
+            parts.append(f"{labels[kind]}: {value}")
+    return " · ".join(parts)
+
+
+def _public_contact_lines(data: dict) -> list[str]:
+    lines = []
+    for _kind, (field, title, icon) in _CONTACT_FIELDS.items():
+        if data.get(field):
+            lines.append(f"{icon} <b>{title}:</b> {html.escape(data[field])}")
+    return lines
+
+
+def _contact_hub_kb(data: dict) -> InlineKeyboardMarkup:
+    buttons = []
+    for kind, (field, title, icon) in _CONTACT_FIELDS.items():
+        marker = "✅" if data.get(field) else icon
+        buttons.append(InlineKeyboardButton(
+            text=f"{marker} {title}", callback_data=f"selfcontact:add:{kind}"
+        ))
+    rows = [buttons[:2], buttons[2:4], buttons[4:]]
+    if _build_public_contacts(data):
+        rows.append([InlineKeyboardButton(
+            text="Продолжить →", callback_data="selfcontact:done"
+        )])
+    rows.append([InlineKeyboardButton(
+        text="⬅️ Назад", callback_data=_back_for(data, "description")
+    )])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+def _contact_input_kb(kind: str, *, has_value: bool) -> InlineKeyboardMarkup:
+    rows = []
+    if has_value:
+        rows.append([InlineKeyboardButton(
+            text="🗑 Удалить этот контакт", callback_data=f"selfcontact:remove:{kind}"
+        )])
+    rows.append([InlineKeyboardButton(
+        text="⬅️ К контактам", callback_data="selfcontact:hub"
+    )])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
 def _category_groups_kb(back_callback: str = "selfnav:name") -> InlineKeyboardMarkup:
@@ -217,13 +331,16 @@ def _confirm_kb() -> InlineKeyboardMarkup:
 
 def _preview_text(data: dict) -> str:
     where = "Онлайн / по всей стране" if data.get("sp_online") else data.get("sp_city", "—")
+    contacts = "\n".join(_public_contact_lines(data)) or html.escape(
+        data.get("sp_contact") or "—"
+    )
     return (
         "<b>Проверьте будущую карточку</b>\n\n"
         f"<b>Имя / название:</b> {html.escape(data.get('sp_name', '—'))}\n"
         f"<b>Категория:</b> {html.escape(data.get('sp_category', '—'))}\n"
         f"<b>Где работаете:</b> {html.escape(where)}\n"
         f"<b>Описание:</b> {html.escape(data.get('sp_description') or '—')}\n"
-        f"<b>Контакты:</b> {html.escape(data.get('sp_contact', '—'))}\n\n"
+        f"<b>Контакты:</b>\n{contacts}\n\n"
         f"<b>E-mail для factuur:</b> {html.escape(data.get('sp_email', '—'))}\n"
         "<i>E-mail нужен только для счёта и не публикуется в карточке, если вы "
         "не указали его отдельно в контактах.</i>"
@@ -350,13 +467,16 @@ async def _ask_description(message: Message, state: FSMContext) -> None:
 
 async def _ask_contact(message: Message, state: FSMContext) -> None:
     await state.set_state(SelfAddSpecialist.contact)
+    await state.update_data(sp_contact_field=None)
     data = await state.get_data()
+    filled = _public_contact_lines(data)
+    current = "\n".join(filled) if filled else "Пока ничего не добавлено."
     await message.answer(
         "<b>5/6 · Контакты для клиентов</b>\n\n"
-        "Укажите хотя бы один способ связи: телефон, Telegram, e-mail или сайт. "
-        "Можно добавить несколько.\n\n"
-        "<i>Например: +31 6 12345678 · @username · example.nl</i>",
-        reply_markup=_nav_kb(_back_for(data, "description")),
+        "Выберите, какие кнопки показать в вашей карточке. Каждый контакт заполняется "
+        "по желанию, но для публикации нужен хотя бы один.\n\n"
+        f"{current}",
+        reply_markup=_contact_hub_kb(data),
     )
 
 
@@ -578,15 +698,75 @@ async def self_description(message: Message, state: FSMContext) -> None:
 
 @router.message(SelfAddSpecialist.contact)
 async def self_contact(message: Message, state: FSMContext) -> None:
-    contact = _clean_text(message.text or "")
-    if not _valid_contact(contact):
+    data = await state.get_data()
+    kind = data.get("sp_contact_field")
+    if kind not in _CONTACT_FIELDS:
         await message.answer(
-            "Не нашёл контакт для связи. Укажите телефон, @username, e-mail или ссылку "
-            "на сайт/соцсеть. Например: <b>+31 6 12345678</b>."
+            "Сначала выберите кнопкой, какой контакт хотите добавить.",
+            reply_markup=_contact_hub_kb(data),
         )
         return
-    await state.update_data(sp_contact=contact)
-    await _return_or_continue(message, state, "contact", _ask_email)
+    value = _normalize_public_contact(kind, message.text or "")
+    if not value:
+        examples = {
+            "instagram": "<b>@username</b> или ссылку instagram.com/username",
+            "telegram": "<b>@username</b> или ссылку t.me/username",
+            "email": "<b>mail@example.com</b>",
+            "website": "<b>example.nl</b> или полную ссылку",
+            "phone": "номер с кодом страны, например <b>+31 6 12345678</b>",
+        }
+        await message.answer(f"Проверьте значение и отправьте {examples[kind]}.")
+        return
+    field = _CONTACT_FIELDS[kind][0]
+    await state.update_data(**{field: value, "sp_contact_field": None})
+    updated = await state.get_data()
+    await state.update_data(sp_contact=_build_public_contacts(updated))
+    await message.answer("Контакт сохранён ✅")
+    await _ask_contact(message, state)
+
+
+@router.callback_query(SelfAddSpecialist.contact, F.data.startswith("selfcontact:"))
+async def self_contact_action(callback: CallbackQuery, state: FSMContext) -> None:
+    parts = callback.data.split(":")
+    action = parts[1] if len(parts) > 1 else ""
+    kind = parts[2] if len(parts) > 2 else ""
+    data = await state.get_data()
+    await callback.answer()
+    if action == "hub":
+        await _ask_contact(callback.message, state)
+        return
+    if action == "done":
+        contact = _build_public_contacts(data)
+        if not contact:
+            await callback.message.answer("Добавьте хотя бы один контакт для публикации карточки.")
+            return
+        await state.update_data(sp_contact=contact, sp_contact_field=None)
+        await _return_or_continue(callback.message, state, "contact", _ask_email)
+        return
+    if kind not in _CONTACT_FIELDS:
+        return
+    field, title, _icon = _CONTACT_FIELDS[kind]
+    if action == "remove":
+        await state.update_data(**{field: None, "sp_contact_field": None})
+        updated = await state.get_data()
+        await state.update_data(sp_contact=_build_public_contacts(updated))
+        await _ask_contact(callback.message, state)
+        return
+    if action != "add":
+        return
+    examples = {
+        "instagram": "@username или https://instagram.com/username",
+        "telegram": "@username или https://t.me/username",
+        "email": "mail@example.com",
+        "website": "example.nl или https://example.nl",
+        "phone": "+31 6 12345678",
+    }
+    await state.update_data(sp_contact_field=kind)
+    await callback.message.answer(
+        f"<b>{html.escape(title)}</b>\n\nОтправьте {examples[kind]}. Бот проверит "
+        "значение и подготовит рабочую кнопку.",
+        reply_markup=_contact_input_kb(kind, has_value=bool(data.get(field))),
+    )
 
 
 @router.message(SelfAddSpecialist.email)
@@ -818,7 +998,7 @@ async def _create_listing_and_pay(message, state: FSMContext, plan: str,
         sp.city = data.get("sp_city", "")
         sp.province = data.get("sp_province", "")
         sp.description = data.get("sp_description")
-        sp.contact = data.get("sp_contact", "")
+        sp.contact = _build_public_contacts(data) or data.get("sp_contact", "")
         sp.is_online = data.get("sp_online", False)
         sp.is_premium = info["premium"]
         sp.photo_file_id = photo_file_id

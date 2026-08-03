@@ -318,7 +318,11 @@ def _spec_text(spec: Specialist, badge: str = "",
         text += f"  {badge}"
     if spec.description:
         text += f"\n{html.escape(spec.description)}"
-    if spec.contact:
+    links = parse_contact_links(spec.contact)
+    button_types = set(TELEGRAM_TYPES)
+    if config.WEBHOOK_BASE_URL:
+        button_types.update({"phone", "email"})
+    if spec.contact and not any(link["type"] in button_types for link in links):
         text += f"\n📞 {html.escape(spec.contact)}"
     for rating, rtext in reviews or []:
         text += f"\n\n💬 {'⭐' * rating}\n<i>«{html.escape(rtext)}»</i>"
@@ -327,8 +331,19 @@ def _spec_text(spec: Specialist, badge: str = "",
 
 def _spec_card_kb(spec: Specialist, idx: int, total: int) -> InlineKeyboardMarkup:
     """Карточка специалиста: кнопки-ссылки + «Оценить»/«Поделиться» + навигация ◀️ N/M ▶️."""
-    links = [l for l in parse_contact_links(spec.contact) if l["type"] in TELEGRAM_TYPES]
-    btns = [InlineKeyboardButton(text=l["label"], url=l["url"]) for l in links]
+    links = parse_contact_links(spec.contact)
+    btns = []
+    for link in links:
+        if link["type"] in TELEGRAM_TYPES:
+            url = link["url"]
+        elif link["type"] in {"phone", "email"} and config.WEBHOOK_BASE_URL:
+            url = (
+                f"{config.WEBHOOK_BASE_URL.rstrip('/')}/contact-action/"
+                f"{spec.id}/{link['type']}"
+            )
+        else:
+            continue
+        btns.append(InlineKeyboardButton(text=link["label"], url=url))
     rows = [btns[i:i + 2] for i in range(0, len(btns), 2)]
     actions = [InlineKeyboardButton(text="⭐ Оценить", callback_data=f"rate:{spec.id}")]
     # «Поделиться» — короткая чистая ссылка на карточку (страница /s/<id> у бота)

@@ -13,6 +13,7 @@ _TG_URL_RE = re.compile(r"t\.me/([A-Za-z0-9_]+)", re.I)
 _URL_RE = re.compile(r"https?://[^\s,)]+", re.I)
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
 _PHONE_RE = re.compile(r"(\+?\d[\d\s\-]{7,}\d)")
+_WHATSAPP_RE = re.compile(r"(?:whatsapp|вотсап|вацап)\b[^+\d]*(\+?\d[\d\s\-]{7,}\d)", re.I)
 
 # Типы, которые допустимы в inline-кнопках Telegram (только http/https)
 TELEGRAM_TYPES = {"instagram", "telegram", "website", "whatsapp"}
@@ -51,18 +52,23 @@ def parse_contact_links(contact: str | None) -> list[dict]:
         links.append({"type": "website", "label": "🌐 Сайт", "url": url})
         break
 
+    wm = _WHATSAPP_RE.search(contact)
+    if wm:
+        digits = _normalize_phone(wm.group(1))
+        if digits:
+            links.append({"type": "whatsapp", "label": "💬 WhatsApp",
+                          "url": f"https://wa.me/{digits}"})
+
     pm = _PHONE_RE.search(contact)
     if pm:
         digits = _normalize_phone(pm.group(1))
         if digits:
-            links.append({"type": "whatsapp", "label": "💬 WhatsApp",
-                          "url": f"https://wa.me/{digits}"})
-            links.append({"type": "phone", "label": "📞 Позвонить",
+            links.append({"type": "phone", "label": "📞 Телефон",
                           "url": f"tel:+{digits}"})
 
     em = _EMAIL_RE.search(contact)
     if em:
-        links.append({"type": "email", "label": "✉️ Email",
+        links.append({"type": "email", "label": "✉️ Почта",
                       "url": f"mailto:{em.group(0)}"})
 
     return links
