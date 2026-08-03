@@ -18,30 +18,26 @@ router = Router()
 
 STORY_HASHTAG = "#pnl_истории"
 MIN_STORY_LENGTH = 250
+# У Telegram подпись к фото ограничена 1024 символами. Оставляем запас под
+# заголовок, подпись автора, призыв и хэштег, чтобы пост всегда был одним сообщением.
+MAX_STORY_LENGTH = 700
 STORY_COVER_KEY = "pnl_stories_cover_file_id"
 
 FIRST_STORY_TEXT = (
     "<b>История от нашей подписчицы</b>\n\n"
     "<b>Как я перестала бояться открытых окон</b>\n\n"
-    "Когда только переехала в Нидерланды, меня удивляло буквально всё. Но больше всего — окна.\n\n"
-    "Иду вечером по улице, а у людей дома всё видно: кухня, диван, телевизор, кто-то ужинает, "
-    "кто-то читает книгу, кто-то просто сидит с кружкой чая. И почти нигде нет плотных штор.\n\n"
-    "Первые пару месяцев мне было очень неловко. Я закрывала свои шторы ещё до того, как включала "
-    "свет. Казалось, что соседи обязательно будут заглядывать.\n\n"
-    "Как-то разговорилась с коллегой-голландкой и спросила, почему у них так принято.\n\n"
-    "Она улыбнулась и ответила:\n\n"
-    "— «Если мне нечего скрывать, зачем мне закрываться?»\n\n"
-    "Эта фраза почему-то очень запомнилась.\n\n"
-    "Прошло уже несколько лет.\n\n"
-    "Недавно поймала себя на мысли, что сама почти перестала закрывать шторы. Соседи проходят мимо "
-    "моего окна, я прохожу мимо их окон — и никому до этого нет никакого дела.\n\n"
-    "Иногда даже смешно вспоминать, как в первый месяц я чуть ли не пряталась в собственной квартире, "
-    "чтобы меня случайно никто не увидел.\n\n"
+    "После переезда в Нидерланды меня больше всего удивляли окна. Вечером идёшь по улице — "
+    "у людей всё видно: кухня, диван, телевизор, кто-то ужинает, кто-то читает. И почти нигде "
+    "нет плотных штор.\n\n"
+    "Первые месяцы я закрывала свои шторы ещё до того, как включала свет. Казалось, что соседи "
+    "обязательно будут смотреть. Однажды спросила коллегу-голландку, почему у них так принято. "
+    "Она улыбнулась: «Если мне нечего скрывать, зачем закрываться?»\n\n"
+    "Прошло несколько лет. Недавно заметила, что сама почти перестала закрывать шторы. Соседи "
+    "проходят мимо моего окна, я — мимо их окон, и никому нет до этого дела. Теперь смешно "
+    "вспоминать, как в первый месяц я почти пряталась в собственной квартире.\n\n"
     "Похоже, некоторые голландские привычки всё-таки становятся своими.\n\n"
     "©️ Анонимно\n\n"
-    "А что вас больше всего удивило после переезда в Нидерланды? 🇳🇱\n\n"
-    "Пишите в комментариях 👇\n\n"
-    "Если история была интересной — поддержите её реакцией ❤️\n\n"
+    "А что вас больше всего удивило после переезда? Пишите в комментариях 👇\n\n"
     f"{STORY_HASHTAG}"
 )
 
@@ -95,7 +91,6 @@ async def _get_story_cover() -> str | None:
 
 @router.message(Command("set_story_cover"))
 async def set_story_cover(message: Message) -> None:
-    """Админ отправляет фирменную картинку с подписью /set_story_cover."""
     if message.from_user is None or message.from_user.id not in config.ADMIN_IDS:
         return
     if not message.photo:
@@ -178,6 +173,13 @@ async def receive_story_text(message: Message, state: FSMContext) -> None:
             "Добавьте детали: что произошло, где это было, что вы почувствовали и чем всё закончилось."
         )
         return
+    if len(text) > MAX_STORY_LENGTH:
+        await message.answer(
+            f"История получилась слишком длинной для одного поста с фотографией — "
+            f"сейчас {len(text)} символов. Сократите её примерно до {MAX_STORY_LENGTH} символов, "
+            "чтобы фото и весь текст опубликовались одним сообщением."
+        )
+        return
 
     await state.update_data(story_text=text)
     data = await state.get_data()
@@ -228,11 +230,7 @@ async def submit_story_for_moderation(callback: CallbackQuery, state: FSMContext
 
 
 async def _publish_story(bot, submission: Submission | None = None, *, text: str | None = None):
-    """Публикует фирменную обложку, затем текст истории с кнопкой.
-
-    Telegram ограничивает подпись к фото, поэтому длинная история идёт следующим
-    сообщением. Публикация без настроенной обложки запрещена.
-    """
+    """Публикует обложку, текст и кнопку одним сообщением с фото."""
     channel = config.ANNOUNCE_CHANNEL
     if not channel:
         return None
@@ -250,25 +248,19 @@ async def _publish_story(bot, submission: Submission | None = None, *, text: str
             "<b>История от нашего подписчика</b>\n\n"
             f"{html.escape(submission.text or '')}\n\n"
             "А у вас случалось что-то похожее? Пишите в комментариях 👇\n\n"
-            "Если история была интересной — поддержите её реакцией ❤️\n\n"
             f"{STORY_HASHTAG}"
         )
 
-    cover_message = await bot.send_photo(channel, cover_file_id)
-    try:
-        story_message = await bot.send_message(
-            channel,
-            body,
-            reply_markup=keyboard,
-            disable_web_page_preview=True,
+    if len(body) > 1024:
+        raise RuntimeError(
+            "Текст не помещается в подпись к фотографии. Сократите историю, чтобы пост вышел одним сообщением."
         )
-    except Exception:
-        try:
-            await bot.delete_message(channel, cover_message.message_id)
-        except Exception:  # noqa: BLE001
-            pass
-        raise
-    return story_message
+    return await bot.send_photo(
+        channel,
+        cover_file_id,
+        caption=body,
+        reply_markup=keyboard,
+    )
 
 
 @router.message(Command("publish_story_open_windows"))
@@ -284,12 +276,8 @@ async def preview_first_story(message: Message) -> None:
         return
     await message.answer_photo(
         cover_file_id,
-        caption="Предпросмотр обложки публикации #pnl_истории",
-    )
-    await message.answer(
-        "<b>Предпросмотр текста:</b>\n\n" + FIRST_STORY_TEXT,
+        caption="<b>Предпросмотр публикации:</b>\n\n" + FIRST_STORY_TEXT,
         reply_markup=_first_story_preview_keyboard(),
-        disable_web_page_preview=True,
     )
 
 
@@ -309,7 +297,7 @@ async def publish_first_story_confirm(callback: CallbackQuery) -> None:
         await callback.answer("Не задан ANNOUNCE_CHANNEL", show_alert=True)
         return
     await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer("✅ История опубликована с фирменной обложкой и кнопкой.")
+    await callback.message.answer("✅ История опубликована одним постом: фото, текст и кнопка.")
     await callback.answer("Опубликовано")
 
 
