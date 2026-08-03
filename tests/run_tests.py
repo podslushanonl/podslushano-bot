@@ -72,6 +72,27 @@ def test_import_bot() -> None:
           home_profile is not home_digest)
 
 
+def test_specialist_premium_six_month_plan() -> None:
+    info = config.plan_info("6m_premium")
+    check("Премиум на полгода стоит €109", info["price"] == "109.00")
+    check("Премиум на полгода действует 182 дня", info["days"] == 182)
+    check("тариф на полгода остаётся Премиумом",
+          info["premium"] is True and info["title"] == "6 месяцев 🌟 Премиум")
+
+    from handlers.selfadd import _plan_kb
+    callbacks = [button.callback_data for row in _plan_kb().inline_keyboard for button in row]
+    check("вариант на полгода показан при выборе тарифа",
+          "selfplan:6m_premium" in callbacks)
+
+    monthly_total = float(config.LISTING_PRICE_MONTH_PREMIUM) * 6
+    six_month = float(info["price"])
+    annual_monthly = float(config.LISTING_PRICE_YEAR_PREMIUM) / 12
+    check("полугодовой тариф выгоднее шести помесячных оплат",
+          six_month < monthly_total)
+    check("годовой тариф остаётся самым выгодным в пересчёте на месяц",
+          annual_monthly < six_month / 6)
+
+
 def test_ad_promotion_deadline() -> None:
     amsterdam = ZoneInfo("Europe/Amsterdam")
     countdown = config.ad_promotion_countdown_label(
@@ -1267,6 +1288,7 @@ def test_general_place_routing() -> None:
 
 async def main() -> None:
     test_import_bot()
+    test_specialist_premium_six_month_plan()
     test_ad_promotion_deadline()
     await test_db_and_categories()
     await test_saved_items()

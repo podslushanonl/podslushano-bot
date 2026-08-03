@@ -51,7 +51,9 @@ def _price_str(plan: str) -> str:
 def _plan_kb() -> InlineKeyboardMarkup:
     cur = config.LISTING_CURRENCY
     m, y = config.plan_info("month"), config.plan_info("year")
-    mp, yp = config.plan_info("month_premium"), config.plan_info("year_premium")
+    mp = config.plan_info("month_premium")
+    six_mp = config.plan_info("6m_premium")
+    yp = config.plan_info("year_premium")
     return InlineKeyboardMarkup(
         inline_keyboard=[
             [InlineKeyboardButton(text=f"📅 Обычное · {m['price']} {cur}/мес",
@@ -60,6 +62,8 @@ def _plan_kb() -> InlineKeyboardMarkup:
                                   callback_data="selfplan:year")],
             [InlineKeyboardButton(text=f"🌟 Премиум · {mp['price']} {cur}/мес",
                                   callback_data="selfplan:month_premium")],
+            [InlineKeyboardButton(text=f"🌟 Премиум · {six_mp['price']} {cur}/6 мес",
+                                  callback_data="selfplan:6m_premium")],
             [InlineKeyboardButton(text=f"🌟 Премиум · {yp['price']} {cur}/год",
                                   callback_data="selfplan:year_premium")],
         ]
@@ -245,7 +249,7 @@ async def self_email(message: Message, state: FSMContext) -> None:
 @router.callback_query(SelfAddSpecialist.plan, F.data.startswith("selfplan:"))
 async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
     plan = callback.data.split(":", 1)[1]
-    if plan not in ("month", "year", "month_premium", "year_premium"):
+    if plan not in ("month", "year", "month_premium", "6m_premium", "year_premium"):
         plan = "year"
     # Премиум показывает фото — попросим его перед оплатой
     if config.plan_info(plan)["premium"]:
