@@ -10,7 +10,7 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 
 import config
 from database.db import get_session
-from database.models import Submission
+from database.models import Meta, Submission
 from keyboards.menus import BTN_STORY, main_menu
 
 log = logging.getLogger(__name__)
@@ -18,6 +18,7 @@ router = Router()
 
 STORY_HASHTAG = "#pnl_истории"
 MIN_STORY_LENGTH = 250
+STORY_COVER_KEY = "pnl_stories_cover_file_id"
 
 FIRST_STORY_TEXT = (
     "<b>История от нашей подписчицы</b>\n\n"
@@ -86,13 +87,34 @@ def _first_story_preview_keyboard() -> InlineKeyboardMarkup:
     ]])
 
 
+async def _get_story_cover() -> str | None:
+    async with get_session() as session:
+        meta = await session.get(Meta, STORY_COVER_KEY)
+    return meta.value if meta and meta.value else None
+
+
+@router.message(Command("set_story_cover"))
+async def set_story_cover(message: Message) -> None:
+    """Админ отправляет фирменную картинку с подписью /set_story_cover."""
+    if message.from_user is None or message.from_user.id not in config.ADMIN_IDS:
+        return
+    if not message.photo:
+        await message.answer(
+            "Отправьте нужную картинку как фото и добавьте к ней подпись "
+            "<code>/set_story_cover</code>."
+        )
+        return
+    file_id = message.photo[-1].file_id
+    async with get_session() as session:
+        await session.merge(Meta(key=STORY_COVER_KEY, value=file_id))
+        await session.commit()
+    await message.answer("✅ Обложка #pnl_истории сохранена. Все истории будут публиковаться с ней.")
+
+
 async def start_story_flow(message: Message, state: FSMContext) -> None:
     await state.clear()
     await state.set_state(StoryWizard.choosing_author)
-    await message.answer(
-        "Как хотите опубликовать историю?",
-        reply_markup=_author_keyboard(),
-    )
+    await message.answer("Как хотите опубликовать историю?", reply_markup=_author_keyboard())
 
 
 @router.message(CommandStart(deep_link=True), F.text.endswith(" story"))
@@ -194,7 +216,6 @@ async def submit_story_for_moderation(callback: CallbackQuery, state: FSMContext
 
     signature = "Анонимно" if data.get("author_mode") == "anonymous" else data.get("author_name", "Без имени")
     stored_text = f"{text}\n\n©️ {signature}"
-
     from handlers.submissions import create_submission
     await create_submission(callback.bot, callback.from_user, "story", stored_text)
     await state.clear()
@@ -207,43 +228,66 @@ async def submit_story_for_moderation(callback: CallbackQuery, state: FSMContext
 
 
 async def _publish_story(bot, submission: Submission | None = None, *, text: str | None = None):
+    """Публикует фирменную обложку, затем текст истории с кнопкой.
+
+    Telegram ограничивает подпись к фото, поэтому длинная история идёт следующим
+    сообщением. Публикация без настроенной обложки запрещена.
+    """
     channel = config.ANNOUNCE_CHANNEL
     if not channel:
         return None
+    cover_file_id = await _get_story_cover()
+    if not cover_file_id:
+        raise RuntimeError(
+            "Не настроена обложка #pnl_истории. Отправьте фото боту с подписью /set_story_cover."
+        )
+
     me = await bot.me()
     keyboard = _story_button(me.username)
+    body = text or ""
+    if submission is not None:
+        body = (
+            "<b>История от нашего подписчика</b>\n\n"
+            f"{html.escape(submission.text or '')}\n\n"
+            "А у вас случалось что-то похожее? Пишите в комментариях 👇\n\n"
+            "Если история была интересной — поддержите её реакцией ❤️\n\n"
+            f"{STORY_HASHTAG}"
+        )
 
-    if submission is None:
-        return await bot.send_message(
+    cover_message = await bot.send_photo(channel, cover_file_id)
+    try:
+        story_message = await bot.send_message(
             channel,
-            text or "",
+            body,
             reply_markup=keyboard,
             disable_web_page_preview=True,
         )
-
-    story_text = html.escape(submission.text or "")
-    body = (
-        "<b>История от нашего подписчика</b>\n\n"
-        f"{story_text}\n\n"
-        "А у вас случалось что-то похожее? Пишите в комментариях 👇\n\n"
-        "Если история была интересной — поддержите её реакцией ❤️\n\n"
-        f"{STORY_HASHTAG}"
-    )
-    return await bot.send_message(
-        channel,
-        body,
-        reply_markup=keyboard,
-        disable_web_page_preview=True,
-    )
+    except Exception:
+        try:
+            await bot.delete_message(channel, cover_message.message_id)
+        except Exception:  # noqa: BLE001
+            pass
+        raise
+    return story_message
 
 
 @router.message(Command("publish_story_open_windows"))
 async def preview_first_story(message: Message) -> None:
-    """Админ-команда показывает предпросмотр и ничего не публикует без подтверждения."""
     if message.from_user is None or message.from_user.id not in config.ADMIN_IDS:
         return
+    cover_file_id = await _get_story_cover()
+    if not cover_file_id:
+        await message.answer(
+            "Сначала отправьте фирменную картинку боту как фото с подписью "
+            "<code>/set_story_cover</code>."
+        )
+        return
+    await message.answer_photo(
+        cover_file_id,
+        caption="Предпросмотр обложки публикации #pnl_истории",
+    )
     await message.answer(
-        "<b>Предпросмотр публикации:</b>\n\n" + FIRST_STORY_TEXT,
+        "<b>Предпросмотр текста:</b>\n\n" + FIRST_STORY_TEXT,
         reply_markup=_first_story_preview_keyboard(),
         disable_web_page_preview=True,
     )
@@ -265,7 +309,7 @@ async def publish_first_story_confirm(callback: CallbackQuery) -> None:
         await callback.answer("Не задан ANNOUNCE_CHANNEL", show_alert=True)
         return
     await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer("✅ История опубликована ботом с кнопкой.")
+    await callback.message.answer("✅ История опубликована с фирменной обложкой и кнопкой.")
     await callback.answer("Опубликовано")
 
 
@@ -321,11 +365,15 @@ async def approve_story(callback: CallbackQuery) -> None:
     if posted is None:
         await callback.answer("Не задан ANNOUNCE_CHANNEL", show_alert=True)
         return
+
     await _set_status(submission_id, "approved")
     admin = f"@{callback.from_user.username}" if callback.from_user.username else "админ"
     await _finish_admin_message(callback, f"\n\n— ✅ ОПУБЛИКОВАНО ({admin})")
     try:
-        await callback.bot.send_message(submission.user_id, "Твоя история опубликована в рубрике #pnl_истории! 🎉")
+        await callback.bot.send_message(
+            submission.user_id,
+            "Твоя история опубликована в рубрике #pnl_истории! 🎉",
+        )
     except Exception as exc:  # noqa: BLE001
         log.warning("Не удалось уведомить автора истории %s: %s", submission.user_id, exc)
     await callback.answer("История опубликована")
@@ -345,10 +393,14 @@ async def reject_story(callback: CallbackQuery) -> None:
     if submission is None:
         await callback.answer("История не найдена", show_alert=True)
         return
+
     admin = f"@{callback.from_user.username}" if callback.from_user.username else "админ"
     await _finish_admin_message(callback, f"\n\n— ❌ ОТКЛОНЕНО ({admin})")
     try:
-        await callback.bot.send_message(submission.user_id, "Спасибо за историю! К сожалению, в этот раз мы её не опубликуем 🙏")
+        await callback.bot.send_message(
+            submission.user_id,
+            "Спасибо за историю! К сожалению, в этот раз мы её не опубликуем 🙏",
+        )
     except Exception as exc:  # noqa: BLE001
         log.warning("Не удалось уведомить автора истории %s: %s", submission.user_id, exc)
     await callback.answer("История отклонена")
