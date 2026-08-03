@@ -128,12 +128,15 @@ STICKER_PACK_URL: str = os.getenv("STICKER_PACK_URL", "")
 # --- Платное само-добавление в гайд (Mollie) --------------------------------
 # Ключ Mollie (test_... или live_...). Без него платный поток выключен.
 MOLLIE_API_KEY: str = os.getenv("MOLLIE_API_KEY", "")
-# Тарифы размещения: месяц и год (цена строкой, как требует Mollie)
+# Тарифы размещения (цена строкой, как требует Mollie)
 LISTING_CURRENCY: str = os.getenv("LISTING_CURRENCY", "EUR")
 LISTING_PRICE_MONTH: str = os.getenv("LISTING_PRICE_MONTH", "9.99")
 LISTING_PRICE_YEAR: str = os.getenv("LISTING_PRICE_YEAR", "99.00")
 # Премиум-тарифы (карточка выше в выдаче + бейдж)
 LISTING_PRICE_MONTH_PREMIUM: str = os.getenv("LISTING_PRICE_MONTH_PREMIUM", "19.99")
+LISTING_PRICE_SIX_MONTH_PREMIUM: str = os.getenv(
+    "LISTING_PRICE_SIX_MONTH_PREMIUM", "109.00"
+)
 LISTING_PRICE_YEAR_PREMIUM: str = os.getenv("LISTING_PRICE_YEAR_PREMIUM", "199.00")
 # Лояльный тариф для «старожилов» — карточек из старого бессрочного контакт-гайда
 LISTING_PRICE_MONTH_LEGACY: str = os.getenv("LISTING_PRICE_MONTH_LEGACY", "4.99")
@@ -263,6 +266,7 @@ def _int_env(name: str, default: int) -> int:
 
 
 LISTING_DAYS_MONTH: int = _int_env("LISTING_DAYS_MONTH", 30)
+LISTING_DAYS_SIX_MONTH: int = _int_env("LISTING_DAYS_SIX_MONTH", 182)
 LISTING_DAYS_YEAR: int = _int_env("LISTING_DAYS_YEAR", 365)
 
 # Доска объявлений: срок жизни объявления и лимит активных у одного пользователя
@@ -273,11 +277,14 @@ BOARD_MAX_ACTIVE: int = _int_env("BOARD_MAX_ACTIVE", 5)
 def plan_info(plan: str) -> dict:
     """Данные тарифа: цена, период, премиум-флаг и подпись.
 
-    plan: 'month' | 'year' | 'month_premium' | 'year_premium'.
+    plan: 'month' | 'year' | 'month_premium' | '6m_premium' | 'year_premium'.
     """
     premium = plan.endswith("_premium")
     legacy = plan.endswith("_legacy")
-    if plan.startswith("month"):
+    if plan == "6m_premium":
+        price = LISTING_PRICE_SIX_MONTH_PREMIUM
+        days, title = LISTING_DAYS_SIX_MONTH, "6 месяцев"
+    elif plan.startswith("month"):
         if legacy:
             price = LISTING_PRICE_MONTH_LEGACY
         else:
