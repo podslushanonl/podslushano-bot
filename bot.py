@@ -13,7 +13,7 @@ from database.db import init_db
 from handlers import (
     ad_crm, ad_sales_pipeline, admin, ads, afisha, ai_sales, allo, board, cabinet, chat,
     contacts, content, digest, errors, events, guides, home, letters, moderation,
-    notifications, salary, selfadd, share, spotlight, start, submissions, support,
+    notifications, salary, selfadd, share, spotlight, start, stories, submissions, support,
 )
 from handlers.ad_sales_pipeline import ad_payment_reconciliation_loop
 from handlers.ai_sales import ad_lead_reminder_loop
@@ -103,6 +103,9 @@ async def main() -> None:
 
     await configure_profile(bot)
 
+    # Роутер историй стоит перед /start, чтобы deep link ?start=story
+    # сразу открывал форму отправки истории.
+    dp.include_router(stories.router)
     dp.include_router(start.router)
     dp.include_router(guides.router)
     dp.include_router(events.router)

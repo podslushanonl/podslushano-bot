@@ -45,6 +45,32 @@ def _header(submission: Submission) -> str:
     return "\n".join(lines)
 
 
+def _story_keyboard(submission_id: int) -> InlineKeyboardMarkup:
+    """История публикуется в канал только после отдельного подтверждения."""
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✅ Опубликовать в #pnl_истории",
+                    callback_data=f"story_approve:{submission_id}",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="❌ Отклонить",
+                    callback_data=f"story_reject:{submission_id}",
+                )
+            ],
+            [
+                InlineKeyboardButton(
+                    text="✍️ Ответить автору",
+                    callback_data=f"subreply:{submission_id}",
+                )
+            ],
+        ]
+    )
+
+
 def _ad_keyboard(submission_id: int) -> InlineKeyboardMarkup:
     """Кнопки рекламной заявки: ответ, этап сделки и модерация."""
     return InlineKeyboardMarkup(
@@ -90,6 +116,9 @@ async def send_to_admins(bot: Bot, submission: Submission) -> None:
     """Шлёт заявку в общий модер-чат (если задан) или каждому админу в личку."""
     caption = _header(submission)
     keyboard = moderation_buttons(submission.id)
+
+    if submission.type == "story":
+        keyboard = _story_keyboard(submission.id)
 
     if submission.type == "ad":
         analysis = await analyze_ad_submission(submission)
