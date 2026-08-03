@@ -499,6 +499,8 @@ class Listing(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     # Категория (ключ из handlers/board.py: housing|goods|free|services|jobs|rides|other)
     category: Mapped[str] = mapped_column(String(20), index=True)
+    # Намерение внутри категории: offer|seek|driver|passenger (у старых карточек None)
+    intent: Mapped[str | None] = mapped_column(String(20), nullable=True)
     title: Mapped[str] = mapped_column(String(200))
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Цена свободным текстом: «€50», «договорная», «даром»
@@ -510,7 +512,7 @@ class Listing(Base):
     contact: Mapped[str | None] = mapped_column(String(300), nullable=True)
     submitter_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     submitter_username: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    # Статус: pending (на проверке) | approved | rejected | closed | archived
+    # Статус: awaiting_payment | pending | approved | rejected | closed | expired | archived
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     # Платёж за «поднятие» (если было) и время поднятия (для сортировки вверх)
     payment_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
