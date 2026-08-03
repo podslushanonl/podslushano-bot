@@ -484,6 +484,8 @@ async def notification_loop(bot) -> None:
             now = datetime.now(AMSTERDAM)
             if now.hour == 10:
                 await run_notification_cycle(bot, now=now)
+                from handlers.board import send_listing_expiry_reminders
+                await send_listing_expiry_reminders(bot, now=now.replace(tzinfo=None))
         except Exception as exc:  # noqa: BLE001
             log.warning("Ошибка цикла персональных уведомлений: %s", exc)
         await asyncio.sleep(3600)

@@ -72,6 +72,10 @@ _EVENT_LISTING_LATER_COLUMNS = {
     "ends_at": "DATETIME",
 }
 
+_LISTING_LATER_COLUMNS = {
+    "intent": "VARCHAR(20)",
+}
+
 
 async def init_db() -> None:
     """Создаёт таблицы, добавляет недостающие колонки и засевает специалистов."""
@@ -182,6 +186,20 @@ async def _migrate() -> None:
                 if name not in lcols:
                     await conn.exec_driver_sql(
                         f"ALTER TABLE event_listings ADD COLUMN {name} {ddl}"
+                    )
+
+        def listing_cols(sync_conn):
+            insp = inspect(sync_conn)
+            if "listings" not in insp.get_table_names():
+                return None
+            return {c["name"] for c in insp.get_columns("listings")}
+
+        board_cols = await conn.run_sync(listing_cols)
+        if board_cols is not None:
+            for name, ddl in _LISTING_LATER_COLUMNS.items():
+                if name not in board_cols:
+                    await conn.exec_driver_sql(
+                        f"ALTER TABLE listings ADD COLUMN {name} {ddl}"
                     )
 
 

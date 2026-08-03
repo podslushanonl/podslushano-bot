@@ -16,7 +16,7 @@ from sqlalchemy import or_, select
 
 import config
 from database.db import get_session
-from database.models import AdLead, Specialist
+from database.models import AdLead, Listing, Specialist
 from handlers.selfadd import on_payment_paid
 from utils.contact_links import parse_contact_links
 from utils.geo import CATEGORIES, specialist_matches_category
@@ -685,6 +685,29 @@ async def _contact_action(request: web.Request) -> web.Response:
         raise web.HTTPNotFound()
     link = next(
         (item for item in parse_contact_links(specialist.contact) if item["type"] == kind),
+        None,
+    )
+    if not link:
+        raise web.HTTPNotFound()
+    raise web.HTTPFound(location=link["url"])
+
+
+async def _listing_contact_action(request: web.Request) -> web.Response:
+    """HTTPS-мост для телефона и почты из Telegram-объявления."""
+    try:
+        listing_id = int(request.match_info.get("lid", ""))
+    except ValueError:
+        raise web.HTTPNotFound()
+    kind = request.match_info.get("kind", "")
+    if kind not in {"phone", "email"}:
+        raise web.HTTPNotFound()
+    async with get_session() as session:
+        listing = await session.get(Listing, listing_id)
+    if (not listing or listing.status != "approved"
+            or (listing.expires_at and listing.expires_at <= datetime.utcnow())):
+        raise web.HTTPNotFound()
+    link = next(
+        (item for item in parse_contact_links(listing.contact) if item["type"] == kind),
         None,
     )
     if not link:
@@ -1541,6 +1564,7 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/c/{key}", _contact_page)   # короткая ссылка по slug
     app.router.add_get("/s/{key}", _contact_page)   # короткая ссылка по id
     app.router.add_get("/contact-action/{sid}/{kind}", _contact_action)
+    app.router.add_get("/listing-contact/{lid}/{kind}", _listing_contact_action)
     app.router.add_get("/ads", _ads)            # рекламная страница и бронь
     app.router.add_get("/ads/questions", _ads_questions)
     app.router.add_get("/ads/payment-success", _ads_payment_success)

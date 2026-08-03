@@ -183,14 +183,17 @@ class AfishaSubmit(StatesGroup):
 
 
 class ListingForm(StatesGroup):
-    """Доска объявлений: подача объявления (бесплатно, с модерацией)."""
+    """Доска объявлений: адаптивная анкета с предпросмотром."""
 
+    category = State()
+    intent = State()
     title = State()
     description = State()
     price = State()
     city = State()
     photo = State()
     contact = State()
+    review = State()
 
 
 class ListingBrowse(StatesGroup):

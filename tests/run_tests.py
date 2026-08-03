@@ -253,6 +253,198 @@ def test_specialist_onboarding_ux() -> None:
           bool(SelfAddSpecialist.review) and bool(SelfAddSpecialist.confirm))
 
 
+def test_board_ux() -> None:
+    from handlers.board import (
+        INTENTS,
+        REPORT_REASONS,
+        _browse_city_kb,
+        _build_contacts,
+        _contact_hub_kb,
+        _listing_contact_rows,
+        _my_kb,
+        _normalize_contact,
+        _status,
+        _valid_city,
+        _valid_description,
+        _valid_title,
+    )
+    from states.forms import ListingForm
+    from utils.contact_links import parse_contact_links
+
+    check("жильё, работа, вещи и попутчики уточняют тип объявления",
+          set(INTENTS) == {"housing", "jobs", "goods", "rides"})
+    check("заголовок объявления проверяется",
+          _valid_title("Продам городской велосипед") and not _valid_title("впв"))
+    check("описание объявления проверяется",
+          _valid_description("Велосипед в хорошем состоянии, недавно заменены тормоза.")
+          and not _valid_description("ываыва"))
+    check("город проверяется до сохранения",
+          _valid_city("'s-Hertogenbosch") and not _valid_city("1"))
+
+    contacts = {
+        "l_contact_instagram": _normalize_contact("instagram", "instagram.com/board.user"),
+        "l_contact_telegram": _normalize_contact("telegram", "@board_user"),
+        "l_contact_whatsapp": _normalize_contact("whatsapp", "06 12345678"),
+        "l_contact_email": _normalize_contact("email", "BOARD@EXAMPLE.COM"),
+        "l_contact_phone": _normalize_contact("phone", "+31 20 123 45 67"),
+    }
+    check("пять контактов объявления нормализуются отдельно",
+          contacts == {
+              "l_contact_instagram": "@board.user",
+              "l_contact_telegram": "@board_user",
+              "l_contact_whatsapp": "+31612345678",
+              "l_contact_email": "board@example.com",
+              "l_contact_phone": "+31201234567",
+          })
+    public_contacts = _build_contacts(contacts)
+    parsed = parse_contact_links(public_contacts)
+    check("WhatsApp и телефон не смешиваются",
+          next(x["url"] for x in parsed if x["type"] == "whatsapp").endswith("31612345678")
+          and next(x["url"] for x in parsed if x["type"] == "phone").endswith("31201234567"))
+    empty_callbacks = [
+        button.callback_data
+        for row in _contact_hub_kb({}).inline_keyboard for button in row
+    ]
+    check("без контакта нельзя завершить контактный экран",
+          "lcontact:done" not in empty_callbacks)
+    check("анкета доски имеет отдельный предпросмотр",
+          bool(ListingForm.review) and bool(ListingForm.intent))
+
+    old_base = config.WEBHOOK_BASE_URL
+    config.WEBHOOK_BASE_URL = "https://bot.example"
+    try:
+        listing = Listing(
+            id=751, category="goods", intent="offer", title="Продам велосипед",
+            description="Велосипед в хорошем состоянии, недавно заменены тормоза.",
+            city="Utrecht", contact=public_contacts, status="approved",
+            expires_at=datetime.utcnow() + timedelta(days=10),
+        )
+        urls = {
+            button.text: button.url
+            for row in _listing_contact_rows(listing) for button in row
+        }
+        check("в карточке объявления есть пять кликабельных контактов",
+              {"📷 Instagram", "✈️ Telegram", "💬 WhatsApp", "✉️ Почта", "📞 Телефон"}
+              <= set(urls))
+        check("почта и телефон используют безопасный HTTPS-мост",
+              urls["✉️ Почта"].endswith("/listing-contact/751/email")
+              and urls["📞 Телефон"].endswith("/listing-contact/751/phone"))
+    finally:
+        config.WEBHOOK_BASE_URL = old_base
+
+    browse_callbacks = [
+        button.callback_data
+        for row in _browse_city_kb("goods", "Amersfoort").inline_keyboard
+        for button in row
+    ]
+    check("просмотр доски действительно предлагает город пользователя",
+          "bcity:goods:saved" in browse_callbacks and "bcity:goods:__all__" in browse_callbacks)
+    awaiting = Listing(id=752, category="housing", title="Комната", status="awaiting_payment")
+    awaiting_actions = [
+        button.callback_data for row in _my_kb(awaiting, 0, 1).inline_keyboard for button in row
+    ]
+    closed = Listing(id=753, category="goods", title="Стол", status="closed")
+    closed_actions = [
+        button.callback_data for row in _my_kb(closed, 0, 1).inline_keyboard for button in row
+    ]
+    check("неоплаченное жильё можно оплатить и изменить",
+          "lpay:752" in awaiting_actions and "leditlisting:752" in awaiting_actions)
+    check("закрытое объявление можно опубликовать снова",
+          "lrepublish:753" in closed_actions)
+    expired = Listing(
+        category="goods", title="Истёкшее", status="approved",
+        expires_at=datetime.utcnow() - timedelta(minutes=1),
+    )
+    check("истёкшая карточка не считается активной", _status(expired) == "expired")
+    check("жалоба предлагает причины", len(REPORT_REASONS) >= 5)
+
+
+async def test_board_payment_retry_and_expiry_reminder() -> None:
+    import handlers.board as board
+
+    class FakeMessage:
+        def __init__(self):
+            self.answers = []
+
+        async def answer(self, text, **kwargs):
+            self.answers.append((text, kwargs))
+            return type("Sent", (), {"message_id": 410})()
+
+    class FakeBot:
+        def __init__(self):
+            self.messages = []
+
+        async def send_message(self, chat_id, text, **kwargs):
+            self.messages.append((chat_id, text, kwargs))
+            return type("Sent", (), {"message_id": 411})()
+
+    async with db.get_session() as session:
+        unpaid = Listing(
+            category="housing", intent="seek", title="Ищу комнату",
+            description="Ищу комнату в Utrecht на длительный срок.",
+            city="Utrecht", contact="Telegram: @board_retry", status="awaiting_payment",
+            submitter_user_id=99301,
+        )
+        session.add(unpaid)
+        await session.commit()
+        await session.refresh(unpaid)
+        listing_id = unpaid.id
+
+    real_create_payment = board.create_payment
+
+    async def failed_payment(*_args, **_kwargs):
+        return None
+
+    async def successful_payment(*_args, **_kwargs):
+        return {"id": "tr_board_retry", "checkout_url": "https://pay.example/board"}
+
+    message = FakeMessage()
+    try:
+        board.create_payment = failed_payment
+        result = await board._request_listing_payment(message, 99301, listing_id)
+        retry_callbacks = [
+            button.callback_data
+            for row in message.answers[-1][1]["reply_markup"].inline_keyboard
+            for button in row
+        ]
+        check("ошибка Mollie сохраняет объявление и даёт повторить оплату",
+              result is False and f"lpay:{listing_id}" in retry_callbacks)
+
+        board.create_payment = successful_payment
+        result = await board._request_listing_payment(message, 99301, listing_id)
+        async with db.get_session() as session:
+            saved = await session.get(Listing, listing_id)
+        check("повтор оплаты не создаёт второе объявление",
+              result is True and saved.payment_id == "tr_board_retry")
+    finally:
+        board.create_payment = real_create_payment
+
+    bot = FakeBot()
+    await board.on_listing_paid(bot, "tr_board_retry", {
+        "status": "paid", "metadata": {"listing_id": listing_id, "kind": "listing"},
+    })
+    async with db.get_session() as session:
+        paid = await session.get(Listing, listing_id)
+    check("оплаченное жильё переходит на модерацию", paid.status == "pending")
+
+    current = datetime(2026, 8, 3, 10, 0)
+    async with db.get_session() as session:
+        reminder = Listing(
+            category="goods", intent="offer", title="Стол к продаже",
+            description="Деревянный стол в хорошем состоянии, самовывоз.",
+            city="Groningen", contact="Telegram: @board_remind", status="approved",
+            submitter_user_id=99302, expires_at=current + timedelta(days=3),
+            created_at=current - timedelta(days=60),
+        )
+        session.add(reminder)
+        await session.commit()
+    first = await board.send_listing_expiry_reminders(bot, now=current)
+    second = await board.send_listing_expiry_reminders(bot, now=current)
+    check("напоминание об окончании приходит один раз",
+          first == 1 and second == 0
+          and any("закончится" in text for _chat, text, _kwargs in bot.messages))
+
+
 def test_ad_promotion_deadline() -> None:
     amsterdam = ZoneInfo("Europe/Amsterdam")
     countdown = config.ad_promotion_countdown_label(
@@ -1520,8 +1712,10 @@ async def main() -> None:
     test_import_bot()
     test_specialist_premium_six_month_plan()
     test_specialist_onboarding_ux()
+    test_board_ux()
     test_ad_promotion_deadline()
     await test_db_and_categories()
+    await test_board_payment_retry_and_expiry_reminder()
     await test_specialist_payment_retry_keeps_form()
     await test_saved_items()
     await test_personal_home_snapshot()

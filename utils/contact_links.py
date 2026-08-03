@@ -13,6 +13,9 @@ _TG_URL_RE = re.compile(r"t\.me/([A-Za-z0-9_]+)", re.I)
 _URL_RE = re.compile(r"https?://[^\s,)]+", re.I)
 _EMAIL_RE = re.compile(r"[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}")
 _PHONE_RE = re.compile(r"(\+?\d[\d\s\-]{7,}\d)")
+_LABELED_PHONE_RE = re.compile(
+    r"(?:телефон|phone)\b[^+\d]*(\+?\d[\d\s\-]{7,}\d)", re.I
+)
 _WHATSAPP_RE = re.compile(r"(?:whatsapp|вотсап|вацап)\b[^+\d]*(\+?\d[\d\s\-]{7,}\d)", re.I)
 
 # Типы, которые допустимы в inline-кнопках Telegram (только http/https)
@@ -59,7 +62,12 @@ def parse_contact_links(contact: str | None) -> list[dict]:
             links.append({"type": "whatsapp", "label": "💬 WhatsApp",
                           "url": f"https://wa.me/{digits}"})
 
-    pm = _PHONE_RE.search(contact)
+    # В структурированной строке WhatsApp и телефон могут отличаться. Сначала
+    # берём явно подписанный телефон, иначе сохраняем совместимость со старыми
+    # карточками, где номер был указан без подписи.
+    pm = _LABELED_PHONE_RE.search(contact)
+    if not pm and not wm:
+        pm = _PHONE_RE.search(contact)
     if pm:
         digits = _normalize_phone(pm.group(1))
         if digits:

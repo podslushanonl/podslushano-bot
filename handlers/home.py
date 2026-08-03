@@ -670,12 +670,12 @@ async def saved_specialist_open(callback: CallbackQuery, state: FSMContext) -> N
 
 @router.callback_query(F.data.startswith("home:li:"))
 async def saved_listing_open(callback: CallbackQuery) -> None:
-    from handlers.board import _card_text, _contact_url
+    from handlers.board import _card_text, _listing_contact_rows, _status
 
     listing_id = int(callback.data.rsplit(":", 1)[1])
     async with get_session() as session:
         listing = await session.get(Listing, listing_id)
-    if listing is None or listing.status != "approved":
+    if listing is None or _status(listing) != "approved":
         await callback.answer("Объявление больше не активно", show_alert=True)
         return
     await log_product_event(
@@ -685,12 +685,10 @@ async def saved_listing_open(callback: CallbackQuery) -> None:
         entity_id=listing.id,
         source="saved",
     )
-    rows = [[InlineKeyboardButton(
+    rows = _listing_contact_rows(listing)
+    rows.append([InlineKeyboardButton(
         text="💔 Удалить из сохранённого", callback_data=f"save:listing:{listing.id}"
-    )]]
-    url = _contact_url(listing.contact)
-    if url:
-        rows.insert(0, [InlineKeyboardButton(text="✍️ Написать", url=url)])
+    )])
     markup = InlineKeyboardMarkup(inline_keyboard=rows)
     if listing.photo_file_id:
         try:
