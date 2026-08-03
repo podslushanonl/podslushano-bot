@@ -670,6 +670,28 @@ async def _contact_page(request: web.Request) -> web.Response:
     return web.Response(text=html_page, content_type="text/html")
 
 
+async def _contact_action(request: web.Request) -> web.Response:
+    """HTTPS-мост для кнопок телефона и почты в Telegram-карточке."""
+    try:
+        sid = int(request.match_info.get("sid", ""))
+    except ValueError:
+        raise web.HTTPNotFound()
+    kind = request.match_info.get("kind", "")
+    if kind not in {"phone", "email"}:
+        raise web.HTTPNotFound()
+    rows = await _active_specialists()
+    specialist = next((row for row in rows if row.id == sid), None)
+    if not specialist:
+        raise web.HTTPNotFound()
+    link = next(
+        (item for item in parse_contact_links(specialist.contact) if item["type"] == kind),
+        None,
+    )
+    if not link:
+        raise web.HTTPNotFound()
+    raise web.HTTPFound(location=link["url"])
+
+
 async def _ig_slide(request: web.Request) -> web.Response:
     """Отдаёт готовый слайд Instagram-карусели (нарисован ботом, лежит в памяти)."""
     from utils.slides import get_slide
@@ -1518,6 +1540,7 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/api/guide.json", _api_guide)
     app.router.add_get("/c/{key}", _contact_page)   # короткая ссылка по slug
     app.router.add_get("/s/{key}", _contact_page)   # короткая ссылка по id
+    app.router.add_get("/contact-action/{sid}/{kind}", _contact_action)
     app.router.add_get("/ads", _ads)            # рекламная страница и бронь
     app.router.add_get("/ads/questions", _ads_questions)
     app.router.add_get("/ads/payment-success", _ads_payment_success)
