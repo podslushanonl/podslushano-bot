@@ -1445,6 +1445,7 @@ async def test_personal_digest() -> None:
 
     from utils.ai import (
         _create_with_server_tool_continuation,
+        _extract_all_text_and_sources,
         _web_search_errors,
         parse_event_cards,
         parse_event_search_places,
@@ -1513,11 +1514,32 @@ async def test_personal_digest() -> None:
             if len(self.calls) == 1:
                 return SimpleNamespace(
                     stop_reason="pause_turn",
-                    content=[{"type": "server_tool_use", "id": "search-1"}],
+                    content=[
+                        {
+                            "type": "text",
+                            "text": (
+                                "<event><title>Deel één</title><start>2026-10-12</start>"
+                                "<date>12 oktober</date><source_url>https://example.nl/deel-een"
+                                "</source_url></event>"
+                            ),
+                        },
+                        {"type": "server_tool_use", "id": "search-1"},
+                    ],
                 )
             return SimpleNamespace(
                 stop_reason="end_turn",
-                content=[SimpleNamespace(type="text", text="готово", citations=[])],
+                content=[
+                    {"type": "web_search_tool_result", "content": []},
+                    SimpleNamespace(
+                        type="text",
+                        text=(
+                            "<event><title>Deel twee</title><start>2026-10-13</start>"
+                            "<date>13 oktober</date><source_url>https://example.nl/deel-twee"
+                            "</source_url></event>"
+                        ),
+                        citations=[],
+                    ),
+                ],
             )
 
     from types import SimpleNamespace
@@ -1533,7 +1555,31 @@ async def test_personal_digest() -> None:
           completed.stop_reason == "end_turn" and len(fake_messages.calls) == 2)
     check("продолжение возвращает pause_turn-контент в историю без изменений",
           fake_messages.calls[1]["messages"][-1]["role"] == "assistant"
-          and fake_messages.calls[1]["messages"][-1]["content"][0]["id"] == "search-1")
+          and fake_messages.calls[1]["messages"][-1]["content"][1]["id"] == "search-1")
+    completed_text, _ = _extract_all_text_and_sources(completed)
+    continued_cards = parse_event_cards(completed_text, now=fixed_now)
+    check("афиша не теряет карточки до и после pause_turn",
+          [card["title"] for card in continued_cards] == ["Deel één", "Deel twee"],
+          str(continued_cards))
+    interleaved = {
+        "content": [
+            {"type": "text", "text": "<event><title>Voor"},
+            {"type": "server_tool_use", "id": "search-2"},
+            {"type": "web_search_tool_result", "content": []},
+            {
+                "type": "text",
+                "text": (
+                    " en na</title><start>2026-10-14</start><date>14 oktober</date>"
+                    "<source_url>https://example.nl/voor-en-na</source_url></event>"
+                ),
+            },
+        ],
+    }
+    interleaved_text, _ = _extract_all_text_and_sources(interleaved)
+    interleaved_cards = parse_event_cards(interleaved_text, now=fixed_now)
+    check("афиша сохраняет XML вокруг промежуточного поискового блока",
+          len(interleaved_cards) == 1 and interleaved_cards[0]["title"] == "Voor en na",
+          str(interleaved_cards))
     places = parse_event_search_places(
         "<place>Woudrichem</place><place>Werkendam</place>"
         "<place>Gorinchem</place><place>Woudrichem</place>",
