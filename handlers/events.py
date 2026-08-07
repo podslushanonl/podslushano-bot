@@ -370,6 +370,7 @@ async def ensure_auto_afisha(
     section_label: str = "",
     horizon_days: int = 90,
     force: bool = False,
+    diagnostics: dict | None = None,
 ) -> tuple[str, list[DiscoveredEvent]] | None:
     """Берёт общий кэш сегмента либо один раз наполняет его живым веб-поиском."""
     cached = await _auto_batch(city, radius_km, section_key)
@@ -393,6 +394,7 @@ async def ensure_auto_afisha(
             search_cities=search_cities,
             section_label=section_label,
             horizon_days=horizon_days,
+            diagnostics=diagnostics,
         )
         if not cards:
             return None
@@ -529,6 +531,7 @@ async def show_auto_afisha(
 ) -> None:
     """Показывает наполненную афишу: каждое мероприятие — отдельная карточка."""
     cached = await _auto_batch(city, radius_km, section_key)
+    diagnostics: dict = {}
     active_key = (uid, city.casefold(), radius_km, section_key)
     if not cached:
         if active_key in _active_user_searches:
@@ -550,14 +553,27 @@ async def show_auto_afisha(
             uid,
             section_key=section_key,
             section_label=section_label,
+            diagnostics=diagnostics,
         )
     finally:
         _active_user_searches.discard(active_key)
     if not result:
+        admin_details = ""
+        if uid in config.ADMIN_IDS and diagnostics:
+            primary_errors = ",".join(diagnostics.get("primary_errors") or []) or "нет"
+            retry_errors = ",".join(diagnostics.get("retry_errors") or []) or "нет"
+            admin_details = (
+                "\n\n<code>Диагностика: "
+                f"первый ответ — {diagnostics.get('primary_text_chars', 0)} симв., "
+                f"{diagnostics.get('primary_cards', 0)} карточек, ошибки: {primary_errors}; "
+                f"резервный — {diagnostics.get('retry_text_chars', 0)} симв., "
+                f"{diagnostics.get('retry_cards', 0)} карточек, ошибки: {retry_errors}."
+                "</code>"
+            )
         await message.answer(
             "Пока не получилось собрать актуальные карточки с подтверждённой датой и "
             "отдельной рабочей ссылкой. Я уже проверил город и ближайшие города в "
-            "выбранном радиусе — попробуй обновить подборку немного позже.",
+            f"выбранном радиусе — попробуй обновить подборку немного позже.{admin_details}",
             reply_markup=main_menu(),
         )
         return
