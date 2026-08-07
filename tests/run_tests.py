@@ -1443,7 +1443,12 @@ async def test_personal_digest() -> None:
           announcement_callbacks == ["dg:announce:setup", "ev_search"],
           str(announcement_callbacks))
 
-    from utils.ai import parse_event_cards, parse_event_search_places
+    from utils.ai import (
+        _create_with_server_tool_continuation,
+        _web_search_errors,
+        parse_event_cards,
+        parse_event_search_places,
+    )
     fixed_now = datetime(2026, 7, 21, 12, 0)
     cards = parse_event_cards(
         "<event><title>Festival</title><start>2026-07-25T19:00:00+02:00</start>"
@@ -1474,6 +1479,61 @@ async def test_personal_digest() -> None:
           and separated[0]["source_url"] == "https://venue.example/event"
           and separated[0]["ticket_url"] == "https://tickets.example/buy",
           str(separated))
+    escaped = parse_event_cards(
+        "&lt;event&gt;&lt;title&gt;Open dag&lt;/title&gt;"
+        "&lt;start&gt;2026-10-11&lt;/start&gt;"
+        "&lt;city&gt;Utrecht&lt;/city&gt;"
+        "&lt;source_url&gt;[Programma](https://venue.example/open-dag)&lt;/source_url&gt;",
+        now=fixed_now,
+    )
+    check("афиша восстанавливает экранированную и частично обрезанную карточку",
+          bool(escaped)
+          and escaped[0]["date"] == "2026-10-11"
+          and escaped[0]["url"] == "https://venue.example/open-dag",
+          str(escaped))
+    search_error = {
+        "content": [{
+            "type": "web_search_tool_result",
+            "content": {
+                "type": "web_search_tool_result_error",
+                "error_code": "max_uses_exceeded",
+            },
+        }],
+    }
+    check("афиша видит ошибку веб-поиска внутри успешного API-ответа",
+          _web_search_errors(search_error) == ["max_uses_exceeded"])
+
+    class FakeMessages:
+        def __init__(self):
+            self.calls = []
+
+        async def create(self, **kwargs):
+            from types import SimpleNamespace
+            self.calls.append(kwargs)
+            if len(self.calls) == 1:
+                return SimpleNamespace(
+                    stop_reason="pause_turn",
+                    content=[{"type": "server_tool_use", "id": "search-1"}],
+                )
+            return SimpleNamespace(
+                stop_reason="end_turn",
+                content=[SimpleNamespace(type="text", text="готово", citations=[])],
+            )
+
+    from types import SimpleNamespace
+    fake_messages = FakeMessages()
+    completed = await _create_with_server_tool_continuation(
+        SimpleNamespace(messages=fake_messages),
+        model="test-model",
+        max_tokens=100,
+        messages=[{"role": "user", "content": "найди"}],
+        tools=[{"type": "web_search_20250305", "name": "web_search"}],
+    )
+    check("афиша автоматически продолжает остановленный серверный поиск",
+          completed.stop_reason == "end_turn" and len(fake_messages.calls) == 2)
+    check("продолжение возвращает pause_turn-контент в историю без изменений",
+          fake_messages.calls[1]["messages"][-1]["role"] == "assistant"
+          and fake_messages.calls[1]["messages"][-1]["content"][0]["id"] == "search-1")
     places = parse_event_search_places(
         "<place>Woudrichem</place><place>Werkendam</place>"
         "<place>Gorinchem</place><place>Woudrichem</place>",
