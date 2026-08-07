@@ -168,6 +168,61 @@ def _extract_text_and_sources(response) -> tuple[str, list[str]]:
     return "".join(text_parts).strip(), sources
 
 
+def _web_search_errors(response) -> list[str]:
+    """Возвращает коды ошибок серверного веб-поиска из успешного HTTP-ответа.
+
+    Anthropic передаёт ошибки поиска (лимит, временная недоступность и т.п.)
+    внутри ``web_search_tool_result``, поэтому обычный ``try/except`` их не
+    замечает. Поддерживаем и SDK-объекты, и dict — последнее удобно для тестов.
+    """
+    errors: list[str] = []
+
+    def value(obj, name: str, default=None):
+        return obj.get(name, default) if isinstance(obj, dict) else getattr(obj, name, default)
+
+    for block in value(response, "content", []) or []:
+        if value(block, "type") != "web_search_tool_result":
+            continue
+        content = value(block, "content")
+        items = content if isinstance(content, list) else [content]
+        for item in items:
+            if item and value(item, "type") == "web_search_tool_result_error":
+                code = value(item, "error_code", "unknown")
+                if code not in errors:
+                    errors.append(code)
+    return errors
+
+
+async def _create_with_server_tool_continuation(
+    client,
+    *,
+    max_continuations: int = 2,
+    **kwargs,
+):
+    """Выполняет запрос и продолжает при ``pause_turn`` серверного поиска.
+
+    Длинный веб-поиск может законно завершиться без финального текста с
+    ``stop_reason=pause_turn``. Для продолжения нужно дословно вернуть content
+    ответа в историю и повторить запрос с тем же набором tools.
+    """
+    request = dict(kwargs)
+    messages = list(request.get("messages") or [])
+    response = await client.messages.create(**request)
+    continuations = 0
+    while getattr(response, "stop_reason", None) == "pause_turn":
+        if continuations >= max_continuations:
+            log.warning(
+                "Веб-поиск остался на pause_turn после %s продолжений",
+                continuations,
+            )
+            break
+        messages.append({"role": "assistant", "content": response.content})
+        request["messages"] = messages
+        continuations += 1
+        response = await client.messages.create(**request)
+    return response
+
+
 async def ai_reply(
     user_text: str, history: list[dict] | None = None
 ) -> str | None:
@@ -1041,18 +1096,32 @@ def parse_event_cards(text: str, *, now: datetime | None = None) -> list[dict[st
     cards: list[dict[str, str]] = []
     seen: set[tuple[str, str]] = set()
 
+    # Модель иногда экранирует XML как HTML. Кроме того, при достижении лимита
+    # токенов последняя карточка может остаться без закрывающего </event>.
+    normalized = html_lib.unescape(text or "")
+    blocks = re.findall(r"<event\b[^>]*>(.*?)</event>", normalized, re.I | re.S)
+    tail = re.search(r"<event\b[^>]*>(?!.*</event>)(.*)$", normalized, re.I | re.S)
+    if tail and "<title>" in tail.group(1) and "<start>" in tail.group(1):
+        blocks.append(tail.group(1))
+
     def field(block: str, name: str) -> str:
         match = re.search(rf"<{name}>(.*?)</{name}>", block, re.I | re.S)
         value = html_lib.unescape(match.group(1).strip()) if match else ""
         return re.sub(r"\s+", " ", value)
 
-    for block in re.findall(r"<event>(.*?)</event>", text or "", re.I | re.S):
+    def direct_url(raw: str) -> str:
+        # Принимаем как чистый URL, так и markdown-ссылку, если модель всё же
+        # обернула адрес вопреки формату ответа.
+        match = re.search(r"https?://[^\s<>\]\"']+", (raw or "").strip())
+        return match.group(0).rstrip(".,);}") if match else ""
+
+    for block in blocks:
         card = {name: field(block, name) for name in (
             "title", "start", "end", "date", "venue", "city", "description",
             "url", "source_url", "ticket_url", "source", "territory",
         )}
-        source_url = (card["source_url"] or card["url"]).strip().rstrip(".,)")
-        ticket_url = card["ticket_url"].strip().rstrip(".,)")
+        source_url = direct_url(card["source_url"] or card["url"])
+        ticket_url = direct_url(card["ticket_url"])
         url = source_url or ticket_url
         parsed = urlparse(url)
         starts_at = _event_moment(card["start"])
@@ -1068,6 +1137,8 @@ def parse_event_cards(text: str, *, now: datetime | None = None) -> list[dict[st
         else:
             ends_at = starts_at + timedelta(hours=6)
         current = now or datetime.now(timezone.utc).replace(tzinfo=None)
+        if not card["date"] and starts_at is not None:
+            card["date"] = card["start"]
         if (
             not card["title"] or not card["date"] or ends_at is None or ends_at <= current
             or parsed.scheme not in {"http", "https"} or not parsed.netloc
@@ -1140,10 +1211,19 @@ async def ai_event_search_places(city: str, radius_km: int) -> list[str]:
     if tools:
         kwargs["tools"] = tools
     try:
-        response = await _get_client().messages.create(**kwargs)
+        response = await _create_with_server_tool_continuation(
+            _get_client(), **kwargs
+        )
     except Exception as exc:  # noqa: BLE001 — поиск событий продолжится по исходному месту
         log.warning("Не удалось определить населённые пункты рядом с %s: %s", city, exc)
         return [city]
+    errors = _web_search_errors(response)
+    if errors:
+        log.warning(
+            "Веб-поиск населённых пунктов рядом с %s вернул: %s",
+            city,
+            ", ".join(errors),
+        )
     text, _ = _extract_text_and_sources(response)
     return parse_event_search_places(text, city)
 
@@ -1163,7 +1243,10 @@ async def ai_event_cards(
     radius = "по всей стране" if radius_km == 999 else (
         "только в границах города" if radius_km == 0 else f"в радиусе примерно {radius_km} км"
     )
-    places = search_cities or [city]
+    # Не просим модель проверить больше населённых пунктов, чем разрешаем ей
+    # поисковых вызовов: прежняя связка «до 10 мест / максимум 5 поисков» сама
+    # провоцировала max_uses_exceeded и пустую афишу.
+    places = (search_cities or [city])[:8]
     place_instruction = ", ".join(places)
     dynamic_radius_instruction = (
         "Список ниже уже определён отдельным географическим поиском. Ищи в каждом месте, "
@@ -1188,9 +1271,10 @@ async def ai_event_cards(
         "площадки, организаторов и билетные сервисы каждого острова. "
         if "остров" in section_label.casefold() else ""
     )
+    target_count = "4–6" if horizon_days <= 7 else "6–8"
     system = (
         "Ты редактор подробной афиши Нидерландов. ОБЯЗАТЕЛЬНО используй веб-поиск. "
-        f"Постарайся найти 10–12 реальных мероприятий для {city}, {radius}, на ближайшие "
+        f"Постарайся найти {target_count} реальных мероприятий для {city}, {radius}, на ближайшие "
         f"{horizon_days} дней, начиная с {today}. "
         "Если подтверждено меньше, всё равно верни найденные карточки: одна реальная карточка лучше пустого ответа. "
         f"{category_instruction}{coverage_instruction}{island_instruction}"
@@ -1219,29 +1303,40 @@ async def ai_event_cards(
     )
     client = _get_client()
 
-    async def request(prompt: str):
+    async def request(prompt: str, *, max_searches: int, max_tokens: int = 3600):
         kwargs = dict(
             model=config.AI_CHAT_MODEL,
-            max_tokens=2600,
+            max_tokens=max_tokens,
             system=system,
             messages=[{"role": "user", "content": prompt}],
         )
         # Афише нужно проверить несколько локальных источников. Общий лимит для
         # чата остаётся прежним; повышенный бюджет действует только здесь.
-        tools = _web_search_tool(max_uses=max(5, config.AI_WEB_MAX_USES))
+        tools = _web_search_tool(max_uses=max_searches)
         if tools:
             kwargs["tools"] = tools
-        return await client.messages.create(**kwargs)
+        return await _create_with_server_tool_continuation(client, **kwargs)
 
+    first_response = None
     try:
-        response = await request(
+        first_response = await request(
             f"Собери афишу для {city}. Сегодня {today}. Сначала ищи события именно в {city}; "
-            f"затем дополни событиями из: {place_instruction}."
+            f"затем дополни событиями из: {place_instruction}.",
+            max_searches=max(8, config.AI_WEB_MAX_USES),
         )
     except Exception as exc:  # noqa: BLE001 — афиша не должна ронять бота
         log.warning("Не удалось собрать структурированную афишу для %s: %s", city, exc)
-        return []
-    text, _ = _extract_text_and_sources(response)
+    if first_response is not None:
+        errors = _web_search_errors(first_response)
+        if errors:
+            log.warning(
+                "Веб-поиск афиши для %s вернул: %s",
+                city,
+                ", ".join(errors),
+            )
+        text, _ = _extract_text_and_sources(first_response)
+    else:
+        text = ""
     cards = parse_event_cards(text)
     if len(cards) >= 4:
         return cards
@@ -1251,15 +1346,24 @@ async def ai_event_cards(
     retry_places = ", ".join(places[:5])
     try:
         response = await request(
-            f"Первый поиск дал мало результатов. Повтори независимый поиск для {city} и {retry_places}. "
-            f"Используй запросы на нидерландском вида «{city} uitagenda {today[:7]}», "
-            f"«{city} evenementen weekend», а также agenda/programma местных музеев, театров, "
-            "культурных центров и gemeente. Верни даже 1–3 события, если только столько удалось "
-            "подтвердить; каждое — со своей прямой URL."
+            f"Нужен короткий резервный результат: найди 2–4 события для {city} и "
+            f"ближайших мест ({retry_places}) на нужный период. Сделай не больше трёх "
+            f"точных запросов на нидерландском, например «{city} uitagenda {today[:7]}». "
+            "Верни даже одно подтверждённое событие; каждое — со своей прямой URL и "
+            "строго в заданном XML-формате.",
+            max_searches=3,
+            max_tokens=2200,
         )
     except Exception as exc:  # noqa: BLE001
         log.warning("Повторный локальный поиск афиши для %s не сработал: %s", city, exc)
         return cards
+    retry_errors = _web_search_errors(response)
+    if retry_errors:
+        log.warning(
+            "Резервный веб-поиск афиши для %s вернул: %s",
+            city,
+            ", ".join(retry_errors),
+        )
     retry_text, _ = _extract_text_and_sources(response)
     combined = cards + parse_event_cards(retry_text)
     unique: list[dict[str, str]] = []

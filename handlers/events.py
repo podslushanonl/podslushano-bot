@@ -40,6 +40,11 @@ log = logging.getLogger(__name__)
 router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
+# Один сегмент афиши наполняется одним запросом, даже если пользователь нажал
+# кнопку повторно или фоновое обновление совпало с ручным открытием.
+_segment_locks: dict[tuple[str, int, str], asyncio.Lock] = {}
+_active_user_searches: set[tuple[int, str, int, str]] = set()
+
 POPULAR_CITIES = ["Amsterdam", "Rotterdam", "Den Haag", "Utrecht", "Eindhoven", "Groningen"]
 
 AFISHA_SECTIONS = {
@@ -372,51 +377,58 @@ async def ensure_auto_afisha(
         return cached
     if not ai_enabled() or (not force and not allow_ai(uid)):
         return None
-    # Географию определяем динамически: пользователь может жить в любом городе
-    # или деревне, а не только в одном из заранее известных крупных городов.
-    search_cities = await ai_event_search_places(city, radius_km)
-    cards = await ai_event_cards(
-        city,
-        radius_km,
-        search_cities=search_cities,
-        section_label=section_label,
-        horizon_days=horizon_days,
-    )
-    if not cards:
-        return None
-    semaphore = asyncio.Semaphore(4)
+    lock_key = (city.casefold(), radius_km, section_key)
+    lock = _segment_locks.setdefault(lock_key, asyncio.Lock())
+    async with lock:
+        # Пока ждали другой запрос, он мог уже заполнить этот сегмент.
+        cached = await _auto_batch(city, radius_km, section_key)
+        if cached:
+            return cached
+        # Географию определяем динамически: пользователь может жить в любом городе
+        # или деревне, а не только в одном из заранее известных крупных городов.
+        search_cities = await ai_event_search_places(city, radius_km)
+        cards = await ai_event_cards(
+            city,
+            radius_km,
+            search_cities=search_cities,
+            section_label=section_label,
+            horizon_days=horizon_days,
+        )
+        if not cards:
+            return None
+        semaphore = asyncio.Semaphore(4)
 
-    async def event_photo(card: dict) -> str:
-        async with semaphore:
-            return await fetch_page_image(card["source_url"] or card["url"]) or ""
+        async def event_photo(card: dict) -> str:
+            async with semaphore:
+                return await fetch_page_image(card["source_url"] or card["url"]) or ""
 
-    photo_urls = await asyncio.gather(*(event_photo(card) for card in cards))
-    batch = secrets.token_hex(6)
-    expires = datetime.utcnow() + timedelta(hours=72 if section_key != "nearby" else 24)
-    async with get_session() as session:
-        for card, photo_url in zip(cards, photo_urls):
-            session.add(DiscoveredEvent(
-                batch_key=batch,
-                query_city=city,
-                radius_km=radius_km,
-                title=card["title"],
-                description=card["description"],
-                event_date=card["date"],
-                venue=card["venue"],
-                city=card["city"] or city,
-                link=card["url"],
-                source_name=card["source"],
-                section_key=section_key,
-                source_url=card["source_url"],
-                ticket_url=card["ticket_url"],
-                photo_url=photo_url,
-                territory=card["territory"],
-                starts_at=card["starts_at"],
-                ends_at=card["ends_at"],
-                expires_at=expires,
-            ))
-        await session.commit()
-    return await _auto_batch(city, radius_km, section_key)
+        photo_urls = await asyncio.gather(*(event_photo(card) for card in cards))
+        batch = secrets.token_hex(6)
+        expires = datetime.utcnow() + timedelta(hours=72 if section_key != "nearby" else 24)
+        async with get_session() as session:
+            for card, photo_url in zip(cards, photo_urls):
+                session.add(DiscoveredEvent(
+                    batch_key=batch,
+                    query_city=city,
+                    radius_km=radius_km,
+                    title=card["title"],
+                    description=card["description"],
+                    event_date=card["date"],
+                    venue=card["venue"],
+                    city=card["city"] or city,
+                    link=card["url"],
+                    source_name=card["source"],
+                    section_key=section_key,
+                    source_url=card["source_url"],
+                    ticket_url=card["ticket_url"],
+                    photo_url=photo_url,
+                    territory=card["territory"],
+                    starts_at=card["starts_at"],
+                    ends_at=card["ends_at"],
+                    expires_at=expires,
+                ))
+            await session.commit()
+        return await _auto_batch(city, radius_km, section_key)
 
 
 def _auto_event_text(ev: DiscoveredEvent) -> str:
@@ -517,20 +529,30 @@ async def show_auto_afisha(
 ) -> None:
     """Показывает наполненную афишу: каждое мероприятие — отдельная карточка."""
     cached = await _auto_batch(city, radius_km, section_key)
+    active_key = (uid, city.casefold(), radius_km, section_key)
     if not cached:
+        if active_key in _active_user_searches:
+            await message.answer(
+                "🔎 Эта афиша уже собирается. Дождись первой подборки — повторно искать не нужно 🙂"
+            )
+            return
+        _active_user_searches.add(active_key)
         radius = "по всей стране" if radius_km == 999 else f"в радиусе {radius_km} км"
         await message.answer(
             f"🔎 Собираю свежую афишу для <b>{html.escape(city)}</b> {radius}. "
             "Проверяю даты и ссылки — это может занять до минуты ⏳"
         )
         await message.bot.send_chat_action(message.chat.id, action="typing")
-    result = cached or await ensure_auto_afisha(
-        city,
-        radius_km,
-        uid,
-        section_key=section_key,
-        section_label=section_label,
-    )
+    try:
+        result = cached or await ensure_auto_afisha(
+            city,
+            radius_km,
+            uid,
+            section_key=section_key,
+            section_label=section_label,
+        )
+    finally:
+        _active_user_searches.discard(active_key)
     if not result:
         await message.answer(
             "Пока не получилось собрать актуальные карточки с подтверждённой датой и "
