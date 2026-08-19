@@ -22,7 +22,7 @@ from handlers.content import content_publisher_loop
 from handlers.selfadd import reminder_loop
 from handlers.digest import digest_announcement_loop, digest_draft_loop
 from handlers.notifications import notification_loop
-from handlers.events import afisha_catalog_loop
+from handlers.evenementen_catalog import evenementen_catalog_loop
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
 from utils.webserver import start_webserver
@@ -145,7 +145,7 @@ async def main() -> None:
     asyncio.create_task(digest_announcement_loop(bot))
     asyncio.create_task(notification_loop(bot))
     asyncio.create_task(content_publisher_loop(bot))
-    asyncio.create_task(afisha_catalog_loop(bot))
+    asyncio.create_task(evenementen_catalog_loop(bot))
     asyncio.create_task(ad_lead_reminder_loop(bot))
     asyncio.create_task(ad_payment_reconciliation_loop(bot))
 
