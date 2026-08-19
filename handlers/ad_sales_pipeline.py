@@ -6,6 +6,7 @@ import html
 import logging
 
 from aiogram import Bot, F, Router
+from aiogram.dispatcher.event.bases import SkipHandler
 from aiogram.enums import ChatType
 from aiogram.types import CallbackQuery, Message
 from sqlalchemy import select
@@ -37,15 +38,20 @@ def _is_admin(callback: CallbackQuery) -> bool:
 
 @router.message(F.chat.type == ChatType.PRIVATE, F.text)
 async def capture_ad_client_reply(message: Message) -> None:
-    """Перехватывает ответ клиента, пока у него открыт рекламный лид."""
+    """Перехватывает ответ клиента, пока у него открыт рекламный лид.
+
+    Если активного рекламного диалога нет, обязательно пропускаем update дальше,
+    чтобы обычные сообщения дошли до handlers.chat. Обычный ``return`` в aiogram
+    считает обработчик выполненным и останавливает дальнейшую маршрутизацию.
+    """
     if message.from_user is None or message.from_user.id in config.ADMIN_IDS:
-        return
+        raise SkipHandler
     submission = await active_ad_submission(message.from_user.id)
     if submission is None:
-        return
+        raise SkipHandler
     text = (message.text or "").strip()
     if not text:
-        return
+        raise SkipHandler
     await ensure_pipeline(submission)
     await record_message(
         submission.id,
