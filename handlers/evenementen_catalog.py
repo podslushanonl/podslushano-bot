@@ -9,7 +9,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from calendar import monthrange
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from urllib.parse import urlparse
 
 from sqlalchemy import delete, or_
@@ -38,7 +38,6 @@ MONTH_NAMES = {
     9: "Сентябрь", 10: "Октябрь", 11: "Ноябрь", 12: "Декабрь",
 }
 
-# Направления ровно по основным разделам evenementen.nl.
 SITE_CATEGORIES = (
     ("fest", "festivals", "🎪 Фестивали"),
     ("concert", "concerten_theater", "🎵 Концерты и театр"),
@@ -49,10 +48,6 @@ SITE_CATEGORIES = (
 )
 
 
-def _month_start(year: int, month: int) -> date:
-    return date(year, month, 1)
-
-
 def _add_months(day: date, count: int) -> date:
     value = day.year * 12 + (day.month - 1) + count
     return date(value // 12, value % 12 + 1, 1)
@@ -60,18 +55,15 @@ def _add_months(day: date, count: int) -> date:
 
 def _catalog_sections(month_count: int = 5) -> dict[str, tuple[str, str]]:
     """Текущий месяц + четыре следующих, каждый разбит по направлениям."""
-    first = _month_start(date.today().year, date.today().month)
+    first = date(date.today().year, date.today().month, 1)
     sections: dict[str, tuple[str, str]] = {}
     for offset in range(month_count):
         month = _add_months(first, offset)
         last = date(month.year, month.month, monthrange(month.year, month.month)[1])
         for short, slug, label in SITE_CATEGORIES:
-            # section_key <= 24 символов, потому используем компактный ключ.
             key = f"m{month:%y%m}_{short}"
             title = f"📅 {MONTH_NAMES[month.month]} · {label.split(' ', 1)[1]}"
-            marker = (
-                f"evenementen|{slug}|{month.isoformat()}|{last.isoformat()}|{label}"
-            )
+            marker = f"evenementen|{slug}|{month.isoformat()}|{last.isoformat()}|{label}"
             sections[key] = (title, marker)
     return sections
 
@@ -83,8 +75,16 @@ def install_evenementen_source() -> None:
 
 
 def _is_evenementen_url(value: str) -> bool:
-    host = urlparse(value or "").netloc.lower().removeprefix("www.")
-    return host == SOURCE_DOMAIN or host.endswith("." + SOURCE_DOMAIN)
+    parsed = urlparse(value or "")
+    host = parsed.netloc.lower().removeprefix("www.")
+    return (host == SOURCE_DOMAIN or host.endswith("." + SOURCE_DOMAIN)) and "/events/" in parsed.path
+
+
+def _normalise_url(value: str) -> str:
+    parsed = urlparse(value or "")
+    if not parsed.scheme or not parsed.netloc:
+        return ""
+    return f"{parsed.scheme.lower()}://{parsed.netloc.lower().removeprefix('www.')}{parsed.path.rstrip('/')}"
 
 
 def _section_filter(section_label: str) -> tuple[str, str, str, str]:
@@ -96,6 +96,30 @@ def _section_filter(section_label: str) -> tuple[str, str, str, str]:
     return parts[1], parts[2], parts[3], parts[4]
 
 
+def _card_in_period(card: dict, date_from: str, date_till: str) -> bool:
+    """Не даёт положить событие в неправильный месячный раздел."""
+    try:
+        lower = date.fromisoformat(date_from)
+        upper = date.fromisoformat(date_till)
+    except ValueError:
+        return False
+
+    def iso_day(raw: str) -> date | None:
+        value = (raw or "").strip()
+        if len(value) < 10:
+            return None
+        try:
+            return date.fromisoformat(value[:10])
+        except ValueError:
+            return None
+
+    starts = iso_day(str(card.get("start") or ""))
+    ends = iso_day(str(card.get("end") or "")) or starts
+    if starts is None:
+        return False
+    return starts <= upper and (ends is None or ends >= lower)
+
+
 async def evenementen_event_cards(
     city: str,
     radius_km: int = 25,
@@ -104,25 +128,16 @@ async def evenementen_event_cards(
     section_label: str = "",
     horizon_days: int = 90,
 ) -> list[dict[str, str]]:
-    """Ищет события только на evenementen.nl и возвращает карточки старого формата."""
+    """Ищет реальные события только на evenementen.nl."""
     slug, date_from, date_till, category_label = _section_filter(section_label)
     today = date.today()
     if not date_from:
         date_from = today.isoformat()
-        # Для персональной афиши сохраняем текущий горизонт, но источник один.
-        end = today.fromordinal(today.toordinal() + max(7, min(horizon_days, 120)))
-        date_till = end.isoformat()
+        date_till = (today + timedelta(days=max(7, min(horizon_days, 120)))).isoformat()
 
     places = search_cities or [city]
-    if radius_km == 999:
-        place_text = "Nederland"
-    else:
-        place_text = ", ".join(places[:8])
-
-    category_url = (
-        f"https://evenementen.nl/zoeken/{slug}"
-        if slug else "https://evenementen.nl/"
-    )
+    place_text = "Nederland" if radius_km == 999 else ", ".join(places[:8])
+    category_url = f"https://evenementen.nl/zoeken/{slug}" if slug else "https://evenementen.nl/"
     category_rule = (
         f"Gebruik alleen de categorie {category_label} ({category_url}). "
         if slug else "Gebruik alle relevante evenementcategorieën op evenementen.nl. "
@@ -130,38 +145,38 @@ async def evenementen_event_cards(
 
     system = (
         "Je maakt een actuele Nederlandse evenementenkalender. Gebruik VERPLICHT web search, "
-        "maar uitsluitend evenementen.nl. Gebruik geen Eventbrite, Ticketmaster, gemeentelijke "
-        "sites, VVV-sites of andere bronnen. "
+        "maar uitsluitend evenementen.nl. Gebruik geen andere bronnen. "
         f"{category_rule}"
-        f"Selecteer evenementen die plaatsvinden tussen {date_from} en {date_till}. "
-        f"Geografisch gebied: {place_text}. "
-        "Neem alleen echte evenementen met een concrete datum op. Laat doorlopende attracties, "
-        "algemene museumbezoeken, permanente wandelroutes en items zonder bruikbare datum weg. "
-        "Open waar nodig de detailpagina op evenementen.nl om datum, locatie en omschrijving te controleren. "
-        "Geef 8 tot 12 verschillende bruikbare resultaten als die beschikbaar zijn. "
-        "Alle source_url- en url-waarden moeten naar een concrete evenementen.nl/events/... pagina wijzen. "
-        "Gebruik geen verzonnen links. Geef uitsluitend blokken in dit formaat, zonder markdown of uitleg:\n"
+        f"Selecteer evenementen tussen {date_from} en {date_till}. Gebied: {place_text}. "
+        "Neem alleen echte evenementen met een concrete datum op. Laat permanente attracties, "
+        "doorlopende activiteiten en items zonder bruikbare datum weg. Open de detailpagina om "
+        "datum, locatie en omschrijving te controleren. Geef 8 tot 12 resultaten indien beschikbaar. "
+        "Elke source_url moet een concrete evenementen.nl/events/... pagina zijn die je in web search hebt gevonden. "
+        "Verzin geen links. Geef uitsluitend blokken in dit formaat:\n"
         "<event><title>Naam</title><start>YYYY-MM-DD of ISO 8601</start>"
-        "<end>YYYY-MM-DD of ISO 8601 indien bekend</end>"
-        "<date>Leesbare datum/tijd</date><venue>Locatie</venue><city>Plaats</city>"
+        "<end>YYYY-MM-DD of ISO 8601 indien bekend</end><date>Leesbare datum/tijd</date>"
+        "<venue>Locatie</venue><city>Plaats</city>"
         "<description>Korte concrete omschrijving in het Russisch</description>"
         "<source_url>https://evenementen.nl/events/...</source_url>"
         "<ticket_url></ticket_url><source>Evenementen.nl</source>"
         "<territory>Nederland</territory></event>"
     )
-    prompt = (
-        f"Zoek op evenementen.nl naar evenementen voor {place_text}, van {date_from} tot {date_till}. "
-        f"Categorie: {category_label or 'alle categorieën'}. Begin bij {category_url}."
-    )
     kwargs = dict(
         model=config.AI_CHAT_MODEL,
         max_tokens=4200,
         system=system,
-        messages=[{"role": "user", "content": prompt}],
+        messages=[{
+            "role": "user",
+            "content": (
+                f"Zoek op evenementen.nl naar evenementen voor {place_text}, van {date_from} tot {date_till}. "
+                f"Categorie: {category_label or 'alle categorieën'}. Begin bij {category_url}."
+            ),
+        }],
     )
     tools = _web_search_tool([SOURCE_DOMAIN], max_uses=5)
     if tools:
         kwargs["tools"] = tools
+
     try:
         response = await _create_with_server_tool_continuation(
             _get_client(), max_continuations=2, **kwargs
@@ -173,21 +188,22 @@ async def evenementen_event_cards(
     errors = _web_search_errors(response)
     if errors:
         log.warning("Evenementen.nl web search fouten: %s", ", ".join(errors))
-    text, _ = _extract_text_and_sources(response)
+    text, sources = _extract_text_and_sources(response)
+    evidence = {_normalise_url(url) for url in sources if _is_evenementen_url(url)}
     cards = parse_event_cards(text)
 
     clean: list[dict[str, str]] = []
     seen: set[str] = set()
     for card in cards:
         url = card.get("source_url") or card.get("url") or ""
-        if not _is_evenementen_url(url):
+        normalised = _normalise_url(url)
+        if not _is_evenementen_url(url) or normalised not in evidence:
             continue
-        if "/events/" not in url:
+        if not _card_in_period(card, date_from, date_till):
             continue
-        key = url.casefold().rstrip("/")
-        if key in seen:
+        if normalised in seen:
             continue
-        seen.add(key)
+        seen.add(normalised)
         card["url"] = url
         card["source_url"] = url
         card["source"] = SOURCE_NAME
@@ -198,7 +214,7 @@ async def evenementen_event_cards(
 
 
 async def _purge_old_automatic_afisha() -> None:
-    """Удаляет старую автоафишу из других источников и просроченный кэш."""
+    """Удаляет старую автоафишу из других источников и прошедшие карточки."""
     now = datetime.utcnow()
     async with get_session() as session:
         await session.execute(
@@ -213,35 +229,41 @@ async def _purge_old_automatic_afisha() -> None:
         await session.commit()
 
 
+async def _clear_segment(section_key: str) -> None:
+    """Удаляет текущий кэш сегмента перед обязательной 6-часовой пересборкой."""
+    async with get_session() as session:
+        await session.execute(
+            delete(DiscoveredEvent).where(
+                DiscoveredEvent.query_city == "Nederland",
+                DiscoveredEvent.radius_km == 999,
+                DiscoveredEvent.section_key == section_key,
+            )
+        )
+        await session.commit()
+
+
 async def evenementen_catalog_loop(bot) -> None:
     """Пересобирает месяцы/направления и далее поддерживает их в актуальном виде."""
-    del bot  # сигнатура совпадает с остальными фоновыми задачами
-    install_evenementen_source()
+    del bot
     await asyncio.sleep(8)
     await _purge_old_automatic_afisha()
 
     while True:
-        # Месяцы меняются со временем, поэтому пересчитываем разделы на каждом цикле.
         events.AFISHA_SECTIONS = _catalog_sections()
         for section_key, (_, search_label) in events.AFISHA_SECTIONS.items():
             try:
-                if not await events._auto_batch("Nederland", 999, section_key):
-                    await events.ensure_auto_afisha(
-                        "Nederland",
-                        999,
-                        config.ADMIN_IDS[0] if config.ADMIN_IDS else 0,
-                        section_key=section_key,
-                        section_label=search_label,
-                        horizon_days=120,
-                        force=True,
-                    )
+                await _clear_segment(section_key)
+                await events.ensure_auto_afisha(
+                    "Nederland",
+                    999,
+                    config.ADMIN_IDS[0] if config.ADMIN_IDS else 0,
+                    section_key=section_key,
+                    section_label=search_label,
+                    horizon_days=120,
+                    force=True,
+                )
             except Exception as exc:  # noqa: BLE001
                 log.warning("Не удалось собрать %s с evenementen.nl: %s", section_key, exc)
-            # Не создаём очередь из десятков одновременных web-search запросов.
             await asyncio.sleep(12)
         await _purge_old_automatic_afisha()
         await asyncio.sleep(6 * 3600)
-
-
-# Патч нужен уже при импорте: пользователь может открыть /afisha раньше первого цикла.
-install_evenementen_source()
