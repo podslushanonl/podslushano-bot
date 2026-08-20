@@ -47,7 +47,6 @@ def _absolute_image(raw: str, page_url: str) -> str | None:
     if parsed.scheme not in {"http", "https"} or not parsed.netloc:
         return None
     low = image_url.casefold()
-    # Не используем служебную графику сайта как «фото мероприятия».
     if any(token in low for token in (
         "favicon", "logo.", "/logo/", "icon-", "/icons/", "placeholder",
         "avatar", "sprite", "blank.", "default-image", "default_image",
@@ -86,7 +85,7 @@ def _jsonld_event_image(html: str, page_url: str) -> str | None:
     for raw in _JSONLD_RE.findall(html[:800_000]):
         try:
             data = json.loads(_html.unescape(raw).strip())
-        except Exception:  # noqa: BLE001 — некорректный JSON-LD просто пропускаем
+        except Exception:  # noqa: BLE001
             continue
         found = walk(data)
         if found:
@@ -130,7 +129,7 @@ def _content_image(html: str, page_url: str) -> str | None:
 
 
 def _meta_image(html: str, page_url: str) -> str | None:
-    """Последний fallback: og:image/twitter:image, если он не выглядит служебным."""
+    """Fallback для обычных страниц: og:image/twitter:image."""
     for tag in _META_RE.findall(html[:500_000]):
         attrs = _attrs(tag)
         key = (attrs.get("property") or attrs.get("name") or "").casefold()
@@ -144,9 +143,9 @@ def _meta_image(html: str, page_url: str) -> str | None:
 async def fetch_page_image(url: str) -> str | None:
     """Берёт собственное фото конкретного события с его detail-page.
 
-    Приоритет: schema.org Event.image -> содержательное <img> -> og:image. Случайные
-    картинки не подставляются. Если у события нет собственного изображения, лучше
-    вернуть None, чем повторять общий баннер сайта на разных карточках.
+    Для evenementen.nl/events/... общий og:image намеренно не используется: именно
+    он давал один и тот же брендированный баннер всем карточкам. Если у конкретной
+    страницы нет Event.image или содержательного изображения, возвращаем None.
     """
     url = (url or "").strip()
     if not url:
@@ -174,15 +173,16 @@ async def fetch_page_image(url: str) -> str | None:
                     return None
                 raw = await response.content.read(900_000)
                 page_url = str(response.url)
-    except Exception as exc:  # noqa: BLE001 — отсутствие фото не скрывает событие
+    except Exception as exc:  # noqa: BLE001
         log.info("Не удалось получить фото страницы %s: %s", url, exc)
         return None
     html = raw.decode("utf-8", errors="ignore")
-    return (
-        _jsonld_event_image(html, page_url)
-        or _content_image(html, page_url)
-        or _meta_image(html, page_url)
-    )
+    own_image = _jsonld_event_image(html, page_url) or _content_image(html, page_url)
+    parsed_page = urlparse(page_url)
+    host = parsed_page.netloc.casefold().removeprefix("www.")
+    if host == "evenementen.nl" and "/events/" in parsed_page.path:
+        return own_image
+    return own_image or _meta_image(html, page_url)
 
 
 async def fetch_page_text(url: str, max_chars: int = 12000) -> tuple[str, str] | None:
@@ -220,7 +220,7 @@ async def fetch_page_text(url: str, max_chars: int = 12000) -> tuple[str, str] |
                     log.warning("fetch_page_text не HTML (%s) для %s", ctype, url)
                     return None
                 raw = await r.read()
-    except Exception as e:  # noqa: BLE001 — сеть/таймаут не должны ронять бота
+    except Exception as e:  # noqa: BLE001
         log.warning("fetch_page_text ошибка %s: %s", url, e)
         return None
 
