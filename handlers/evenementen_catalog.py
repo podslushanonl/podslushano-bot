@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import asyncio
+import html as html_lib
 import logging
 import re
 from calendar import monthrange
@@ -70,10 +71,27 @@ def _catalog_sections(month_count: int = 5) -> dict[str, tuple[str, str]]:
     return sections
 
 
+def _evenementen_event_text(ev: DiscoveredEvent) -> str:
+    """Расширенная карточка Evenementen.nl без обрезки описания до 320 символов."""
+    place = " · ".join(x for x in (ev.venue, ev.city) if x)
+    lines = [
+        f"🎭 <b>{html_lib.escape(ev.title[:220])}</b>",
+        "",
+        f"📅 <b>{html_lib.escape(ev.event_date[:160])}</b>",
+    ]
+    if place:
+        lines.append(f"📍 {html_lib.escape(place[:220])}")
+    if ev.description:
+        lines.extend(["", html_lib.escape(ev.description[:700])])
+    lines.extend(["", f"<i>Источник: {SOURCE_NAME}</i>"])
+    return "\n".join(lines)
+
+
 def install_evenementen_source() -> None:
-    """Подменяет источник и разделы существующего обработчика афиши."""
+    """Подменяет источник, разделы и оформление существующего обработчика афиши."""
     events.AFISHA_SECTIONS = _catalog_sections()
     events.ai_event_cards = evenementen_event_cards
+    events._auto_event_text = _evenementen_event_text
 
 
 def _is_evenementen_url(value: str) -> bool:
