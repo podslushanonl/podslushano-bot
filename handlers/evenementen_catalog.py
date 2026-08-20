@@ -26,6 +26,7 @@ from utils.ai import (
     _web_search_tool,
     parse_event_cards,
 )
+from utils.webpage import fetch_page_text
 
 log = logging.getLogger(__name__)
 
@@ -104,20 +105,25 @@ def _card_in_period(card: dict, date_from: str, date_till: str) -> bool:
     except ValueError:
         return False
 
-    def iso_day(raw: str) -> date | None:
-        value = (raw or "").strip()
-        if len(value) < 10:
-            return None
-        try:
-            return date.fromisoformat(value[:10])
-        except ValueError:
-            return None
-
-    starts = iso_day(str(card.get("start") or ""))
-    ends = iso_day(str(card.get("end") or "")) or starts
-    if starts is None:
+    starts_at = card.get("starts_at")
+    ends_at = card.get("ends_at") or starts_at
+    if not isinstance(starts_at, datetime):
         return False
-    return starts <= upper and (ends is None or ends >= lower)
+    start_day = starts_at.date()
+    end_day = ends_at.date() if isinstance(ends_at, datetime) else start_day
+    return start_day <= upper and end_day >= lower
+
+
+async def _verified_evenementen_page(url: str) -> bool:
+    """Проверяет, что сгенерированная карточкой ссылка реально открывается на evenementen.nl."""
+    if not _is_evenementen_url(url):
+        return False
+    try:
+        page = await fetch_page_text(url, max_chars=1200)
+    except Exception as exc:  # noqa: BLE001
+        log.info("Не удалось проверить страницу evenementen.nl %s: %s", url, exc)
+        return False
+    return page is not None
 
 
 async def evenementen_event_cards(
@@ -192,24 +198,52 @@ async def evenementen_event_cards(
     evidence = {_normalise_url(url) for url in sources if _is_evenementen_url(url)}
     cards = parse_event_cards(text)
 
-    clean: list[dict[str, str]] = []
+    candidates: list[tuple[dict, str, str]] = []
     seen: set[str] = set()
     for card in cards:
         url = card.get("source_url") or card.get("url") or ""
         normalised = _normalise_url(url)
-        if not _is_evenementen_url(url) or normalised not in evidence:
+        if not _is_evenementen_url(url) or not _card_in_period(card, date_from, date_till):
             continue
-        if not _card_in_period(card, date_from, date_till):
-            continue
-        if normalised in seen:
+        if not normalised or normalised in seen:
             continue
         seen.add(normalised)
+        candidates.append((card, url, normalised))
+
+    # Цитаты Anthropic не гарантируют, что каждая найденная detail-page попадёт в
+    # финальный список sources. Старый код требовал точное совпадение и поэтому
+    # отбрасывал все реальные карточки. Ссылки, не попавшие в citations, проверяем
+    # прямым HTTP-запросом к evenementen.nl вместо безусловного удаления.
+    semaphore = asyncio.Semaphore(4)
+
+    async def verified(item: tuple[dict, str, str]) -> tuple[dict, str] | None:
+        card, url, normalised = item
+        if normalised in evidence:
+            return card, url
+        async with semaphore:
+            return (card, url) if await _verified_evenementen_page(url) else None
+
+    verified_rows = await asyncio.gather(*(verified(item) for item in candidates))
+
+    clean: list[dict[str, str]] = []
+    for item in verified_rows:
+        if item is None:
+            continue
+        card, url = item
         card["url"] = url
         card["source_url"] = url
         card["source"] = SOURCE_NAME
         card["ticket_url"] = ""
         card["territory"] = "Nederland"
         clean.append(card)
+    log.info(
+        "Evenementen.nl %s: parsed=%d candidates=%d verified=%d sources=%d",
+        section_label or city,
+        len(cards),
+        len(candidates),
+        len(clean),
+        len(evidence),
+    )
     return clean[:12]
 
 
