@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from calendar import monthrange
 from datetime import date, datetime, timedelta
 from urllib.parse import urlparse
@@ -97,6 +98,17 @@ def _section_filter(section_label: str) -> tuple[str, str, str, str]:
     return parts[1], parts[2], parts[3], parts[4]
 
 
+def _calendar_day(raw: str) -> date | None:
+    """Берёт календарную дату из исходного ISO до преобразования в UTC."""
+    value = (raw or "").strip()
+    if len(value) < 10:
+        return None
+    try:
+        return date.fromisoformat(value[:10])
+    except ValueError:
+        return None
+
+
 def _card_in_period(card: dict, date_from: str, date_till: str) -> bool:
     """Не даёт положить событие в неправильный месячный раздел."""
     try:
@@ -104,14 +116,38 @@ def _card_in_period(card: dict, date_from: str, date_till: str) -> bool:
         upper = date.fromisoformat(date_till)
     except ValueError:
         return False
-
-    starts_at = card.get("starts_at")
-    ends_at = card.get("ends_at") or starts_at
-    if not isinstance(starts_at, datetime):
+    starts = _calendar_day(str(card.get("start") or ""))
+    ends = _calendar_day(str(card.get("end") or "")) or starts
+    if starts is None:
         return False
-    start_day = starts_at.date()
-    end_day = ends_at.date() if isinstance(ends_at, datetime) else start_day
-    return start_day <= upper and end_day >= lower
+    return starts <= upper and ends >= lower
+
+
+def _has_russian(text: str) -> bool:
+    return bool(re.search(r"[А-Яа-яЁё]", text or ""))
+
+
+async def _translate_description(card: dict) -> str:
+    """Страховка: если поиск вернул описание не по-русски, переводим его отдельно."""
+    original = (card.get("description") or "").strip()
+    if not original or _has_russian(original):
+        return original
+    try:
+        response = await _get_client().messages.create(
+            model=config.AI_CHAT_MODEL,
+            max_tokens=500,
+            system=(
+                "Переведи описание мероприятия на естественный русский язык. "
+                "Название мероприятия не переводи и не добавляй. Сохрани все факты, даты, "
+                "цены и возрастные ограничения. Ничего не придумывай. Ответь только переводом."
+            ),
+            messages=[{"role": "user", "content": original[:1800]}],
+        )
+        translated, _ = _extract_text_and_sources(response)
+        return translated.strip() or original
+    except Exception as exc:  # noqa: BLE001
+        log.info("Не удалось перевести описание события: %s", exc)
+        return original
 
 
 async def _verified_evenementen_page(url: str) -> bool:
@@ -150,36 +186,44 @@ async def evenementen_event_cards(
     )
 
     system = (
-        "Je maakt een actuele Nederlandse evenementenkalender. Gebruik VERPLICHT web search, "
-        "maar uitsluitend evenementen.nl. Gebruik geen andere bronnen. "
+        "Je maakt een actuele evenementenkalender voor Russischtalige inwoners van Nederland. "
+        "Gebruik VERPLICHT web search, maar uitsluitend evenementen.nl. Gebruik geen andere bronnen. "
         f"{category_rule}"
         f"Selecteer evenementen tussen {date_from} en {date_till}. Gebied: {place_text}. "
         "Neem alleen echte evenementen met een concrete datum op. Laat permanente attracties, "
-        "doorlopende activiteiten en items zonder bruikbare datum weg. Open de detailpagina om "
-        "datum, locatie en omschrijving te controleren. Geef 8 tot 12 resultaten indien beschikbaar. "
+        "doorlopende activiteiten en items zonder bruikbare datum weg. Open elke detailpagina om "
+        "datum, locatie, inhoud en eventuele ticketprijs te controleren. Geef 8 tot 12 resultaten indien beschikbaar. "
+        "BELANGRIJK VOOR DE TEKST: title moet exact de oorspronkelijke naam van het evenement behouden, "
+        "in de oorspronkelijke taal. date, venue en city mogen de officiële lokale schrijfwijze behouden. "
+        "description moet VOLLEDIG IN HET RUSSISCH zijn: 3 tot 5 concrete zinnen over wat er gebeurt, "
+        "programma/formaat, voor wie het interessant is en relevante praktische details. Vertaal geen eventnaam. "
+        "Als op evenementen.nl een ticketprijs staat, voeg aan het einde van description een aparte zin toe: "
+        "«🎟 Билеты: €…». Als expliciet staat dat toegang gratis is, schrijf «🎟 Вход бесплатный». "
+        "Als prijs niet staat, verzin hem niet en voeg geen prijsregel toe. "
         "Elke source_url moet een concrete evenementen.nl/events/... pagina zijn die je in web search hebt gevonden. "
-        "Verzin geen links. Geef uitsluitend blokken in dit formaat:\n"
-        "<event><title>Naam</title><start>YYYY-MM-DD of ISO 8601</start>"
+        "Verzin geen links. Geef uitsluitend blokken in dit formaat, zonder markdown en zonder Nederlandse beschrijving:\n"
+        "<event><title>Originele naam</title><start>YYYY-MM-DD of ISO 8601</start>"
         "<end>YYYY-MM-DD of ISO 8601 indien bekend</end><date>Leesbare datum/tijd</date>"
         "<venue>Locatie</venue><city>Plaats</city>"
-        "<description>Korte concrete omschrijving in het Russisch</description>"
+        "<description>Подробное описание только на русском языке. Цена, если она есть.</description>"
         "<source_url>https://evenementen.nl/events/...</source_url>"
         "<ticket_url></ticket_url><source>Evenementen.nl</source>"
         "<territory>Nederland</territory></event>"
     )
     kwargs = dict(
         model=config.AI_CHAT_MODEL,
-        max_tokens=4200,
+        max_tokens=5200,
         system=system,
         messages=[{
             "role": "user",
             "content": (
                 f"Zoek op evenementen.nl naar evenementen voor {place_text}, van {date_from} tot {date_till}. "
-                f"Categorie: {category_label or 'alle categorieën'}. Begin bij {category_url}."
+                f"Categorie: {category_label or 'alle categorieën'}. Begin bij {category_url}. "
+                "Controleer per evenement ook of er op de pagina een toegangsprijs of gratis toegang wordt genoemd."
             ),
         }],
     )
-    tools = _web_search_tool([SOURCE_DOMAIN], max_uses=5)
+    tools = _web_search_tool([SOURCE_DOMAIN], max_uses=7)
     if tools:
         kwargs["tools"] = tools
 
@@ -210,10 +254,6 @@ async def evenementen_event_cards(
         seen.add(normalised)
         candidates.append((card, url, normalised))
 
-    # Цитаты Anthropic не гарантируют, что каждая найденная detail-page попадёт в
-    # финальный список sources. Старый код требовал точное совпадение и поэтому
-    # отбрасывал все реальные карточки. Ссылки, не попавшие в citations, проверяем
-    # прямым HTTP-запросом к evenementen.nl вместо безусловного удаления.
     semaphore = asyncio.Semaphore(4)
 
     async def verified(item: tuple[dict, str, str]) -> tuple[dict, str] | None:
@@ -230,6 +270,7 @@ async def evenementen_event_cards(
         if item is None:
             continue
         card, url = item
+        card["description"] = await _translate_description(card)
         card["url"] = url
         card["source_url"] = url
         card["source"] = SOURCE_NAME
