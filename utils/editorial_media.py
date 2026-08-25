@@ -16,7 +16,6 @@ import logging
 import os
 import re
 from dataclasses import dataclass
-from urllib.parse import quote
 
 import aiohttp
 from aiogram.types import BufferedInputFile
@@ -61,7 +60,7 @@ async def _image_search_query(text: str, kind: str) -> str:
             messages=[{"role": "user", "content": f"Тип: {kind}\n\n{text[:1800]}"}],
         )
         raw, _ = _extract_text_and_sources(response)
-        query = _plain(raw).strip('"\'')
+        query = _plain(raw).strip("\"'")
         return query[:140] or fallback[:120]
     except Exception as exc:  # noqa: BLE001
         log.info("Не удалось сформировать запрос фотографии: %s", exc)
@@ -84,7 +83,11 @@ async def _commons_image(query: str) -> EditorialImage | None:
     timeout = aiohttp.ClientTimeout(total=15)
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(COMMONS_API, params=params, headers={"User-Agent": "PodslushanoNLBot/1.0"}) as response:
+            async with session.get(
+                COMMONS_API,
+                params=params,
+                headers={"User-Agent": "PodslushanoNLBot/1.0"},
+            ) as response:
                 if response.status != 200:
                     return None
                 payload = await response.json(content_type=None)
@@ -105,7 +108,6 @@ async def _commons_image(query: str) -> EditorialImage | None:
         license_name = _plain((meta.get("LicenseShortName") or {}).get("value", ""))
         usage = _plain((meta.get("UsageTerms") or {}).get("value", ""))
         artist = _plain((meta.get("Artist") or {}).get("value", ""))
-        # Берём только изображения с явной свободной лицензией/PD.
         license_text = f"{license_name} {usage}".lower()
         if not any(mark in license_text for mark in ("cc by", "cc0", "public domain", "publiek domein")):
             continue
@@ -155,7 +157,11 @@ async def _generated_image(text: str, kind: str) -> EditorialImage | None:
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
             ) as response:
                 if response.status >= 300:
-                    log.warning("OpenAI image generation failed: HTTP %s %s", response.status, (await response.text())[:300])
+                    log.warning(
+                        "OpenAI image generation failed: HTTP %s %s",
+                        response.status,
+                        (await response.text())[:300],
+                    )
                     return None
                 payload = await response.json(content_type=None)
         item = (payload.get("data") or [{}])[0]
