@@ -1,11 +1,11 @@
 """Фотографии для редакционных Telegram-постов.
 
 Приоритет:
-1. Реальная тематическая фотография из Wikimedia Commons со свободной лицензией.
-2. Фотореалистичная генерация через OpenAI Images API.
+1. Точное реальное фото из Wikimedia Commons.
+2. Для утренних и вечерних постов — проверенный резерв реальных CC0-фото.
+3. Фотореалистичная генерация через OpenAI Images API, если ключ настроен.
 
-Никаких локальных Pillow-иллюстраций: если качественное изображение получить
-невозможно, модуль возвращает None и администратор получает понятное сообщение.
+Никаких Pillow/flat-design иллюстраций.
 """
 from __future__ import annotations
 
@@ -21,6 +21,7 @@ from aiogram.types import BufferedInputFile
 
 import config
 from utils.ai import _extract_text_and_sources, _get_client, ai_enabled
+from utils.editorial_curated_photos import curated_photo
 
 log = logging.getLogger(__name__)
 
@@ -92,23 +93,29 @@ def _search_variants(primary: str, text: str, kind: str) -> list[str]:
     return result[:5]
 
 
-async def _download_image(url: str, mime: str) -> BufferedInputFile | None:
-    timeout = aiohttp.ClientTimeout(total=25)
+async def _download_image(url: str, mime: str = "image/jpeg") -> BufferedInputFile | None:
+    timeout = aiohttp.ClientTimeout(total=35)
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(url, headers={"User-Agent": "PodslushanoNLBot/1.3"}) as response:
+            async with session.get(url, headers={"User-Agent": "PodslushanoNLBot/1.4"}, allow_redirects=True) as response:
                 if response.status != 200:
+                    log.info("Image download HTTP %s: %s", response.status, url[:180])
                     return None
                 data = await response.read()
+                content_type = (response.headers.get("Content-Type") or mime).lower()
+                if not content_type.startswith("image/"):
+                    log.info("Image URL returned non-image content: %s", content_type)
+                    return None
                 if len(data) < 20_000 or len(data) > 9_500_000:
+                    log.info("Image size rejected: %d bytes", len(data))
                     return None
     except Exception as exc:  # noqa: BLE001
-        log.info("Commons image download failed: %s", exc)
+        log.info("Image download failed: %s", exc)
         return None
     ext = ".jpg"
-    if "png" in mime:
+    if "png" in content_type:
         ext = ".png"
-    elif "webp" in mime:
+    elif "webp" in content_type:
         ext = ".webp"
     return BufferedInputFile(data, filename=f"editorial-real{ext}")
 
@@ -129,7 +136,7 @@ async def _commons_image(query: str) -> EditorialImage | None:
     timeout = aiohttp.ClientTimeout(total=20)
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(COMMONS_API, params=params, headers={"User-Agent": "PodslushanoNLBot/1.3"}) as response:
+            async with session.get(COMMONS_API, params=params, headers={"User-Agent": "PodslushanoNLBot/1.4"}) as response:
                 if response.status != 200:
                     return None
                 payload = await response.json(content_type=None)
@@ -155,9 +162,7 @@ async def _commons_image(query: str) -> EditorialImage | None:
         usage = _plain((meta.get("UsageTerms") or {}).get("value", ""))
         artist = _plain((meta.get("Artist") or {}).get("value", ""))
         license_text = f"{license_name} {usage}".lower()
-        if not any(mark in license_text for mark in (
-            "cc by", "cc-by", "cc0", "public domain", "publiek domein",
-        )):
+        if not any(mark in license_text for mark in ("cc by", "cc-by", "cc0", "public domain", "publiek domein")):
             continue
         image_url = info.get("thumburl") or info.get("url")
         if not image_url:
@@ -178,6 +183,17 @@ async def _commons_image(query: str) -> EditorialImage | None:
     return None
 
 
+async def _curated_real_image(text: str, kind: str) -> EditorialImage | None:
+    selected = curated_photo(kind, text)
+    if not selected:
+        return None
+    url, credit = selected
+    photo = await _download_image(url)
+    if not photo:
+        return None
+    return EditorialImage(photo=photo, attribution=credit, source=url, generated=False)
+
+
 def _generation_prompt(text: str, kind: str) -> str:
     common = (
         "Create a premium photorealistic editorial photograph for a modern Netherlands media publication. "
@@ -189,8 +205,8 @@ def _generation_prompt(text: str, kind: str) -> str:
     if kind == "morning":
         specific = (
             "Scene: an authentic early morning in the Netherlands matching the weather described below. Include believable Dutch "
-            "transport/infrastructure naturally in the scene (for example an NS train, station, motorway or cycling/road environment), "
-            "but do not make a collage and do not add icons. The weather and light must be the main visual story. "
+            "transport/infrastructure naturally in the scene, but do not make a collage and do not add icons. "
+            "The weather and natural morning light must be the main visual story. "
         )
     elif kind == "evening":
         specific = (
@@ -207,7 +223,6 @@ def _generation_prompt(text: str, kind: str) -> str:
 async def _generated_image(text: str, kind: str) -> EditorialImage | None:
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
     if not api_key:
-        log.warning("OPENAI_API_KEY is missing: cannot generate photorealistic editorial image")
         return None
     model = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1.5").strip() or "gpt-image-1.5"
     body = {
@@ -243,10 +258,15 @@ async def _generated_image(text: str, kind: str) -> EditorialImage | None:
 
 
 async def choose_editorial_image(text: str, kind: str) -> EditorialImage | None:
-    """Реальное фото, затем фотореалистичная генерация. Схематичных fallback больше нет."""
+    """Точное реальное фото → проверенное реальное фото → AI-фото."""
     primary = await _image_search_query(text, kind)
     for query in _search_variants(primary, text, kind):
         real = await _commons_image(query)
         if real:
             return real
+
+    curated = await _curated_real_image(text, kind)
+    if curated:
+        return curated
+
     return await _generated_image(text, kind)
