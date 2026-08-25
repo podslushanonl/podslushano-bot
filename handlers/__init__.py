@@ -27,3 +27,7 @@ def _install_editorial_stack() -> None:
 
 
 _editorial_overrides.install = _install_editorial_stack
+
+# Последним оборачиваем весь стек: безопасные группы доменов для вечернего Web Search
+# и реальный /editorialhealth, который выполняет настоящий Anthropic Web Search запрос.
+from utils import editorial_websearch_fix as _editorial_websearch_fix  # noqa: F401,E402
