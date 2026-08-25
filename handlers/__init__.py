@@ -14,6 +14,7 @@ from utils import editorial_caption_patch as _editorial_caption_patch  # noqa: F
 from utils import editorial_overrides as _editorial_overrides  # noqa: E402
 from utils.editorial_reliability import install_editorial_reliability as _install_editorial_reliability  # noqa: E402
 from utils import editorial_websearch_fix as _editorial_websearch_fix  # noqa: F401,E402
+from utils.editorial_cost_guard import install_editorial_cost_guard as _install_editorial_cost_guard  # noqa: E402
 
 _original_editorial_install = _editorial_overrides.install
 
@@ -25,10 +26,10 @@ def _install_editorial_stack() -> None:
     _editorial_caption_patch.install_caption_patch()
     # 3. Надёжный scheduler: retry/catch-up/alerts.
     _install_editorial_reliability()
-    # 4. ОБЯЗАТЕЛЬНО последним: устойчивый вечерний генератор и реальные Web Search проверки.
-    # Раньше модуль только импортировался, но install-функция не вызывалась, поэтому
-    # кнопка «Вечерний пост» и scheduler продолжали использовать старый генератор.
+    # 4. Устойчивый вечерний генератор.
     _editorial_websearch_fix.install_editorial_websearch_fix()
+    # 5. ПОСЛЕДНИМ — жёсткий cost guard: только Haiku, 1 web-search, без платного health probe.
+    _install_editorial_cost_guard()
 
 
 _editorial_overrides.install = _install_editorial_stack
