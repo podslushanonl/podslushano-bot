@@ -1,11 +1,12 @@
-"""Runtime fixes for Telegram editorial photo captions.
+"""Runtime fixes for Telegram editorial media posts.
 
-Goals:
-- photo caption contains the post itself, not preview service text;
+Rules:
+- morning and evening ALWAYS require a photo;
+- event and curiosity may be photo posts or clean text posts;
+- optional-photo rubrics never fail just because an image was unavailable;
+- photo captions contain only the finished post, not preview/service text;
 - generated images are not labelled with an internal AI-attribution line;
-- every caption stays below Telegram's 1024-character limit without cutting
-  a word/sentence in the middle;
-- morning brief keeps weather, rail and roads even when the source draft is long.
+- captions stay below Telegram's 1024-character limit without breaking a sentence.
 """
 from __future__ import annotations
 
@@ -18,6 +19,8 @@ from utils import editorial_overrides as overrides
 CAPTION_LIMIT = 1024
 POST_LIMIT = 900
 MORNING_BODY_LIMIT = 820
+PHOTO_REQUIRED = {"morning", "evening"}
+PHOTO_OPTIONAL = {"event", "curiosity"}
 
 
 def _is_ai_credit(value: str) -> bool:
@@ -31,19 +34,14 @@ def _complete_cut(text: str, limit: int) -> str:
     if len(text) <= limit:
         return text
     candidate = text[:limit].rstrip()
-    # Prefer paragraph, then sentence boundary. Require it to be reasonably late.
     boundaries = [
-        candidate.rfind("\n\n"),
-        candidate.rfind(". "),
-        candidate.rfind("! "),
-        candidate.rfind("? "),
-        candidate.rfind("… "),
+        candidate.rfind("\n\n"), candidate.rfind(". "), candidate.rfind("! "),
+        candidate.rfind("? "), candidate.rfind("… "),
     ]
     boundary = max(boundaries)
     if boundary >= int(limit * 0.62):
         end = boundary + (0 if candidate[boundary:boundary + 2] == "\n\n" else 1)
         return candidate[:end].rstrip()
-    # Last resort: complete word, with ellipsis rather than a broken token.
     word = candidate.rfind(" ")
     return candidate[:word].rstrip(" ,;:-") + "…" if word > int(limit * 0.75) else candidate.rstrip() + "…"
 
@@ -53,32 +51,24 @@ def _fit_morning(text: str) -> str:
     clean = (text or "").strip()
     if len(clean) <= MORNING_BODY_LIMIT:
         return clean
-
-    # Split by the three required emoji block markers while keeping their markers.
     matches = list(re.finditer(r"(?m)^(?=[☁️🌦️🌤️🌧️☀️🚆🚗])", clean))
     if len(matches) < 3:
         return _complete_cut(clean, MORNING_BODY_LIMIT)
-
     headline = clean[:matches[0].start()].strip()
     blocks: list[str] = []
     for i, match in enumerate(matches):
         end = matches[i + 1].start() if i + 1 < len(matches) else len(clean)
-        block = clean[match.start():end].strip()
-        blocks.append(block)
-
-    # Budget each factual block rather than letting rail disruptions consume all caption space.
+        blocks.append(clean[match.start():end].strip())
     headline = _complete_cut(headline, 120)
     per_block = max(185, (MORNING_BODY_LIMIT - len(headline) - 8) // max(1, len(blocks)))
     fitted = [_complete_cut(block, per_block) for block in blocks[:3]]
-    result = "\n\n".join(([headline] if headline else []) + fitted)
-    return _complete_cut(result, MORNING_BODY_LIMIT)
+    return _complete_cut("\n\n".join(([headline] if headline else []) + fitted), MORNING_BODY_LIMIT)
 
 
 def _fit_post(kind: str, text: str) -> str:
     return _fit_morning(text) if kind == "morning" else _complete_cut(text, 820)
 
 
-# Preserve originals because the installer can be called more than once in tests.
 _ORIGINAL_MORNING = editorial._morning_brief
 _ORIGINAL_EVENT = editorial._event_spotlight
 _ORIGINAL_CURIOSITY = editorial._curiosity_post
@@ -106,18 +96,21 @@ async def _short_evening() -> str | None:
 
 
 def _caption(text: str, attribution: str = "") -> str:
-    """Telegram photo caption: post + optional real-photo credit only."""
     credit = "" if _is_ai_credit(attribution) else (attribution or "").strip()
     suffix = f"\n\n{credit}" if credit else ""
     limit = CAPTION_LIMIT - len(suffix)
-    body = _complete_cut(text, min(POST_LIMIT, limit))
-    return body + suffix
+    return _complete_cut(text, min(POST_LIMIT, limit)) + suffix
+
+
+def _should_use_optional_photo(kind: str, text: str) -> bool:
+    """Stable ~50/50 rotation: same draft never changes its media decision."""
+    if kind not in PHOTO_OPTIONAL:
+        return kind in PHOTO_REQUIRED
+    score = sum((i + 1) * ord(ch) for i, ch in enumerate(text[:180]))
+    return score % 2 == 0
 
 
 async def _send_photo_preview(bot, admin_id: int, draft_id: str, kind: str, text: str, button: bool, image) -> bool:
-    # The buttons already communicate that this is a preview. Do not waste caption
-    # characters on service headers/footers: the preview must be pixel-identical to
-    # what subscribers will read.
     credit = "" if _is_ai_credit(getattr(image, "attribution", "")) else getattr(image, "attribution", "")
     msg = await bot.send_photo(
         admin_id,
@@ -134,13 +127,124 @@ async def _send_photo_preview(bot, admin_id: int, draft_id: str, kind: str, text
     return True
 
 
+async def _send_text_preview(bot, admin_id: int, draft_id: str, text: str) -> bool:
+    await bot.send_message(
+        admin_id,
+        text,
+        parse_mode=None,
+        reply_markup=editorial._approval_kb(draft_id),
+        disable_web_page_preview=False,
+    )
+    return True
+
+
+async def _media_send_for_approval(bot, kind: str, text: str, button: bool = False) -> bool:
+    """Morning/evening require a photo; other editorial rubrics can be text-only."""
+    draft_id = overrides._new_draft_id()
+    post_text = overrides._with_reaction_cta(kind, text)
+    post_text = _fit_post(kind, post_text)
+    await editorial._store_draft(draft_id, kind, post_text, button)
+
+    wants_photo = _should_use_optional_photo(kind, post_text)
+    if not wants_photo:
+        await editorial._meta_set(f"ed_{draft_id}_image_status", "not_needed")
+        sent = False
+        for admin_id in config.ADMIN_IDS:
+            try:
+                sent = await _send_text_preview(bot, admin_id, draft_id, post_text) or sent
+            except Exception as exc:  # noqa: BLE001
+                editorial.log.warning("Cannot send text preview: %s", exc)
+        return sent
+
+    await editorial._meta_set(f"ed_{draft_id}_image_status", "generating")
+    image = await overrides.choose_editorial_image(text, kind)
+    sent = False
+    if image:
+        for admin_id in config.ADMIN_IDS:
+            try:
+                sent = await _send_photo_preview(bot, admin_id, draft_id, kind, post_text, button, image) or sent
+            except Exception as exc:  # noqa: BLE001
+                editorial.log.warning("Cannot send photo preview: %s", exc)
+        if sent:
+            return True
+
+    # Optional rubrics gracefully fall back to a normal text post.
+    if kind in PHOTO_OPTIONAL:
+        await editorial._meta_set(f"ed_{draft_id}_image_status", "optional_fallback")
+        for admin_id in config.ADMIN_IDS:
+            try:
+                sent = await _send_text_preview(bot, admin_id, draft_id, post_text) or sent
+            except Exception as exc:  # noqa: BLE001
+                editorial.log.warning("Cannot send optional text fallback: %s", exc)
+        return sent
+
+    # Morning/evening remain blocked until a proper image exists.
+    await editorial._meta_set(f"ed_{draft_id}_image_status", "failed")
+    reason = overrides._image_failure_reason(kind)
+    for admin_id in config.ADMIN_IDS:
+        try:
+            await bot.send_message(
+                admin_id,
+                "⚠️ Фото обязательно для этой рубрики, но сейчас оно не создано.\n\n"
+                f"{post_text}\n\nДиагностика: {reason}",
+                parse_mode=None,
+                reply_markup=overrides._retry_photo_kb(draft_id),
+            )
+            sent = True
+        except Exception as exc:  # noqa: BLE001
+            editorial.log.warning("Cannot send failed-image draft preview: %s", exc)
+    return sent
+
+
+async def _publish_media_draft(callback) -> None:
+    draft_id = callback.data.split(":", 1)[1]
+    draft = await editorial._load_draft(draft_id)
+    if not draft:
+        await callback.answer("Этот черновик уже обработан", show_alert=True)
+        return
+    kind, text, button = draft
+    photo_file_id = await editorial._meta_get(f"ed_{draft_id}_photo")
+    credit = await editorial._meta_get(f"ed_{draft_id}_credit")
+
+    if not photo_file_id and kind in PHOTO_REQUIRED:
+        await callback.answer("Для утреннего и вечернего поста фото обязательно.", show_alert=True)
+        return
+
+    try:
+        if photo_file_id:
+            await callback.bot.send_photo(
+                config.ANNOUNCE_CHANNEL,
+                photo=photo_file_id,
+                caption=_caption(text, credit),
+                parse_mode=None,
+                reply_markup=editorial._channel_kb() if button else None,
+            )
+        else:
+            await callback.bot.send_message(
+                config.ANNOUNCE_CHANNEL,
+                text,
+                parse_mode=None,
+                reply_markup=editorial._channel_kb() if button else None,
+                disable_web_page_preview=False,
+            )
+        if kind in {"event", "curiosity", "evening"}:
+            await editorial._remember_topic(text)
+        await editorial._meta_set(f"ed_{draft_id}_status", "published")
+        await callback.answer("Опубликовано")
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception as exc:  # noqa: BLE001
+        editorial.log.warning("Editorial publish failed: %s", exc)
+        await callback.answer("Не удалось опубликовать", show_alert=True)
+
+
 def install_caption_patch() -> None:
     overrides._caption = _caption
     overrides._send_photo_preview = _send_photo_preview
+    overrides._photo_send_for_approval = _media_send_for_approval
+    overrides._publish_media_draft = _publish_media_draft
     editorial._morning_brief = _short_morning
     editorial._event_spotlight = _short_event
     editorial._curiosity_post = _short_curiosity
-    # Both scheduler and /editorialpreview must use the same shortened evening post.
     overrides._focused_evening_post = _short_evening
     editorial._evening_post = _short_evening
 
