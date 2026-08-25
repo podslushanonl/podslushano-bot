@@ -1,0 +1,1 @@
+Evening editorial generation must retry verified web generation before failing. Morning/evening images must depict one dominant visual story only; never combine weather, rail, roads, events or multiple scenes into a collage.
