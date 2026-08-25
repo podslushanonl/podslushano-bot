@@ -78,35 +78,61 @@ _migrated = False
 
 
 async def _migrate_future_action_slots() -> None:
-    """Rewrite already-seeded future reminders; preserve sent history/analytics."""
+    """Rewrite already-seeded future reminders; preserve sent history/analytics.
+
+    Adjacent calendar entries must differ both by concrete action and by
+    content_kind. This preserves the content-center invariant and avoids, for
+    example, two utility posts (letter -> salary) next to each other.
+    """
     global _migrated
     if _migrated:
         return
+
+    now = content._local_now()
     async with get_session() as session:
+        previous = (await session.scalars(
+            select(ContentPost).where(
+                ContentPost.scheduled_at < now,
+                ContentPost.status != "skipped",
+            ).order_by(ContentPost.scheduled_at.desc()).limit(1)
+        )).first()
+        last_action = previous.template_key if previous else ""
+        last_kind = previous.content_kind if previous else ""
+
         rows = (await session.scalars(
             select(ContentPost).where(
                 ContentPost.status.in_(("scheduled", "failed")),
-                ContentPost.scheduled_at >= content._local_now(),
+                ContentPost.scheduled_at >= now,
             ).order_by(ContentPost.scheduled_at)
         )).all()
-        last_action = ""
+
         for row in rows:
             weekday = row.scheduled_at.weekday()
             if weekday not in (1, 3):
                 if row.template_key == "selfadd":
                     row.status = "skipped"
                     row.error_text = "replaced by two-action-post weekly strategy"
+                    continue
+                # Non-action calendar entries still participate in adjacency.
+                last_action = row.template_key
+                last_kind = row.content_kind
                 continue
+
             rotation = TUESDAY_ACTIONS if weekday == 1 else THURSDAY_ACTIONS
             offset = (row.scheduled_at.date().toordinal() // 7) % len(rotation)
             candidates = rotation[offset:] + rotation[:offset]
-            key = next(k for k in candidates if k != last_action)
+            key = next(
+                k for k in candidates
+                if k != last_action and ACTION_TEMPLATES[k].kind != last_kind
+            )
             template = ACTION_TEMPLATES[key]
             row.template_key = key
             row.content_kind = template.kind
             row.button_label = template.button
             row.error_text = None
             last_action = key
+            last_kind = template.kind
+
         await session.commit()
     _migrated = True
 
