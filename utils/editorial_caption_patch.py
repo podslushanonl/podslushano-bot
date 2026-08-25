@@ -1,12 +1,4 @@
-"""Runtime fixes for Telegram editorial media posts.
-
-Rules:
-- morning and evening ALWAYS require a photo and fit Telegram photo captions;
-- event and curiosity are primarily full-length text posts; a photo is used only
-  when the finished post naturally fits a photo caption;
-- model planning / self-commentary is never shown to subscribers;
-- generated images are not labelled with an internal AI-attribution line.
-"""
+"""Runtime fixes for Telegram editorial media posts."""
 from __future__ import annotations
 
 import re
@@ -30,17 +22,11 @@ def _is_ai_credit(value: str) -> bool:
 
 
 def _strip_model_preamble(text: str) -> str:
-    """Remove analysis/planning accidentally emitted before the actual publishable post."""
     clean = (text or "").strip()
-    # Models sometimes emit editorial reasoning followed by a separator and the real post.
     parts = re.split(r"(?m)^\s*---+\s*$", clean)
     if len(parts) > 1:
         clean = parts[-1].strip()
-    # Defensive cleanup for common leaked planning phrases when no separator was emitted.
-    leaked = (
-        "отличный материал найден", "выбираю ", "сильный культурный повод",
-        "реальный дедлайн", "материал найден", "я выбрал ", "я выбираю ",
-    )
+    leaked = ("отличный материал найден", "выбираю ", "сильный культурный повод", "реальный дедлайн", "материал найден", "я выбрал ", "я выбираю ")
     paragraphs = [p.strip() for p in re.split(r"\n\s*\n", clean) if p.strip()]
     while paragraphs and any(token in paragraphs[0].lower() for token in leaked):
         paragraphs.pop(0)
@@ -81,165 +67,127 @@ def _fit_morning(text: str) -> str:
 
 def _fit_post(kind: str, text: str) -> str:
     clean = _strip_model_preamble(text)
-    if kind == "morning":
-        return _fit_morning(clean)
-    if kind == "evening":
-        return _complete_cut(clean, EVENING_BODY_LIMIT)
-    # Event/curiosity are text-first and must not be crushed to photo-caption length.
+    if kind == "morning": return _fit_morning(clean)
+    if kind == "evening": return _complete_cut(clean, EVENING_BODY_LIMIT)
     return _complete_cut(clean, TEXT_POST_LIMIT)
 
 
 _ORIGINAL_MORNING = editorial._morning_brief
-_ORIGINAL_EVENT = editorial._event_spotlight
-_ORIGINAL_CURIOSITY = editorial._curiosity_post
 _ORIGINAL_EVENING = overrides._focused_evening_post
 
 
+async def _rich_event() -> str | None:
+    recent = await editorial._recent_topics()
+    system = (
+        "Ты редактор Podslushano.nl. Найди ОДНО реальное мероприятие в Нидерландах на ближайшие 14 дней и напиши ТОЛЬКО готовый текст публикации на русском. "
+        "Никогда не показывай рассуждения редактора, процесс выбора, оценку материала, слова вроде «выбираю», «материал найден», «сильный повод», дедлайн как редакторскую заметку или разделитель ---. "
+        "Текст должен быть живым и содержательным, примерно 1100–1700 знаков: цепляющий заголовок; затем необычный контекст или история события; конкретные детали, которые дают читателю ощущение, что он понял, зачем туда идти; практический блок с датой, местом, ценой/билетами; официальный URL, если он найден. "
+        "Не пиши рекламными клише и не растягивай пустыми прилагательными. Лучше одна неожиданная деталь, маленькая история, конкретный экспонат/участник/традиция и практическая польза. Факты обязательно проверь веб-поиском. "
+        "В приоритете evenementen.nl, официальный сайт организатора и городские афиши. Не повторяй недавние темы. Вывод — исключительно публикация, с первой до последней строки."
+    )
+    result = await editorial._generate(system, f"Сегодня {editorial._now():%d.%m.%Y}. Не повторяй: {', '.join(recent) or 'нет'}.", editorial.EVENT_SOURCES, 1400)
+    if not result: return None
+    text, sources = result
+    text = _strip_model_preamble(text)
+    if "http://" not in text and "https://" not in text and sources:
+        text += f"\n\nПодробнее: {sources[0]}"
+    return _fit_post("event", text)
+
+
+async def _rich_curiosity() -> str | None:
+    recent = await editorial._recent_topics()
+    system = (
+        "Ты редактор Podslushano.nl для людей, которые уже живут в Нидерландах. Найди один небанальный проверяемый сюжет и напиши ТОЛЬКО готовый пост на русском, без анализа, выбора темы, редакторских заметок и разделителя ---. "
+        "Объём 1000–1600 знаков. Нужен информационный разрыв в первых 1–2 предложениях, затем история с конкретными деталями и понятное объяснение, почему это существует/случилось и где читатель может заметить это сегодня. "
+        "Предпочитай происхождение обычных вещей и правил, малоизвестные исторические эпизоды, архитектурные следы, музейные предметы, языковые детали с историей. Не используй банальности про уровень моря, велосипеды, тюльпаны, кофешопы, красные фонари, деревянные башмаки, мельницы и прямолинейность. Не начинай с «А вы знали?». "
+        "Пиши человечески: конкретные сцены и детали важнее энциклопедического пересказа. Все факты проверь по надёжным нидерландским источникам. Вывод — исключительно текст для публикации."
+    )
+    result = await editorial._generate(system, f"Сегодня {editorial._now():%d.%m.%Y}. Не повторяй: {', '.join(recent) or 'нет'}.", editorial.FACT_SOURCES, 1300)
+    return _fit_post("curiosity", result[0]) if result else None
+
+
 async def _short_morning() -> str | None:
-    text = await _ORIGINAL_MORNING()
-    return _fit_post("morning", text) if text else None
-
-
-async def _short_event() -> str | None:
-    text = await _ORIGINAL_EVENT()
-    return _fit_post("event", text) if text else None
-
-
-async def _short_curiosity() -> str | None:
-    text = await _ORIGINAL_CURIOSITY()
-    return _fit_post("curiosity", text) if text else None
+    text = await _ORIGINAL_MORNING(); return _fit_post("morning", text) if text else None
 
 
 async def _short_evening() -> str | None:
-    text = await _ORIGINAL_EVENING()
-    return _fit_post("evening", text) if text else None
+    text = await _ORIGINAL_EVENING(); return _fit_post("evening", text) if text else None
 
 
 def _caption(text: str, attribution: str = "") -> str:
     credit = "" if _is_ai_credit(attribution) else (attribution or "").strip()
     suffix = f"\n\n{credit}" if credit else ""
-    limit = CAPTION_LIMIT - len(suffix)
-    return _complete_cut(text, min(PHOTO_POST_LIMIT, limit)) + suffix
+    return _complete_cut(text, min(PHOTO_POST_LIMIT, CAPTION_LIMIT - len(suffix))) + suffix
 
 
 def _should_use_optional_photo(kind: str, text: str) -> bool:
-    if kind not in PHOTO_OPTIONAL:
-        return kind in PHOTO_REQUIRED
-    # Never shorten a good long story just to squeeze it under a Telegram photo.
-    # Only naturally compact event/curiosity posts are eligible for occasional photos.
-    if len(text) > PHOTO_POST_LIMIT - 80:
-        return False
-    score = sum((i + 1) * ord(ch) for i, ch in enumerate(text[:180]))
-    return score % 2 == 0
+    if kind not in PHOTO_OPTIONAL: return kind in PHOTO_REQUIRED
+    # Rich posts remain text-only instead of being damaged to satisfy Telegram's 1024-char photo caption.
+    if len(text) > PHOTO_POST_LIMIT - 80: return False
+    return sum((i + 1) * ord(ch) for i, ch in enumerate(text[:180])) % 2 == 0
 
 
 async def _send_photo_preview(bot, admin_id: int, draft_id: str, kind: str, text: str, button: bool, image) -> bool:
     credit = "" if _is_ai_credit(getattr(image, "attribution", "")) else getattr(image, "attribution", "")
     msg = await bot.send_photo(admin_id, photo=image.photo, caption=_caption(text, credit), parse_mode=None, reply_markup=editorial._approval_kb(draft_id))
-    if not msg.photo:
-        return False
+    if not msg.photo: return False
     await editorial._meta_set(f"ed_{draft_id}_photo", msg.photo[-1].file_id)
-    await editorial._meta_set(f"ed_{draft_id}_credit", credit[:95])
-    await editorial._meta_set(f"ed_{draft_id}_image_status", "ready")
+    await editorial._meta_set(f"ed_{draft_id}_credit", credit[:95]); await editorial._meta_set(f"ed_{draft_id}_image_status", "ready")
     return True
 
 
 async def _send_text_preview(bot, admin_id: int, draft_id: str, text: str) -> bool:
-    await bot.send_message(admin_id, text, parse_mode=None, reply_markup=editorial._approval_kb(draft_id), disable_web_page_preview=False)
-    return True
+    await bot.send_message(admin_id, text, parse_mode=None, reply_markup=editorial._approval_kb(draft_id), disable_web_page_preview=False); return True
 
 
 async def _media_send_for_approval(bot, kind: str, text: str, button: bool = False) -> bool:
-    draft_id = overrides._new_draft_id()
-    clean = _fit_post(kind, text)
-    post_text = overrides._with_reaction_cta(kind, clean)
-    # Required photo posts must fit caption including CTA; optional rubrics keep full prose.
-    if kind in PHOTO_REQUIRED:
-        post_text = _complete_cut(post_text, PHOTO_POST_LIMIT)
-    else:
-        post_text = _complete_cut(post_text, TEXT_POST_LIMIT)
+    draft_id = overrides._new_draft_id(); clean = _fit_post(kind, text); post_text = overrides._with_reaction_cta(kind, clean)
+    post_text = _complete_cut(post_text, PHOTO_POST_LIMIT if kind in PHOTO_REQUIRED else TEXT_POST_LIMIT)
     await editorial._store_draft(draft_id, kind, post_text, button)
-
     wants_photo = _should_use_optional_photo(kind, post_text)
     if not wants_photo:
-        await editorial._meta_set(f"ed_{draft_id}_image_status", "not_needed")
-        sent = False
+        await editorial._meta_set(f"ed_{draft_id}_image_status", "not_needed"); sent = False
         for admin_id in config.ADMIN_IDS:
-            try:
-                sent = await _send_text_preview(bot, admin_id, draft_id, post_text) or sent
-            except Exception as exc:  # noqa: BLE001
-                editorial.log.warning("Cannot send text preview: %s", exc)
+            try: sent = await _send_text_preview(bot, admin_id, draft_id, post_text) or sent
+            except Exception as exc: editorial.log.warning("Cannot send text preview: %s", exc)
         return sent
-
-    await editorial._meta_set(f"ed_{draft_id}_image_status", "generating")
-    image = await overrides.choose_editorial_image(clean, kind)
-    sent = False
+    await editorial._meta_set(f"ed_{draft_id}_image_status", "generating"); image = await overrides.choose_editorial_image(clean, kind); sent = False
     if image:
         for admin_id in config.ADMIN_IDS:
-            try:
-                sent = await _send_photo_preview(bot, admin_id, draft_id, kind, post_text, button, image) or sent
-            except Exception as exc:  # noqa: BLE001
-                editorial.log.warning("Cannot send photo preview: %s", exc)
-        if sent:
-            return True
-
+            try: sent = await _send_photo_preview(bot, admin_id, draft_id, kind, post_text, button, image) or sent
+            except Exception as exc: editorial.log.warning("Cannot send photo preview: %s", exc)
+        if sent: return True
     if kind in PHOTO_OPTIONAL:
         await editorial._meta_set(f"ed_{draft_id}_image_status", "optional_fallback")
         for admin_id in config.ADMIN_IDS:
-            try:
-                sent = await _send_text_preview(bot, admin_id, draft_id, post_text) or sent
-            except Exception as exc:  # noqa: BLE001
-                editorial.log.warning("Cannot send optional text fallback: %s", exc)
+            try: sent = await _send_text_preview(bot, admin_id, draft_id, post_text) or sent
+            except Exception as exc: editorial.log.warning("Cannot send optional text fallback: %s", exc)
         return sent
-
-    await editorial._meta_set(f"ed_{draft_id}_image_status", "failed")
-    reason = overrides._image_failure_reason(kind)
+    await editorial._meta_set(f"ed_{draft_id}_image_status", "failed"); reason = overrides._image_failure_reason(kind)
     for admin_id in config.ADMIN_IDS:
         try:
-            await bot.send_message(admin_id, "⚠️ Фото обязательно для этой рубрики, но сейчас оно не создано.\n\n" + post_text + "\n\nДиагностика: " + reason, parse_mode=None, reply_markup=overrides._retry_photo_kb(draft_id))
-            sent = True
-        except Exception as exc:  # noqa: BLE001
-            editorial.log.warning("Cannot send failed-image draft preview: %s", exc)
+            await bot.send_message(admin_id, "⚠️ Фото обязательно для этой рубрики, но сейчас оно не создано.\n\n" + post_text + "\n\nДиагностика: " + reason, parse_mode=None, reply_markup=overrides._retry_photo_kb(draft_id)); sent = True
+        except Exception as exc: editorial.log.warning("Cannot send failed-image draft preview: %s", exc)
     return sent
 
 
 async def _publish_media_draft(callback) -> None:
-    draft_id = callback.data.split(":", 1)[1]
-    draft = await editorial._load_draft(draft_id)
-    if not draft:
-        await callback.answer("Этот черновик уже обработан", show_alert=True)
-        return
-    kind, text, button = draft
-    photo_file_id = await editorial._meta_get(f"ed_{draft_id}_photo")
-    credit = await editorial._meta_get(f"ed_{draft_id}_credit")
-    if not photo_file_id and kind in PHOTO_REQUIRED:
-        await callback.answer("Для утреннего и вечернего поста фото обязательно.", show_alert=True)
-        return
+    draft_id = callback.data.split(":", 1)[1]; draft = await editorial._load_draft(draft_id)
+    if not draft: await callback.answer("Этот черновик уже обработан", show_alert=True); return
+    kind, text, button = draft; photo_file_id = await editorial._meta_get(f"ed_{draft_id}_photo"); credit = await editorial._meta_get(f"ed_{draft_id}_credit")
+    if not photo_file_id and kind in PHOTO_REQUIRED: await callback.answer("Для утреннего и вечернего поста фото обязательно.", show_alert=True); return
     try:
-        if photo_file_id:
-            await callback.bot.send_photo(config.ANNOUNCE_CHANNEL, photo=photo_file_id, caption=_caption(text, credit), parse_mode=None, reply_markup=editorial._channel_kb() if button else None)
-        else:
-            await callback.bot.send_message(config.ANNOUNCE_CHANNEL, text, parse_mode=None, reply_markup=editorial._channel_kb() if button else None, disable_web_page_preview=False)
-        if kind in {"event", "curiosity", "evening"}:
-            await editorial._remember_topic(text)
-        await editorial._meta_set(f"ed_{draft_id}_status", "published")
-        await callback.answer("Опубликовано")
-        await callback.message.edit_reply_markup(reply_markup=None)
-    except Exception as exc:  # noqa: BLE001
-        editorial.log.warning("Editorial publish failed: %s", exc)
-        await callback.answer("Не удалось опубликовать", show_alert=True)
+        if photo_file_id: await callback.bot.send_photo(config.ANNOUNCE_CHANNEL, photo=photo_file_id, caption=_caption(text, credit), parse_mode=None, reply_markup=editorial._channel_kb() if button else None)
+        else: await callback.bot.send_message(config.ANNOUNCE_CHANNEL, text, parse_mode=None, reply_markup=editorial._channel_kb() if button else None, disable_web_page_preview=False)
+        if kind in {"event", "curiosity", "evening"}: await editorial._remember_topic(text)
+        await editorial._meta_set(f"ed_{draft_id}_status", "published"); await callback.answer("Опубликовано"); await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception as exc: editorial.log.warning("Editorial publish failed: %s", exc); await callback.answer("Не удалось опубликовать", show_alert=True)
 
 
 def install_caption_patch() -> None:
-    overrides._caption = _caption
-    overrides._send_photo_preview = _send_photo_preview
-    overrides._photo_send_for_approval = _media_send_for_approval
-    overrides._publish_media_draft = _publish_media_draft
-    editorial._morning_brief = _short_morning
-    editorial._event_spotlight = _short_event
-    editorial._curiosity_post = _short_curiosity
-    overrides._focused_evening_post = _short_evening
-    editorial._evening_post = _short_evening
+    overrides._caption = _caption; overrides._send_photo_preview = _send_photo_preview; overrides._photo_send_for_approval = _media_send_for_approval; overrides._publish_media_draft = _publish_media_draft
+    editorial._morning_brief = _short_morning; editorial._event_spotlight = _rich_event; editorial._curiosity_post = _rich_curiosity
+    overrides._focused_evening_post = _short_evening; editorial._evening_post = _short_evening
 
 
 install_caption_patch()
