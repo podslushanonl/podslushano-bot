@@ -69,7 +69,8 @@ async def configure_profile(bot: Bot) -> None:
                     BotCommand(command="productstats", description="Продуктовая аналитика"),
                     BotCommand(command="contact", description="Связаться с нами / поддержка"),
                 ], scope=BotCommandScopeChat(chat_id=admin_id))
-            except Exception: pass
+            except Exception:
+                pass
     except Exception as e:
         logging.warning("Не удалось настроить профиль бота: %s", e)
 
@@ -98,8 +99,9 @@ async def main() -> None:
     dp.include_router(salary.router)
     dp.include_router(share.router)
     dp.include_router(support.router)
-    dp.include_router(content.router)
+    # Единый /contentplan должен перехватываться раньше старого контент-центра.
     dp.include_router(editorial_router)
+    dp.include_router(content.router)
     dp.include_router(admin.router)
     dp.include_router(board.router)
     dp.include_router(afisha.router)
@@ -125,8 +127,6 @@ async def main() -> None:
     asyncio.create_task(digest_draft_loop(bot))
     asyncio.create_task(digest_announcement_loop(bot))
     asyncio.create_task(notification_loop(bot))
-    # Контент-центр больше не публикует напрямую: editorial_channel_loop показывает
-    # каждый запланированный пост администратору и ждёт нажатия «Опубликовать».
     asyncio.create_task(editorial_channel_loop(bot))
     asyncio.create_task(evenementen_catalog_loop(bot))
     asyncio.create_task(ad_lead_reminder_loop(bot))
