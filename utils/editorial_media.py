@@ -1,11 +1,9 @@
 """Фотографии для редакционных Telegram-постов.
 
-Приоритет:
-1. Реальная тематическая фотография из Wikimedia Commons со свободной лицензией.
-2. Фотореалистичная генерация через OpenAI Images API.
-
-Никаких локальных Pillow-иллюстраций: если качественное изображение получить
-невозможно, модуль возвращает None и администратор получает понятное сообщение.
+Правила:
+- morning/evening: изображение ВСЕГДА создаётся динамически под конкретный текст поста;
+- event/curiosity: сначала ищем точную реальную фотографию Wikimedia Commons, затем AI;
+- никаких фиксированных fallback-фото, Pillow, flat-design или универсальных каналов Амстердама.
 """
 from __future__ import annotations
 
@@ -42,13 +40,10 @@ def _plain(value: str) -> str:
 
 
 async def _image_search_query(text: str, kind: str) -> str:
-    fallback_by_kind = {
-        "morning": "Dutch train Netherlands",
+    fallback = {
         "event": "Netherlands event festival",
         "curiosity": "Netherlands heritage architecture",
-        "evening": "Netherlands historic place",
-    }
-    fallback = fallback_by_kind.get(kind, "Netherlands")
+    }.get(kind, "Netherlands")
     if not ai_enabled():
         return fallback
     try:
@@ -58,87 +53,53 @@ async def _image_search_query(text: str, kind: str) -> str:
             system=(
                 "Из текста Telegram-поста выдели ОДИН конкретный визуальный объект, место, событие или явление. "
                 "Верни ТОЛЬКО короткий запрос для Wikimedia Commons на английском или нидерландском, 2-6 слов. "
-                "Если есть собственное название места/здания/музея/предмета — обязательно используй его. "
-                "Не перечисляй несколько тем одновременно. Без пояснений, кавычек и markdown."
+                "Если есть собственное название — обязательно используй его. Без пояснений и markdown."
             ),
             messages=[{"role": "user", "content": f"Тип: {kind}\n\n{text[:1800]}"}],
         )
         raw, _ = _extract_text_and_sources(response)
-        query = _plain(raw).strip("\"'")
-        return query[:120] or fallback
-    except Exception as exc:  # noqa: BLE001
+        return _plain(raw).strip("\"'")[:120] or fallback
+    except Exception as exc:
         log.info("Image query generation failed: %s", exc)
         return fallback
 
 
-def _search_variants(primary: str, text: str, kind: str) -> list[str]:
-    first_line = next((line.strip() for line in text.splitlines() if line.strip()), "")
-    latin = " ".join(re.findall(r"[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9'’.-]*", first_line))[:100]
-    generic = {
-        "morning": ["NS train Netherlands", "Dutch railway station", "Netherlands motorway"],
-        "event": ["Netherlands festival", "Dutch cultural event"],
-        "curiosity": ["Netherlands heritage", "Dutch architecture"],
-        "evening": ["Netherlands historic building", "Dutch city street"],
-    }.get(kind, ["Netherlands"])
-    values = [primary]
-    if latin:
-        values.append(latin)
-    values.extend(generic)
-    result: list[str] = []
-    for value in values:
-        value = re.sub(r"\s+", " ", value).strip()
-        if value and value.casefold() not in {x.casefold() for x in result}:
-            result.append(value)
-    return result[:5]
-
-
 async def _download_image(url: str, mime: str) -> BufferedInputFile | None:
-    timeout = aiohttp.ClientTimeout(total=25)
+    timeout = aiohttp.ClientTimeout(total=30)
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(url, headers={"User-Agent": "PodslushanoNLBot/1.3"}) as response:
+            async with session.get(url, headers={"User-Agent": "PodslushanoNLBot/1.5"}) as response:
                 if response.status != 200:
                     return None
                 data = await response.read()
                 if len(data) < 20_000 or len(data) > 9_500_000:
                     return None
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.info("Commons image download failed: %s", exc)
         return None
-    ext = ".jpg"
-    if "png" in mime:
-        ext = ".png"
-    elif "webp" in mime:
-        ext = ".webp"
+    ext = ".png" if "png" in mime else ".webp" if "webp" in mime else ".jpg"
     return BufferedInputFile(data, filename=f"editorial-real{ext}")
 
 
 async def _commons_image(query: str) -> EditorialImage | None:
     params = {
-        "action": "query",
-        "format": "json",
-        "generator": "search",
-        "gsrsearch": query,
-        "gsrnamespace": "6",
-        "gsrlimit": "35",
-        "prop": "imageinfo",
-        "iiprop": "url|mime|size|extmetadata",
-        "iiurlwidth": "1800",
-        "origin": "*",
+        "action": "query", "format": "json", "generator": "search",
+        "gsrsearch": query, "gsrnamespace": "6", "gsrlimit": "35",
+        "prop": "imageinfo", "iiprop": "url|mime|size|extmetadata",
+        "iiurlwidth": "1800", "origin": "*",
     }
-    timeout = aiohttp.ClientTimeout(total=20)
     try:
+        timeout = aiohttp.ClientTimeout(total=20)
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(COMMONS_API, params=params, headers={"User-Agent": "PodslushanoNLBot/1.3"}) as response:
+            async with session.get(COMMONS_API, params=params, headers={"User-Agent": "PodslushanoNLBot/1.5"}) as response:
                 if response.status != 200:
                     return None
                 payload = await response.json(content_type=None)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.info("Commons image search failed: %s", exc)
         return None
 
-    pages = list((payload.get("query") or {}).get("pages", {}).values())
-    for page in pages:
+    for page in list((payload.get("query") or {}).get("pages", {}).values()):
         infos = page.get("imageinfo") or []
         if not infos:
             continue
@@ -146,18 +107,13 @@ async def _commons_image(query: str) -> EditorialImage | None:
         mime = str(info.get("mime") or "").lower()
         if mime not in {"image/jpeg", "image/png", "image/webp"}:
             continue
-        width = int(info.get("width") or 0)
-        height = int(info.get("height") or 0)
+        width, height = int(info.get("width") or 0), int(info.get("height") or 0)
         if width and height and (width < 1100 or height < 650):
             continue
         meta = info.get("extmetadata") or {}
         license_name = _plain((meta.get("LicenseShortName") or {}).get("value", ""))
         usage = _plain((meta.get("UsageTerms") or {}).get("value", ""))
-        artist = _plain((meta.get("Artist") or {}).get("value", ""))
-        license_text = f"{license_name} {usage}".lower()
-        if not any(mark in license_text for mark in (
-            "cc by", "cc-by", "cc0", "public domain", "publiek domein",
-        )):
+        if not any(x in f"{license_name} {usage}".lower() for x in ("cc by", "cc-by", "cc0", "public domain", "publiek domein")):
             continue
         image_url = info.get("thumburl") or info.get("url")
         if not image_url:
@@ -165,49 +121,49 @@ async def _commons_image(query: str) -> EditorialImage | None:
         photo = await _download_image(image_url, mime)
         if not photo:
             continue
+        artist = _plain((meta.get("Artist") or {}).get("value", ""))
         credit = [artist[:65]] if artist else []
-        credit.append("Wikimedia Commons")
+        credit += ["Wikimedia Commons"]
         if license_name:
             credit.append(license_name[:28])
-        return EditorialImage(
-            photo=photo,
-            attribution="Фото: " + " / ".join(credit),
-            source=info.get("descriptionurl") or "",
-            generated=False,
-        )
+        return EditorialImage(photo=photo, attribution="Фото: " + " / ".join(credit), source=info.get("descriptionurl") or "")
     return None
 
 
 def _generation_prompt(text: str, kind: str) -> str:
-    common = (
-        "Create a premium photorealistic editorial photograph for a modern Netherlands media publication. "
-        "It must look like a real photograph made by a professional editorial photographer, not an illustration, "
-        "not vector art, not 3D, not a poster, not flat design. Natural optics, realistic materials, subtle depth of field, "
-        "credible Dutch architecture/infrastructure, contemporary 2026 atmosphere. No text, typography, logos, watermarks, "
-        "decorative flags or fake UI. Avoid generic stock-photo poses and exaggerated cinematic color grading. "
+    base = (
+        "Create ONE premium photorealistic editorial photograph for Podslushano.nl, a modern Russian-language Netherlands media publication. "
+        "The result must be indistinguishable from a professional documentary/news photograph shot on a full-frame camera in the Netherlands in 2026. "
+        "Absolutely no illustration, vector art, flat design, 3D render, collage, poster, infographic, typography, captions, logos, watermarks, fake UI or decorative flags. "
+        "Use natural optics, believable perspective, physically realistic weather, materials and reflections, restrained editorial color grading, authentic Dutch architecture and infrastructure. "
+        "Do not invent readable signs, train destinations, delay boards, street names or factual visual claims that are not explicitly supported by the supplied post. "
     )
     if kind == "morning":
-        specific = (
-            "Scene: an authentic early morning in the Netherlands matching the weather described below. Include believable Dutch "
-            "transport/infrastructure naturally in the scene (for example an NS train, station, motorway or cycling/road environment), "
-            "but do not make a collage and do not add icons. The weather and light must be the main visual story. "
+        rules = (
+            "This image is for TODAY'S MORNING BRIEF. Read the supplied brief and make its most important real-world condition the visual story. "
+            "If rain is important, show an authentic wet Dutch morning; if wind is important, make wind visibly credible; if clear weather, show the actual calm morning mood. "
+            "If rail disruption is central, use a plausible Dutch station/NS railway environment without fabricating readable disruption information. "
+            "If roads are central, use a plausible Dutch motorway/road scene. Do NOT try to show weather, train and motorway as three separate objects: choose one coherent photographic scene. "
+            "Early-morning documentary light, candid people only where natural, horizontal 3:2 composition. "
         )
     elif kind == "evening":
-        specific = (
-            "Scene: visually tell the exact historical/place/object story below. If a concrete building, museum, street, object or "
-            "Dutch location is named, depict that subject plausibly and prominently. Warm documentary editorial mood, still fully realistic. "
+        rules = (
+            "This image is for the 21:00 story. Visually depict THE EXACT subject of the supplied story, not a generic Amsterdam canal. "
+            "If the story is about a specific place or object, make that place/object the unmistakable hero of the frame. "
+            "If the subject cannot be reproduced with factual confidence, create a plausible atmospheric documentary reconstruction of the concept without adding false identifying details. "
+            "Evening/blue-hour light only when appropriate to the subject; premium magazine-documentary photography, horizontal 3:2 composition. "
         )
     elif kind == "event":
-        specific = "Scene: depict the exact event or its distinctive atmosphere as a believable documentary event photograph. "
+        rules = "Create a believable documentary photograph matching the exact event and its distinctive atmosphere; do not fabricate branding or readable event signage. "
     else:
-        specific = "Scene: depict the exact Dutch object/place/historical subject from the text as a believable documentary photograph. "
-    return common + specific + "Topic:\n" + text[:1800]
+        rules = "Create a believable documentary photograph of the exact Dutch place/object/historical subject described in the post. "
+    return base + rules + "\nPOST CONTENT:\n" + text[:2400]
 
 
 async def _generated_image(text: str, kind: str) -> EditorialImage | None:
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
     if not api_key:
-        log.warning("OPENAI_API_KEY is missing: cannot generate photorealistic editorial image")
+        log.warning("OPENAI_API_KEY missing; dynamic editorial image cannot be generated")
         return None
     model = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1.5").strip() or "gpt-image-1.5"
     body = {
@@ -217,14 +173,10 @@ async def _generated_image(text: str, kind: str) -> EditorialImage | None:
         "quality": "high",
         "output_format": "jpeg",
     }
-    timeout = aiohttp.ClientTimeout(total=180)
     try:
+        timeout = aiohttp.ClientTimeout(total=180)
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.post(
-                OPENAI_IMAGES_API,
-                json=body,
-                headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
-            ) as response:
+            async with session.post(OPENAI_IMAGES_API, json=body, headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}) as response:
                 if response.status >= 300:
                     log.warning("Image generation HTTP %s: %s", response.status, (await response.text())[:500])
                     return None
@@ -232,21 +184,19 @@ async def _generated_image(text: str, kind: str) -> EditorialImage | None:
         encoded = ((payload.get("data") or [{}])[0]).get("b64_json")
         if not encoded:
             return None
-        return EditorialImage(
-            photo=BufferedInputFile(base64.b64decode(encoded), filename=f"editorial-{kind}.jpg"),
-            attribution="Изображение создано ИИ",
-            generated=True,
-        )
-    except Exception as exc:  # noqa: BLE001
-        log.warning("Photorealistic image generation failed: %s", exc)
+        return EditorialImage(photo=BufferedInputFile(base64.b64decode(encoded), filename=f"editorial-{kind}.jpg"), attribution="Изображение создано ИИ", generated=True)
+    except Exception as exc:
+        log.warning("Dynamic editorial image generation failed: %s", exc)
         return None
 
 
 async def choose_editorial_image(text: str, kind: str) -> EditorialImage | None:
-    """Реальное фото, затем фотореалистичная генерация. Схематичных fallback больше нет."""
+    """Morning/evening are dynamically generated; event/curiosity prefer exact real photos."""
+    if kind in {"morning", "evening"}:
+        return await _generated_image(text, kind)
+
     primary = await _image_search_query(text, kind)
-    for query in _search_variants(primary, text, kind):
-        real = await _commons_image(query)
-        if real:
-            return real
+    real = await _commons_image(primary)
+    if real:
+        return real
     return await _generated_image(text, kind)
