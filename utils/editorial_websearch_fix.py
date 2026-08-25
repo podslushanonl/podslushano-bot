@@ -1,12 +1,11 @@
 """Hardening for editorial Anthropic Web Search.
 
-The evening source list is larger than a safe server-tool whitelist.  This
-module avoids passing the whole list at once, retries with smaller source
-families, and exposes a real Anthropic+WebSearch health check.
+Fixes the 21:00 path by using small source whitelists, retrying across source
+families, and replacing the old superficial health check with a real server
+web-search probe.
 """
 from __future__ import annotations
 
-from aiogram import Router
 from aiogram.filters import Command
 from aiogram.types import Message
 
@@ -14,9 +13,6 @@ import config
 from utils import editorial_channel as editorial
 from utils import editorial_overrides as overrides
 
-router = Router()
-
-# Keep every web-search request comfortably below provider whitelist limits.
 MAX_DOMAINS_PER_SEARCH = 8
 
 EVENING_SOURCE_GROUPS = (
@@ -27,7 +23,6 @@ EVENING_SOURCE_GROUPS = (
 
 
 async def _robust_evening_post() -> str | None:
-    """Generate the evening post through several small, valid web-search batches."""
     recent = await editorial._recent_topics()
     system = (
         "Ты вечерний редактор Telegram-канала для русскоязычных людей, которые уже живут в Нидерландах. "
@@ -43,24 +38,26 @@ async def _robust_evening_post() -> str | None:
         f"{', '.join(recent) or 'нет'}. Сразу выдай готовый пост."
     )
 
-    # One bad source/domain must not kill the whole 21:00 slot.
     for domains in EVENING_SOURCE_GROUPS:
-        result = await editorial._generate(system, user, domains[:MAX_DOMAINS_PER_SEARCH], 850)
+        try:
+            result = await editorial._generate(system, user, domains[:MAX_DOMAINS_PER_SEARCH], 850)
+        except Exception as exc:  # noqa: BLE001
+            editorial.log.warning("Evening source group failed: %s", exc)
+            continue
         if result and result[0] and len(result[0].strip()) >= 220:
             return result[0].strip()
     return None
 
 
 async def _real_web_health() -> tuple[bool, str]:
-    """Actually execute the same Anthropic server web-search path used by posts."""
     if not config.ANTHROPIC_API_KEY:
         return False, "ANTHROPIC_API_KEY отсутствует"
     if not config.AI_WEB_SEARCH:
         return False, "AI_WEB_SEARCH выключен"
     try:
         result = await editorial._generate(
-            "Проверь веб-поиском текущую официальную страницу KNMI. Ответь одним коротким предложением по-русски. Без markdown.",
-            "Нужно выполнить реальный тест веб-поиска. Не отвечай из памяти.",
+            "Обязательно выполни веб-поиск на knmi.nl и ответь одним коротким предложением по-русски. Не отвечай из памяти.",
+            "Это технический health-check реального Anthropic Web Search.",
             ["knmi.nl"],
             180,
         )
@@ -71,16 +68,13 @@ async def _real_web_health() -> tuple[bool, str]:
     return True, "реальный Anthropic Web Search успешно вернул проверенный текст"
 
 
-@router.message(Command("editorialhealth"))
 async def editorial_health_real(message: Message) -> None:
     if message.from_user.id not in config.ADMIN_IDS:
         return
     await message.answer("🔎 Проверяю реальный редакционный пайплайн…")
-
     web_ok, web_detail = await _real_web_health()
     openai_ok, openai_detail = await overrides._check_openai_image_access()
     channel_ok, channel_detail = await overrides._channel_health(message.bot)
-
     lines = [
         "🩺 Editorial Health · REAL",
         "",
@@ -94,7 +88,33 @@ async def editorial_health_real(message: Message) -> None:
     await message.answer("\n".join(lines), parse_mode=None)
 
 
+def _replace_health_handler() -> None:
+    """Replace the already-registered /editorialhealth callback in overrides.router."""
+    try:
+        for handler in overrides.router.message.handlers:
+            callback = getattr(handler, "callback", None)
+            if getattr(callback, "__name__", "") == "editorial_health_command":
+                handler.callback = editorial_health_real
+                return
+    except Exception as exc:  # noqa: BLE001
+        editorial.log.warning("Could not replace editorial health handler: %s", exc)
+
+
 def install_editorial_websearch_fix() -> None:
-    # Both scheduled and manual evening previews use this function after startup.
     overrides._focused_evening_post = _robust_evening_post
     editorial._evening_post = _robust_evening_post
+    _replace_health_handler()
+
+
+# bot.py imports handlers before it imports install() from editorial_overrides.
+# Wrap that install function now, so our fix is re-applied AFTER the original
+# override installation and cannot be overwritten during startup.
+_original_install = overrides.install
+
+
+def _wrapped_install() -> None:
+    _original_install()
+    install_editorial_websearch_fix()
+
+
+overrides.install = _wrapped_install
