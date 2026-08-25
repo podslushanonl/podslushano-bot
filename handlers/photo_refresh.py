@@ -1,8 +1,8 @@
 """Патч фотографий месячной афиши без дополнительных AI-запросов.
 
-При первом запуске версии v2 существующие карточки Evenementen.nl получают
-официальный сайт и фотографию с этого сайта обычными HTTP-запросами. Результат
-сохраняется в БД и повторно на каждом restart не пересчитывается.
+Версия v3 повторно проходит по текущей месячной афише. Для каждой карточки
+официальный сайт сначала ищется на Evenementen.nl, а при отсутствии ссылки —
+обычным HTML-поиском по названию/городу/году. Claude/Anthropic не используется.
 """
 from __future__ import annotations
 
@@ -20,13 +20,13 @@ from utils.event_photo import resolve_official_event_media
 
 log = logging.getLogger(__name__)
 
-PHOTO_VERSION = "official-photo-v2"
+PHOTO_VERSION = "official-photo-v3"
 
 
 async def _official_fetch_page_image(url: str) -> str | None:
-    """Замена старого fetch_page_image для будущих месячных сборок."""
-    _, image = await resolve_official_event_media(url, "")
-    return image or None
+    """Не выбираем фото без названия события: месячный refresh сделает это точнее."""
+    del url
+    return None
 
 
 def _event_kb(batch: str, idx: int, total: int, ev: DiscoveredEvent) -> InlineKeyboardMarkup:
@@ -58,7 +58,7 @@ def _event_kb(batch: str, idx: int, total: int, ev: DiscoveredEvent) -> InlineKe
 
 
 async def _refresh_existing_month_photos_once() -> None:
-    """Один раз заменяет уже сохранённые рекламные/случайные картинки сентября."""
+    """Один раз для v3 дозаполняет официальные сайты и реальные фото всего месяца."""
     month = evenementen_catalog._target_month()
     marker_key = f"event-photo-version:{month:%Y-%m}"
 
@@ -78,31 +78,45 @@ async def _refresh_existing_month_photos_once() -> None:
         )).all())
 
     if not rows:
-        # Афиша могла ещё не успеть собраться. Не ставим marker — попробуем после сборки.
+        # Афиша могла ещё не успеть собраться. Не ставим marker — попробуем позже.
         return
 
-    semaphore = asyncio.Semaphore(4)
+    # Ограничиваем параллелизм: бесплатный fallback делает несколько обычных HTTP-запросов.
+    semaphore = asyncio.Semaphore(3)
 
     async def resolve(row: DiscoveredEvent):
         async with semaphore:
-            official, image = await resolve_official_event_media(row.source_url, row.title)
+            official, image = await resolve_official_event_media(
+                row.source_url,
+                row.title,
+                row.city or "",
+                row.event_date or "",
+            )
             return row.id, official, image
 
     results = await asyncio.gather(*(resolve(row) for row in rows))
     found_sites = 0
     found_images = 0
+    unresolved = 0
     async with get_session() as session:
         for row_id, official, image in results:
             row = await session.get(DiscoveredEvent, row_id)
             if not row:
                 continue
-            # Неправильную старую картинку удаляем в любом случае.
+            # Старое/сомнительное фото удаляем всегда; показываем только новое подтверждённое.
             row.photo_url = image or ""
             if official:
                 row.link = official
                 found_sites += 1
+            else:
+                # Не оставляем Evenementen.nl в поле официального сайта.
+                if row.link and "evenementen.nl" in row.link.casefold():
+                    row.link = ""
             if image:
                 found_images += 1
+            if not official and not image:
+                unresolved += 1
+
         marker = await session.get(Meta, marker_key)
         if marker:
             marker.value = PHOTO_VERSION
@@ -111,13 +125,13 @@ async def _refresh_existing_month_photos_once() -> None:
         await session.commit()
 
     log.info(
-        "Official event photo refresh: rows=%d official_sites=%d photos=%d",
-        len(rows), found_sites, found_images,
+        "Official event photo refresh v3: rows=%d official_sites=%d photos=%d unresolved=%d",
+        len(rows), found_sites, found_images, unresolved,
     )
 
 
-# Будущие карточки также получают фото через официальный сайт, а не через баннер
-# агрегатора. Это обычные HTTP-запросы и они не расходуют Anthropic API.
+# На первичной месячной записи не подставляем случайные картинки агрегатора.
+# Полный v3 refresh после сборки использует название/город/дату и находит медиа точнее.
 events.fetch_page_image = _official_fetch_page_image
 events._auto_event_kb = _event_kb
 
@@ -125,12 +139,11 @@ _original_catalog_loop = evenementen_catalog.evenementen_catalog_loop
 
 
 async def _catalog_loop_with_photo_refresh(bot) -> None:
-    # При уже готовой месячной афише сначала исправляем фото. Если базы ещё нет,
-    # обычный monthly loop её соберёт; после него попробуем refresh ещё раз.
     await asyncio.sleep(4)
     await _refresh_existing_month_photos_once()
     task = asyncio.create_task(_original_catalog_loop(bot))
-    await asyncio.sleep(90)
+    # Если месячная афиша создавалась с нуля, даём ей закончить и запускаем v3 ещё раз.
+    await asyncio.sleep(120)
     await _refresh_existing_month_photos_once()
     await task
 
