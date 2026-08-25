@@ -1,12 +1,12 @@
 """Hardening for editorial Anthropic Web Search.
 
-Fixes the 21:00 path by using small source whitelists, retrying across source
-families, and replacing the old superficial health check with a real server
-web-search probe.
+Fixes the 21:00 path by using source whitelists known to be accepted by the
+Anthropic web-search user agent. A single inaccessible domain makes Anthropic
+reject the whole request with HTTP 400, so unsupported domains must never be
+sent in allowed_domains.
 """
 from __future__ import annotations
 
-from aiogram.filters import Command
 from aiogram.types import Message
 
 import config
@@ -15,10 +15,13 @@ from utils import editorial_overrides as overrides
 
 MAX_DOMAINS_PER_SEARCH = 8
 
+# IMPORTANT: Anthropic rejects the entire request when even one allowed domain
+# is inaccessible to its user agent. nu.nl is confirmed inaccessible from the
+# Railway production log (25-08-2026), so it must not be present here.
 EVENING_SOURCE_GROUPS = (
     ["canonvannederland.nl", "rijksmuseum.nl", "openluchtmuseum.nl", "cultureelerfgoed.nl", "stadsarchief.amsterdam.nl", "archieven.nl"],
     ["holland.com", "iamsterdam.com", "cbs.nl", "rijksoverheid.nl", "government.nl"],
-    ["nos.nl", "nu.nl", "nltimes.nl", "dutchnews.nl", "holland.com", "iamsterdam.com"],
+    ["nos.nl", "nltimes.nl", "dutchnews.nl", "holland.com", "iamsterdam.com"],
 )
 
 
