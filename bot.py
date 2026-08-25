@@ -23,6 +23,7 @@ from handlers.digest import digest_announcement_loop, digest_draft_loop
 from handlers.notifications import notification_loop
 from handlers.evenementen_catalog import evenementen_catalog_loop, install_evenementen_source
 from utils.editorial_channel import editorial_channel_loop, router as editorial_router
+from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
 from utils.webserver import start_webserver
@@ -61,6 +62,8 @@ async def configure_profile(bot: Bot) -> None:
                     BotCommand(command="start", description="Запустить бота и открыть меню"),
                     BotCommand(command="menu", description="Показать меню"),
                     BotCommand(command="admin", description="Админ-панель: все команды по полкам"),
+                    BotCommand(command="contentplan", description="Единый контент-план канала"),
+                    BotCommand(command="editorialpreview", description="Предпросмотр редакционных постов"),
                     BotCommand(command="adleads", description="CRM рекламных заявок"),
                     BotCommand(command="adstats", description="Статистика рекламных заявок"),
                     BotCommand(command="findspec", description="Найти карточку специалиста"),
@@ -80,6 +83,7 @@ async def main() -> None:
     config.validate()
     await init_db()
     install_evenementen_source()
+    install_editorial_overrides()
     bot = Bot(token=config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
     dp.message.middleware(ThrottleMiddleware())
@@ -99,6 +103,7 @@ async def main() -> None:
     dp.include_router(salary.router)
     dp.include_router(share.router)
     dp.include_router(support.router)
+    dp.include_router(editorial_preview_router)
     # Единый /contentplan должен перехватываться раньше старого контент-центра.
     dp.include_router(editorial_router)
     dp.include_router(content.router)
