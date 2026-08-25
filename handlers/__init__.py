@@ -8,3 +8,7 @@ from handlers import content as _content  # noqa: F401,E402
 from utils.action_content import install_action_templates as _install_action_templates  # noqa: E402
 
 _install_action_templates()
+
+# Фото-посты Telegram: подпись должна содержать только готовый пост, полностью
+# помещаться в caption и не показывать внутреннюю AI-атрибуцию.
+from utils import editorial_caption_patch as _editorial_caption_patch  # noqa: F401,E402
