@@ -9,25 +9,26 @@ from utils.action_content import install_action_templates as _install_action_tem
 
 _install_action_templates()
 
-# Редакционная система раньше устанавливалась в неверном порядке: caption/media patch
-# применялся при импорте handlers, а затем bot.main вызывал editorial_overrides.install()
-# и перезаписывал часть правил. Оборачиваем install один раз, чтобы итоговый runtime
-# всегда был: base overrides -> caption/media rules -> scheduler reliability.
+# Редакционный runtime собираем строго в одном порядке.
 from utils import editorial_caption_patch as _editorial_caption_patch  # noqa: F401,E402
 from utils import editorial_overrides as _editorial_overrides  # noqa: E402
 from utils.editorial_reliability import install_editorial_reliability as _install_editorial_reliability  # noqa: E402
+from utils import editorial_websearch_fix as _editorial_websearch_fix  # noqa: F401,E402
 
 _original_editorial_install = _editorial_overrides.install
 
 
 def _install_editorial_stack() -> None:
+    # 1. Базовые overrides: фото, preview, CTA.
     _original_editorial_install()
+    # 2. Telegram caption/media rules.
     _editorial_caption_patch.install_caption_patch()
+    # 3. Надёжный scheduler: retry/catch-up/alerts.
     _install_editorial_reliability()
+    # 4. ОБЯЗАТЕЛЬНО последним: устойчивый вечерний генератор и реальные Web Search проверки.
+    # Раньше модуль только импортировался, но install-функция не вызывалась, поэтому
+    # кнопка «Вечерний пост» и scheduler продолжали использовать старый генератор.
+    _editorial_websearch_fix.install_editorial_websearch_fix()
 
 
 _editorial_overrides.install = _install_editorial_stack
-
-# Последним оборачиваем весь стек: безопасные группы доменов для вечернего Web Search
-# и реальный /editorialhealth, который выполняет настоящий Anthropic Web Search запрос.
-from utils import editorial_websearch_fix as _editorial_websearch_fix  # noqa: F401,E402
