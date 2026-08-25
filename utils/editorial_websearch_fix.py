@@ -1,9 +1,12 @@
-"""Hardening for editorial Anthropic Web Search.
+"""Hardening for the 21:00 editorial Web Search path.
 
-Fixes the 21:00 path by using source whitelists known to be accepted by the
-Anthropic web-search user agent. A single inaccessible domain makes Anthropic
-reject the whole request with HTTP 400, so unsupported domains must never be
-sent in allowed_domains.
+The generic editorial._generate() intentionally requires citation URLs. That is
+fine for source-linked formats, but Anthropic can successfully execute its
+server Web Search and return a factual final answer without attaching citation
+objects to the final text block. In that case HTTP is 200 and Web Search ran,
+but _generate() returns None. The evening post uses a dedicated verifier: it
+requires actual Web Search tool execution and no tool errors, but does not throw
+away a valid final text merely because citation metadata is absent.
 """
 from __future__ import annotations
 
@@ -13,16 +16,73 @@ import config
 from utils import editorial_channel as editorial
 from utils import editorial_overrides as overrides
 
-MAX_DOMAINS_PER_SEARCH = 8
-
-# IMPORTANT: Anthropic rejects the entire request when even one allowed domain
-# is inaccessible to its user agent. nu.nl is confirmed inaccessible from the
-# Railway production log (25-08-2026), so it must not be present here.
-EVENING_SOURCE_GROUPS = (
-    ["canonvannederland.nl", "rijksmuseum.nl", "openluchtmuseum.nl", "cultureelerfgoed.nl", "stadsarchief.amsterdam.nl", "archieven.nl"],
-    ["holland.com", "iamsterdam.com", "cbs.nl", "rijksoverheid.nl", "government.nl"],
-    ["nos.nl", "nltimes.nl", "dutchnews.nl", "holland.com", "iamsterdam.com"],
+PREFERRED_EVENING_SOURCES = (
+    "canonvannederland.nl, rijksmuseum.nl, openluchtmuseum.nl, cultureelerfgoed.nl, "
+    "stadsarchief.amsterdam.nl, archieven.nl, cbs.nl, rijksoverheid.nl, holland.com, "
+    "iamsterdam.com, nos.nl"
 )
+
+
+def _value(obj, name: str, default=None):
+    return obj.get(name, default) if isinstance(obj, dict) else getattr(obj, name, default)
+
+
+def _used_real_web_search(response) -> bool:
+    """True only when the Anthropic server Web Search tool actually ran."""
+    for block in _value(response, "content", []) or []:
+        btype = _value(block, "type", "")
+        if btype == "web_search_tool_result":
+            return True
+        if btype == "server_tool_use" and _value(block, "name", "") == "web_search":
+            return True
+    return False
+
+
+async def _generate_evening_verified(system: str, user: str, max_tokens: int = 900) -> str | None:
+    """Run real Web Search and accept the final text even if citations are omitted.
+
+    Crucially, no allowed_domains whitelist is sent. Anthropic rejects the entire
+    request if even one whitelisted site blocks its crawler. Preferred trustworthy
+    Dutch sources are instead specified in the editorial instruction.
+    """
+    if not editorial.ai_enabled() or not config.AI_WEB_SEARCH:
+        return None
+    tools = editorial._web_search_tool(None, max_uses=6)
+    if not tools:
+        return None
+    try:
+        response = await editorial._create_with_server_tool_continuation(
+            editorial._get_client(),
+            model=config.AI_POST_MODEL,
+            max_tokens=max_tokens,
+            system=system,
+            messages=[{"role": "user", "content": user}],
+            tools=tools,
+        )
+    except Exception as exc:  # noqa: BLE001
+        editorial.log.warning("Evening verified Web Search request failed: %s", exc)
+        return None
+
+    errors = editorial._web_search_errors(response)
+    if errors:
+        editorial.log.warning("Evening Web Search tool errors: %s", ", ".join(errors))
+        return None
+    if not _used_real_web_search(response):
+        editorial.log.warning("Evening response had no actual Web Search tool execution")
+        return None
+
+    text, sources = editorial._extract_text_and_sources(response)
+    text = editorial._clean_text(text)
+    if not text:
+        editorial.log.warning("Evening Web Search succeeded but final text was empty")
+        return None
+
+    # Diagnostic only: absence of citation metadata must not destroy a verified post.
+    editorial.log.info(
+        "Evening verified text accepted: %d chars, %d citation URL(s)",
+        len(text), len(sources),
+    )
+    return text
 
 
 async def _robust_evening_post() -> str | None:
@@ -33,23 +93,28 @@ async def _robust_evening_post() -> str | None:
         "или «Почему здесь так?». Выбери один конкретный небанальный сюжет и расскажи его живо и понятно. "
         "Это не новости и не подборка. Не используй банальности про уровень моря, велосипеды, тюльпаны, "
         "кофешопы, красные фонари, мельницы, деревянные башмаки и прямолинейность голландцев. "
-        "Факты проверь веб-поиском. Не описывай процесс поиска, не пиши «я выбрал», «нашёл материал», "
-        "«проверил источники». Возвращай ТОЛЬКО текст готовой публикации. 550–780 знаков, без markdown и HTML."
+        "ОБЯЗАТЕЛЬНО выполни Web Search перед ответом и проверь ключевые факты минимум по одному надёжному "
+        "нидерландскому источнику. В приоритете: " + PREFERRED_EVENING_SOURCES + ". "
+        "Не описывай процесс поиска, не пиши «я выбрал», «нашёл материал», «проверил источники». "
+        "Возвращай ТОЛЬКО готовую публикацию. 550–780 знаков, без markdown и HTML."
     )
     user = (
         f"Сегодня {editorial._now():%d.%m.%Y}. Не повторяй последние темы: "
-        f"{', '.join(recent) or 'нет'}. Сразу выдай готовый пост."
+        f"{', '.join(recent) or 'нет'}. Сразу выдай готовый пост после реального веб-поиска."
     )
 
-    for domains in EVENING_SOURCE_GROUPS:
-        try:
-            result = await editorial._generate(system, user, domains[:MAX_DOMAINS_PER_SEARCH], 850)
-        except Exception as exc:  # noqa: BLE001
-            editorial.log.warning("Evening source group failed: %s", exc)
-            continue
-        if result and result[0] and len(result[0].strip()) >= 220:
-            return result[0].strip()
-    return None
+    # A second attempt uses a slightly broader instruction rather than another
+    # fragile allowed_domains set.
+    text = await _generate_evening_verified(system, user, 900)
+    if text and len(text.strip()) >= 220:
+        return text.strip()
+
+    retry_user = (
+        user + " Первая попытка не дала пригодного финального текста. Выбери ДРУГОЙ конкретный сюжет, "
+        "снова выполни Web Search и после проверки сразу напиши публикацию."
+    )
+    text = await _generate_evening_verified(system, retry_user, 900)
+    return text.strip() if text and len(text.strip()) >= 220 else None
 
 
 async def _real_web_health() -> tuple[bool, str]:
@@ -58,6 +123,7 @@ async def _real_web_health() -> tuple[bool, str]:
     if not config.AI_WEB_SEARCH:
         return False, "AI_WEB_SEARCH выключен"
     try:
+        # Use the generic source-strict path here: health proves both search and citations.
         result = await editorial._generate(
             "Обязательно выполни веб-поиск на knmi.nl и ответь одним коротким предложением по-русски. Не отвечай из памяти.",
             "Это технический health-check реального Anthropic Web Search.",
@@ -92,7 +158,6 @@ async def editorial_health_real(message: Message) -> None:
 
 
 def _replace_health_handler() -> None:
-    """Replace the already-registered /editorialhealth callback in overrides.router."""
     try:
         for handler in overrides.router.message.handlers:
             callback = getattr(handler, "callback", None)
@@ -109,9 +174,6 @@ def install_editorial_websearch_fix() -> None:
     _replace_health_handler()
 
 
-# bot.py imports handlers before it imports install() from editorial_overrides.
-# Wrap that install function now, so our fix is re-applied AFTER the original
-# override installation and cannot be overwritten during startup.
 _original_install = overrides.install
 
 
