@@ -6,8 +6,6 @@ content deep-link attribution.
 """
 from __future__ import annotations
 
-from datetime import timedelta
-
 from sqlalchemy import select
 
 from database.db import get_session
@@ -66,7 +64,6 @@ ACTION_TEMPLATES = {
     ),
 }
 
-# Не ставим два одинаковых действия подряд и не превращаем ленту в рекламу.
 TUESDAY_ACTIONS = (
     "action_letter", "action_events", "action_salary", "action_board",
     "action_specialists", "action_digest", "action_notifications",
@@ -76,23 +73,15 @@ THURSDAY_ACTIONS = (
     "action_notifications", "action_letter", "action_salary",
 )
 
-
-def install_action_templates() -> None:
-    """Patch the legacy content center before it renders/seeds future posts."""
-    content.TEMPLATES.update(ACTION_TEMPLATES)
-    content.TUESDAY_ROTATION = TUESDAY_ACTIONS
-    content.THURSDAY_ROTATION = THURSDAY_ACTIONS
+_original_seed = content.seed_content_calendar
+_migrated = False
 
 
-async def migrate_future_action_slots() -> None:
-    """Convert already-seeded future bot reminders into exactly two action slots/week.
-
-    Existing databases may already contain ~70 days of old Tuesday/Thursday posts,
-    so changing the rotation alone is not enough. We rewrite only unsent future
-    rows; sent history remains untouched for analytics.
-    """
-    await content.seed_content_calendar()
-    today = content._local_now().date()
+async def _migrate_future_action_slots() -> None:
+    """Rewrite already-seeded future reminders; preserve sent history/analytics."""
+    global _migrated
+    if _migrated:
+        return
     async with get_session() as session:
         rows = (await session.scalars(
             select(ContentPost).where(
@@ -100,27 +89,36 @@ async def migrate_future_action_slots() -> None:
                 ContentPost.scheduled_at >= content._local_now(),
             ).order_by(ContentPost.scheduled_at)
         )).all()
-
         last_action = ""
         for row in rows:
             weekday = row.scheduled_at.weekday()
             if weekday not in (1, 3):
-                # Old monthly commercial reminder would create a third action post.
                 if row.template_key == "selfadd":
                     row.status = "skipped"
                     row.error_text = "replaced by two-action-post weekly strategy"
                 continue
-
             rotation = TUESDAY_ACTIONS if weekday == 1 else THURSDAY_ACTIONS
-            week_index = row.scheduled_at.date().toordinal() // 7
-            candidates = rotation[week_index % len(rotation):] + rotation[:week_index % len(rotation)]
+            offset = (row.scheduled_at.date().toordinal() // 7) % len(rotation)
+            candidates = rotation[offset:] + rotation[:offset]
             key = next(k for k in candidates if k != last_action)
             template = ACTION_TEMPLATES[key]
             row.template_key = key
             row.content_kind = template.kind
             row.button_label = template.button
-            # Keep campaign/start_payload stable: old links and click attribution remain valid.
             row.error_text = None
             last_action = key
-
         await session.commit()
+    _migrated = True
+
+
+async def _action_seed_content_calendar() -> None:
+    await _original_seed()
+    await _migrate_future_action_slots()
+
+
+def install_action_templates() -> None:
+    """Install two action posts/week and keep existing deep-link click analytics."""
+    content.TEMPLATES.update(ACTION_TEMPLATES)
+    content.TUESDAY_ROTATION = TUESDAY_ACTIONS
+    content.THURSDAY_ROTATION = THURSDAY_ACTIONS
+    content.seed_content_calendar = _action_seed_content_calendar
