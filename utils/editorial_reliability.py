@@ -1,11 +1,4 @@
-"""Reliability layer for scheduled editorial previews.
-
-Fixes silent failures around scheduled generation:
-- failed generation is retried every 5 minutes, not silently parked for 30;
-- admins receive a diagnostic message when a scheduled slot fails;
-- evening slot can catch up after a restart until 23:30 Amsterdam time;
-- success is marked only after the preview has actually reached an admin.
-"""
+"""Reliability layer for scheduled editorial previews with a hard cost cap."""
 from __future__ import annotations
 
 from datetime import time
@@ -13,8 +6,9 @@ from datetime import time
 import config
 from utils import editorial_channel as editorial
 
-_RETRY_MINUTES = 5
-_ALERT_COOLDOWN_MINUTES = 15
+_RETRY_MINUTES = 15
+_ALERT_COOLDOWN_MINUTES = 30
+_MAX_ATTEMPTS_PER_SLOT = 2
 
 
 async def _alert_admins(bot, kind: str, reason: str) -> None:
@@ -31,8 +25,8 @@ async def _alert_admins(bot, kind: str, reason: str) -> None:
     text = (
         f"⚠️ Не удалось подготовить {labels.get(kind, kind)}.\n\n"
         f"Этап: {reason}.\n"
-        f"Следующая автоматическая попытка — примерно через {_RETRY_MINUTES} минут.\n\n"
-        "Ничего вручную перезапускать не нужно. Для проверки системы: /editorialhealth"
+        f"Автоматических платных попыток максимум {_MAX_ATTEMPTS_PER_SLOT} на слот.\n\n"
+        "Бот не будет бесконечно расходовать API-баланс. /editorialhealth проверяет состояние без платного Anthropic-запроса."
     )
     for admin_id in config.ADMIN_IDS:
         try:
@@ -41,13 +35,30 @@ async def _alert_admins(bot, kind: str, reason: str) -> None:
             editorial.log.warning("Cannot send editorial failure alert: %s", exc)
 
 
+async def _attempt_budget_available(date_key: str, now) -> bool:
+    today = now.date().isoformat()
+    date_meta = f"{date_key}_attempt_date"
+    count_meta = f"{date_key}_attempt_count"
+    if await editorial._meta_get(date_meta) != today:
+        await editorial._meta_set(date_meta, today)
+        await editorial._meta_set(count_meta, "0")
+    try:
+        count = int(await editorial._meta_get(count_meta) or "0")
+    except ValueError:
+        count = 0
+    if count >= _MAX_ATTEMPTS_PER_SLOT:
+        return False
+    await editorial._meta_set(count_meta, str(count + 1))
+    return True
+
+
 async def _reliable_run_generated(bot, now, kind, date_key, generator, button=False):
     today = now.date().isoformat()
     if await editorial._meta_get(date_key) == today:
         return
-
-    # A failed external AI/web request must not suppress the whole slot for 30 minutes.
     if not await editorial._attempt_allowed(f"{date_key}_try", now, _RETRY_MINUTES):
+        return
+    if not await _attempt_budget_available(date_key, now):
         return
 
     try:
@@ -73,33 +84,18 @@ async def _reliable_run_generated(bot, now, kind, date_key, generator, button=Fa
         await _alert_admins(bot, kind, "предпросмотр не был доставлен ни одному администратору")
         return
 
-    # Mark the slot complete only when a preview really exists in the admin chat.
     await editorial._meta_set(date_key, today)
     await editorial._meta_set(f"{date_key}_last_success", now.isoformat(timespec="minutes"))
 
 
 async def _reliable_run_evening(bot, now):
-    # Catch-up window survives a Railway restart/deploy around 21:00.
     if time(21, 0) <= now.time() < time(23, 30):
-        await _reliable_run_generated(
-            bot,
-            now,
-            "evening",
-            "editorial_evening_date",
-            editorial._evening_post,
-        )
+        await _reliable_run_generated(bot, now, "evening", "editorial_evening_date", editorial._evening_post)
 
 
 async def _reliable_run_morning(bot, now):
-    # A wider window avoids losing the morning brief after a short deployment/outage.
     if time(6, 45) <= now.time() < time(9, 0):
-        await _reliable_run_generated(
-            bot,
-            now,
-            "morning",
-            "editorial_morning_date",
-            editorial._morning_brief,
-        )
+        await _reliable_run_generated(bot, now, "morning", "editorial_morning_date", editorial._morning_brief)
 
 
 def install_editorial_reliability() -> None:
