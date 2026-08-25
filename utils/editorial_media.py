@@ -1,27 +1,23 @@
-"""Надёжный подбор изображения для редакционных Telegram-постов.
+"""Фотографии для редакционных Telegram-постов.
 
 Приоритет:
-1. Реальное тематическое фото из Wikimedia Commons со свободной лицензией.
-2. Если задан OPENAI_API_KEY — AI-иллюстрация.
-3. Всегда доступный локальный fallback на Pillow: собственная редакционная графика.
+1. Реальная тематическая фотография из Wikimedia Commons со свободной лицензией.
+2. Фотореалистичная генерация через OpenAI Images API.
 
-Таким образом утренний и вечерний пост больше не могут остаться без изображения
-из-за внешнего API или пустой выдачи Wikimedia.
+Никаких локальных Pillow-иллюстраций: если качественное изображение получить
+невозможно, модуль возвращает None и администратор получает понятное сообщение.
 """
 from __future__ import annotations
 
 import base64
 import html
-import io
 import logging
-import math
 import os
 import re
 from dataclasses import dataclass
 
 import aiohttp
 from aiogram.types import BufferedInputFile
-from PIL import Image, ImageDraw
 
 import config
 from utils.ai import _extract_text_and_sources, _get_client, ai_enabled
@@ -47,10 +43,10 @@ def _plain(value: str) -> str:
 
 async def _image_search_query(text: str, kind: str) -> str:
     fallback_by_kind = {
-        "morning": "Netherlands weather train traffic",
+        "morning": "Dutch train Netherlands",
         "event": "Netherlands event festival",
-        "curiosity": "Netherlands history architecture object",
-        "evening": "Netherlands street architecture daily life",
+        "curiosity": "Netherlands heritage architecture",
+        "evening": "Netherlands historic place",
     }
     fallback = fallback_by_kind.get(kind, "Netherlands")
     if not ai_enabled():
@@ -60,55 +56,54 @@ async def _image_search_query(text: str, kind: str) -> str:
             model=config.AI_MODEL,
             max_tokens=90,
             system=(
-                "Из текста Telegram-поста выдели ОДИН конкретный объект, место, событие или явление, "
-                "которое лучше всего показать на реальной фотографии. Верни ТОЛЬКО поисковый запрос "
-                "для Wikimedia Commons на английском или нидерландском, 3-8 слов. Если в тексте есть "
-                "конкретное название места, здания, события или предмета — обязательно используй его. "
-                "Добавь Netherlands или конкретный город. Без пояснений, кавычек и markdown."
+                "Из текста Telegram-поста выдели ОДИН конкретный визуальный объект, место, событие или явление. "
+                "Верни ТОЛЬКО короткий запрос для Wikimedia Commons на английском или нидерландском, 2-6 слов. "
+                "Если есть собственное название места/здания/музея/предмета — обязательно используй его. "
+                "Не перечисляй несколько тем одновременно. Без пояснений, кавычек и markdown."
             ),
             messages=[{"role": "user", "content": f"Тип: {kind}\n\n{text[:1800]}"}],
         )
         raw, _ = _extract_text_and_sources(response)
         query = _plain(raw).strip("\"'")
-        return query[:140] or fallback
+        return query[:120] or fallback
     except Exception as exc:  # noqa: BLE001
-        log.info("Не удалось сформировать запрос фотографии: %s", exc)
+        log.info("Image query generation failed: %s", exc)
         return fallback
 
 
 def _search_variants(primary: str, text: str, kind: str) -> list[str]:
     first_line = next((line.strip() for line in text.splitlines() if line.strip()), "")
-    latin_title = " ".join(re.findall(r"[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9'’.-]*", first_line))[:100]
+    latin = " ".join(re.findall(r"[A-Za-zÀ-ÿ0-9][A-Za-zÀ-ÿ0-9'’.-]*", first_line))[:100]
     generic = {
-        "morning": "Netherlands railway weather road",
-        "event": "Netherlands cultural event",
-        "curiosity": "Netherlands heritage architecture",
-        "evening": "Netherlands urban daily life",
-    }.get(kind, "Netherlands")
-    variants = [primary]
-    if latin_title:
-        variants.append(f"{latin_title} Netherlands")
-    variants.append(generic)
-    result = []
-    for value in variants:
+        "morning": ["NS train Netherlands", "Dutch railway station", "Netherlands motorway"],
+        "event": ["Netherlands festival", "Dutch cultural event"],
+        "curiosity": ["Netherlands heritage", "Dutch architecture"],
+        "evening": ["Netherlands historic building", "Dutch city street"],
+    }.get(kind, ["Netherlands"])
+    values = [primary]
+    if latin:
+        values.append(latin)
+    values.extend(generic)
+    result: list[str] = []
+    for value in values:
         value = re.sub(r"\s+", " ", value).strip()
-        if value and value.lower() not in {x.lower() for x in result}:
+        if value and value.casefold() not in {x.casefold() for x in result}:
             result.append(value)
-    return result[:3]
+    return result[:5]
 
 
 async def _download_image(url: str, mime: str) -> BufferedInputFile | None:
     timeout = aiohttp.ClientTimeout(total=25)
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(url, headers={"User-Agent": "PodslushanoNLBot/1.2"}) as response:
+            async with session.get(url, headers={"User-Agent": "PodslushanoNLBot/1.3"}) as response:
                 if response.status != 200:
                     return None
                 data = await response.read()
-                if len(data) < 12_000 or len(data) > 9_500_000:
+                if len(data) < 20_000 or len(data) > 9_500_000:
                     return None
     except Exception as exc:  # noqa: BLE001
-        log.info("Wikimedia image download failed: %s", exc)
+        log.info("Commons image download failed: %s", exc)
         return None
     ext = ".jpg"
     if "png" in mime:
@@ -120,20 +115,26 @@ async def _download_image(url: str, mime: str) -> BufferedInputFile | None:
 
 async def _commons_image(query: str) -> EditorialImage | None:
     params = {
-        "action": "query", "format": "json", "generator": "search",
-        "gsrsearch": query, "gsrnamespace": "6", "gsrlimit": "20",
-        "prop": "imageinfo", "iiprop": "url|mime|size|extmetadata",
-        "iiurlwidth": "1600", "origin": "*",
+        "action": "query",
+        "format": "json",
+        "generator": "search",
+        "gsrsearch": query,
+        "gsrnamespace": "6",
+        "gsrlimit": "35",
+        "prop": "imageinfo",
+        "iiprop": "url|mime|size|extmetadata",
+        "iiurlwidth": "1800",
+        "origin": "*",
     }
     timeout = aiohttp.ClientTimeout(total=20)
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
-            async with session.get(COMMONS_API, params=params, headers={"User-Agent": "PodslushanoNLBot/1.2"}) as response:
+            async with session.get(COMMONS_API, params=params, headers={"User-Agent": "PodslushanoNLBot/1.3"}) as response:
                 if response.status != 200:
                     return None
                 payload = await response.json(content_type=None)
     except Exception as exc:  # noqa: BLE001
-        log.info("Wikimedia image search failed: %s", exc)
+        log.info("Commons image search failed: %s", exc)
         return None
 
     pages = list((payload.get("query") or {}).get("pages", {}).values())
@@ -147,14 +148,16 @@ async def _commons_image(query: str) -> EditorialImage | None:
             continue
         width = int(info.get("width") or 0)
         height = int(info.get("height") or 0)
-        if width and height and (width < 700 or height < 450):
+        if width and height and (width < 1100 or height < 650):
             continue
         meta = info.get("extmetadata") or {}
         license_name = _plain((meta.get("LicenseShortName") or {}).get("value", ""))
         usage = _plain((meta.get("UsageTerms") or {}).get("value", ""))
         artist = _plain((meta.get("Artist") or {}).get("value", ""))
         license_text = f"{license_name} {usage}".lower()
-        if not any(mark in license_text for mark in ("cc by", "cc-by", "cc0", "public domain", "publiek domein")):
+        if not any(mark in license_text for mark in (
+            "cc by", "cc-by", "cc0", "public domain", "publiek domein",
+        )):
             continue
         image_url = info.get("thumburl") or info.get("url")
         if not image_url:
@@ -162,34 +165,59 @@ async def _commons_image(query: str) -> EditorialImage | None:
         photo = await _download_image(image_url, mime)
         if not photo:
             continue
-        credit_parts = []
-        if artist:
-            credit_parts.append(artist[:70])
-        credit_parts.append("Wikimedia Commons")
+        credit = [artist[:65]] if artist else []
+        credit.append("Wikimedia Commons")
         if license_name:
-            credit_parts.append(license_name[:30])
+            credit.append(license_name[:28])
         return EditorialImage(
             photo=photo,
-            attribution="Фото: " + " / ".join(credit_parts),
+            attribution="Фото: " + " / ".join(credit),
             source=info.get("descriptionurl") or "",
             generated=False,
         )
     return None
 
 
+def _generation_prompt(text: str, kind: str) -> str:
+    common = (
+        "Create a premium photorealistic editorial photograph for a modern Netherlands media publication. "
+        "It must look like a real photograph made by a professional editorial photographer, not an illustration, "
+        "not vector art, not 3D, not a poster, not flat design. Natural optics, realistic materials, subtle depth of field, "
+        "credible Dutch architecture/infrastructure, contemporary 2026 atmosphere. No text, typography, logos, watermarks, "
+        "decorative flags or fake UI. Avoid generic stock-photo poses and exaggerated cinematic color grading. "
+    )
+    if kind == "morning":
+        specific = (
+            "Scene: an authentic early morning in the Netherlands matching the weather described below. Include believable Dutch "
+            "transport/infrastructure naturally in the scene (for example an NS train, station, motorway or cycling/road environment), "
+            "but do not make a collage and do not add icons. The weather and light must be the main visual story. "
+        )
+    elif kind == "evening":
+        specific = (
+            "Scene: visually tell the exact historical/place/object story below. If a concrete building, museum, street, object or "
+            "Dutch location is named, depict that subject plausibly and prominently. Warm documentary editorial mood, still fully realistic. "
+        )
+    elif kind == "event":
+        specific = "Scene: depict the exact event or its distinctive atmosphere as a believable documentary event photograph. "
+    else:
+        specific = "Scene: depict the exact Dutch object/place/historical subject from the text as a believable documentary photograph. "
+    return common + specific + "Topic:\n" + text[:1800]
+
+
 async def _generated_image(text: str, kind: str) -> EditorialImage | None:
     api_key = os.getenv("OPENAI_API_KEY", "").strip()
     if not api_key:
+        log.warning("OPENAI_API_KEY is missing: cannot generate photorealistic editorial image")
         return None
     model = os.getenv("OPENAI_IMAGE_MODEL", "gpt-image-1.5").strip() or "gpt-image-1.5"
-    prompt = (
-        "Create a high-quality editorial documentary-style horizontal photograph for a Russian-language "
-        "media channel about life in the Netherlands. No text, no logos, no decorative flags, no stock-photo "
-        "look, no exaggerated cinematic effects. Natural Dutch environment, contemporary 2026 visual language, "
-        "believable lighting and details. It must clearly illustrate this exact topic:\n\n" + text[:1800]
-    )
-    body = {"model": model, "prompt": prompt, "size": "1536x1024", "quality": "medium", "output_format": "jpeg"}
-    timeout = aiohttp.ClientTimeout(total=120)
+    body = {
+        "model": model,
+        "prompt": _generation_prompt(text, kind),
+        "size": "1536x1024",
+        "quality": "high",
+        "output_format": "jpeg",
+    }
+    timeout = aiohttp.ClientTimeout(total=180)
     try:
         async with aiohttp.ClientSession(timeout=timeout) as session:
             async with session.post(
@@ -198,133 +226,27 @@ async def _generated_image(text: str, kind: str) -> EditorialImage | None:
                 headers={"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"},
             ) as response:
                 if response.status >= 300:
+                    log.warning("Image generation HTTP %s: %s", response.status, (await response.text())[:500])
                     return None
                 payload = await response.json(content_type=None)
-        item = (payload.get("data") or [{}])[0]
-        encoded = item.get("b64_json")
+        encoded = ((payload.get("data") or [{}])[0]).get("b64_json")
         if not encoded:
             return None
         return EditorialImage(
             photo=BufferedInputFile(base64.b64decode(encoded), filename=f"editorial-{kind}.jpg"),
-            attribution="Иллюстрация создана ИИ",
+            attribution="Изображение создано ИИ",
             generated=True,
         )
     except Exception as exc:  # noqa: BLE001
-        log.warning("OpenAI image generation failed: %s", exc)
+        log.warning("Photorealistic image generation failed: %s", exc)
         return None
 
 
-def _gradient(img: Image.Image, top: tuple[int, int, int], bottom: tuple[int, int, int]) -> None:
-    draw = ImageDraw.Draw(img)
-    w, h = img.size
-    for y in range(h):
-        t = y / max(1, h - 1)
-        color = tuple(int(top[i] * (1 - t) + bottom[i] * t) for i in range(3))
-        draw.line((0, y, w, y), fill=color)
-
-
-def _cloud(draw: ImageDraw.ImageDraw, x: int, y: int, scale: float = 1.0) -> None:
-    c = (238, 240, 242)
-    draw.ellipse((x, y, x + int(150 * scale), y + int(90 * scale)), fill=c)
-    draw.ellipse((x + int(55 * scale), y - int(45 * scale), x + int(175 * scale), y + int(85 * scale)), fill=c)
-    draw.ellipse((x + int(120 * scale), y + int(5 * scale), x + int(245 * scale), y + int(92 * scale)), fill=c)
-
-
-def _local_artwork(text: str, kind: str) -> EditorialImage:
-    """Собственная иллюстрация без внешних сервисов. Всегда возвращает изображение."""
-    w, h = 1536, 1024
-    img = Image.new("RGB", (w, h))
-    draw = ImageDraw.Draw(img)
-    lower = text.lower()
-
-    if kind == "morning":
-        rain = any(x in lower for x in ("дожд", "лив", "гроз", "buien", "regen"))
-        sunny = any(x in lower for x in ("солнеч", "ясн", "zonnig", "sun")) and not rain
-        windy = any(x in lower for x in ("ветр", "шторм", "wind"))
-        _gradient(img, (176, 210, 230), (237, 218, 189))
-        # horizon + Dutch road
-        draw.rectangle((0, 660, w, h), fill=(86, 105, 88))
-        draw.polygon([(500, h), (1030, h), (890, 650), (660, 650)], fill=(65, 67, 70))
-        for y in range(690, 1020, 95):
-            width = int((y - 620) * 0.15 + 18)
-            draw.rectangle((765 - width // 2, y, 765 + width // 2, y + 35), fill=(235, 228, 202))
-        # rail line
-        draw.line((180, h, 540, 650), fill=(45, 45, 45), width=12)
-        draw.line((340, h, 610, 650), fill=(45, 45, 45), width=12)
-        if sunny:
-            draw.ellipse((1120, 115, 1320, 315), fill=(245, 193, 73))
-        else:
-            _cloud(draw, 980, 140, 1.25)
-        if rain:
-            for x in range(990, 1370, 70):
-                draw.line((x, 330, x - 20, 400), fill=(94, 138, 179), width=9)
-        if windy:
-            for off in (0, 60, 120):
-                draw.arc((880, 250 + off, 1380, 430 + off), 190, 340, fill=(248, 248, 248), width=8)
-        # compact train silhouette
-        draw.rounded_rectangle((170, 500, 620, 690), radius=42, fill=(236, 225, 192))
-        draw.rectangle((230, 535, 545, 605), fill=(61, 91, 111))
-        draw.ellipse((230, 655, 285, 710), fill=(28, 28, 28))
-        draw.ellipse((500, 655, 555, 710), fill=(28, 28, 28))
-
-    elif kind == "event":
-        _gradient(img, (40, 24, 61), (126, 58, 70))
-        draw.ellipse((540, 120, 1000, 580), fill=(222, 156, 80))
-        draw.rectangle((0, 690, w, h), fill=(25, 24, 30))
-        # stage + crowd silhouettes
-        draw.rectangle((420, 380, 1110, 700), fill=(34, 34, 44))
-        for x in range(40, w, 90):
-            y = 730 + (x % 180)
-            draw.ellipse((x, y, x + 52, y + 52), fill=(18, 18, 22))
-            draw.rectangle((x + 8, y + 45, x + 44, h), fill=(18, 18, 22))
-
-    else:
-        evening = kind == "evening"
-        _gradient(img, (32, 38, 68) if evening else (135, 165, 174), (104, 55, 63) if evening else (210, 190, 156))
-        # canal water
-        draw.rectangle((0, 710, w, h), fill=(37, 70, 85) if evening else (83, 120, 132))
-        # Amsterdam-style house silhouettes
-        house_colors = [(102, 66, 57), (83, 71, 75), (118, 83, 66), (72, 79, 78), (121, 92, 70)]
-        x = 90
-        for i, hw in enumerate((220, 190, 235, 180, 230, 190)):
-            hh = 360 + (i % 3) * 70
-            y0 = 710 - hh
-            color = house_colors[i % len(house_colors)]
-            draw.rectangle((x, y0, x + hw, 710), fill=color)
-            draw.polygon([(x, y0), (x + hw // 2, y0 - 85), (x + hw, y0)], fill=color)
-            for wy in range(y0 + 70, 650, 105):
-                for wx in range(x + 35, x + hw - 30, 75):
-                    fill = (242, 196, 100) if evening else (205, 220, 211)
-                    draw.rectangle((wx, wy, wx + 34, wy + 52), fill=fill)
-            x += hw - 18
-        # bridge / foreground
-        draw.arc((300, 610, 1240, 970), 185, 355, fill=(47, 49, 52), width=42)
-        if evening:
-            draw.ellipse((1220, 130, 1360, 270), fill=(232, 218, 170))
-            for i in range(12):
-                px = 120 + i * 120
-                py = 820 + int(25 * math.sin(i))
-                draw.line((px, py, px + 45, py + 10), fill=(221, 181, 94), width=5)
-
-    out = io.BytesIO()
-    img.save(out, format="JPEG", quality=91, optimize=True)
-    out.seek(0)
-    return EditorialImage(
-        photo=BufferedInputFile(out.read(), filename=f"editorial-local-{kind}.jpg"),
-        attribution="Иллюстрация Podslushano.nl",
-        generated=True,
-    )
-
-
-async def choose_editorial_image(text: str, kind: str) -> EditorialImage:
-    """Реальное фото → AI → собственная локальная иллюстрация. Никогда не возвращает None."""
+async def choose_editorial_image(text: str, kind: str) -> EditorialImage | None:
+    """Реальное фото, затем фотореалистичная генерация. Схематичных fallback больше нет."""
     primary = await _image_search_query(text, kind)
     for query in _search_variants(primary, text, kind):
         real = await _commons_image(query)
         if real:
             return real
-    generated = await _generated_image(text, kind)
-    if generated:
-        return generated
-    log.info("Using local editorial artwork fallback: kind=%s", kind)
-    return _local_artwork(text, kind)
+    return await _generated_image(text, kind)
