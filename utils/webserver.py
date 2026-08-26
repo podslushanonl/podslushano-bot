@@ -1091,7 +1091,7 @@ def _ads_html(taken: set, error: str = "") -> str:
     return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Реклама — Podslushano.nl</title><style>{_ADS_CSS}</style></head><body>
+<title>Реклама — Podslushano.nl</title><style>{_ADS_CSS}</style>\n<script src="/ads-static/i18n.js" defer></script></head><body>
 <div class="wrap">
 <h1>Реклама на Podslushano.nl</h1>
 <div class="sub">Нативное продвижение для услуг, экспертов и мероприятий в Нидерландах</div>
@@ -1393,7 +1393,7 @@ async def _ads_payment_success(request: web.Request) -> web.Response:
     page = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex"><title>{title} — Podslushano.nl</title>
-<link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css"></head>
+<link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css">\n<script src="/ads-static/i18n.js" defer></script></head>
 <body><main class="standalone-shell"><div class="standalone-top">
 <span>Podslushano.nl</span></div><section class="success payment-success-page">
 <div class="success-icon">{icon}</div><p class="eyebrow">{eyebrow}</p>
@@ -1436,7 +1436,7 @@ async def _ads_book(request: web.Request) -> web.Response:
         page = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex"><title>Переход к оплате — Podslushano.nl</title>
-<link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css"></head>
+<link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css">\n<script src="/ads-static/i18n.js" defer></script></head>
 <body><main class="standalone-shell"><div class="standalone-top">
 <span>Podslushano.nl</span></div><section class="success payment-success-page">
 <div class="success-icon">↗</div><p class="eyebrow">Безопасная оплата</p>
@@ -1469,7 +1469,7 @@ def _reklama_html(error: str = "") -> str:
     err = f'<div class="err">{html_lib.escape(error)}</div>' if error else ""
     return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Реклама — Podslushano.nl</title><style>{_ADS_CSS}</style></head><body>
+<title>Реклама — Podslushano.nl</title><style>{_ADS_CSS}</style>\n<script src="/ads-static/i18n.js" defer></script></head><body>
 <div class="wrap">
 <h1>Реклама в Podslushano.nl</h1>
 <div class="sub">Доходим до русскоязычных в Нидерландах — нативно, без рекламного шума</div>
