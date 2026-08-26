@@ -3,6 +3,8 @@
   "use strict";
 
   const STORAGE_KEY = "pnl-ads-language";
+  const SWITCHER_ID = "pnl-language-switcher";
+  const STYLE_ID = "pnl-language-switcher-style";
   const SUPPORTED = ["ru", "nl", "en"];
   const translations = {
     "Реклама — Podslushano.nl": ["Adverteren — Podslushano.nl", "Advertising — Podslushano.nl"],
@@ -251,11 +253,16 @@
   }
 
   function createSwitcher() {
-    if (document.querySelector(".pnl-language-switcher")) return;
-    const style = document.createElement("style");
-    style.textContent = `.pnl-language-switcher{position:fixed;z-index:9999;top:14px;right:14px;display:flex;gap:3px;padding:4px;border:1px solid rgba(24,24,24,.12);border-radius:999px;background:rgba(255,255,255,.94);box-shadow:0 8px 24px rgba(0,0,0,.09);backdrop-filter:blur(12px)}.pnl-language-switcher button{appearance:none;border:0;border-radius:999px;background:transparent;color:#5d5d5d;font:700 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:.04em;padding:9px 10px;cursor:pointer}.pnl-language-switcher button:hover{color:#151515}.pnl-language-switcher button.active{background:#171717;color:#fff}.pnl-language-switcher button:focus-visible{outline:2px solid #f47721;outline-offset:2px}@media(max-width:720px){.pnl-language-switcher{top:8px;right:8px}.pnl-language-switcher button{padding:8px 9px}}`;
-    document.head.appendChild(style);
+    const current = document.getElementById(SWITCHER_ID);
+    if (current && current.isConnected) return current;
+    if (!document.getElementById(STYLE_ID)) {
+      const style = document.createElement("style");
+      style.id = STYLE_ID;
+      style.textContent = `.pnl-language-switcher{position:fixed!important;z-index:2147483647!important;top:14px!important;right:14px!important;display:flex!important;visibility:visible!important;opacity:1!important;transform:none!important;pointer-events:auto!important;gap:3px;padding:4px;border:1px solid rgba(24,24,24,.12);border-radius:999px;background:rgba(255,255,255,.96);box-shadow:0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(12px)}.pnl-language-switcher button{appearance:none;border:0;border-radius:999px;background:transparent;color:#5d5d5d;font:700 12px/1 system-ui,-apple-system,sans-serif;letter-spacing:.04em;padding:9px 10px;cursor:pointer}.pnl-language-switcher button:hover{color:#151515}.pnl-language-switcher button.active{background:#171717;color:#fff}.pnl-language-switcher button:focus-visible{outline:2px solid #f47721;outline-offset:2px}@media(max-width:720px){.pnl-language-switcher{top:max(8px,env(safe-area-inset-top))!important;right:8px!important}.pnl-language-switcher button{padding:8px 9px}}`;
+      document.head.appendChild(style);
+    }
     const switcher = document.createElement("div");
+    switcher.id = SWITCHER_ID;
     switcher.className = "pnl-language-switcher";
     switcher.setAttribute("role", "group");
     switcher.setAttribute("aria-label", "Language / Taal / Язык");
@@ -265,6 +272,17 @@
       if (button) setLanguage(button.dataset.lang);
     });
     document.body.appendChild(switcher);
+    return switcher;
+  }
+
+  function ensureSwitcher() {
+    const switcher = createSwitcher();
+    if (!switcher) return;
+    switcher.querySelectorAll("button[data-lang]").forEach(button => {
+      const selected = button.dataset.lang === activeLanguage;
+      button.classList.toggle("active", selected);
+      button.setAttribute("aria-pressed", selected ? "true" : "false");
+    });
   }
 
   function initialLanguage() {
@@ -278,12 +296,16 @@
   }
 
   function start() {
-    createSwitcher();
+    ensureSwitcher();
     setLanguage(initialLanguage(), false);
     new MutationObserver(records => {
       if (translating) return;
       records.forEach(record => record.addedNodes.forEach(node => walk(node)));
-    }).observe(document.body, { childList: true, subtree: true });
+      ensureSwitcher();
+    }).observe(document.documentElement, { childList: true, subtree: true });
+    // React can replace the body between observer callbacks during hydration.
+    // This inexpensive guard keeps the control available even in that case.
+    window.setInterval(ensureSwitcher, 1000);
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
