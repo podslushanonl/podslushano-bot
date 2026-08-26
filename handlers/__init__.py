@@ -15,6 +15,7 @@ from utils import editorial_overrides as _editorial_overrides  # noqa: E402
 from utils.editorial_reliability import install_editorial_reliability as _install_editorial_reliability  # noqa: E402
 from utils import editorial_websearch_fix as _editorial_websearch_fix  # noqa: F401,E402
 from utils.editorial_budget_photo import install_editorial_budget_photo as _install_editorial_budget_photo  # noqa: E402
+from utils.editorial_verified_search import install_editorial_verified_search as _install_editorial_verified_search  # noqa: E402
 
 _original_editorial_install = _editorial_overrides.install
 
@@ -28,9 +29,12 @@ def _install_editorial_stack() -> None:
     _install_editorial_reliability()
     # 4. Устойчивый вечерний Web Search.
     _editorial_websearch_fix.install_editorial_websearch_fix()
-    # 5. Последним: Sonnet 5 с лимитом расходов + ручной выбор фото.
-    # Этот слой намеренно должен применяться после всех предыдущих monkey-patches.
+    # 5. Sonnet 5 + лимит расходов + ручной выбор фото.
     _install_editorial_budget_photo()
+    # 6. Последним: единая проверенная Web Search логика для ВСЕХ рубрик.
+    # Не использует allowed_domains и не выбрасывает успешный ответ только из-за
+    # отсутствия citation metadata, но требует реального выполнения Web Search.
+    _install_editorial_verified_search()
 
 
 _editorial_overrides.install = _install_editorial_stack
