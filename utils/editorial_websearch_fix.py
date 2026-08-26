@@ -1,16 +1,11 @@
-"""Hardening for the 21:00 editorial Web Search path.
+"""21:00 editorial post hardening.
 
-The generic editorial._generate() intentionally requires citation URLs. That is
-fine for source-linked formats, but Anthropic can successfully execute its
-server Web Search and return a factual final answer without attaching citation
-objects to the final text block. In that case HTTP is 200 and Web Search ran,
-but _generate() returns None. The evening post uses a dedicated verifier: it
-requires actual Web Search tool execution and no tool errors, but does not throw
-away a valid final text merely because citation metadata is absent.
+The evening post must use the exact same verified Web Search generator as the
+other editorial formats.  Keeping a second, evening-only Anthropic request path
+caused the 21:00 slot to reject otherwise valid responses and also duplicated
+search/retry spend.
 """
 from __future__ import annotations
-
-import os
 
 from aiogram.types import Message
 
@@ -25,79 +20,14 @@ PREFERRED_EVENING_SOURCES = (
 )
 
 
-def _value(obj, name: str, default=None):
-    return obj.get(name, default) if isinstance(obj, dict) else getattr(obj, name, default)
-
-
-def _used_real_web_search(response) -> bool:
-    for block in _value(response, "content", []) or []:
-        btype = _value(block, "type", "")
-        if btype == "web_search_tool_result":
-            return True
-        if btype == "server_tool_use" and _value(block, "name", "") == "web_search":
-            return True
-    return False
-
-
-def _editorial_model() -> str:
-    return os.getenv("AI_EDITORIAL_MODEL", "claude-sonnet-5").strip() or "claude-sonnet-5"
-
-
-def _editorial_search_limit() -> int:
-    try:
-        configured = int(os.getenv("AI_EDITORIAL_WEB_MAX_USES", "2"))
-    except ValueError:
-        configured = 2
-    return max(1, min(configured, 2))
-
-
-async def _generate_evening_verified(system: str, user: str, max_tokens: int = 900) -> str | None:
-    """Run real Web Search and accept final text even if citations are omitted.
-
-    No allowed_domains whitelist is sent because one blocked site can invalidate the
-    whole request. Cost is capped to at most two search uses, matching the global
-    editorial budget guard.
-    """
-    if not editorial.ai_enabled() or not config.AI_WEB_SEARCH:
-        return None
-    tools = editorial._web_search_tool(None, max_uses=_editorial_search_limit())
-    if not tools:
-        return None
-    try:
-        response = await editorial._create_with_server_tool_continuation(
-            editorial._get_client(),
-            model=_editorial_model(),
-            max_tokens=max_tokens,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-            tools=tools,
-        )
-    except Exception as exc:  # noqa: BLE001
-        editorial.log.warning("Evening verified Web Search request failed: %s", exc)
-        return None
-
-    errors = editorial._web_search_errors(response)
-    if errors:
-        editorial.log.warning("Evening Web Search tool errors: %s", ", ".join(errors))
-        return None
-    if not _used_real_web_search(response):
-        editorial.log.warning("Evening response had no actual Web Search tool execution")
-        return None
-
-    text, sources = editorial._extract_text_and_sources(response)
-    text = editorial._clean_text(text)
-    if not text:
-        editorial.log.warning("Evening Web Search succeeded but final text was empty")
-        return None
-
-    editorial.log.info(
-        "Evening verified text accepted: %d chars, %d citation URL(s)",
-        len(text), len(sources),
-    )
-    return text
-
-
 async def _robust_evening_post() -> str | None:
+    """Generate one evening post through the shared verified pipeline.
+
+    editorial._generate is deliberately resolved at call time.  The final
+    runtime installer replaces it with editorial_verified_search._verified_generate,
+    so evening, morning, event and curiosity all use one implementation and one
+    cost ceiling.
+    """
     recent = await editorial._recent_topics()
     system = (
         "Ты вечерний редактор Telegram-канала для русскоязычных людей, которые уже живут в Нидерландах. "
@@ -108,23 +38,23 @@ async def _robust_evening_post() -> str | None:
         "ОБЯЗАТЕЛЬНО выполни Web Search перед ответом и проверь ключевые факты минимум по одному надёжному "
         "нидерландскому источнику. В приоритете: " + PREFERRED_EVENING_SOURCES + ". "
         "Не описывай процесс поиска, не пиши «я выбрал», «нашёл материал», «проверил источники». "
-        "Возвращай ТОЛЬКО готовую публикацию. 550–780 знаков, без markdown и HTML."
+        "Возвращай ТОЛЬКО готовую публикацию. Текст должен быть интересным и содержательным: 650–950 знаков, "
+        "один сюжет, живой человеческий язык, без markdown и HTML."
     )
     user = (
         f"Сегодня {editorial._now():%d.%m.%Y}. Не повторяй последние темы: "
         f"{', '.join(recent) or 'нет'}. Сразу выдай готовый пост после реального веб-поиска."
     )
 
-    text = await _generate_evening_verified(system, user, 900)
-    if text and len(text.strip()) >= 220:
-        return text.strip()
-
-    retry_user = (
-        user + " Первая попытка не дала пригодного финального текста. Выбери ДРУГОЙ конкретный сюжет, "
-        "снова выполни Web Search и после проверки сразу напиши публикацию."
-    )
-    text = await _generate_evening_verified(system, retry_user, 900)
-    return text.strip() if text and len(text.strip()) >= 220 else None
+    # IMPORTANT: no evening-only Anthropic client call and no internal retry.
+    # The shared generator already verifies real Web Search and enforces the
+    # configured max search uses.  This also prevents one 21:00 slot from making
+    # multiple hidden paid generations.
+    result = await editorial._generate(system, user, editorial.EVENING_SOURCES, 950)
+    if not result:
+        return None
+    text = (result[0] or "").strip()
+    return text if len(text) >= 220 else None
 
 
 async def _real_web_health() -> tuple[bool, str]:
@@ -134,7 +64,7 @@ async def _real_web_health() -> tuple[bool, str]:
         return False, "AI_WEB_SEARCH выключен"
     try:
         result = await editorial._generate(
-            "Обязательно выполни веб-поиск на knmi.nl и ответь одним коротким предложением по-русски. Не отвечай из памяти.",
+            "Обязательно выполни веб-поиск и ответь одним коротким предложением по-русски. Не отвечай из памяти.",
             "Это технический health-check реального Anthropic Web Search.",
             ["knmi.nl"],
             180,
