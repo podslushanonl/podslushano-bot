@@ -1,0 +1,294 @@
+"""Editorial quality + budget guard + manual photo choice.
+
+Goals:
+- editorial text uses Claude Sonnet 5, while ordinary user chat keeps Haiku;
+- cap Anthropic Web Search and automatic retries so one slot cannot drain balance;
+- do NOT generate an image until the admin explicitly asks for one;
+- every editorial draft can be published either with or without a photo.
+"""
+from __future__ import annotations
+
+import os
+from datetime import time
+
+from aiogram import F
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
+
+import config
+from utils import editorial_channel as editorial
+from utils import editorial_overrides as overrides
+from utils import editorial_websearch_fix as webfix
+from utils.editorial_media import choose_editorial_image
+from utils.ai import ai_enabled
+
+EDITORIAL_MODEL = os.getenv("AI_EDITORIAL_MODEL", "claude-sonnet-5").strip() or "claude-sonnet-5"
+# Hard ceiling. Even if an env variable is accidentally set higher, editorial content
+# cannot use more than two Anthropic web searches in one generation.
+try:
+    _configured_searches = int(os.getenv("AI_EDITORIAL_WEB_MAX_USES", "2"))
+except ValueError:
+    _configured_searches = 2
+EDITORIAL_WEB_MAX_USES = max(1, min(_configured_searches, 2))
+MAX_AUTOMATIC_ATTEMPTS_PER_SLOT = 2
+RETRY_MINUTES = 15
+
+
+def _draft_choice_kb(draft_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Опубликовать без фото", callback_data=f"edpubtext:{draft_id}"),
+            InlineKeyboardButton(text="🖼 Добавить фото", callback_data=f"edphoto:{draft_id}"),
+        ],
+        [InlineKeyboardButton(text="❌ Пропустить", callback_data=f"edskip:{draft_id}")],
+    ])
+
+
+def _photo_choice_kb(draft_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [
+            InlineKeyboardButton(text="✅ Опубликовать с фото", callback_data=f"edpub:{draft_id}"),
+            InlineKeyboardButton(text="📝 Без фото", callback_data=f"edpubtext:{draft_id}"),
+        ],
+        [
+            InlineKeyboardButton(text="🔄 Другое фото", callback_data=f"edretry:{draft_id}"),
+            InlineKeyboardButton(text="❌ Пропустить", callback_data=f"edskip:{draft_id}"),
+        ],
+    ])
+
+
+async def _guarded_generate(system: str, user: str, domains: list[str], max_tokens: int = 900):
+    """Same verified editorial generation contract, but with a fixed cost ceiling."""
+    if not ai_enabled() or not config.AI_WEB_SEARCH:
+        return None
+    tools = editorial._web_search_tool(domains, max_uses=EDITORIAL_WEB_MAX_USES)
+    if not tools:
+        return None
+    try:
+        response = await editorial._create_with_server_tool_continuation(
+            editorial._get_client(),
+            model=EDITORIAL_MODEL,
+            max_tokens=max_tokens,
+            system=system,
+            messages=[{"role": "user", "content": user}],
+            tools=tools,
+        )
+    except Exception as exc:  # noqa: BLE001
+        editorial.log.warning("Editorial Sonnet 5 generation failed: %s", exc)
+        return None
+    if editorial._web_search_errors(response):
+        return None
+    text, sources = editorial._extract_text_and_sources(response)
+    text = editorial._clean_text(text)
+    return (text, sources) if text and sources else None
+
+
+async def _text_first_send_for_approval(bot, kind: str, text: str, button: bool = False) -> bool:
+    """Store text once and let the admin decide whether image generation is worth it."""
+    draft_id = overrides._new_draft_id()
+    # Caption patch already cleans/trims the source text before this point. Keep a
+    # generous text limit because publishing without a photo is not constrained by 1024.
+    clean = text.strip()
+    post_text = overrides._with_reaction_cta(kind, clean)
+    await editorial._store_draft(draft_id, kind, post_text, button)
+    await editorial._meta_set(f"ed_{draft_id}_image_status", "not_requested")
+
+    sent = False
+    labels = {
+        "morning": "Утренний бриф",
+        "event": "Мероприятие",
+        "curiosity": "Познавательный пост",
+        "evening": "Вечерний пост 21:00",
+    }
+    for admin_id in config.ADMIN_IDS:
+        try:
+            await bot.send_message(
+                admin_id,
+                f"👀 {labels.get(kind, kind)} · предпросмотр\n\n{post_text}\n\n"
+                "Выберите, публиковать этот материал с фотографией или без неё.",
+                parse_mode=None,
+                reply_markup=_draft_choice_kb(draft_id),
+                disable_web_page_preview=False,
+            )
+            sent = True
+        except Exception as exc:  # noqa: BLE001
+            editorial.log.warning("Cannot send editorial text-first preview: %s", exc)
+    return sent
+
+
+async def _send_selected_photo(bot, admin_id: int, draft_id: str, kind: str, text: str, button: bool, image) -> bool:
+    credit = getattr(image, "attribution", "") or ""
+    # Never show internal AI-generation attribution to the subscriber/admin preview.
+    if credit.strip().lower().startswith(("изображение создано ии", "image generated by ai")):
+        credit = ""
+    msg = await bot.send_photo(
+        admin_id,
+        photo=image.photo,
+        caption=overrides._caption(text, credit),
+        parse_mode=None,
+        reply_markup=_photo_choice_kb(draft_id),
+    )
+    if not msg.photo:
+        return False
+    await editorial._meta_set(f"ed_{draft_id}_photo", msg.photo[-1].file_id)
+    await editorial._meta_set(f"ed_{draft_id}_credit", credit[:95])
+    await editorial._meta_set(f"ed_{draft_id}_image_status", "ready")
+    return True
+
+
+async def _publish_text_only(callback: CallbackQuery) -> None:
+    draft_id = callback.data.split(":", 1)[1]
+    draft = await editorial._load_draft(draft_id)
+    if not draft:
+        await callback.answer("Этот черновик уже обработан", show_alert=True)
+        return
+    kind, text, button = draft
+    try:
+        await callback.bot.send_message(
+            config.ANNOUNCE_CHANNEL,
+            text,
+            parse_mode=None,
+            reply_markup=editorial._channel_kb() if button else None,
+            disable_web_page_preview=False,
+        )
+        if kind in {"event", "curiosity", "evening"}:
+            await editorial._remember_topic(text)
+        await editorial._meta_set(f"ed_{draft_id}_status", "published")
+        await callback.answer("Опубликовано без фото")
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception as exc:  # noqa: BLE001
+        editorial.log.warning("Editorial text-only publish failed: %s", exc)
+        await callback.answer("Не удалось опубликовать", show_alert=True)
+
+
+@overrides.router.callback_query(F.data.startswith("edphoto:"), F.from_user.id.in_(config.ADMIN_IDS))
+async def editorial_add_photo_callback(callback: CallbackQuery) -> None:
+    draft_id = callback.data.split(":", 1)[1]
+    draft = await editorial._load_draft(draft_id)
+    if not draft:
+        await callback.answer("Черновик уже обработан или недоступен", show_alert=True)
+        return
+    kind, text, button = draft
+    await callback.answer("Создаю одно фото под главный сюжет…")
+    await editorial._meta_set(f"ed_{draft_id}_image_status", "generating")
+    image = await choose_editorial_image(text, kind)
+    if not image:
+        await editorial._meta_set(f"ed_{draft_id}_image_status", "failed")
+        await callback.message.answer(
+            "❌ Фото не удалось создать. Сам текст сохранён — его можно опубликовать без фото.",
+            reply_markup=_draft_choice_kb(draft_id),
+        )
+        return
+    try:
+        await _send_selected_photo(callback.bot, callback.from_user.id, draft_id, kind, text, button, image)
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception as exc:  # noqa: BLE001
+        editorial.log.warning("Selected photo preview failed: %s", exc)
+        await callback.message.answer(
+            f"❌ Фото получено, но Telegram не принял его: {type(exc).__name__}. Текст можно опубликовать без фото.",
+            reply_markup=_draft_choice_kb(draft_id),
+        )
+
+
+@overrides.router.callback_query(F.data.startswith("edpubtext:"), F.from_user.id.in_(config.ADMIN_IDS))
+async def editorial_publish_text_callback(callback: CallbackQuery) -> None:
+    await _publish_text_only(callback)
+
+
+async def _safe_health(message: Message) -> None:
+    """No Anthropic request: health must never consume editorial balance."""
+    if message.from_user.id not in config.ADMIN_IDS:
+        return
+    openai_ok, openai_detail = await overrides._check_openai_image_access()
+    channel_ok, channel_detail = await overrides._channel_health(message.bot)
+    lines = [
+        "🩺 Editorial Health · SAFE",
+        "",
+        f"{'✅' if config.ANTHROPIC_API_KEY else '❌'} Anthropic key: {'задан' if config.ANTHROPIC_API_KEY else 'отсутствует'}",
+        f"{'✅' if config.AI_WEB_SEARCH else '❌'} Web Search: {'включён' if config.AI_WEB_SEARCH else 'выключен'}",
+        f"🧠 Редакционная модель: {EDITORIAL_MODEL}",
+        f"🔎 Лимит Web Search на генерацию: {EDITORIAL_WEB_MAX_USES}",
+        f"{'✅' if openai_ok else '❌'} OpenAI Images: {openai_detail}",
+        f"{'✅' if channel_ok else '❌'} Канал/права: {channel_detail}",
+        "",
+        "Команда не делает платный запрос к Anthropic.",
+    ]
+    await message.answer("\n".join(lines), parse_mode=None)
+
+
+async def _alert_admins(bot, kind: str, reason: str) -> None:
+    for admin_id in config.ADMIN_IDS:
+        try:
+            await bot.send_message(
+                admin_id,
+                f"⚠️ Не удалось подготовить {kind}. {reason}\n"
+                f"Автоматический лимит: не более {MAX_AUTOMATIC_ATTEMPTS_PER_SLOT} попыток на слот в день.",
+                parse_mode=None,
+            )
+        except Exception:
+            pass
+
+
+async def _budgeted_run_generated(bot, now, kind, date_key, generator, button=False):
+    today = now.date().isoformat()
+    if await editorial._meta_get(date_key) == today:
+        return
+    count_key = f"{date_key}_attempts_{today}"
+    try:
+        attempts = int(await editorial._meta_get(count_key) or "0")
+    except ValueError:
+        attempts = 0
+    if attempts >= MAX_AUTOMATIC_ATTEMPTS_PER_SLOT:
+        return
+    if not await editorial._attempt_allowed(f"{date_key}_try", now, RETRY_MINUTES):
+        return
+    await editorial._meta_set(count_key, attempts + 1)
+    try:
+        text = await generator()
+    except Exception as exc:  # noqa: BLE001
+        editorial.log.exception("Budgeted %s generator crashed: %s", kind, exc)
+        await _alert_admins(bot, kind, f"Ошибка {type(exc).__name__}.")
+        return
+    if not text:
+        await _alert_admins(bot, kind, "Проверенный текст не получен.")
+        return
+    if await editorial._send_for_approval(bot, kind, text, button):
+        await editorial._meta_set(date_key, today)
+
+
+async def _budgeted_run_morning(bot, now):
+    if time(6, 45) <= now.time() < time(9, 0):
+        await _budgeted_run_generated(bot, now, "утренний бриф", "editorial_morning_date", editorial._morning_brief)
+
+
+async def _budgeted_run_evening(bot, now):
+    if time(21, 0) <= now.time() < time(23, 30):
+        await _budgeted_run_generated(bot, now, "вечерний пост 21:00", "editorial_evening_date", editorial._evening_post)
+
+
+def _replace_health_handler() -> None:
+    try:
+        for handler in overrides.router.message.handlers:
+            callback = getattr(handler, "callback", None)
+            if getattr(callback, "__name__", "") in {"editorial_health_command", "editorial_health_real"}:
+                handler.callback = _safe_health
+    except Exception as exc:  # noqa: BLE001
+        editorial.log.warning("Could not install SAFE editorial health: %s", exc)
+
+
+def install_editorial_budget_photo() -> None:
+    # Quality stays high for editorial content; user chat remains on AI_CHAT_MODEL/Haiku.
+    editorial._generate = _guarded_generate
+    # Avoid a third source-family request when the first two fail.
+    webfix.EVENING_SOURCE_GROUPS = webfix.EVENING_SOURCE_GROUPS[:2]
+
+    # Text first. Image generation only happens after an explicit button press.
+    editorial._send_for_approval = _text_first_send_for_approval
+    overrides._photo_send_for_approval = _text_first_send_for_approval
+    overrides._send_photo_preview = _send_selected_photo
+
+    # All scheduled editorial formats share the same daily attempt budget.
+    editorial._run_generated = _budgeted_run_generated
+    editorial._run_morning = _budgeted_run_morning
+    editorial._run_evening = _budgeted_run_evening
+
+    _replace_health_handler()
