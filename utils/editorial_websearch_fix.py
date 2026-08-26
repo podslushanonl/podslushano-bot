@@ -10,6 +10,8 @@ away a valid final text merely because citation metadata is absent.
 """
 from __future__ import annotations
 
+import os
+
 from aiogram.types import Message
 
 import config
@@ -28,7 +30,6 @@ def _value(obj, name: str, default=None):
 
 
 def _used_real_web_search(response) -> bool:
-    """True only when the Anthropic server Web Search tool actually ran."""
     for block in _value(response, "content", []) or []:
         btype = _value(block, "type", "")
         if btype == "web_search_tool_result":
@@ -38,22 +39,34 @@ def _used_real_web_search(response) -> bool:
     return False
 
 
-async def _generate_evening_verified(system: str, user: str, max_tokens: int = 900) -> str | None:
-    """Run real Web Search and accept the final text even if citations are omitted.
+def _editorial_model() -> str:
+    return os.getenv("AI_EDITORIAL_MODEL", "claude-sonnet-5").strip() or "claude-sonnet-5"
 
-    Crucially, no allowed_domains whitelist is sent. Anthropic rejects the entire
-    request if even one whitelisted site blocks its crawler. Preferred trustworthy
-    Dutch sources are instead specified in the editorial instruction.
+
+def _editorial_search_limit() -> int:
+    try:
+        configured = int(os.getenv("AI_EDITORIAL_WEB_MAX_USES", "2"))
+    except ValueError:
+        configured = 2
+    return max(1, min(configured, 2))
+
+
+async def _generate_evening_verified(system: str, user: str, max_tokens: int = 900) -> str | None:
+    """Run real Web Search and accept final text even if citations are omitted.
+
+    No allowed_domains whitelist is sent because one blocked site can invalidate the
+    whole request. Cost is capped to at most two search uses, matching the global
+    editorial budget guard.
     """
     if not editorial.ai_enabled() or not config.AI_WEB_SEARCH:
         return None
-    tools = editorial._web_search_tool(None, max_uses=6)
+    tools = editorial._web_search_tool(None, max_uses=_editorial_search_limit())
     if not tools:
         return None
     try:
         response = await editorial._create_with_server_tool_continuation(
             editorial._get_client(),
-            model=config.AI_POST_MODEL,
+            model=_editorial_model(),
             max_tokens=max_tokens,
             system=system,
             messages=[{"role": "user", "content": user}],
@@ -77,7 +90,6 @@ async def _generate_evening_verified(system: str, user: str, max_tokens: int = 9
         editorial.log.warning("Evening Web Search succeeded but final text was empty")
         return None
 
-    # Diagnostic only: absence of citation metadata must not destroy a verified post.
     editorial.log.info(
         "Evening verified text accepted: %d chars, %d citation URL(s)",
         len(text), len(sources),
@@ -103,8 +115,6 @@ async def _robust_evening_post() -> str | None:
         f"{', '.join(recent) or 'нет'}. Сразу выдай готовый пост после реального веб-поиска."
     )
 
-    # A second attempt uses a slightly broader instruction rather than another
-    # fragile allowed_domains set.
     text = await _generate_evening_verified(system, user, 900)
     if text and len(text.strip()) >= 220:
         return text.strip()
@@ -123,7 +133,6 @@ async def _real_web_health() -> tuple[bool, str]:
     if not config.AI_WEB_SEARCH:
         return False, "AI_WEB_SEARCH выключен"
     try:
-        # Use the generic source-strict path here: health proves both search and citations.
         result = await editorial._generate(
             "Обязательно выполни веб-поиск на knmi.nl и ответь одним коротким предложением по-русски. Не отвечай из памяти.",
             "Это технический health-check реального Anthropic Web Search.",
