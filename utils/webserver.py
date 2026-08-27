@@ -1263,7 +1263,7 @@ body.numr-private .pnl-language-switcher{{display:none!important}}
 
 <section class="numr-materials"><p class="numr-label">Na de betaling</p><h2>Benodigde materialen</h2>
 <p class="numr-intro">Om de Reels en Stories te maken, ontvangen we graag de beschikbare bronmaterialen en informatie:</p>
-<ul><li>logo en huisstijlbestanden</li><li>links naar de App Store en Google Play</li><li>screenshots van de app</li><li>foto's, video's en animaties</li><li>toegang tot een testaccount</li><li>belangrijkste functies, feiten en voordelen</li><li>links en call-to-action die gepromoot moeten worden</li><li>eventuele verplichte teksten of voorwaarden</li></ul>
+<ul><li>logo en huisstijlbestanden</li><li>links naar de App Store en Google Play</li><li>screenshots van de app</li><li>foto's, video's en animaties</li><li>toegang tot een testaccount (indien nodig)</li><li>belangrijkste functies, feiten en voordelen</li><li>links en call-to-action die gepromoot moeten worden</li><li>eventuele verplichte teksten of voorwaarden</li></ul>
 <p class="numr-note">Deze materialen hoeven niet op deze pagina te worden geüpload. Na de betaling nemen we contact op en spreken we af hoe jullie alles het gemakkelijkst kunnen aanleveren. Voor publicatie sturen we de content ter controle van de feitelijke informatie.</p></section>
 
 <section class="numr-book"><p class="numr-label">Boeking en betaling</p><h2>Plan de campagne</h2>
