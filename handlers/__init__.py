@@ -17,6 +17,9 @@ from utils import editorial_websearch_fix as _editorial_websearch_fix  # noqa: F
 from utils.editorial_budget_photo import install_editorial_budget_photo as _install_editorial_budget_photo  # noqa: E402
 from utils.editorial_verified_search import install_editorial_verified_search as _install_editorial_verified_search  # noqa: E402
 
+# Публичный alias для нового Админ-центра. Само меню остаётся единым с /editorialpreview.
+_editorial_overrides.preview_menu = _editorial_overrides._preview_menu
+
 _original_editorial_install = _editorial_overrides.install
 
 
@@ -32,8 +35,6 @@ def _install_editorial_stack() -> None:
     # 5. Sonnet 5 + лимит расходов + ручной выбор фото.
     _install_editorial_budget_photo()
     # 6. Последним: единая проверенная Web Search логика для ВСЕХ рубрик.
-    # Не использует allowed_domains и не выбрасывает успешный ответ только из-за
-    # отсутствия citation metadata, но требует реального выполнения Web Search.
     _install_editorial_verified_search()
 
 
