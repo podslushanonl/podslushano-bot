@@ -1031,6 +1031,8 @@ def _ads_html(taken: set, error: str = "") -> str:
     cards = []
     effective_formats = config.ad_formats()
     for key, f in effective_formats.items():
+        if f.get("private"):
+            continue
         badge = f'<span class="badge">{html_lib.escape(f["badge"])}</span>' if f.get("badge") else ""
         flag = " flag" if key == "expert" else ""
         opts = f["options"]
@@ -1051,11 +1053,12 @@ def _ads_html(taken: set, error: str = "") -> str:
             f'<div class="lbl">Что входит:</div><ul>{bullets}</ul>'
             f'<div class="who"><b>Кому подходит:</b> {html_lib.escape(f["who"])}.</div></div>'
         )
+    public_formats = {k: f for k, f in effective_formats.items() if not f.get("private")}
     fmt_opts = "".join(f'<option value="{k}">{html_lib.escape(f["name"])}</option>'
-                       for k, f in effective_formats.items())
+                       for k, f in public_formats.items())
     fmap = {k: {"name": f["name"], "options": f["options"], "addon": f.get("addon"),
                 "dates": f.get("dates", 1)}
-            for k, f in effective_formats.items()}
+            for k, f in public_formats.items()}
     faq_html = "".join(
         f"<details><summary>{html_lib.escape(q)}</summary><p>{html_lib.escape(a)}</p></details>"
         for q, a in config.AD_FAQ)
@@ -1203,6 +1206,103 @@ document.getElementById('bf').onsubmit=e=>{{if(sel.length!==need){{e.preventDefa
 fillOpt();toggleType();
 </script>
 </body></html>"""
+
+
+def _numr_campaign_html(taken: set[str], error: str = "") -> str:
+    """Afgeschermde maatwerkpagina voor de NUMR-campagne."""
+    campaign = config.AD_FORMATS["numr_campaign"]
+    option = config.ad_option("numr_campaign", "std") or {"price": "299.00"}
+    details = "".join(
+        f"<li>{html_lib.escape(item)}</li>" for item in campaign["details"]
+    )
+    terms_html = (
+        f"<p><b>Opdrachtnemer:</b><br>{config.ad_company_block_html()}</p>"
+        + "".join(
+            f"<h5>{html_lib.escape(title)}</h5><p>{html_lib.escape(body)}</p>"
+            for title, body in config.AD_TERMS
+        )
+    )
+    err = f'<div class="numr-error">{html_lib.escape(error)}</div>' if error else ""
+    cal = _calendar_html(taken)
+    return f"""<!doctype html><html lang="nl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>NUMR-campagne — Podslushano.nl</title>
+<link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css">
+<style>
+body{{background:#f5f1ec;color:#181718}}.numr-shell{{max-width:1040px;margin:auto;padding:24px 16px 64px}}
+.numr-top{{display:flex;justify-content:space-between;align-items:center;padding:10px 2px 24px;font-weight:850}}
+.numr-label{{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#f47446}}
+.numr-card{{display:grid;grid-template-columns:1.1fr .9fr;background:#fff;border:1px solid #ddd5ce;border-radius:30px;overflow:hidden;box-shadow:0 22px 60px #3a251414}}
+.numr-copy{{padding:clamp(28px,5vw,58px)}}.numr-copy h1{{font-size:clamp(42px,7vw,76px);line-height:.96;letter-spacing:-.065em;margin:12px 0 20px;max-width:720px}}
+.numr-lead{{color:#6d655f;font-size:17px;max-width:650px}}.numr-copy ul{{padding-left:20px;margin:26px 0 0}}.numr-copy li{{margin:10px 0}}
+.numr-price{{background:#f47446;color:#fff;padding:clamp(28px,5vw,58px);display:flex;flex-direction:column;justify-content:space-between;min-height:470px}}
+.numr-price b{{font-size:clamp(64px,10vw,112px);line-height:.9;letter-spacing:-.07em}}.numr-price span{{font-size:14px;opacity:.86}}.numr-price p{{font-size:22px;line-height:1.2;margin:0}}
+.numr-book{{background:#fff;border:1px solid #ddd5ce;border-radius:30px;margin-top:26px;padding:clamp(22px,5vw,48px)}}
+.numr-book h2{{font-size:clamp(34px,5vw,52px);letter-spacing:-.045em;margin:0 0 8px}}.numr-intro{{color:#6d655f;margin:0 0 24px}}
+.numr-book label{{display:block;font-weight:750;margin:17px 0 7px}}.numr-book input{{width:100%;border:1px solid #d8d0c9;border-radius:13px;padding:13px 14px;font:inherit}}
+.numr-two{{display:grid;grid-template-columns:1fr 1fr;gap:14px}}.numr-seg{{display:grid;grid-template-columns:1fr 1fr;gap:10px}}
+.numr-seg label{{margin:0;border:1px solid #d8d0c9;border-radius:13px;padding:13px;text-align:center;cursor:pointer}}.numr-seg input{{width:auto;margin-right:8px}}
+.numr-note{{font-size:13px;color:#766e68;margin-top:9px}}.numr-summary{{background:#fff1ea;border-radius:14px;padding:15px 16px;margin-top:18px;font-weight:750}}
+.numr-error{{background:#fde8e8;color:#9e2930;border-radius:13px;padding:13px 15px;margin:16px 0}}
+.numr-book button{{width:100%;border:0;border-radius:999px;background:#181718;color:#fff;padding:16px 20px;margin-top:20px;font-size:16px;font-weight:850;cursor:pointer}}
+.numr-book details{{border:1px solid #ddd5ce;border-radius:14px;padding:10px 14px;margin-top:18px}}.numr-book summary{{cursor:pointer;font-weight:750}}
+.numr-book .chk{{display:flex;gap:10px;align-items:flex-start;font-weight:500}}.numr-book .chk input{{width:auto;margin-top:4px}}
+.numr-book .cal{{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:10px}}.numr-book .days{{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}}
+.numr-book .mon h4{{text-align:center;margin:0 0 8px}}.numr-book .dh{{font-size:11px;color:#827a74;text-align:center}}.numr-book .d{{aspect-ratio:1;display:grid;place-items:center;border-radius:8px;font-size:13px}}
+.numr-book .d.off{{color:#ccc4bd}}.numr-book .d.taken{{background:#eee9e4;color:#b8aea6;text-decoration:line-through}}.numr-book .d.free{{background:#e5f3ea;border:1px solid #b8ddc5;cursor:pointer}}.numr-book .d.sel{{background:#f47446;color:#fff;border-color:#f47446}}
+.numr-legend{{display:flex;gap:16px;flex-wrap:wrap;color:#766e68;font-size:13px;margin-top:10px}}.numr-legend i{{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:5px;vertical-align:-2px}}
+@media(max-width:760px){{.numr-card{{grid-template-columns:1fr}}.numr-price{{min-height:260px}}.numr-two{{grid-template-columns:1fr}}.numr-book .cal{{grid-template-columns:1fr}}}}
+body.numr-private .pnl-language-switcher{{display:none!important}}
+</style><script src="/ads-static/i18n.js" defer></script></head><body class="numr-private"><main class="numr-shell">
+<div class="numr-top"><span>Podslushano.nl</span><span class="numr-label">Campagnevoorstel</span></div>
+<section class="numr-card"><div class="numr-copy"><p class="numr-label">Exclusief maatwerkpakket</p>
+<h1>NUMR × Podslushano.nl</h1><p class="numr-lead">{html_lib.escape(campaign['lead'])}</p><ul>{details}</ul></div>
+<aside class="numr-price"><div><span>Totale campagneprijs<br>inclusief 21% btw</span></div><b>€299</b><p>2 maanden<br>4 Reels · 12 Stories</p></aside></section>
+
+<section class="numr-book"><p class="numr-label">Boeking en betaling</p><h2>Plan de campagne</h2>
+<p class="numr-intro">Kies vier publicatiedata, vul de factuurgegevens in en rond de betaling veilig af via Mollie.</p>{err}
+<form method="post" action="/ads/numr/book?lang=nl" id="numrForm">
+<input type="hidden" name="dates" id="numrDates"><input type="hidden" name="fmt" value="numr_campaign"><input type="hidden" name="opt" value="std">
+<label>Kies 4 publicatiedata</label>{cal}
+<div class="numr-legend"><span><i style="background:#e5f3ea;border:1px solid #b8ddc5"></i>beschikbaar</span><span><i style="background:#eee9e4"></i>bezet</span><span><i style="background:#f47446"></i>gekozen</span></div>
+<p class="numr-note">Tussen twee publicaties zitten minimaal 14 dagen.</p>
+
+<label>Wie betaalt?</label><div class="numr-seg">
+<label><input type="radio" name="client_type" value="business" checked>Bedrijf</label>
+<label><input type="radio" name="client_type" value="person">Particulier</label></div>
+<p class="numr-note">Vul de factuurgegevens met Latijnse letters in, zoals ze officieel geregistreerd staan.</p>
+
+<div id="numrBusiness"><label>Bedrijfsnaam</label><input name="company" autocomplete="organization" placeholder="NUMR" required>
+<div class="numr-two"><div><label>Btw-nummer (optioneel)</label><input name="btw" placeholder="NL000000000B00"></div><div><label>KVK-nummer (optioneel)</label><input name="kvk" placeholder="12345678"></div></div></div>
+<div id="numrPerson" hidden><label>Voor- en achternaam</label><input name="buyer_name" autocomplete="name"></div>
+<div class="numr-two"><div><label>Adres</label><input name="address" autocomplete="street-address" required></div><div><label>Postcode</label><input name="postcode" autocomplete="postal-code" required></div></div>
+<div class="numr-two"><div><label>E-mailadres voor de factuur</label><input type="email" name="email" autocomplete="email" required></div><div><label>Telefoonnummer (optioneel)</label><input name="phone" autocomplete="tel"></div></div>
+
+<div class="numr-summary" id="numrSummary">Campagne van 2 maanden · kies 4 data · €{option['price']}</div>
+<details><summary>Samenwerkingsvoorwaarden</summary>{terms_html}</details>
+<label class="chk"><input type="checkbox" name="terms" required><span>Ik heb de samenwerkingsvoorwaarden gelezen en ga ermee akkoord. De betaling geldt als volledige aanvaarding.</span></label>
+<button type="submit">Betaal €299 via Mollie →</button><p class="numr-note">100% vooruitbetaling · iDEAL en betaalkaarten · 21% btw inbegrepen. De data worden pas na een geslaagde betaling vastgelegd.</p>
+</form></section></main>
+<script>
+(function(){{
+  const selected=[];const dateInput=document.getElementById('numrDates');const summary=document.getElementById('numrSummary');
+  function render(){{dateInput.value=selected.join(',');summary.textContent='Campagne van 2 maanden · '+(selected.length?selected.join(' · '):'kies 4 data')+' · €299.00';}}
+  document.querySelectorAll('.d.free').forEach(function(cell){{cell.addEventListener('click',function(){{
+    const value=cell.dataset.date;const index=selected.indexOf(value);
+    if(index>=0){{selected.splice(index,1);cell.classList.remove('sel');render();return;}}
+    if(selected.length>=4){{alert('Kies precies vier publicatiedata. Verwijder eerst een gekozen datum.');return;}}
+    const candidate=new Date(value+'T12:00:00');
+    if(selected.some(function(item){{return Math.abs(candidate-new Date(item+'T12:00:00'))/86400000<14;}})){{alert('Tussen twee publicaties moeten minimaal 14 dagen zitten.');return;}}
+    selected.push(value);selected.sort();cell.classList.add('sel');render();
+  }});}});
+  document.querySelectorAll('input[name="client_type"]').forEach(function(radio){{radio.addEventListener('change',function(){{
+    if(!radio.checked)return;const business=radio.value==='business';document.getElementById('numrBusiness').hidden=!business;document.getElementById('numrPerson').hidden=business;
+    document.querySelector('[name="company"]').required=business;document.querySelector('[name="postcode"]').required=business;document.querySelector('[name="buyer_name"]').required=!business;
+  }});}});
+  document.getElementById('numrForm').addEventListener('submit',function(event){{if(selected.length!==4){{event.preventDefault();alert('Kies vier publicatiedata.');}}}});render();
+}})();
+</script></body></html>"""
 
 
 _ADS_SITE_DIR = Path(__file__).resolve().parent.parent / "static" / "ads-site"
@@ -1390,7 +1490,29 @@ async def _ads_payment_success(request: web.Request) -> web.Response:
         text = ("Mollie ещё не подтвердил платёж. Обновите эту страницу через "
                 "несколько секунд.")
 
-    page = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
+    is_numr = bool(booking and booking.fmt == "numr_campaign")
+    if is_numr:
+        nl_copy = {
+            "Оплата подтверждена": "Betaling bevestigd",
+            "Спасибо за оплату!": "Bedankt voor uw betaling!",
+            "Дата закреплена за вами. Оплаченная фактура будет отправлена на e-mail, указанный при оформлении.":
+                "De gekozen data zijn vastgelegd. De betaalde factuur wordt naar het opgegeven e-mailadres gestuurd.",
+            "Оплата не завершена": "Betaling niet voltooid",
+            "Платёж не прошёл": "De betaling is mislukt",
+            "Деньги не списаны, дата не закреплена. Вернитесь и попробуйте ещё раз.":
+                "Er is niets afgeschreven en de data zijn niet vastgelegd. Ga terug en probeer het opnieuw.",
+            "Проверяем платёж": "Betaling controleren",
+            "Оплата обрабатывается": "Betaling wordt verwerkt",
+            "Mollie ещё не подтвердил платёж. Обновите эту страницу через несколько секунд.":
+                "Mollie heeft de betaling nog niet bevestigd. Vernieuw deze pagina over enkele seconden.",
+        }
+        eyebrow, title, text = nl_copy.get(eyebrow, eyebrow), nl_copy.get(title, title), nl_copy.get(text, text)
+    lang = "nl" if is_numr else "ru"
+    back_href = "/ads/numr" if is_numr else "/ads"
+    back_label = "Terug naar de campagne" if is_numr else "Вернуться на рекламную страницу"
+    questions_label = "Vragen?" if is_numr else "Есть вопросы?"
+
+    page = f"""<!doctype html><html lang="{lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex"><title>{title} — Podslushano.nl</title>
 <link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css">\n<script src="/ads-static/i18n.js" defer></script></head>
@@ -1398,8 +1520,8 @@ async def _ads_payment_success(request: web.Request) -> web.Response:
 <span>Podslushano.nl</span></div><section class="success payment-success-page">
 <div class="success-icon">{icon}</div><p class="eyebrow">{eyebrow}</p>
 <h1>{title}</h1><p>{text}</p><div class="success-actions">
-<a class="primary" href="/ads">Вернуться на рекламную страницу</a>
-<a class="secondary" href="/ads/questions">Есть вопросы?</a>
+<a class="primary" href="{back_href}">{back_label}</a>
+<a class="secondary" href="/ads/questions">{questions_label}</a>
 </div></section></main></body></html>"""
     return web.Response(
         text=page, content_type="text/html",
@@ -1461,11 +1583,59 @@ target="_blank" rel="noopener">Открыть оплату Mollie</a>
         content_type="text/html", status=400)
 
 
+async def _ads_numr(request: web.Request) -> web.Response:
+    """Private NUMR campaign page with one fixed offer."""
+    from handlers.ads import _taken
+    if request.query.get("lang") != "nl":
+        raise web.HTTPFound(location="/ads/numr?lang=nl")
+    return web.Response(
+        text=_numr_campaign_html(await _taken()),
+        content_type="text/html",
+        headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow"},
+    )
+
+
+async def _ads_numr_book(request: web.Request) -> web.Response:
+    """Book the server-controlled NUMR package and hand off to Mollie."""
+    from handlers.ads import book_and_pay, _taken
+    data = await request.post()
+    fields = {k: (data.get(k) or "").strip() for k in (
+        "email", "buyer_name", "company", "btw", "kvk", "address", "postcode", "phone")}
+    fields["client_type"] = data.get("client_type")
+    fields["terms"] = bool(data.get("terms"))
+    fields["addon"] = False
+    dates = [s.strip() for s in (data.get("dates") or "").split(",") if s.strip()]
+    checkout, err = await book_and_pay("numr_campaign", "std", dates, fields)
+    if checkout:
+        checkout_href = html_lib.escape(checkout, quote=True)
+        checkout_json = json.dumps(checkout)
+        page = f"""<!doctype html><html lang="nl"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>Veilige betaling — Podslushano.nl</title><link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css"></head>
+<body><main class="standalone-shell"><div class="standalone-top"><span>Podslushano.nl</span></div>
+<section class="success payment-success-page"><div class="success-icon">↗</div><p class="eyebrow">Veilige betaling</p>
+<h1>Mollie wordt geopend</h1><p>De betaalpagina wordt afzonderlijk geopend.</p><div class="success-actions">
+<a class="primary" href="{checkout_href}" target="_blank" rel="noopener">Open de Mollie-betaling</a>
+<a class="secondary" href="/ads/numr">Terug</a></div></section></main>
+<script>(function(){{var url={checkout_json};try{{if(window.top&&window.top!==window.self)window.top.location.href=url;else window.location.replace(url);}}catch(e){{}}}})();</script>
+</body></html>"""
+        return web.Response(text=page, content_type="text/html", headers={"Cache-Control": "no-store"})
+    return web.Response(
+        text=_numr_campaign_html(await _taken(), err or "De boeking kon niet worden verwerkt."),
+        content_type="text/html", status=400,
+        headers={"Cache-Control": "no-store", "X-Robots-Tag": "noindex, nofollow"},
+    )
+
+
 def _reklama_html(error: str = "") -> str:
     stats = "".join(
         f'<div class="stat"><div class="snum">{html_lib.escape(n)}</div>'
         f'<div class="slbl">{html_lib.escape(l)}</div></div>' for n, l in config.AD_STATS)
-    formats = " · ".join(html_lib.escape(f["name"]) for f in config.AD_FORMATS.values())
+    formats = " · ".join(
+        html_lib.escape(f["name"])
+        for f in config.AD_FORMATS.values()
+        if not f.get("private")
+    )
     err = f'<div class="err">{html_lib.escape(error)}</div>' if error else ""
     return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1566,6 +1736,8 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/contact-action/{sid}/{kind}", _contact_action)
     app.router.add_get("/listing-contact/{lid}/{kind}", _listing_contact_action)
     app.router.add_get("/ads", _ads)            # рекламная страница и бронь
+    app.router.add_get("/ads/numr", _ads_numr)
+    app.router.add_post("/ads/numr/book", _ads_numr_book)
     app.router.add_get("/ads/questions", _ads_questions)
     app.router.add_get("/ads/payment-success", _ads_payment_success)
     app.router.add_get("/ads/availability", _ads_availability)
