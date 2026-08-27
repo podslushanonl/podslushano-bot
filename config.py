@@ -325,8 +325,9 @@ AD_FORMATS: dict[str, dict] = {
         "lead": "Vier Reels en twaalf Stories voor een consistente campagne van twee maanden.",
         "details": [
             "2 Reels per maand — 4 Reels in totaal",
-            "3 Stories bij iedere Reel — 12 Stories in totaal",
-            "iedere Reel wordt 3 dagen bovenaan het profiel vastgezet",
+            "3 Stories bij iedere Reel met een directe link naar NUMR — 12 Stories in totaal",
+            "één van de vier Reels wordt 3 dagen bovenaan het profiel vastgezet",
+            "tijdelijke link naar NUMR op onze Links-pagina gedurende de campagne",
             "wij maken de content en publiceren deze op onze eigen socialmediakanalen",
             "voor publicatie controleren jullie de feitelijke informatie",
         ],
