@@ -1,9 +1,11 @@
-"""Robust verified Web Search for every editorial format.
+"""Single verified Anthropic Web Search pipeline for every editorial format.
 
-The editorial pipeline must accept Anthropic server Web Search that spans a
-``pause_turn`` continuation. Search tool blocks can live in the first response
-while the final prose lives in the continuation, so validating only the last
-response incorrectly rejects successful generations.
+Important Sonnet 5 details:
+- adaptive thinking is enabled by default and counts against max_tokens;
+- editorial posts are short, so thinking is explicitly disabled to keep output
+  reliable and costs predictable;
+- server Web Search may span pause_turn responses, so search evidence and tool
+  errors are preserved across the whole continuation chain.
 """
 from __future__ import annotations
 
@@ -12,6 +14,8 @@ import re
 
 import config
 from utils import editorial_channel as editorial
+
+MAX_CONTINUATIONS = 2
 
 
 def _editorial_model() -> str:
@@ -52,80 +56,100 @@ def _urls_from_text(text: str) -> list[str]:
 
 
 async def _run_verified_search(client, **kwargs):
-    """Run one request and preserve search evidence across pause_turn.
+    """Run one controlled Web Search conversation.
 
-    Anthropic can return tool-use/search-result blocks in the first response and
-    the final prose only in a continuation. The old code inspected only the last
-    response and falsely concluded that Web Search had not happened.
+    The first turn forces web_search so a post can never silently come from model
+    memory. Continuations switch back to auto so Claude can synthesize the final
+    prose instead of being forced into another search forever.
     """
     request = dict(kwargs)
     messages = list(request.get("messages") or [])
     saw_search = False
     all_errors: list[str] = []
 
+    request["tool_choice"] = {"type": "tool", "name": "web_search"}
     response = await client.messages.create(**request)
-    saw_search = saw_search or _used_real_web_search(response)
-    for code in editorial._web_search_errors(response):
-        if code not in all_errors:
-            all_errors.append(code)
 
-    continuations = 0
-    while _value(response, "stop_reason", None) == "pause_turn" and continuations < 1:
-        messages.append({"role": "assistant", "content": _value(response, "content", [])})
-        request["messages"] = messages
-        continuations += 1
-        response = await client.messages.create(**request)
-        saw_search = saw_search or _used_real_web_search(response)
-        for code in editorial._web_search_errors(response):
+    def inspect(resp) -> None:
+        nonlocal saw_search
+        saw_search = saw_search or _used_real_web_search(resp)
+        for code in editorial._web_search_errors(resp):
             if code not in all_errors:
                 all_errors.append(code)
+
+    inspect(response)
+    continuations = 0
+
+    while _value(response, "stop_reason", None) == "pause_turn" and continuations < MAX_CONTINUATIONS:
+        messages.append({"role": "assistant", "content": _value(response, "content", [])})
+        request["messages"] = messages
+        request["tool_choice"] = {"type": "auto"}
+        continuations += 1
+        response = await client.messages.create(**request)
+        inspect(response)
 
     return response, saw_search, all_errors, continuations
 
 
 async def _verified_generate(system: str, user: str, domains: list[str], max_tokens: int = 900):
     if not editorial.ai_enabled() or not config.AI_WEB_SEARCH:
+        editorial.log.warning("Editorial generation unavailable: AI or Web Search disabled")
         return None
 
     preferred = ", ".join(dict.fromkeys(domains or []))
     source_guidance = (
-        "\n\nSOURCE POLICY: Perform a real Web Search before answering. "
+        "\n\nSOURCE POLICY: Use Web Search before answering. "
         "Prioritize these Dutch sources when relevant: " + preferred + ". "
-        "If one of them is inaccessible, continue with another trustworthy Dutch or official source. "
-        "Never invent facts or URLs."
+        "If one is inaccessible, continue with another trustworthy Dutch or official source. "
+        "Never invent facts or URLs. Return only the finished publication, never your search process."
         if preferred
-        else "\n\nSOURCE POLICY: Perform a real Web Search before answering and use trustworthy Dutch sources."
+        else "\n\nSOURCE POLICY: Use Web Search before answering and rely on trustworthy Dutch sources."
     )
 
     tools = editorial._web_search_tool(None, max_uses=_search_limit())
     if not tools:
+        editorial.log.warning("Editorial generation unavailable: web_search tool was not constructed")
         return None
+
+    # Sonnet 5 enables adaptive thinking by default. For short Telegram copy this
+    # wastes the small output budget and can leave no room for final prose.
+    request_max_tokens = max(int(max_tokens), 900)
 
     try:
         response, saw_search, errors, continuations = await _run_verified_search(
             editorial._get_client(),
             model=_editorial_model(),
-            max_tokens=max_tokens,
+            max_tokens=request_max_tokens,
+            thinking={"type": "disabled"},
             system=system + source_guidance,
             messages=[{"role": "user", "content": user}],
             tools=tools,
         )
     except Exception as exc:  # noqa: BLE001
-        editorial.log.warning("Verified editorial Web Search failed: %s", exc)
+        editorial.log.exception("Editorial Anthropic request failed: %s", exc)
         return None
 
     if errors:
-        editorial.log.warning("Verified editorial Web Search tool errors: %s", ", ".join(errors))
+        editorial.log.warning("Editorial Web Search tool errors: %s", ", ".join(errors))
         return None
     if not saw_search:
-        editorial.log.warning("Editorial response rejected: no Web Search execution across all turns")
+        editorial.log.warning("Editorial response rejected: forced Web Search was not observed")
+        return None
+    if _value(response, "stop_reason", None) == "pause_turn":
+        editorial.log.warning(
+            "Editorial response still paused after %d continuations; refusing incomplete draft",
+            continuations,
+        )
+        return None
+    if _value(response, "stop_reason", None) == "refusal":
+        editorial.log.warning("Editorial response refused by Anthropic")
         return None
 
     text, sources = editorial._extract_text_and_sources(response)
     text = editorial._clean_text(text)
     if not text:
         editorial.log.warning(
-            "Editorial Web Search ran but final text was empty (stop_reason=%s, continuations=%d)",
+            "Editorial Web Search completed but final text was empty (stop_reason=%s, continuations=%d)",
             _value(response, "stop_reason", ""), continuations,
         )
         return None
@@ -134,12 +158,12 @@ async def _verified_generate(system: str, user: str, domains: list[str], max_tok
         sources = _urls_from_text(text)
 
     editorial.log.info(
-        "Verified editorial text accepted: %d chars, %d source URL(s), model=%s, search_limit=%d, continuations=%d",
+        "Editorial text accepted: %d chars, %d URL(s), model=%s, search_limit=%d, continuations=%d",
         len(text), len(sources), _editorial_model(), _search_limit(), continuations,
     )
     return text, sources
 
 
 def install_editorial_verified_search() -> None:
-    # Must be installed after budget_photo, which otherwise replaces _generate.
+    # Installed last: all four formats must resolve the exact same generator.
     editorial._generate = _verified_generate
