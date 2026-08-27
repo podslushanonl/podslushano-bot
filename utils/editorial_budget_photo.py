@@ -1,10 +1,8 @@
-"""Editorial quality + budget guard + manual photo choice.
+"""Editorial scheduling budget + manual photo choice.
 
-Goals:
-- editorial text uses Claude Sonnet 5, while ordinary user chat keeps Haiku;
-- cap Anthropic Web Search and automatic retries so one slot cannot drain balance;
-- do NOT generate an image until the admin explicitly asks for one;
-- every editorial draft can be published either with or without a photo.
+Generation itself is owned only by editorial_verified_search.  This module must
+never replace editorial._generate: it only controls retries, previews, manual
+photo generation and publication.
 """
 from __future__ import annotations
 
@@ -18,7 +16,6 @@ import config
 from utils import editorial_channel as editorial
 from utils import editorial_overrides as overrides
 from utils.editorial_media import choose_editorial_image
-from utils.ai import ai_enabled
 
 EDITORIAL_MODEL = os.getenv("AI_EDITORIAL_MODEL", "claude-sonnet-5").strip() or "claude-sonnet-5"
 try:
@@ -28,6 +25,9 @@ except ValueError:
 EDITORIAL_WEB_MAX_USES = max(1, min(_configured_searches, 2))
 MAX_AUTOMATIC_ATTEMPTS_PER_SLOT = 2
 RETRY_MINUTES = 15
+# Increment when a production bug caused valid slots to exhaust their old daily
+# attempt counter.  This gives the fixed runtime a fresh, still-capped budget.
+BUDGET_REVISION = "sonnet5-editorial-v3"
 
 
 def _draft_choice_kb(draft_id: str) -> InlineKeyboardMarkup:
@@ -51,32 +51,6 @@ def _photo_choice_kb(draft_id: str) -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="❌ Пропустить", callback_data=f"edskip:{draft_id}"),
         ],
     ])
-
-
-async def _guarded_generate(system: str, user: str, domains: list[str], max_tokens: int = 900):
-    """Verified editorial generation with a fixed cost ceiling."""
-    if not ai_enabled() or not config.AI_WEB_SEARCH:
-        return None
-    tools = editorial._web_search_tool(domains, max_uses=EDITORIAL_WEB_MAX_USES)
-    if not tools:
-        return None
-    try:
-        response = await editorial._create_with_server_tool_continuation(
-            editorial._get_client(),
-            model=EDITORIAL_MODEL,
-            max_tokens=max_tokens,
-            system=system,
-            messages=[{"role": "user", "content": user}],
-            tools=tools,
-        )
-    except Exception as exc:  # noqa: BLE001
-        editorial.log.warning("Editorial Sonnet 5 generation failed: %s", exc)
-        return None
-    if editorial._web_search_errors(response):
-        return None
-    text, sources = editorial._extract_text_and_sources(response)
-    text = editorial._clean_text(text)
-    return (text, sources) if text and sources else None
 
 
 async def _text_first_send_for_approval(bot, kind: str, text: str, button: bool = False) -> bool:
@@ -198,6 +172,7 @@ async def _safe_health(message: Message) -> None:
         f"{'✅' if config.ANTHROPIC_API_KEY else '❌'} Anthropic key: {'задан' if config.ANTHROPIC_API_KEY else 'отсутствует'}",
         f"{'✅' if config.AI_WEB_SEARCH else '❌'} Web Search: {'включён' if config.AI_WEB_SEARCH else 'выключен'}",
         f"🧠 Редакционная модель: {EDITORIAL_MODEL}",
+        "🧠 Adaptive thinking для редакционных постов: отключён",
         f"🔎 Лимит Web Search на генерацию: {EDITORIAL_WEB_MAX_USES}",
         f"{'✅' if openai_ok else '❌'} OpenAI Images: {openai_detail}",
         f"{'✅' if channel_ok else '❌'} Канал/права: {channel_detail}",
@@ -224,14 +199,15 @@ async def _budgeted_run_generated(bot, now, kind, date_key, generator, button=Fa
     today = now.date().isoformat()
     if await editorial._meta_get(date_key) == today:
         return
-    count_key = f"{date_key}_attempts_{today}"
+    count_key = f"{date_key}_attempts_{BUDGET_REVISION}_{today}"
+    cooldown_key = f"{date_key}_try_{BUDGET_REVISION}"
     try:
         attempts = int(await editorial._meta_get(count_key) or "0")
     except ValueError:
         attempts = 0
     if attempts >= MAX_AUTOMATIC_ATTEMPTS_PER_SLOT:
         return
-    if not await editorial._attempt_allowed(f"{date_key}_try", now, RETRY_MINUTES):
+    if not await editorial._attempt_allowed(cooldown_key, now, RETRY_MINUTES):
         return
     await editorial._meta_set(count_key, attempts + 1)
     try:
@@ -268,17 +244,14 @@ def _replace_health_handler() -> None:
 
 
 def install_editorial_budget_photo() -> None:
-    # Important: do not assume implementation-specific attributes exist in
-    # editorial_websearch_fix. The evening path has changed over time and the
-    # previous direct EVENING_SOURCE_GROUPS access crashed the entire bot at startup.
-    editorial._generate = _guarded_generate
-
-    # Text first. Image generation only happens after an explicit button press.
+    # Generation is deliberately NOT patched here.  A previous duplicate
+    # generator made runtime behaviour depend on install order.
     editorial._send_for_approval = _text_first_send_for_approval
     overrides._photo_send_for_approval = _text_first_send_for_approval
     overrides._send_photo_preview = _send_selected_photo
 
-    # All scheduled editorial formats share the same daily attempt budget.
+    # _run_event and _run_curiosity call editorial._run_generated dynamically,
+    # so this one replacement budgets all four formats.
     editorial._run_generated = _budgeted_run_generated
     editorial._run_morning = _budgeted_run_morning
     editorial._run_evening = _budgeted_run_evening
