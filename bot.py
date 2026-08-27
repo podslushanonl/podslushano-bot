@@ -11,7 +11,7 @@ import config
 import database.ad_sales_models  # noqa: F401 — регистрирует таблицы в Base.metadata
 from database.db import init_db
 from handlers import (
-    ad_crm, ad_sales_pipeline, admin, ads, afisha, ai_sales, allo, board, cabinet, chat,
+    ad_crm, ad_sales_pipeline, admin, admin_center, ads, afisha, ai_sales, allo, board, cabinet, chat,
     contacts, content, digest, errors, events, guides, home, letters, moderation,
     notifications, salary, selfadd, share, spotlight, start, stories, submissions, support,
     tax_guide,
@@ -61,15 +61,10 @@ async def configure_profile(bot: Bot) -> None:
                 await bot.set_my_commands([
                     BotCommand(command="start", description="Запустить бота и открыть меню"),
                     BotCommand(command="menu", description="Показать меню"),
-                    BotCommand(command="admin", description="Админ-панель: все команды по полкам"),
-                    BotCommand(command="contentplan", description="Единый контент-план канала"),
+                    BotCommand(command="admin", description="Открыть Админ-центр"),
+                    BotCommand(command="contentplan", description="Контент-план канала"),
                     BotCommand(command="editorialpreview", description="Предпросмотр редакционных постов"),
                     BotCommand(command="adleads", description="CRM рекламных заявок"),
-                    BotCommand(command="adstats", description="Статистика рекламных заявок"),
-                    BotCommand(command="findspec", description="Найти карточку специалиста"),
-                    BotCommand(command="premiums", description="Премиум-карточки"),
-                    BotCommand(command="stats", description="Статистика"),
-                    BotCommand(command="productstats", description="Продуктовая аналитика"),
                     BotCommand(command="contact", description="Связаться с нами / поддержка"),
                 ], scope=BotCommandScopeChat(chat_id=admin_id))
             except Exception:
@@ -104,9 +99,10 @@ async def main() -> None:
     dp.include_router(share.router)
     dp.include_router(support.router)
     dp.include_router(editorial_preview_router)
-    # Единый /contentplan должен перехватываться раньше старого контент-центра.
     dp.include_router(editorial_router)
     dp.include_router(content.router)
+    # Новый Админ-центр перехватывает /admin раньше старой длинной панели.
+    dp.include_router(admin_center.router)
     dp.include_router(admin.router)
     dp.include_router(board.router)
     dp.include_router(afisha.router)
