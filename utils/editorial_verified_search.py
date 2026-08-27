@@ -1,10 +1,9 @@
 """Robust verified Web Search for every editorial format.
 
-Sonnet 5 can successfully execute Anthropic server Web Search and return a
-factually grounded final text without attaching citation objects to that text.
-Also, one crawler-blocked domain in allowed_domains causes Anthropic to reject
-the entire request. This module verifies actual Web Search execution instead of
-requiring citation metadata, and keeps the existing hard cost ceiling.
+The editorial pipeline must accept Anthropic server Web Search that spans a
+``pause_turn`` continuation. Search tool blocks can live in the first response
+while the final prose lives in the continuation, so validating only the last
+response incorrectly rejects successful generations.
 """
 from __future__ import annotations
 
@@ -52,13 +51,42 @@ def _urls_from_text(text: str) -> list[str]:
     return result
 
 
+async def _run_verified_search(client, **kwargs):
+    """Run one request and preserve search evidence across pause_turn.
+
+    Anthropic can return tool-use/search-result blocks in the first response and
+    the final prose only in a continuation. The old code inspected only the last
+    response and falsely concluded that Web Search had not happened.
+    """
+    request = dict(kwargs)
+    messages = list(request.get("messages") or [])
+    saw_search = False
+    all_errors: list[str] = []
+
+    response = await client.messages.create(**request)
+    saw_search = saw_search or _used_real_web_search(response)
+    for code in editorial._web_search_errors(response):
+        if code not in all_errors:
+            all_errors.append(code)
+
+    continuations = 0
+    while _value(response, "stop_reason", None) == "pause_turn" and continuations < 1:
+        messages.append({"role": "assistant", "content": _value(response, "content", [])})
+        request["messages"] = messages
+        continuations += 1
+        response = await client.messages.create(**request)
+        saw_search = saw_search or _used_real_web_search(response)
+        for code in editorial._web_search_errors(response):
+            if code not in all_errors:
+                all_errors.append(code)
+
+    return response, saw_search, all_errors, continuations
+
+
 async def _verified_generate(system: str, user: str, domains: list[str], max_tokens: int = 900):
     if not editorial.ai_enabled() or not config.AI_WEB_SEARCH:
         return None
 
-    # Do NOT send allowed_domains. Anthropic rejects the whole request when even
-    # one listed site blocks its crawler. Keep the desired source set as editorial
-    # guidance instead, so the search can fall back gracefully.
     preferred = ", ".join(dict.fromkeys(domains or []))
     source_guidance = (
         "\n\nSOURCE POLICY: Perform a real Web Search before answering. "
@@ -74,42 +102,40 @@ async def _verified_generate(system: str, user: str, domains: list[str], max_tok
         return None
 
     try:
-        response = await editorial._create_with_server_tool_continuation(
+        response, saw_search, errors, continuations = await _run_verified_search(
             editorial._get_client(),
             model=_editorial_model(),
             max_tokens=max_tokens,
             system=system + source_guidance,
             messages=[{"role": "user", "content": user}],
             tools=tools,
-            max_continuations=1,
         )
     except Exception as exc:  # noqa: BLE001
         editorial.log.warning("Verified editorial Web Search failed: %s", exc)
         return None
 
-    errors = editorial._web_search_errors(response)
     if errors:
         editorial.log.warning("Verified editorial Web Search tool errors: %s", ", ".join(errors))
         return None
-    if not _used_real_web_search(response):
-        editorial.log.warning("Editorial response rejected: no actual Web Search execution")
+    if not saw_search:
+        editorial.log.warning("Editorial response rejected: no Web Search execution across all turns")
         return None
 
     text, sources = editorial._extract_text_and_sources(response)
     text = editorial._clean_text(text)
     if not text:
-        editorial.log.warning("Editorial Web Search succeeded but final text was empty")
+        editorial.log.warning(
+            "Editorial Web Search ran but final text was empty (stop_reason=%s, continuations=%d)",
+            _value(response, "stop_reason", ""), continuations,
+        )
         return None
 
-    # Citation objects are useful but are NOT a validity requirement. Sonnet 5
-    # may omit them even after a real server-side search. Preserve explicit URLs
-    # present in the final text as source metadata where available.
     if not sources:
         sources = _urls_from_text(text)
 
     editorial.log.info(
-        "Verified editorial text accepted: %d chars, %d source URL(s), model=%s, search_limit=%d",
-        len(text), len(sources), _editorial_model(), _search_limit(),
+        "Verified editorial text accepted: %d chars, %d source URL(s), model=%s, search_limit=%d, continuations=%d",
+        len(text), len(sources), _editorial_model(), _search_limit(), continuations,
     )
     return text, sources
 
