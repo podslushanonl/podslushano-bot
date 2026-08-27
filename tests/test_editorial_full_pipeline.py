@@ -1,6 +1,9 @@
 import asyncio
 import os
+import sys
 from types import SimpleNamespace
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 os.environ.setdefault("BOT_TOKEN", "123456:test")
 os.environ.setdefault("ADMIN_IDS", "1")
@@ -86,7 +89,6 @@ async def test_all_four_formats_share_one_generator():
     old_generate = editorial._generate
     old_recent = editorial._recent_topics
     try:
-        # Reproduce production installation order relevant to generation.
         webfix.install_editorial_websearch_fix()
         budget.install_editorial_budget_photo()
         verified.install_editorial_verified_search()
