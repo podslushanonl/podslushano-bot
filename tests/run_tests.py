@@ -507,6 +507,7 @@ def test_numr_campaign_page() -> None:
           and "één van de vier Reels wordt 3 dagen" in page
           and "Benodigde materialen" in page
           and "links naar de App Store en Google Play" in page
+          and "toegang tot een testaccount (indien nodig)" in page
           and 'action="/ads/numr/book?lang=nl"' in page
           and "Betaal €299 via Mollie" in page)
     regular_page = webserver._ads_html(set())
