@@ -502,8 +502,11 @@ def test_numr_campaign_page() -> None:
           config.AD_FORMATS["numr_campaign"]["dates"] == 4)
     page = webserver._numr_campaign_html(set())
     check("NUMR page has one fixed package and Mollie checkout",
-          "NUMR × Podslushano.nl" in page
+          "Campagne van 2 maanden" in page
           and "4 Reels · 12 Stories" in page
+          and "één van de vier Reels wordt 3 dagen" in page
+          and "Benodigde materialen" in page
+          and "links naar de App Store en Google Play" in page
           and 'action="/ads/numr/book?lang=nl"' in page
           and "Betaal €299 via Mollie" in page)
     regular_page = webserver._ads_html(set())

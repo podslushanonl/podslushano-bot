@@ -1238,8 +1238,9 @@ body{{background:#f5f1ec;color:#181718}}.numr-shell{{max-width:1040px;margin:aut
 .numr-lead{{color:#6d655f;font-size:17px;max-width:650px}}.numr-copy ul{{padding-left:20px;margin:26px 0 0}}.numr-copy li{{margin:10px 0}}
 .numr-price{{background:#f47446;color:#fff;padding:clamp(28px,5vw,58px);display:flex;flex-direction:column;justify-content:space-between;min-height:470px}}
 .numr-price b{{font-size:clamp(64px,10vw,112px);line-height:.9;letter-spacing:-.07em}}.numr-price span{{font-size:14px;opacity:.86}}.numr-price p{{font-size:22px;line-height:1.2;margin:0}}
-.numr-book{{background:#fff;border:1px solid #ddd5ce;border-radius:30px;margin-top:26px;padding:clamp(22px,5vw,48px)}}
+.numr-book,.numr-materials{{background:#fff;border:1px solid #ddd5ce;border-radius:30px;margin-top:26px;padding:clamp(22px,5vw,48px)}}
 .numr-book h2{{font-size:clamp(34px,5vw,52px);letter-spacing:-.045em;margin:0 0 8px}}.numr-intro{{color:#6d655f;margin:0 0 24px}}
+.numr-materials h2{{font-size:clamp(30px,4.5vw,46px);letter-spacing:-.04em;margin:0 0 8px}}.numr-materials ul{{display:grid;grid-template-columns:1fr 1fr;gap:9px 28px;padding-left:20px;margin:22px 0}}.numr-materials li{{padding-left:3px}}.numr-materials .numr-note{{margin:18px 0 0}}
 .numr-book label{{display:block;font-weight:750;margin:17px 0 7px}}.numr-book input{{width:100%;border:1px solid #d8d0c9;border-radius:13px;padding:13px 14px;font:inherit}}
 .numr-two{{display:grid;grid-template-columns:1fr 1fr;gap:14px}}.numr-seg{{display:grid;grid-template-columns:1fr 1fr;gap:10px}}
 .numr-seg label{{margin:0;border:1px solid #d8d0c9;border-radius:13px;padding:13px;text-align:center;cursor:pointer}}.numr-seg input{{width:auto;margin-right:8px}}
@@ -1252,13 +1253,18 @@ body{{background:#f5f1ec;color:#181718}}.numr-shell{{max-width:1040px;margin:aut
 .numr-book .mon h4{{text-align:center;margin:0 0 8px}}.numr-book .dh{{font-size:11px;color:#827a74;text-align:center}}.numr-book .d{{aspect-ratio:1;display:grid;place-items:center;border-radius:8px;font-size:13px}}
 .numr-book .d.off{{color:#ccc4bd}}.numr-book .d.taken{{background:#eee9e4;color:#b8aea6;text-decoration:line-through}}.numr-book .d.free{{background:#e5f3ea;border:1px solid #b8ddc5;cursor:pointer}}.numr-book .d.sel{{background:#f47446;color:#fff;border-color:#f47446}}
 .numr-legend{{display:flex;gap:16px;flex-wrap:wrap;color:#766e68;font-size:13px;margin-top:10px}}.numr-legend i{{display:inline-block;width:13px;height:13px;border-radius:4px;margin-right:5px;vertical-align:-2px}}
-@media(max-width:760px){{.numr-card{{grid-template-columns:1fr}}.numr-price{{min-height:260px}}.numr-two{{grid-template-columns:1fr}}.numr-book .cal{{grid-template-columns:1fr}}}}
+@media(max-width:760px){{.numr-card{{grid-template-columns:1fr}}.numr-price{{min-height:260px}}.numr-two,.numr-materials ul{{grid-template-columns:1fr}}.numr-book .cal{{grid-template-columns:1fr}}}}
 body.numr-private .pnl-language-switcher{{display:none!important}}
 </style><script src="/ads-static/i18n.js" defer></script></head><body class="numr-private"><main class="numr-shell">
 <div class="numr-top"><span>Podslushano.nl</span><span class="numr-label">Campagnevoorstel</span></div>
 <section class="numr-card"><div class="numr-copy"><p class="numr-label">Exclusief maatwerkpakket</p>
-<h1>NUMR × Podslushano.nl</h1><p class="numr-lead">{html_lib.escape(campaign['lead'])}</p><ul>{details}</ul></div>
+<h1>Campagne van 2 maanden</h1><p class="numr-lead">{html_lib.escape(campaign['lead'])}</p><ul>{details}</ul></div>
 <aside class="numr-price"><div><span>Totale campagneprijs<br>inclusief 21% btw</span></div><b>€299</b><p>2 maanden<br>4 Reels · 12 Stories</p></aside></section>
+
+<section class="numr-materials"><p class="numr-label">Na de betaling</p><h2>Benodigde materialen</h2>
+<p class="numr-intro">Om de Reels en Stories te maken, ontvangen we graag de beschikbare bronmaterialen en informatie:</p>
+<ul><li>logo en huisstijlbestanden</li><li>links naar de App Store en Google Play</li><li>screenshots van de app</li><li>foto's, video's en animaties</li><li>toegang tot een testaccount</li><li>belangrijkste functies, feiten en voordelen</li><li>links en call-to-action die gepromoot moeten worden</li><li>eventuele verplichte teksten of voorwaarden</li></ul>
+<p class="numr-note">Deze materialen hoeven niet op deze pagina te worden geüpload. Na de betaling nemen we contact op en spreken we af hoe jullie alles het gemakkelijkst kunnen aanleveren. Voor publicatie sturen we de content ter controle van de feitelijke informatie.</p></section>
 
 <section class="numr-book"><p class="numr-label">Boeking en betaling</p><h2>Plan de campagne</h2>
 <p class="numr-intro">Kies vier publicatiedata, vul de factuurgegevens in en rond de betaling veilig af via Mollie.</p>{err}
