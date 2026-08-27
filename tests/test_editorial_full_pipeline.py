@@ -81,10 +81,16 @@ async def test_pause_turn_and_sonnet5_request_shape():
 
 async def test_all_four_formats_share_one_generator():
     calls = []
+    sample = (
+        "Это тестовый проверенный редакционный материал о Нидерландах с конкретным сюжетом, "
+        "контекстом и практической деталью. Он намеренно длиннее минимального порога вечерней "
+        "рубрики, чтобы интеграционный тест проверял реальный production-путь, а не обходил "
+        "защиту от слишком коротких публикаций. В конце остаётся ещё одна содержательная фраза."
+    )
 
     async def fake_generate(system, user, domains, max_tokens=900):
         calls.append((system, tuple(domains), max_tokens))
-        return "Тестовый проверенный материал достаточной длины для редакционного предпросмотра.", ["https://example.nl/source"]
+        return sample, ["https://example.nl/source"]
 
     old_generate = editorial._generate
     old_recent = editorial._recent_topics
@@ -93,6 +99,9 @@ async def test_all_four_formats_share_one_generator():
         budget.install_editorial_budget_photo()
         verified.install_editorial_verified_search()
         assert editorial._generate is verified._verified_generate
+        assert editorial._run_generated is budget._budgeted_run_generated
+        assert editorial._run_morning is budget._budgeted_run_morning
+        assert editorial._run_evening is budget._budgeted_run_evening
 
         editorial._generate = fake_generate
         editorial._recent_topics = lambda: asyncio.sleep(0, result=[])
@@ -161,11 +170,23 @@ async def test_budget_revision_ignores_broken_old_counter():
     assert store.get(new_key) == "1"
 
 
+def test_photo_choice_keyboards():
+    draft = "abc123"
+    first = [button.callback_data for row in budget._draft_choice_kb(draft).inline_keyboard for button in row]
+    after_photo = [button.callback_data for row in budget._photo_choice_kb(draft).inline_keyboard for button in row]
+    assert f"edpubtext:{draft}" in first
+    assert f"edphoto:{draft}" in first
+    assert f"edpub:{draft}" in after_photo
+    assert f"edpubtext:{draft}" in after_photo
+    assert f"edretry:{draft}" in after_photo
+
+
 async def main():
     await test_pause_turn_and_sonnet5_request_shape()
     await test_all_four_formats_share_one_generator()
     await test_budget_revision_ignores_broken_old_counter()
-    print("[OK] full editorial pipeline: Sonnet 5 + Web Search + 4 formats + budget recovery")
+    test_photo_choice_keyboards()
+    print("[OK] full editorial pipeline: Sonnet 5 + Web Search + 4 formats + scheduler budget + photo choice")
 
 
 if __name__ == "__main__":
