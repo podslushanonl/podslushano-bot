@@ -492,6 +492,25 @@ def test_ad_promotion_deadline() -> None:
           'badge:"−€30 · 7 дней"' not in expired_bundle)
 
 
+def test_numr_campaign_page() -> None:
+    """The private offer stays fixed at €299 and does not leak onto /ads."""
+    from utils import webserver
+    offer = config.ad_option("numr_campaign", "std")
+    check("NUMR package costs exactly €299",
+          offer is not None and offer["price"] == "299.00")
+    check("NUMR package requires four publication dates",
+          config.AD_FORMATS["numr_campaign"]["dates"] == 4)
+    page = webserver._numr_campaign_html(set())
+    check("NUMR page has one fixed package and Mollie checkout",
+          "NUMR × Podslushano.nl" in page
+          and "4 Reels · 12 Stories" in page
+          and 'action="/ads/numr/book?lang=nl"' in page
+          and "Betaal €299 via Mollie" in page)
+    regular_page = webserver._ads_html(set())
+    check("private NUMR offer is absent from the regular ads page",
+          "numr_campaign" not in regular_page and "NUMR" not in regular_page)
+
+
 async def test_saved_items() -> None:
     async with db.get_session() as session:
         specialist = (await session.scalars(select(Specialist).limit(1))).first()
@@ -1774,6 +1793,7 @@ async def main() -> None:
     test_specialist_onboarding_ux()
     test_board_ux()
     test_ad_promotion_deadline()
+    test_numr_campaign_page()
     await test_db_and_categories()
     await test_board_payment_retry_and_expiry_reminder()
     await test_specialist_payment_retry_keeps_form()
