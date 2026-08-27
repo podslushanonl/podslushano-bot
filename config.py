@@ -320,6 +320,21 @@ def discounted_price(price: str, discount: float = REFERRAL_DISCOUNT) -> str:
 # key -> название, бейдж, краткое описание (lead), состав (details), для кого
 # (who) и варианты длительности с ценами (options, цены вкл. BTW, строкой).
 AD_FORMATS: dict[str, dict] = {
+    "numr_campaign": {
+        "name": "NUMR — campagne van 2 maanden", "badge": "Maatwerk",
+        "lead": "Vier Reels en twaalf Stories voor een consistente campagne van twee maanden.",
+        "details": [
+            "2 Reels per maand — 4 Reels in totaal",
+            "3 Stories bij iedere Reel — 12 Stories in totaal",
+            "iedere Reel wordt 3 dagen bovenaan het profiel vastgezet",
+            "wij maken de content en publiceren deze op onze eigen socialmediakanalen",
+            "voor publicatie controleren jullie de feitelijke informatie",
+        ],
+        "who": "speciaal campagnevoorstel voor NUMR",
+        "options": [{"key": "std", "label": "Volledige campagne / 2 maanden", "price": "299.00"}],
+        "dates": 4,
+        "private": True,
+    },
     "expert": {
         "name": "Эксперт месяца", "badge": "⭐ Рекомендуем",
         "lead": "Постоянное присутствие и поток клиентов из поиска в боте. Абонемент.",
