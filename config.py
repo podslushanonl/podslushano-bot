@@ -104,6 +104,15 @@ AI_POST_MODEL: str = os.getenv("AI_POST_MODEL", "claude-sonnet-4-6")
 # Google Places API (New) — реальные фото КОНКРЕТНЫХ мест для постов (/post) и
 # каруселей (/ig). Нужен ключ с включённым Places API и биллингом. Пусто = без фото.
 GOOGLE_MAPS_API_KEY: str = os.getenv("GOOGLE_MAPS_API_KEY", "")
+# Google Calendar для автоматического календаря рекламных размещений.
+# Ключ сервисного аккаунта хранится в Railway как base64, а не как файл в git.
+GOOGLE_CALENDAR_CREDENTIALS_B64: str = os.getenv(
+    "GOOGLE_CALENDAR_CREDENTIALS_B64", ""
+).strip()
+GOOGLE_CALENDAR_ID: str = os.getenv("GOOGLE_CALENDAR_ID", "").strip()
+GOOGLE_CALENDAR_TIMEZONE: str = os.getenv(
+    "GOOGLE_CALENDAR_TIMEZONE", "Europe/Amsterdam"
+).strip() or "Europe/Amsterdam"
 # Вебхук Make для авто-публикации Instagram-каруселей (бот шлёт туда JSON с
 # готовыми слайдами и подписью, Make публикует). Пусто = функция выключена.
 MAKE_WEBHOOK_URL: str = os.getenv("MAKE_WEBHOOK_URL", "")

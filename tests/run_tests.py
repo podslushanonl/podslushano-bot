@@ -30,6 +30,7 @@ importlib.reload(db)
 from sqlalchemy import select  # noqa: E402
 from database.models import (  # noqa: E402
     AnnouncementDelivery,
+    AdBooking,
     BotUser,
     ContentClick,
     ContentPost,
@@ -1791,6 +1792,85 @@ def test_general_place_routing() -> None:
           not is_general_place_query("Ищу автомастерскую в Гааге"))
 
 
+def test_ad_calendar_payload() -> None:
+    from utils.ad_calendar import _booking_dates, _event_payload, _priority
+
+    campaign = AdBooking(
+        id=501,
+        date="2026-08-29",
+        dates_csv="2026-08-29,2026-09-12,2026-09-26,2026-10-10",
+        fmt="numr_campaign",
+        opt="std",
+        status="paid",
+        company="NUMR",
+        amount="299.00",
+    )
+    payload = _event_payload(campaign, "2026-09-12")
+    check("Calendar указывает клиента и номер рекламного выхода",
+          payload["summary"] == "Реклама NUMR — 2-й Reel + 3 Stories")
+    check("Calendar хранит полный состав и фактическую цену кампании",
+          "12 Stories" in payload["description"]
+          and "€299.00" in payload["description"]
+          and "Все даты кампании" in payload["description"])
+    check("Calendar создаёт настоящее событие на весь день",
+          payload["start"] == {"date": "2026-09-12"}
+          and payload["end"] == {"date": "2026-09-13"})
+
+    repeated = AdBooking(
+        id=502, date="2026-09-01", dates_csv=None, fmt="tg", opt="std",
+        addon="repeat", status="pending", company="Repeat Test", amount="100.00",
+    )
+    check("повторный Telegram-пост добавляет второй выход через 14 дней",
+          _booking_dates(repeated) == ["2026-09-01", "2026-09-15"])
+
+    closed = AdBooking(id=503, date="2026-09-12", fmt="closed", status="closed")
+    check("оплаченная бронь приоритетнее случайного ручного дубля",
+          _priority(campaign) < _priority(closed))
+
+
+async def test_repeat_ad_reserves_second_date() -> None:
+    import handlers.ads as ads
+
+    old_key = config.MOLLIE_API_KEY
+    old_webhook = config.WEBHOOK_BASE_URL
+    real_create_payment = ads.create_payment
+    config.MOLLIE_API_KEY = "test_key"
+    config.WEBHOOK_BASE_URL = "https://example.test"
+    first_date = datetime.now().date() + timedelta(days=10)
+
+    async def fake_create_payment(*_args, **_kwargs):
+        return {"id": "tr_repeat", "checkout_url": "https://pay.example/repeat"}
+
+    try:
+        ads.create_payment = fake_create_payment
+        url, error = await ads.book_and_pay(
+            "tg", "std", [first_date.isoformat()],
+            {
+                "terms": True,
+                "addon": True,
+                "client_type": "business",
+                "email": "repeat@example.com",
+                "address": "Damrak 1, Amsterdam",
+                "company": "Repeat Test",
+                "postcode": "1012 LG",
+            },
+        )
+        async with db.get_session() as session:
+            booking = (await session.scalars(select(AdBooking).where(
+                AdBooking.company == "Repeat Test"
+            ))).first()
+        repeat_date = (first_date.date() if isinstance(first_date, datetime) else first_date) + timedelta(days=14)
+        check("оплачиваемый повтор резервирует обе даты в базе",
+              not error and bool(url) and booking is not None
+              and booking.dates_csv == f"{first_date.isoformat()},{repeat_date.isoformat()}")
+        check("бронь сохраняет фактически выставленную сумму",
+              booking is not None and booking.amount == "100.00")
+    finally:
+        ads.create_payment = real_create_payment
+        config.MOLLIE_API_KEY = old_key
+        config.WEBHOOK_BASE_URL = old_webhook
+
+
 async def main() -> None:
     test_import_bot()
     test_specialist_premium_six_month_plan()
@@ -1823,6 +1903,8 @@ async def main() -> None:
     test_wordpress_util()
     test_detect_category_basic()
     test_general_place_routing()
+    test_ad_calendar_payload()
+    await test_repeat_ad_reserves_second_date()
     print()
     if _fails:
         print(f"❌ Провалено проверок: {len(_fails)} -> {', '.join(_fails)}")

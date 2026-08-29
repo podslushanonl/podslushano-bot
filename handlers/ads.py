@@ -4,6 +4,7 @@
 → webhook помечает слот оплаченным, шлёт счёт и уведомляет админов. Админ
 закрывает/открывает даты командами /closeslot, /openslot, /slots.
 """
+import asyncio
 import logging
 import re
 from datetime import date, datetime, timedelta
@@ -18,6 +19,7 @@ import config
 from database.db import get_session
 from database.models import AdBooking, Meta
 from utils.payments import create_payment, get_payment
+from utils.ad_calendar import safe_sync_booking
 
 log = logging.getLogger(__name__)
 
@@ -165,6 +167,11 @@ async def book_and_pay(fmt: str, opt: str, dates: list, fields: dict) -> tuple[s
             total = f"{float(option['price']) + float(addon['price']):.2f}"
         except ValueError:
             total = option["price"]
+    if addon and addon.get("key") == "repeat":
+        repeat_date = parsed[0] + timedelta(days=14)
+        if repeat_date > today + timedelta(days=BOOK_AHEAD_DAYS):
+            return None, "Повторная публикация выходит за пределы доступных 3 месяцев."
+        chosen.append(repeat_date.isoformat())
 
     async with get_session() as session:
         rows = (await session.execute(
@@ -190,6 +197,7 @@ async def book_and_pay(fmt: str, opt: str, dates: list, fields: dict) -> tuple[s
             kvk=(fields.get("kvk") or "").strip() or None,
             postcode=(fields.get("postcode") or "").strip() or None,
             phone=(fields.get("phone") or "").strip() or None,
+            amount=total,
         )
         session.add(booking)
         await session.commit()
@@ -213,6 +221,7 @@ async def book_and_pay(fmt: str, opt: str, dates: list, fields: dict) -> tuple[s
         if b:
             b.payment_id = payment["id"]
             await session.commit()
+    asyncio.create_task(safe_sync_booking(bid))
     return payment["checkout_url"], ""
 
 
@@ -223,6 +232,7 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
     status = payment.get("status")
     if not bid:
         return
+    canceled_bid = None
     async with get_session() as session:
         if await session.get(Meta, f"adpay:{payment_id}"):
             return  # уже обработан
@@ -233,16 +243,26 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
             b.status = "canceled"  # освобождаем дату
             session.add(Meta(key=f"adpay:{payment_id}", value=status))
             await session.commit()
-            return
-        if status != "paid":
+            canceled_bid = b.id
+        if canceled_bid is None and status != "paid":
             return  # open/pending — ждём финального статуса
-        b.status = "paid"
-        session.add(Meta(key=f"adpay:{payment_id}", value="done"))
-        await session.commit()
-        fmt, opt, addon_key = b.fmt, b.opt, b.addon
-        dt, email, ct = (b.dates_csv or b.date), b.email, b.client_type
-        b_name, b_co, b_btw = b.buyer_name, b.company, b.btw
-        b_kvk, b_addr, b_post, b_phone = b.kvk, b.address, b.postcode, b.phone
+        if canceled_bid is not None:
+            fmt = opt = addon_key = dt = email = ct = None
+            b_name = b_co = b_btw = b_kvk = b_addr = b_post = b_phone = None
+        else:
+            b.status = "paid"
+            session.add(Meta(key=f"adpay:{payment_id}", value="done"))
+            await session.commit()
+            fmt, opt, addon_key = b.fmt, b.opt, b.addon
+            dt, email, ct = (b.dates_csv or b.date), b.email, b.client_type
+            b_name, b_co, b_btw = b.buyer_name, b.company, b.btw
+            b_kvk, b_addr, b_post, b_phone = b.kvk, b.address, b.postcode, b.phone
+
+    if canceled_bid is not None:
+        await safe_sync_booking(canceled_bid)
+        return
+
+    await safe_sync_booking(int(bid))
 
     info = config.AD_FORMATS.get(fmt, {"name": fmt})
     option = config.ad_option(fmt, opt) or {"label": "", "price": "0"}
@@ -292,7 +312,8 @@ async def cmd_closeslot(message: Message) -> None:
             "Закрыть даты (можно сразу несколько):\n"
             "<code>/closeslot 26-06 27-06 2026-07-14</code>")
         return
-    closed, skipped = [], []
+    closed, skipped, booking_ids = [], [], []
+    taken = await _taken()
     async with get_session() as session:
         for tok in tokens:
             d = _parse_flexible(tok)
@@ -300,14 +321,18 @@ async def cmd_closeslot(message: Message) -> None:
                 skipped.append(f"{tok} (не дата)")
                 continue
             ds = d.isoformat()
-            busy = (await session.scalars(select(AdBooking).where(
-                AdBooking.date == ds, AdBooking.status.in_(_BLOCKING)))).first()
-            if busy:
+            if ds in taken:
                 skipped.append(f"{ds} (уже занято)")
                 continue
-            session.add(AdBooking(date=ds, fmt="closed", status="closed"))
+            booking = AdBooking(date=ds, fmt="closed", status="closed")
+            session.add(booking)
+            await session.flush()
+            booking_ids.append(booking.id)
+            taken.add(ds)
             closed.append(ds)
         await session.commit()
+    for booking_id in booking_ids:
+        await safe_sync_booking(booking_id)
     lines = []
     if closed:
         lines.append(f"🔒 Закрыто ({len(closed)}): " + ", ".join(sorted(closed)))
@@ -324,7 +349,7 @@ async def cmd_openslot(message: Message) -> None:
     if not tokens:
         await message.answer("Открыть даты: <code>/openslot 26-06 2026-07-14</code>")
         return
-    opened, total = [], 0
+    opened, total, booking_ids = [], 0, []
     async with get_session() as session:
         for tok in tokens:
             d = _parse_flexible(tok)
@@ -335,10 +360,13 @@ async def cmd_openslot(message: Message) -> None:
                 AdBooking.date == ds, AdBooking.status.in_(("closed", "pending"))))).all()
             for r in rows:
                 r.status = "canceled"
+                booking_ids.append(r.id)
             if rows:
                 opened.append(ds)
                 total += len(rows)
         await session.commit()
+    for booking_id in booking_ids:
+        await safe_sync_booking(booking_id)
     await message.answer(
         f"🔓 Открыто: {', '.join(sorted(opened))} (снято {total}).\n"
         "<i>Оплаченные брони не трогаются.</i>" if opened

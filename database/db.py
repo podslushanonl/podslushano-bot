@@ -55,6 +55,7 @@ _AD_LATER_COLUMNS = {
     "address": "VARCHAR(300)",
     "postcode": "VARCHAR(20)",
     "phone": "VARCHAR(40)",
+    "amount": "VARCHAR(20)",
 }
 
 _DISCOVERED_EVENT_LATER_COLUMNS = {
