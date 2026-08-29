@@ -27,6 +27,7 @@ from utils.editorial_overrides import install as install_editorial_overrides, ro
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
 from utils.webserver import start_webserver
+from utils.ad_calendar import calendar_sync_loop
 
 
 async def configure_profile(bot: Bot) -> None:
@@ -132,6 +133,7 @@ async def main() -> None:
     asyncio.create_task(evenementen_catalog_loop(bot))
     asyncio.create_task(ad_lead_reminder_loop(bot))
     asyncio.create_task(ad_payment_reconciliation_loop(bot))
+    asyncio.create_task(calendar_sync_loop())
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)
