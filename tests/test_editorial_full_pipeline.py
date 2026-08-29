@@ -85,8 +85,6 @@ async def test_pause_turn_and_sonnet5_request_shape():
     assert first["model"] == "claude-sonnet-5"
     assert first["thinking"] == {"type": "disabled"}
     assert first["max_tokens"] >= 1200
-    # Do not depend on optional tool_choice request shapes: Web Search is required
-    # by the prompt and independently verified from actual server-tool blocks.
     assert "tool_choice" not in first
     assert "tool_choice" not in second
     assert "tool_choice" not in third
@@ -121,10 +119,14 @@ async def test_successful_search_survives_later_nonfatal_tool_error():
 
 
 async def test_truncated_output_never_keeps_broken_tail():
+    complete = (
+        "Первое предложение полностью закончено и содержит достаточно контекста для реального редакционного поста. "
+        "Второе предложение тоже закончено и добавляет ещё одну полезную проверенную деталь о ситуации в Нидерландах."
+    )
     r1 = response("max_tokens", [
         block("server_tool_use", name="web_search"),
         block("web_search_tool_result", content=[]),
-        block("text", text="Первое предложение полностью закончено. Второе тоже закончено. Вечером в Лимбурге и Браб", citations=[]),
+        block("text", text=complete + " Вечером в Лимбурге и Браб", citations=[]),
     ])
     client = FakeClient([r1])
     old_get_client = editorial._get_client
@@ -144,7 +146,7 @@ async def test_truncated_output_never_keeps_broken_tail():
         editorial._meta_set = old_meta_set
     assert result
     assert "Браб" not in result[0]
-    assert result[0].endswith("закончено.")
+    assert result[0] == complete
 
 
 async def test_all_four_formats_share_one_generator():
