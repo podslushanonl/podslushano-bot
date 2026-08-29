@@ -14,7 +14,7 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements.txt
-      - name: Run checks
-        run: |
-          python tests/run_tests.py
-          python tests/test_editorial_full_pipeline.py
+      - name: Run editorial system checks
+        run: python tests/test_editorial_full_pipeline.py
+      - name: Run full legacy regression suite
+        run: python tests/run_tests.py
