@@ -31,11 +31,13 @@ def install_content_calendar_reliability(content_module) -> None:
                 template = content_module.TEMPLATES.get(row.template_key)
                 current_kind = template.kind if template else row.content_kind
 
-                # Only remove automatically generated future/rolling rows. Never
-                # rewrite the curated INITIAL_SCHEDULE or already published data.
+                # Only remove automatically generated rolling rows. Never rewrite
+                # curated history or anything that was actually delivered. A row
+                # already marked "skipped" by the action-content migration is
+                # still safe to delete and otherwise keeps breaking adjacency.
                 is_auto = (row.campaign_key or "").startswith("auto")
-                is_unpublished = row.status in {"scheduled", "draft", None}
-                if previous_kind and current_kind == previous_kind and is_auto and is_unpublished:
+                was_delivered = row.status in {"sent", "published"}
+                if previous_kind and current_kind == previous_kind and is_auto and not was_delivered:
                     await session.delete(row)
                     changed = True
                     continue
