@@ -1,13 +1,14 @@
 """Editorial scheduling budget + manual photo choice.
 
-Generation itself is owned only by editorial_verified_search.  This module must
-never replace editorial._generate: it only controls retries, previews, manual
-photo generation and publication.
+Generation itself is owned only by editorial_verified_search. This module
+controls retries, previews, manual photo generation, publication and a SAFE
+health view that never spends Anthropic tokens.
 """
 from __future__ import annotations
 
 import os
 from datetime import time
+from importlib.metadata import PackageNotFoundError, version
 
 from aiogram import F
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
@@ -25,9 +26,9 @@ except ValueError:
 EDITORIAL_WEB_MAX_USES = max(1, min(_configured_searches, 2))
 MAX_AUTOMATIC_ATTEMPTS_PER_SLOT = 2
 RETRY_MINUTES = 15
-# Increment when a production bug caused valid slots to exhaust their old daily
-# attempt counter.  This gives the fixed runtime a fresh, still-capped budget.
-BUDGET_REVISION = "sonnet5-editorial-v3"
+# Bump after a production generator fix so today's old failed attempts do not
+# block the repaired runtime, while the new runtime still gets only two tries.
+BUDGET_REVISION = "sonnet5-editorial-v4"
 
 
 def _draft_choice_kb(draft_id: str) -> InlineKeyboardMarkup:
@@ -161,24 +162,39 @@ async def editorial_publish_text_callback(callback: CallbackQuery) -> None:
     await _publish_text_only(callback)
 
 
+def _anthropic_sdk_version() -> str:
+    try:
+        return version("anthropic")
+    except PackageNotFoundError:
+        return "не установлен"
+    except Exception:
+        return "неизвестно"
+
+
 async def _safe_health(message: Message) -> None:
     if message.from_user.id not in config.ADMIN_IDS:
         return
     openai_ok, openai_detail = await overrides._check_openai_image_access()
     channel_ok, channel_detail = await overrides._channel_health(message.bot)
+    last_status = await editorial._meta_get("editorial_last_status")
+    last_error = await editorial._meta_get("editorial_last_error")
     lines = [
         "🩺 Editorial Health · SAFE",
         "",
         f"{'✅' if config.ANTHROPIC_API_KEY else '❌'} Anthropic key: {'задан' if config.ANTHROPIC_API_KEY else 'отсутствует'}",
+        f"📦 Anthropic SDK: {_anthropic_sdk_version()}",
         f"{'✅' if config.AI_WEB_SEARCH else '❌'} Web Search: {'включён' if config.AI_WEB_SEARCH else 'выключен'}",
         f"🧠 Редакционная модель: {EDITORIAL_MODEL}",
-        "🧠 Adaptive thinking для редакционных постов: отключён",
+        "🧠 Adaptive thinking: отключён для редакционных постов",
         f"🔎 Лимит Web Search на генерацию: {EDITORIAL_WEB_MAX_USES}",
         f"{'✅' if openai_ok else '❌'} OpenAI Images: {openai_detail}",
         f"{'✅' if channel_ok else '❌'} Канал/права: {channel_detail}",
         "",
-        "Команда не делает платный запрос к Anthropic.",
+        f"Последняя реальная генерация: {last_status or 'ещё нет после обновления'}",
     ]
+    if last_error:
+        lines.append(f"Последняя ошибка: {last_error}")
+    lines.extend(["", "Команда не делает платный запрос к Anthropic."])
     await message.answer("\n".join(lines), parse_mode=None)
 
 
@@ -217,7 +233,12 @@ async def _budgeted_run_generated(bot, now, kind, date_key, generator, button=Fa
         await _alert_admins(bot, kind, f"Ошибка {type(exc).__name__}.")
         return
     if not text:
-        await _alert_admins(bot, kind, "Проверенный текст не получен.")
+        last_status = await editorial._meta_get("editorial_last_status")
+        last_error = await editorial._meta_get("editorial_last_error")
+        detail = f"Проверенный текст не получен. Диагностика: {last_status or 'unknown'}"
+        if last_error:
+            detail += f" · {last_error}"
+        await _alert_admins(bot, kind, detail)
         return
     if await editorial._send_for_approval(bot, kind, text, button):
         await editorial._meta_set(date_key, today)
@@ -244,14 +265,12 @@ def _replace_health_handler() -> None:
 
 
 def install_editorial_budget_photo() -> None:
-    # Generation is deliberately NOT patched here.  A previous duplicate
-    # generator made runtime behaviour depend on install order.
     editorial._send_for_approval = _text_first_send_for_approval
     overrides._photo_send_for_approval = _text_first_send_for_approval
     overrides._send_photo_preview = _send_selected_photo
 
-    # _run_event and _run_curiosity call editorial._run_generated dynamically,
-    # so this one replacement budgets all four formats.
+    # Event and curiosity resolve editorial._run_generated dynamically, so this
+    # replacement budgets all four formats together with morning/evening wrappers.
     editorial._run_generated = _budgeted_run_generated
     editorial._run_morning = _budgeted_run_morning
     editorial._run_evening = _budgeted_run_evening
