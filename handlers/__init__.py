@@ -6,8 +6,10 @@ from handlers import photo_refresh as _photo_refresh  # noqa: F401,E402
 # Импорт content здесь намеренный: бот затем получает уже настроенный модуль.
 from handlers import content as _content  # noqa: F401,E402
 from utils.action_content import install_action_templates as _install_action_templates  # noqa: E402
+from utils.content_calendar_reliability import install_content_calendar_reliability as _install_content_calendar_reliability  # noqa: E402
 
 _install_action_templates()
+_install_content_calendar_reliability(_content)
 
 # Редакционный runtime собираем строго в одном порядке.
 from utils import editorial_caption_patch as _editorial_caption_patch  # noqa: F401,E402
