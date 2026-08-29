@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+from importlib.metadata import version
 from types import SimpleNamespace
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -43,6 +44,13 @@ def response(stop_reason, content):
     return SimpleNamespace(stop_reason=stop_reason, content=content)
 
 
+def test_modern_anthropic_sdk_is_installed():
+    parts = version("anthropic").split(".")
+    major = int(parts[0])
+    minor = int(parts[1]) if len(parts) > 1 else 0
+    assert major >= 1 or (major == 0 and minor >= 121), version("anthropic")
+
+
 async def test_pause_turn_and_sonnet5_request_shape():
     r1 = response("pause_turn", [
         block("server_tool_use", name="web_search"),
@@ -52,31 +60,91 @@ async def test_pause_turn_and_sonnet5_request_shape():
         block("server_tool_use", name="web_search"),
         block("web_search_tool_result", content=[]),
     ])
-    r3 = response("end_turn", [block("text", text="Готовый проверенный пост", citations=[])])
+    r3 = response("end_turn", [block("text", text="Готовый проверенный пост.", citations=[])])
     client = FakeClient([r1, r2, r3])
 
     old_get_client = editorial._get_client
     old_ai_enabled = editorial.ai_enabled
     old_web = config.AI_WEB_SEARCH
+    old_meta_set = editorial._meta_set
     try:
         editorial._get_client = lambda: client
         editorial.ai_enabled = lambda: True
         config.AI_WEB_SEARCH = True
+        editorial._meta_set = lambda key, value: asyncio.sleep(0)
         result = await verified._verified_generate("system", "user", ["knmi.nl"], 700)
     finally:
         editorial._get_client = old_get_client
         editorial.ai_enabled = old_ai_enabled
         config.AI_WEB_SEARCH = old_web
+        editorial._meta_set = old_meta_set
 
-    assert result and result[0] == "Готовый проверенный пост"
+    assert result and result[0] == "Готовый проверенный пост."
     assert len(client.messages.calls) == 3
     first, second, third = client.messages.calls
     assert first["model"] == "claude-sonnet-5"
     assert first["thinking"] == {"type": "disabled"}
-    assert first["max_tokens"] >= 900
-    assert first["tool_choice"] == {"type": "tool", "name": "web_search"}
-    assert second["tool_choice"] == {"type": "auto"}
-    assert third["tool_choice"] == {"type": "auto"}
+    assert first["max_tokens"] >= 1200
+    # Do not depend on optional tool_choice request shapes: Web Search is required
+    # by the prompt and independently verified from actual server-tool blocks.
+    assert "tool_choice" not in first
+    assert "tool_choice" not in second
+    assert "tool_choice" not in third
+    assert first["tools"][0]["max_uses"] <= 2
+
+
+async def test_successful_search_survives_later_nonfatal_tool_error():
+    ok = block("web_search_tool_result", content=[])
+    error_item = block("web_search_tool_result_error", error_code="max_uses_exceeded")
+    r1 = response("pause_turn", [block("server_tool_use", name="web_search"), ok])
+    r2 = response("end_turn", [
+        block("web_search_tool_result", content=[error_item]),
+        block("text", text="Финальный текст после уже успешного поиска.", citations=[]),
+    ])
+    client = FakeClient([r1, r2])
+    old_get_client = editorial._get_client
+    old_ai_enabled = editorial.ai_enabled
+    old_web = config.AI_WEB_SEARCH
+    old_meta_set = editorial._meta_set
+    try:
+        editorial._get_client = lambda: client
+        editorial.ai_enabled = lambda: True
+        config.AI_WEB_SEARCH = True
+        editorial._meta_set = lambda key, value: asyncio.sleep(0)
+        result = await verified._verified_generate("system", "user", ["knmi.nl"], 700)
+    finally:
+        editorial._get_client = old_get_client
+        editorial.ai_enabled = old_ai_enabled
+        config.AI_WEB_SEARCH = old_web
+        editorial._meta_set = old_meta_set
+    assert result and result[0].endswith("поиска.")
+
+
+async def test_truncated_output_never_keeps_broken_tail():
+    r1 = response("max_tokens", [
+        block("server_tool_use", name="web_search"),
+        block("web_search_tool_result", content=[]),
+        block("text", text="Первое предложение полностью закончено. Второе тоже закончено. Вечером в Лимбурге и Браб", citations=[]),
+    ])
+    client = FakeClient([r1])
+    old_get_client = editorial._get_client
+    old_ai_enabled = editorial.ai_enabled
+    old_web = config.AI_WEB_SEARCH
+    old_meta_set = editorial._meta_set
+    try:
+        editorial._get_client = lambda: client
+        editorial.ai_enabled = lambda: True
+        config.AI_WEB_SEARCH = True
+        editorial._meta_set = lambda key, value: asyncio.sleep(0)
+        result = await verified._verified_generate("system", "user", ["knmi.nl"], 700)
+    finally:
+        editorial._get_client = old_get_client
+        editorial.ai_enabled = old_ai_enabled
+        config.AI_WEB_SEARCH = old_web
+        editorial._meta_set = old_meta_set
+    assert result
+    assert "Браб" not in result[0]
+    assert result[0].endswith("закончено.")
 
 
 async def test_all_four_formats_share_one_generator():
@@ -111,10 +179,7 @@ async def test_all_four_formats_share_one_generator():
         curiosity = await editorial._curiosity_post()
         evening = await editorial._evening_post()
 
-        assert morning
-        assert event
-        assert curiosity
-        assert evening
+        assert morning and event and curiosity and evening
         assert len(calls) == 4, f"expected 4 shared generator calls, got {len(calls)}"
     finally:
         editorial._generate = old_generate
@@ -123,8 +188,8 @@ async def test_all_four_formats_share_one_generator():
 
 async def test_budget_revision_ignores_broken_old_counter():
     store = {
-        "editorial_morning_date_attempts_2026-08-27": "2",
-        "editorial_morning_date_try": "2026-08-27T06:45",
+        "editorial_morning_date_attempts_sonnet5-editorial-v3_2026-08-29": "2",
+        "editorial_morning_date_try_sonnet5-editorial-v3": "2026-08-29T06:45",
     }
     sent = []
 
@@ -156,7 +221,7 @@ async def test_budget_revision_ignores_broken_old_counter():
         editorial._send_for_approval = send_for_approval
         from datetime import datetime
         await budget._budgeted_run_generated(
-            object(), datetime(2026, 8, 27, 7, 35), "утренний бриф",
+            object(), datetime(2026, 8, 29, 7, 0), "утренний бриф",
             "editorial_morning_date", generator,
         )
     finally:
@@ -166,8 +231,9 @@ async def test_budget_revision_ignores_broken_old_counter():
         editorial._send_for_approval = old_send
 
     assert sent == [("утренний бриф", "Утренний тест")]
-    new_key = f"editorial_morning_date_attempts_{budget.BUDGET_REVISION}_2026-08-27"
+    new_key = f"editorial_morning_date_attempts_{budget.BUDGET_REVISION}_2026-08-29"
     assert store.get(new_key) == "1"
+    assert "v4" in budget.BUDGET_REVISION
 
 
 def test_photo_choice_keyboards():
@@ -182,11 +248,14 @@ def test_photo_choice_keyboards():
 
 
 async def main():
+    test_modern_anthropic_sdk_is_installed()
     await test_pause_turn_and_sonnet5_request_shape()
+    await test_successful_search_survives_later_nonfatal_tool_error()
+    await test_truncated_output_never_keeps_broken_tail()
     await test_all_four_formats_share_one_generator()
     await test_budget_revision_ignores_broken_old_counter()
     test_photo_choice_keyboards()
-    print("[OK] full editorial pipeline: Sonnet 5 + Web Search + 4 formats + scheduler budget + photo choice")
+    print("[OK] full editorial runtime: SDK + Sonnet 5 + Web Search + truncation + 4 formats + scheduler + photo choice")
 
 
 if __name__ == "__main__":
