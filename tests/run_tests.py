@@ -1204,16 +1204,28 @@ async def test_allo_capacity() -> None:
 
 
 def test_allo_schedule() -> None:
-    """Планируемые форматы видны на сайте, но не продаются в боте без даты."""
+    """Новый сезон имеет конкретные даты, цены, лимиты и безопасные статусы."""
     from datetime import datetime
     now = datetime.fromisoformat("2026-08-01T10:00:00+02:00")
     check("на сайте подготовлено пять форматов Allo Walks",
           len([w for w in config.ALLO_WALKS if w.get("status") != "archived"]) == 5)
-    check("планируемые прогулки пока не продаются в боте",
-          config.available_allo_walks(now) == [])
+    active = config.available_allo_walks(now)
+    check("обычная и велопрогулка открыты для оплаты",
+          {w["format"] for w in active} == {"walk", "bike"})
+    waitlist = [w for w in config.ALLO_WALKS if w.get("status") == "waitlist"]
+    check("подрядные форматы сначала собирают лист ожидания",
+          {w["key"] for w in waitlist} == {
+              "2026-09-13-bbq", "2026-09-19-oysters", "2026-10-04-utrecht-boat"})
     check("все ключи прогулок помещаются в поле базы",
-          all(len(w["key"]) <= 20 for w in config.ALLO_WALKS))
-    check("вместимость Allo Walks = 8", config.ALLO_WALK_CAPACITY == 8)
+          all(len(w["key"]) <= 64 for w in config.ALLO_WALKS))
+    check("специальные форматы имеют собственные цены",
+          config.allo_walk("2026-09-13-bbq")["price"] == "49.00"
+          and config.allo_walk("2026-09-19-oysters")["price"] == "59.00"
+          and config.allo_walk("2026-10-04-utrecht-boat")["price"] == "39.00")
+    check("лимит устриц учитывает места в девятиместном бусе",
+          config.allo_walk("2026-09-19-oysters")["capacity"] == 7)
+    check("абонемент не покрывает внешние расходы",
+          all(not w.get("pass_eligible") for w in waitlist))
 
 
 async def test_allo_website() -> None:
@@ -1226,10 +1238,16 @@ async def test_allo_website() -> None:
     check("API сайта отдаёт пять будущих форматов", len(payload["walks"]) == 5)
     check("архивная прогулка не попадает на витрину",
           all(w["status"] != "archived" for w in payload["walks"]))
+    check("API отдаёт программу, карту и остаток мест",
+          all(w.get("program") and w.get("map") and "spots_left" in w
+              for w in payload["walks"]))
     page = (Path(__file__).resolve().parent.parent / "static" / "allo-walks" /
             "index.html").read_text(encoding="utf-8")
     check("страница содержит запись и лист ожидания",
           "/allo-walks/book" in page and "/allo-walks/waitlist" in page)
+    check("страница показывает детали маршрута и состав билета",
+          "Как пройдёт день" in page and "Входит в билет" in page
+          and "Открыть маршрут" in page)
 
 
 async def test_allo_referral() -> None:

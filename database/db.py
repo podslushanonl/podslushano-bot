@@ -77,6 +77,12 @@ _LISTING_LATER_COLUMNS = {
     "intent": "VARCHAR(20)",
 }
 
+_ALLO_BOOKING_LATER_COLUMNS = {
+    "phone": "VARCHAR(40)",
+    "dietary": "VARCHAR(500)",
+    "notes": "VARCHAR(1000)",
+}
+
 
 async def init_db() -> None:
     """Создаёт таблицы, добавляет недостающие колонки и засевает специалистов."""
@@ -202,6 +208,26 @@ async def _migrate() -> None:
                     await conn.exec_driver_sql(
                         f"ALTER TABLE listings ADD COLUMN {name} {ddl}"
                     )
+
+        def allo_booking_cols(sync_conn):
+            insp = inspect(sync_conn)
+            if "allo_bookings" not in insp.get_table_names():
+                return None
+            return {c["name"] for c in insp.get_columns("allo_bookings")}
+
+        allo_cols = await conn.run_sync(allo_booking_cols)
+        if allo_cols is not None:
+            for name, ddl in _ALLO_BOOKING_LATER_COLUMNS.items():
+                if name not in allo_cols:
+                    await conn.exec_driver_sql(
+                        f"ALTER TABLE allo_bookings ADD COLUMN {name} {ddl}"
+                    )
+            # SQLite не ограничивает фактическую длину VARCHAR. В PostgreSQL
+            # старое VARCHAR(20) нужно расширить для стабильных ключей форматов.
+            if conn.dialect.name == "postgresql":
+                await conn.exec_driver_sql(
+                    "ALTER TABLE allo_bookings ALTER COLUMN walk_key TYPE VARCHAR(64)"
+                )
 
 
 def _seed_key(name: str, contact: str | None, city: str, province: str) -> tuple:

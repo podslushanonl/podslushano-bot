@@ -531,12 +531,15 @@ class AlloBooking(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     # Ключ прогулки (дата, напр. 2026-07-11) или "pass" для абонемента на все 3
-    walk_key: Mapped[str] = mapped_column(String(20), index=True)
+    walk_key: Mapped[str] = mapped_column(String(64), index=True)
     plan: Mapped[str] = mapped_column(String(10), default="single")  # single | pass
     user_id: Mapped[int] = mapped_column(BigInteger, index=True)
     username: Mapped[str | None] = mapped_column(String(64), nullable=True)
     first_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     email: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    dietary: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    notes: Mapped[str | None] = mapped_column(String(1000), nullable=True)
     amount: Mapped[str | None] = mapped_column(String(20), nullable=True)
     # pending | paid | expired | canceled | forfeited | canceled_no_refund |
     # refund_requested | refunded
