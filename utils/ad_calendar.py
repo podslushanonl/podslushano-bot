@@ -32,10 +32,16 @@ _credentials_lock = asyncio.Lock()
 
 
 def enabled() -> bool:
-    return bool(
-        config.GOOGLE_CALENDAR_ID
-        and config.GOOGLE_CALENDAR_CREDENTIALS_B64
-    )
+    return not calendar_configuration_errors()
+
+
+def calendar_configuration_errors() -> list[str]:
+    errors = []
+    if not config.GOOGLE_CALENDAR_ID:
+        errors.append("не задана переменная GOOGLE_CALENDAR_ID")
+    if not config.GOOGLE_CALENDAR_CREDENTIALS_B64:
+        errors.append("не задана переменная GOOGLE_CALENDAR_CREDENTIALS_B64")
+    return errors
 
 
 def _today() -> date:
@@ -352,20 +358,54 @@ async def reconcile_calendar() -> None:
         for item in mappings
         if (parts := _meta_parts(item.key)) is not None and parts[1] >= today
     )
+    failures = []
     for date_iso in sorted(dates):
         try:
             await sync_date(date_iso)
         except Exception as exc:  # noqa: BLE001 — одна дата не блокирует остальные
             log.warning("Не синхронизировал рекламную дату %s: %s", date_iso, exc)
+            failures.append((date_iso, exc))
+    if failures:
+        date_iso, exc = failures[0]
+        raise RuntimeError(
+            f"не синхронизировано дат: {len(failures)}; первая — {date_iso}: {exc}"
+        )
 
 
-async def calendar_sync_loop() -> None:
-    if not enabled():
-        log.info("Google Calendar рекламы выключен: не заданы credentials/calendar id")
+async def _notify_admins(bot, text: str) -> None:
+    if bot is None:
         return
+    for admin_id in config.ADMIN_IDS:
+        try:
+            await bot.send_message(admin_id, text)
+        except Exception as exc:  # noqa: BLE001
+            log.warning("Не уведомил администратора о Google Calendar: %s", exc)
+
+
+async def calendar_sync_loop(bot=None) -> None:
+    errors = calendar_configuration_errors()
+    if errors:
+        log.warning("Google Calendar рекламы выключен: %s", "; ".join(errors))
+        await _notify_admins(
+            bot,
+            "❌ <b>Google Calendar рекламы не работает</b>\n\n"
+            + "\n".join(f"• {item}" for item in errors)
+            + "\n\nПосле настройки запустите <code>/adcalendar</code>.",
+        )
+        return
+    first_error_reported = False
     while True:
         try:
             await reconcile_calendar()
+            first_error_reported = False
         except Exception as exc:  # noqa: BLE001
             log.warning("Ошибка полной сверки рекламного Calendar: %s", exc)
+            if not first_error_reported:
+                await _notify_admins(
+                    bot,
+                    "❌ <b>Ошибка Google Calendar рекламы</b>\n\n"
+                    f"<code>{str(exc)[:900]}</code>\n\n"
+                    "После исправления доступа запустите <code>/adcalendar</code>.",
+                )
+                first_error_reported = True
         await asyncio.sleep(_SYNC_INTERVAL_SECONDS)

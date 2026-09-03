@@ -31,6 +31,7 @@ from sqlalchemy import select  # noqa: E402
 from database.models import (  # noqa: E402
     AnnouncementDelivery,
     AdBooking,
+    AdReminderLog,
     BotUser,
     ContentClick,
     ContentPost,
@@ -1828,6 +1829,76 @@ def test_ad_calendar_payload() -> None:
           _priority(campaign) < _priority(closed))
 
 
+def test_ad_reminder_schedule_and_copy() -> None:
+    from utils.ad_reminders import _due_kind, _message
+
+    today = datetime(2026, 9, 3).date()
+    check("напоминание за два дня определяется как 48h",
+          _due_kind(today, "2026-09-05") == "48h")
+    check("напоминание за день определяется как 24h",
+          _due_kind(today, "2026-09-04") == "24h")
+    check("в дату выхода определяется отдельное напоминание",
+          _due_kind(today, "2026-09-03") == "day_of")
+    check("другие даты не создают лишних писем",
+          _due_kind(today, "2026-09-06") is None)
+
+    booking = AdBooking(
+        id=601, date="2026-09-05", fmt="tg", opt="std", status="paid",
+        buyer_name="Alex Client", email="client@example.com",
+    )
+    subject, html_body, text_body = _message(booking, booking.date, "48h")
+    check("письмо за 48 часов содержит клиента, дату и просьбу о материалах",
+          "Alex Client" in html_body and "5 сентября 2026" in text_body
+          and "48 часов" in text_body and "материалы" in subject.lower())
+
+
+async def test_ad_reminder_is_idempotent() -> None:
+    import utils.ad_reminders as reminders
+
+    class FakeBot:
+        def __init__(self):
+            self.messages = []
+
+        async def send_message(self, chat_id, text):
+            self.messages.append((chat_id, text))
+
+    today = datetime.now(ZoneInfo(config.GOOGLE_CALENDAR_TIMEZONE)).date()
+    publish_date = (today + timedelta(days=2)).isoformat()
+    async with db.get_session() as session:
+        booking = AdBooking(
+            date=publish_date, dates_csv=publish_date, fmt="tg", opt="std",
+            status="paid", materials_status="waiting", buyer_name="Reminder Test",
+            email="reminder@example.com",
+        )
+        session.add(booking)
+        await session.commit()
+        await session.refresh(booking)
+        booking_id = booking.id
+
+    calls = []
+    real_sender = reminders.send_email_message
+
+    async def fake_sender(to, subject, html_body, text_body):
+        calls.append((to, subject, html_body, text_body))
+        return True, ""
+
+    reminders.send_email_message = fake_sender
+    try:
+        bot = FakeBot()
+        first = await reminders.process_ad_reminders(bot)
+        second = await reminders.process_ad_reminders(bot)
+    finally:
+        reminders.send_email_message = real_sender
+
+    async with db.get_session() as session:
+        logs = list((await session.scalars(select(AdReminderLog).where(
+            AdReminderLog.booking_id == booking_id
+        ))).all())
+    check("напоминание одной даты отправляется только один раз",
+          first == 1 and second == 0 and len(calls) == 1 and len(logs) == 1
+          and logs[0].status == "sent")
+
+
 async def test_repeat_ad_reserves_second_date() -> None:
     import handlers.ads as ads
 
@@ -1904,7 +1975,9 @@ async def main() -> None:
     test_detect_category_basic()
     test_general_place_routing()
     test_ad_calendar_payload()
+    test_ad_reminder_schedule_and_copy()
     await test_repeat_ad_reserves_second_date()
+    await test_ad_reminder_is_idempotent()
     print()
     if _fails:
         print(f"❌ Провалено проверок: {len(_fails)} -> {', '.join(_fails)}")

@@ -153,6 +153,13 @@ async def change_production_stage(callback: CallbackQuery) -> None:
             await callback.answer("Заявка не найдена", show_alert=True)
             return
         pipeline.production_status = stage
+        if pipeline.ad_booking_id is not None and stage in {"waiting_materials", "materials_received"}:
+            from database.models import AdBooking
+            booking = await session.get(AdBooking, pipeline.ad_booking_id)
+            if booking is not None:
+                booking.materials_status = (
+                    "received" if stage == "materials_received" else "waiting"
+                )
         if stage == "completed":
             pipeline.sales_status = "closed"
             submission.status = "closed"
