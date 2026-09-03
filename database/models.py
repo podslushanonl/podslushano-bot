@@ -185,7 +185,33 @@ class AdBooking(Base):
     # Фактически выставленная сумма. Она может отличаться от текущей цены
     # формата (например, если бронь была сделана во время акции).
     amount: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    # waiting | received. Напоминания отправляются только пока материалы не получены.
+    materials_status: Mapped[str] = mapped_column(String(20), default="waiting", index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class AdReminderLog(Base):
+    """Результат автоматического напоминания по конкретному рекламному выходу."""
+
+    __tablename__ = "ad_reminder_logs"
+    __table_args__ = (
+        UniqueConstraint("booking_id", "publish_date", "kind", name="uq_ad_reminder_delivery"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    booking_id: Mapped[int] = mapped_column(Integer, index=True)
+    publish_date: Mapped[str] = mapped_column(String(10), index=True)
+    # 48h | 24h | day_of
+    kind: Mapped[str] = mapped_column(String(20), index=True)
+    channel: Mapped[str] = mapped_column(String(20), default="email")
+    # sent | failed
+    status: Mapped[str] = mapped_column(String(20), index=True)
+    recipient: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now(), index=True
+    )
 
 
 class Event(Base):

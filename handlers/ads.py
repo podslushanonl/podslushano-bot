@@ -5,6 +5,7 @@
 закрывает/открывает даты командами /closeslot, /openslot, /slots.
 """
 import asyncio
+import html
 import logging
 import re
 from datetime import date, datetime, timedelta
@@ -12,14 +13,18 @@ from datetime import date, datetime, timedelta
 from aiogram import F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command
-from aiogram.types import Message
+from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from sqlalchemy import select
 
 import config
 from database.db import get_session
 from database.models import AdBooking, Meta
 from utils.payments import create_payment, get_payment
-from utils.ad_calendar import safe_sync_booking
+from utils.ad_calendar import (
+    calendar_configuration_errors,
+    reconcile_calendar,
+    safe_sync_booking,
+)
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +38,14 @@ _BLOCKING = ("pending", "paid", "closed")  # статусы, которые за
 _MONTHS = ["", "января", "февраля", "марта", "апреля", "мая", "июня", "июля",
            "августа", "сентября", "октября", "ноября", "декабря"]
 _WD = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
+
+
+def _materials_keyboard(booking_id: int, received: bool = False) -> InlineKeyboardMarkup:
+    action = "waiting" if received else "received"
+    label = "↩️ Снова ждём материалы" if received else "✅ Материалы получены"
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text=label, callback_data=f"admat:{action}:{booking_id}")
+    ]])
 
 
 def _is_admin(uid: int) -> bool:
@@ -295,9 +308,99 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
                 f"💳 <b>Оплачена реклама</b>\n\nФормат: {info['name']} ({option['label']}{addon_sfx})\n"
                 f"Дата: {dt}\nКлиент: {who} ({'бизнес' if ct == 'business' else 'физлицо'})\n"
                 f"E-mail: {email or '—'}\nСумма: {paid_amount} {config.LISTING_CURRENCY}",
+                reply_markup=_materials_keyboard(int(bid)),
             )
         except Exception as e:  # noqa: BLE001
             log.warning("Не уведомил админа о рекламе: %s", e)
+
+
+@router.callback_query(F.data.startswith("admat:"))
+async def set_ad_materials(callback: CallbackQuery) -> None:
+    """Фиксирует получение материалов, чтобы напоминания прекратились."""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+    try:
+        _, status, raw_id = callback.data.split(":", 2)
+        booking_id = int(raw_id)
+    except (ValueError, IndexError):
+        await callback.answer("Некорректная бронь", show_alert=True)
+        return
+    if status not in {"received", "waiting"}:
+        await callback.answer("Некорректный статус", show_alert=True)
+        return
+    async with get_session() as session:
+        booking = await session.get(AdBooking, booking_id)
+        if booking is None:
+            await callback.answer("Бронь не найдена", show_alert=True)
+            return
+        booking.materials_status = status
+        from database.ad_sales_models import AdSalesPipeline
+        pipeline = await session.scalar(
+            select(AdSalesPipeline).where(AdSalesPipeline.ad_booking_id == booking_id)
+        )
+        if pipeline is not None:
+            pipeline.production_status = (
+                "materials_received" if status == "received" else "waiting_materials"
+            )
+        await session.commit()
+    received = status == "received"
+    await callback.answer("Материалы отмечены" if received else "Снова ждём материалы")
+    if callback.message:
+        await callback.message.edit_reply_markup(
+            reply_markup=_materials_keyboard(booking_id, received)
+        )
+
+
+@router.message(Command("admaterials"))
+async def cmd_admaterials(message: Message) -> None:
+    """Резервный способ отметить материалы: /admaterials 123 received|waiting."""
+    if not _is_admin(message.from_user.id):
+        return
+    parts = (message.text or "").split()
+    if len(parts) != 3 or not parts[1].isdigit() or parts[2] not in {"received", "waiting"}:
+        await message.answer(
+            "Использование: <code>/admaterials ID received</code> или "
+            "<code>/admaterials ID waiting</code>"
+        )
+        return
+    booking_id = int(parts[1])
+    status = parts[2]
+    async with get_session() as session:
+        booking = await session.get(AdBooking, booking_id)
+        if booking is None:
+            await message.answer("Бронь не найдена.")
+            return
+        booking.materials_status = status
+        await session.commit()
+    await message.answer(
+        f"Бронь №{booking_id}: "
+        + ("материалы получены ✅" if status == "received" else "снова ждём материалы ⏳")
+    )
+
+
+@router.message(Command("adcalendar"))
+async def cmd_adcalendar(message: Message) -> None:
+    """Показывает конфигурацию Calendar и вручную запускает полную сверку."""
+    if not _is_admin(message.from_user.id):
+        return
+    errors = calendar_configuration_errors()
+    if errors:
+        await message.answer(
+            "❌ <b>Google Calendar рекламы отключён</b>\n\n" + "\n".join(
+                f"• {item}" for item in errors
+            )
+        )
+        return
+    await message.answer("⏳ Проверяю и восстанавливаю события Google Calendar…")
+    try:
+        await reconcile_calendar()
+    except Exception as exc:  # noqa: BLE001
+        await message.answer(
+            f"❌ Ошибка Calendar: <code>{html.escape(str(exc)[:900])}</code>"
+        )
+        return
+    await message.answer("✅ Сверка завершена. Все будущие рекламные даты синхронизированы.")
 
 
 # --- Админ-команды управления датами ----------------------------------------

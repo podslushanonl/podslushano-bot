@@ -28,6 +28,7 @@ from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
 from utils.webserver import start_webserver
 from utils.ad_calendar import calendar_sync_loop
+from utils.ad_reminders import ad_reminder_loop
 
 
 async def configure_profile(bot: Bot) -> None:
@@ -66,6 +67,7 @@ async def configure_profile(bot: Bot) -> None:
                     BotCommand(command="contentplan", description="Контент-план канала"),
                     BotCommand(command="editorialpreview", description="Предпросмотр редакционных постов"),
                     BotCommand(command="adleads", description="CRM рекламных заявок"),
+                    BotCommand(command="adcalendar", description="Проверить календарь рекламы"),
                     BotCommand(command="contact", description="Связаться с нами / поддержка"),
                 ], scope=BotCommandScopeChat(chat_id=admin_id))
             except Exception:
@@ -133,7 +135,8 @@ async def main() -> None:
     asyncio.create_task(evenementen_catalog_loop(bot))
     asyncio.create_task(ad_lead_reminder_loop(bot))
     asyncio.create_task(ad_payment_reconciliation_loop(bot))
-    asyncio.create_task(calendar_sync_loop())
+    asyncio.create_task(calendar_sync_loop(bot))
+    asyncio.create_task(ad_reminder_loop(bot))
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)

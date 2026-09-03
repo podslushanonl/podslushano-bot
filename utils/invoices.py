@@ -222,6 +222,71 @@ async def _send_gmail(to: str, subject: str, html: str, pdf: bytes, filename: st
         return False, detail
 
 
+def _send_gmail_message_sync(to: str, subject: str, html_body: str, text_body: str) -> None:
+    import ssl
+    from email.message import EmailMessage
+
+    msg = EmailMessage()
+    msg["From"] = f"{config.COMPANY_NAME} <{config.GMAIL_ADDRESS}>"
+    msg["To"] = to
+    msg["Subject"] = subject
+    msg.set_content(text_body)
+    msg.add_alternative(html_body, subtype="html")
+    ctx = ssl.create_default_context()
+    with _ipv4_smtp_ssl("smtp.gmail.com", 465, context=ctx, timeout=30) as smtp:
+        smtp.login(config.GMAIL_ADDRESS, config.GMAIL_APP_PASSWORD)
+        smtp.send_message(msg)
+
+
+async def send_email_message(
+    to_email: str,
+    subject: str,
+    html_body: str,
+    text_body: str,
+) -> tuple[bool, str]:
+    """Отправляет служебное письмо через тот же канал, что и счета."""
+    if not config.invoice_enabled():
+        return False, "не настроен ни Gmail (GMAIL_APP_PASSWORD), ни Resend"
+    if not to_email:
+        return False, "не указан e-mail получателя"
+    if config.RESEND_API_KEY and config.INVOICE_FROM_EMAIL:
+        body = {
+            "from": config.INVOICE_FROM_EMAIL,
+            "to": [to_email],
+            "reply_to": config.SUPPORT_EMAIL,
+            "subject": subject,
+            "html": html_body,
+            "text": text_body,
+        }
+        headers = {
+            "Authorization": f"Bearer {config.RESEND_API_KEY}",
+            "Content-Type": "application/json",
+        }
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    "https://api.resend.com/emails", json=body, headers=headers
+                ) as response:
+                    if response.status >= 300:
+                        detail = f"Resend HTTP {response.status}: {await response.text()}"
+                        log.warning(detail)
+                        return False, detail
+                    return True, ""
+        except Exception as exc:  # noqa: BLE001
+            detail = f"Resend: {type(exc).__name__}: {exc}"
+            log.warning("Не удалось отправить служебное письмо: %s", detail)
+            return False, detail
+    try:
+        await asyncio.to_thread(
+            _send_gmail_message_sync, to_email, subject, html_body, text_body
+        )
+        return True, ""
+    except Exception as exc:  # noqa: BLE001
+        detail = f"Gmail SMTP: {type(exc).__name__}: {exc}"
+        log.warning("Не удалось отправить служебное письмо: %s", detail)
+        return False, detail
+
+
 async def send_invoice(to_email: str, buyer_name: str, description: str,
                        total_str: str, buyer_lines: list | None = None) -> tuple[bool, str]:
     """Создаёт счёт-PDF и отправляет на e-mail.

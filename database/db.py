@@ -56,6 +56,7 @@ _AD_LATER_COLUMNS = {
     "postcode": "VARCHAR(20)",
     "phone": "VARCHAR(40)",
     "amount": "VARCHAR(20)",
+    "materials_status": "VARCHAR(20) DEFAULT 'waiting'",
 }
 
 _DISCOVERED_EVENT_LATER_COLUMNS = {
