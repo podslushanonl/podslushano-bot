@@ -24,6 +24,7 @@ from handlers.notifications import notification_loop
 from handlers.evenementen_catalog import evenementen_catalog_loop, install_evenementen_source
 from utils.editorial_channel import editorial_channel_loop, router as editorial_router
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
+from utils.editorial_quality_patch import install as install_editorial_quality_patch
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
 from utils.webserver import start_webserver
@@ -82,6 +83,7 @@ async def main() -> None:
     await init_db()
     install_evenementen_source()
     install_editorial_overrides()
+    install_editorial_quality_patch()
     bot = Bot(token=config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
     dp.message.middleware(ThrottleMiddleware())
