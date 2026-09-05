@@ -20,16 +20,17 @@ TIKKIE_URL = "https://tikkie.me/pay/bdq116u14estu9nhp9jo"
 
 TAX_POST_TEXT = (
     "<b>Налоги и субсидии в Нидерландах — разбор на 2026 год 🇳🇱</b>\n\n"
-    "Налоги — одна из тех тем, где открываешь официальную информацию, а через несколько минут "
-    "вопросов становится ещё больше. Поэтому мы собрали большой разбор и постарались объяснить "
-    "всё нормальным человеческим языком.\n\n"
-    "Внутри: как устроены налоги и toeslagen, какие выплаты существуют, как работают налоговые "
-    "скидки, что важно знать ZZP и наёмным работникам, как не получить долг из-за пересчёта и "
-    "какие ошибки чаще всего стоят денег.\n\n"
-    "Все суммы в гайде — на 2026 год. Мы опирались на официальные источники. Это информационный "
-    "разбор, а не индивидуальная налоговая консультация.\n\n"
+    "Налоги и субсидии здесь тесно связаны: с одной стороны, вы платите государству, "
+    "с другой — государство может платить вам. И именно в этой системе легко что-то "
+    "упустить, переплатить или неожиданно получить требование вернуть деньги.\n\n"
+    "Мы собрали большой разбор и постарались объяснить всё простым языком: DigiD и ведомства, "
+    "zorgtoeslag, huurtoeslag, выплаты на детей, три box, налоговые скидки, декларация, "
+    "нюансы для ZZP и наёмных работников и частые ошибки, на которых теряют деньги.\n\n"
+    "Все суммы и пороги в гайде — на 2026 год и сверены с официальными источниками. "
+    "Это информационный разбор, а не индивидуальная налоговая консультация.\n\n"
     "Гайд можно скачать бесплатно по кнопке ниже 👇\n\n"
-    "Если такие разборы вам полезны, их можно поддержать — это помогает нам делать больше подобных материалов."
+    "Если такие разборы вам полезны, их можно поддержать — это помогает нам делать больше "
+    "подобных материалов для сообщества."
 )
 
 
@@ -43,6 +44,14 @@ async def _set_meta(key: str, value: str) -> None:
     async with get_session() as session:
         await session.merge(Meta(key=key, value=value))
         await session.commit()
+
+
+def _is_pdf(message: Message) -> bool:
+    if not message.document:
+        return False
+    filename = (message.document.file_name or "").lower()
+    mime = (message.document.mime_type or "").lower()
+    return filename.endswith(".pdf") or mime == "application/pdf"
 
 
 def _final_keyboard(bot_username: str) -> InlineKeyboardMarkup:
@@ -66,70 +75,85 @@ def _preview_keyboard() -> InlineKeyboardMarkup:
     ]])
 
 
+async def _save_pdf_and_cover(message: Message) -> tuple[str | None, str | None]:
+    """Сохраняет PDF и, если Telegram дал thumbnail, использует его как обложку поста."""
+    if not _is_pdf(message):
+        return None, None
+    pdf_file_id = message.document.file_id
+    await _set_meta(TAX_PDF_KEY, pdf_file_id)
+    cover_file_id = None
+    thumb = getattr(message.document, "thumbnail", None) or getattr(message.document, "thumb", None)
+    if thumb:
+        cover_file_id = thumb.file_id
+        await _set_meta(TAX_COVER_KEY, cover_file_id)
+    return pdf_file_id, cover_file_id
+
+
 @router.message(Command("set_tax_guide_cover"))
 async def set_tax_guide_cover(message: Message) -> None:
-    """Админ сохраняет фото, которое будет прикреплено к посту."""
     if message.from_user is None or message.from_user.id not in config.ADMIN_IDS:
         return
     if not message.photo:
-        await message.answer(
-            "Отправьте фото боту и добавьте к нему подпись <code>/set_tax_guide_cover</code>."
-        )
+        await message.answer("Отправьте фото с подписью <code>/set_tax_guide_cover</code>.")
         return
     await _set_meta(TAX_COVER_KEY, message.photo[-1].file_id)
-    await message.answer("✅ Фото для поста с налоговым гайдом сохранено.")
+    await message.answer("✅ Фото для поста сохранено.")
 
 
 @router.message(Command("set_tax_guide_pdf"))
 async def set_tax_guide_pdf(message: Message) -> None:
-    """Админ сохраняет PDF, который бот выдаёт по кнопке «Скачать гайд»."""
     if message.from_user is None or message.from_user.id not in config.ADMIN_IDS:
         return
-    if not message.document:
+    pdf_file_id, cover_file_id = await _save_pdf_and_cover(message)
+    if not pdf_file_id:
+        await message.answer("Отправьте PDF с подписью <code>/set_tax_guide_pdf</code>.")
+        return
+    if cover_file_id:
+        await message.answer("✅ PDF сохранён. Обложку бот взял из первой страницы файла.")
+    else:
         await message.answer(
-            "Отправьте PDF боту как файл и добавьте к нему подпись <code>/set_tax_guide_pdf</code>."
+            "✅ PDF сохранён. Telegram не передал превью первой страницы — отправьте фото с подписью "
+            "<code>/set_tax_guide_cover</code>."
         )
-        return
-    filename = (message.document.file_name or "").lower()
-    mime = (message.document.mime_type or "").lower()
-    if not filename.endswith(".pdf") and mime != "application/pdf":
-        await message.answer("Нужен именно PDF-файл.")
-        return
-    await _set_meta(TAX_PDF_KEY, message.document.file_id)
-    await message.answer("✅ PDF налогового гайда сохранён. Кнопка «Скачать гайд» готова.")
 
 
 @router.message(CommandStart(deep_link=True), F.text.endswith(" tax_guide_2026"))
 async def download_tax_guide(message: Message) -> None:
-    """Выдаёт PDF пользователю после перехода по кнопке из канала."""
     pdf_file_id = await _get_meta(TAX_PDF_KEY)
     if not pdf_file_id:
         await message.answer("Гайд временно недоступен. Попробуйте немного позже.")
         return
     await message.answer_document(
         pdf_file_id,
-        caption=(
-            "<b>Налоги и субсидии в Нидерландах · 2026</b>\n\n"
-            "Сохраните файл, чтобы он был под рукой."
-        ),
+        caption="<b>Налоги и субсидии в Нидерландах · 2026</b>\n\nСохраните файл, чтобы он был под рукой.",
     )
 
 
 @router.message(Command("publish_tax_guide"))
 async def preview_tax_guide(message: Message) -> None:
-    """Показывает админу финальный пост перед публикацией."""
+    """PDF можно отправить прямо с командой — бот сам сохранит файл и возьмёт thumbnail."""
     if message.from_user is None or message.from_user.id not in config.ADMIN_IDS:
         return
+
+    if message.document:
+        pdf_file_id, auto_cover = await _save_pdf_and_cover(message)
+        if not pdf_file_id:
+            await message.answer("Для этой команды нужен PDF-файл.")
+            return
+        if auto_cover:
+            await message.answer("✅ PDF и обложка подготовлены из одного файла.")
+
     cover_file_id = await _get_meta(TAX_COVER_KEY)
     pdf_file_id = await _get_meta(TAX_PDF_KEY)
     missing = []
-    if not cover_file_id:
-        missing.append("фото: отправьте его с подписью /set_tax_guide_cover")
     if not pdf_file_id:
-        missing.append("PDF: отправьте файл с подписью /set_tax_guide_pdf")
+        missing.append("отправьте сам PDF с подписью /publish_tax_guide")
+    if not cover_file_id:
+        missing.append("отправьте фото с подписью /set_tax_guide_cover")
     if missing:
-        await message.answer("Сначала нужно настроить:\n• " + "\n• ".join(missing))
+        await message.answer("Сначала нужно:\n• " + "\n• ".join(missing))
         return
+
     await message.answer_photo(
         cover_file_id,
         caption="<b>Предпросмотр публикации:</b>\n\n" + TAX_POST_TEXT,
@@ -139,7 +163,6 @@ async def preview_tax_guide(message: Message) -> None:
 
 @router.callback_query(F.data == "publish_tax_guide_confirm")
 async def publish_tax_guide_confirm(callback: CallbackQuery) -> None:
-    """Публикует один пост: фото + подпись + три inline-кнопки."""
     if callback.from_user.id not in config.ADMIN_IDS:
         await callback.answer("Только для администраторов", show_alert=True)
         return
@@ -166,5 +189,5 @@ async def publish_tax_guide_confirm(callback: CallbackQuery) -> None:
         await callback.message.answer(f"❌ Не удалось опубликовать: {html.escape(str(exc))}")
         return
     await callback.message.edit_reply_markup(reply_markup=None)
-    await callback.message.answer("✅ Пост с налоговым гайдом опубликован: фото, текст и кнопки — одним сообщением.")
+    await callback.message.answer("✅ Пост опубликован одним сообщением: фото + текст + 3 кнопки.")
     await callback.answer("Опубликовано")
