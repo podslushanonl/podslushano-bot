@@ -1898,6 +1898,34 @@ async def test_ad_reminder_is_idempotent() -> None:
           first == 1 and second == 0 and len(calls) == 1 and len(logs) == 1
           and logs[0].status == "sent")
 
+def test_ad_crm_payload() -> None:
+    from utils.crm_bridge import booking_payload
+
+    booking = AdBooking(
+        id=504,
+        date="2026-09-20",
+        dates_csv="2026-09-20,2026-10-04",
+        fmt="tg",
+        opt="std",
+        status="paid",
+        company="Example BV",
+        email="ads@example.nl",
+        phone="+31 6 12345678",
+        payment_id="tr_example",
+        amount="119.00",
+        address="Damrak 1, Amsterdam",
+        postcode="1012 LG",
+    )
+    payload = booking_payload(booking)
+    check("CRM получает стабильный ID рекламной заявки",
+          payload["order_id"] == "ad_booking:504")
+    check("CRM получает статус Mollie и реальные реквизиты",
+          payload["payment_status"] == "paid"
+          and payload["mollie_payment_id"] == "tr_example"
+          and payload["amount"] == "119.00"
+          and payload["selected_date"] == "2026-09-20"
+          and "Example BV" in payload["invoice_details"])
+
 
 async def test_repeat_ad_reserves_second_date() -> None:
     import handlers.ads as ads
@@ -1976,6 +2004,8 @@ async def main() -> None:
     test_general_place_routing()
     test_ad_calendar_payload()
     test_ad_reminder_schedule_and_copy()
+
+    test_ad_crm_payload()
     await test_repeat_ad_reserves_second_date()
     await test_ad_reminder_is_idempotent()
     print()

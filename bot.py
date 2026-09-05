@@ -30,6 +30,8 @@ from utils.webserver import start_webserver
 from utils.ad_calendar import calendar_sync_loop
 from utils.ad_reminders import ad_reminder_loop
 
+from utils.crm_bridge import crm_sync_loop
+
 
 async def configure_profile(bot: Bot) -> None:
     try:
@@ -137,6 +139,8 @@ async def main() -> None:
     asyncio.create_task(ad_payment_reconciliation_loop(bot))
     asyncio.create_task(calendar_sync_loop(bot))
     asyncio.create_task(ad_reminder_loop(bot))
+
+    asyncio.create_task(crm_sync_loop(bot))
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)

@@ -137,6 +137,14 @@ STICKER_PACK_URL: str = os.getenv("STICKER_PACK_URL", "")
 # --- Платное само-добавление в гайд (Mollie) --------------------------------
 # Ключ Mollie (test_... или live_...). Без него платный поток выключен.
 MOLLIE_API_KEY: str = os.getenv("MOLLIE_API_KEY", "")
+
+# --- Закрытая CRM -----------------------------------------------------------
+# Railway остаётся публичной точкой входа для рекламных заявок и Mollie, а
+# после каждого изменения безопасно зеркалит бронь в закрытую CRM.
+CRM_AD_ORDER_URL: str = os.getenv("CRM_AD_ORDER_URL", "")
+CRM_WEBHOOK_SECRET: str = os.getenv("CRM_WEBHOOK_SECRET", "")
+CRM_SITES_AUTH_TOKEN: str = os.getenv("CRM_SITES_AUTH_TOKEN", "")
+CRM_TELEGRAM_CHAT_ID: str = os.getenv("CRM_TELEGRAM_CHAT_ID", "")
 # Тарифы размещения (цена строкой, как требует Mollie)
 LISTING_CURRENCY: str = os.getenv("LISTING_CURRENCY", "EUR")
 LISTING_PRICE_MONTH: str = os.getenv("LISTING_PRICE_MONTH", "9.99")

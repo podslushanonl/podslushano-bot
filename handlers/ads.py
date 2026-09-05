@@ -26,6 +26,8 @@ from utils.ad_calendar import (
     safe_sync_booking,
 )
 
+from utils.crm_bridge import safe_sync_booking as safe_sync_crm_booking
+
 log = logging.getLogger(__name__)
 
 router = Router()
@@ -235,6 +237,7 @@ async def book_and_pay(fmt: str, opt: str, dates: list, fields: dict) -> tuple[s
             b.payment_id = payment["id"]
             await session.commit()
     asyncio.create_task(safe_sync_booking(bid))
+    asyncio.create_task(safe_sync_crm_booking(bid))
     return payment["checkout_url"], ""
 
 
@@ -273,9 +276,11 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
 
     if canceled_bid is not None:
         await safe_sync_booking(canceled_bid)
+        await safe_sync_crm_booking(canceled_bid)
         return
 
     await safe_sync_booking(int(bid))
+    await safe_sync_crm_booking(int(bid))
 
     info = config.AD_FORMATS.get(fmt, {"name": fmt})
     option = config.ad_option(fmt, opt) or {"label": "", "price": "0"}
