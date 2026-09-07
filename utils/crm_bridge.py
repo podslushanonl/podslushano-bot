@@ -133,7 +133,7 @@ async def deliver_daily_reminders(bot) -> None:
     if not config.CRM_TELEGRAM_CHAT_ID:
         return
     now = datetime.now(ZoneInfo("Europe/Amsterdam"))
-    if (now.hour, now.minute) < (8, 30):
+    if (now.hour, now.minute) < (6, 0):
         return
     key = f"crm:reminders:{now.date()}:{config.CRM_TELEGRAM_CHAT_ID}"
     async with get_session() as db_session:
