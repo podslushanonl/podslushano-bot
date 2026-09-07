@@ -144,12 +144,12 @@ def install_editorial_diversity() -> None:
     editorial._evening_post = _diverse_evening_post
     editorial._curiosity_post = _diverse_curiosity_post
 
-    original_publish = editorial._publish_editorial
+    # Both plain-text and photo publishing paths already call _remember_topic.
+    # Extend that common hook so diversity memory is updated regardless of media type.
+    original_remember = editorial._remember_topic
 
-    async def publish_with_memory(bot, kind: str, text: str, button: bool) -> bool:
-        ok = await original_publish(bot, kind, text, button)
-        if ok and kind in {"event", "curiosity", "evening"}:
-            await _remember_body(text)
-        return ok
+    async def remember_topic_and_body(text: str) -> None:
+        await original_remember(text)
+        await _remember_body(text)
 
-    editorial._publish_editorial = publish_with_memory
+    editorial._remember_topic = remember_topic_and_body
