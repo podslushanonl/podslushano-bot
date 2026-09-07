@@ -48,21 +48,37 @@ def install_content_frequency(content_module) -> None:
             day = now.date()
             while day <= end:
                 if day not in occupied:
-                    previous = [r for r in rows if r.status != "skipped" and r.scheduled_at.date() < day]
+                    active = [r for r in rows if r.status != "skipped"]
+                    previous = [r for r in active if r.scheduled_at.date() < day]
+                    following = [r for r in active if r.scheduled_at.date() > day]
                     prev = previous[-1] if previous else None
-                    last_template = prev.template_key if prev else ""
-                    last_kind = prev.content_kind if prev else ""
+                    nxt = following[0] if following else None
+                    prev_template = prev.template_key if prev else ""
+                    prev_kind = prev.content_kind if prev else ""
+                    next_kind = nxt.content_kind if nxt else ""
 
-                    # Rotate deterministically by day, but never repeat the same action
-                    # or the same broad content kind immediately after the previous slot.
+                    # Rotate deterministically by day. A newly inserted slot must not
+                    # duplicate the previous OR the already-existing next content kind;
+                    # otherwise a daily filler could create an adjacent pair on either side.
                     offset = day.toordinal() % len(DAILY_ACTIONS)
                     candidates = DAILY_ACTIONS[offset:] + DAILY_ACTIONS[:offset]
-                    key = next(
+                    safe = [
                         k for k in candidates
                         if k in content_module.TEMPLATES
-                        and k != last_template
-                        and content_module.TEMPLATES[k].kind != last_kind
-                    )
+                        and k != prev_template
+                        and content_module.TEMPLATES[k].kind != prev_kind
+                        and content_module.TEMPLATES[k].kind != next_kind
+                    ]
+                    if not safe:
+                        # With the current action pool this should not normally happen,
+                        # but prefer preserving the previous-side invariant over crashing.
+                        safe = [
+                            k for k in candidates
+                            if k in content_module.TEMPLATES
+                            and k != prev_template
+                            and content_module.TEMPLATES[k].kind != prev_kind
+                        ]
+                    key = safe[0]
                     template = content_module.TEMPLATES[key]
                     campaign = f"autodaily_{day:%y%m%d}_{key}"
                     row = ContentPost(
@@ -76,7 +92,7 @@ def install_content_frequency(content_module) -> None:
                     )
                     session.add(row)
                     rows.append(row)
-                    rows.sort(key=lambda r: r.scheduled_at)
+                    rows.sort(key=lambda r: (r.scheduled_at, r.id or 0))
                     occupied.add(day)
                 day += timedelta(days=1)
 
