@@ -2,6 +2,10 @@
 # Модуль не вызывает AI: он только находит официальный сайт/фото HTTP-запросами.
 from handlers import photo_refresh as _photo_refresh  # noqa: F401,E402
 
+# Google Calendar рекламы: поддерживаем OAuth пользователя как безопасную
+# альтернативу service-account JSON, если организация запрещает создание ключей.
+from utils import ad_calendar_oauth as _ad_calendar_oauth  # noqa: F401,E402
+
 # Контент-центр: action-посты с устойчивой ротацией.
 # Импорт content здесь намеренный: бот затем получает уже настроенный модуль.
 from handlers import content as _content  # noqa: F401,E402
