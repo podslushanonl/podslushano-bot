@@ -1,8 +1,8 @@
-"""Restore a steadier action-post cadence in the Telegram channel.
+"""Keep one useful/action post in the Telegram channel every day.
 
-The action-content migration reduced bot feature posts to Tuesday + Thursday only.
-Keep those slots and add one Saturday slot, yielding three useful/action posts per
-week without flooding the channel.
+The action-content migration had reduced bot feature posts to Tuesday + Thursday.
+This layer keeps those existing slots and fills every otherwise empty day with one
+rotating action post, so the bot has a useful publication every calendar day.
 """
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from database.db import get_session
 from database.models import ContentPost
 
 
-SATURDAY_ACTIONS = (
+DAILY_ACTIONS = (
     "action_events",
     "action_board",
     "action_specialists",
@@ -26,12 +26,12 @@ SATURDAY_ACTIONS = (
 
 
 def install_content_frequency(content_module) -> None:
-    if getattr(content_module, "_three_weekly_posts_installed", False):
+    if getattr(content_module, "_daily_action_posts_installed", False):
         return
 
     original_seed = content_module.seed_content_calendar
 
-    async def seed_three_weekly_posts() -> None:
+    async def seed_daily_action_posts() -> None:
         await original_seed()
         now = content_module._local_now()
         end = now.date() + timedelta(days=content_module.ROLLING_DAYS)
@@ -47,14 +47,16 @@ def install_content_frequency(content_module) -> None:
 
             day = now.date()
             while day <= end:
-                if day.weekday() == 5 and day not in occupied:  # Saturday
+                if day not in occupied:
                     previous = [r for r in rows if r.status != "skipped" and r.scheduled_at.date() < day]
                     prev = previous[-1] if previous else None
                     last_template = prev.template_key if prev else ""
                     last_kind = prev.content_kind if prev else ""
 
-                    offset = (day.toordinal() // 7) % len(SATURDAY_ACTIONS)
-                    candidates = SATURDAY_ACTIONS[offset:] + SATURDAY_ACTIONS[:offset]
+                    # Rotate deterministically by day, but never repeat the same action
+                    # or the same broad content kind immediately after the previous slot.
+                    offset = day.toordinal() % len(DAILY_ACTIONS)
+                    candidates = DAILY_ACTIONS[offset:] + DAILY_ACTIONS[:offset]
                     key = next(
                         k for k in candidates
                         if k in content_module.TEMPLATES
@@ -62,7 +64,7 @@ def install_content_frequency(content_module) -> None:
                         and content_module.TEMPLATES[k].kind != last_kind
                     )
                     template = content_module.TEMPLATES[key]
-                    campaign = f"auto3_{day:%y%m%d}_{key}"
+                    campaign = f"autodaily_{day:%y%m%d}_{key}"
                     row = ContentPost(
                         campaign_key=campaign,
                         template_key=key,
@@ -80,5 +82,5 @@ def install_content_frequency(content_module) -> None:
 
             await session.commit()
 
-    content_module.seed_content_calendar = seed_three_weekly_posts
-    content_module._three_weekly_posts_installed = True
+    content_module.seed_content_calendar = seed_daily_action_posts
+    content_module._daily_action_posts_installed = True
