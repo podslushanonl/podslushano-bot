@@ -37,22 +37,22 @@ def install_content_frequency(content_module) -> None:
         end = now.date() + timedelta(days=content_module.ROLLING_DAYS)
 
         async with get_session() as session:
-            rows = (await session.scalars(
+            rows = list((await session.scalars(
                 select(ContentPost).where(
                     ContentPost.scheduled_at >= now - timedelta(days=14),
                     ContentPost.scheduled_at < datetime.combine(end + timedelta(days=1), time.min),
                 ).order_by(ContentPost.scheduled_at, ContentPost.id)
-            )).all()
+            )).all())
             occupied = {row.scheduled_at.date() for row in rows if row.status != "skipped"}
 
-            # Track last actually relevant action to avoid adjacent repeats by template or kind.
-            ordered = [r for r in rows if r.status != "skipped"]
-            last_template = ordered[-1].template_key if ordered else ""
-            last_kind = ordered[-1].content_kind if ordered else ""
-
-            day = max(now.date(), (ordered[-1].scheduled_at.date() + timedelta(days=1)) if ordered else now.date())
+            day = now.date()
             while day <= end:
                 if day.weekday() == 5 and day not in occupied:  # Saturday
+                    previous = [r for r in rows if r.status != "skipped" and r.scheduled_at.date() < day]
+                    prev = previous[-1] if previous else None
+                    last_template = prev.template_key if prev else ""
+                    last_kind = prev.content_kind if prev else ""
+
                     offset = (day.toordinal() // 7) % len(SATURDAY_ACTIONS)
                     candidates = SATURDAY_ACTIONS[offset:] + SATURDAY_ACTIONS[:offset]
                     key = next(
@@ -63,7 +63,7 @@ def install_content_frequency(content_module) -> None:
                     )
                     template = content_module.TEMPLATES[key]
                     campaign = f"auto3_{day:%y%m%d}_{key}"
-                    session.add(ContentPost(
+                    row = ContentPost(
                         campaign_key=campaign,
                         template_key=key,
                         content_kind=template.kind,
@@ -71,10 +71,11 @@ def install_content_frequency(content_module) -> None:
                         status="scheduled",
                         button_label=template.button,
                         start_payload=f"content_{campaign}",
-                    ))
+                    )
+                    session.add(row)
+                    rows.append(row)
+                    rows.sort(key=lambda r: r.scheduled_at)
                     occupied.add(day)
-                    last_template = key
-                    last_kind = template.kind
                 day += timedelta(days=1)
 
             await session.commit()
