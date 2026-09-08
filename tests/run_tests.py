@@ -1947,6 +1947,47 @@ async def test_ad_day_of_admin_notification() -> None:
           and "admove:start:602:2026-09-08" in callbacks
           and "adskip:ask:602:2026-09-08" in callbacks)
 
+
+async def test_ad_day_of_action_backfill() -> None:
+    import utils.ad_reminders as reminders
+
+    class FakeBot:
+        def __init__(self):
+            self.messages = []
+
+        async def send_message(self, chat_id, text, reply_markup=None):
+            self.messages.append((chat_id, text, reply_markup))
+
+    today = datetime.now(ZoneInfo(config.GOOGLE_CALENDAR_TIMEZONE)).date()
+    async with db.get_session() as session:
+        booking = AdBooking(
+            date=today.isoformat(), dates_csv=today.isoformat(), fmt="tg", opt="std",
+            status="paid", materials_status="waiting", company="Backfill Test",
+            email="backfill@example.com",
+        )
+        session.add(booking)
+        await session.commit()
+        await session.refresh(booking)
+        booking_id = booking.id
+        session.add(AdReminderLog(
+            booking_id=booking_id, publish_date=today.isoformat(), kind="day_of",
+            status="sent", recipient="backfill@example.com",
+        ))
+        await session.commit()
+
+    old_admin_ids = config.ADMIN_IDS
+    config.ADMIN_IDS = [42]
+    try:
+        bot = FakeBot()
+        daytime = datetime.combine(today, datetime.min.time()).replace(hour=10)
+        first = await reminders.process_ad_reminders(bot, now=daytime)
+        second = await reminders.process_ad_reminders(bot, now=daytime)
+    finally:
+        config.ADMIN_IDS = old_admin_ids
+    check("старая отправка получает кнопки один раз после deploy",
+          first == 0 and second == 0 and len(bot.messages) == 1
+          and bot.messages[0][2] is not None)
+
 def test_ad_crm_payload() -> None:
     from utils.crm_bridge import booking_payload
 
@@ -2058,6 +2099,7 @@ async def main() -> None:
     await test_repeat_ad_reserves_second_date()
     await test_ad_reminder_is_idempotent()
     await test_ad_day_of_admin_notification()
+    await test_ad_day_of_action_backfill()
     print()
     if _fails:
         print(f"❌ Провалено проверок: {len(_fails)} -> {', '.join(_fails)}")

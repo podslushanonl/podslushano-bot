@@ -13,7 +13,7 @@ from sqlalchemy import select
 
 import config
 from database.db import get_session
-from database.models import AdBooking, AdReminderLog
+from database.models import AdBooking, AdReminderLog, Meta
 from utils.ad_calendar import _booking_dates, _client_name, _date_label
 from utils.invoices import send_email_message
 
@@ -100,6 +100,37 @@ async def _delivery_due(booking_id: int, publish_date: str, kind: str) -> bool:
     return (datetime.utcnow() - last_attempt).total_seconds() >= 6 * 60 * 60
 
 
+def _admin_action_key(booking_id: int, publish_date: str) -> str:
+    return f"adreminder:admin-action:{booking_id}:{publish_date}"
+
+
+async def _admin_action_due(booking_id: int, publish_date: str) -> bool:
+    async with get_session() as session:
+        return await session.get(
+            Meta, _admin_action_key(booking_id, publish_date)
+        ) is None
+
+
+async def _mark_admin_action_sent(booking_id: int, publish_date: str) -> None:
+    async with get_session() as session:
+        await session.merge(Meta(
+            key=_admin_action_key(booking_id, publish_date), value="sent"
+        ))
+        await session.commit()
+
+
+async def _email_was_sent(booking_id: int, publish_date: str, kind: str) -> bool:
+    async with get_session() as session:
+        row = await session.scalar(
+            select(AdReminderLog).where(
+                AdReminderLog.booking_id == booking_id,
+                AdReminderLog.publish_date == publish_date,
+                AdReminderLog.kind == kind,
+            )
+        )
+        return row is not None and row.status == "sent"
+
+
 async def _save_result(
     booking_id: int,
     publish_date: str,
@@ -163,7 +194,7 @@ async def _notify_day_of_admins(
     booking: AdBooking,
     publish_date: str,
     text_body: str,
-) -> None:
+) -> bool:
     message = (
         "⚠️ <b>Реклама сегодня, материалов нет</b>\n\n"
         f"Бронь №{booking.id} · {html.escape(_client_name(booking))}\n"
@@ -173,11 +204,14 @@ async def _notify_day_of_admins(
         "Выберите, что сделать с размещением."
     )
     keyboard = _day_of_keyboard(booking.id, publish_date)
+    delivered = False
     for admin_id in config.ADMIN_IDS:
         try:
             await bot.send_message(admin_id, message, reply_markup=keyboard)
+            delivered = True
         except Exception as exc:  # noqa: BLE001
             log.warning("Не удалось уведомить администратора о рекламной брони: %s", exc)
+    return delivered
 
 
 async def process_ad_reminders(bot: Bot, now: datetime | None = None) -> int:
@@ -197,9 +231,22 @@ async def process_ad_reminders(bot: Bot, now: datetime | None = None) -> int:
     for booking in bookings:
         for publish_date in _booking_dates(booking):
             kind = _due_kind(today, publish_date)
-            if kind is None or not await _delivery_due(booking.id, publish_date, kind):
+            if kind is None:
                 continue
             subject, html_body, text_body = _message(booking, publish_date, kind)
+            if not await _delivery_due(booking.id, publish_date, kind):
+                # После обновления восстановит кнопки и для сегодняшнего письма,
+                # которое старая версия уже успела отправить без действий.
+                if (
+                    kind == "day_of"
+                    and await _email_was_sent(booking.id, publish_date, kind)
+                    and await _admin_action_due(booking.id, publish_date)
+                    and await _notify_day_of_admins(
+                        bot, booking, publish_date, text_body
+                    )
+                ):
+                    await _mark_admin_action_sent(booking.id, publish_date)
+                continue
             ok, error = await send_email_message(
                 booking.email or "", subject, html_body, text_body
             )
@@ -209,9 +256,10 @@ async def process_ad_reminders(bot: Bot, now: datetime | None = None) -> int:
             if ok:
                 sent += 1
                 if kind == "day_of":
-                    await _notify_day_of_admins(
+                    if await _notify_day_of_admins(
                         bot, booking, publish_date, text_body
-                    )
+                    ):
+                        await _mark_admin_action_sent(booking.id, publish_date)
             else:
                 await _notify_admins(
                     bot,
