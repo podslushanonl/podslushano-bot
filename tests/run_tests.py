@@ -1853,7 +1853,18 @@ def test_ad_reminder_schedule_and_copy() -> None:
     subject, html_body, text_body = _message(booking, booking.date, "48h")
     check("письмо за 48 часов содержит клиента, дату и просьбу о материалах",
           "Alex Client" in html_body and "5 сентября 2026" in text_body
-          and "48 часов" in text_body and "материалы" in subject.lower())
+          and "48 часов" in text_body and "материалы" in subject.lower()
+          and "25 МБ" in text_body and "Google Drive" in text_body
+          and "Что прислать" in text_body)
+    subject_24, _, text_24 = _message(booking, booking.date, "24h")
+    check("письмо за 24 часа объясняет последний срок и последствия",
+          "Последний день" in subject_24 and "последний день" in text_24
+          and "перенесена" in text_24 and "пропущено" in text_24)
+    subject_day, _, text_day = _message(booking, booking.date, "day_of")
+    check("письмо в день выхода сообщает статус и дальнейшие действия",
+          "приостановлено" in subject_day.lower()
+          and "Что будет дальше" in text_day
+          and "отдельно подтвердим новую дату" in text_day)
     callbacks = [
         button.callback_data
         for row in _day_of_keyboard(601, "2026-09-05").inline_keyboard
