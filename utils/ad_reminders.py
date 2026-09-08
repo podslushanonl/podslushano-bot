@@ -8,6 +8,7 @@ from datetime import date, datetime
 from zoneinfo import ZoneInfo
 
 from aiogram import Bot
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from sqlalchemy import select
 
 import config
@@ -20,13 +21,22 @@ log = logging.getLogger(__name__)
 _INTERVAL_SECONDS = 30 * 60
 
 
-def _local_today(now: datetime | None = None) -> date:
+def _local_now(now: datetime | None = None) -> datetime:
     timezone = ZoneInfo(config.GOOGLE_CALENDAR_TIMEZONE)
     if now is None:
-        return datetime.now(timezone).date()
+        return datetime.now(timezone)
     if now.tzinfo is None:
-        return now.replace(tzinfo=timezone).date()
-    return now.astimezone(timezone).date()
+        return now.replace(tzinfo=timezone)
+    return now.astimezone(timezone)
+
+
+def _local_today(now: datetime | None = None) -> date:
+    return _local_now(now).date()
+
+
+def _reminders_open(now: datetime | None = None) -> bool:
+    """Не разрешает письмам уходить ночью после смены календарной даты."""
+    return _local_now(now).hour >= config.AD_REMINDER_HOUR
 
 
 def _due_kind(today: date, publish_date: str) -> str | None:
@@ -131,8 +141,49 @@ async def _notify_admins(bot: Bot, text: str) -> None:
             log.warning("Не удалось уведомить администратора о рекламной брони: %s", exc)
 
 
+def _day_of_keyboard(booking_id: int, publish_date: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text="📅 Перенести дату",
+            callback_data=f"admove:start:{booking_id}:{publish_date}",
+        )],
+        [InlineKeyboardButton(
+            text="⏭ Пропустить размещение",
+            callback_data=f"adskip:ask:{booking_id}:{publish_date}",
+        )],
+        [InlineKeyboardButton(
+            text="✅ Материалы уже получены",
+            callback_data=f"admat:received:{booking_id}",
+        )],
+    ])
+
+
+async def _notify_day_of_admins(
+    bot: Bot,
+    booking: AdBooking,
+    publish_date: str,
+    text_body: str,
+) -> None:
+    message = (
+        "⚠️ <b>Реклама сегодня, материалов нет</b>\n\n"
+        f"Бронь №{booking.id} · {html.escape(_client_name(booking))}\n"
+        f"Дата: {publish_date}\nE-mail: {html.escape(booking.email or '—')}\n\n"
+        "<b>Клиенту отправлено письмо:</b>\n"
+        f"<blockquote>{html.escape(text_body)}</blockquote>\n\n"
+        "Выберите, что сделать с размещением."
+    )
+    keyboard = _day_of_keyboard(booking.id, publish_date)
+    for admin_id in config.ADMIN_IDS:
+        try:
+            await bot.send_message(admin_id, message, reply_markup=keyboard)
+        except Exception as exc:  # noqa: BLE001
+            log.warning("Не удалось уведомить администратора о рекламной брони: %s", exc)
+
+
 async def process_ad_reminders(bot: Bot, now: datetime | None = None) -> int:
     """Отправляет все напоминания, которые должны уйти сегодня, ровно по одному разу."""
+    if not _reminders_open(now):
+        return 0
     today = _local_today(now)
     async with get_session() as session:
         bookings = list((await session.scalars(
@@ -158,12 +209,8 @@ async def process_ad_reminders(bot: Bot, now: datetime | None = None) -> int:
             if ok:
                 sent += 1
                 if kind == "day_of":
-                    await _notify_admins(
-                        bot,
-                        "⚠️ <b>Реклама сегодня, материалов нет</b>\n\n"
-                        f"Бронь №{booking.id} · {_client_name(booking)}\n"
-                        f"Дата: {publish_date}\nE-mail: {booking.email or '—'}\n\n"
-                        "Клиенту отправлено письмо. Нужно решить: перенос даты или пропуск размещения.",
+                    await _notify_day_of_admins(
+                        bot, booking, publish_date, text_body
                     )
             else:
                 await _notify_admins(

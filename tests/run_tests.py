@@ -1830,7 +1830,7 @@ def test_ad_calendar_payload() -> None:
 
 
 def test_ad_reminder_schedule_and_copy() -> None:
-    from utils.ad_reminders import _due_kind, _message
+    from utils.ad_reminders import _day_of_keyboard, _due_kind, _message, _reminders_open
 
     today = datetime(2026, 9, 3).date()
     check("напоминание за два дня определяется как 48h",
@@ -1841,6 +1841,10 @@ def test_ad_reminder_schedule_and_copy() -> None:
           _due_kind(today, "2026-09-03") == "day_of")
     check("другие даты не создают лишних писем",
           _due_kind(today, "2026-09-06") is None)
+    check("рекламные письма не отправляются ночью",
+          not _reminders_open(datetime(2026, 9, 3, 0, 30)))
+    check("рекламные письма открываются с 09:00 Amsterdam",
+          _reminders_open(datetime(2026, 9, 3, 9, 0)))
 
     booking = AdBooking(
         id=601, date="2026-09-05", fmt="tg", opt="std", status="paid",
@@ -1850,6 +1854,14 @@ def test_ad_reminder_schedule_and_copy() -> None:
     check("письмо за 48 часов содержит клиента, дату и просьбу о материалах",
           "Alex Client" in html_body and "5 сентября 2026" in text_body
           and "48 часов" in text_body and "материалы" in subject.lower())
+    callbacks = [
+        button.callback_data
+        for row in _day_of_keyboard(601, "2026-09-05").inline_keyboard
+        for button in row
+    ]
+    check("уведомление в день выхода содержит перенос и пропуск",
+          "admove:start:601:2026-09-05" in callbacks
+          and "adskip:ask:601:2026-09-05" in callbacks)
 
 
 async def test_ad_reminder_is_idempotent() -> None:
@@ -1885,8 +1897,9 @@ async def test_ad_reminder_is_idempotent() -> None:
     reminders.send_email_message = fake_sender
     try:
         bot = FakeBot()
-        first = await reminders.process_ad_reminders(bot)
-        second = await reminders.process_ad_reminders(bot)
+        daytime = datetime.combine(today, datetime.min.time()).replace(hour=10)
+        first = await reminders.process_ad_reminders(bot, now=daytime)
+        second = await reminders.process_ad_reminders(bot, now=daytime)
     finally:
         reminders.send_email_message = real_sender
 
@@ -1897,6 +1910,42 @@ async def test_ad_reminder_is_idempotent() -> None:
     check("напоминание одной даты отправляется только один раз",
           first == 1 and second == 0 and len(calls) == 1 and len(logs) == 1
           and logs[0].status == "sent")
+
+
+async def test_ad_day_of_admin_notification() -> None:
+    from utils.ad_reminders import _notify_day_of_admins
+
+    class FakeBot:
+        def __init__(self):
+            self.messages = []
+
+        async def send_message(self, chat_id, text, reply_markup=None):
+            self.messages.append((chat_id, text, reply_markup))
+
+    booking = AdBooking(
+        id=602, date="2026-09-08", fmt="tg", opt="std", status="paid",
+        materials_status="waiting", company="Luxe Auto Reflections studio",
+        email="client@example.com",
+    )
+    old_admin_ids = config.ADMIN_IDS
+    config.ADMIN_IDS = [42]
+    try:
+        bot = FakeBot()
+        await _notify_day_of_admins(
+            bot, booking, booking.date, "Точный текст отправленного письма"
+        )
+    finally:
+        config.ADMIN_IDS = old_admin_ids
+    callbacks = [
+        button.callback_data
+        for row in bot.messages[0][2].inline_keyboard
+        for button in row
+    ] if bot.messages else []
+    check("администратор видит письмо и рабочие действия",
+          len(bot.messages) == 1
+          and "Точный текст отправленного письма" in bot.messages[0][1]
+          and "admove:start:602:2026-09-08" in callbacks
+          and "adskip:ask:602:2026-09-08" in callbacks)
 
 def test_ad_crm_payload() -> None:
     from utils.crm_bridge import booking_payload
@@ -2008,6 +2057,7 @@ async def main() -> None:
     test_ad_crm_payload()
     await test_repeat_ad_reserves_second_date()
     await test_ad_reminder_is_idempotent()
+    await test_ad_day_of_admin_notification()
     print()
     if _fails:
         print(f"❌ Провалено проверок: {len(_fails)} -> {', '.join(_fails)}")

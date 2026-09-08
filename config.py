@@ -113,6 +113,9 @@ GOOGLE_CALENDAR_ID: str = os.getenv("GOOGLE_CALENDAR_ID", "").strip()
 GOOGLE_CALENDAR_TIMEZONE: str = os.getenv(
     "GOOGLE_CALENDAR_TIMEZONE", "Europe/Amsterdam"
 ).strip() or "Europe/Amsterdam"
+# Напоминания о рекламных материалах отправляются утром, а не сразу после
+# смены календарной даты. Цикл проверяет очередь каждые 30 минут.
+AD_REMINDER_HOUR: int = int(os.getenv("AD_REMINDER_HOUR", "9"))
 # Вебхук Make для авто-публикации Instagram-каруселей (бот шлёт туда JSON с
 # готовыми слайдами и подписью, Make публикует). Пусто = функция выключена.
 MAKE_WEBHOOK_URL: str = os.getenv("MAKE_WEBHOOK_URL", "")

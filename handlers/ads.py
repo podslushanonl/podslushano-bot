@@ -21,6 +21,8 @@ from database.db import get_session
 from database.models import AdBooking, Meta
 from utils.payments import create_payment, get_payment
 from utils.ad_calendar import (
+    _booking_dates,
+    _date_label,
     calendar_configuration_errors,
     reconcile_calendar,
     safe_sync_booking,
@@ -355,6 +357,244 @@ async def set_ad_materials(callback: CallbackQuery) -> None:
         await callback.message.edit_reply_markup(
             reply_markup=_materials_keyboard(booking_id, received)
         )
+
+
+def _confirm_ad_action_keyboard(
+    action: str,
+    booking_id: int,
+    old_date: str,
+    new_date: str | None = None,
+) -> InlineKeyboardMarkup:
+    suffix = f":{new_date}" if new_date else ""
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(
+            text="✅ Подтвердить",
+            callback_data=f"{action}:confirm:{booking_id}:{old_date}{suffix}",
+        )],
+        [InlineKeyboardButton(text="Отмена", callback_data="adaction:cancel")],
+    ])
+
+
+async def _send_ad_status_email(
+    recipient: str,
+    subject: str,
+    paragraphs: list[str],
+) -> tuple[bool, str]:
+    from utils.invoices import send_email_message
+
+    text_body = "\n\n".join(paragraphs)
+    html_body = "".join(f"<p>{html.escape(item)}</p>" for item in paragraphs)
+    return await send_email_message(recipient, subject, html_body, text_body)
+
+
+@router.callback_query(F.data.startswith("admove:start:"))
+async def start_ad_move(callback: CallbackQuery) -> None:
+    """Показывает ближайшие свободные рекламные даты."""
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+    try:
+        _, _, raw_id, old_date = callback.data.split(":", 3)
+        booking_id = int(raw_id)
+        date.fromisoformat(old_date)
+    except (ValueError, IndexError):
+        await callback.answer("Некорректная бронь", show_alert=True)
+        return
+    async with get_session() as session:
+        booking = await session.get(AdBooking, booking_id)
+        if (
+            booking is None
+            or booking.status != "paid"
+            or old_date not in _booking_dates(booking)
+        ):
+            await callback.answer("Дата уже изменена или бронь не найдена", show_alert=True)
+            return
+    options = (await free_date_options())[:12]
+    if not options:
+        await callback.answer("Свободных дат в ближайшие 90 дней нет", show_alert=True)
+        return
+    rows = [[InlineKeyboardButton(
+        text=label,
+        callback_data=f"admove:ask:{booking_id}:{old_date}:{new_date}",
+    )] for new_date, label in options]
+    rows.append([InlineKeyboardButton(text="Отмена", callback_data="adaction:cancel")])
+    await callback.answer()
+    if callback.message:
+        await callback.message.answer(
+            f"📅 <b>Перенос брони №{booking_id}</b>\n\n"
+            f"Текущая дата: {_date_label(old_date)}\n"
+            "Выберите новую свободную дату:",
+            reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
+        )
+
+
+@router.callback_query(F.data.startswith("admove:ask:"))
+async def ask_ad_move_confirmation(callback: CallbackQuery) -> None:
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+    try:
+        _, _, raw_id, old_date, new_date = callback.data.split(":", 4)
+        booking_id = int(raw_id)
+        date.fromisoformat(old_date)
+        date.fromisoformat(new_date)
+    except (ValueError, IndexError):
+        await callback.answer("Некорректная дата", show_alert=True)
+        return
+    await callback.answer()
+    if callback.message:
+        await callback.message.edit_text(
+            f"Перенести бронь №{booking_id}\n"
+            f"с {_date_label(old_date)}\n"
+            f"на <b>{_date_label(new_date)}</b>?",
+            reply_markup=_confirm_ad_action_keyboard(
+                "admove", booking_id, old_date, new_date
+            ),
+        )
+
+
+@router.callback_query(F.data.startswith("admove:confirm:"))
+async def confirm_ad_move(callback: CallbackQuery) -> None:
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+    try:
+        _, _, raw_id, old_date, new_date = callback.data.split(":", 4)
+        booking_id = int(raw_id)
+        date.fromisoformat(old_date)
+        date.fromisoformat(new_date)
+    except (ValueError, IndexError):
+        await callback.answer("Некорректная дата", show_alert=True)
+        return
+    if new_date in await _taken():
+        await callback.answer("Эта дата уже занята. Выберите другую.", show_alert=True)
+        return
+    async with get_session() as session:
+        booking = await session.get(AdBooking, booking_id)
+        if booking is None:
+            await callback.answer("Бронь не найдена", show_alert=True)
+            return
+        if booking.status != "paid":
+            await callback.answer("Эта бронь уже закрыта", show_alert=True)
+            return
+        dates = _booking_dates(booking)
+        if old_date not in dates:
+            await callback.answer("Эта дата уже изменена", show_alert=True)
+            return
+        dates[dates.index(old_date)] = new_date
+        dates = sorted(dict.fromkeys(dates))
+        booking.date = dates[0]
+        booking.dates_csv = ",".join(dates)
+        client = booking.company or booking.buyer_name or "клиент"
+        email = booking.email or ""
+        await session.commit()
+    await safe_sync_booking(booking_id)
+    await safe_sync_crm_booking(booking_id)
+    ok, error = await _send_ad_status_email(
+        email,
+        f"Новая дата рекламного размещения · {_date_label(new_date)}",
+        [
+            f"Здравствуйте, {client}!",
+            f"Рекламное размещение перенесено с {_date_label(old_date)} на {_date_label(new_date)}.",
+            "Пожалуйста, отправьте материалы ответом на это письмо не позднее чем за 48 часов до новой даты.",
+            f"Podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}",
+        ],
+    )
+    await callback.answer("Дата перенесена")
+    if callback.message:
+        delivery = "Клиенту отправлено подтверждение." if ok else f"Письмо клиенту не отправлено: {html.escape(error[:500])}"
+        await callback.message.edit_text(
+            f"✅ Бронь №{booking_id} перенесена на {_date_label(new_date)}.\n{delivery}"
+        )
+
+
+@router.callback_query(F.data.startswith("adskip:ask:"))
+async def ask_ad_skip_confirmation(callback: CallbackQuery) -> None:
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+    try:
+        _, _, raw_id, publish_date = callback.data.split(":", 3)
+        booking_id = int(raw_id)
+        date.fromisoformat(publish_date)
+    except (ValueError, IndexError):
+        await callback.answer("Некорректная бронь", show_alert=True)
+        return
+    await callback.answer()
+    if callback.message:
+        await callback.message.answer(
+            f"⏭ Пропустить размещение брони №{booking_id} "
+            f"на <b>{_date_label(publish_date)}</b>?",
+            reply_markup=_confirm_ad_action_keyboard(
+                "adskip", booking_id, publish_date
+            ),
+        )
+
+
+@router.callback_query(F.data.startswith("adskip:confirm:"))
+async def confirm_ad_skip(callback: CallbackQuery) -> None:
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+    try:
+        _, _, raw_id, publish_date = callback.data.split(":", 3)
+        booking_id = int(raw_id)
+        date.fromisoformat(publish_date)
+    except (ValueError, IndexError):
+        await callback.answer("Некорректная бронь", show_alert=True)
+        return
+    async with get_session() as session:
+        booking = await session.get(AdBooking, booking_id)
+        if booking is None:
+            await callback.answer("Бронь не найдена", show_alert=True)
+            return
+        if booking.status != "paid":
+            await callback.answer("Эта бронь уже закрыта", show_alert=True)
+            return
+        dates = _booking_dates(booking)
+        if publish_date not in dates:
+            await callback.answer("Эта дата уже изменена", show_alert=True)
+            return
+        remaining = [item for item in dates if item != publish_date]
+        if remaining:
+            booking.date = remaining[0]
+            booking.dates_csv = ",".join(remaining)
+            if booking.addon == "repeat":
+                # Иначе backward-compatible логика снова дорисует вторую дату.
+                booking.addon = None
+        else:
+            booking.status = "skipped"
+        client = booking.company or booking.buyer_name or "клиент"
+        email = booking.email or ""
+        await session.commit()
+    await safe_sync_booking(booking_id)
+    await safe_sync_crm_booking(booking_id)
+    ok, error = await _send_ad_status_email(
+        email,
+        f"Размещение пропущено · {_date_label(publish_date)}",
+        [
+            f"Здравствуйте, {client}!",
+            f"Рекламное размещение на {_date_label(publish_date)} пропущено, поскольку материалы не были получены вовремя.",
+            "Чтобы согласовать новую дату, ответьте на это письмо.",
+            f"Podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}",
+        ],
+    )
+    await callback.answer("Размещение пропущено")
+    if callback.message:
+        delivery = "Клиенту отправлено подтверждение." if ok else f"Письмо клиенту не отправлено: {html.escape(error[:500])}"
+        await callback.message.edit_text(
+            f"⏭ Размещение брони №{booking_id} на {_date_label(publish_date)} пропущено.\n{delivery}"
+        )
+
+
+@router.callback_query(F.data == "adaction:cancel")
+async def cancel_ad_action(callback: CallbackQuery) -> None:
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+    await callback.answer("Отменено")
+    if callback.message:
+        await callback.message.delete()
 
 
 @router.message(Command("admaterials"))
