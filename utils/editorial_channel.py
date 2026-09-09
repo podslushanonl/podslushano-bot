@@ -204,8 +204,14 @@ def _morning_quality_errors(text: str) -> list[str]:
     if footer not in clean:
         errors.append("нет утверждённой строки актуальности")
 
-    if "забастов" in lower and any(token not in transport.lower() for token in ("международ", "компенсац", "восстанов")):
-        errors.append("при забастовке не раскрыты международные поезда, компенсация или восстановление")
+    if "забастов" in lower:
+        strike_requirements = (
+            ("международ",),
+            ("компенсац", "возврат"),
+            ("восстанов", "вернут", "расписан", "перезапуск"),
+        )
+        if any(not any(token in transport.lower() for token in alternatives) for alternatives in strike_requirements):
+            errors.append("при забастовке не раскрыты международные поезда, компенсация или восстановление")
     if "забастов" in transport.lower() and "забастов" not in intro.lower():
         errors.append("общенациональная забастовка не вынесена во вступление")
 
