@@ -21,12 +21,17 @@ def _editorial_model() -> str:
     return os.getenv("AI_EDITORIAL_MODEL", "claude-sonnet-5").strip() or "claude-sonnet-5"
 
 
-def _search_limit() -> int:
+def _search_limit(domains: list[str] | None = None) -> int:
+    domain_set = set(domains or [])
+    is_morning = {"knmi.nl", "ns.nl", "rijkswaterstaat.nl"}.issubset(domain_set)
+    env_name = "AI_MORNING_WEB_MAX_USES" if is_morning else "AI_EDITORIAL_WEB_MAX_USES"
+    default = 6 if is_morning else 2
+    ceiling = 8 if is_morning else 2
     try:
-        configured = int(os.getenv("AI_EDITORIAL_WEB_MAX_USES", "2"))
+        configured = int(os.getenv(env_name, str(default)))
     except ValueError:
-        configured = 2
-    return max(1, min(configured, 2))
+        configured = default
+    return max(1, min(configured, ceiling))
 
 
 def _value(obj, name: str, default=None):
@@ -157,7 +162,8 @@ async def _verified_generate(system: str, user: str, domains: list[str], max_tok
              "Return only the finished publication and finish every sentence."
     )
 
-    tools = editorial._web_search_tool(None, max_uses=_search_limit())
+    search_limit = _search_limit(domains)
+    tools = editorial._web_search_tool(None, max_uses=search_limit)
     if not tools:
         await _diag("tool_missing", "web_search tool was not constructed")
         return None
@@ -224,7 +230,7 @@ async def _verified_generate(system: str, user: str, domains: list[str], max_tok
     await _diag("ok", f"{len(text)} chars; stop={stop_reason or 'unknown'}")
     editorial.log.info(
         "Editorial text accepted: %d chars, %d URL(s), model=%s, search_limit=%d, continuations=%d, stop=%s",
-        len(text), len(sources), _editorial_model(), _search_limit(), continuations, stop_reason,
+        len(text), len(sources), _editorial_model(), search_limit, continuations, stop_reason,
     )
     return text, sources
 
