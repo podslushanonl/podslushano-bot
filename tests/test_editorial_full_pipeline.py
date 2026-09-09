@@ -235,7 +235,7 @@ async def test_budget_revision_ignores_broken_old_counter():
     assert sent == [("утренний бриф", "Утренний тест")]
     new_key = f"editorial_morning_date_attempts_{budget.BUDGET_REVISION}_2026-08-29"
     assert store.get(new_key) == "1"
-    assert "v4" in budget.BUDGET_REVISION
+    assert "v6" in budget.BUDGET_REVISION
 
 
 def test_photo_choice_keyboards():
