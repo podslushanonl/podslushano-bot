@@ -33,8 +33,8 @@ DRAFT_CHUNK = 95
 PLAN_DAYS = 14
 
 MORNING_SOURCES = [
-    "knmi.nl", "ns.nl", "prorail.nl", "rijkswaterstaat.nl",
-    "vananaarbeter.nl", "9292.nl",
+    "knmi.nl", "ns.nl", "prorail.nl", "9292.nl",
+    "rijkswaterstaat.nl", "anwb.nl", "vananaarbeter.nl",
 ]
 EVENT_SOURCES = [
     "evenementen.nl", "iamsterdam.com", "uitagendautrecht.nl",
