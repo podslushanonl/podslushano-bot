@@ -149,6 +149,23 @@ async def test_truncated_output_never_keeps_broken_tail():
     assert result[0] == complete
 
 
+MORNING_REFERENCE = """Доброе утро! Сегодня погоду затмевает другая новость — общенациональная забастовка транспорта: весь день не ходят не только поезда NS, но и почти все автобусы, трамваи, метро и паромы.
+
+☁️ Погода
+
+Облачно, дождливо и ветрено, местами возможны грозы — особенно в утренний час пик на западе страны. Максимум +18°C, минимум +13°C, вероятность осадков — 80%, ветер западный, 4 балла. Предупреждений KNMI нет.
+
+🚆 Транспорт
+
+С 02:00 сегодня до 02:00 четверга проходит общенациональная забастовка OV. NS не запускает поезда по всей стране; исключением остаётся Airport Sprinter Amsterdam Centraal — Schiphol Airport — Hoofddorp. Практически все международные поезда также отменены. Городской и региональный транспорт, включая GVB, RET и HTM, почти не работает, паромы стоят. Компенсации за такси или аренду машины не будет: схему возврата отменили. NS рассчитывает вернуть обычное расписание в четверг, но утром возможны остаточные сбои при перезапуске сети.
+
+🚗 Дороги
+
+ANWB не ожидает транспортного коллапса только из-за забастовки, но дождь и грозы могут осложнить час пик. Грузовикам и автобусам нельзя проезжать по Merwedebrug на A27, поэтому дополнительная нагрузка возможна на A15 и A16; закрытие N3 у Papendrechtsebrug тоже влияет на объезды. На A2 между Utrecht и 's-Hertogenbosch продолжаются работы. Закладывайте больше времени на дорогу.
+
+Информация актуальна на 06:30. Следите за обновлениями в NS, 9292 и ANWB."""
+
+
 async def test_all_four_formats_share_one_generator():
     calls = []
     sample = (
@@ -160,7 +177,10 @@ async def test_all_four_formats_share_one_generator():
 
     async def fake_generate(system, user, domains, max_tokens=900):
         calls.append((system, tuple(domains), max_tokens))
-        return sample, ["https://example.nl/source"]
+        return (
+            MORNING_REFERENCE if "утреннего Telegram-поста" in system else sample,
+            ["https://example.nl/source"],
+        )
 
     old_generate = editorial._generate
     old_recent = editorial._recent_topics
@@ -235,7 +255,7 @@ async def test_budget_revision_ignores_broken_old_counter():
     assert sent == [("утренний бриф", "Утренний тест")]
     new_key = f"editorial_morning_date_attempts_{budget.BUDGET_REVISION}_2026-08-29"
     assert store.get(new_key) == "1"
-    assert "v4" in budget.BUDGET_REVISION
+    assert "v6" in budget.BUDGET_REVISION
 
 
 def test_photo_choice_keyboards():
@@ -251,10 +271,10 @@ def test_photo_choice_keyboards():
 
 def test_morning_editorial_policy():
     source = __import__("inspect").getsource(editorial._morning_brief)
-    assert "1300-2200 знаков" in source
+    assert "1400-2400 знаков" in source
     assert "Доброе утро!" in source
-    assert "серьёзных нарушений нет" in source
-    assert "Не предсказывай транспортный коллапс" in source
+    assert "не склеивай два прогноза" in source
+    assert "международные поезда" in source
 
     old_value = os.environ.get("AI_MORNING_WEB_MAX_USES")
     try:
@@ -266,6 +286,39 @@ def test_morning_editorial_policy():
             os.environ.pop("AI_MORNING_WEB_MAX_USES", None)
         else:
             os.environ["AI_MORNING_WEB_MAX_USES"] = old_value
+
+    reference = MORNING_REFERENCE
+    assert editorial._morning_quality_errors(reference) == []
+
+    bad = """Теперь у меня есть все данные для качественной публикации.
+
+Доброе утро! Сегодня общественный транспорт по всей стране…
+
+☁️ Погода
+
+Прошедшей ночью было дождливо. Максимум 18°C, минимум 13°C. Предупреждений KNMI нет.
+
+🚆 Транспорт
+
+По всей стране проходит забастовка, поезда NS не ходят.
+
+🚗 Дороги
+
+ANWB не ожидает транспортного коллапса. Закладывайте запас времени.
+
+Информация актуальна на 06:30. Следите за обновлениями в NS, 9292 и ANWB."""
+    normalized = editorial._normalize_morning_output(bad)
+    problems = editorial._morning_quality_errors(normalized)
+    assert normalized.startswith("Доброе утро!")
+    assert "Теперь у меня" not in normalized
+    assert "оборванное вступление" in problems
+    assert "дороги раскрыты слишком поверхностно" in problems
+    assert "при забастовке не раскрыты международные поезда, компенсация или восстановление" in problems
+
+    schedule_source = __import__("inspect").getsource(budget._budgeted_run_morning)
+    assert "time(6, 30)" in schedule_source
+    assert "_is_paused" in schedule_source
+    assert "send_message" in schedule_source
 
     from utils import editorial_caption_patch as captions
     from utils import editorial_overrides as overrides

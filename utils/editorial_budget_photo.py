@@ -28,7 +28,7 @@ MAX_AUTOMATIC_ATTEMPTS_PER_SLOT = 2
 RETRY_MINUTES = 15
 # Bump after a production generator fix so today's old failed attempts do not
 # block the repaired runtime, while the new runtime still gets only two tries.
-BUDGET_REVISION = "sonnet5-editorial-v4"
+BUDGET_REVISION = "sonnet5-editorial-v6"
 
 
 def _draft_choice_kb(draft_id: str) -> InlineKeyboardMarkup:
@@ -245,8 +245,57 @@ async def _budgeted_run_generated(bot, now, kind, date_key, generator, button=Fa
 
 
 async def _budgeted_run_morning(bot, now):
-    if time(6, 45) <= now.time() < time(9, 0):
-        await _budgeted_run_generated(bot, now, "утренний бриф", "editorial_morning_date", editorial._morning_brief)
+    """Publish the verified morning brief automatically, without preview or photo."""
+    if not (time(6, 30) <= now.time() < time(9, 0)):
+        return
+
+    from handlers.content import _is_paused
+
+    if await _is_paused():
+        return
+
+    date_key = "editorial_morning_date"
+    today = now.date().isoformat()
+    if await editorial._meta_get(date_key) == today:
+        return
+
+    count_key = f"{date_key}_attempts_{BUDGET_REVISION}_{today}"
+    cooldown_key = f"{date_key}_try_{BUDGET_REVISION}"
+    try:
+        attempts = int(await editorial._meta_get(count_key) or "0")
+    except ValueError:
+        attempts = 0
+    if attempts >= MAX_AUTOMATIC_ATTEMPTS_PER_SLOT:
+        return
+    if not await editorial._attempt_allowed(cooldown_key, now, RETRY_MINUTES):
+        return
+
+    await editorial._meta_set(count_key, attempts + 1)
+    try:
+        text = await editorial._morning_brief()
+        if not text:
+            last_error = await editorial._meta_get("editorial_last_error")
+            await _alert_admins(
+                bot,
+                "утренний пост",
+                "Текст не прошёл редакционную проверку"
+                + (f": {last_error}" if last_error else "."),
+            )
+            return
+
+        post_text = overrides._with_reaction_cta("morning", text)
+        await bot.send_message(
+            config.ANNOUNCE_CHANNEL,
+            post_text,
+            parse_mode=None,
+            disable_web_page_preview=True,
+        )
+        await editorial._meta_set(date_key, today)
+        await editorial._meta_set("editorial_last_status", "morning_auto_published")
+        await editorial._meta_set("editorial_last_error", "")
+    except Exception as exc:  # noqa: BLE001
+        editorial.log.exception("Automatic morning publication failed: %s", exc)
+        await _alert_admins(bot, "утренний пост", f"Ошибка публикации {type(exc).__name__}.")
 
 
 async def _budgeted_run_evening(bot, now):
