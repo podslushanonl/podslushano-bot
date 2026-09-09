@@ -249,6 +249,30 @@ def test_photo_choice_keyboards():
     assert f"edretry:{draft}" in after_photo
 
 
+def test_morning_editorial_policy():
+    source = __import__("inspect").getsource(editorial._morning_brief)
+    assert "1300-2200 знаков" in source
+    assert "Доброе утро!" in source
+    assert "серьёзных нарушений нет" in source
+    assert "Не предсказывай транспортный коллапс" in source
+
+    old_value = os.environ.get("AI_MORNING_WEB_MAX_USES")
+    try:
+        os.environ["AI_MORNING_WEB_MAX_USES"] = "6"
+        assert verified._search_limit(editorial.MORNING_SOURCES) == 6
+        assert verified._search_limit(["knmi.nl"]) <= 2
+    finally:
+        if old_value is None:
+            os.environ.pop("AI_MORNING_WEB_MAX_USES", None)
+        else:
+            os.environ["AI_MORNING_WEB_MAX_USES"] = old_value
+
+    from utils import editorial_caption_patch as captions
+    from utils import editorial_overrides as overrides
+    assert captions.MORNING_BODY_LIMIT >= 2200
+    assert overrides.REACTION_CTA["morning"] == ("Нравится разбор с утра? Ставьте 🔥",)
+
+
 async def main():
     test_modern_anthropic_sdk_is_installed()
     await test_pause_turn_and_sonnet5_request_shape()
@@ -257,7 +281,8 @@ async def main():
     await test_all_four_formats_share_one_generator()
     await test_budget_revision_ignores_broken_old_counter()
     test_photo_choice_keyboards()
-    print("[OK] full editorial runtime: SDK + Sonnet 5 + Web Search + truncation + 4 formats + scheduler + photo choice")
+    test_morning_editorial_policy()
+    print("[OK] full editorial runtime: SDK + Sonnet 5 + Web Search + truncation + 4 formats + scheduler + photo choice + morning policy")
 
 
 if __name__ == "__main__":
