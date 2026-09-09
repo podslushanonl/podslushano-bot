@@ -591,6 +591,9 @@ RESEND_API_KEY: str = os.getenv("RESEND_API_KEY", "")
 # Отправитель письма со счётом. Для боевого — адрес на verified-домене в Resend,
 # например "Podslushano <facturen@podslushano.nl>". Для теста — onboarding@resend.dev.
 INVOICE_FROM_EMAIL: str = os.getenv("INVOICE_FROM_EMAIL", "")
+# Отдельный красивый отправитель для редакционных писем. Если не задан,
+# используется уже проверенный в Resend адрес счетов.
+NEWSLETTER_FROM_EMAIL: str = os.getenv("NEWSLETTER_FROM_EMAIL", "") or INVOICE_FROM_EMAIL
 # Ставка BTW (НДС), % — цена считается ВКЛЮЧАЮЩЕЙ этот процент.
 try:
     BTW_PERCENT: float = float(os.getenv("BTW_PERCENT", "21"))
@@ -600,6 +603,21 @@ except ValueError:
 # Отправка счёта через Gmail (SMTP) — без DNS. Нужен App Password Google.
 GMAIL_ADDRESS: str = os.getenv("GMAIL_ADDRESS", "") or COMPANY_EMAIL
 GMAIL_APP_PASSWORD: str = os.getenv("GMAIL_APP_PASSWORD", "")
+
+# --- Редакционная e-mail рассылка ------------------------------------------
+# Подписчик сам выбирает weekly или monthly, поэтому два выпуска не дублируются.
+NEWSLETTER_AUTO_SEND: bool = os.getenv("NEWSLETTER_AUTO_SEND", "1").strip().lower() in (
+    "1", "true", "yes", "on", "да",
+)
+NEWSLETTER_WEEKLY_WEEKDAY: int = _int_env("NEWSLETTER_WEEKLY_WEEKDAY", 3)  # четверг
+NEWSLETTER_WEEKLY_HOUR: int = _int_env("NEWSLETTER_WEEKLY_HOUR", 18)
+NEWSLETTER_MONTHLY_DAY: int = _int_env("NEWSLETTER_MONTHLY_DAY", 1)
+NEWSLETTER_MONTHLY_HOUR: int = _int_env("NEWSLETTER_MONTHLY_HOUR", 10)
+
+
+def newsletter_url() -> str:
+    base = (WEBHOOK_BASE_URL or SITE_URL).rstrip("/")
+    return f"{base}/newsletter"
 
 
 def invoice_enabled() -> bool:

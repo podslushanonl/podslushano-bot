@@ -312,6 +312,58 @@ class DigestDeliveryLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class NewsletterSubscriber(Base):
+    """Добровольная e-mail подписка с подтверждением и управлением частотой."""
+
+    __tablename__ = "newsletter_subscribers"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(254), unique=True, index=True)
+    name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    # pending | active | unsubscribed
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    # weekly | monthly. Один адрес получает только одну регулярную рассылку.
+    frequency: Mapped[str] = mapped_column(String(10), default="weekly", index=True)
+    # news,events,useful,community,announcements
+    topics_csv: Mapped[str] = mapped_column(
+        String(120), default="news,events,useful,community,announcements"
+    )
+    manage_token: Mapped[str] = mapped_column(String(80), unique=True, index=True)
+    consent_source: Mapped[str] = mapped_column(String(80), default="newsletter-page")
+    consent_ip_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    consent_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    unsubscribed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    last_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+
+class NewsletterDeliveryLog(Base):
+    """Идемпотентная история доставки выпуска конкретному подписчику."""
+
+    __tablename__ = "newsletter_delivery_logs"
+    __table_args__ = (
+        UniqueConstraint(
+            "subscriber_id", "campaign_key", name="uq_newsletter_subscriber_campaign"
+        ),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    subscriber_id: Mapped[int] = mapped_column(Integer, index=True)
+    campaign_key: Mapped[str] = mapped_column(String(40), index=True)
+    frequency: Mapped[str] = mapped_column(String(10), index=True)
+    subject: Mapped[str] = mapped_column(String(250))
+    status: Mapped[str] = mapped_column(String(20), index=True)  # sent | failed
+    error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
+
+
 class SavedItem(Base):
     """Карточка, которую пользователь сохранил в «Мой Podslushano»."""
 

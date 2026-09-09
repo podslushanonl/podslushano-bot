@@ -22,7 +22,7 @@ from utils.contact_links import parse_contact_links
 from utils.geo import CATEGORIES, specialist_matches_category
 from utils.reviews import rating_badge, ratings_for, specialist_key
 from utils.payments import get_payment
-from utils import allo_web
+from utils import allo_web, newsletter_web
 
 log = logging.getLogger(__name__)
 
@@ -101,6 +101,8 @@ _PRIVACY_RU = """
  <li>данные Telegram: ваш ID, имя и имя пользователя;</li>
  <li>настройки добровольных подборок и уведомлений: выбранный город, радиус,
   темы, частота и включённые виды уведомлений;</li>
+ <li>для e-mail рассылки: адрес, имя (если указано), выбранные темы и частота,
+  дата и источник согласия, подтверждение, отписка и журнал доставки;</li>
  <li>содержимое, которое вы присылаете: истории, вопросы, видео, заявки на
   рекламу и размещение, а также указанные вами контакты;</li>
  <li>объявления на доске: заголовок, описание, фото, цена, город, контакт;</li>
@@ -148,6 +150,8 @@ _PRIVACY_RU = """
  <li>счета и данные о платежах — 7 лет (налоговое требование Нидерландов);</li>
  <li>отзывы — пока актуальны или до вашего запроса об удалении;</li>
  <li>аналитика — в обезличенном виде.</li>
+ <li>e-mail подписка — до отзыва согласия; после отписки адрес сохраняется в
+  списке исключений, чтобы случайно не возобновить отправку без нового согласия.</li>
 </ul>
 
 <h2>Ваши права</h2>
@@ -192,6 +196,8 @@ onderaan deze pagina.</p>
  <li>Telegram-gegevens: je ID, naam en gebruikersnaam;</li>
  <li>instellingen voor vrijwillige overzichten en meldingen: gekozen stad,
   afstand, onderwerpen, frequentie en ingeschakelde meldingstypen;</li>
+ <li>voor de e-mailnieuwsbrief: e-mailadres, naam (indien opgegeven), gekozen
+  onderwerpen en frequentie, toestemming, bevestiging, afmelding en bezorglog;</li>
  <li>inhoud die je instuurt: verhalen, vragen, video's, advertentie- en
   vermeldingsaanvragen en de door jou opgegeven contactgegevens;</li>
  <li>advertenties op het prikbord: titel, omschrijving, foto, prijs, plaats, contact;</li>
@@ -240,6 +246,8 @@ beschermd met EU-modelcontractbepalingen (SCC) en aanvullende maatregelen.</p>
  <li>facturen en betaalgegevens — 7 jaar (Nederlandse fiscale bewaarplicht);</li>
  <li>beoordelingen — zolang relevant of tot je verzoek om verwijdering;</li>
  <li>analyse — in geanonimiseerde vorm.</li>
+ <li>e-mailabonnement — tot intrekking van toestemming; na afmelding bewaren we
+  het adres in een uitsluitingslijst om onbedoelde hervatting te voorkomen.</li>
 </ul>
 
 <h2>Je rechten</h2>
@@ -1757,6 +1765,7 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_post("/ads/book", _ads_book)  # оформление брони → оплата Mollie
     app.router.add_get("/reklama", _reklama)            # публичная заявка на рекламу (без цен)
     app.router.add_post("/reklama/submit", _reklama_submit)
+    newsletter_web.register_routes(app)
     app.router.add_get("/allo-walks", allo_web.page)
     app.router.add_get("/allo-walks/success", allo_web.success)
     app.router.add_get("/api/allo-walks", allo_web.api_walks)
