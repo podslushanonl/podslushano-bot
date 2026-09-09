@@ -44,6 +44,8 @@ from database.models import (  # noqa: E402
     NotificationDelivery,
     NotificationPreference,
     NotificationState,
+    NewsletterDeliveryLog,
+    NewsletterSubscriber,
     ProductEvent,
     SavedItem,
     Specialist,
@@ -2071,6 +2073,82 @@ async def test_repeat_ad_reserves_second_date() -> None:
         config.WEBHOOK_BASE_URL = old_webhook
 
 
+async def test_email_newsletter() -> None:
+    import utils.newsletter as newsletter
+    from utils.newsletter import NewsletterContent, NewsletterItem
+    from utils.newsletter_web import _signup_page
+
+    check("e-mail подписка проверяет корректный адрес",
+          newsletter.valid_email("reader@example.com"))
+    check("e-mail подписка отклоняет неполный адрес",
+          not newsletter.valid_email("reader@example"))
+    check("страница подписки объясняет частоту и подтверждение",
+          "Раз в неделю" in _signup_page() and "подтверждения" in _signup_page())
+
+    example = NewsletterSubscriber(
+        email="reader@example.com", name="Алекс", status="active",
+        frequency="weekly", topics_csv="news,events", manage_token="test-token",
+    )
+    content = NewsletterContent(
+        frequency="weekly", campaign_key="newsletter:weekly:2026-W37",
+        subject="Неделя в Нидерландах · 10.09",
+        preheader="Главное и полезное.",
+        items=(NewsletterItem(
+            topic="news", title="Проверяемая новость",
+            description="Кратко объясняем, почему это важно.",
+            url="https://www.podslushano.nl/example",
+            image_url="https://www.podslushano.nl/image.jpg", meta="10.09",
+        ),),
+    )
+    html_body, text_body = newsletter.render_email(example, content)
+    check("письмо содержит изображение и рабочую кнопку",
+          "<img" in html_body and "Открыть →" in html_body)
+    check("ссылки выпуска получают UTM без скрытого трекинга",
+          "utm_source=podslushano_newsletter" in html_body and "tracking" not in html_body)
+    check("в письме есть настройки и отписка",
+          "Настроить темы и частоту" in html_body and "Отписаться" in html_body)
+    check("текстовая версия содержит тот же материал",
+          "Проверяемая новость" in text_body)
+
+    overlap = datetime(2026, 10, 1, 18, 0, tzinfo=ZoneInfo("Europe/Amsterdam"))
+    check("месячный и недельный выпуски не вытесняют друг друга",
+          newsletter._scheduled_frequencies(overlap) == ["monthly", "weekly"])
+
+    async with db.get_session() as session:
+        session.add(NewsletterSubscriber(
+            email="delivery@example.com", name="Reader", status="active",
+            frequency="weekly", topics_csv="news", manage_token="delivery-token",
+        ))
+        await session.commit()
+
+    real_build = newsletter.build_content
+    real_send = newsletter.send_email_message
+
+    async def fake_build(_frequency, _now=None):
+        return content
+
+    async def fake_send(*_args, **kwargs):
+        headers = kwargs.get("extra_headers") or {}
+        check("рассылка передаёт заголовок быстрой отписки",
+              "List-Unsubscribe" in headers and "List-Unsubscribe-Post" in headers)
+        return True, ""
+
+    try:
+        newsletter.build_content = fake_build
+        newsletter.send_email_message = fake_send
+        first = await newsletter.send_campaign("weekly")
+        second = await newsletter.send_campaign("weekly")
+        check("выпуск доставляется активному подписчику", first["sent"] == 1)
+        check("один выпуск не отправляется на адрес дважды",
+              second["sent"] == 0 and second["skipped"] == 1)
+        async with db.get_session() as session:
+            logs = list((await session.scalars(select(NewsletterDeliveryLog))).all())
+        check("результат e-mail доставки записан", len(logs) == 1 and logs[0].status == "sent")
+    finally:
+        newsletter.build_content = real_build
+        newsletter.send_email_message = real_send
+
+
 async def main() -> None:
     test_import_bot()
     test_specialist_premium_six_month_plan()
@@ -2108,6 +2186,7 @@ async def main() -> None:
 
     test_ad_crm_payload()
     await test_repeat_ad_reserves_second_date()
+    await test_email_newsletter()
     await test_ad_reminder_is_idempotent()
     await test_ad_day_of_admin_notification()
     await test_ad_day_of_action_backfill()

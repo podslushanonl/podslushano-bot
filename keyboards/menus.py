@@ -28,6 +28,7 @@ BTN_STICKERS = "🎨 Наши стикеры"
 BTN_CONTACT = "✉️ Связаться с нами"
 BTN_SHARE = "📣 Поделиться ботом"
 BTN_SUBSCRIPTIONS = "🔔 Мои подписки"
+BTN_NEWSLETTER = "✉️ Письма Podslushano.nl"
 BTN_HOME = "🏠 Мой Podslushano"
 BTN_CANCEL = "❌ Отмена"
 # Разделы главного меню — открывают подменю (чтобы не было «стены» кнопок)
@@ -90,6 +91,7 @@ def more_menu() -> ReplyKeyboardMarkup:
     """Подменю «Ещё»: связаться и поделиться."""
     return ReplyKeyboardMarkup(
         keyboard=[
+            [KeyboardButton(text=BTN_NEWSLETTER)],
             [KeyboardButton(text=BTN_CONTACT), KeyboardButton(text=BTN_SHARE)],
             [KeyboardButton(text=BTN_BACK)],
         ],

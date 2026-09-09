@@ -222,7 +222,10 @@ async def _send_gmail(to: str, subject: str, html: str, pdf: bytes, filename: st
         return False, detail
 
 
-def _send_gmail_message_sync(to: str, subject: str, html_body: str, text_body: str) -> None:
+def _send_gmail_message_sync(
+    to: str, subject: str, html_body: str, text_body: str,
+    extra_headers: dict[str, str] | None = None,
+) -> None:
     import ssl
     from email.message import EmailMessage
 
@@ -230,6 +233,8 @@ def _send_gmail_message_sync(to: str, subject: str, html_body: str, text_body: s
     msg["From"] = f"{config.COMPANY_NAME} <{config.GMAIL_ADDRESS}>"
     msg["To"] = to
     msg["Subject"] = subject
+    for key, value in (extra_headers or {}).items():
+        msg[key] = value
     msg.set_content(text_body)
     msg.add_alternative(html_body, subtype="html")
     ctx = ssl.create_default_context()
@@ -243,6 +248,8 @@ async def send_email_message(
     subject: str,
     html_body: str,
     text_body: str,
+    extra_headers: dict[str, str] | None = None,
+    from_email: str | None = None,
 ) -> tuple[bool, str]:
     """Отправляет служебное письмо через тот же канал, что и счета."""
     if not config.invoice_enabled():
@@ -251,13 +258,15 @@ async def send_email_message(
         return False, "не указан e-mail получателя"
     if config.RESEND_API_KEY and config.INVOICE_FROM_EMAIL:
         body = {
-            "from": config.INVOICE_FROM_EMAIL,
+            "from": from_email or config.INVOICE_FROM_EMAIL,
             "to": [to_email],
             "reply_to": config.SUPPORT_EMAIL,
             "subject": subject,
             "html": html_body,
             "text": text_body,
         }
+        if extra_headers:
+            body["headers"] = extra_headers
         headers = {
             "Authorization": f"Bearer {config.RESEND_API_KEY}",
             "Content-Type": "application/json",
@@ -278,7 +287,8 @@ async def send_email_message(
             return False, detail
     try:
         await asyncio.to_thread(
-            _send_gmail_message_sync, to_email, subject, html_body, text_body
+            _send_gmail_message_sync, to_email, subject, html_body, text_body,
+            extra_headers,
         )
         return True, ""
     except Exception as exc:  # noqa: BLE001

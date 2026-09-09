@@ -13,7 +13,7 @@ from database.db import init_db
 from handlers import (
     ad_crm, ad_sales_pipeline, admin, admin_center, ads, afisha, ai_sales, allo, board, cabinet, chat,
     contacts, content, digest, errors, events, guides, home, letters, moderation,
-    notifications, salary, selfadd, share, spotlight, start, stories, submissions, support,
+    newsletter, notifications, salary, selfadd, share, spotlight, start, stories, submissions, support,
     tax_guide,
 )
 from handlers.ad_sales_pipeline import ad_payment_reconciliation_loop
@@ -29,6 +29,7 @@ from utils.users import RegisterUserMiddleware
 from utils.webserver import start_webserver
 from utils.ad_calendar import calendar_sync_loop
 from utils.ad_reminders import ad_reminder_loop
+from utils.newsletter import newsletter_loop
 
 from utils.crm_bridge import crm_sync_loop
 
@@ -42,6 +43,7 @@ async def configure_profile(bot: Bot) -> None:
             BotCommand(command="guide", description="Полезное о жизни в Нидерландах"),
             BotCommand(command="afisha", description="Чем заняться: афиша и идеи 🎉"),
             BotCommand(command="digest", description="Настроить подборку на выходные 🔔"),
+            BotCommand(command="newsletter", description="Подписаться на письма Podslushano.nl ✉️"),
             BotCommand(command="my", description="Мой Podslushano: профиль и сохранённое"),
             BotCommand(command="notifications", description="Настроить личные уведомления"),
             BotCommand(command="afisha_add", description="Разместить мероприятие в афише 📅"),
@@ -70,6 +72,7 @@ async def configure_profile(bot: Bot) -> None:
                     BotCommand(command="editorialpreview", description="Предпросмотр редакционных постов"),
                     BotCommand(command="adleads", description="CRM рекламных заявок"),
                     BotCommand(command="adcalendar", description="Проверить календарь рекламы"),
+                    BotCommand(command="newsletterstats", description="Статистика e-mail подписки"),
                     BotCommand(command="contact", description="Связаться с нами / поддержка"),
                 ], scope=BotCommandScopeChat(chat_id=admin_id))
             except Exception:
@@ -97,6 +100,7 @@ async def main() -> None:
     dp.include_router(guides.router)
     dp.include_router(events.router)
     dp.include_router(digest.router)
+    dp.include_router(newsletter.router)
     dp.include_router(home.router)
     dp.include_router(notifications.router)
     dp.include_router(letters.router)
@@ -139,6 +143,7 @@ async def main() -> None:
     asyncio.create_task(ad_payment_reconciliation_loop(bot))
     asyncio.create_task(calendar_sync_loop(bot))
     asyncio.create_task(ad_reminder_loop(bot))
+    asyncio.create_task(newsletter_loop(bot))
 
     asyncio.create_task(crm_sync_loop(bot))
 
