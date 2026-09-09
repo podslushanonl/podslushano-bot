@@ -1,7 +1,7 @@
 """Runtime fixes for Telegram editorial media posts.
 
 Rules:
-- morning and evening ALWAYS require a photo and fit Telegram photo captions;
+- morning keeps the full useful brief for text publication; evening fits photo captions;
 - event and curiosity are primarily full-length text posts; a photo is used only
   when the finished post naturally fits a photo caption;
 - model planning / self-commentary is never shown to subscribers;
@@ -17,7 +17,7 @@ from utils import editorial_overrides as overrides
 
 CAPTION_LIMIT = 1024
 PHOTO_POST_LIMIT = 900
-MORNING_BODY_LIMIT = 820
+MORNING_BODY_LIMIT = 2600
 EVENING_BODY_LIMIT = 820
 TEXT_POST_LIMIT = 2600
 PHOTO_REQUIRED = {"morning", "evening"}
