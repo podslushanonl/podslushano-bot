@@ -470,7 +470,7 @@ async def _run_generated(bot, now, kind, date_key, generator, button=False):
 
 
 async def _run_morning(bot, now):
-    if time(6, 45) <= now.time() < time(8, 0):
+    if time(6, 30) <= now.time() < time(8, 0):
         await _run_generated(bot, now, "morning", "editorial_morning_date", _morning_brief)
 
 
@@ -598,7 +598,7 @@ async def _send_unified_plan(message: Message) -> None:
     lines = [
         "🗓 <b>Контент-план канала · ближайшие 14 дней</b>",
         "",
-        "Все публикации бота и редакционные посты идут через ваше подтверждение.",
+        "Утренний бриф публикуется автоматически в 06:30; остальные редакционные материалы идут через подтверждение.",
         "10:00 и 18:00 показаны как фиксированные новостные слоты для контроля нагрузки.",
         "",
     ]
@@ -607,7 +607,7 @@ async def _send_unified_plan(message: Message) -> None:
     for offset in range(PLAN_DAYS):
         current = day + timedelta(days=offset)
         items = [
-            ("06:45", "🌦 Утренний бриф: погода + транспорт + дороги", "editorial"),
+            ("06:30", "🌦 Утренний пост: погода + транспорт + дороги · автоматически", "editorial"),
             ("10:00", "📰 Утренние новости", "fixed"),
             ("18:00", "📰 Вечерние новости", "fixed"),
             ("21:00", "🌙 Вечерний редакционный пост", "editorial"),
