@@ -255,7 +255,7 @@ async def test_budget_revision_ignores_broken_old_counter():
     assert sent == [("утренний бриф", "Утренний тест")]
     new_key = f"editorial_morning_date_attempts_{budget.BUDGET_REVISION}_2026-08-29"
     assert store.get(new_key) == "1"
-    assert "v6" in budget.BUDGET_REVISION
+    assert "v7" in budget.BUDGET_REVISION
 
 
 def test_photo_choice_keyboards():
@@ -267,6 +267,25 @@ def test_photo_choice_keyboards():
     assert f"edpub:{draft}" in after_photo
     assert f"edpubtext:{draft}" in after_photo
     assert f"edretry:{draft}" in after_photo
+
+
+async def test_morning_failure_alert_explains_retry_state():
+    class Bot:
+        def __init__(self):
+            self.messages = []
+
+        async def send_message(self, admin_id, text, parse_mode=None):
+            self.messages.append(text)
+
+    bot = Bot()
+    await budget._alert_admins(bot, "утренний пост", "Проверка отклонила текст.", 1)
+    assert bot.messages
+    assert "Попытка 1 из 2" in bot.messages[0]
+    assert "повторит автоматически" in bot.messages[0]
+
+    bot.messages.clear()
+    await budget._alert_admins(bot, "утренний пост", "Проверка отклонила текст.", 2)
+    assert "Использованы все 2 автоматические попытки" in bot.messages[0]
 
 
 def test_morning_editorial_policy():
@@ -313,7 +332,17 @@ ANWB не ожидает транспортного коллапса. Закла
     assert "Теперь у меня" not in normalized
     assert "оборванное вступление" in problems
     assert "дороги раскрыты слишком поверхностно" in problems
-    assert "при забастовке не раскрыты международные поезда, компенсация или восстановление" in problems
+    assert "при текущей общенациональной забастовке не раскрыто: международные поезда, компенсация, восстановление движения" in problems
+
+    recovered_after_strike = MORNING_REFERENCE.replace(
+        "Доброе утро! Сегодня погоду затмевает другая новость — общенациональная забастовка транспорта: весь день не ходят не только поезда NS, но и почти все автобусы, трамваи, метро и паромы.",
+        "Доброе утро! После вчерашней забастовки общественный транспорт возвращается к обычному расписанию, хотя утром ещё возможны отдельные остаточные сбои.",
+    ).replace(
+        "С 02:00 сегодня до 02:00 четверга проходит общенациональная забастовка OV. NS не запускает поезда по всей стране; исключением остаётся Airport Sprinter Amsterdam Centraal — Schiphol Airport — Hoofddorp. Практически все международные поезда также отменены. Городской и региональный транспорт, включая GVB, RET и HTM, почти не работает, паромы стоят. Компенсации за такси или аренду машины не будет: схему возврата отменили. NS рассчитывает вернуть обычное расписание в четверг, но утром возможны остаточные сбои при перезапуске сети.",
+        "После вчерашней забастовки NS запускает сеть по обычному расписанию, но утром предупреждает об отдельных остаточных сбоях при перезапуске. Проверяйте конкретный маршрут перед поездкой: изменения могут сохраняться на отдельных направлениях.",
+    )
+    recovery_problems = editorial._morning_quality_errors(recovered_after_strike)
+    assert not any("общенациональной забастовке" in problem for problem in recovery_problems)
 
     schedule_source = __import__("inspect").getsource(budget._budgeted_run_morning)
     assert "time(6, 30)" in schedule_source
@@ -334,6 +363,7 @@ async def main():
     await test_all_four_formats_share_one_generator()
     await test_budget_revision_ignores_broken_old_counter()
     test_photo_choice_keyboards()
+    await test_morning_failure_alert_explains_retry_state()
     test_morning_editorial_policy()
     print("[OK] full editorial runtime: SDK + Sonnet 5 + Web Search + truncation + 4 formats + scheduler + photo choice + morning policy")
 
