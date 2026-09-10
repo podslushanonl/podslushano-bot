@@ -28,7 +28,7 @@ MAX_AUTOMATIC_ATTEMPTS_PER_SLOT = 2
 RETRY_MINUTES = 15
 # Bump after a production generator fix so today's old failed attempts do not
 # block the repaired runtime, while the new runtime still gets only two tries.
-BUDGET_REVISION = "sonnet5-editorial-v6"
+BUDGET_REVISION = "sonnet5-editorial-v7"
 
 
 def _draft_choice_kb(draft_id: str) -> InlineKeyboardMarkup:
@@ -198,13 +198,24 @@ async def _safe_health(message: Message) -> None:
     await message.answer("\n".join(lines), parse_mode=None)
 
 
-async def _alert_admins(bot, kind: str, reason: str) -> None:
+async def _alert_admins(bot, kind: str, reason: str, attempt_number: int | None = None) -> None:
+    if attempt_number is not None and attempt_number < MAX_AUTOMATIC_ATTEMPTS_PER_SLOT:
+        retry_note = (
+            f"Попытка {attempt_number} из {MAX_AUTOMATIC_ATTEMPTS_PER_SLOT}. "
+            f"Бот повторит автоматически примерно через {RETRY_MINUTES} минут."
+        )
+    elif attempt_number is not None:
+        retry_note = (
+            f"Использованы все {MAX_AUTOMATIC_ATTEMPTS_PER_SLOT} автоматические попытки этого слота."
+        )
+    else:
+        retry_note = f"Лимит — {MAX_AUTOMATIC_ATTEMPTS_PER_SLOT} автоматические попытки на слот в день."
     for admin_id in config.ADMIN_IDS:
         try:
             await bot.send_message(
                 admin_id,
                 f"⚠️ Не удалось подготовить {kind}. {reason}\n"
-                f"Автоматический лимит: не более {MAX_AUTOMATIC_ATTEMPTS_PER_SLOT} попыток на слот в день.",
+                f"{retry_note}",
                 parse_mode=None,
             )
         except Exception:
@@ -280,6 +291,7 @@ async def _budgeted_run_morning(bot, now):
                 "утренний пост",
                 "Текст не прошёл редакционную проверку"
                 + (f": {last_error}" if last_error else "."),
+                attempts + 1,
             )
             return
 
