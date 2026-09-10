@@ -204,15 +204,34 @@ def _morning_quality_errors(text: str) -> list[str]:
     if footer not in clean:
         errors.append("нет утверждённой строки актуальности")
 
-    if "забастов" in lower:
-        strike_requirements = (
-            ("международ",),
-            ("компенсац", "возврат"),
-            ("восстанов", "вернут", "расписан", "перезапуск"),
-        )
-        if any(not any(token in transport.lower() for token in alternatives) for alternatives in strike_requirements):
-            errors.append("при забастовке не раскрыты международные поезда, компенсация или восстановление")
-    if "забастов" in transport.lower() and "забастов" not in intro.lower():
+    strike_context = f"{intro}\n{transport}".lower()
+    active_strike_markers = (
+        "сегодня", "весь день", "проходит", "продолжается", "начинается",
+        "объявлена", "объявлен", "с 02:00", "до 02:00",
+    )
+    finished_strike_markers = (
+        "после вчераш", "вчерашняя забастов", "вчерашней забастов",
+        "забастовка заверш", "забастовка закончил", "после забастов",
+    )
+    active_national_strike = (
+        "забастов" in strike_context
+        and any(marker in strike_context for marker in active_strike_markers)
+        and not any(marker in strike_context for marker in finished_strike_markers)
+    )
+    if active_national_strike:
+        strike_requirements = {
+            "международные поезда": ("международ",),
+            "компенсация": ("компенсац", "возврат"),
+            "восстановление движения": ("восстанов", "вернут", "расписан", "перезапуск"),
+        }
+        missing = [
+            label
+            for label, alternatives in strike_requirements.items()
+            if not any(token in transport.lower() for token in alternatives)
+        ]
+        if missing:
+            errors.append("при текущей общенациональной забастовке не раскрыто: " + ", ".join(missing))
+    if active_national_strike and "забастов" not in intro.lower():
         errors.append("общенациональная забастовка не вынесена во вступление")
 
     return errors
