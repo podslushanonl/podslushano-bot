@@ -41,6 +41,32 @@ def _p(price: str) -> str:
         return str(price)
 
 
+def _walk_price(walk_or_key) -> str:
+    walk = (config.allo_walk(walk_or_key) if isinstance(walk_or_key, str)
+            else walk_or_key)
+    return str((walk or {}).get("price") or config.ALLO_PRICE_SINGLE)
+
+
+def _walk_capacity(walk_or_key) -> int:
+    walk = (config.allo_walk(walk_or_key) if isinstance(walk_or_key, str)
+            else walk_or_key)
+    return int((walk or {}).get("capacity") or config.ALLO_WALK_CAPACITY)
+
+
+def _cancel_hours(walk: dict) -> int:
+    return int(walk.get("cancel_before_hours") or 24)
+
+
+def _cancel_label(walk: dict) -> str:
+    hours = _cancel_hours(walk)
+    return "7 дней" if hours == 168 else f"{hours} часа"
+
+
+def _season_capacity() -> int:
+    return max((_walk_capacity(w) for w in config.ALLO_WALKS
+                if w.get("status") != "archived"), default=config.ALLO_WALK_CAPACITY)
+
+
 _ASSETS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "allo")
 _INTRO_PHOTO = "group.jpg"  # групповое фото с прошлой прогулки — для доверия
 
@@ -69,7 +95,7 @@ ALLO_INTRO = (
     "Это не экскурсия с гидом и не спортивный поход. Это тёплая прогулка со "
     "своими: маленькая группа до {cap} человек, продуманный маршрут и живое "
     "общение. Многие приходят одни — а уходят уже с новыми знакомыми.\n\n"
-    "💶 <b>€{single}</b> за прогулку · оплата через iDEAL\n\n"
+    "💶 <b>от €{single}</b> · точная цена и состав билета указаны у каждой прогулки\n\n"
     "Выбери дату ниже 👇\n"
     "А чтобы разобраться подробнее — «ℹ️ Как это работает» и «💬 Отзывы»."
 )
@@ -113,18 +139,18 @@ ALLO_TERMS = (
     "<b>1. Организатор и предмет.</b> Прогулки Allo Walks организует {company} "
     "(KVK {kvk}). Настоящие Правила регулируют условия участия. Совершая оплату, "
     "участник подтверждает согласие с ними.\n\n"
-    "<b>2. Стоимость и оплата.</b> Стоимость участия составляет €{single} за одну "
-    "прогулку. Цена включает BTW "
+    "<b>2. Стоимость и оплата.</b> Стоимость и состав билета указаны в карточке "
+    "конкретной прогулки. Цена включает BTW "
     "21%. Оплата производится через сервис Mollie. Место закрепляется за участником "
-    "после поступления оплаты. Число мест ограничено ({cap} участников на прогулку).\n\n"
+    "после поступления оплаты. Число мест ограничено и указано в карточке.\n\n"
     "<b>3. Ранее приобретённые абонементы.</b> Продажа новых абонементов временно "
     "приостановлена. Уже оплаченный абонемент сохраняет право на участие в {credits} "
     "прогулках по выбору участника в течение {days} дней с даты оплаты. Он именной и не "
     "подлежит передаче третьим лицам. Неиспользованные прогулки по истечении срока "
     "действия не возвращаются и не компенсируются.\n\n"
-    "<b>4. Отмена участником и возврат.</b> При уведомлении об отмене не позднее чем "
-    "за 24 часа до начала прогулки уплаченная сумма подлежит возврату. При "
-    "уведомлении менее чем за 24 часа, а также при неявке участника возврат не "
+    "<b>4. Отмена участником и возврат.</b> Срок бесплатной отмены указан в карточке: "
+    "24 часа для обычной и велопрогулки, 72 часа для BBQ, 7 дней для прогулок с "
+    "заранее оплачиваемым транспортом или подрядчиком. После этого срока и при неявке возврат не "
     "производится. После состоявшейся прогулки возврат не производится. Поскольку "
     "услуга оказывается в согласованную дату и относится к организации досуга, право "
     "на отзыв договора в течение 14 дней не применяется (ст. 6:230p ГК Нидерландов).\n\n"
@@ -156,7 +182,7 @@ def _terms_text() -> str:
         company=config.COMPANY_NAME, kvk=config.COMPANY_KVK,
         single=_p(config.ALLO_PRICE_SINGLE),
         credits=config.ALLO_PASS_CREDITS, days=config.ALLO_PASS_VALID_DAYS,
-        cap=config.ALLO_WALK_CAPACITY, email=config.COMPANY_EMAIL,
+        cap=_season_capacity(), email=config.COMPANY_EMAIL,
     )
 
 
@@ -207,7 +233,7 @@ async def _is_closed(session, walk_key: str) -> bool:
 async def _remaining(session, walk_key: str) -> int:
     if await _is_closed(session, walk_key):
         return 0
-    return max(0, config.ALLO_WALK_CAPACITY - await _taken(session, walk_key))
+    return max(0, _walk_capacity(walk_key) - await _taken(session, walk_key))
 
 
 async def _active_pass(session, uid: int):
@@ -425,7 +451,7 @@ async def show_allo(message: Message, state: FSMContext,
 
     if pass_b:
         rows = []
-        for w in walks:
+        for w in (walk for walk in walks if walk.get("pass_eligible", False)):
             label = f"📅 {_short_date(w)} · {w['title']}"
             if w["key"] in booked:
                 rows.append([InlineKeyboardButton(text=f"✅ {label} — ты записан",
@@ -451,7 +477,7 @@ async def show_allo(message: Message, state: FSMContext,
 
     rows = []
     for w in walks:
-        label = f"📅 {_short_date(w)} · {w['title']} · €{_p(config.ALLO_PRICE_SINGLE)}"
+        label = f"📅 {_short_date(w)} · {w['title']} · €{_p(_walk_price(w))}"
         if w["key"] in booked:
             rows.append([InlineKeyboardButton(text=f"✅ {_short_date(w)} · {w['title']} — ты записан",
                                               callback_data=f"allo:mine:{w['key']}")])
@@ -474,7 +500,7 @@ async def show_allo(message: Message, state: FSMContext,
     if with_photos:
         await _send_intro_photos(message)
     await message.answer(
-        ALLO_INTRO.format(cap=config.ALLO_WALK_CAPACITY,
+        ALLO_INTRO.format(cap=_season_capacity(),
                           single=_p(config.ALLO_PRICE_SINGLE)),
         reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
         disable_web_page_preview=True)
@@ -519,7 +545,7 @@ async def allo_my_booking(callback: CallbackQuery) -> None:
         await callback.answer("Активная запись не найдена. Обнови /allo.", show_alert=True)
         return
     rows = [[InlineKeyboardButton(text="💬 В чат участников", url=config.ALLO_CHAT_URL)]]
-    if _hours_until_walk(walk) >= 24 and any(
+    if _hours_until_walk(walk) >= _cancel_hours(walk) and any(
             w["key"] != key for w in config.available_allo_walks()):
         rows.append([InlineKeyboardButton(
             text="🔄 Перенести на другую дату",
@@ -553,7 +579,7 @@ async def _show_pending_payment(callback: CallbackQuery, key: str,
         await callback.message.answer(
             "Предыдущая оплата уже недоступна. Можно начать запись заново:\n\n"
             + _walk_card(key)
-            + f"\n\n💶 <b>€{_p(config.ALLO_PRICE_SINGLE)}</b> (с BTW).",
+            + f"\n\n💶 <b>€{_p(_walk_price(key))}</b> (с BTW).",
             reply_markup=_pick_kb(key), disable_web_page_preview=True)
         await callback.answer("Предыдущая оплата закрыта")
         return
@@ -600,7 +626,7 @@ async def allo_restart(callback: CallbackQuery, state: FSMContext) -> None:
     async with get_session() as session:
         await _cancel_pending(session, callback.from_user.id, key)
     await callback.message.answer(
-        _walk_card(key) + f"\n\n💶 <b>€{_p(config.ALLO_PRICE_SINGLE)}</b> (с BTW). "
+        _walk_card(key) + f"\n\n💶 <b>€{_p(_walk_price(key))}</b> (с BTW). "
         "Оплачивая, ты принимаешь Правила Allo Walks.",
         reply_markup=_pick_kb(key), disable_web_page_preview=True)
     await callback.answer("Предыдущая попытка отменена")
@@ -622,14 +648,15 @@ async def allo_cancel_ask(callback: CallbackQuery) -> None:
     if not walk:
         await callback.answer("Прогулка не найдена", show_alert=True)
         return
-    refundable = _hours_until_walk(walk) >= 24
+    refundable = _hours_until_walk(walk) >= _cancel_hours(walk)
     if refundable and booking.plan == "use":
         note = "После отмены прогулка вернётся в остаток твоего абонемента."
     elif refundable:
         note = ("Мы отправим администратору запрос на возврат оплаты. Деньги возвращаются "
                 "вручную через Mollie на тот же способ оплаты.")
     else:
-        note = ("До начала осталось менее 24 часов, поэтому по Правилам оплата или "
+        note = (f"До срока бесплатной отмены ({_cancel_label(walk)} до старта) осталось "
+                "недостаточно времени, поэтому оплата или "
                 "прогулка из абонемента не возвращается.")
     await callback.message.answer(
         f"Отменить участие?\n\n<b>{_walk_title(booking.walk_key)}</b>\n\n{note}",
@@ -659,7 +686,7 @@ async def allo_cancel_ok(callback: CallbackQuery) -> None:
         if not walk:
             await callback.answer("Прогулка не найдена", show_alert=True)
             return
-        refundable = _hours_until_walk(walk) >= 24
+        refundable = _hours_until_walk(walk) >= _cancel_hours(walk)
         if refundable:
             booking.status = "canceled" if booking.plan == "use" else "refund_requested"
         else:
@@ -674,7 +701,8 @@ async def allo_cancel_ok(callback: CallbackQuery) -> None:
         result = ("Участие отменено. Запрос на возврат передан администратору ✅\n"
                   "Мы напишем после оформления возврата через Mollie.")
     else:
-        result = "Участие отменено. До начала менее 24 часов, возврат не предусмотрен."
+        result = (f"Участие отменено. Срок бесплатной отмены ({_cancel_label(walk)} "
+                  "до старта) уже прошёл, возврат не предусмотрен.")
     await callback.message.answer(result, reply_markup=main_menu())
     await callback.answer("Запись отменена")
     await _notify_admins(
@@ -684,7 +712,7 @@ async def allo_cancel_ok(callback: CallbackQuery) -> None:
         + (f"Нужен ручной возврат Mollie: <code>{payment_id}</code>"
            if refundable and plan == "single" else
            "Прогулка возвращена в абонемент" if refundable else
-           "Менее 24 часов — без возврата"),
+           "Срок бесплатной отмены прошёл — без возврата"),
         reply_markup=_refund_done_kb(bid) if refundable and plan == "single" else None)
 
 
@@ -702,7 +730,7 @@ async def allo_move_ask(callback: CallbackQuery) -> None:
             await callback.answer("Активная запись не найдена", show_alert=True)
             return
         current = config.allo_walk(booking.walk_key)
-        choices = [] if not current or _hours_until_walk(current) < 24 else [
+        choices = [] if not current or _hours_until_walk(current) < _cancel_hours(current) else [
             w for w in config.available_allo_walks() if w["key"] != booking.walk_key
             and await _remaining(session, w["key"]) > 0
         ]
@@ -737,7 +765,7 @@ async def allo_move_ok(callback: CallbackQuery) -> None:
         old_walk = config.allo_walk(booking.walk_key) if booking else None
         if (not booking or booking.user_id != callback.from_user.id
                 or booking.status != "paid" or not old_walk
-                or _hours_until_walk(old_walk) < 24):
+                or _hours_until_walk(old_walk) < _cancel_hours(old_walk)):
             await callback.answer("Перенос уже недоступен", show_alert=True)
             return
         if await _remaining(session, new_key) <= 0:
@@ -765,7 +793,7 @@ def _back_kb() -> InlineKeyboardMarkup:
 @router.callback_query(F.data == "allo:about")
 async def allo_about(callback: CallbackQuery) -> None:
     await callback.message.answer(
-        ALLO_ABOUT.format(cap=config.ALLO_WALK_CAPACITY,
+        ALLO_ABOUT.format(cap=_season_capacity(),
                           single=_p(config.ALLO_PRICE_SINGLE)),
         reply_markup=_back_kb(), disable_web_page_preview=True)
     await callback.answer()
@@ -816,7 +844,8 @@ def _walk_card(key: str) -> str:
     w = config.allo_walk(key)
     return (f"📅 <b>{w['date']}</b>\n<b>Allo Walks: {w['title']}</b>\n\n"
             f"📍 Сбор: {w['meet']}\n🏁 Финиш: {w['finish']}\n⏱ Длительность: {w['dur']}\n"
-            f"👥 Группа: до {config.ALLO_WALK_CAPACITY} человек\n\n{w['desc']}")
+            f"🚶 Дистанция: {w.get('distance', 'указана на странице')}\n"
+            f"👥 Группа: до {_walk_capacity(w)} гостей\n\n{w['desc']}")
 
 
 # --- Списание прогулки из абонемента ----------------------------------------
@@ -826,6 +855,10 @@ async def allo_use(callback: CallbackQuery, state: FSMContext) -> None:
     key = callback.data.split(":", 2)[2]
     if not _available_walk(key):
         await callback.answer("Прогулка не найдена", show_alert=True)
+        return
+    walk = config.allo_walk(key)
+    if not walk.get("pass_eligible", False):
+        await callback.answer("Абонемент действует на пешие и велопрогулки.", show_alert=True)
         return
     uid = callback.from_user.id
     async with get_session() as session:
@@ -858,6 +891,10 @@ async def allo_useok(callback: CallbackQuery, state: FSMContext) -> None:
     uid = callback.from_user.id
     if not _available_walk(key):
         await callback.answer("Прогулка не найдена", show_alert=True)
+        return
+    walk = config.allo_walk(key)
+    if not walk.get("pass_eligible", False):
+        await callback.answer("Абонемент на этот специальный формат не действует.", show_alert=True)
         return
     async with get_session() as session:
         pass_b, remaining, _vu = await _active_pass(session, uid)
@@ -921,7 +958,7 @@ async def allo_pick(callback: CallbackQuery, state: FSMContext) -> None:
         await show_allo(callback.message, state)
         return
     await callback.message.answer(
-        _walk_card(key) + f"\n\n💶 <b>€{_p(config.ALLO_PRICE_SINGLE)}</b> (с BTW). "
+        _walk_card(key) + f"\n\n💶 <b>€{_p(_walk_price(key))}</b> (с BTW). "
         "Оплачивая, ты принимаешь Правила Allo Walks.",
         reply_markup=_pick_kb(key), disable_web_page_preview=True)
     await callback.answer()
@@ -965,7 +1002,7 @@ async def allo_email(message: Message, state: FSMContext) -> None:
                              reply_markup=main_menu())
         return
     plan = "single"
-    amount = config.ALLO_PRICE_SINGLE
+    amount = _walk_price(key)
 
     async with get_session() as session:
         await _expire_stale_holds(session, message.from_user.id)
@@ -1157,10 +1194,11 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
         body += _chat_invite()
     else:
         w = config.allo_walk(key)
+        bring = ", ".join(w.get("bring", [])[:3])
         body = ("✅ <b>Оплата прошла — ты записан(а)!</b>\n\n"
                 f"📅 {w['date']} — <b>{w['title']}</b>\n📍 Сбор: {w['meet']}\n"
                 f"🏁 Финиш: {w['finish']}\n⏱ {w['dur']}\n\n"
-                "Возьми удобную обувь, воду и одежду по погоде. Все детали и связь с "
+                f"Что взять: {bring}. Все детали и связь с "
                 "участниками — в чате ниже. До встречи! 🚶")
         body += _chat_invite()
     if uid:
@@ -1180,7 +1218,10 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
 
     await _notify_admins(
         bot, f"🚶 <b>Оплата Allo Walks</b>\n{_walk_title(key)}\n"
-             f"{first or ''} @{uname or '—'} · {email} · €{_p(amount or '')}")
+             f"{first or ''} @{uname or '—'} · {email} · €{_p(amount or '')}"
+             f"\nТелефон: {booking.phone or '—'}"
+             f"\nПитание / аллергии: {booking.dietary or '—'}"
+             f"\nКомментарий: {booking.notes or '—'}")
 
 
 # --- Админ: закрыть / открыть дату вручную ----------------------------------
@@ -1251,7 +1292,7 @@ async def cmd_allobookings(message: Message, state: FSMContext) -> None:
                     AlloBooking.status == "paid"))).all()
             closed = " · 🚫 закрыта" if await _is_closed(session, w["key"]) else ""
             lines.append(f"\n<b>{w['date']} · {w['title']}</b> — {taken}/"
-                         f"{config.ALLO_WALK_CAPACITY}{closed}")
+                         f"{_walk_capacity(w)}{closed}")
             for r in rows:
                 tag = "🎟" if r.plan == "use" else "💶"
                 lines.append(f"  {tag} {r.first_name or ''} @{r.username or '—'} · {r.email}")
