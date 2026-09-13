@@ -14,6 +14,9 @@ import config
 log = logging.getLogger(__name__)
 
 CONSENT_VERSION = "video-instagram-v1"
+MAX_ORIGINAL_VIDEO_BYTES = 200 * 1024 * 1024
+CLOUD_BOT_DOWNLOAD_BYTES = 20 * 1024 * 1024
+_VIDEO_EXTENSIONS = (".mp4", ".mov", ".m4v", ".webm")
 _IG_HANDLE_RE = re.compile(r"^[A-Za-z0-9._]{1,30}$")
 
 
@@ -25,6 +28,15 @@ def normalize_instagram(value: str) -> str | None:
     if not _IG_HANDLE_RE.fullmatch(raw):
         return None
     return f"@{raw}"
+
+
+def is_video_document(document: Any) -> bool:
+    """Принимаем только видео, отправленное документом без сжатия Telegram."""
+    if document is None:
+        return False
+    mime_type = str(getattr(document, "mime_type", "") or "").lower()
+    file_name = str(getattr(document, "file_name", "") or "").lower()
+    return mime_type.startswith("video/") or file_name.endswith(_VIDEO_EXTENSIONS)
 
 
 def load_details(raw: str | None) -> dict[str, Any]:
@@ -143,6 +155,13 @@ async def send_video_to_make(submission: Any) -> tuple[bool, str]:
         return False, "у видео нет зафиксированного разрешения автора"
     if credit_text(details) == "автор не указан":
         return False, "не указано авторство"
+    file_size = int((details.get("media") or {}).get("file_size") or 0)
+    if file_size > CLOUD_BOT_DOWNLOAD_BYTES:
+        return False, (
+            "оригинал больше 20 МБ: облачный Telegram Bot API не разрешает "
+            "скачать такой файл; для автопубликации нужен Local Bot API или "
+            "внешнее хранилище. Видео осталось в контент-банке без потери качества"
+        )
     if not video_make_enabled():
         return False, "VIDEO_MAKE_WEBHOOK_URL не задан"
     try:

@@ -8,6 +8,7 @@
 - любое другое сообщение — предлагает, что с ним сделать (вопрос/история),
   чтобы человек никогда не оставался без ответа.
 """
+import html
 import random
 import re
 
@@ -17,10 +18,17 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from handlers.contacts import is_howto_question, process_query
-from handlers.submissions import THANKS, _ask_video_credit, create_submission, extract_content
+from handlers.submissions import (
+    THANKS,
+    VIDEO_FILE_INSTRUCTIONS,
+    _ask_video_credit,
+    create_submission,
+    extract_content,
+)
 from keyboards.menus import cancel_menu, main_menu
 from utils.ai import classify_intent, reply_with_ai
 from utils.geo import detect_category
+from utils.video_submissions import MAX_ORIGINAL_VIDEO_BYTES, is_video_document
 
 router = Router()
 # Свободный чат / ИИ-диалог — только в личных чатах (в группе своя логика)
@@ -177,14 +185,29 @@ async def free_chat(message: Message, state: FSMContext) -> None:
 async def free_media(message: Message, state: FSMContext) -> None:
     """Видео/фото без кнопки меню — предлагаем отправить в предложку."""
     text, file_id, file_type = extract_content(message)
-    is_video = bool(
-        message.video
-        or (
-            message.document
-            and (message.document.mime_type or "").lower().startswith("video/")
+    if message.video:
+        from states.forms import VideoForm
+        await state.set_state(VideoForm.waiting_for_content)
+        await message.answer(
+            "⚠️ <b>Telegram уже сжал это видео, поэтому я не добавил его в "
+            "предложку.</b>\n\n" + VIDEO_FILE_INSTRUCTIONS,
+            reply_markup=cancel_menu(),
         )
-    )
-    media = message.video or (message.document if is_video else None)
+        return
+
+    is_video = is_video_document(message.document)
+    media = message.document if is_video else None
+    if media and media.file_size and media.file_size > MAX_ORIGINAL_VIDEO_BYTES:
+        from states.forms import VideoForm
+        await state.set_state(VideoForm.waiting_for_content)
+        size_mb = round(media.file_size / 1024 / 1024, 1)
+        await message.answer(
+            f"Файл весит {size_mb} МБ, а максимальный размер — 200 МБ. "
+            "Обрежь лишнее или экспортируй ролик в 1080p с высоким качеством и "
+            "отправь снова именно файлом.",
+            reply_markup=cancel_menu(),
+        )
+        return
     media_data = None
     if media:
         media_data = {
@@ -196,7 +219,7 @@ async def free_media(message: Message, state: FSMContext) -> None:
             "duration": getattr(media, "duration", None),
             "width": getattr(media, "width", None),
             "height": getattr(media, "height", None),
-            "telegram_type": "video" if message.video else "document",
+            "telegram_type": "document",
         }
     await state.update_data(
         chat_text=text,
@@ -206,7 +229,15 @@ async def free_media(message: Message, state: FSMContext) -> None:
     )
 
     if is_video:
-        prompt = "Вижу видео! 🎬 Отправить его в предложку для нашего Instagram?"
+        size_text = (
+            f" · {round(media.file_size / 1024 / 1024, 1)} МБ"
+            if media and media.file_size else ""
+        )
+        prompt = (
+            "✅ Вижу оригинальный видеофайл без сжатия\n"
+            f"{html.escape(media.file_name or 'Видеофайл')}{size_text}\n\n"
+            "Отправить его в предложку для Instagram?"
+        )
     else:
         prompt = "Получил фото 📸 Что мне с ним сделать?"
 

@@ -77,10 +77,14 @@ def test_import_bot() -> None:
 
 def test_video_submission_flow() -> None:
     import json
+    from types import SimpleNamespace
+    from handlers.submissions import VIDEO_FILE_INSTRUCTIONS
     from utils.notify import video_moderation_keyboard
     from utils.video_submissions import (
         CONSENT_VERSION,
+        MAX_ORIGINAL_VIDEO_BYTES,
         instagram_caption,
+        is_video_document,
         make_payload,
         normalize_instagram,
     )
@@ -89,6 +93,15 @@ def test_video_submission_flow() -> None:
           normalize_instagram("https://instagram.com/alex.nl/?utm_source=x") == "@alex.nl")
     check("некорректное авторство не принимается",
           normalize_instagram("не профиль") is None)
+    check("принимается только видео, отправленное документом",
+          is_video_document(SimpleNamespace(mime_type="video/quicktime", file_name="IMG.mov"))
+          and not is_video_document(SimpleNamespace(mime_type="application/pdf", file_name="file.pdf")))
+    check("инструкция запрещает обычную отправку со сжатием",
+          "не выбирай обычную отправку" in VIDEO_FILE_INSTRUCTIONS.lower()
+          and "iPhone" in VIDEO_FILE_INSTRUCTIONS
+          and "Android" in VIDEO_FILE_INSTRUCTIONS)
+    check("лимит оригинального видео равен 200 МБ",
+          MAX_ORIGINAL_VIDEO_BYTES == 200 * 1024 * 1024)
 
     details = {
         "context": "Парад цветов в Зюндерте, снято сегодня днём",

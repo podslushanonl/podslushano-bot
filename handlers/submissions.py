@@ -33,11 +33,28 @@ from utils.ai import ai_enabled, ai_reply
 from utils.analytics import log_event, log_product_event
 from utils.limits import allow_ai
 from utils.notify import send_to_admins
-from utils.video_submissions import CONSENT_VERSION, credit_text, normalize_instagram
+from utils.video_submissions import (
+    CONSENT_VERSION,
+    MAX_ORIGINAL_VIDEO_BYTES,
+    credit_text,
+    is_video_document,
+    normalize_instagram,
+)
 
 router = Router()
 # Приём заявок — только в личных чатах
 router.message.filter(F.chat.type == ChatType.PRIVATE)
+
+VIDEO_FILE_INSTRUCTIONS = (
+    "📎 <b>Нужно отправить видео именно файлом</b>\n\n"
+    "Не выбирай обычную отправку через «Фото или видео» — Telegram сожмёт ролик "
+    "и ухудшит качество.\n\n"
+    "<b>На iPhone:</b> открой видео в «Фото» → «Поделиться» → «Сохранить в Файлы». "
+    "Затем вернись сюда → нажми скрепку → «Файл» → выбери сохранённое видео.\n\n"
+    "<b>На Android:</b> нажми скрепку → «Файл» → выбери видео в памяти телефона.\n\n"
+    "Перед отправкой должна быть видна карточка файла с названием и размером, "
+    "а не обычное превью видео. Максимальный размер — 200 МБ."
+)
 
 # Тёплые подтверждения после отправки — для каждого типа заявки своё
 THANKS = {
@@ -100,8 +117,9 @@ async def ask_video(message: Message, state: FSMContext) -> None:
         "Это может быть красивое место, необычная ситуация, событие, полезное "
         "наблюдение или просто живой момент из жизни здесь.\n\n"
         "Лучше всего подходит оригинальное вертикальное видео без чужих "
-        "водяных знаков и наложенной музыки. Пришли его как видео или файлом. "
-        "После загрузки останется несколько коротких шагов — займёт меньше минуты.",
+        "водяных знаков и наложенной музыки.\n\n"
+        + VIDEO_FILE_INSTRUCTIONS
+        + "\n\nПосле загрузки останется несколько коротких шагов — займёт меньше минуты.",
         reply_markup=cancel_menu(),
     )
 
@@ -389,18 +407,31 @@ async def q_done(callback: CallbackQuery, state: FSMContext) -> None:
 
 @router.message(VideoForm.waiting_for_content)
 async def receive_video(message: Message, state: FSMContext) -> None:
-    is_video_document = bool(
-        message.document
-        and (message.document.mime_type or "").lower().startswith("video/")
-    )
-    if not (message.video or is_video_document):
+    if message.video:
         await message.answer(
-            "Это не видео. Пришли, пожалуйста, видеофайл — "
-            "или нажми «❌ Отмена», если передумал(а)."
+            "⚠️ <b>Это видео отправлено с обычным сжатием Telegram, поэтому я не "
+            "добавил его в заявку.</b>\n\n" + VIDEO_FILE_INSTRUCTIONS,
+            reply_markup=cancel_menu(),
+        )
+        return
+    if not is_video_document(message.document):
+        await message.answer(
+            "Это не видеофайл. Подойдут файлы MP4, MOV, M4V или WEBM.\n\n"
+            + VIDEO_FILE_INSTRUCTIONS,
+            reply_markup=cancel_menu(),
         )
         return
 
-    media = message.video or message.document
+    media = message.document
+    if media.file_size and media.file_size > MAX_ORIGINAL_VIDEO_BYTES:
+        size_mb = round(media.file_size / 1024 / 1024, 1)
+        await message.answer(
+            f"Файл весит {size_mb} МБ, а максимальный размер — 200 МБ. "
+            "Можно обрезать лишнее начало или конец либо экспортировать ролик в "
+            "1080p с высоким качеством, затем снова отправить именно файлом.",
+            reply_markup=cancel_menu(),
+        )
+        return
     media_data = {
         "file_id": media.file_id,
         "file_unique_id": media.file_unique_id,
@@ -410,9 +441,18 @@ async def receive_video(message: Message, state: FSMContext) -> None:
         "duration": getattr(media, "duration", None),
         "width": getattr(media, "width", None),
         "height": getattr(media, "height", None),
-        "telegram_type": "video" if message.video else "document",
+        "telegram_type": "document",
     }
     await state.update_data(video_media=media_data)
+
+    size_text = (
+        f" · {round(media.file_size / 1024 / 1024, 1)} МБ"
+        if media.file_size else ""
+    )
+    await message.answer(
+        "✅ <b>Оригинал получен без сжатия</b>\n"
+        f"{html.escape(media.file_name or 'Видеофайл')}{size_text}"
+    )
 
     supplied_context = (message.caption or "").strip()
     if len(supplied_context) >= 10:
