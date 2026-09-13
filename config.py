@@ -119,7 +119,6 @@ AD_REMINDER_HOUR: int = int(os.getenv("AD_REMINDER_HOUR", "9"))
 # Вебхук Make для авто-публикации Instagram-каруселей (бот шлёт туда JSON с
 # готовыми слайдами и подписью, Make публикует). Пусто = функция выключена.
 MAKE_WEBHOOK_URL: str = os.getenv("MAKE_WEBHOOK_URL", "")
-
 # Веб-поиск для ИИ — даёт свежую информацию (актуальные цифры, правила, новости).
 # 1/true — включён (по умолчанию). 0/false — выключить.
 AI_WEB_SEARCH: bool = os.getenv("AI_WEB_SEARCH", "1").strip().lower() in (

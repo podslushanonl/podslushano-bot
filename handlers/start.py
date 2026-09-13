@@ -144,6 +144,11 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from handlers.submissions import ask_question
         await ask_question(message, state)
         return
+    # Прямая ссылка из Instagram/сайта сразу открывает умную отправку видео.
+    if command.args == "video":
+        from handlers.submissions import ask_video
+        await ask_video(message, state)
+        return
     # Пришёл по кнопке «Разместить объявление» из поста в канале (?start=board)
     if command.args == "board":
         from handlers.board import start_new_listing

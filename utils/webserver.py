@@ -16,7 +16,7 @@ from sqlalchemy import or_, select
 
 import config
 from database.db import get_session
-from database.models import AdLead, Listing, Specialist
+from database.models import AdLead, Listing, Specialist, Submission
 from handlers.selfadd import on_payment_paid
 from utils.contact_links import parse_contact_links
 from utils.geo import CATEGORIES, specialist_matches_category
@@ -90,7 +90,7 @@ def _switch(page: str, lang: str) -> str:
 
 _PRIVACY_RU = """
 <h1>Политика конфиденциальности</h1>
-<p class="upd">Обновлено: 23.07.2026</p>
+<p class="upd">Обновлено: 13.09.2026</p>
 <p>Эта политика объясняет, как сервис «Подслушано в Нидерландах»
 (Telegram-бот @podslushano_nl_bot) обрабатывает персональные данные.
 Ответственный за обработку (verwerkingsverantwoordelijke) — компания,
@@ -120,6 +120,8 @@ _PRIVACY_RU = """
  <li>обработка оплаты и выставление счёта — исполнение договора и юридическая
   обязанность по налоговому учёту (ст. 6(1)(b), 6(1)(c));</li>
  <li>ответы ИИ-ассистента — законный интерес/ваше согласие (ст. 6(1)(a),(f));</li>
+ <li>подготовка и публикация присланных видео с указанным авторством — ваше
+  явное согласие, которое можно отозвать до публикации;</li>
  <li>анонсы и рассылки — ваше согласие, его можно отозвать в любой момент;</li>
  <li>аналитика для улучшения сервиса — законный интерес.</li>
 </ul>
@@ -132,6 +134,8 @@ _PRIVACY_RU = """
  <li>Anthropic — ИИ-ассистент (обработка ваших вопросов для ответа);</li>
  <li>Resend и/или Google (Gmail) — отправка счетов на e-mail;</li>
  <li>Railway — хостинг (серверы в ЕС);</li>
+ <li>Meta (Instagram) — публикация видео, которые вы добровольно отправили
+  и разрешили опубликовать;</li>
  <li>Google (Places) — фотографии мест для постов; ваши персональные данные
   при этом не передаются.</li>
 </ul>
@@ -181,7 +185,7 @@ _PRIVACY_RU = """
 
 _PRIVACY_NL = """
 <h1>Privacyverklaring</h1>
-<p class="upd">Laatst bijgewerkt: 23-07-2026</p>
+<p class="upd">Laatst bijgewerkt: 13-09-2026</p>
 <p>Deze verklaring legt uit hoe de dienst «Podslushano in Nederland»
 (Telegram-bot @podslushano_nl_bot) persoonsgegevens verwerkt. De
 verwerkingsverantwoordelijke is het bedrijf vermeld in de bedrijfsgegevens
@@ -211,6 +215,8 @@ onderaan deze pagina.</p>
  <li>betalingen en facturen — uitvoering overeenkomst en wettelijke (fiscale)
   verplichting (art. 6(1)(b), 6(1)(c));</li>
  <li>antwoorden van de AI-assistent — gerechtvaardigd belang/toestemming (art. 6(1)(a),(f));</li>
+ <li>voorbereiding en publicatie van ingestuurde video's met naamsvermelding —
+  je uitdrukkelijke toestemming, die je vóór publicatie kunt intrekken;</li>
  <li>aankondigingen en mailings — je toestemming, die je altijd kunt intrekken;</li>
  <li>analyse ter verbetering van de dienst — gerechtvaardigd belang.</li>
 </ul>
@@ -223,6 +229,8 @@ onderaan deze pagina.</p>
  <li>Anthropic — AI-assistent (verwerkt je vragen om te antwoorden);</li>
  <li>Resend en/of Google (Gmail) — verzenden van facturen per e-mail;</li>
  <li>Railway — hosting (servers in de EU);</li>
+ <li>Meta (Instagram) — publicatie van video's die je vrijwillig hebt ingestuurd
+  en waarvoor je toestemming hebt gegeven;</li>
  <li>Google (Places) — foto's van locaties voor posts; je persoonsgegevens
   worden hierbij niet gedeeld.</li>
 </ul>

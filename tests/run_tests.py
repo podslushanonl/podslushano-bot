@@ -48,6 +48,7 @@ from database.models import (  # noqa: E402
     SavedItem,
     Specialist,
     SpecialistReminderLog,
+    Submission,
 )
 
 _fails: list[str] = []
@@ -72,6 +73,67 @@ def test_import_bot() -> None:
     from handlers.home import home_digest, home_profile
     check("профиль и подборка используют разные обработчики",
           home_profile is not home_digest)
+
+
+def test_video_submission_flow() -> None:
+    import json
+    from types import SimpleNamespace
+    from handlers.submissions import VIDEO_FILE_INSTRUCTIONS
+    from utils.notify import video_moderation_keyboard
+    from utils.video_submissions import (
+        CONSENT_VERSION,
+        MAX_ORIGINAL_VIDEO_BYTES,
+        instagram_caption,
+        is_video_document,
+        normalize_instagram,
+    )
+
+    check("Instagram автора нормализуется из ссылки",
+          normalize_instagram("https://instagram.com/alex.nl/?utm_source=x") == "@alex.nl")
+    check("некорректное авторство не принимается",
+          normalize_instagram("не профиль") is None)
+    check("принимается только видео, отправленное документом",
+          is_video_document(SimpleNamespace(mime_type="video/quicktime", file_name="IMG.mov"))
+          and not is_video_document(SimpleNamespace(mime_type="application/pdf", file_name="file.pdf")))
+    check("инструкция запрещает обычную отправку со сжатием",
+          "не выбирай обычную отправку" in VIDEO_FILE_INSTRUCTIONS.lower()
+          and "iPhone" in VIDEO_FILE_INSTRUCTIONS
+          and "Android" in VIDEO_FILE_INSTRUCTIONS)
+    check("лимит оригинального видео равен 200 МБ",
+          MAX_ORIGINAL_VIDEO_BYTES == 200 * 1024 * 1024)
+
+    details = {
+        "context": "Парад цветов в Зюндерте, снято сегодня днём",
+        "credit": {"type": "instagram", "value": "@alex.nl"},
+        "media": {"duration": 18, "width": 1080, "height": 1920},
+        "consent": {"accepted": True, "version": CONSENT_VERSION,
+                    "accepted_at": "2026-09-13T09:00:00+00:00"},
+    }
+    submission = Submission(
+        id=77, type="video", user_id=123, username="telegram_user",
+        text=details["context"], file_id="telegram-file-id", file_type="video",
+        details=json.dumps(details, ensure_ascii=False), status="pending",
+        created_at=datetime(2026, 9, 13, 9, 0),
+    )
+    caption = instagram_caption(details)
+    pending_callbacks = [
+        button.callback_data
+        for row in video_moderation_keyboard(77).inline_keyboard
+        for button in row
+    ]
+    banked_callbacks = [
+        button.callback_data
+        for row in video_moderation_keyboard(77, banked=True).inline_keyboard
+        for button in row
+    ]
+    check("готовая подпись содержит контекст и авторство",
+          details["context"] in caption and "@alex.nl" in caption)
+    check("новое видео сначала проходит ручной отбор",
+          f"video:bank:{submission.id}" in pending_callbacks
+          and f"video:publish:{submission.id}" not in pending_callbacks)
+    check("бот только вручную отмечает публикацию",
+          f"video:publish:{submission.id}" in banked_callbacks
+          and f"video:reject:{submission.id}" in banked_callbacks)
 
 
 def test_specialist_premium_six_month_plan() -> None:
@@ -2073,6 +2135,7 @@ async def test_repeat_ad_reserves_second_date() -> None:
 
 async def main() -> None:
     test_import_bot()
+    test_video_submission_flow()
     test_specialist_premium_six_month_plan()
     test_specialist_onboarding_ux()
     test_board_ux()

@@ -8,6 +8,7 @@
 - любое другое сообщение — предлагает, что с ним сделать (вопрос/история),
   чтобы человек никогда не оставался без ответа.
 """
+import html
 import random
 import re
 
@@ -17,10 +18,17 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from handlers.contacts import is_howto_question, process_query
-from handlers.submissions import THANKS, create_submission, extract_content
-from keyboards.menus import main_menu
+from handlers.submissions import (
+    THANKS,
+    VIDEO_FILE_INSTRUCTIONS,
+    _ask_video_credit,
+    create_submission,
+    extract_content,
+)
+from keyboards.menus import cancel_menu, main_menu
 from utils.ai import classify_intent, reply_with_ai
 from utils.geo import detect_category
+from utils.video_submissions import MAX_ORIGINAL_VIDEO_BYTES, is_video_document
 
 router = Router()
 # Свободный чат / ИИ-диалог — только в личных чатах (в группе своя логика)
@@ -177,10 +185,59 @@ async def free_chat(message: Message, state: FSMContext) -> None:
 async def free_media(message: Message, state: FSMContext) -> None:
     """Видео/фото без кнопки меню — предлагаем отправить в предложку."""
     text, file_id, file_type = extract_content(message)
-    await state.update_data(chat_text=text, chat_file_id=file_id, chat_file_type=file_type)
+    if message.video:
+        from states.forms import VideoForm
+        await state.set_state(VideoForm.waiting_for_content)
+        await message.answer(
+            "⚠️ <b>Telegram уже сжал это видео, поэтому я не добавил его в "
+            "предложку.</b>\n\n" + VIDEO_FILE_INSTRUCTIONS,
+            reply_markup=cancel_menu(),
+        )
+        return
 
-    if file_type == "video":
-        prompt = "Вижу видео! 🎬 Отправить его в предложку для нашего Instagram?"
+    is_video = is_video_document(message.document)
+    media = message.document if is_video else None
+    if media and media.file_size and media.file_size > MAX_ORIGINAL_VIDEO_BYTES:
+        from states.forms import VideoForm
+        await state.set_state(VideoForm.waiting_for_content)
+        size_mb = round(media.file_size / 1024 / 1024, 1)
+        await message.answer(
+            f"Файл весит {size_mb} МБ, а максимальный размер — 200 МБ. "
+            "Обрежь лишнее или экспортируй ролик в 1080p с высоким качеством и "
+            "отправь снова именно файлом.",
+            reply_markup=cancel_menu(),
+        )
+        return
+    media_data = None
+    if media:
+        media_data = {
+            "file_id": media.file_id,
+            "file_unique_id": media.file_unique_id,
+            "file_name": getattr(media, "file_name", None),
+            "mime_type": getattr(media, "mime_type", None) or "video/mp4",
+            "file_size": getattr(media, "file_size", None),
+            "duration": getattr(media, "duration", None),
+            "width": getattr(media, "width", None),
+            "height": getattr(media, "height", None),
+            "telegram_type": "document",
+        }
+    await state.update_data(
+        chat_text=text,
+        chat_file_id=file_id,
+        chat_file_type=file_type,
+        chat_video_media=media_data,
+    )
+
+    if is_video:
+        size_text = (
+            f" · {round(media.file_size / 1024 / 1024, 1)} МБ"
+            if media and media.file_size else ""
+        )
+        prompt = (
+            "✅ Вижу оригинальный видеофайл без сжатия\n"
+            f"{html.escape(media.file_name or 'Видеофайл')}{size_text}\n\n"
+            "Отправить его в предложку для Instagram?"
+        )
     else:
         prompt = "Получил фото 📸 Что мне с ним сделать?"
 
@@ -189,7 +246,7 @@ async def free_media(message: Message, state: FSMContext) -> None:
     if file_type == "photo":
         rows.append([InlineKeyboardButton(
             text="📩 Объяснить письмо (по-русски)", callback_data="letter:explain")])
-    if file_type == "video":
+    if is_video:
         rows.append([InlineKeyboardButton(text="🎬 Да, это видео в предложку", callback_data="chat:video")])
     rows.append([InlineKeyboardButton(text="📰 Это к истории — анонимно", callback_data="chat:story")])
     rows.append([InlineKeyboardButton(text="❌ Ничего, я случайно", callback_data="chat:menu")])
@@ -243,6 +300,27 @@ async def chat_action(callback: CallbackQuery, state: FSMContext) -> None:
             "Ой, я потерял твоё сообщение 🙈 Пришли его ещё раз, пожалуйста!",
             reply_markup=main_menu(),
         )
+        await callback.answer()
+        return
+
+    if action == "video":
+        media = data.get("chat_video_media") or {
+            "file_id": file_id,
+            "telegram_type": file_type or "video",
+        }
+        await state.update_data(video_media=media)
+        if text and len(text.strip()) >= 10:
+            await state.update_data(video_context=text.strip()[:700])
+            await _ask_video_credit(callback.message, state)
+        else:
+            from states.forms import VideoForm
+            await state.set_state(VideoForm.waiting_for_context)
+            await callback.message.answer(
+                "📍 <b>Что снято и где?</b> Напиши одним сообщением, чтобы мы "
+                "правильно поняли контекст видео.",
+                reply_markup=cancel_menu(),
+            )
+        await callback.message.edit_reply_markup(reply_markup=None)
         await callback.answer()
         return
 

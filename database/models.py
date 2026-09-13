@@ -25,7 +25,10 @@ class Submission(Base):
     # Вложение (видео/фото/документ), если есть — храним telegram file_id
     file_id: Mapped[str | None] = mapped_column(Text, nullable=True)
     file_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    # Статус: pending | approved | rejected
+    # Структурированные данные анкеты (JSON). Для видео: авторство, контекст,
+    # параметры файла и зафиксированное согласие на публикацию.
+    details: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Статус: pending | approved (контент-банк) | published | rejected
     status: Mapped[str] = mapped_column(String(20), default="pending")
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
