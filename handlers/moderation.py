@@ -7,12 +7,15 @@ from aiogram.enums import ChatType
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
+from sqlalchemy import select
 
 import config
 from database.db import get_session
 from database.models import Meta, Submission
 from keyboards.menus import cancel_menu
 from states.forms import SupportReply
+from utils.notify import video_moderation_keyboard
+from utils.video_submissions import admin_caption, send_video_to_make
 
 log = logging.getLogger(__name__)
 
@@ -125,6 +128,161 @@ async def _update_status(submission_id: int, status: str) -> Submission | None:
         await session.commit()
         await session.refresh(submission)
         return submission
+
+
+async def _edit_video_card(callback: CallbackQuery, submission: Submission) -> None:
+    caption = admin_caption(submission)
+    try:
+        if callback.message.caption is not None:
+            await callback.message.edit_caption(
+                caption=caption,
+                reply_markup=(
+                    video_moderation_keyboard(submission.id, banked=True)
+                    if submission.status == "approved" else None
+                ),
+            )
+        else:
+            await callback.message.edit_text(
+                caption,
+                reply_markup=(
+                    video_moderation_keyboard(submission.id, banked=True)
+                    if submission.status == "approved" else None
+                ),
+            )
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Не удалось обновить карточку видео %s: %s", submission.id, exc)
+
+
+async def _notify_video_author(bot, submission: Submission, text: str) -> None:
+    try:
+        await bot.send_message(submission.user_id, text)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Не удалось уведомить автора видео %s: %s", submission.id, exc)
+
+
+@router.callback_query(F.data.startswith("video:bank:"))
+async def video_to_bank(callback: CallbackQuery) -> None:
+    if callback.from_user.id not in config.ADMIN_IDS:
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+    submission_id = int(callback.data.rsplit(":", 1)[1])
+    async with get_session() as session:
+        current = await session.get(Submission, submission_id)
+    if current is None or current.type != "video":
+        await callback.answer("Видео не найдено", show_alert=True)
+        return
+    if current is not None and current.status == "approved":
+        await callback.answer("Видео уже в контент-банке", show_alert=True)
+        return
+    if current is not None and current.status in {"published", "rejected"}:
+        await callback.answer("Это видео уже обработано", show_alert=True)
+        return
+    submission = await _update_status(submission_id, "approved")
+    if submission is None or submission.type != "video":
+        await callback.answer("Видео не найдено", show_alert=True)
+        return
+    await _edit_video_card(callback, submission)
+    await _notify_video_author(
+        callback.bot,
+        submission,
+        "Твоё видео прошло проверку и добавлено в наш контент-банк 🎬\n\n"
+        "Когда отправим его в публикацию, бот напишет тебе ещё раз.",
+    )
+    await callback.answer("Добавлено в контент-банк")
+
+
+@router.callback_query(F.data.startswith("video:reject:"))
+async def video_reject(callback: CallbackQuery) -> None:
+    if callback.from_user.id not in config.ADMIN_IDS:
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+    submission_id = int(callback.data.rsplit(":", 1)[1])
+    async with get_session() as session:
+        current = await session.get(Submission, submission_id)
+    if current is None or current.type != "video":
+        await callback.answer("Видео не найдено", show_alert=True)
+        return
+    if current.status in {"published", "rejected"}:
+        await callback.answer("Это видео уже обработано", show_alert=True)
+        return
+    submission = await _update_status(submission_id, "rejected")
+    if submission is None or submission.type != "video":
+        await callback.answer("Видео не найдено", show_alert=True)
+        return
+    await _edit_video_card(callback, submission)
+    await _notify_video_author(callback.bot, submission, USER_REJECTED)
+    await callback.answer("Видео отклонено")
+
+
+@router.callback_query(F.data.startswith("video:publish:"))
+async def video_publish(callback: CallbackQuery) -> None:
+    if callback.from_user.id not in config.ADMIN_IDS:
+        await callback.answer("Только для администраторов", show_alert=True)
+        return
+    submission_id = int(callback.data.rsplit(":", 1)[1])
+    async with get_session() as session:
+        submission = await session.get(Submission, submission_id)
+    if submission is None or submission.type != "video":
+        await callback.answer("Видео не найдено", show_alert=True)
+        return
+    if submission.status == "published":
+        await callback.answer("Видео уже передано в публикацию", show_alert=True)
+        return
+    if submission.status == "rejected":
+        await callback.answer("Видео уже отклонено", show_alert=True)
+        return
+
+    await callback.answer("Передаю в Make…")
+    ok, detail = await send_video_to_make(submission)
+    if not ok:
+        await callback.message.answer(
+            "❌ Видео не передано в Make. Статус не изменён.\n"
+            f"<b>Причина:</b> {html.escape(detail or 'неизвестно')}"
+        )
+        return
+
+    submission = await _update_status(submission_id, "published")
+    if submission is None:
+        return
+    await _edit_video_card(callback, submission)
+    await _notify_video_author(
+        callback.bot,
+        submission,
+        "Твоё видео отправлено в публикацию в Instagram @podslushano.nl 🎉\n\n"
+        "Спасибо, что показываешь Нидерланды вместе с нами!",
+    )
+    await callback.message.answer("✅ Видео и готовая подпись переданы в Make.")
+
+
+async def show_video_bank(message: Message) -> None:
+    """Показывает последние одобренные видео, ожидающие публикации."""
+    async with get_session() as session:
+        videos = list((await session.scalars(
+            select(Submission).where(
+                Submission.type == "video",
+                Submission.status == "approved",
+            ).order_by(Submission.created_at.desc()).limit(10)
+        )).all())
+    if not videos:
+        await message.answer("🎬 <b>Контент-банк видео</b>\n\nСейчас нет видео, ожидающих публикации.")
+        return
+    await message.answer(
+        f"🎬 <b>Контент-банк видео</b>\n\nГотово к публикации: {len(videos)}"
+    )
+    for submission in videos:
+        caption = admin_caption(submission)
+        keyboard = video_moderation_keyboard(submission.id, banked=True)
+        try:
+            if submission.file_type == "document":
+                await message.bot.send_document(
+                    message.chat.id, submission.file_id, caption=caption, reply_markup=keyboard
+                )
+            else:
+                await message.bot.send_video(
+                    message.chat.id, submission.file_id, caption=caption, reply_markup=keyboard
+                )
+        except Exception as exc:  # noqa: BLE001
+            log.warning("Не удалось показать видео %s: %s", submission.id, exc)
 
 
 @router.callback_query(F.data.startswith("approve:"))

@@ -7,6 +7,7 @@ from database.db import get_session
 from database.models import Meta, Submission
 from keyboards.menus import moderation_buttons
 from utils.ai_sales import ADS_URL, analyze_ad_submission, format_admin_block
+from utils.video_submissions import admin_caption
 
 
 async def get_mod_chat() -> int | None:
@@ -112,6 +113,32 @@ def _ad_keyboard(submission_id: int) -> InlineKeyboardMarkup:
     )
 
 
+def video_moderation_keyboard(submission_id: int, *, banked: bool = False) -> InlineKeyboardMarkup:
+    """Один экран для публикации, банка контента и связи с автором."""
+    rows = [
+        [InlineKeyboardButton(
+            text="🚀 Опубликовать в Instagram",
+            callback_data=f"video:publish:{submission_id}",
+        )],
+    ]
+    if not banked:
+        rows.append([InlineKeyboardButton(
+            text="🗂 Добавить в контент-банк",
+            callback_data=f"video:bank:{submission_id}",
+        )])
+    rows.extend([
+        [InlineKeyboardButton(
+            text="✍️ Уточнить у автора",
+            callback_data=f"subreply:{submission_id}",
+        )],
+        [InlineKeyboardButton(
+            text="❌ Отклонить",
+            callback_data=f"video:reject:{submission_id}",
+        )],
+    ])
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
 async def send_to_admins(bot: Bot, submission: Submission) -> None:
     """Шлёт заявку в общий модер-чат (если задан) или каждому админу в личку."""
     caption = _header(submission)
@@ -119,6 +146,10 @@ async def send_to_admins(bot: Bot, submission: Submission) -> None:
 
     if submission.type == "story":
         keyboard = _story_keyboard(submission.id)
+
+    if submission.type == "video":
+        caption = admin_caption(submission)
+        keyboard = video_moderation_keyboard(submission.id)
 
     if submission.type == "ad":
         analysis = await analyze_ad_submission(submission)

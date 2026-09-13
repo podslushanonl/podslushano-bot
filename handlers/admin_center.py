@@ -82,6 +82,7 @@ async def quick(callback: CallbackQuery):
 @router.callback_query(F.data == "ac:content")
 async def content(callback: CallbackQuery):
     await _show(callback.message, "📝 <b>Контент</b>", _kb([
+        [InlineKeyboardButton(text="🎬 Видео подписчиков", callback_data="ac:videos")],
         [InlineKeyboardButton(text="🗓 Контент-план", callback_data="content:plan")],
         [InlineKeyboardButton(text="👀 Редакционные посты", callback_data="ac:editorial")],
         [InlineKeyboardButton(text="📝 Пост в канал", callback_data="admin:post")],
@@ -89,6 +90,13 @@ async def content(callback: CallbackQuery):
         [InlineKeyboardButton(text="📸 Instagram-карусель", callback_data="admin:ig")],
         _nav(),
     ]))
+    await callback.answer()
+
+
+@router.callback_query(F.data == "ac:videos")
+async def videos(callback: CallbackQuery):
+    from handlers.moderation import show_video_bank
+    await show_video_bank(callback.message)
     await callback.answer()
 
 

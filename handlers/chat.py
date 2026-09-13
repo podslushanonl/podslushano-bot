@@ -17,8 +17,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
 from handlers.contacts import is_howto_question, process_query
-from handlers.submissions import THANKS, create_submission, extract_content
-from keyboards.menus import main_menu
+from handlers.submissions import THANKS, _ask_video_credit, create_submission, extract_content
+from keyboards.menus import cancel_menu, main_menu
 from utils.ai import classify_intent, reply_with_ai
 from utils.geo import detect_category
 
@@ -177,9 +177,35 @@ async def free_chat(message: Message, state: FSMContext) -> None:
 async def free_media(message: Message, state: FSMContext) -> None:
     """Видео/фото без кнопки меню — предлагаем отправить в предложку."""
     text, file_id, file_type = extract_content(message)
-    await state.update_data(chat_text=text, chat_file_id=file_id, chat_file_type=file_type)
+    is_video = bool(
+        message.video
+        or (
+            message.document
+            and (message.document.mime_type or "").lower().startswith("video/")
+        )
+    )
+    media = message.video or (message.document if is_video else None)
+    media_data = None
+    if media:
+        media_data = {
+            "file_id": media.file_id,
+            "file_unique_id": media.file_unique_id,
+            "file_name": getattr(media, "file_name", None),
+            "mime_type": getattr(media, "mime_type", None) or "video/mp4",
+            "file_size": getattr(media, "file_size", None),
+            "duration": getattr(media, "duration", None),
+            "width": getattr(media, "width", None),
+            "height": getattr(media, "height", None),
+            "telegram_type": "video" if message.video else "document",
+        }
+    await state.update_data(
+        chat_text=text,
+        chat_file_id=file_id,
+        chat_file_type=file_type,
+        chat_video_media=media_data,
+    )
 
-    if file_type == "video":
+    if is_video:
         prompt = "Вижу видео! 🎬 Отправить его в предложку для нашего Instagram?"
     else:
         prompt = "Получил фото 📸 Что мне с ним сделать?"
@@ -189,7 +215,7 @@ async def free_media(message: Message, state: FSMContext) -> None:
     if file_type == "photo":
         rows.append([InlineKeyboardButton(
             text="📩 Объяснить письмо (по-русски)", callback_data="letter:explain")])
-    if file_type == "video":
+    if is_video:
         rows.append([InlineKeyboardButton(text="🎬 Да, это видео в предложку", callback_data="chat:video")])
     rows.append([InlineKeyboardButton(text="📰 Это к истории — анонимно", callback_data="chat:story")])
     rows.append([InlineKeyboardButton(text="❌ Ничего, я случайно", callback_data="chat:menu")])
@@ -243,6 +269,27 @@ async def chat_action(callback: CallbackQuery, state: FSMContext) -> None:
             "Ой, я потерял твоё сообщение 🙈 Пришли его ещё раз, пожалуйста!",
             reply_markup=main_menu(),
         )
+        await callback.answer()
+        return
+
+    if action == "video":
+        media = data.get("chat_video_media") or {
+            "file_id": file_id,
+            "telegram_type": file_type or "video",
+        }
+        await state.update_data(video_media=media)
+        if text and len(text.strip()) >= 10:
+            await state.update_data(video_context=text.strip()[:700])
+            await _ask_video_credit(callback.message, state)
+        else:
+            from states.forms import VideoForm
+            await state.set_state(VideoForm.waiting_for_context)
+            await callback.message.answer(
+                "📍 <b>Что снято и где?</b> Напиши одним сообщением, чтобы мы "
+                "правильно поняли контекст видео.",
+                reply_markup=cancel_menu(),
+            )
+        await callback.message.edit_reply_markup(reply_markup=None)
         await callback.answer()
         return
 

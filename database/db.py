@@ -42,6 +42,11 @@ _USER_LATER_COLUMNS = {
     "referred_by": "BIGINT",
 }
 
+_SUBMISSION_LATER_COLUMNS = {
+    "details": "TEXT",
+    "media_token": "VARCHAR(64)",
+}
+
 # Колонки таблицы броней рекламы, которые могли появиться позже
 _AD_LATER_COLUMNS = {
     "opt": "VARCHAR(20) DEFAULT 'std'",
@@ -130,6 +135,20 @@ async def _repair_misclassified_specialists() -> None:
 async def _migrate() -> None:
     """Добавляет недостающие колонки в таблицу специалистов (без потери данных)."""
     async with engine.begin() as conn:
+        def submission_cols(sync_conn):
+            insp = inspect(sync_conn)
+            if "submissions" not in insp.get_table_names():
+                return None
+            return {c["name"] for c in insp.get_columns("submissions")}
+
+        scols = await conn.run_sync(submission_cols)
+        if scols is not None:
+            for name, ddl in _SUBMISSION_LATER_COLUMNS.items():
+                if name not in scols:
+                    await conn.exec_driver_sql(
+                        f"ALTER TABLE submissions ADD COLUMN {name} {ddl}"
+                    )
+
         def existing_cols(sync_conn) -> set[str]:
             return {c["name"] for c in inspect(sync_conn).get_columns("specialists")}
 

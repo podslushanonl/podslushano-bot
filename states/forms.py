@@ -14,6 +14,12 @@ class QuestionForm(StatesGroup):
 
 class VideoForm(StatesGroup):
     waiting_for_content = State()
+    waiting_for_context = State()
+    choosing_credit = State()
+    waiting_for_instagram = State()
+    waiting_for_name = State()
+    confirming_rights = State()
+    confirming_submission = State()
 
 
 class AdForm(StatesGroup):

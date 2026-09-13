@@ -48,6 +48,7 @@ from database.models import (  # noqa: E402
     SavedItem,
     Specialist,
     SpecialistReminderLog,
+    Submission,
 )
 
 _fails: list[str] = []
@@ -72,6 +73,60 @@ def test_import_bot() -> None:
     from handlers.home import home_digest, home_profile
     check("профиль и подборка используют разные обработчики",
           home_profile is not home_digest)
+
+
+def test_video_submission_flow() -> None:
+    import json
+    from utils.notify import video_moderation_keyboard
+    from utils.video_submissions import (
+        CONSENT_VERSION,
+        instagram_caption,
+        make_payload,
+        normalize_instagram,
+    )
+
+    check("Instagram автора нормализуется из ссылки",
+          normalize_instagram("https://instagram.com/alex.nl/?utm_source=x") == "@alex.nl")
+    check("некорректное авторство не принимается",
+          normalize_instagram("не профиль") is None)
+
+    details = {
+        "context": "Парад цветов в Зюндерте, снято сегодня днём",
+        "credit": {"type": "instagram", "value": "@alex.nl"},
+        "media": {"duration": 18, "width": 1080, "height": 1920},
+        "consent": {"accepted": True, "version": CONSENT_VERSION,
+                    "accepted_at": "2026-09-13T09:00:00+00:00"},
+    }
+    submission = Submission(
+        id=77, type="video", user_id=123, username="telegram_user",
+        text=details["context"], file_id="telegram-file-id", file_type="video",
+        media_token="safe-random-media-token-123456789",
+        details=json.dumps(details, ensure_ascii=False), status="pending",
+        created_at=datetime(2026, 9, 13, 9, 0),
+    )
+    caption = instagram_caption(details)
+    old_webhook_base = config.WEBHOOK_BASE_URL
+    config.WEBHOOK_BASE_URL = "https://bot.example"
+    try:
+        payload = make_payload(submission)
+    finally:
+        config.WEBHOOK_BASE_URL = old_webhook_base
+    callbacks = [
+        button.callback_data
+        for row in video_moderation_keyboard(77).inline_keyboard
+        for button in row
+    ]
+    check("готовая подпись содержит контекст и авторство",
+          details["context"] in caption and "@alex.nl" in caption)
+    check("Make получает видео, подпись и согласие",
+          payload["telegram_file_id"] == "telegram-file-id"
+          and payload["video_url"].startswith("https://bot.example/submission-video/")
+          and payload["caption"] == caption
+          and payload["consent"]["accepted"] is True)
+    check("модерация разделяет публикацию и контент-банк",
+          f"video:publish:{submission.id}" in callbacks
+          and f"video:bank:{submission.id}" in callbacks
+          and f"video:reject:{submission.id}" in callbacks)
 
 
 def test_specialist_premium_six_month_plan() -> None:
@@ -2073,6 +2128,7 @@ async def test_repeat_ad_reserves_second_date() -> None:
 
 async def main() -> None:
     test_import_bot()
+    test_video_submission_flow()
     test_specialist_premium_six_month_plan()
     test_specialist_onboarding_ux()
     test_board_ux()
