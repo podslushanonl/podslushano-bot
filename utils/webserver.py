@@ -134,8 +134,8 @@ _PRIVACY_RU = """
  <li>Anthropic — ИИ-ассистент (обработка ваших вопросов для ответа);</li>
  <li>Resend и/или Google (Gmail) — отправка счетов на e-mail;</li>
  <li>Railway — хостинг (серверы в ЕС);</li>
- <li>Make и Meta (Instagram) — подготовка и публикация видео, которые вы
-  добровольно отправили и разрешили опубликовать;</li>
+ <li>Meta (Instagram) — публикация видео, которые вы добровольно отправили
+  и разрешили опубликовать;</li>
  <li>Google (Places) — фотографии мест для постов; ваши персональные данные
   при этом не передаются.</li>
 </ul>
@@ -229,8 +229,8 @@ onderaan deze pagina.</p>
  <li>Anthropic — AI-assistent (verwerkt je vragen om te antwoorden);</li>
  <li>Resend en/of Google (Gmail) — verzenden van facturen per e-mail;</li>
  <li>Railway — hosting (servers in de EU);</li>
- <li>Make en Meta (Instagram) — voorbereiding en publicatie van video's die je
-  vrijwillig hebt ingestuurd en waarvoor je toestemming hebt gegeven;</li>
+ <li>Meta (Instagram) — publicatie van video's die je vrijwillig hebt ingestuurd
+  en waarvoor je toestemming hebt gegeven;</li>
  <li>Google (Places) — foto's van locaties voor posts; je persoonsgegevens
   worden hierbij niet gedeeld.</li>
 </ul>
@@ -776,41 +776,6 @@ async def _sp_photo(request: web.Request) -> web.Response:
     resp.headers["Cache-Control"] = "public, max-age=86400"
     resp.headers["Access-Control-Allow-Origin"] = "*"
     return resp
-
-
-async def _submission_video(request: web.Request) -> web.Response:
-    """Безопасно отдаёт пользовательское видео Make, не раскрывая BOT_TOKEN."""
-    token = request.match_info.get("token", "")
-    if len(token) < 24:
-        raise web.HTTPNotFound()
-    async with get_session() as session:
-        submission = (await session.scalars(
-            select(Submission).where(
-                Submission.type == "video",
-                Submission.media_token == token,
-            )
-        )).first()
-    if submission is None or not submission.file_id:
-        raise web.HTTPNotFound()
-
-    from utils.video_submissions import load_details
-    details = load_details(submission.details)
-    if not (details.get("consent") or {}).get("accepted"):
-        raise web.HTTPNotFound()
-    content_type = str((details.get("media") or {}).get("mime_type") or "video/mp4")
-    if not content_type.startswith("video/"):
-        content_type = "video/mp4"
-    bot = request.app["bot"]
-    try:
-        telegram_file = await bot.get_file(submission.file_id)
-        buf = await bot.download_file(telegram_file.file_path)
-        data = buf.read()
-    except Exception as exc:  # noqa: BLE001
-        log.warning("Не удалось отдать видео заявки #%s: %s", submission.id, exc)
-        return web.Response(status=502, text="video unavailable")
-    response = web.Response(body=data, content_type=content_type)
-    response.headers["Cache-Control"] = "private, max-age=300"
-    return response
 
 
 # Карта granular-категорий бота → 8 укрупнённых групп виджета каталога на сайте
@@ -1777,7 +1742,6 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/terms", _terms)
     app.router.add_get("/guide", _guide)
     app.router.add_get("/sp-photo/{sid}", _sp_photo)
-    app.router.add_get("/submission-video/{token}", _submission_video)
     app.router.add_get("/ig-slide/{sid}", _ig_slide)
     app.router.add_get("/api/specialists.json", _api_specialists)
     app.router.add_get("/api/guide.json", _api_guide)

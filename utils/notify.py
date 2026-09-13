@@ -114,14 +114,14 @@ def _ad_keyboard(submission_id: int) -> InlineKeyboardMarkup:
 
 
 def video_moderation_keyboard(submission_id: int, *, banked: bool = False) -> InlineKeyboardMarkup:
-    """Один экран для публикации, банка контента и связи с автором."""
-    rows = [
-        [InlineKeyboardButton(
-            text="🚀 Опубликовать в Instagram",
+    """Ручной отбор видео: бот ничего не публикует и никуда не выгружает."""
+    rows = []
+    if banked:
+        rows.append([InlineKeyboardButton(
+            text="✅ Отметить опубликованным",
             callback_data=f"video:publish:{submission_id}",
-        )],
-    ]
-    if not banked:
+        )])
+    else:
         rows.append([InlineKeyboardButton(
             text="🗂 Добавить в контент-банк",
             callback_data=f"video:bank:{submission_id}",

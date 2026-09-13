@@ -1,21 +1,13 @@
-"""Структурированные пользовательские видео и передача одобренных Reels в Make."""
+"""Структурированные пользовательские видео для ручного отбора редакцией."""
 from __future__ import annotations
 
 import html
 import json
-import logging
 import re
 from typing import Any
 
-import aiohttp
-
-import config
-
-log = logging.getLogger(__name__)
-
 CONSENT_VERSION = "video-instagram-v1"
 MAX_ORIGINAL_VIDEO_BYTES = 200 * 1024 * 1024
-CLOUD_BOT_DOWNLOAD_BYTES = 20 * 1024 * 1024
 _VIDEO_EXTENSIONS = (".mp4", ".mov", ".m4v", ".webm")
 _IG_HANDLE_RE = re.compile(r"^[A-Za-z0-9._]{1,30}$")
 
@@ -98,7 +90,7 @@ def admin_caption(submission: Any) -> str:
     status = {
         "pending": "🆕 На проверке",
         "approved": "🗂 В контент-банке",
-        "published": "✅ Передано в публикацию",
+        "published": "✅ Опубликовано",
         "rejected": "❌ Отклонено",
     }.get(getattr(submission, "status", "pending"), str(getattr(submission, "status", "—")))
     lines = [
@@ -116,66 +108,3 @@ def admin_caption(submission: Any) -> str:
         html.escape(instagram_caption(preview_details)),
     ]
     return "\n".join(lines)
-
-
-def make_payload(submission: Any) -> dict[str, Any]:
-    details = load_details(getattr(submission, "details", None))
-    media = details.get("media") or {}
-    credit = details.get("credit") or {}
-    base_url = (config.WEBHOOK_BASE_URL or "").rstrip("/")
-    media_url = (
-        f"{base_url}/submission-video/{submission.media_token}"
-        if base_url and getattr(submission, "media_token", None) else ""
-    )
-    return {
-        "type": "user_reel",
-        "source": "podslushano_telegram_bot",
-        "submission_id": submission.id,
-        "telegram_file_id": submission.file_id,
-        "video_url": media_url,
-        "telegram_user_id": submission.user_id,
-        "telegram_username": submission.username or "",
-        "caption": instagram_caption(details),
-        "context": details.get("context") or submission.text or "",
-        "credit": credit,
-        "media": media,
-        "consent": details.get("consent") or {},
-        "submitted_at": submission.created_at.isoformat() if submission.created_at else "",
-    }
-
-
-def video_make_enabled() -> bool:
-    return bool(config.VIDEO_MAKE_WEBHOOK_URL)
-
-
-async def send_video_to_make(submission: Any) -> tuple[bool, str]:
-    """Передаёт одобренное админом видео отдельному сценарию Make."""
-    details = load_details(getattr(submission, "details", None))
-    if not (details.get("consent") or {}).get("accepted"):
-        return False, "у видео нет зафиксированного разрешения автора"
-    if credit_text(details) == "автор не указан":
-        return False, "не указано авторство"
-    file_size = int((details.get("media") or {}).get("file_size") or 0)
-    if file_size > CLOUD_BOT_DOWNLOAD_BYTES:
-        return False, (
-            "оригинал больше 20 МБ: облачный Telegram Bot API не разрешает "
-            "скачать такой файл; для автопубликации нужен Local Bot API или "
-            "внешнее хранилище. Видео осталось в контент-банке без потери качества"
-        )
-    if not video_make_enabled():
-        return False, "VIDEO_MAKE_WEBHOOK_URL не задан"
-    try:
-        async with aiohttp.ClientSession() as session:
-            async with session.post(
-                config.VIDEO_MAKE_WEBHOOK_URL,
-                json=make_payload(submission),
-                timeout=aiohttp.ClientTimeout(total=30),
-            ) as response:
-                body = (await response.text())[:300]
-                if response.status < 300:
-                    return True, body
-                log.warning("Video Make webhook HTTP %s: %s", response.status, body)
-                return False, f"HTTP {response.status}: {body}"
-    except Exception as exc:  # noqa: BLE001
-        log.warning("Video Make webhook error: %s", exc)
-        return False, str(exc)

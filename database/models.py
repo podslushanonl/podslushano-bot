@@ -25,8 +25,6 @@ class Submission(Base):
     # Вложение (видео/фото/документ), если есть — храним telegram file_id
     file_id: Mapped[str | None] = mapped_column(Text, nullable=True)
     file_type: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    # Случайный публичный ключ для безопасной выдачи видео сценарию Make.
-    media_token: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     # Структурированные данные анкеты (JSON). Для видео: авторство, контекст,
     # параметры файла и зафиксированное согласие на публикацию.
     details: Mapped[str | None] = mapped_column(Text, nullable=True)

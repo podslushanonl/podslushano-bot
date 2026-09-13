@@ -85,7 +85,6 @@ def test_video_submission_flow() -> None:
         MAX_ORIGINAL_VIDEO_BYTES,
         instagram_caption,
         is_video_document,
-        make_payload,
         normalize_instagram,
     )
 
@@ -113,33 +112,28 @@ def test_video_submission_flow() -> None:
     submission = Submission(
         id=77, type="video", user_id=123, username="telegram_user",
         text=details["context"], file_id="telegram-file-id", file_type="video",
-        media_token="safe-random-media-token-123456789",
         details=json.dumps(details, ensure_ascii=False), status="pending",
         created_at=datetime(2026, 9, 13, 9, 0),
     )
     caption = instagram_caption(details)
-    old_webhook_base = config.WEBHOOK_BASE_URL
-    config.WEBHOOK_BASE_URL = "https://bot.example"
-    try:
-        payload = make_payload(submission)
-    finally:
-        config.WEBHOOK_BASE_URL = old_webhook_base
-    callbacks = [
+    pending_callbacks = [
         button.callback_data
         for row in video_moderation_keyboard(77).inline_keyboard
         for button in row
     ]
+    banked_callbacks = [
+        button.callback_data
+        for row in video_moderation_keyboard(77, banked=True).inline_keyboard
+        for button in row
+    ]
     check("готовая подпись содержит контекст и авторство",
           details["context"] in caption and "@alex.nl" in caption)
-    check("Make получает видео, подпись и согласие",
-          payload["telegram_file_id"] == "telegram-file-id"
-          and payload["video_url"].startswith("https://bot.example/submission-video/")
-          and payload["caption"] == caption
-          and payload["consent"]["accepted"] is True)
-    check("модерация разделяет публикацию и контент-банк",
-          f"video:publish:{submission.id}" in callbacks
-          and f"video:bank:{submission.id}" in callbacks
-          and f"video:reject:{submission.id}" in callbacks)
+    check("новое видео сначала проходит ручной отбор",
+          f"video:bank:{submission.id}" in pending_callbacks
+          and f"video:publish:{submission.id}" not in pending_callbacks)
+    check("бот только вручную отмечает публикацию",
+          f"video:publish:{submission.id}" in banked_callbacks
+          and f"video:reject:{submission.id}" in banked_callbacks)
 
 
 def test_specialist_premium_six_month_plan() -> None:

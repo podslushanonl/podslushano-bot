@@ -15,7 +15,7 @@ from database.models import Meta, Submission
 from keyboards.menus import cancel_menu
 from states.forms import SupportReply
 from utils.notify import video_moderation_keyboard
-from utils.video_submissions import admin_caption, send_video_to_make
+from utils.video_submissions import admin_caption
 
 log = logging.getLogger(__name__)
 
@@ -186,7 +186,7 @@ async def video_to_bank(callback: CallbackQuery) -> None:
         callback.bot,
         submission,
         "Твоё видео прошло проверку и добавлено в наш контент-банк 🎬\n\n"
-        "Когда отправим его в публикацию, бот напишет тебе ещё раз.",
+        "Если редакция решит его опубликовать, мы отметим выбранное тобой авторство.",
     )
     await callback.answer("Добавлено в контент-банк")
 
@@ -226,19 +226,13 @@ async def video_publish(callback: CallbackQuery) -> None:
         await callback.answer("Видео не найдено", show_alert=True)
         return
     if submission.status == "published":
-        await callback.answer("Видео уже передано в публикацию", show_alert=True)
+        await callback.answer("Видео уже отмечено опубликованным", show_alert=True)
         return
     if submission.status == "rejected":
         await callback.answer("Видео уже отклонено", show_alert=True)
         return
-
-    await callback.answer("Передаю в Make…")
-    ok, detail = await send_video_to_make(submission)
-    if not ok:
-        await callback.message.answer(
-            "❌ Видео не передано в Make. Статус не изменён.\n"
-            f"<b>Причина:</b> {html.escape(detail or 'неизвестно')}"
-        )
+    if submission.status != "approved":
+        await callback.answer("Сначала добавь видео в контент-банк", show_alert=True)
         return
 
     submission = await _update_status(submission_id, "published")
@@ -248,10 +242,10 @@ async def video_publish(callback: CallbackQuery) -> None:
     await _notify_video_author(
         callback.bot,
         submission,
-        "Твоё видео отправлено в публикацию в Instagram @podslushano.nl 🎉\n\n"
+        "Твоё видео опубликовано в Instagram @podslushano.nl 🎉\n\n"
         "Спасибо, что показываешь Нидерланды вместе с нами!",
     )
-    await callback.message.answer("✅ Видео и готовая подпись переданы в Make.")
+    await callback.message.answer("✅ Видео отмечено опубликованным.")
 
 
 async def show_video_bank(message: Message) -> None:
@@ -264,10 +258,10 @@ async def show_video_bank(message: Message) -> None:
             ).order_by(Submission.created_at.desc()).limit(10)
         )).all())
     if not videos:
-        await message.answer("🎬 <b>Контент-банк видео</b>\n\nСейчас нет видео, ожидающих публикации.")
+        await message.answer("🎬 <b>Контент-банк видео</b>\n\nСейчас нет видео для отбора.")
         return
     await message.answer(
-        f"🎬 <b>Контент-банк видео</b>\n\nГотово к публикации: {len(videos)}"
+        f"🎬 <b>Контент-банк видео</b>\n\nВидео для отбора и монтажа: {len(videos)}"
     )
     for submission in videos:
         caption = admin_caption(submission)

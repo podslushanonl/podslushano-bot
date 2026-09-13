@@ -44,7 +44,6 @@ _USER_LATER_COLUMNS = {
 
 _SUBMISSION_LATER_COLUMNS = {
     "details": "TEXT",
-    "media_token": "VARCHAR(64)",
 }
 
 # Колонки таблицы броней рекламы, которые могли появиться позже

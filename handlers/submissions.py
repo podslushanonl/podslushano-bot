@@ -1,7 +1,6 @@
 """Приём заявок от пользователей: истории, вопросы, видео, реклама."""
 import html
 import json
-import secrets
 from datetime import datetime, timezone
 
 from aiogram import Bot, F, Router
@@ -257,7 +256,6 @@ async def create_submission(
     file_id: str | None = None,
     file_type: str | None = None,
     details: dict | None = None,
-    media_token: str | None = None,
 ) -> Submission:
     """Сохраняет заявку в базу и рассылает админам на модерацию."""
     async with get_session() as session:
@@ -269,7 +267,6 @@ async def create_submission(
             file_id=file_id,
             file_type=file_type,
             details=json.dumps(details, ensure_ascii=False) if details else None,
-            media_token=media_token,
         )
         session.add(submission)
         await session.commit()
@@ -662,7 +659,6 @@ async def submit_video_form(callback: CallbackQuery, state: FSMContext) -> None:
         media["file_id"],
         "document" if media.get("telegram_type") == "document" else "video",
         details,
-        secrets.token_urlsafe(24),
     )
     await state.clear()
     try:
