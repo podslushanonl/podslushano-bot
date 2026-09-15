@@ -260,8 +260,13 @@ async def _delete_event(event_id: str) -> None:
 async def _upsert_event(booking: AdBooking, date_iso: str, event_id: str | None) -> str:
     payload = _event_payload(booking, date_iso)
     if event_id:
+        # Calendar PATCH merges nested start/end objects.  If a pre-existing
+        # event was timed (dateTime), patching it into an all-day event (date)
+        # can leave both representations in place and Google rejects the
+        # result with "Invalid start time".  We own the complete event body,
+        # so a full update safely replaces the old time representation.
         result = await _calendar_request(
-            "PATCH",
+            "PUT",
             _calendar_path("/" + quote(event_id, safe="")),
             payload,
             not_found_ok=True,
