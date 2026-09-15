@@ -6,6 +6,7 @@ real failure, and never accepts a visibly truncated final post.
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 
@@ -85,6 +86,12 @@ def _trim_incomplete_tail(text: str) -> str:
     clean = (text or "").strip()
     if not clean:
         return ""
+    if clean.startswith("{") and clean.endswith("}"):
+        try:
+            json.loads(clean)
+            return clean
+        except (TypeError, ValueError):
+            pass
     if clean.endswith((".", "!", "?", "…", ":", ")", "]", "❤️", "🔥")):
         return clean
     last_line = clean.splitlines()[-1].strip()
