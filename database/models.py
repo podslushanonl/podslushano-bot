@@ -590,3 +590,29 @@ class AlloReferral(Base):
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     booking_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
+class CommentReplyDraft(Base):
+    """Temporary AI suggestions shown to an admin for an Instagram comment."""
+
+    __tablename__ = "comment_reply_drafts"
+
+    id: Mapped[str] = mapped_column(String(20), primary_key=True)
+    post_context: Mapped[str] = mapped_column(Text, default="")
+    payload_json: Mapped[str] = mapped_column(Text)
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    chosen_reply: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
+
+
+class CommentReplyExample(Base):
+    """An explicit editor choice used as a future brand-voice example."""
+
+    __tablename__ = "comment_reply_examples"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    source_comment: Mapped[str] = mapped_column(Text)
+    post_context: Mapped[str] = mapped_column(Text, default="")
+    action: Mapped[str] = mapped_column(String(20))
+    reply: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)

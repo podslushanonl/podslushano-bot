@@ -12,7 +12,7 @@ import database.ad_sales_models  # noqa: F401 — регистрирует та�
 from database.db import init_db
 from handlers import (
     ad_crm, ad_sales_pipeline, admin, admin_center, ads, afisha, ai_sales, allo, board, cabinet, chat,
-    contacts, content, digest, errors, events, guides, home, invoice_admin, letters, moderation,
+    comment_copilot, contacts, content, digest, errors, events, guides, home, invoice_admin, letters, moderation,
     notifications, salary, selfadd, share, spotlight, start, stories, submissions, support,
     tax_guide,
 )
@@ -70,6 +70,7 @@ async def configure_profile(bot: Bot) -> None:
                     BotCommand(command="contentplan", description="Контент-план канала"),
                     BotCommand(command="editorialpreview", description="Предпросмотр редакционных постов"),
                     BotCommand(command="ideas", description="Редакционный радар инфоповодов"),
+                    BotCommand(command="comments", description="Ответы на комментарии"),
                     BotCommand(command="adleads", description="CRM рекламных заявок"),
                     BotCommand(command="adcalendar", description="Проверить календарь рекламы"),
                     BotCommand(command="invoices", description="Скачать архив фактур"),
@@ -109,6 +110,7 @@ async def main() -> None:
     dp.include_router(editorial_preview_router)
     dp.include_router(editorial_router)
     dp.include_router(editorial_research_router)
+    dp.include_router(comment_copilot.router)
     dp.include_router(content.router)
     # Новый Админ-центр перехватывает /admin раньше старой длинной панели.
     dp.include_router(admin_center.router)
