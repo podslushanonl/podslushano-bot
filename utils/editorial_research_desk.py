@@ -228,11 +228,21 @@ async def _generate_digest(stream: ResearchStream) -> dict | None:
         f"Сегодня {_now():%d.%m.%Y}, Europe/Amsterdam. Поток: {stream.label}.\n"
         f"Нельзя повторять без существенного развития: {exclusions}.\n{feedback}"
     )
-    async with _generation_lock:
-        result = await editorial._generate(system, user, list(stream.domains), 2200)
-    if not result:
-        return None
-    return _parse_payload(result[0], result[1])
+    for attempt in range(2):
+        retry_note = (
+            "\nПредыдущий ответ оказался повреждён или не соответствовал схеме. "
+            "Повтори результат короче: только JSON, общий объём до 6000 знаков."
+            if attempt else ""
+        )
+        async with _generation_lock:
+            result = await editorial._generate(
+                system, user + retry_note, list(stream.domains), 2600
+            )
+        if result:
+            payload = _parse_payload(result[0], result[1])
+            if payload is not None:
+                return payload
+    return None
 
 
 async def _remember_ideas(payload: dict) -> None:
