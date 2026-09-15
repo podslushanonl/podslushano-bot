@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import hashlib
 import json
 import logging
 from datetime import date, datetime, timedelta
@@ -382,17 +383,43 @@ async def _notify_admins(bot, text: str) -> None:
             log.warning("Не уведомил администратора о Google Calendar: %s", exc)
 
 
+async def _configuration_alert_needed(errors: list[str]) -> bool:
+    """Notify once per distinct configuration problem, including across deploys."""
+    signature = hashlib.sha256("\n".join(errors).encode("utf-8")).hexdigest()[:20]
+    key = "adcal_config_alert"
+    async with get_session() as session:
+        row = await session.get(Meta, key)
+        if row and row.value == signature:
+            return False
+        if row:
+            row.value = signature
+        else:
+            session.add(Meta(key=key, value=signature))
+        await session.commit()
+    return True
+
+
+async def _clear_configuration_alert() -> None:
+    async with get_session() as session:
+        row = await session.get(Meta, "adcal_config_alert")
+        if row and row.value:
+            row.value = ""
+            await session.commit()
+
+
 async def calendar_sync_loop(bot=None) -> None:
     errors = calendar_configuration_errors()
     if errors:
         log.warning("Google Calendar рекламы выключен: %s", "; ".join(errors))
-        await _notify_admins(
-            bot,
-            "❌ <b>Google Calendar рекламы не работает</b>\n\n"
-            + "\n".join(f"• {item}" for item in errors)
-            + "\n\nПосле настройки запустите <code>/adcalendar</code>.",
-        )
+        if await _configuration_alert_needed(errors):
+            await _notify_admins(
+                bot,
+                "⚠️ <b>Google Calendar рекламы требует подключения</b>\n\n"
+                "Бот продолжает работать; повторять это уведомление при каждом перезапуске не будет.\n\n"
+                "После подключения запустите <code>/adcalendar</code>.",
+            )
         return
+    await _clear_configuration_alert()
     first_error_reported = False
     while True:
         try:

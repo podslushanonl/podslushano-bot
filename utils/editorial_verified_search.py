@@ -22,12 +22,16 @@ def _editorial_model() -> str:
     return os.getenv("AI_EDITORIAL_MODEL", "claude-sonnet-5").strip() or "claude-sonnet-5"
 
 
-def _search_limit(domains: list[str] | None = None) -> int:
+def _search_limit(domains: list[str] | None = None, max_tokens: int = 900) -> int:
     domain_set = set(domains or [])
     is_morning = {"knmi.nl", "ns.nl", "rijkswaterstaat.nl"}.issubset(domain_set)
-    env_name = "AI_MORNING_WEB_MAX_USES" if is_morning else "AI_EDITORIAL_WEB_MAX_USES"
-    default = 6 if is_morning else 2
-    ceiling = 8 if is_morning else 2
+    is_research = max_tokens >= 1600
+    if is_morning:
+        env_name, default, ceiling = "AI_MORNING_WEB_MAX_USES", 6, 8
+    elif is_research:
+        env_name, default, ceiling = "AI_RADAR_WEB_MAX_USES", 6, 8
+    else:
+        env_name, default, ceiling = "AI_EDITORIAL_WEB_MAX_USES", 2, 2
     try:
         configured = int(os.getenv(env_name, str(default)))
     except ValueError:
@@ -86,10 +90,12 @@ def _trim_incomplete_tail(text: str) -> str:
     clean = (text or "").strip()
     if not clean:
         return ""
-    if clean.startswith("{") and clean.endswith("}"):
+    json_start, json_end = clean.find("{"), clean.rfind("}")
+    if json_start >= 0 and json_end > json_start:
+        candidate = clean[json_start:json_end + 1]
         try:
-            json.loads(clean)
-            return clean
+            json.loads(candidate)
+            return candidate
         except (TypeError, ValueError):
             pass
     if clean.endswith((".", "!", "?", "…", ":", ")", "]", "❤️", "🔥")):
@@ -169,7 +175,7 @@ async def _verified_generate(system: str, user: str, domains: list[str], max_tok
              "Return only the finished publication and finish every sentence."
     )
 
-    search_limit = _search_limit(domains)
+    search_limit = _search_limit(domains, max_tokens)
     tools = editorial._web_search_tool(None, max_uses=search_limit)
     if not tools:
         await _diag("tool_missing", "web_search tool was not constructed")

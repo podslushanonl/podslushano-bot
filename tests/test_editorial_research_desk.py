@@ -81,6 +81,17 @@ def test_verified_pipeline_does_not_trim_valid_json():
     assert verified._trim_incomplete_tail(raw) == raw
 
 
+def test_verified_pipeline_extracts_valid_json_from_wrapper():
+    raw = 'Результат поиска:\n' + json.dumps({"ideas": [_idea()]}, ensure_ascii=False) + '\nГотово'
+    trimmed = verified._trim_incomplete_tail(raw)
+    assert json.loads(trimmed)["ideas"][0]["score"] == 10
+
+
+def test_radar_gets_more_searches_than_regular_post():
+    assert verified._search_limit([], 2600) == 6
+    assert verified._search_limit([], 900) == 2
+
+
 async def _test_feedback_and_dedup_reach_generator():
     calls = []
     old_generate = desk.editorial._generate
@@ -110,7 +121,7 @@ async def _test_feedback_and_dedup_reach_generator():
     assert "Старая идея" in calls[0][1]
     assert "Опубликованная тема" in calls[0][1]
     assert "[банально] Отклонённая тема" in calls[0][1]
-    assert calls[0][3] == 2200
+    assert calls[0][3] == 2600
 
 
 def test_feedback_and_dedup_reach_generator():
