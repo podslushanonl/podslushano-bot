@@ -1891,6 +1891,37 @@ def test_ad_calendar_payload() -> None:
           _priority(campaign) < _priority(closed))
 
 
+async def test_ad_calendar_replaces_timed_event() -> None:
+    """Existing timed events must be fully replaced by all-day payloads."""
+    import utils.ad_calendar as calendar
+
+    booking = AdBooking(
+        id=504, date="2026-09-22", dates_csv="2026-09-22",
+        fmt="tg", opt="std", status="paid", company="Calendar Test",
+    )
+    calls = []
+    real_request = calendar._calendar_request
+
+    async def fake_request(method, path, payload=None, **kwargs):
+        calls.append((method, path, payload, kwargs))
+        return {"id": "existing-event"}
+
+    calendar._calendar_request = fake_request
+    try:
+        event_id = await calendar._upsert_event(
+            booking, "2026-09-22", "existing-event"
+        )
+    finally:
+        calendar._calendar_request = real_request
+
+    check("календарь полностью заменяет старое время события",
+          event_id == "existing-event"
+          and len(calls) == 1
+          and calls[0][0] == "PUT"
+          and calls[0][2]["start"] == {"date": "2026-09-22"}
+          and calls[0][2]["end"] == {"date": "2026-09-23"})
+
+
 def test_ad_reminder_schedule_and_copy() -> None:
     from utils.ad_reminders import _day_of_keyboard, _due_kind, _message, _reminders_open
 
@@ -2167,6 +2198,7 @@ async def main() -> None:
     test_detect_category_basic()
     test_general_place_routing()
     test_ad_calendar_payload()
+    await test_ad_calendar_replaces_timed_event()
     test_ad_reminder_schedule_and_copy()
 
     test_ad_crm_payload()
