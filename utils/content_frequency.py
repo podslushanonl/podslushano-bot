@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime, time, timedelta
 
 from sqlalchemy import select
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 from database.db import get_session
 from database.models import ContentPost
@@ -43,7 +44,8 @@ def install_content_frequency(content_module) -> None:
                     ContentPost.scheduled_at < datetime.combine(end + timedelta(days=1), time.min),
                 ).order_by(ContentPost.scheduled_at, ContentPost.id)
             )).all())
-            occupied = {row.scheduled_at.date() for row in rows if row.status != "skipped"}
+            # A skipped slot is an explicit decision; do not refill its date.
+            occupied = {row.scheduled_at.date() for row in rows}
 
             day = now.date()
             while day <= end:
@@ -78,6 +80,9 @@ def install_content_frequency(content_module) -> None:
                             and k != prev_template
                             and content_module.TEMPLATES[k].kind != prev_kind
                         ]
+                    if not safe:
+                        day += timedelta(days=1)
+                        continue
                     key = safe[0]
                     template = content_module.TEMPLATES[key]
                     campaign = f"autodaily_{day:%y%m%d}_{key}"
@@ -90,7 +95,19 @@ def install_content_frequency(content_module) -> None:
                         button_label=template.button,
                         start_payload=f"content_{campaign}",
                     )
-                    session.add(row)
+                    # Another seeder may have committed this campaign after our read.
+                    # Ignore only this unique-key conflict; preserve existing fields.
+                    await session.execute(
+                        sqlite_insert(ContentPost).values(
+                            campaign_key=row.campaign_key,
+                            template_key=row.template_key,
+                            content_kind=row.content_kind,
+                            scheduled_at=row.scheduled_at,
+                            status=row.status,
+                            button_label=row.button_label,
+                            start_payload=row.start_payload,
+                        ).on_conflict_do_nothing(index_elements=["campaign_key"])
+                    )
                     rows.append(row)
                     rows.sort(key=lambda r: (r.scheduled_at, r.id or 0))
                     occupied.add(day)
