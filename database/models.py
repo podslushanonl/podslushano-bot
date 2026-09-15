@@ -143,6 +143,22 @@ class Meta(Base):
     value: Mapped[str] = mapped_column(String(100))
 
 
+class EditorialIdea(Base):
+    """A research-radar candidate and the editor's decision about it."""
+
+    __tablename__ = "editorial_ideas"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    stream_key: Mapped[str] = mapped_column(String(24), index=True)
+    headline: Mapped[str] = mapped_column(String(240))
+    payload_json: Mapped[str] = mapped_column(Text)
+    # pending | selected | reserved | rejected
+    status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
+    chosen_format: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    feedback_reason: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
+
+
 class AdLead(Base):
     """Заявка на рекламу с публичной страницы /reklama (без цен)."""
 
