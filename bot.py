@@ -23,6 +23,7 @@ from handlers.digest import digest_announcement_loop, digest_draft_loop
 from handlers.notifications import notification_loop
 from handlers.evenementen_catalog import evenementen_catalog_loop, install_evenementen_source
 from utils.editorial_channel import editorial_channel_loop, router as editorial_router
+from utils.editorial_research_desk import editorial_research_loop, router as editorial_research_router
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
@@ -68,6 +69,7 @@ async def configure_profile(bot: Bot) -> None:
                     BotCommand(command="admin", description="Открыть Админ-центр"),
                     BotCommand(command="contentplan", description="Контент-план канала"),
                     BotCommand(command="editorialpreview", description="Предпросмотр редакционных постов"),
+                    BotCommand(command="ideas", description="Редакционный радар инфоповодов"),
                     BotCommand(command="adleads", description="CRM рекламных заявок"),
                     BotCommand(command="adcalendar", description="Проверить календарь рекламы"),
                     BotCommand(command="invoices", description="Скачать архив фактур"),
@@ -106,6 +108,7 @@ async def main() -> None:
     dp.include_router(support.router)
     dp.include_router(editorial_preview_router)
     dp.include_router(editorial_router)
+    dp.include_router(editorial_research_router)
     dp.include_router(content.router)
     # Новый Админ-центр перехватывает /admin раньше старой длинной панели.
     dp.include_router(admin_center.router)
@@ -136,6 +139,7 @@ async def main() -> None:
     asyncio.create_task(digest_announcement_loop(bot))
     asyncio.create_task(notification_loop(bot))
     asyncio.create_task(editorial_channel_loop(bot))
+    asyncio.create_task(editorial_research_loop(bot))
     asyncio.create_task(evenementen_catalog_loop(bot))
     asyncio.create_task(ad_lead_reminder_loop(bot))
     asyncio.create_task(ad_payment_reconciliation_loop(bot))
