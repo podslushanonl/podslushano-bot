@@ -85,6 +85,7 @@ async def content(callback: CallbackQuery):
         [InlineKeyboardButton(text="🎬 Видео подписчиков", callback_data="ac:videos")],
         [InlineKeyboardButton(text="🗓 Контент-план", callback_data="content:plan")],
         [InlineKeyboardButton(text="👀 Редакционные посты", callback_data="ac:editorial")],
+        [InlineKeyboardButton(text="💬 Ответы на комментарии", callback_data="ac:comments")],
         [InlineKeyboardButton(text="📝 Пост в канал", callback_data="admin:post")],
         [InlineKeyboardButton(text="📣 Рассылка-анонс", callback_data="admin:broadcast")],
         [InlineKeyboardButton(text="📸 Instagram-карусель", callback_data="admin:ig")],
