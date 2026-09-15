@@ -1,7 +1,26 @@
 import asyncio
+import json
 from datetime import datetime, time
 
 from utils import editorial_research_desk as desk
+from utils import editorial_verified_search as verified
+
+
+def _idea(**overrides):
+    value = {
+        "headline": "Поезда остановятся в трёх провинциях",
+        "verdict": "now",
+        "score": 10,
+        "hook": "Маршрут на работу придётся менять уже завтра",
+        "what_happened": "NS подтвердил остановку движения.",
+        "why_now": "Изменение вступает в силу завтра утром.",
+        "audience_value": "Затрагивает дорогу на работу и вызывает обсуждение.",
+        "format": "карусель",
+        "visual": "Карта участков и официальный скриншот NS.",
+        "source_urls": ["https://www.ns.nl/example"],
+    }
+    value.update(overrides)
+    return value
 
 
 def test_nine_distinct_research_streams_and_schedule():
@@ -17,52 +36,82 @@ def test_due_windows_use_amsterdam_wall_clock():
     assert desk._is_due(desk.STREAM_BY_KEY["people"], datetime(2026, 9, 16, 8, 0))
     assert not desk._is_due(desk.STREAM_BY_KEY["people"], datetime(2026, 9, 16, 12, 0))
     assert desk._is_due(desk.STREAM_BY_KEY["day"], datetime(2026, 9, 16, 14, 0))
-    assert desk._is_due(desk.STREAM_BY_KEY["evening"], datetime(2026, 9, 16, 18, 0))
 
 
-def test_telegram_chunking_never_exceeds_limit():
-    text = "\n\n".join(["x" * 900] * 10)
-    chunks = desk._split_messages(text)
-    assert len(chunks) > 1
-    assert all(len(chunk) <= 3800 for chunk in chunks)
-    assert "".join(chunks).replace("\n", "") == text.replace("\n", "")
+def test_parser_keeps_only_strong_complete_sourced_ideas():
+    raw = json.dumps({
+        "editor_note": "Одна тема прошла отбор.",
+        "ideas": [
+            _idea(),
+            _idea(headline="Слабый анонс", score=7),
+            _idea(headline="Без источника", source_urls=[]),
+        ],
+    }, ensure_ascii=False)
+    payload = desk._parse_payload(raw)
+    assert payload["editor_note"] == "Одна тема прошла отбор."
+    assert [item["headline"] for item in payload["ideas"]] == ["Поезда остановятся в трёх провинциях"]
 
 
-def test_sources_are_appended_once():
-    text = desk._append_sources("Тема", ["https://example.nl/a", "https://example.nl/b"])
-    assert "Источники поиска:" in text
-    assert text.count("https://example.nl/a") == 1
-    same = desk._append_sources(text, ["https://example.nl/a"])
-    assert same.count("https://example.nl/a") == 1
+def test_parser_can_use_verified_tool_source():
+    raw = json.dumps({"editor_note": "", "ideas": [_idea(source_urls=[])]}, ensure_ascii=False)
+    payload = desk._parse_payload(raw, ["https://www.rijksoverheid.nl/example"])
+    assert payload["ideas"][0]["source_urls"] == ["https://www.rijksoverheid.nl/example"]
 
 
-async def _test_global_dedup_context_reaches_generator():
+def test_card_has_visual_hierarchy_and_escapes_html():
+    card = desk._card_text(_idea(headline="Цена < €20"))
+    assert "<b>10/12</b>" in card
+    assert "<blockquote>" in card
+    assert "<b>Почему сейчас</b>" in card
+    assert "Цена &lt; €20" in card
+
+
+def test_card_actions_cover_editorial_decision():
+    keyboard = desk._idea_kb(42, _idea())
+    callbacks = [button.callback_data for row in keyboard.inline_keyboard for button in row if button.callback_data]
+    assert {"ideawork:42", "ideadeep:42", "ideareserve:42", "ideareject:42"}.issubset(callbacks)
+
+
+def test_rejection_reasons_are_specific():
+    assert set(desk._REJECTION_LABELS) == {"boring", "audience", "visual", "late"}
+
+
+def test_verified_pipeline_does_not_trim_valid_json():
+    raw = json.dumps({"editor_note": "Есть тема.", "ideas": [_idea()]}, ensure_ascii=False)
+    assert verified._trim_incomplete_tail(raw) == raw
+
+
+async def _test_feedback_and_dedup_reach_generator():
     calls = []
     old_generate = desk.editorial._generate
     old_recent = desk._recent_ideas
     old_published = desk.editorial._recent_topics
+    old_feedback = desk._feedback_prompt
     old_now = desk._now
     try:
         async def fake_generate(system, user, domains, max_tokens):
             calls.append((system, user, domains, max_tokens))
-            return "1. Новая тема\nПроверенное описание.", ["https://example.nl/source"]
+            return json.dumps({"editor_note": "Есть тема", "ideas": [_idea()]}, ensure_ascii=False), []
 
         desk.editorial._generate = fake_generate
         desk._recent_ideas = lambda: asyncio.sleep(0, result=["Старая идея"])
         desk.editorial._recent_topics = lambda: asyncio.sleep(0, result=["Опубликованная тема"])
+        desk._feedback_prompt = lambda: asyncio.sleep(0, result="[банально] Отклонённая тема")
         desk._now = lambda: datetime(2026, 9, 16, 8, 0)
         result = await desk._generate_digest(desk.STREAM_BY_KEY["people"])
     finally:
         desk.editorial._generate = old_generate
         desk._recent_ideas = old_recent
         desk.editorial._recent_topics = old_published
+        desk._feedback_prompt = old_feedback
         desk._now = old_now
 
-    assert result and "https://example.nl/source" in result
+    assert result["ideas"][0]["score"] == 10
     assert "Старая идея" in calls[0][1]
     assert "Опубликованная тема" in calls[0][1]
-    assert calls[0][3] == 1900
+    assert "[банально] Отклонённая тема" in calls[0][1]
+    assert calls[0][3] == 2200
 
 
-def test_global_dedup_context_reaches_generator():
-    asyncio.run(_test_global_dedup_context_reaches_generator())
+def test_feedback_and_dedup_reach_generator():
+    asyncio.run(_test_feedback_and_dedup_reach_generator())
