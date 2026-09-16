@@ -134,6 +134,7 @@ _ADMIN_COMMANDS_HELP = (
     "/findspec имя — найти карточку (id, контакт, фото)\n"
     "/premium ID on|off — премиум вкл/выкл\n"
     "/premiums — список всех премиум-карточек\n"
+    "/expertlink EMAIL [дни] — связать оплату «Эксперт месяца» с карточкой\n"
     "/setphoto ID — сменить фото\n"
     "/setcontact ID … — сменить контакт\n"
     "/setname ID … — сменить имя\n"
