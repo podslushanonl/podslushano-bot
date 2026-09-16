@@ -152,6 +152,171 @@ def _normalize_morning_output(text: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", clean).strip()
 
 
+MORNING_HEADINGS = ("☁️ Погода", "🚆 Транспорт", "🚗 Дороги")
+MORNING_FOOTER = "Информация актуальна на 06:30. Следите за обновлениями в NS, 9292 и ANWB."
+
+
+def _morning_parts(text: str) -> tuple[str, str, str, str] | None:
+    """Return intro/weather/transport/roads only for the approved section order."""
+    clean = (text or "").strip()
+    positions = [clean.find(heading) for heading in MORNING_HEADINGS]
+    if any(position < 0 for position in positions) or positions != sorted(positions):
+        return None
+    intro = clean[:positions[0]].strip()
+    weather = clean[positions[0] + len(MORNING_HEADINGS[0]):positions[1]].strip()
+    transport = clean[positions[1] + len(MORNING_HEADINGS[1]):positions[2]].strip()
+    roads_and_footer = clean[positions[2] + len(MORNING_HEADINGS[2]):].strip()
+    roads = roads_and_footer.split(MORNING_FOOTER, 1)[0].strip()
+    return intro, weather, transport, roads
+
+
+def _split_readable_paragraphs(text: str, target: int = 360) -> str:
+    """Split a long model paragraph between complete sentences, never mid-sentence."""
+    result: list[str] = []
+    for paragraph in [part.strip() for part in re.split(r"\n\s*\n", text or "") if part.strip()]:
+        if len(paragraph) <= target + 100 or paragraph.lower().startswith("важно:"):
+            result.append(paragraph)
+            continue
+        sentences = re.split(r"(?<=[.!?])\s+", paragraph)
+        chunks: list[str] = []
+        current = ""
+        for sentence in sentences:
+            candidate = f"{current} {sentence}".strip()
+            if current and len(candidate) > target:
+                chunks.append(current)
+                current = sentence
+            else:
+                current = candidate
+        if current:
+            chunks.append(current)
+        result.extend(chunks)
+    return "\n\n".join(result)
+
+
+def _cut_complete(text: str, limit: int) -> str:
+    """Shorten at a sentence or paragraph boundary without an unfinished ellipsis."""
+    clean = (text or "").strip()
+    if len(clean) <= limit:
+        return clean
+    candidate = clean[:limit].rstrip()
+    boundaries = [candidate.rfind("\n\n"), candidate.rfind(". "), candidate.rfind("! "), candidate.rfind("? ")]
+    boundary = max(boundaries)
+    if boundary >= int(limit * 0.55):
+        end = boundary if candidate[boundary:boundary + 2] == "\n\n" else boundary + 1
+        return candidate[:end].rstrip()
+    word = candidate.rfind(" ")
+    clipped = candidate[:word] if word > int(limit * 0.7) else candidate
+    return clipped.rstrip(" ,;:-") + "."
+
+
+def _compact_morning_output(text: str) -> str:
+    """Keep complete high-value facts inside a readable Telegram-sized brief."""
+    parts = _morning_parts(text)
+    if not parts:
+        return (text or "").strip()
+    intro, weather, transport, roads = parts
+    important = ""
+    important_match = re.search(r"(?is)(?:^|\n\s*\n)(Важно:\s*.+)$", transport)
+    if important_match:
+        important = important_match.group(1).strip()
+        transport = transport[:important_match.start()].strip()
+    transport = _cut_complete(transport, 400 if important else 720)
+    if important:
+        transport = f"{transport}\n\n{_cut_complete(important, 340)}"
+    compact = (
+        f"{_cut_complete(intro, 280)}\n\n"
+        f"{MORNING_HEADINGS[0]}\n\n{_cut_complete(weather, 380)}\n\n"
+        f"{MORNING_HEADINGS[1]}\n\n{transport}\n\n"
+        f"{MORNING_HEADINGS[2]}\n\n{_cut_complete(roads, 580)}\n\n"
+        f"{MORNING_FOOTER}"
+    )
+    return _split_readable_paragraphs(compact)
+
+
+def _strike_state(intro: str, transport: str) -> tuple[bool, list[str]]:
+    """Return whether a national strike is current and which vital details are missing."""
+    context = f"{intro}\n{transport}".lower()
+    active_markers = (
+        "сегодня", "весь день", "проходит", "продолжается", "начинается",
+        "объявлена", "объявлен", "с 02:00", "до 02:00",
+    )
+    finished_markers = (
+        "после вчераш", "вчерашняя забастов", "вчерашней забастов",
+        "забастовка заверш", "забастовка закончил", "после забастов",
+    )
+    active = (
+        "забастов" in context
+        and any(marker in context for marker in active_markers)
+        and not any(marker in context for marker in finished_markers)
+    )
+    if not active:
+        return False, []
+    requirements = {
+        "международные поезда": ("международ",),
+        "компенсация": ("компенсац", "возврат"),
+        "восстановление движения": ("восстанов", "вернут", "расписан", "перезапуск"),
+    }
+    missing = [
+        label for label, alternatives in requirements.items()
+        if not any(token in transport.lower() for token in alternatives)
+    ]
+    return True, missing
+
+
+def _morning_core_is_publishable(text: str) -> bool:
+    """A searched draft may fall back on style, but never on facts or structure."""
+    clean = (text or "").strip()
+    lower = clean.lower()
+    parts = _morning_parts(clean)
+    if not clean.startswith("Доброе утро!") or not parts or MORNING_FOOTER not in clean:
+        return False
+    intro, weather, transport, roads = parts
+    if not all((intro, weather, transport, roads)):
+        return False
+    if any(phrase in lower for phrase in (
+        "теперь у меня", "все данные для", "качественной публикации",
+        "вот готовый", "результат поиска",
+    )):
+        return False
+    if "…" in intro or intro.endswith("..."):
+        return False
+    if "knmi" not in weather.lower() or "максим" not in weather.lower() or "миним" not in weather.lower():
+        return False
+    if len(weather) < 120 or len(transport) < 150 or len(roads) < 140:
+        return False
+    active_strike, missing_strike_details = _strike_state(intro, transport)
+    if missing_strike_details or (active_strike and "забастов" not in intro.lower()):
+        return False
+    return True
+
+
+def _format_morning_html(text: str) -> str:
+    """Apply the readable Telegram hierarchy from the approved morning post."""
+    clean = _split_readable_paragraphs((text or "").strip())
+    paragraphs = [part.strip() for part in re.split(r"\n\s*\n", clean) if part.strip()]
+    formatted: list[str] = []
+    first_body = True
+    for paragraph in paragraphs:
+        escaped = html.escape(paragraph)
+        if paragraph in MORNING_HEADINGS:
+            formatted.append(f"<b>{escaped}</b>")
+        elif first_body:
+            formatted.append(f"<i>{escaped}</i>")
+            first_body = False
+        elif paragraph.lower().startswith("важно:"):
+            label, _, body = paragraph.partition(":")
+            formatted.append(
+                f"<blockquote><i><b>{html.escape(label)}:</b>{html.escape(body)}</i></blockquote>"
+            )
+        elif paragraph == MORNING_FOOTER:
+            formatted.append(f"<blockquote><i>{escaped}</i></blockquote>")
+        elif paragraph.startswith("Нравится разбор с утра?"):
+            formatted.append(f"<b>{escaped}</b>")
+        else:
+            formatted.append(escaped)
+    return "\n\n".join(formatted)
+
+
 def _morning_quality_errors(text: str) -> list[str]:
     """Reject verbose, incomplete or generic drafts before they reach Telegram."""
     errors: list[str] = []
@@ -160,7 +325,7 @@ def _morning_quality_errors(text: str) -> list[str]:
 
     if not clean.startswith("Доброе утро!"):
         errors.append("нет точного вступления «Доброе утро!»")
-    if not 1200 <= len(clean) <= 2900:
+    if not 900 <= len(clean) <= 2300:
         errors.append(f"неподходящий объём: {len(clean)} знаков")
 
     forbidden = (
@@ -172,65 +337,44 @@ def _morning_quality_errors(text: str) -> list[str]:
     if found:
         errors.append("служебные/неподходящие фразы: " + ", ".join(found))
 
-    headings = ("☁️ Погода", "🚆 Транспорт", "🚗 Дороги")
-    positions = [clean.find(heading) for heading in headings]
-    if any(position < 0 for position in positions) or positions != sorted(positions):
+    parts = _morning_parts(clean)
+    if not parts:
         errors.append("нет трёх блоков в правильном порядке")
         return errors
-
-    intro = clean[:positions[0]].strip()
-    weather = clean[positions[0] + len(headings[0]):positions[1]].strip()
-    transport = clean[positions[1] + len(headings[1]):positions[2]].strip()
-    roads_and_footer = clean[positions[2] + len(headings[2]):].strip()
-    footer = "Информация актуальна на 06:30. Следите за обновлениями в NS, 9292 и ANWB."
-    roads = roads_and_footer.split(footer, 1)[0].strip()
+    intro, weather, transport, roads = parts
 
     if "…" in intro or intro.endswith("..."):
         errors.append("оборванное вступление")
-    if len(intro) < 100:
+    if not 80 <= len(intro) <= 300:
         errors.append("вступление не объясняет главное событие")
-    if not 180 <= len(weather) <= 600:
+    if not 140 <= len(weather) <= 400:
         errors.append(f"блок погоды должен быть компактным: {len(weather)} знаков")
-    if weather.lower().count("максим") != 1 or weather.lower().count("миним") != 1:
-        errors.append("погода должна один раз назвать максимум и минимум")
+    if "максим" not in weather.lower() or "миним" not in weather.lower():
+        errors.append("в погоде не названы максимум и минимум")
     if "knmi" not in weather.lower():
         errors.append("в погоде нет статуса предупреждений KNMI")
-    if len(transport) < 300:
-        errors.append("транспорт раскрыт слишком поверхностно")
-    if len(roads) < 280:
-        errors.append("дороги раскрыты слишком поверхностно")
-    if not re.search(r"(?<![A-Za-z0-9])[AN]\d{1,3}(?!\d)", roads):
+    if not 180 <= len(transport) <= 760:
+        errors.append(f"блок транспорта должен быть компактным и содержательным: {len(transport)} знаков")
+    if len(transport) > 520 and "\n\n" not in transport:
+        errors.append("длинный блок транспорта не разделён на короткие абзацы")
+    if not 160 <= len(roads) <= 620:
+        errors.append(f"блок дорог должен быть компактным и содержательным: {len(roads)} знаков")
+    if len(roads) > 460 and "\n\n" not in roads:
+        errors.append("длинный блок дорог не разделён на короткие абзацы")
+    no_major_road_issue = (
+        any(source in roads.lower() for source in ("anwb", "rijkswaterstaat"))
+        and any(token in roads.lower() for token in (
+            "нет", "не сообщ", "не ожида", "без крупных", "обычная", "штатная",
+        ))
+    )
+    if not re.search(r"(?<![A-Za-z0-9])[AN]\d{1,3}(?!\d)", roads) and not no_major_road_issue:
         errors.append("в дорогах нет ни одного конкретного номера трассы")
-    if footer not in clean:
+    if MORNING_FOOTER not in clean:
         errors.append("нет утверждённой строки актуальности")
 
-    strike_context = f"{intro}\n{transport}".lower()
-    active_strike_markers = (
-        "сегодня", "весь день", "проходит", "продолжается", "начинается",
-        "объявлена", "объявлен", "с 02:00", "до 02:00",
-    )
-    finished_strike_markers = (
-        "после вчераш", "вчерашняя забастов", "вчерашней забастов",
-        "забастовка заверш", "забастовка закончил", "после забастов",
-    )
-    active_national_strike = (
-        "забастов" in strike_context
-        and any(marker in strike_context for marker in active_strike_markers)
-        and not any(marker in strike_context for marker in finished_strike_markers)
-    )
-    if active_national_strike:
-        strike_requirements = {
-            "международные поезда": ("международ",),
-            "компенсация": ("компенсац", "возврат"),
-            "восстановление движения": ("восстанов", "вернут", "расписан", "перезапуск"),
-        }
-        missing = [
-            label
-            for label, alternatives in strike_requirements.items()
-            if not any(token in transport.lower() for token in alternatives)
-        ]
-        if missing:
-            errors.append("при текущей общенациональной забастовке не раскрыто: " + ", ".join(missing))
+    active_national_strike, missing = _strike_state(intro, transport)
+    if missing:
+        errors.append("при текущей общенациональной забастовке не раскрыто: " + ", ".join(missing))
     if active_national_strike and "забастов" not in intro.lower():
         errors.append("общенациональная забастовка не вынесена во вступление")
 
@@ -250,29 +394,34 @@ async def _morning_brief() -> str | None:
         "подтверждения.\n\n"
         "Редакторская логика: сначала выбери одно главное событие по влиянию на страну. "
         "Вступление должно полностью назвать событие и его масштаб. Никакого многоточия. "
-        "Ориентир по тону: начни «Доброе утро! Сегодня погоду затмевает другая новость —», "
-        "а затем закончи предложение конкретным событием и его масштабом. "
+        "Вступление — одно короткое законченное предложение до 260 знаков. Не начинай каждый "
+        "день одинаковой фразой и не пересказывай в нём весь пост. "
         "Если доминирующего события нет, спокойно скажи, что действительно важно утром.\n\n"
         "Структура обязательна:\n"
         "Доброе утро! [полное вступление из 1-2 предложений]\n\n"
         "☁️ Погода\n\n"
-        "Один абзац 250-450 знаков: что будет утром и днём, максимум и минимум ровно один "
+        "Один короткий абзац 160-320 знаков: что будет утром и днём, максимум и минимум ровно один "
         "раз, вероятность осадков, ветер и наличие либо отсутствие предупреждений KNMI. "
         "Не описывай уже прошедшую ночь и не склеивай два прогноза с разными цифрами.\n\n"
         "🚆 Транспорт\n\n"
-        "Связный блок с конкретикой: что именно не ходит или задерживается, где, когда, "
+        "Один или два коротких абзаца, всего 260-650 знаков. Дай только сбои с наибольшим "
+        "практическим влиянием; не перечисляй подряд все станции и линии. Укажи, что именно "
+        "не ходит или задерживается, где, когда, "
         "почему, исключения и восстановление. При общенациональной забастовке обязательно "
         "проверь также городской и региональный OV, паромы, международные поезда, правила "
         "компенсации и запуск сети на следующий день. Не ограничивайся тремя городами, если "
-        "событие общенациональное.\n\n"
+        "событие общенациональное. Если есть критически важное практическое уточнение, вынеси "
+        "его отдельным абзацем, начинающимся с «Важно:». Если крупных сбоев нет, скажи об этом "
+        "кратко и не раздувай раздел.\n\n"
         "🚗 Дороги\n\n"
-        "Связный блок с реальной дорожной обстановкой, а не одним общим советом. Назови "
-        "актуальные A- или N-дороги, участки, направления, ремонты/перекрытия и факторы часа "
-        "пик. Отдельно объясни, ожидают ли ANWB/Rijkswaterstaat дополнительную нагрузку. "
-        "Закончи практическим советом.\n\n"
+        "Один или два коротких абзаца, всего 200-520 знаков. Назови максимум три наиболее "
+        "важные A- или N-дороги, участки, направления и факторы часа пик. Если крупных проблем "
+        "нет, прямо скажи об этом со ссылкой на ANWB/Rijkswaterstaat и не выдумывай трассу ради "
+        "формата. Закончи одним практическим советом.\n\n"
         "Последняя строка дословно: «Информация актуальна на 06:30. Следите за обновлениями "
-        "в NS, 9292 и ANWB.» CTA не добавляй — его добавит бот. Обычно 1400-2400 знаков. "
-        "Без markdown, HTML, ссылок, списков, канцелярита, Max/Min и слова «критично»."
+        "в NS, 9292 и ANWB.» CTA не добавляй — его добавит бот. Весь текст 1100-2000 знаков. "
+        "Между смысловыми абзацами оставляй пустую строку. Без markdown, HTML, ссылок, списков, "
+        "канцелярита, Max/Min и слова «критично»."
     )
 
     base_request = (
@@ -280,6 +429,7 @@ async def _morning_brief() -> str | None:
         "Проведи отдельный поиск по погоде, OV и дорогам и верни только готовый пост."
     )
     last_errors: list[str] = []
+    fallback_candidates: list[tuple[int, str]] = []
     for attempt in range(2):
         correction = ""
         if last_errors:
@@ -300,7 +450,18 @@ async def _morning_brief() -> str | None:
         last_errors = _morning_quality_errors(text)
         if not last_errors:
             return text
+        fallback = _compact_morning_output(text)
+        if _morning_core_is_publishable(fallback):
+            fallback_candidates.append((len(last_errors), fallback))
         log.warning("Morning brief rejected (attempt %d): %s", attempt + 1, "; ".join(last_errors))
+
+    if fallback_candidates:
+        fallback_candidates.sort(key=lambda item: (item[0], len(item[1])))
+        fallback = fallback_candidates[0][1]
+        await _meta_set("editorial_last_status", "morning_safe_fallback")
+        await _meta_set("editorial_last_error", "; ".join(last_errors)[:95])
+        log.warning("Publishing verified morning fallback after style-only rejection")
+        return fallback
 
     if last_errors:
         await _meta_set("editorial_last_status", "morning_quality_rejected")

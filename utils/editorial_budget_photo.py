@@ -24,11 +24,11 @@ try:
 except ValueError:
     _configured_searches = 2
 EDITORIAL_WEB_MAX_USES = max(1, min(_configured_searches, 2))
-MAX_AUTOMATIC_ATTEMPTS_PER_SLOT = 2
+MAX_AUTOMATIC_ATTEMPTS_PER_SLOT = 3
 RETRY_MINUTES = 15
 # Bump after a production generator fix so today's old failed attempts do not
-# block the repaired runtime, while the new runtime still gets only two tries.
-BUDGET_REVISION = "sonnet5-editorial-v7"
+# block the repaired runtime, while the new runtime still gets three tries.
+BUDGET_REVISION = "sonnet5-editorial-v8"
 
 
 def _draft_choice_kb(draft_id: str) -> InlineKeyboardMarkup:
@@ -296,10 +296,11 @@ async def _budgeted_run_morning(bot, now):
             return
 
         post_text = overrides._with_reaction_cta("morning", text)
+        post_html = editorial._format_morning_html(post_text)
         await bot.send_message(
             config.ANNOUNCE_CHANNEL,
-            post_text,
-            parse_mode=None,
+            post_html,
+            parse_mode="HTML",
             disable_web_page_preview=True,
         )
         await editorial._meta_set(date_key, today)
