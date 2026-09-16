@@ -2164,6 +2164,61 @@ async def test_repeat_ad_reserves_second_date() -> None:
         config.WEBHOOK_BASE_URL = old_webhook
 
 
+async def test_expert_booking_links_standard_card() -> None:
+    from handlers.ads import activate_expert_booking, activate_latest_expert_for_email
+    from handlers.contacts import _spec_text
+
+    async with db.get_session() as session:
+        regular = Specialist(
+            id=901, name="Existing Expert", category="юрист", city="",
+            province="", description="Legal help", contact="expert@example.nl",
+            is_online=True, is_premium=False, status="active", source="self",
+            invoice_email="expert@example.nl", plan="month",
+            paid_until=datetime(2027, 10, 16),
+        )
+        compensated = Specialist(
+            id=902, name="Compensated Expert", category="юрист", city="",
+            province="", description="Legal help", contact="bonus@example.nl",
+            is_online=True, is_premium=False, status="pending", source="self",
+            invoice_email="bonus@example.nl", plan="month",
+            paid_until=datetime(2027, 10, 16),
+        )
+        session.add_all([
+            regular,
+            compensated,
+            AdBooking(id=901, date="2027-09-17", dates_csv="2027-09-17",
+                      fmt="expert", opt="1m", status="paid",
+                      email="EXPERT@example.nl", amount="99.00"),
+            AdBooking(id=902, date="2027-09-17", dates_csv="2027-09-17",
+                      fmt="expert", opt="1m", status="paid",
+                      email="bonus@example.nl", amount="99.00"),
+        ])
+        await session.commit()
+
+    linked = await activate_expert_booking(901)
+    repeated = await activate_expert_booking(901)
+    compensated_link = await activate_latest_expert_for_email(
+        "BONUS@example.nl", 902, bonus_days=30
+    )
+    async with db.get_session() as session:
+        regular = await session.get(Specialist, 901)
+        compensated = await session.get(Specialist, 902)
+
+    check("Expert автоматически связывается со стандартной карточкой",
+          linked["status"] == "linked" and regular.is_premium)
+    check("обычный Expert даёт один месяц приоритета",
+          regular.premium_until == datetime(2027, 10, 17))
+    check("повторный webhook не начисляет срок второй раз",
+          repeated["status"] == "already"
+          and regular.premium_until == datetime(2027, 10, 17))
+    check("лишняя оплата стандартной карточки превращается в дополнительный месяц",
+          compensated_link["status"] == "linked"
+          and compensated.premium_until == datetime(2027, 11, 16)
+          and compensated.paid_until == datetime(2027, 11, 16))
+    check("приоритетная карточка явно помечена как рекомендация месяца",
+          "⭐ <b>Рекомендуем · Эксперт месяца</b>" in _spec_text(compensated))
+
+
 async def main() -> None:
     test_import_bot()
     test_video_submission_flow()
@@ -2203,6 +2258,7 @@ async def main() -> None:
 
     test_ad_crm_payload()
     await test_repeat_ad_reserves_second_date()
+    await test_expert_booking_links_standard_card()
     await test_ad_reminder_is_idempotent()
     await test_ad_day_of_admin_notification()
     await test_ad_day_of_action_backfill()

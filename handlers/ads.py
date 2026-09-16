@@ -14,11 +14,11 @@ from aiogram import F, Router
 from aiogram.enums import ChatType
 from aiogram.filters import Command
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 import config
 from database.db import get_session
-from database.models import AdBooking, Meta
+from database.models import AdBooking, Meta, Specialist
 from utils.payments import create_payment, get_payment
 from utils.ad_calendar import (
     _booking_dates,
@@ -42,6 +42,109 @@ _BLOCKING = ("pending", "paid", "closed")  # статусы, которые за
 _MONTHS = ["", "января", "февраля", "марта", "апреля", "мая", "июня", "июля",
            "августа", "сентября", "октября", "ноября", "декабря"]
 _WD = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
+
+_EXPERT_DAYS = {"1m": 30, "3m": 90}
+
+
+def _expert_period(date_value: str, option: str, bonus_days: int = 0,
+                   *, now: datetime | None = None) -> tuple[datetime, datetime]:
+    """Return the exact premium period promised by an Expert booking."""
+    current = now or datetime.utcnow()
+    try:
+        starts_at = datetime.strptime(date_value, "%Y-%m-%d")
+    except (TypeError, ValueError):
+        starts_at = current
+    days = _EXPERT_DAYS.get(option, 30) + max(0, bonus_days)
+    return starts_at, starts_at + timedelta(days=days)
+
+
+async def activate_expert_booking(booking_id: int, specialist_id: int | None = None,
+                                  *, bonus_days: int = 0) -> dict:
+    """Link a paid Expert booking to a standard directory card, once only."""
+    marker_key = f"expertlink:{booking_id}"
+    async with get_session() as session:
+        marker = await session.get(Meta, marker_key)
+        if marker:
+            return {"status": "already", "detail": marker.value}
+
+        booking = await session.get(AdBooking, booking_id)
+        if booking is None or booking.fmt != "expert" or booking.status != "paid":
+            return {"status": "invalid"}
+
+        specialist = None
+        if specialist_id is not None:
+            specialist = await session.get(Specialist, specialist_id)
+            if specialist is None:
+                return {"status": "missing_card"}
+        else:
+            email = (booking.email or "").strip().lower()
+            if not email:
+                return {"status": "missing_email"}
+            matches = (await session.scalars(
+                select(Specialist).where(
+                    func.lower(Specialist.invoice_email) == email,
+                    Specialist.status.in_(("active", "pending")),
+                ).order_by(Specialist.id.desc())
+            )).all()
+            if not matches:
+                return {"status": "missing_card"}
+            if len(matches) > 1:
+                return {"status": "ambiguous", "card_ids": [row.id for row in matches]}
+            specialist = matches[0]
+
+        starts_at, ends_at = _expert_period(booking.date, booking.opt, bonus_days)
+        specialist.is_premium = True
+        if specialist.premium_until is None or specialist.premium_until < ends_at:
+            specialist.premium_until = ends_at
+        if specialist.paid_until is None or specialist.paid_until < ends_at:
+            specialist.paid_until = ends_at
+        if specialist.status == "expired":
+            specialist.status = "active"
+
+        detail = f"sp:{specialist.id}:until:{ends_at.date().isoformat()}"
+        session.add(Meta(key=marker_key, value=detail))
+        await session.commit()
+        return {
+            "status": "linked",
+            "specialist_id": specialist.id,
+            "name": specialist.name,
+            "starts_at": starts_at,
+            "ends_at": ends_at,
+            "bonus_days": max(0, bonus_days),
+        }
+
+
+async def activate_latest_expert_for_email(email: str, specialist_id: int,
+                                           *, bonus_days: int = 0) -> dict | None:
+    """Link the newest still-unlinked paid Expert booking for this e-mail."""
+    normalized = (email or "").strip().lower()
+    if not normalized:
+        return None
+    async with get_session() as session:
+        bookings = (await session.scalars(
+            select(AdBooking).where(
+                AdBooking.fmt == "expert",
+                AdBooking.status == "paid",
+                func.lower(AdBooking.email) == normalized,
+            ).order_by(AdBooking.created_at.desc(), AdBooking.id.desc())
+        )).all()
+        booking_ids = [row.id for row in bookings]
+        if booking_ids:
+            linked = set((await session.scalars(
+                select(Meta.key).where(Meta.key.in_(
+                    [f"expertlink:{bid}" for bid in booking_ids]
+                ))
+            )).all())
+            booking_id = next(
+                (bid for bid in booking_ids if f"expertlink:{bid}" not in linked), None
+            )
+        else:
+            booking_id = None
+    if booking_id is None:
+        return None
+    return await activate_expert_booking(
+        booking_id, specialist_id, bonus_days=bonus_days
+    )
 
 
 def _materials_keyboard(booking_id: int, received: bool = False) -> InlineKeyboardMarkup:
@@ -284,6 +387,14 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
     await safe_sync_booking(int(bid))
     await safe_sync_crm_booking(int(bid))
 
+    expert_link = None
+    if fmt == "expert":
+        try:
+            expert_link = await activate_expert_booking(int(bid))
+        except Exception as e:  # noqa: BLE001
+            log.exception("Не удалось связать Expert booking #%s с карточкой: %s", bid, e)
+            expert_link = {"status": "error"}
+
     info = config.AD_FORMATS.get(fmt, {"name": fmt})
     option = config.ad_option(fmt, opt) or {"label": "", "price": "0"}
     addon = config.ad_addon(fmt) if addon_key else None
@@ -308,17 +419,86 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
             log.warning("Счёт за рекламу не отправлен: %s", e)
 
     who = (b_co or b_name or "—")
+    expert_note = ""
+    if fmt == "expert":
+        if expert_link and expert_link.get("status") == "linked":
+            expert_note = (
+                f"\nКарточка: #{expert_link['specialist_id']} — приоритет включён до "
+                f"{expert_link['ends_at']:%d.%m.%Y}."
+            )
+        else:
+            expert_note = (
+                f"\n⚠️ Стандартная карточка пока не связана. После её добавления выполни: "
+                f"<code>/expertlink {html.escape(email or '')}</code>"
+            )
     for admin_id in config.ADMIN_IDS:
         try:
             await bot.send_message(
                 admin_id,
                 f"💳 <b>Оплачена реклама</b>\n\nФормат: {info['name']} ({option['label']}{addon_sfx})\n"
                 f"Дата: {dt}\nКлиент: {who} ({'бизнес' if ct == 'business' else 'физлицо'})\n"
-                f"E-mail: {email or '—'}\nСумма: {paid_amount} {config.LISTING_CURRENCY}",
+                f"E-mail: {email or '—'}\nСумма: {paid_amount} {config.LISTING_CURRENCY}"
+                f"{expert_note}",
                 reply_markup=_materials_keyboard(int(bid)),
             )
         except Exception as e:  # noqa: BLE001
             log.warning("Не уведомил админа о рекламе: %s", e)
+
+
+@router.message(Command("expertlink"))
+async def cmd_expertlink(message: Message) -> None:
+    """Repair/link an Expert booking: /expertlink EMAIL [bonus_days]."""
+    if not _is_admin(message.from_user.id):
+        return
+    parts = (message.text or "").split()
+    if len(parts) not in (2, 3):
+        await message.answer(
+            "Использование: <code>/expertlink EMAIL [дополнительные дни]</code>\n"
+            "Для компенсации отдельной оплаты за месяц: "
+            "<code>/expertlink email@example.com 30</code>"
+        )
+        return
+    email = parts[1].strip().lower()
+    try:
+        bonus_days = int(parts[2]) if len(parts) == 3 else 0
+    except ValueError:
+        bonus_days = -1
+    if "@" not in email or not 0 <= bonus_days <= 365:
+        await message.answer("Проверьте e-mail и количество дополнительных дней (0–365).")
+        return
+
+    async with get_session() as session:
+        cards = (await session.scalars(
+            select(Specialist).where(
+                func.lower(Specialist.invoice_email) == email,
+                Specialist.status.in_(("active", "pending")),
+            ).order_by(Specialist.id.desc())
+        )).all()
+    if not cards:
+        await message.answer(f"Карточка с e-mail {html.escape(email)} не найдена.")
+        return
+    if len(cards) > 1:
+        ids = ", ".join(f"#{row.id} {html.escape(row.name)}" for row in cards)
+        await message.answer(
+            f"Найдено несколько карточек: {ids}. Сначала оставьте один точный e-mail."
+        )
+        return
+
+    result = await activate_latest_expert_for_email(
+        email, cards[0].id, bonus_days=bonus_days
+    )
+    if result is None:
+        await message.answer("Не найдено оплаченного несвязанного тарифа «Эксперт месяца».")
+        return
+    if result.get("status") != "linked":
+        await message.answer(f"Связать не удалось: <code>{result.get('status')}</code>.")
+        return
+    await message.answer(
+        f"✅ «Эксперт месяца» связан с карточкой "
+        f"<b>#{result['specialist_id']} {html.escape(result['name'])}</b>.\n"
+        f"Приоритет действует до <b>{result['ends_at']:%d.%m.%Y}</b>."
+        + (f"\nДобавлено компенсационных дней: <b>{bonus_days}</b>." if bonus_days else "")
+    )
 
 
 @router.callback_query(F.data.startswith("admat:"))

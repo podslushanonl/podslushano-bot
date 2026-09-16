@@ -310,7 +310,7 @@ def _spec_text(spec: Specialist, badge: str = "",
                reviews: list[tuple[int, str]] | None = None) -> str:
     """Текст карточки одного специалиста (данные экранируем для HTML)."""
     where = "онлайн" if spec.is_online else (spec.city or spec.province)
-    text = "🌟 " if spec.is_premium else ""
+    text = "⭐ <b>Рекомендуем · Эксперт месяца</b>\n" if spec.is_premium else ""
     text += f"<b>{html.escape(spec.name)}</b>"
     if where:
         text += f" · {html.escape(where)}"

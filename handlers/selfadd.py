@@ -1132,6 +1132,16 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         new_cat = sp.category if sp.category not in CATEGORIES else None
     await log_event("payment", f"{kind}:{plan}")
 
+    expert_link = None
+    if kind == "new" and inv_email:
+        try:
+            from handlers.ads import activate_latest_expert_for_email
+            expert_link = await activate_latest_expert_for_email(
+                inv_email, sp_id, bonus_days=info["days"]
+            )
+        except Exception as e:  # noqa: BLE001
+            log.exception("Не удалось связать новую карточку #%s с Expert: %s", sp_id, e)
+
     # Сумма для счёта — фактически оплаченная (учитывает реф-скидку), а не по тарифу
     paid_amount = (payment.get("amount") or {}).get("value") or info["price"]
 
@@ -1183,9 +1193,17 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         if new_cat else ""
     )
     for admin_id in config.ADMIN_IDS:
+        expert_note = ""
+        if expert_link and expert_link.get("status") == "linked":
+            expert_note = (
+                f"\n\n⭐ Тариф «Эксперт месяца» найден автоматически. Карточка стала "
+                f"приоритетной до {expert_link['ends_at']:%d.%m.%Y}; отдельная оплата "
+                "карточки добавлена к сроку."
+            )
         await _safe_send(
             bot, admin_id,
-            "💳 <b>Оплачено само-добавление</b> — нужна проверка:\n\n" + card + cat_note,
+            "💳 <b>Оплачено само-добавление</b> — нужна проверка:\n\n"
+            + card + cat_note + expert_note,
             _review_kb(sp_id),
         )
     if sub:
