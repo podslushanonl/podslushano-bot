@@ -1,0 +1,6 @@
+Donation goals page: static/ads-site/support.html
+Public path after deploy: /ads-static/support.html
+
+Edit DONATION_URL and GOALS near the bottom of support.html to change the Tikkie link, goals, targets, collected amounts, icons, and optional image URLs.
+
+The current Tikkie link expires on 1 October 2026 and must be replaced before then.
