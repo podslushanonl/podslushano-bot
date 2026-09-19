@@ -29,7 +29,6 @@ from utils.editorial_research_desk import editorial_research_loop, router as edi
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
-from utils.webserver import start_webserver
 from utils.ad_calendar import calendar_sync_loop
 from utils.ad_reminders import ad_reminder_loop
 
@@ -75,6 +74,7 @@ async def configure_profile(bot: Bot) -> None:
                     BotCommand(command="comments", description="Ответы на комментарии"),
                     BotCommand(command="adleads", description="CRM рекламных заявок"),
                     BotCommand(command="adcalendar", description="Проверить календарь рекламы"),
+                    BotCommand(command="gmailconnect", description="Подключить Gmail для материалов"),
                     BotCommand(command="invoices", description="Скачать архив фактур"),
                     BotCommand(command="contact", description="Связаться с нами / поддержка"),
                 ], scope=BotCommandScopeChat(chat_id=admin_id))
@@ -88,11 +88,15 @@ async def main() -> None:
     logging.basicConfig(level=logging.INFO)
     # Runtime подключается только при реальном запуске процесса, а не при импорте
     # bot.py в regression-тестах и служебных скриптах.
+    import gmail_oauth_runtime
     import ad_material_reminder_runtime
     import ad_material_conversation_guard  # noqa: F401 — paid-диалог только пока собираем материалы
 
     config.validate()
     await init_db()
+    connected_gmail = await gmail_oauth_runtime.install_saved_refresh_token()
+    if connected_gmail:
+        logging.info("Gmail read-only подключён для рекламных материалов: %s", connected_gmail)
     install_evenementen_source()
     install_editorial_overrides()
     bot = Bot(token=config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
@@ -125,7 +129,8 @@ async def main() -> None:
     dp.include_router(admin.router)
     dp.include_router(board.router)
     dp.include_router(afisha.router)
-    # Умные кнопки статуса материалов должны обрабатываться до старого ads.router.
+    # Gmail OAuth и умные кнопки материалов доступны только администраторам.
+    dp.include_router(gmail_oauth_runtime.router)
     dp.include_router(ad_material_reminder_runtime.router)
     dp.include_router(ads.router)
     dp.include_router(spotlight.router)
@@ -142,7 +147,7 @@ async def main() -> None:
     dp.include_router(errors.router)
 
     try:
-        await start_webserver(bot)
+        await gmail_oauth_runtime.start_webserver_with_gmail(bot)
     except Exception as e:
         logging.warning("Веб-сервер не запустился: %s", e)
     asyncio.create_task(reminder_loop(bot))
