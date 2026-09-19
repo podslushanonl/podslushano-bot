@@ -89,6 +89,7 @@ async def main() -> None:
     # Runtime подключается только при реальном запуске процесса, а не при импорте
     # bot.py в regression-тестах и служебных скриптах.
     import ad_material_reminder_runtime
+    import ad_material_conversation_guard  # noqa: F401 — paid-диалог только пока собираем материалы
 
     config.validate()
     await init_db()
