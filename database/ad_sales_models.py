@@ -50,3 +50,22 @@ class AdSalesPipeline(Base):
         DateTime, server_default=func.now(), onupdate=func.now(), index=True
     )
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
+
+
+class AdGmailConnection(Base):
+    """OAuth-подключение Gmail, используемое только для чтения ответов рекламодателей.
+
+    Refresh-token хранится зашифрованным. Одна рабочая запись соответствует
+    служебному ящику Podslushano.nl; повторное подключение заменяет её.
+    """
+
+    __tablename__ = "ad_gmail_connections"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, default=1)
+    email: Mapped[str] = mapped_column(String(200), index=True)
+    refresh_token_encrypted: Mapped[str] = mapped_column(Text)
+    scope: Mapped[str] = mapped_column(Text, default="")
+    connected_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, server_default=func.now(), onupdate=func.now()
+    )
