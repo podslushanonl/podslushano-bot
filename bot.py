@@ -86,6 +86,11 @@ async def configure_profile(bot: Bot) -> None:
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO)
+    # Runtime подключается только при реальном запуске процесса, а не при импорте
+    # bot.py в regression-тестах и служебных скриптах.
+    import ad_material_reminder_runtime
+    import ad_material_conversation_guard  # noqa: F401 — paid-диалог только пока собираем материалы
+
     config.validate()
     await init_db()
     install_evenementen_source()
@@ -120,6 +125,8 @@ async def main() -> None:
     dp.include_router(admin.router)
     dp.include_router(board.router)
     dp.include_router(afisha.router)
+    # Умные кнопки статуса материалов должны обрабатываться до старого ads.router.
+    dp.include_router(ad_material_reminder_runtime.router)
     dp.include_router(ads.router)
     dp.include_router(spotlight.router)
     dp.include_router(allo.router)
