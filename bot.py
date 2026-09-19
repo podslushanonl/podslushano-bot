@@ -18,6 +18,7 @@ from handlers import (
     tax_guide,
 )
 import ad_campaign_guide_runtime  # noqa: F401 — связывает €299 с Contact Guide Premium
+import ad_material_reminder_runtime  # noqa: F401 — останавливает спам, когда материалы уже в работе
 from handlers.ad_sales_pipeline import ad_payment_reconciliation_loop
 from handlers.ai_sales import ad_lead_reminder_loop
 from handlers.selfadd import reminder_loop
@@ -120,6 +121,8 @@ async def main() -> None:
     dp.include_router(admin.router)
     dp.include_router(board.router)
     dp.include_router(afisha.router)
+    # Умные кнопки статуса материалов должны обрабатываться до старого ads.router.
+    dp.include_router(ad_material_reminder_runtime.router)
     dp.include_router(ads.router)
     dp.include_router(spotlight.router)
     dp.include_router(allo.router)
