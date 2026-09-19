@@ -17,6 +17,7 @@ from handlers import (
     notifications, salary, selfadd, share, spotlight, start, stories, submissions, support,
     tax_guide,
 )
+import ad_campaign_guide_runtime  # noqa: F401 — связывает €299 с Contact Guide Premium
 from handlers.ad_sales_pipeline import ad_payment_reconciliation_loop
 from handlers.ai_sales import ad_lead_reminder_loop
 from handlers.selfadd import reminder_loop
