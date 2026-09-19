@@ -1,10 +1,14 @@
 """Focused checks for smart advertiser material reminders."""
+import os
+import sys
 from email.message import EmailMessage
 from types import SimpleNamespace
 
-import ad_material_reminder_runtime as smart
-import ad_material_conversation_guard  # noqa: F401
-from utils import ad_sales_pipeline
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import ad_material_reminder_runtime as smart  # noqa: E402
+import ad_material_conversation_guard  # noqa: F401,E402
+from utils import ad_sales_pipeline  # noqa: E402
 
 
 def booking() -> SimpleNamespace:
