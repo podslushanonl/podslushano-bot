@@ -30,12 +30,22 @@ def test_nine_distinct_research_streams_and_schedule():
     assert desk.STREAM_BY_KEY["day"].starts_at == time(12, 0)
     assert desk.STREAM_BY_KEY["evening"].starts_at == time(17, 0)
     assert {"people", "events", "provinces", "calendar", "buzz", "evergreen"}.issubset(desk.STREAM_BY_KEY)
+    assert desk.STREAM_BY_KEY["morning"].automatic_weekdays == tuple(range(7))
+    assert desk.STREAM_BY_KEY["day"].automatic_weekdays == ()
+    assert desk.STREAM_BY_KEY["evening"].automatic_weekdays == ()
+    assert all(
+        len(desk.STREAM_BY_KEY[key].automatic_weekdays) == 2
+        for key in ("people", "events", "provinces", "calendar", "buzz", "evergreen")
+    )
 
 
 def test_due_windows_use_amsterdam_wall_clock():
-    assert desk._is_due(desk.STREAM_BY_KEY["people"], datetime(2026, 9, 16, 8, 0))
-    assert not desk._is_due(desk.STREAM_BY_KEY["people"], datetime(2026, 9, 16, 12, 0))
-    assert desk._is_due(desk.STREAM_BY_KEY["day"], datetime(2026, 9, 16, 14, 0))
+    # Monday is an automatic People day; Tuesday is not.
+    assert desk._is_due(desk.STREAM_BY_KEY["people"], datetime(2026, 9, 14, 8, 0))
+    assert not desk._is_due(desk.STREAM_BY_KEY["people"], datetime(2026, 9, 15, 8, 0))
+    assert not desk._is_due(desk.STREAM_BY_KEY["people"], datetime(2026, 9, 14, 12, 0))
+    # Day/evening news stay available manually but never run automatically.
+    assert not desk._is_due(desk.STREAM_BY_KEY["day"], datetime(2026, 9, 16, 14, 0))
 
 
 def test_parser_keeps_only_strong_complete_sourced_ideas():
@@ -88,7 +98,7 @@ def test_verified_pipeline_extracts_valid_json_from_wrapper():
 
 
 def test_radar_gets_more_searches_than_regular_post():
-    assert verified._search_limit([], 2600) == 6
+    assert verified._search_limit([], 1600) == 2
     assert verified._search_limit([], 900) == 2
 
 
@@ -121,7 +131,8 @@ async def _test_feedback_and_dedup_reach_generator():
     assert "Старая идея" in calls[0][1]
     assert "Опубликованная тема" in calls[0][1]
     assert "[банально] Отклонённая тема" in calls[0][1]
-    assert calls[0][3] == 2600
+    assert calls[0][3] == 1600
+    assert len(calls) == 1
 
 
 def test_feedback_and_dedup_reach_generator():
