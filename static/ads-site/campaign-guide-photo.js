@@ -54,7 +54,6 @@
     if (file.size > 12 * 1024 * 1024) {
       throw new Error('Исходный файл слишком большой. Максимум 12 МБ.');
     }
-
     if (file.size <= 360000) {
       const dataUrl = await fileToDataUrl(file);
       return {mime: file.type, b64: dataUrl.split(',')[1], dataUrl};
