@@ -31,6 +31,7 @@ _MARKER = "|||GUIDE64:"
 _SOURCE = "ad_campaign"
 _MAX_PHOTO_BYTES = 600_000
 _ALLOWED_PHOTO_MIME = {"image/jpeg", "image/png"}
+_PREMIUM_PLANS = {"month_premium", "6m_premium", "year_premium"}
 _ORIGINAL_BOOK = ads.book_and_pay
 _ORIGINAL_PAID = ads.on_ad_payment_paid
 _ORIGINAL_SELF_CONFIRM = selfadd._show_order_confirmation
@@ -396,7 +397,20 @@ async def _premium_create_and_pay(message, state, plan: str, photo_file_id: str 
 
 
 def _premium_spec_text(spec: Specialist, badge: str = "", reviews=None) -> str:
+    """Show regular Premium correctly without renaming active legacy Expert cards."""
     text = _ORIGINAL_SPEC_TEXT(spec, badge, reviews)
+    base = (config.WEBHOOK_BASE_URL or "").rstrip("/")
+    campaign_photo_prefix = f"{base}/sp-photo/" if base else ""
+    regular_premium = (
+        spec.source == _SOURCE
+        or (spec.plan or "") in _PREMIUM_PLANS
+        or bool(
+            campaign_photo_prefix
+            and str(spec.photo_file_id or "").startswith(campaign_photo_prefix)
+        )
+    )
+    if not regular_premium:
+        return text
     return text.replace(
         "⭐ <b>Рекомендуем · Эксперт месяца</b>\n",
         "🌟 <b>Премиум</b>\n",
