@@ -3,6 +3,7 @@ from email.message import EmailMessage
 from types import SimpleNamespace
 
 import ad_material_reminder_runtime as smart
+import ad_material_conversation_guard  # noqa: F401
 from utils import ad_sales_pipeline
 
 
@@ -17,8 +18,10 @@ def booking() -> SimpleNamespace:
 
 
 def main() -> None:
-    # Paid clients stay in the tracked ad conversation after payment.
-    assert "paid" in ad_sales_pipeline.ACTIVE_SALES
+    # Paid is no longer globally treated as an ad conversation. The dedicated
+    # guard only exposes a paid lead while materials are unresolved.
+    assert "paid" not in ad_sales_pipeline.ACTIVE_SALES
+    assert ad_sales_pipeline.active_ad_submission is ad_material_conversation_guard.active_ad_submission
 
     # Production stages are explicit; every non-waiting material stage is silent.
     assert "materials_discussion" in ad_sales_pipeline.PRODUCTION_LABELS
