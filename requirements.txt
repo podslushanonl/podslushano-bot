@@ -7,4 +7,5 @@ reportlab>=4.0
 aiohttp>=3.9
 Pillow>=10.0
 google-auth>=2.35,<3
+cryptography>=43,<51
 requests>=2.31,<3
