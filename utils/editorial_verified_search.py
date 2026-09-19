@@ -29,7 +29,7 @@ def _search_limit(domains: list[str] | None = None, max_tokens: int = 900) -> in
     if is_morning:
         env_name, default, ceiling = "AI_MORNING_WEB_MAX_USES", 6, 8
     elif is_research:
-        env_name, default, ceiling = "AI_RADAR_WEB_MAX_USES", 6, 8
+        env_name, default, ceiling = "AI_RADAR_WEB_MAX_USES", 2, 2
     else:
         env_name, default, ceiling = "AI_EDITORIAL_WEB_MAX_USES", 2, 2
     try:
