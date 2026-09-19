@@ -18,7 +18,6 @@ from handlers import (
     tax_guide,
 )
 import ad_campaign_guide_runtime  # noqa: F401 — связывает €299 с Contact Guide Premium
-import ad_material_reminder_runtime  # noqa: F401 — останавливает спам, когда материалы уже в работе
 from handlers.ad_sales_pipeline import ad_payment_reconciliation_loop
 from handlers.ai_sales import ad_lead_reminder_loop
 from handlers.selfadd import reminder_loop
@@ -87,6 +86,10 @@ async def configure_profile(bot: Bot) -> None:
 
 async def main() -> None:
     logging.basicConfig(level=logging.INFO)
+    # Runtime подключается только при реальном запуске процесса, а не при импорте
+    # bot.py в regression-тестах и служебных скриптах.
+    import ad_material_reminder_runtime
+
     config.validate()
     await init_db()
     install_evenementen_source()
