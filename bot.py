@@ -8,6 +8,7 @@ from aiogram.enums import ParseMode
 from aiogram.types import BotCommand, BotCommandScopeChat
 
 import config
+import ad_products_runtime  # noqa: F401 — регистрирует канонические продукты /ads
 import database.ad_sales_models  # noqa: F401 — регистрирует таблицы в Base.metadata
 from database.db import init_db
 from handlers import (
