@@ -1,11 +1,11 @@
 """Connect the €299 advertising campaign with Contact Guide Premium.
 
 The campaign checkout collects the Guide data (including photo/logo) before
-Mollie.  A hidden draft is created before payment and becomes a moderated
+Mollie. A hidden draft is created before payment and becomes a moderated
 Premium card for 60 days only after confirmed payment.
 
 This module is imported before ``init_db()`` so its small photo-asset table is
-created by SQLAlchemy together with the rest of the schema.  It also installs a
+created by SQLAlchemy together with the rest of the schema. It also installs a
 few narrow runtime wrappers so the legacy ad checkout and regular Contact Guide
 flow remain backwards-compatible.
 """
@@ -264,9 +264,6 @@ async def _find_existing_card(session, draft: Specialist) -> Specialist | None:
         return exact[0]
     if len(existing) == 1:
         return existing[0]
-    # One invoice e-mail may legitimately manage several different cards.
-    # If there is no exact identity match we create a separate card rather than
-    # overwriting an unrelated business.
     return None
 
 
@@ -303,7 +300,7 @@ async def _activate_campaign_guide(bot, payment_id: str) -> dict | None:
             await session.delete(draft)
 
         card.is_premium = True
-        card.status = "pending"  # every new/updated card must be moderated before publication
+        card.status = "pending"
         if mode == "created":
             card.source = _SOURCE
             card.payment_id = payment_id
@@ -375,7 +372,6 @@ async def on_ad_payment_paid(bot, payment_id: str, payment: dict) -> None:
 
 
 async def _premium_photo_required_confirmation(message, state) -> None:
-    """Regular self-add Premium also cannot be completed without its promised photo."""
     data = await state.get_data()
     plan = data.get("sp_plan")
     if plan in selfadd.SELFADD_PLANS and config.plan_info(plan)["premium"] and not data.get("sp_photo_id"):
@@ -400,7 +396,6 @@ async def _premium_create_and_pay(message, state, plan: str, photo_file_id: str 
 
 
 def _premium_spec_text(spec: Specialist, badge: str = "", reviews=None) -> str:
-    """Premium is not the archived product name «Эксперт месяца»."""
     text = _ORIGINAL_SPEC_TEXT(spec, badge, reviews)
     return text.replace(
         "⭐ <b>Рекомендуем · Эксперт месяца</b>\n",
@@ -409,8 +404,6 @@ def _premium_spec_text(spec: Specialist, badge: str = "", reviews=None) -> str:
     )
 
 
-# Install handler-level wrappers.  Existing registered handlers look these
-# functions up through their module globals at execution time.
 ads.book_and_pay = book_and_pay
 ads.on_ad_payment_paid = on_ad_payment_paid
 selfadd._show_order_confirmation = _premium_photo_required_confirmation
@@ -418,7 +411,6 @@ selfadd._create_listing_and_pay = _premium_create_and_pay
 contacts._spec_text = _premium_spec_text
 
 
-# Web wrappers are installed before ``start_webserver()`` registers routes.
 from utils import webserver as _webserver  # noqa: E402
 
 _ORIGINAL_WEB_ADS = _webserver._ads
