@@ -55,8 +55,7 @@
       throw new Error('Исходный файл слишком большой. Максимум 12 МБ.');
     }
 
-    // Small files can stay untouched, preserving PNG transparency/logos.
-    if (file.size <= 380000) {
+    if (file.size <= 360000) {
       const dataUrl = await fileToDataUrl(file);
       return {mime: file.type, b64: dataUrl.split(',')[1], dataUrl};
     }
@@ -77,11 +76,11 @@
       ctx.drawImage(img, 0, 0, width, height);
 
       let blob = null;
-      for (const quality of [0.84, 0.74, 0.64, 0.54]) {
+      for (const quality of [0.82, 0.72, 0.62, 0.52]) {
         blob = await canvasBlob(canvas, quality);
-        if (blob && blob.size <= 450000) break;
+        if (blob && blob.size <= 420000) break;
       }
-      if (!blob || blob.size > 520000) {
+      if (!blob || blob.size > 480000) {
         throw new Error('Не удалось уменьшить изображение. Выберите другое фото.');
       }
       const dataUrl = await fileToDataUrl(blob);
@@ -149,4 +148,14 @@
     };
     return phone + '|||GUIDE64:' + encodeGuide(guide);
   };
+
+  form.addEventListener('submit', event => {
+    if (productId === 'ad_campaign' && (processing || !photo || !photo.b64)) {
+      event.preventDefault();
+      showErr('guideError', processing
+        ? 'Подождите, пока фото закончит обрабатываться.'
+        : 'Добавьте фото или логотип для Premium-карточки.');
+      if (typeof go === 'function') go('guide');
+    }
+  });
 })();
