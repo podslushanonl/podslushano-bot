@@ -28,7 +28,7 @@ from utils import editorial_channel as editorial
 log = logging.getLogger(__name__)
 router = Router()
 AMSTERDAM = ZoneInfo("Europe/Amsterdam")
-MAX_ATTEMPTS = 2
+MAX_ATTEMPTS = 1
 RETRY_MINUTES = 20
 RECENT_IDEA_SLOTS = 30
 MIN_SCORE = 8
@@ -44,6 +44,7 @@ class ResearchStream:
     ends_at: time
     instructions: str
     domains: tuple[str, ...] = ()
+    automatic_weekdays: tuple[int, ...] = tuple(range(7))
 
 
 _QUALITY_RULES = """
@@ -105,26 +106,34 @@ STREAMS: tuple[ResearchStream, ...] = (
                    _NEWS_RULES + " Учти ночь, предупреждения и изменения на сегодня или ближайшие дни.",
                    ("rijksoverheid.nl", "nos.nl", "nu.nl", "cbs.nl", "knmi.nl", "ns.nl", "prorail.nl", "anwb.nl", "politie.nl")),
     ResearchStream("people", "Люди Нидерландов", "🎙", time(7, 40), time(11, 55),
-                   "Ищи за 24–72 часа публичную жизнь Нидерландов: музыкантов, актёров, телеведущих, спортсменов вне результатов, крупных блогеров и королевскую семью. Нужен новый поступок, признание, конфликт, сильное интервью, общественная реакция или визуальный момент. Сплетни запрещены."),
+                   "Ищи за 24–72 часа публичную жизнь Нидерландов: музыкантов, актёров, телеведущих, спортсменов вне результатов, крупных блогеров и королевскую семью. Нужен новый поступок, признание, конфликт, сильное интервью, общественная реакция или визуальный момент. Сплетни запрещены.",
+                   automatic_weekdays=(0, 3)),
     ResearchStream("events", "Афиша Нидерландов", "🎪", time(7, 50), time(11, 55),
                    "Ищи на ближайшие 2–8 недель только события с самостоятельным сюжетом: редкий доступ, огромный масштаб, необычная традиция, сильная локация или ограниченное окно посещения. Проверь даты, город, цену, билеты, ограничения, официальный сайт и Instagram. Прошедшее запрещено.",
-                   ("evenementen.nl", "holland.com", "iamsterdam.com", "uitagendautrecht.nl", "rotterdamfestivals.nl", "denhaag.com", "thisiseindhoven.com", "visitbrabant.com")),
+                   ("evenementen.nl", "holland.com", "iamsterdam.com", "uitagendautrecht.nl", "rotterdamfestivals.nl", "denhaag.com", "thisiseindhoven.com", "visitbrabant.com"),
+                   (1, 4)),
     ResearchStream("provinces", "Радар 12 провинций", "🗺", time(8, 0), time(11, 55),
-                   "Просмотри источники всех 12 провинций. Нужны локальные истории, которые поймёт вся страна: редкая инициатива, изменение города, традиция, спор или человеческий сюжет. Обязательно назови провинцию и город. Не своди поиск к Randstad и не включай рутинные объявления gemeente."),
+                   "Просмотри источники всех 12 провинций. Нужны локальные истории, которые поймёт вся страна: редкая инициатива, изменение города, традиция, спор или человеческий сюжет. Обязательно назови провинцию и город. Не своди поиск к Randstad и не включай рутинные объявления gemeente.",
+                   automatic_weekdays=(2, 5)),
     ResearchStream("calendar", "Календарь Нидерландов", "📅", time(8, 10), time(11, 55),
                    "Проверь сегодня, завтра и 30 дней вперёд: официальные и локальные даты, церемонии, традиционные сезоны, городские праздники и юбилеи. Нужна история, объясняющая Нидерланды, а не календарная справка. Укажи точную дату и оптимальный день публикации.",
-                   ("rijksoverheid.nl", "koninklijkhuis.nl", "nationaalarchief.nl", "canonvannederland.nl", "openluchtmuseum.nl", "cultureelerfgoed.nl", "holland.com")),
+                   ("rijksoverheid.nl", "koninklijkhuis.nl", "nationaalarchief.nl", "canonvannederland.nl", "openluchtmuseum.nl", "cultureelerfgoed.nl", "holland.com"),
+                   (0, 3)),
     ResearchStream("buzz", "Что обсуждают", "💬", time(8, 20), time(11, 55),
-                   "Ищи за 24–72 часа заметную нидерландскую интернет-дискуссию: видео, телевидение, потребительский тренд, кампанию бренда, городскую привычку, мем или спор. Масштаб подтверди минимум двумя признаками. Единичный пост и слух запрещены."),
+                   "Ищи за 24–72 часа заметную нидерландскую интернет-дискуссию: видео, телевидение, потребительский тренд, кампанию бренда, городскую привычку, мем или спор. Масштаб подтверди минимум двумя признаками. Единичный пост и слух запрещены.",
+                   automatic_weekdays=(1, 4)),
     ResearchStream("evergreen", "Неочевидные Нидерланды", "🔎", time(8, 30), time(11, 55),
                    "Ищи сильный журналистский evergreen: инфраструктура, архитектура, вода, транспорт, жильё, язык, дизайн, наука, история, правила или известная компания. Нужны неожиданный вопрос, доказательства и визуальный маршрут истории. Не повторяй huisarts и аренду.",
-                   ("canonvannederland.nl", "rijksmuseum.nl", "openluchtmuseum.nl", "cultureelerfgoed.nl", "nationaalarchief.nl", "archieven.nl", "cbs.nl", "tudelft.nl")),
+                   ("canonvannederland.nl", "rijksmuseum.nl", "openluchtmuseum.nl", "cultureelerfgoed.nl", "nationaalarchief.nl", "archieven.nl", "cbs.nl", "tudelft.nl"),
+                   (2, 5)),
     ResearchStream("day", "Инфоповоды — день", "☀️", time(12, 0), time(16, 55),
                    _NEWS_RULES + " Ищи только появившееся после утра или существенное подтверждённое развитие.",
-                   ("rijksoverheid.nl", "nos.nl", "nu.nl", "cbs.nl", "ns.nl", "prorail.nl", "anwb.nl", "politie.nl")),
+                   ("rijksoverheid.nl", "nos.nl", "nu.nl", "cbs.nl", "ns.nl", "prorail.nl", "anwb.nl", "politie.nl"),
+                   ()),
     ResearchStream("evening", "Инфоповоды — вечер", "🌆", time(17, 0), time(22, 0),
                    _NEWS_RULES + " Ищи только новое после дневной проверки и сильнейший сюжет дня.",
-                   ("rijksoverheid.nl", "nos.nl", "nu.nl", "cbs.nl", "ns.nl", "prorail.nl", "anwb.nl", "politie.nl")),
+                   ("rijksoverheid.nl", "nos.nl", "nu.nl", "cbs.nl", "ns.nl", "prorail.nl", "anwb.nl", "politie.nl"),
+                   ()),
 )
 STREAM_BY_KEY = {stream.key: stream for stream in STREAMS}
 _VERDICT = {"now": "🔥 БРАТЬ СЕЙЧАС", "develop": "🟠 МОЖНО РАЗВИТЬ"}
@@ -142,7 +151,7 @@ def _now() -> datetime:
 
 
 def _is_due(stream: ResearchStream, now: datetime) -> bool:
-    return stream.starts_at <= now.time() < stream.ends_at
+    return now.weekday() in stream.automatic_weekdays and stream.starts_at <= now.time() < stream.ends_at
 
 
 async def _recent_ideas() -> list[str]:
@@ -228,20 +237,12 @@ async def _generate_digest(stream: ResearchStream) -> dict | None:
         f"Сегодня {_now():%d.%m.%Y}, Europe/Amsterdam. Поток: {stream.label}.\n"
         f"Нельзя повторять без существенного развития: {exclusions}.\n{feedback}"
     )
-    for attempt in range(2):
-        retry_note = (
-            "\nПредыдущий ответ оказался повреждён или не соответствовал схеме. "
-            "Повтори результат короче: только JSON, общий объём до 6000 знаков."
-            if attempt else ""
-        )
-        async with _generation_lock:
-            result = await editorial._generate(
-                system, user + retry_note, list(stream.domains), 2600
-            )
-        if result:
-            payload = _parse_payload(result[0], result[1])
-            if payload is not None:
-                return payload
+    async with _generation_lock:
+        result = await editorial._generate(system, user, list(stream.domains), 1600)
+    if result:
+        payload = _parse_payload(result[0], result[1])
+        if payload is not None:
+            return payload
     return None
 
 
@@ -345,7 +346,12 @@ async def _deliver_digest(bot, stream: ResearchStream, payload: dict) -> bool:
 async def _alert_failure(bot, stream: ResearchStream, detail: str) -> None:
     for admin_id in config.ADMIN_IDS:
         try:
-            await bot.send_message(admin_id, f"⚠️ {stream.label}: поиск не завершён. {detail}\nПовтор будет автоматически; вручную: /ideas.", parse_mode=None)
+            await bot.send_message(
+                admin_id,
+                f"⚠️ {stream.label}: поиск не завершён. {detail}\n"
+                "Автоматического повтора сегодня не будет; вручную: /ideas.",
+                parse_mode=None,
+            )
         except Exception:
             pass
 
