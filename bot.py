@@ -90,6 +90,7 @@ async def main() -> None:
     # bot.py в regression-тестах и служебных скриптах.
     import gmail_oauth_runtime
     import ad_material_reminder_runtime
+    import ad_material_admin_gate_runtime
     import ad_material_conversation_guard  # noqa: F401 — paid-диалог только пока собираем материалы
 
     config.validate()
@@ -129,8 +130,9 @@ async def main() -> None:
     dp.include_router(admin.router)
     dp.include_router(board.router)
     dp.include_router(afisha.router)
-    # Gmail OAuth и умные кнопки материалов доступны только администраторам.
+    # Gmail OAuth и напоминания о материалах доступны только администраторам.
     dp.include_router(gmail_oauth_runtime.router)
+    dp.include_router(ad_material_admin_gate_runtime.router)
     dp.include_router(ad_material_reminder_runtime.router)
     dp.include_router(ads.router)
     dp.include_router(spotlight.router)
