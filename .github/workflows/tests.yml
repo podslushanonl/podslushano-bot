@@ -22,5 +22,7 @@ jobs:
         run: python tests/test_smart_ad_material_reminders.py
       - name: Run admin-gated ad reminder checks
         run: python tests/test_admin_gated_ad_reminders.py
+      - name: Run 72h email preview checks
+        run: python tests/test_72h_email_preview.py
       - name: Run Gmail OAuth checks
         run: python tests/test_gmail_oauth_runtime.py

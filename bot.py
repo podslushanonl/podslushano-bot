@@ -91,6 +91,7 @@ async def main() -> None:
     import gmail_oauth_runtime
     import ad_material_reminder_runtime
     import ad_material_admin_gate_runtime
+    import ad_material_72h_preview_runtime
     import ad_material_conversation_guard  # noqa: F401 — paid-диалог только пока собираем материалы
 
     config.validate()
@@ -132,6 +133,8 @@ async def main() -> None:
     dp.include_router(afisha.router)
     # Gmail OAuth и напоминания о материалах доступны только администраторам.
     dp.include_router(gmail_oauth_runtime.router)
+    # 72h preview должен перехватить adgate:wait до общего обработчика gate.
+    dp.include_router(ad_material_72h_preview_runtime.router)
     dp.include_router(ad_material_admin_gate_runtime.router)
     dp.include_router(ad_material_reminder_runtime.router)
     dp.include_router(ads.router)
