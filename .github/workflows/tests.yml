@@ -20,5 +20,7 @@ jobs:
         run: python tests/run_tests.py
       - name: Run smart ad reminder checks
         run: python tests/test_smart_ad_material_reminders.py
+      - name: Run admin-gated ad reminder checks
+        run: python tests/test_admin_gated_ad_reminders.py
       - name: Run Gmail OAuth checks
         run: python tests/test_gmail_oauth_runtime.py
