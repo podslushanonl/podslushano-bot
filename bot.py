@@ -27,6 +27,7 @@ from handlers.evenementen_catalog import evenementen_catalog_loop, install_evene
 from utils.editorial_channel import editorial_channel_loop, router as editorial_router
 from utils.editorial_research_desk import editorial_research_loop, router as editorial_research_router
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
+from utils.editorial_quality_patch import install as install_editorial_quality_patch
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
 from utils.ad_calendar import calendar_sync_loop
@@ -101,6 +102,7 @@ async def main() -> None:
         logging.info("Gmail read-only подключён для рекламных материалов: %s", connected_gmail)
     install_evenementen_source()
     install_editorial_overrides()
+    install_editorial_quality_patch()
     bot = Bot(token=config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
     dp.message.middleware(ThrottleMiddleware())
