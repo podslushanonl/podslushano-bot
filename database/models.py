@@ -635,6 +635,10 @@ class AlloWebSale(Base):
     token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     kind: Mapped[str] = mapped_column(String(10))  # walk | gift
     event_key: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
+    event_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    event_starts_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    event_meeting: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    event_capacity: Mapped[int | None] = mapped_column(Integer, nullable=True)
     buyer_name: Mapped[str] = mapped_column(String(120))
     buyer_email: Mapped[str] = mapped_column(String(200))
     recipient_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
