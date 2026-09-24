@@ -31,6 +31,7 @@ from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
 from utils.ad_calendar import calendar_sync_loop
 from utils.ad_reminders import ad_reminder_loop
+from utils.allo_v2 import reconciliation_loop as allo_reconciliation_loop
 
 from utils.crm_bridge import crm_sync_loop
 
@@ -164,6 +165,7 @@ async def main() -> None:
     asyncio.create_task(evenementen_catalog_loop(bot))
     asyncio.create_task(ad_lead_reminder_loop(bot))
     asyncio.create_task(ad_payment_reconciliation_loop(bot))
+    asyncio.create_task(allo_reconciliation_loop())
     asyncio.create_task(calendar_sync_loop(bot))
     asyncio.create_task(ad_reminder_loop(bot))
 
