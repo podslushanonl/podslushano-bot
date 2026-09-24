@@ -1,1 +1,47 @@
-[]
+[
+  {
+    "key": "den-bosch-2026-10-03", "status": "draft", "category": "city",
+    "starts_at": "2026-10-03T11:00:00+02:00", "title": "Den Bosch без спешки",
+    "place": "’s-Hertogenbosch", "meeting": "Станция ’s-Hertogenbosch Centraal, городской выход у Drakenfontein, 11:00",
+    "duration": "3 октября · 11:00–16:00 · около 6 км", "price_cents": 4900, "capacity": 8,
+    "intro": "Кофе и Bossche bol возле вокзала, старый центр, Sint-Jan и зелёный Bossche Broek.",
+    "route": ["’s-Hertogenbosch Centraal", "Jan de Groot, Stationsweg 24", "Markt и старый город", "Sint-Janskathedraal", "Bossche Broek", "Parade"],
+    "included": ["Ведущий и подготовленный маршрут", "Кофе или чай и Bossche bol у Jan de Groot", "Группа до восьми гостей", "Чат и фотографии после прогулки"],
+    "extra": ["Дорога до Den Bosch и обратно", "Дополнительные заказы и личные покупки"],
+    "photos": [
+      {"url":"https://allo-walks.alex-podslushano.chatgpt.site/photos/den-bosch-broek.jpg","alt":"Пейзаж Bossche Broek","author":"G.Lanting","license":"CC BY 4.0"},
+      {"url":"https://allo-walks.alex-podslushano.chatgpt.site/photos/den-bosch-bol.jpg","alt":"Bossche bol в Den Bosch","author":"Norio NAKAYAMA","license":"CC BY-SA 2.0"},
+      {"url":"https://allo-walks.alex-podslushano.chatgpt.site/photos/den-bosch-markt.jpg","alt":"Площадь Markt в Den Bosch","author":"Jaap-073","license":"CC0 1.0"}
+    ]
+  },
+  {
+    "key": "hemelse-berg-2026-10-18", "status": "draft", "category": "nature",
+    "starts_at": "2026-10-18T10:30:00+02:00", "title": "Лес и ручьи Hemelse Berg",
+    "place": "Oosterbeek", "meeting": "Станция Oosterbeek, главный выход, 10:30",
+    "duration": "18 октября · 10:30–16:00 · около 7 км", "price_cents": 5900, "capacity": 8,
+    "intro": "Лес, усадьбы и ручьи Oosterbeek с остановками, горячим напитком и общим пикником.",
+    "route": ["Station Oosterbeek", "Park Hartenstein", "Hemelse Berg", "Лесные тропы", "Oude Kerk, Oosterbeek"],
+    "included": ["Ведущий и проверенный маршрут", "Горячий напиток", "Пикник с согласованным вариантом меню", "Группа до восьми гостей", "Чат и фотографии после прогулки"],
+    "extra": ["Дорога до Oosterbeek и обратно", "Дополнительные покупки"],
+    "photos": [
+      {"url":"https://allo-walks.alex-podslushano.chatgpt.site/photos/hemelse-pergola.jpg","alt":"Пергола в Hemelse Berg","author":"Pimvantend","license":"CC BY-SA 3.0 NL"},
+      {"url":"https://allo-walks.alex-podslushano.chatgpt.site/photos/hemelse-orangerie.jpg","alt":"Историческое строение в Oosterbeek","author":"Pimvantend","license":"CC BY-SA 3.0 NL"},
+      {"url":"https://allo-walks.alex-podslushano.chatgpt.site/photos/hemelse-column.jpg","alt":"Деталь парка Hemelse Berg","author":"Pimvantend","license":"CC BY-SA 3.0 NL"}
+    ]
+  },
+  {
+    "key": "dutch-design-week-2026-10-24", "status": "draft", "category": "special",
+    "starts_at": "2026-10-24T10:30:00+02:00", "title": "День на Dutch Design Week",
+    "place": "Eindhoven", "meeting": "Eindhoven Centraal, главный выход к Stationsplein, 10:30",
+    "duration": "24 октября · 10:30–17:30 · городской маршрут", "price_cents": 8900, "capacity": 8,
+    "intro": "День с понятным планом: выбранные площадки Dutch Design Week, обед и разговор об увиденном.",
+    "route": ["Eindhoven Centraal", "Центральные площадки DDW", "Обед", "Strijp-S", "Klokgebouw"],
+    "included": ["Входной билет Dutch Design Week", "Ведущий и маршрут по выбранным площадкам", "Приветственный напиток и обед", "Группа до восьми гостей", "Чат и фотографии после прогулки"],
+    "extra": ["Дорога до Eindhoven и обратно", "Дополнительные напитки и покупки"],
+    "photos": [
+      {"url":"https://allo-walks.alex-podslushano.chatgpt.site/photos/ddw-klokgebouw.jpg","alt":"Klokgebouw в Strijp-S","author":"S. Perquin","license":"CC BY-SA 4.0"},
+      {"url":"https://allo-walks.alex-podslushano.chatgpt.site/photos/ddw-strijp-s.jpg","alt":"Район Strijp-S в Eindhoven","author":"Dutchlad1985","license":"CC BY-SA 4.0"},
+      {"url":"https://allo-walks.alex-podslushano.chatgpt.site/photos/ddw-evoluon-2023.jpg","alt":"Архивное фото Dutch Design Week в Evoluon","author":"Solches","license":"CC BY-SA 4.0"}
+    ]
+  }
+]
