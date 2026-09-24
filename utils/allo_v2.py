@@ -96,7 +96,7 @@ def _events() -> list[dict]:
                     or any(not isinstance(event[field], list) or not event[field]
                            or any(not isinstance(item, str) or not item.strip() for item in event[field])
                            for field in ("route", "included", "extra"))
-                    or not 1 <= int(event["capacity"]) <= 100
+                    or not 1 <= int(event["capacity"]) <= 8
                     or not 1 <= int(event["price_cents"]) <= 100000):
                 continue
             seen.add(key)
