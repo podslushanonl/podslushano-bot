@@ -253,6 +253,8 @@ async def book(request: web.Request) -> web.Response:
         due = gross - discount
         sale = AlloWebSale(
             token=secrets.token_urlsafe(24), kind="walk", event_key=key,
+            event_title=str(event["title"]), event_starts_at=str(event["starts_at"]),
+            event_meeting=str(event["meeting"]), event_capacity=int(event["capacity"]),
             buyer_name=name, buyer_email=email, gross_cents=gross,
             discount_cents=discount, amount_cents=due,
             code_id=code.id if code else None,
@@ -381,14 +383,8 @@ async def on_payment(payment_id: str, payment: dict) -> None:
             should_deliver = sale.email_state in ("pending", "failed", "sending")
         elif sale.status == "pending":
             if sale.kind == "walk":
-                event = _event(sale.event_key or "")
-                if not event:
-                    sale.status = "refund_requested"
-                    await session.commit()
-                    log.error("Paid Allo walk missing from catalog, refund required: sale=%s", sale_id)
-                    return
                 if sale.created_at < _now() - HOLD:
-                    inventory = await _inventory(session, sale.event_key, int(event["capacity"]))
+                    inventory = await _inventory(session, sale.event_key, int(sale.event_capacity or 0))
                     if inventory["available"] < 1:
                         sale.status = "refund_requested"
                         await session.commit()
@@ -453,7 +449,9 @@ async def _deliver_sale(sale_id: int) -> None:
         recipient_email = sale.recipient_email
         recipient_name = sale.recipient_name
         gift_message = sale.gift_message
-        event_key = sale.event_key
+        event_title = sale.event_title
+        event_starts_at = sale.event_starts_at
+        event_meeting = sale.event_meeting
         amount = sale.gross_cents
         code_id = code.id if code else None
         encrypted = code.code_encrypted if code else None
@@ -484,8 +482,7 @@ async def _deliver_sale(sale_id: int) -> None:
                  "Введите его при покупке прогулки. Остаток сохранится.")
         target = recipient_email
     else:
-        event = _event(event_key or "")
-        if not event:
+        if not event_title or not event_starts_at or not event_meeting:
             async with get_session() as session:
                 sale = await session.get(AlloWebSale, sale_id)
                 if sale:
@@ -494,12 +491,12 @@ async def _deliver_sale(sale_id: int) -> None:
             return
         subject = "Ваше место на прогулке Allo Walks подтверждено"
         body = (f"<h1>Место подтверждено</h1><p>Здравствуйте, {html.escape(buyer_name)}.</p>"
-                f"<p><strong>{html.escape(str(event['title']))}</strong><br>"
-                f"{html.escape(str(event['starts_at']))}<br>"
-                f"Встреча: {html.escape(str(event['meeting']))}</p>"
+                f"<p><strong>{html.escape(event_title)}</strong><br>"
+                f"{html.escape(event_starts_at)}<br>"
+                f"Встреча: {html.escape(event_meeting)}</p>"
                 "<p>Сохраните это письмо. Если появятся вопросы, ответьте на него.</p>")
-        plain = (f"Место подтверждено: {event['title']}, {event['starts_at']}. "
-                 f"Встреча: {event['meeting']}.")
+        plain = (f"Место подтверждено: {event_title}, {event_starts_at}. "
+                 f"Встреча: {event_meeting}.")
         target = buyer_email
     ok, detail = await send_email_message(target, subject, body, plain)
     async with get_session() as session:
