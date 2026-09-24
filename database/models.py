@@ -608,6 +608,54 @@ class AlloReferral(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class AlloWebCode(Base):
+    """Purchased gift balance or a reviewed legacy three-walk entitlement."""
+
+    __tablename__ = "allo_web_codes"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    code_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    code_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
+    kind: Mapped[str] = mapped_column(String(10))  # gift | pass
+    owner_email: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    value_cents: Mapped[int] = mapped_column(Integer, default=0)
+    total_uses: Mapped[int] = mapped_column(Integer, default=0)
+    issued_sale_id: Mapped[int | None] = mapped_column(Integer, unique=True, nullable=True)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    email_sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class AlloWebSale(Base):
+    """Website checkout. Pending orders reserve one seat or gift balance for 60 min."""
+
+    __tablename__ = "allo_web_sales"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    kind: Mapped[str] = mapped_column(String(10))  # walk | gift
+    event_key: Mapped[str | None] = mapped_column(String(64), index=True, nullable=True)
+    event_title: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    event_starts_at: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    event_meeting: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    event_capacity: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    buyer_name: Mapped[str] = mapped_column(String(120))
+    buyer_email: Mapped[str] = mapped_column(String(200))
+    recipient_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    recipient_email: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    gift_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+    gross_cents: Mapped[int] = mapped_column(Integer)
+    discount_cents: Mapped[int] = mapped_column(Integer, default=0)
+    amount_cents: Mapped[int] = mapped_column(Integer)
+    code_id: Mapped[int | None] = mapped_column(Integer, index=True, nullable=True)
+    status: Mapped[str] = mapped_column(String(24), default="pending", index=True)
+    payment_id: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    email_state: Mapped[str] = mapped_column(String(16), default="pending")
+    email_attempted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
 class CommentReplyDraft(Base):
     """Temporary AI suggestions shown to an admin for an Instagram comment."""
 
