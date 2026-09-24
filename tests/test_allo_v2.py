@@ -76,6 +76,14 @@ class AlloV2Tests(unittest.IsolatedAsyncioTestCase):
     def data(response):
         return json.loads(response.text)
 
+    async def test_event_capacity_cannot_exceed_eight(self):
+        self.event["capacity"] = 9
+        self.write_events([self.event])
+        self.assertEqual(allo_v2._events(), [])
+        self.event["capacity"] = 8
+        self.write_events([self.event])
+        self.assertEqual(len(allo_v2._events()), 1)
+
     async def test_server_sets_price_and_reserves_last_seat(self):
         request = Request({"event_key": "city-test", "name": "Алекс", "email": "alex@example.org",
                            "amount_cents": 0, "agreed": True})
