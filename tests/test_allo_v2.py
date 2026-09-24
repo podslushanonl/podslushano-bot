@@ -102,6 +102,37 @@ class AlloV2Tests(unittest.IsolatedAsyncioTestCase):
             sale = await session.get(AlloWebSale, meta["sale_id"])
             self.assertEqual(sale.status, "paid")
 
+    async def test_same_email_cannot_hold_a_second_seat(self):
+        self.event["capacity"] = 2
+        self.write_events([self.event])
+        request = Request({"event_key": "city-test", "name": "Алекс",
+                           "email": "alex@example.org", "agreed": True})
+        first = await allo_v2.book(request)
+        second = await allo_v2.book(request)
+        self.assertEqual(first.status, 200)
+        self.assertEqual(second.status, 409)
+        self.assertEqual(len(self.payments), 1)
+        other = await allo_v2.book(Request({"event_key": "city-test", "name": "Друг",
+                                           "email": "friend@example.org", "agreed": True}))
+        self.assertEqual(other.status, 200)
+
+    async def test_payment_after_walk_start_does_not_confirm_a_seat(self):
+        request = Request({"event_key": "city-test", "name": "Алекс",
+                           "email": "alex@example.org", "agreed": True})
+        await allo_v2.book(request)
+        meta = self.payments[0][0]
+        async with self.sessions() as session:
+            sale = await session.get(AlloWebSale, meta["sale_id"])
+            sale.event_starts_at = (datetime.now(timezone.utc) - timedelta(minutes=1)).isoformat()
+            await session.commit()
+        await allo_v2.on_payment("tr_1", {"id": "tr_1", "status": "paid",
+                                          "metadata": meta,
+                                          "amount": {"currency": "EUR", "value": "49.00"}})
+        async with self.sessions() as session:
+            sale = await session.get(AlloWebSale, meta["sale_id"])
+            self.assertEqual(sale.status, "refund_requested")
+        self.assertEqual(allo_v2.send_email_message.await_count, 0)
+
     async def test_pass_works_only_for_city_or_nature(self):
         async with self.sessions() as session:
             session.add(AlloWebCode(code_hash=allo_v2._hash_code("ALLO-PASS-TEST"),
