@@ -32,7 +32,9 @@ async def create_payment(description: str, metadata: dict, amount: str,
     method — ограничить способ оплаты (напр. "ideal"). None = все доступные.
     """
     sid = metadata.get("specialist_id")
-    if metadata.get("kind") == "allo" and metadata.get("source") == "website" and config.WEBHOOK_BASE_URL:
+    if metadata.get("kind") == "allo_v2" and config.WEBHOOK_BASE_URL:
+        redirect = f"{config.WEBHOOK_BASE_URL}/allo-walks/v2/return?token={metadata['token']}"
+    elif metadata.get("kind") == "allo" and metadata.get("source") == "website" and config.WEBHOOK_BASE_URL:
         redirect = f"{config.WEBHOOK_BASE_URL}/allo-walks/success"
     elif metadata.get("kind") == "ad" and config.WEBHOOK_BASE_URL:
         booking_id = metadata.get("booking_id")
