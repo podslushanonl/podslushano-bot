@@ -47,7 +47,8 @@ def _origin(url: str) -> str:
 def _cors(request: web.Request, response: web.StreamResponse) -> web.StreamResponse:
     origin = request.headers.get("Origin", "")
     allowed = {_origin(config.WP_URL), _origin(config.SITE_URL),
-               _origin(config.WEBHOOK_BASE_URL)}
+               _origin(config.WEBHOOK_BASE_URL),
+               "https://allo-walks.alex-podslushano.chatgpt.site"}
     if origin and origin in allowed:
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Vary"] = "Origin"
@@ -225,6 +226,18 @@ async def book(request: web.Request) -> web.Response:
 
     async with get_session() as session:
         await _lock(session)
+        cutoff = _now() - HOLD
+        duplicate = await session.scalar(select(func.count()).select_from(AlloWebSale).where(
+            AlloWebSale.event_key == key, AlloWebSale.kind == "walk",
+            AlloWebSale.buyer_email == email,
+            or_(AlloWebSale.status == "paid",
+                and_(AlloWebSale.status == "pending", AlloWebSale.created_at >= cutoff)))) or 0
+        legacy = await session.scalar(select(func.count()).select_from(AlloBooking).where(
+            AlloBooking.walk_key == key, func.lower(AlloBooking.email) == email,
+            or_(AlloBooking.status == "paid",
+                and_(AlloBooking.status == "pending", AlloBooking.created_at >= cutoff)))) or 0
+        if duplicate or legacy:
+            return _json(request, {"error": "На эту почту уже оформлено место или есть незавершённая оплата."}, 409)
         inventory = await _inventory(session, key, int(event["capacity"]))
         if inventory["available"] < 1:
             return _json(request, {"error": "На эту прогулку мест уже нет."}, 409)
@@ -383,6 +396,13 @@ async def on_payment(payment_id: str, payment: dict) -> None:
             should_deliver = sale.email_state in ("pending", "failed", "sending")
         elif sale.status == "pending":
             if sale.kind == "walk":
+                if sale.event_starts_at:
+                    start = datetime.fromisoformat(sale.event_starts_at)
+                    if start.tzinfo and start <= datetime.now(start.tzinfo):
+                        sale.status = "refund_requested"
+                        await session.commit()
+                        log.error("Allo payment after event start, refund required: sale=%s", sale_id)
+                        return
                 if sale.created_at < _now() - HOLD:
                     inventory = await _inventory(session, sale.event_key, int(sale.event_capacity or 0))
                     if inventory["available"] < 1:
@@ -562,8 +582,9 @@ async def payment_return(request: web.Request) -> web.Response:
     token = request.query.get("token", "")
     if not re.fullmatch(r"[A-Za-z0-9_-]{20,64}", token):
         raise web.HTTPBadRequest(text="Некорректный заказ")
-    page_url = os.getenv("ALLO_PAGE_URL", "").strip()
-    allowed = {_origin(config.WP_URL), _origin(config.SITE_URL)}
+    page_url = os.getenv("ALLO_PAGE_URL", "https://allo-walks.alex-podslushano.chatgpt.site/").strip()
+    allowed = {_origin(config.WP_URL), _origin(config.SITE_URL),
+               "https://allo-walks.alex-podslushano.chatgpt.site"}
     if _origin(page_url) in allowed and _origin(page_url):
         separator = "&" if "?" in page_url else "?"
         raise web.HTTPFound(f"{page_url}{separator}allo_order={token}#booking")
