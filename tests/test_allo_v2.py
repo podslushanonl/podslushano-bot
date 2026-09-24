@@ -154,6 +154,21 @@ class AlloV2Tests(unittest.IsolatedAsyncioTestCase):
             sale = await session.get(AlloWebSale, meta["sale_id"])
             self.assertEqual(sale.status, "paid")
 
+    async def test_paid_order_keeps_original_meeting_after_catalog_changes(self):
+        request = Request({"event_key": "city-test", "name": "Алекс",
+                           "email": "alex@example.org", "agreed": True})
+        await allo_v2.book(request)
+        meta = self.payments[0][0]
+        self.write_events([])
+        await allo_v2.on_payment("tr_1", {"id": "tr_1", "status": "paid",
+                                          "metadata": meta,
+                                          "amount": {"currency": "EUR", "value": "49.00"}})
+        async with self.sessions() as session:
+            sale = await session.get(AlloWebSale, meta["sale_id"])
+            self.assertEqual(sale.status, "paid")
+            self.assertEqual(sale.event_meeting, "Test Centraal, главный вход")
+        self.assertIn("Test Centraal", allo_v2.send_email_message.call_args.args[2])
+
 
 if __name__ == "__main__":
     unittest.main()
