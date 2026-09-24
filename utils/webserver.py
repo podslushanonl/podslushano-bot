@@ -22,7 +22,7 @@ from utils.contact_links import parse_contact_links
 from utils.geo import CATEGORIES, specialist_matches_category
 from utils.reviews import rating_badge, ratings_for, specialist_key
 from utils.payments import get_payment
-from utils import allo_web
+from utils import allo_web, allo_v2
 
 log = logging.getLogger(__name__)
 
@@ -1770,6 +1770,15 @@ async def start_webserver(bot) -> web.AppRunner:
     app.router.add_get("/api/allo-walks", allo_web.api_walks)
     app.router.add_post("/allo-walks/waitlist", allo_web.waitlist)
     app.router.add_post("/allo-walks/book", allo_web.book)
+    app.router.add_get("/allo-walks/v2", allo_v2.page)
+    app.router.add_get("/allo-walks/v2/return", allo_v2.payment_return)
+    app.router.add_get("/api/allo/v2/events", allo_v2.catalog)
+    app.router.add_post("/api/allo/v2/book", allo_v2.book)
+    app.router.add_post("/api/allo/v2/gift", allo_v2.buy_gift)
+    app.router.add_get("/api/allo/v2/orders/{token}", allo_v2.sale_status)
+    for path in ("/api/allo/v2/events", "/api/allo/v2/book", "/api/allo/v2/gift",
+                 "/api/allo/v2/orders/{token}"):
+        app.router.add_route("OPTIONS", path, allo_v2.options)
     app.router.add_static("/allo-assets/", Path(__file__).resolve().parent.parent / "assets" / "allo")
     app.router.add_static("/allo-fonts/", Path(__file__).resolve().parent.parent / "assets" / "fonts")
     app.router.add_post("/mollie-webhook", _mollie_webhook)
