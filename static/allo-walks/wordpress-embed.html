@@ -311,8 +311,8 @@
       const data = await response.json();
       if (!loaded) {
         loaded = true;
+        $('#aw-dates').hidden = !data.events.length;
         if (data.events.length) {
-          $('#aw-dates').hidden = false;
           root.querySelectorAll('.aw-dates-link').forEach(link=>link.hidden=false);
           [['#aw-hero-cta','Выбрать прогулку ↗'],['#aw-header-cta','Выбрать прогулку ↗']].forEach(([selector,label])=>{
             const link=$(selector); link.href='#aw-dates'; link.textContent=label;
@@ -350,7 +350,11 @@
       }
       $('#aw-update-error').hidden=true;
     } catch (_) {
-      if (loaded) $('#aw-update-error').hidden=false;
+      if (!loaded) {
+        $('#aw-dates').hidden=false;
+        $('#aw-update-error').textContent='Не удалось загрузить расписание. Обновите страницу.';
+      }
+      $('#aw-update-error').hidden=false;
     }
   }
   const giftForm=$('#aw-gift-form');
