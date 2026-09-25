@@ -1,6 +1,6 @@
 [
   {
-    "key": "den-bosch-2026-10-03", "status": "draft", "category": "city",
+    "key": "den-bosch-2026-10-03", "status": "published", "category": "city",
     "starts_at": "2026-10-03T11:00:00+02:00", "title": "Den Bosch без спешки",
     "place": "’s-Hertogenbosch", "meeting": "Станция ’s-Hertogenbosch Centraal, городской выход у Drakenfontein, 11:00",
     "duration": "3 октября · 11:00–16:00 · около 6 км", "price_cents": 4900, "capacity": 8,
@@ -15,7 +15,7 @@
     ]
   },
   {
-    "key": "hemelse-berg-2026-10-18", "status": "draft", "category": "nature",
+    "key": "hemelse-berg-2026-10-18", "status": "published", "category": "nature",
     "starts_at": "2026-10-18T10:30:00+02:00", "title": "Лес и ручьи Hemelse Berg",
     "place": "Oosterbeek", "meeting": "Станция Oosterbeek, главный выход, 10:30",
     "duration": "18 октября · 10:30–16:00 · около 7 км", "price_cents": 5900, "capacity": 8,
@@ -30,7 +30,7 @@
     ]
   },
   {
-    "key": "dutch-design-week-2026-10-24", "status": "draft", "category": "special",
+    "key": "dutch-design-week-2026-10-24", "status": "published", "category": "special",
     "starts_at": "2026-10-24T10:30:00+02:00", "title": "День на Dutch Design Week",
     "place": "Eindhoven", "meeting": "Eindhoven Centraal, главный выход к Stationsplein, 10:30",
     "duration": "24 октября · 10:30–17:30 · городской маршрут", "price_cents": 8900, "capacity": 8,
