@@ -1,3 +1,7 @@
 {
-  "gift_amounts_eur": []
+  "gift_amounts_eur": [
+    25,
+    50,
+    100
+  ]
 }
