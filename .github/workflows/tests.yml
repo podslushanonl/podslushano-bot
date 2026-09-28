@@ -18,6 +18,8 @@ jobs:
         run: python tests/test_editorial_full_pipeline.py
       - name: Run full legacy regression suite
         run: python tests/run_tests.py
+      - name: Run anonymous question checks
+        run: python tests/test_anonymous_questions.py
       - name: Run smart ad reminder checks
         run: python tests/test_smart_ad_material_reminders.py
       - name: Run admin-gated ad reminder checks
