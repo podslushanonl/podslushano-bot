@@ -12,10 +12,10 @@ import ad_products_runtime  # noqa: F401 — регистрирует канон
 import database.ad_sales_models  # noqa: F401 — регистрирует таблицы в Base.metadata
 from database.db import init_db
 from handlers import (
-    ad_crm, ad_sales_pipeline, admin, admin_center, ads, afisha, ai_sales, allo, board, cabinet, chat,
-    comment_copilot, contacts, content, digest, errors, events, guides, home, invoice_admin, letters, moderation,
-    notifications, salary, selfadd, share, spotlight, start, stories, submissions, support,
-    tax_guide,
+    ad_crm, ad_sales_pipeline, admin, admin_center, ads, afisha, ai_sales, allo, anonymous_questions,
+    board, cabinet, chat, comment_copilot, contacts, content, digest, errors, events, guides, home,
+    invoice_admin, letters, moderation, notifications, salary, selfadd, share, spotlight, start, stories,
+    submissions, support, tax_guide,
 )
 import ad_campaign_guide_runtime  # noqa: F401 — связывает €299 с Contact Guide Premium
 from handlers.ad_sales_pipeline import ad_payment_reconciliation_loop
@@ -69,6 +69,7 @@ async def configure_profile(bot: Bot) -> None:
                     BotCommand(command="start", description="Запустить бота и открыть меню"),
                     BotCommand(command="menu", description="Показать меню"),
                     BotCommand(command="admin", description="Открыть Админ-центр"),
+                    BotCommand(command="alexquestions", description="Анонимные вопросы Алексу"),
                     BotCommand(command="contentplan", description="Контент-план канала"),
                     BotCommand(command="editorialpreview", description="Предпросмотр редакционных постов"),
                     BotCommand(command="ideas", description="Редакционный радар инфоповодов"),
@@ -111,6 +112,8 @@ async def main() -> None:
 
     dp.include_router(stories.router)
     dp.include_router(tax_guide.router)
+    # ask_alex должен перехватывать только свой deep-link до общего /start.
+    dp.include_router(anonymous_questions.router)
     dp.include_router(start.router)
     dp.include_router(guides.router)
     dp.include_router(events.router)
