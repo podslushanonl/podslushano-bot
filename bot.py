@@ -17,6 +17,7 @@ from handlers import (
     invoice_admin, letters, moderation, notifications, salary, selfadd, share, spotlight, start, stories,
     submissions, support, tax_guide,
 )
+from handlers import anonymous_replies
 import ad_campaign_guide_runtime  # noqa: F401 — связывает €299 с Contact Guide Premium
 from handlers.ad_sales_pipeline import ad_payment_reconciliation_loop
 from handlers.ai_sales import ad_lead_reminder_loop
@@ -70,6 +71,7 @@ async def configure_profile(bot: Bot) -> None:
                     BotCommand(command="menu", description="Показать меню"),
                     BotCommand(command="admin", description="Открыть Админ-центр"),
                     BotCommand(command="alexquestions", description="Анонимные вопросы Алексу"),
+                    BotCommand(command="alexchannel", description="Подключить личный канал для ответов"),
                     BotCommand(command="contentplan", description="Контент-план канала"),
                     BotCommand(command="editorialpreview", description="Предпросмотр редакционных постов"),
                     BotCommand(command="ideas", description="Редакционный радар инфоповодов"),
@@ -113,6 +115,7 @@ async def main() -> None:
     dp.include_router(stories.router)
     dp.include_router(tax_guide.router)
     # ask_alex должен перехватывать только свой deep-link до общего /start.
+    dp.include_router(anonymous_replies.router)
     dp.include_router(anonymous_questions.router)
     dp.include_router(start.router)
     dp.include_router(guides.router)

@@ -46,7 +46,8 @@ class RegisterUserMiddleware(BaseMiddleware):
         selected = data.get("handler")
         if selected and selected.flags.get("anonymous_question"):
             return await handler(event, data)
-        if data.get("raw_state") == "AnonymousQuestionForm:waiting_text":
+        raw_state = data.get("raw_state") or ""
+        if raw_state == "AnonymousQuestionForm:waiting_text" or raw_state.startswith("ReplyForm:"):
             text = getattr(event, "text", None) or ""
             if text.startswith("/") and data.get("state"):
                 await data["state"].clear()
