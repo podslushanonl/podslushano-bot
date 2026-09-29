@@ -88,9 +88,17 @@ def _admin_kb(question_id: int) -> InlineKeyboardMarkup:
     )
 
 
-def _queue_kb() -> InlineKeyboardMarkup:
+async def _queue_kb() -> InlineKeyboardMarkup:
+    async with get_session() as session:
+        pending = (await session.scalars(select(AnonymousQuestion.id).where(
+            AnonymousQuestion.status == "pending").order_by(AnonymousQuestion.id).limit(6))).all()
+        selected = (await session.scalars(select(AnonymousQuestion.id).where(
+            AnonymousQuestion.status == "selected").order_by(AnonymousQuestion.id.desc()).limit(6))).all()
     return InlineKeyboardMarkup(
         inline_keyboard=[
+            [InlineKeyboardButton(text=f"Открыть вопрос #{qid}", callback_data=f"alexq:open:{qid}")]
+            for qid in [*pending, *selected]
+        ] + [
             [InlineKeyboardButton(text="🔄 Обновить", callback_data="alexq:queue")]
         ]
     )
@@ -130,7 +138,7 @@ def _intro_text() -> str:
     )
 
 
-@router.message(F.text.regexp(r"^/start(?:@\w+)?\s+ask_alex$"))
+@router.message(F.text.regexp(r"^/start(?:@\w+)?\s+ask_alex$"), flags={"anonymous_question": True})
 async def start_anonymous_question(message: Message, state: FSMContext) -> None:
     """Deep-link: https://t.me/<bot>?start=ask_alex."""
     await state.clear()
@@ -138,7 +146,7 @@ async def start_anonymous_question(message: Message, state: FSMContext) -> None:
     await message.answer(_intro_text(), reply_markup=_cancel_kb())
 
 
-@router.callback_query(F.data == "alexq:new")
+@router.callback_query(F.data == "alexq:new", flags={"anonymous_question": True})
 async def anonymous_question_again(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     await state.set_state(AnonymousQuestionForm.waiting_text)
@@ -149,7 +157,7 @@ async def anonymous_question_again(callback: CallbackQuery, state: FSMContext) -
     await callback.answer()
 
 
-@router.callback_query(F.data == "alexq:cancel")
+@router.callback_query(F.data == "alexq:cancel", flags={"anonymous_question": True})
 async def anonymous_question_cancel(callback: CallbackQuery, state: FSMContext) -> None:
     await state.clear()
     await callback.message.answer("Ок, вопрос не отправлен.", reply_markup=_after_submit_kb())
@@ -182,22 +190,28 @@ async def _save_question(identity_hash: str, text: str) -> AnonymousQuestion:
         return question
 
 
-async def _notify_admin(message: Message, question: AnonymousQuestion) -> None:
+async def _notify_admin(message: Message, question: AnonymousQuestion) -> bool:
     target = question_target_chat_id()
     if target is None:
         log.error("Anonymous question #%s saved, but no admin target is configured", question.id)
-        return
+        return False
     try:
         await message.bot.send_message(
             target,
             _admin_question_text(question),
             reply_markup=_admin_kb(question.id),
         )
+        return True
     except Exception as exc:  # вопрос уже сохранён; сбой Telegram не должен его потерять
-        log.exception("Could not notify admin about anonymous question #%s: %s", question.id, exc)
+        log.warning("Could not notify admin about anonymous question #%s (%s)", question.id, type(exc).__name__)
+        return False
 
 
-@router.message(AnonymousQuestionForm.waiting_text)
+@router.message(
+    AnonymousQuestionForm.waiting_text,
+    lambda message: not (message.text or "").startswith("/"),
+    flags={"anonymous_question": True},
+)
 async def receive_anonymous_question(message: Message, state: FSMContext) -> None:
     text = (message.text or "").strip()
     if not text:
@@ -209,6 +223,10 @@ async def receive_anonymous_question(message: Message, state: FSMContext) -> Non
         return
     if len(text) < 2:
         await message.answer("Напиши сам вопрос чуть подробнее 👇", reply_markup=_cancel_kb())
+        return
+    # Leave room for the header/date, counting Telegram's UTF-16 code units.
+    if len(text.encode("utf-16-le")) // 2 > 3500:
+        await message.answer("Вопрос слишком длинный. Сократи его до 3500 символов 👇", reply_markup=_cancel_kb())
         return
 
     identity_hash = sender_hash(message.from_user.id)
@@ -226,11 +244,11 @@ async def receive_anonymous_question(message: Message, state: FSMContext) -> Non
         return
 
     question = await _save_question(identity_hash, text)
-    await _notify_admin(message, question)
+    delivered = await _notify_admin(message, question)
     await state.clear()
     await message.answer(
-        "✅ <b>Вопрос отправлен анонимно</b>\n\n"
-        "Алекс его получил.\n\n"
+        ("✅ <b>Вопрос отправлен анонимно</b>\n\nАлекс его получил.\n\n" if delivered else
+         "✅ <b>Вопрос сохранён анонимно</b>\n\nУведомление пока не доставлено, но вопрос доступен Алексу в очереди.\n\n") +
         "Если захочется спросить что-нибудь ещё — можно отправить новый вопрос.",
         reply_markup=_after_submit_kb(),
     )
@@ -339,6 +357,9 @@ async def _queue_text() -> str:
                 .limit(6)
             )
         ).all()
+        pending_rows = (await session.scalars(select(AnonymousQuestion)
+            .where(AnonymousQuestion.status == "pending")
+            .order_by(AnonymousQuestion.id).limit(6))).all()
 
     lines = [
         "👀 <b>Анонимные вопросы Алексу</b>",
@@ -347,15 +368,17 @@ async def _queue_text() -> str:
         f"Для ответа: <b>{int(selected or 0)}</b>",
         f"Пропущено: <b>{int(skipped or 0)}</b>",
     ]
-    if selected_rows:
-        lines.extend(["", "<b>Очередь для ответа:</b>"])
-        for question in selected_rows:
+    for title, rows in [("Новые вопросы", pending_rows), ("Очередь для ответа", selected_rows)]:
+        if not rows:
+            continue
+        lines.extend(["", f"<b>{title}:</b>"])
+        for question in rows:
             preview = " ".join(question.text.split())
-            if len(preview) > 350:
-                preview = preview[:347] + "…"
+            if len(preview) > 120:
+                preview = preview[:117] + "…"
             lines.extend(["", f"<b>#{question.id}</b> — {html.escape(preview)}"])
-    else:
-        lines.extend(["", "Очередь для ответа пока пустая."])
+    if not pending_rows and not selected_rows:
+        lines.extend(["", "Очередь пока пустая."])
     lines.extend(["", "<i>Личность отправителей в этой очереди не хранится.</i>"])
     return "\n".join(lines)
 
@@ -364,7 +387,20 @@ async def _queue_text() -> str:
 async def admin_questions_queue(message: Message) -> None:
     if not _is_admin(message.from_user.id):
         return
-    await message.answer(await _queue_text(), reply_markup=_queue_kb())
+    await message.answer(await _queue_text(), reply_markup=await _queue_kb())
+
+
+@router.callback_query(F.data.startswith("alexq:open:"))
+async def admin_open_question(callback: CallbackQuery) -> None:
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Недоступно", show_alert=True)
+        return
+    question = await _load_question(_callback_question_id(callback.data) or 0)
+    if question is None:
+        await callback.answer("Вопрос не найден", show_alert=True)
+        return
+    await callback.message.answer(_admin_question_text(question), reply_markup=_admin_kb(question.id))
+    await callback.answer()
 
 
 @router.callback_query(F.data == "alexq:queue")
@@ -372,5 +408,5 @@ async def admin_refresh_queue(callback: CallbackQuery) -> None:
     if not _is_admin(callback.from_user.id):
         await callback.answer("Недоступно", show_alert=True)
         return
-    await callback.message.edit_text(await _queue_text(), reply_markup=_queue_kb())
+    await callback.message.edit_text(await _queue_text(), reply_markup=await _queue_kb())
     await callback.answer("Обновлено")

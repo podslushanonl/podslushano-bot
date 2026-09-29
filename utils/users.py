@@ -41,5 +41,14 @@ class RegisterUserMiddleware(BaseMiddleware):
     """Сохраняет любого пользователя, который взаимодействует с ботом."""
 
     async def __call__(self, handler, event, data):
+        # Inner middleware receives the selected handler, including its flags.
+        # Anonymous visitors must not enter the general mailing/profile table.
+        selected = data.get("handler")
+        if selected and selected.flags.get("anonymous_question"):
+            return await handler(event, data)
+        if data.get("raw_state") == "AnonymousQuestionForm:waiting_text":
+            text = getattr(event, "text", None) or ""
+            if text.startswith("/") and data.get("state"):
+                await data["state"].clear()
         await remember_user(getattr(event, "from_user", None))
         return await handler(event, data)
