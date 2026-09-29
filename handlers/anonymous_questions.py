@@ -72,7 +72,7 @@ def _admin_kb(question_id: int) -> InlineKeyboardMarkup:
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="✅ Отвечу", callback_data=f"alexq:answer:{question_id}"
+                    text="📌 Сохранить вопрос", callback_data=f"alexq:answer:{question_id}"
                 ),
                 InlineKeyboardButton(
                     text="🗑 Пропустить", callback_data=f"alexq:skip:{question_id}"
@@ -107,7 +107,7 @@ async def _queue_kb() -> InlineKeyboardMarkup:
 def _status_title(status: str) -> str:
     return {
         "pending": "❓ Анонимный вопрос",
-        "selected": "✅ Для ответа",
+        "selected": "📌 Сохранённый вопрос",
         "skipped": "🗑 Пропущено",
     }.get(status, "❓ Анонимный вопрос")
 
@@ -130,7 +130,7 @@ def _admin_question_text(question: AnonymousQuestion) -> str:
 
 def _intro_text() -> str:
     return (
-        "👀 <b>Анонимный вопрос Алексу</b>\n\n"
+        "👀 <b>Анонимный вопрос</b>\n\n"
         "Здесь можно спросить меня абсолютно о чём угодно.\n\n"
         "Я увижу только текст вопроса — без имени, username и ссылки на "
         "Telegram-профиль.\n\n"
@@ -293,8 +293,13 @@ async def admin_select_question(callback: CallbackQuery) -> None:
     if question is None:
         await callback.answer("Вопрос не найден", show_alert=True)
         return
-    await callback.message.edit_text(_admin_question_text(question))
-    await callback.answer("Добавлено в очередь для ответа")
+    await callback.message.edit_text(
+        _admin_question_text(question)
+        + "\n\n📌 Вопрос сохранён. Найти его можно в /alexquestions.\n"
+        "Ответ напиши отдельным постом в личном канале. "
+        "Эта кнопка только сохраняет вопрос и ничего не публикует."
+    )
+    await callback.answer("Вопрос сохранён")
 
 
 @router.callback_query(F.data.startswith("alexq:skip:"))
