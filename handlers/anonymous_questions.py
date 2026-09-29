@@ -70,6 +70,7 @@ def _after_submit_kb() -> InlineKeyboardMarkup:
 def _admin_kb(question_id: int) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
+            [InlineKeyboardButton(text="✍️ Ответить", callback_data=f"alexq:reply:{question_id}")],
             [
                 InlineKeyboardButton(
                     text="📌 Сохранить вопрос", callback_data=f"alexq:answer:{question_id}"
@@ -99,6 +100,7 @@ async def _queue_kb() -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text=f"Открыть вопрос #{qid}", callback_data=f"alexq:open:{qid}")]
             for qid in [*pending, *selected]
         ] + [
+            [InlineKeyboardButton(text="📣 Подключить личный канал", callback_data="alexpub:setup")],
             [InlineKeyboardButton(text="🔄 Обновить", callback_data="alexq:queue")]
         ]
     )
@@ -109,6 +111,7 @@ def _status_title(status: str) -> str:
         "pending": "❓ Анонимный вопрос",
         "selected": "📌 Сохранённый вопрос",
         "skipped": "🗑 Пропущено",
+        "published": "✅ Опубликовано",
     }.get(status, "❓ Анонимный вопрос")
 
 
@@ -296,8 +299,8 @@ async def admin_select_question(callback: CallbackQuery) -> None:
     await callback.message.edit_text(
         _admin_question_text(question)
         + "\n\n📌 Вопрос сохранён. Найти его можно в /alexquestions.\n"
-        "Ответ напиши отдельным постом в личном канале. "
-        "Эта кнопка только сохраняет вопрос и ничего не публикует."
+        "Нажми «Ответить», чтобы написать ответ и подготовить пост в личный канал.",
+        reply_markup=_admin_kb(question.id),
     )
     await callback.answer("Вопрос сохранён")
 

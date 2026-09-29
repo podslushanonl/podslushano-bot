@@ -20,6 +20,8 @@ jobs:
         run: python tests/run_tests.py
       - name: Run anonymous question checks
         run: python tests/test_anonymous_questions.py
+      - name: Run anonymous reply publication checks
+        run: python tests/test_anonymous_replies.py
       - name: Run smart ad reminder checks
         run: python tests/test_smart_ad_material_reminders.py
       - name: Run admin-gated ad reminder checks
