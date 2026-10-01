@@ -339,6 +339,10 @@ def _install_routes(app: web.Application) -> None:
 
 async def start_webserver_with_ads_campaign(bot):
     """Install Q4 routes and preserve the existing Gmail OAuth route wrapper."""
+    # Contact Guide touches handlers.selfadd, so load its seasonal wrapper only
+    # here, after bot.py has finished importing all handler modules. Importing it
+    # from ad_products_runtime is too early and creates a keyboards/utils cycle.
+    import ad_contact_guide_campaign_runtime  # noqa: F401
     import gmail_oauth_runtime
     from utils import webserver as ws
 
