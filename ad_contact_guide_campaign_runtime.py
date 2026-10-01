@@ -18,7 +18,6 @@ from database.db import get_session
 from database.models import Meta, Specialist
 from handlers import selfadd
 from keyboards.menus import main_menu
-from utils.payments import create_payment
 
 
 _DISCOUNT_RATE = Decimal("0.26")
@@ -161,7 +160,10 @@ async def _create_listing_and_pay_q4(message, state, plan: str,
     if seasonal:
         metadata["discount"] = "q4_26"
 
-    payment = await create_payment(
+    # Use the dependency exposed by handlers.selfadd, exactly like the original
+    # flow. This preserves retry semantics and lets tests/maintenance replace the
+    # Mollie client without this seasonal wrapper bypassing that replacement.
+    payment = await selfadd.create_payment(
         f"{selfadd.DESC_NEW}: {name}",
         metadata,
         amount,
