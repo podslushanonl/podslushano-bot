@@ -99,6 +99,11 @@ async def contact_guide_checkout(request: web.Request) -> web.Response:
     category = detect_category(category_raw) or category_raw.lower()
     info = config.plan_info(plan)
     seasonal = await _season_entitlement(email, token)
+    if token and not seasonal:
+        return _json_error(
+            "Скидка −26% не подтверждена для этого e-mail. Используйте адрес, на который оформлена подписка, или обновите страницу.",
+            403,
+        )
     amount = _discount_price(info["price"]) if seasonal else info["price"]
 
     async with get_session() as session:
