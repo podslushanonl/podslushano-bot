@@ -3,6 +3,7 @@
 
   const nativeFetch = window.fetch.bind(window);
   const WELCOME_FLAG = 'pnlAdsWelcome2026';
+  const SEASON_TOKEN = 'pnlAdsQ4Token';
 
   function setSignupMessage(sent) {
     const success = document.getElementById('giftSuccess');
@@ -49,11 +50,11 @@
     if (giftTitle) giftTitle.textContent = '−26% до конца года.';
     const giftText = document.querySelector('.gift-card > p');
     if (giftText) {
-      giftText.textContent = 'Оставьте e-mail — активируем сезонную цену. Пишем редко: обычно одно письмо в начале месяца.';
+      giftText.textContent = 'Оставьте e-mail — активируем −26% на все рекламные форматы, включая Contact Guide.';
     }
     const consent = document.querySelector('.consent span');
     if (consent) {
-      consent.innerHTML = 'Я согласен(на) получать рекламные обновления Podslushano.nl. Отписаться можно в любой момент. <a href="/privacy?lang=ru" target="_blank" rel="noopener">Политика конфиденциальности</a>.';
+      consent.innerHTML = 'Я согласен(на) получать рекламные обновления Podslushano.nl. Обычно 1 письмо в месяц, максимум 2 при отдельном важном поводе. Отписаться можно в любой момент. <a href="/privacy?lang=ru" target="_blank" rel="noopener">Политика конфиденциальности</a>.';
     }
     const submit = document.getElementById('giftSubmit');
     if (submit) submit.textContent = 'Активировать −26%';
@@ -62,15 +63,88 @@
     const fab = document.getElementById('giftFab');
     if (fab && heroGift) {
       const syncHeroGift = () => {
-        if (fab.classList.contains('unlocked')) heroGift.textContent = '−26% активна ✓';
+        const active = fab.classList.contains('unlocked');
+        heroGift.textContent = active ? '−26% активна ✓' : 'Забрать −26%';
+        fab.setAttribute('aria-label', active ? 'Скидка 26 процентов активна' : 'Получить скидку 26 процентов');
       };
       syncHeroGift();
       new MutationObserver(syncHeroGift).observe(fab, {attributes: true, attributeFilter: ['class']});
     }
   }
 
+  function removeGiftIntro() {
+    const intro = document.getElementById('giftIntro');
+    if (!intro) return;
+    intro.classList.add('is-hiding');
+    window.setTimeout(() => intro.remove(), 220);
+  }
+
+  function showGiftIntro() {
+    if (document.getElementById('giftIntro')) return;
+    const fab = document.getElementById('giftFab');
+    if (fab && fab.classList.contains('unlocked')) return;
+
+    const intro = document.createElement('div');
+    intro.className = 'gift-intro';
+    intro.id = 'giftIntro';
+    intro.innerHTML = `
+      <div class="gift-intro-card" role="button" tabindex="0" aria-label="Открыть подарок и получить скидку 26 процентов">
+        <button type="button" class="gift-intro-close" aria-label="Закрыть">×</button>
+        <div class="gift-intro-icon">🎁</div>
+        <strong>У вас подарок</strong>
+        <span>Нажмите, чтобы открыть</span>
+      </div>`;
+    document.body.appendChild(intro);
+
+    const open = () => {
+      removeGiftIntro();
+      const trigger = document.querySelector('.hero-actions .gift-open');
+      if (trigger) window.setTimeout(() => trigger.click(), 90);
+    };
+    const card = intro.querySelector('.gift-intro-card');
+    card.addEventListener('click', (event) => {
+      if (event.target.closest('.gift-intro-close')) return;
+      open();
+    });
+    card.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        open();
+      }
+    });
+    intro.querySelector('.gift-intro-close').addEventListener('click', (event) => {
+      event.stopPropagation();
+      removeGiftIntro();
+    });
+    intro.addEventListener('click', (event) => {
+      if (event.target === intro) removeGiftIntro();
+    });
+  }
+
+  function initGiftExperience() {
+    const fab = document.getElementById('giftFab');
+    if (fab) {
+      const sync = () => {
+        if (fab.classList.contains('unlocked')) removeGiftIntro();
+      };
+      new MutationObserver(sync).observe(fab, {attributes: true, attributeFilter: ['class']});
+    }
+
+    if (!localStorage.getItem(SEASON_TOKEN)) {
+      window.setTimeout(showGiftIntro, 220);
+    } else {
+      /* restoreSeason() runs in the base page. If that token is stale it removes
+         it; in that case bring the gift back instead of silently losing the offer. */
+      window.setTimeout(() => {
+        if (!localStorage.getItem(SEASON_TOKEN) && !(fab && fab.classList.contains('unlocked'))) {
+          showGiftIntro();
+        }
+      }, 1100);
+    }
+  }
+
   async function sendWelcomeForExistingSubscriber() {
-    const token = localStorage.getItem('pnlAdsQ4Token') || '';
+    const token = localStorage.getItem(SEASON_TOKEN) || '';
     if (!token || localStorage.getItem(WELCOME_FLAG) === '1') return;
     try {
       const response = await nativeFetch('/ads-season/welcome', {
@@ -87,13 +161,15 @@
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      compactCopy();
-      window.setTimeout(sendWelcomeForExistingSubscriber, 350);
-    });
-  } else {
+  function boot() {
     compactCopy();
+    initGiftExperience();
     window.setTimeout(sendWelcomeForExistingSubscriber, 350);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
   }
 })();
