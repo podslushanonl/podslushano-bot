@@ -9,6 +9,7 @@ from aiogram.types import BotCommand, BotCommandScopeChat
 
 import config
 import ad_products_runtime  # noqa: F401 — регистрирует канонические продукты /ads
+import ad_season_campaign_runtime  # Q4 /ads: подписка + защищённая скидка −26%
 import database.ad_sales_models  # noqa: F401 — регистрирует таблицы в Base.metadata
 from database.db import init_db
 from handlers import (
@@ -159,7 +160,7 @@ async def main() -> None:
     dp.include_router(errors.router)
 
     try:
-        await gmail_oauth_runtime.start_webserver_with_gmail(bot)
+        await ad_season_campaign_runtime.start_webserver_with_ads_campaign(bot)
     except Exception as e:
         logging.warning("Веб-сервер не запустился: %s", e)
     asyncio.create_task(reminder_loop(bot))
