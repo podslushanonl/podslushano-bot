@@ -1,13 +1,14 @@
 """Current-month policy for the cached evenementen.nl agenda.
 
-The original monthly catalog was intentionally pre-building and displaying the
-next calendar month. Product behaviour is now different: /afisha must always
-show the current month. We keep an already built next-month cache in the
-database so a month rollover can reuse it without another AI/web-search bill.
+/afisha always shows the current calendar month. The monthly cache is now built
+directly from evenementen.nl, without Anthropic/Claude, so the agenda does not
+depend on AI credits and does not generate AI API costs.
 """
 from __future__ import annotations
 
+import asyncio
 import html as html_lib
+import logging
 from datetime import date, datetime
 
 from sqlalchemy import delete, select
@@ -16,6 +17,9 @@ from database.db import get_session
 from database.models import DiscoveredEvent
 from handlers import evenementen_catalog as base
 from handlers import events
+from handlers.evenementen_direct_source import build_current_month_once
+
+log = logging.getLogger(__name__)
 
 
 def _current_month() -> date:
@@ -65,8 +69,8 @@ async def show_current_catalog_section(message, section_key: str, uid: int) -> N
     cached = await events._auto_batch("Nederland", 999, section_key)
     if not cached:
         await message.answer(
-            "Этот раздел афиши текущего месяца пока не заполнен. "
-            "Бот не запускает дорогой повторный поиск по каждому клику — раздел появится после месячной сборки.",
+            "Афиша текущего месяца сейчас обновляется напрямую с evenementen.nl. "
+            "Попробуй открыть этот раздел ещё раз через несколько секунд.",
             reply_markup=events.main_menu(),
         )
         return
@@ -121,7 +125,7 @@ async def show_current_cached_afisha(
     if not unique:
         await message.answer(
             f"В афише текущего месяца пока нет мероприятий для <b>{html_lib.escape(city)}</b> "
-            f"в выбранном радиусе. Дополнительный AI-поиск по клику отключён, чтобы не тратить бюджет.",
+            f"в выбранном радиусе.",
             reply_markup=events.main_menu(),
         )
         return
@@ -145,8 +149,8 @@ async def show_current_cached_afisha(
 
 
 def _install_patch() -> None:
-    # The base module resolves these globals at runtime, so patching them here
-    # changes the monthly builder without duplicating its expensive search code.
+    # Keep the UI on the current month. The actual monthly build is handled by
+    # evenementen_direct_source and never calls Anthropic.
     base._target_month = _current_month
     base._catalog_sections = _current_sections
     base._purge_non_target_catalog = _purge_keep_current_and_next
@@ -160,5 +164,15 @@ def install_evenementen_source() -> None:
 
 
 async def evenementen_catalog_loop(bot) -> None:
+    """Build the current month directly once, then sleep until month rollover."""
+    del bot
     _install_patch()
-    await base.evenementen_catalog_loop(bot)
+    await asyncio.sleep(8)
+    while True:
+        try:
+            await build_current_month_once()
+        except Exception as exc:  # noqa: BLE001
+            log.exception("Direct monthly agenda build failed: %s", exc)
+        sleep_for = base._seconds_until_next_month()
+        log.info("Current-month agenda checked; next run in %.1f h", sleep_for / 3600)
+        await asyncio.sleep(sleep_for)
