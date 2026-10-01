@@ -32,3 +32,5 @@ jobs:
         run: python tests/test_gmail_oauth_runtime.py
       - name: Run Q4 advertising campaign checks
         run: python tests/test_ads_q4_campaign.py
+      - name: Run ads cleanup and welcome email checks
+        run: python tests/test_ads_cleanup_runtime.py
