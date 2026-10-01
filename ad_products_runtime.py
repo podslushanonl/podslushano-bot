@@ -116,8 +116,3 @@ config.AD_FORMATS.update(
         },
     }
 )
-
-# Contact Guide is sold in Telegram rather than through /ads/book. Importing the
-# runtime here lets the Q4 newsletter entitlement follow the same −26% campaign
-# without changing the existing Contact Guide payment and moderation flow.
-import ad_contact_guide_campaign_runtime  # noqa: E402,F401
