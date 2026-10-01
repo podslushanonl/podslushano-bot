@@ -21,6 +21,7 @@ from handlers import (
 from handlers import anonymous_replies
 import ad_campaign_guide_runtime  # noqa: F401 — связывает €299 с Contact Guide Premium
 import ad_ads_cleanup_runtime  # noqa: F401 — облегчённая /ads + welcome e-mail после подписки
+import ad_contact_guide_web_runtime  # noqa: F401 — Contact Guide: анкета + Mollie прямо на /ads
 from handlers.ad_sales_pipeline import ad_payment_reconciliation_loop
 from handlers.ai_sales import ad_lead_reminder_loop
 from handlers.selfadd import reminder_loop
