@@ -41,6 +41,8 @@ async def create_payment(description: str, metadata: dict, amount: str,
         redirect = f"{config.WEBHOOK_BASE_URL}/ads/payment-success"
         if booking_id:
             redirect += f"?booking_id={booking_id}"
+    elif sid and metadata.get("source") == "ads_page" and config.WEBHOOK_BASE_URL:
+        redirect = f"{config.WEBHOOK_BASE_URL}/ads/contact-guide/success?sid={sid}"
     elif sid and config.WEBHOOK_BASE_URL:
         redirect = f"{config.WEBHOOK_BASE_URL}/thanks?sid={sid}"
     else:

@@ -1,10 +1,9 @@
 /* Q4 advertising page density pass.
    Keep the discount mechanic, remove repeated promo blocks and make mobile scanning lighter. */
 
-/* One visible entry point for the seasonal offer is enough. */
+/* Repeated promo blocks stay hidden; the gift itself is now the one interactive entry point. */
 .hero-card,
 .season-panel,
-.gift-fab,
 .product.discounted .discount-tag {
   display: none !important;
 }
@@ -15,9 +14,7 @@
   padding-top: 28px !important;
   padding-bottom: 24px !important;
 }
-.hero-copy {
-  padding-top: 8px !important;
-}
+.hero-copy { padding-top: 8px !important; }
 .hero-copy h1 {
   max-width: 800px;
   font-size: clamp(44px, 5.4vw, 68px) !important;
@@ -31,10 +28,7 @@
   margin-bottom: 18px !important;
 }
 
-.section {
-  padding-top: 36px !important;
-  padding-bottom: 36px !important;
-}
+.section { padding-top: 36px !important; padding-bottom: 36px !important; }
 .section-head {
   grid-template-columns: minmax(0, 1fr) !important;
   gap: 7px !important;
@@ -45,100 +39,191 @@
   font-size: clamp(32px, 4vw, 46px) !important;
   line-height: 1 !important;
 }
-.section-head > p {
-  max-width: 760px;
-  font-size: 14px !important;
-  line-height: 1.45;
+.section-head > p { max-width: 760px; font-size: 14px !important; line-height: 1.45; }
+
+.how { gap: 10px !important; }
+.how-card { padding: 16px !important; }
+.how-card .n { margin-bottom: 12px !important; }
+.how-card strong { font-size: 17px !important; }
+.how-card p { font-size: 13px !important; line-height: 1.4; }
+
+.product { padding: 18px !important; }
+.product h3 { font-size: 27px !important; }
+.price-row { padding-top: 11px !important; padding-bottom: 12px !important; }
+.price { font-size: 39px !important; }
+.old-price { font-size: 16px !important; }
+.result { margin-top: 12px !important; margin-bottom: 12px !important; font-size: 13px !important; line-height: 1.42; }
+.difference { padding: 10px 11px !important; margin-bottom: 11px !important; font-size: 12px !important; line-height: 1.4; }
+.includes { gap: 6px !important; margin-bottom: 14px !important; }
+.include { font-size: 12.5px !important; line-height: 1.35; }
+
+.gift-card { max-width: 500px !important; }
+.gift-card h2 { font-size: 34px !important; }
+.gift-card > p { max-width: 440px; line-height: 1.45; }
+
+/* First visit: a single gift sits in the middle of the viewport. */
+.gift-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 68;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(25, 33, 30, .18);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  opacity: 1;
+  transition: opacity .22s ease;
+}
+.gift-intro.is-hiding { opacity: 0; pointer-events: none; }
+.gift-intro-card {
+  position: relative;
+  width: min(250px, calc(100vw - 48px));
+  padding: 24px 18px 18px;
+  border: 1px solid rgba(255,255,255,.7);
+  border-radius: 28px;
+  background: rgba(255,253,248,.96);
+  box-shadow: 0 24px 70px rgba(38, 31, 22, .22);
+  text-align: center;
+  cursor: pointer;
+}
+.gift-intro-close {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  background: #eee6da;
+  color: #5e574e;
+  font-size: 18px;
+  cursor: pointer;
+}
+.gift-intro-icon {
+  width: 94px;
+  height: 94px;
+  margin: 0 auto 12px;
+  display: grid;
+  place-items: center;
+  border-radius: 30px;
+  background: #fff1d7;
+  font-size: 58px;
+  box-shadow: 0 0 0 0 rgba(201,107,64,.22);
+  animation: giftIntroPulse 2.2s ease-in-out infinite;
+}
+.gift-intro-card strong { display: block; font-size: 20px; line-height: 1.05; letter-spacing: -.03em; }
+.gift-intro-card span { display: block; margin-top: 7px; font-size: 12px; color: #706b63; }
+@keyframes giftIntroPulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(201,107,64,.16); transform: scale(1); }
+  50% { box-shadow: 0 0 0 14px rgba(201,107,64,0); transform: scale(1.035); }
 }
 
-.how {
-  gap: 10px !important;
+/* After activation the gift becomes a small glowing status badge at the side. */
+.gift-fab { display: none !important; }
+.gift-fab.unlocked {
+  display: grid !important;
+  place-items: center;
+  position: fixed !important;
+  right: max(10px, env(safe-area-inset-right)) !important;
+  bottom: max(92px, calc(env(safe-area-inset-bottom) + 72px)) !important;
+  width: 54px !important;
+  height: 54px !important;
+  padding: 0 !important;
+  border-radius: 18px !important;
+  background: #183a31 !important;
+  box-shadow: 0 8px 25px rgba(24,58,49,.25) !important;
+  animation: activeGiftGlow 2.5s ease-in-out infinite !important;
 }
-.how-card {
-  padding: 16px !important;
+.gift-fab.unlocked > span:last-child { display: none !important; }
+.gift-fab.unlocked .gift {
+  width: 42px !important;
+  height: 42px !important;
+  border-radius: 14px !important;
+  font-size: 25px !important;
+  animation: none !important;
 }
-.how-card .n {
-  margin-bottom: 12px !important;
+.gift-fab.unlocked::after {
+  content: '−26%';
+  position: absolute;
+  top: -8px;
+  right: -7px;
+  padding: 3px 5px;
+  border-radius: 999px;
+  background: #713b36;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
 }
-.how-card strong {
-  font-size: 17px !important;
-}
-.how-card p {
-  font-size: 13px !important;
-  line-height: 1.4;
-}
-
-.product {
-  padding: 18px !important;
-}
-.product h3 {
-  font-size: 27px !important;
-}
-.price-row {
-  padding-top: 11px !important;
-  padding-bottom: 12px !important;
-}
-.price {
-  font-size: 39px !important;
-}
-.old-price {
-  font-size: 16px !important;
-}
-.result {
-  margin-top: 12px !important;
-  margin-bottom: 12px !important;
-  font-size: 13px !important;
-  line-height: 1.42;
-}
-.difference {
-  padding: 10px 11px !important;
-  margin-bottom: 11px !important;
-  font-size: 12px !important;
-  line-height: 1.4;
-}
-.includes {
-  gap: 6px !important;
-  margin-bottom: 14px !important;
-}
-.include {
-  font-size: 12.5px !important;
-  line-height: 1.35;
+@keyframes activeGiftGlow {
+  0%,100% { box-shadow: 0 8px 24px rgba(24,58,49,.24), 0 0 0 0 rgba(36,77,66,.20); }
+  50% { box-shadow: 0 8px 28px rgba(24,58,49,.34), 0 0 0 8px rgba(36,77,66,0); }
 }
 
-.gift-card {
-  max-width: 500px !important;
+/* Contact Guide checkout now lives on /ads instead of jumping to Telegram. */
+.guide-checkout-shell {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 82;
+  overflow: auto;
+  padding: 18px;
+  background: rgba(15,20,18,.72);
 }
-.gift-card h2 {
-  font-size: 34px !important;
+.guide-checkout-shell.open { display: block; }
+.guide-checkout {
+  width: min(720px,100%);
+  margin: 18px auto;
+  padding: 22px;
+  border-radius: 24px;
+  background: #fffdf8;
+  box-shadow: 0 30px 100px rgba(0,0,0,.28);
 }
-.gift-card > p {
-  max-width: 440px;
-  line-height: 1.45;
+.guide-checkout-head { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+.guide-checkout-head h2 { margin: 3px 0 0; font-size: 31px; line-height: 1; letter-spacing: -.045em; }
+.guide-checkout-close { border: 0; background: #eee7dd; width: 38px; height: 38px; border-radius: 50%; font-size: 22px; cursor: pointer; flex: 0 0 auto; }
+.guide-checkout-price {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 14px;
+  margin-bottom: 14px;
+  border-radius: 15px;
+  background: #e1eee6;
 }
+.guide-checkout-price span { font-size: 12px; color: #53625a; }
+.guide-checkout-price strong { font-size: 25px; line-height: 1; }
+.guide-checkout-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.guide-checkout-field { display: grid; gap: 6px; margin-bottom: 10px; }
+.guide-checkout-field.full { grid-column: 1 / -1; }
+.guide-checkout-field > span { font-size: 12px; font-weight: 850; }
+.guide-checkout-field input,
+.guide-checkout-field select,
+.guide-checkout-field textarea {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid #cfc4b4;
+  border-radius: 11px;
+  background: #fff;
+  font: inherit;
+}
+.guide-checkout-field textarea { min-height: 92px; resize: vertical; }
+.guide-checkout-online { display: flex; gap: 9px; align-items: flex-start; padding: 10px 12px; border-radius: 11px; background: #f3eee5; font-size: 12px; margin-bottom: 10px; }
+.guide-checkout-note { padding: 11px 12px; border-radius: 12px; background: #f3eee5; color: #5d5851; font-size: 11.5px; line-height: 1.45; margin: 2px 0 11px; }
+.guide-checkout-terms { display: flex; gap: 8px; align-items: flex-start; font-size: 10.5px; color: #706b63; margin: 10px 0; }
+.guide-checkout-error { display: none; padding: 9px 11px; border-radius: 10px; background: #fff0ec; color: #912e20; font-size: 12px; margin-bottom: 10px; }
+.guide-checkout-error.show { display: block; }
+.guide-checkout-submit { width: 100%; }
 
 @media (max-width: 620px) {
-  .wrap {
-    width: min(100% - 24px, 1180px) !important;
-  }
-  .topbar {
-    height: 56px !important;
-  }
-  .brand {
-    font-size: 20px !important;
-  }
-  .nav .button {
-    padding: 10px 14px !important;
-    font-size: 13px !important;
-  }
-  .season-ribbon {
-    margin-top: 12px !important;
-    padding: 6px 10px !important;
-    font-size: 10.5px !important;
-  }
-  .hero {
-    padding-top: 17px !important;
-    padding-bottom: 18px !important;
-  }
+  .wrap { width: min(100% - 24px, 1180px) !important; }
+  .topbar { height: 56px !important; }
+  .brand { font-size: 20px !important; }
+  .nav .button { padding: 10px 14px !important; font-size: 13px !important; }
+  .season-ribbon { margin-top: 12px !important; padding: 6px 10px !important; font-size: 10.5px !important; }
+  .hero { padding-top: 17px !important; padding-bottom: 18px !important; }
   .hero-copy h1 {
     font-size: 38px !important;
     line-height: .99 !important;
@@ -146,55 +231,23 @@
     margin-top: 8px !important;
     margin-bottom: 12px !important;
   }
-  .hero-copy > p {
-    font-size: 14.5px !important;
-    line-height: 1.45 !important;
-    margin-bottom: 14px !important;
-  }
-  .hero-actions {
-    gap: 7px !important;
-  }
-  .hero-actions .button {
-    min-height: 44px;
-    padding: 10px 14px !important;
-    font-size: 14px !important;
-  }
+  .hero-copy > p { font-size: 14.5px !important; line-height: 1.45 !important; margin-bottom: 14px !important; }
+  .hero-actions { gap: 7px !important; }
+  .hero-actions .button { min-height: 44px; padding: 10px 14px !important; font-size: 14px !important; }
 
-  .stats {
-    border-radius: 16px !important;
-  }
-  .stat {
-    padding: 12px 14px !important;
-  }
-  .stat strong {
-    font-size: 23px !important;
-  }
-  .stat span {
-    font-size: 11px !important;
-  }
-  .statnote {
-    display: none !important;
-  }
+  .stats { border-radius: 16px !important; }
+  .stat { padding: 12px 14px !important; }
+  .stat strong { font-size: 23px !important; }
+  .stat span { font-size: 11px !important; }
+  .statnote { display: none !important; }
 
-  .section {
-    padding-top: 27px !important;
-    padding-bottom: 27px !important;
-  }
-  .section-head {
-    margin-bottom: 12px !important;
-  }
-  .section-head h2 {
-    font-size: 29px !important;
-    line-height: 1.02 !important;
-  }
+  .section { padding-top: 27px !important; padding-bottom: 27px !important; }
+  .section-head { margin-bottom: 12px !important; }
+  .section-head h2 { font-size: 29px !important; line-height: 1.02 !important; }
   #how .section-head > p,
-  #formats .section-head > p {
-    display: none !important;
-  }
+  #formats .section-head > p { display: none !important; }
 
-  .how {
-    gap: 7px !important;
-  }
+  .how { gap: 7px !important; }
   .how-card {
     display: grid !important;
     grid-template-columns: 32px minmax(0, 1fr);
@@ -203,101 +256,50 @@
     padding: 13px 14px !important;
     border-radius: 16px !important;
   }
-  .how-card .n {
-    grid-column: 1;
-    grid-row: 1 / 3;
-    width: 30px !important;
-    height: 30px !important;
-    margin: 0 !important;
-  }
-  .how-card strong {
-    grid-column: 2;
-    font-size: 15.5px !important;
-    margin: 0 !important;
-  }
-  .how-card p {
-    grid-column: 2;
-    font-size: 12px !important;
-    line-height: 1.35 !important;
-  }
+  .how-card .n { grid-column: 1; grid-row: 1 / 3; width: 30px !important; height: 30px !important; margin: 0 !important; }
+  .how-card strong { grid-column: 2; font-size: 15.5px !important; margin: 0 !important; }
+  .how-card p { grid-column: 2; font-size: 12px !important; line-height: 1.35 !important; }
 
   .product,
-  .product.wide {
-    padding: 15px !important;
-    border-radius: 18px !important;
-  }
-  .product-type {
-    font-size: 9.5px !important;
-    margin-bottom: 5px !important;
-  }
-  .product h3 {
-    font-size: 25px !important;
-  }
-  .price-row {
-    padding-top: 9px !important;
-    padding-bottom: 10px !important;
-  }
-  .price {
-    font-size: 34px !important;
-  }
-  .old-price {
-    font-size: 14px !important;
-  }
-  .result {
-    font-size: 12.5px !important;
-    margin-top: 10px !important;
-    margin-bottom: 10px !important;
-  }
-  .difference {
-    display: none !important;
-  }
-  .include {
-    font-size: 12px !important;
-  }
-  .product .button {
-    min-height: 43px;
-    padding-top: 10px !important;
-    padding-bottom: 10px !important;
-    font-size: 14px !important;
-  }
+  .product.wide { padding: 15px !important; border-radius: 18px !important; }
+  .product-type { font-size: 9.5px !important; margin-bottom: 5px !important; }
+  .product h3 { font-size: 25px !important; }
+  .price-row { padding-top: 9px !important; padding-bottom: 10px !important; }
+  .price { font-size: 34px !important; }
+  .old-price { font-size: 14px !important; }
+  .result { font-size: 12.5px !important; margin-top: 10px !important; margin-bottom: 10px !important; }
+  .difference { display: none !important; }
+  .include { font-size: 12px !important; }
+  .product .button { min-height: 43px; padding-top: 10px !important; padding-bottom: 10px !important; font-size: 14px !important; }
 
-  .guide {
-    padding: 16px !important;
-  }
-  .guide h2 {
-    font-size: 30px !important;
-  }
-  .guide p {
-    font-size: 13px !important;
-  }
-  .guide-box {
-    padding: 13px !important;
-  }
-  .guide-box strong {
-    font-size: 22px !important;
-  }
+  .guide { padding: 16px !important; }
+  .guide h2 { font-size: 30px !important; }
+  .guide p { font-size: 13px !important; }
+  .guide-box { padding: 13px !important; }
+  .guide-box strong { font-size: 22px !important; }
 
-  .gift-shell {
-    padding: 10px !important;
-  }
-  .gift-card {
-    padding: 18px !important;
-    border-radius: 20px !important;
-  }
-  .gift-visual {
-    font-size: 36px !important;
-    margin-bottom: 4px !important;
-  }
-  .gift-card h2 {
-    font-size: 28px !important;
-    line-height: 1.02 !important;
-    margin-bottom: 8px !important;
-  }
-  .gift-card > p {
-    font-size: 12.5px !important;
-    margin-bottom: 13px !important;
-  }
-  .consent {
-    font-size: 10.5px !important;
-  }
+  .gift-shell { padding: 10px !important; }
+  .gift-card { padding: 18px !important; border-radius: 20px !important; }
+  .gift-visual { font-size: 36px !important; margin-bottom: 4px !important; }
+  .gift-card h2 { font-size: 28px !important; line-height: 1.02 !important; margin-bottom: 8px !important; }
+  .gift-card > p { font-size: 12.5px !important; margin-bottom: 13px !important; }
+  .consent { font-size: 10.5px !important; }
+
+  .gift-intro-card { width: 218px; padding: 22px 16px 17px; border-radius: 25px; }
+  .gift-intro-icon { width: 82px; height: 82px; border-radius: 26px; font-size: 50px; }
+  .gift-intro-card strong { font-size: 18px; }
+  .gift-fab.unlocked { width: 50px !important; height: 50px !important; right: 8px !important; bottom: max(78px, calc(env(safe-area-inset-bottom) + 62px)) !important; }
+  .gift-fab.unlocked .gift { width: 39px !important; height: 39px !important; font-size: 23px !important; }
+
+  .guide-checkout-shell { padding: 7px; }
+  .guide-checkout { margin: 7px auto; padding: 16px; border-radius: 19px; }
+  .guide-checkout-head h2 { font-size: 27px; }
+  .guide-checkout-grid { grid-template-columns: 1fr; gap: 0; }
+  .guide-checkout-field.full { grid-column: auto; }
+  .guide-checkout-price strong { font-size: 22px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gift-intro-icon,
+  .gift-fab.unlocked { animation: none !important; }
 }

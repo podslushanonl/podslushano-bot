@@ -22,10 +22,13 @@ def test_static_density_patch() -> None:
     js = (ROOT / "static" / "ads-site" / "q4-cleanup.js").read_text(encoding="utf-8")
     assert ".hero-card," in css
     assert ".season-panel," in css
-    assert ".gift-fab," in css
-    assert "display: none !important" in css
+    assert ".gift-intro" in css
+    assert ".gift-fab.unlocked" in css
+    assert "activeGiftGlow" in css
     assert "font-size: 38px" in css
     assert "Как проходит размещение." in js
+    assert "У вас подарок" in js
+    assert "giftIntro" in js
     assert "Забрать −26%" in js
     assert "/ads-season/welcome" in js
     assert "email_sent" in js
@@ -241,7 +244,7 @@ def main() -> None:
     asyncio.run(test_unsubscribe_get_and_post_deactivate_subscriber())
     asyncio.run(test_page_injection())
     print(
-        "[OK] Ads cleanup: lighter UI + Resend welcome payload + signed unsubscribe deactivation"
+        "[OK] Ads cleanup: centered gift + active badge + Resend welcome + unsubscribe"
     )
 
 
