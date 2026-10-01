@@ -14,6 +14,23 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Diagnose editorial morning binding
+        run: |
+          python - <<'PY'
+          import inspect
+          from utils import editorial_channel as editorial
+          from utils import editorial_websearch_fix as webfix
+          from utils import editorial_verified_search as verified
+          from utils import editorial_budget_photo as budget
+          webfix.install_editorial_websearch_fix()
+          budget.install_editorial_budget_photo()
+          verified.install_editorial_verified_search()
+          source = inspect.getsource(editorial._morning_brief)
+          print('MODULE:', editorial._morning_brief.__module__)
+          print('NAME:', editorial._morning_brief.__name__)
+          print('HAS_POLICY:', '1100-2000 знаков' in source)
+          print(source)
+          PY
       - name: Run editorial system checks
         run: python tests/test_editorial_full_pipeline.py
       - name: Run full legacy regression suite
