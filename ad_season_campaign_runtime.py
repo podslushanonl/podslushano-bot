@@ -17,19 +17,20 @@ from decimal import Decimal, ROUND_HALF_UP
 from zoneinfo import ZoneInfo
 
 from aiohttp import web
-from sqlalchemy import select
+from sqlalchemy import Boolean, DateTime, Integer, String, func, select
+from sqlalchemy.orm import Mapped, mapped_column
 
 import ad_products_runtime  # noqa: F401 — ensure the public Q4 products exist
 import config
 from database.db import get_session
-from database.models import AdLead
+from database.models import Base
 from handlers import ads as ads_handler
 
 
 _CAMPAIGN_END = datetime(2026, 12, 31, 23, 59, 59, tzinfo=ZoneInfo("Europe/Amsterdam"))
+_CAMPAIGN_LAST_DATE = "2026-12-31"
 _DISCOUNT_RATE = Decimal("0.26")
 _OPTION_KEY = "q4_26"
-_NEWSLETTER_BUSINESS = "Podslushano Ads Q4 2026"
 _ALLOWED_FORMATS = {
     "ad_single",
     "ad_telegram",
@@ -39,6 +40,18 @@ _ALLOWED_FORMATS = {
 }
 _EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 _TOKEN_MARKER = "SEASON26:"
+
+
+class AdsNewsletterSubscriber(Base):
+    """Explicit advertising-newsletter consent collected on the /ads page."""
+
+    __tablename__ = "ads_newsletter_subscribers"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(200), unique=True, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    source: Mapped[str] = mapped_column(String(40), default="ads_q4_2026")
+    consent_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
 def _campaign_active() -> bool:
@@ -154,6 +167,8 @@ if not getattr(ads_handler.book_and_pay, "_q4_discount_wrapper", False):
                 return None, "Сезонная скидка недоступна для этого формата."
             if not _campaign_active() or _token_email(token or "") is None:
                 return None, "Скидка −26% не подтверждена. Откройте подарок на рекламной странице и подпишитесь на обновления."
+            if any(str(value or "") > _CAMPAIGN_LAST_DATE for value in dates or []):
+                return None, "Сезонная скидка действует только на размещения до 31 декабря 2026 года."
         return await _original_book_and_pay(fmt, opt, dates, copied)
 
     _book_and_pay_q4._q4_discount_wrapper = True  # type: ignore[attr-defined]
@@ -179,25 +194,17 @@ async def newsletter_subscribe(request: web.Request) -> web.Response:
         )
 
     async with get_session() as session:
-        existing = await session.scalar(
-            select(AdLead.id).where(
-                AdLead.business == _NEWSLETTER_BUSINESS,
-                AdLead.contact == email,
+        subscriber = await session.scalar(
+            select(AdsNewsletterSubscriber).where(
+                func.lower(AdsNewsletterSubscriber.email) == email
             )
         )
-        if existing is None:
-            session.add(
-                AdLead(
-                    name="Q4 newsletter",
-                    business=_NEWSLETTER_BUSINESS,
-                    contact=email,
-                    message=(
-                        "Согласие с /ads: ежемесячные обновления рекламных возможностей "
-                        "Podslushano.nl, не чаще 1 письма в месяц. Разблокирована скидка −26%."
-                    ),
-                )
-            )
-            await session.commit()
+        if subscriber is None:
+            session.add(AdsNewsletterSubscriber(email=email, is_active=True))
+        else:
+            subscriber.is_active = True
+            subscriber.consent_at = datetime.utcnow()
+        await session.commit()
 
     return web.json_response(
         {
@@ -213,10 +220,19 @@ async def newsletter_subscribe(request: web.Request) -> web.Response:
 async def newsletter_status(request: web.Request) -> web.Response:
     token = (request.query.get("token") or "").strip()
     email = _token_email(token) if _campaign_active() else None
+    active = False
+    if email:
+        async with get_session() as session:
+            active = bool(await session.scalar(
+                select(AdsNewsletterSubscriber.id).where(
+                    func.lower(AdsNewsletterSubscriber.email) == email,
+                    AdsNewsletterSubscriber.is_active.is_(True),
+                )
+            ))
     return web.json_response(
         {
-            "ok": bool(email),
-            "discount": 26 if email else 0,
+            "ok": active,
+            "discount": 26 if active else 0,
             "expires": _CAMPAIGN_END.isoformat(),
         },
         headers={"Cache-Control": "no-store"},
