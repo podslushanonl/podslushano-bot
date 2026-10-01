@@ -34,3 +34,5 @@ jobs:
         run: python tests/test_ads_q4_campaign.py
       - name: Run ads cleanup and welcome email checks
         run: python tests/test_ads_cleanup_runtime.py
+      - name: Run Contact Guide web checkout checks
+        run: python tests/test_contact_guide_web_checkout.py
