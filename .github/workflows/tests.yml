@@ -30,3 +30,5 @@ jobs:
         run: python tests/test_72h_email_preview.py
       - name: Run Gmail OAuth checks
         run: python tests/test_gmail_oauth_runtime.py
+      - name: Run Q4 advertising campaign checks
+        run: python tests/test_ads_q4_campaign.py
