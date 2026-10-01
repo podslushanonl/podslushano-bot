@@ -163,7 +163,10 @@ def _fallback_city_and_venue(text: str) -> tuple[str, str]:
     city_match = re.search(r"(?i)\bStad\s+(.+?)\s+Provincie\b", text)
     if city_match:
         city = city_match.group(1).strip(" -")
-    venue_match = re.search(r"(?i)\bLocatie\(s\)\s+(.+?)(?:\s+Website\b|\s+Naar website\b|\s+Aankomende\b|$)", text)
+    venue_match = re.search(
+        r"(?i)\bLocatie\(s\)\s+(.+?)(?:\s+Website\b|\s+Naar website\b|\s+Aankomende\b|$)",
+        text,
+    )
     if venue_match:
         venue = venue_match.group(1).strip(" -")
     return venue[:200], city[:100]
@@ -186,8 +189,7 @@ def _in_month(start: date, end: date, month: date) -> bool:
 
 def _clean_description(value: str) -> str:
     clean = _strip_tags(value)
-    clean = re.sub(r"\s+", " ", clean).strip()
-    return clean[:700]
+    return re.sub(r"\s+", " ", clean).strip()[:700]
 
 
 async def _get(session: aiohttp.ClientSession, url: str) -> str:
@@ -203,22 +205,21 @@ async def _get(session: aiohttp.ClientSession, url: str) -> str:
 
 
 def _event_links(raw: str) -> list[str]:
+    """Extract relative or absolute evenementen.nl event links from search HTML."""
     links: list[str] = []
     seen: set[str] = set()
-    for href in re.findall(r'(?is)href=["\']([^"\']+/events/[^"\']+)["\']', raw or ""):
-        url = urljoin(BASE_URL, html.unescape(href))
-        url = url.split("#", 1)[0]
+    pattern = re.compile(
+        r'(?is)href=["\']((?:https?://(?:www\.)?evenementen\.nl)?/events/[^"\'#?]+(?:\?[^"\'#]*)?)["\']'
+    )
+    for href in pattern.findall(raw or ""):
+        url = urljoin(BASE_URL, html.unescape(href)).split("#", 1)[0]
         if url.startswith(BASE_URL + "/events/") and url not in seen:
             seen.add(url)
             links.append(url)
     return links
 
 
-async def _detail_card(
-    session: aiohttp.ClientSession,
-    url: str,
-    month: date,
-) -> dict | None:
+async def _detail_card(session: aiohttp.ClientSession, url: str, month: date) -> dict | None:
     raw = await _get(session, url)
     if not raw:
         return None
@@ -227,6 +228,7 @@ async def _detail_card(
     text = _strip_tags(raw)
     start = _parse_iso_day(str(event.get("startDate") or "")) if event else None
     end = _parse_iso_day(str(event.get("endDate") or "")) if event else None
+
     if not start:
         parsed = _parse_dutch_date(text)
         if parsed:
@@ -240,6 +242,7 @@ async def _detail_card(
                 start = None
     if not start:
         return None
+
     end = end or start
     if not _in_month(start, end, month):
         return None
@@ -277,9 +280,6 @@ async def _detail_card(
         "city": city[:100],
         "url": url,
         "source_url": url,
-        "ticket_url": "",
-        "source": base.SOURCE_NAME,
-        "territory": "Nederland",
         "photo_url": image[:1000],
         "starts_at": _to_naive_utc(start),
         "ends_at": _to_naive_utc(end, end=True),
@@ -289,9 +289,13 @@ async def _detail_card(
 async def _category_cards(slug: str, month: date, limit: int = 12) -> list[dict]:
     first = month.isoformat()
     last = month_end(month).isoformat()
-    timeout = aiohttp.ClientTimeout(total=25)
+    timeout = aiohttp.ClientTimeout(total=30)
     connector = aiohttp.TCPConnector(limit=8)
-    headers = {"User-Agent": USER_AGENT, "Accept-Language": "nl-NL,nl;q=0.9,en;q=0.7"}
+    headers = {
+        "User-Agent": USER_AGENT,
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "nl-NL,nl;q=0.9,en;q=0.7",
+    }
 
     async with aiohttp.ClientSession(timeout=timeout, connector=connector, headers=headers) as session:
         links: list[str] = []
@@ -300,12 +304,17 @@ async def _category_cards(slug: str, month: date, limit: int = 12) -> list[dict]
             suffix = f"&page={page}" if page > 1 else ""
             url = f"{BASE_URL}/zoeken/{slug}?datefrom={first}&datetill={last}{suffix}"
             raw = await _get(session, url)
-            for link in _event_links(raw):
+            found = _event_links(raw)
+            log.info("Evenementen direct listing %s page %d -> %d event links", slug, page, len(found))
+            for link in found:
                 if link not in seen:
                     seen.add(link)
                     links.append(link)
             if len(links) >= 36:
                 break
+
+        if not links:
+            return []
 
         semaphore = asyncio.Semaphore(6)
 
@@ -381,9 +390,16 @@ async def build_current_month_once() -> None:
             await _extend_expiry(section_key, month)
             continue
 
-        cards = await _category_cards(slug, month)
+        cards: list[dict] = []
+        for attempt in range(2):
+            cards = await _category_cards(slug, month)
+            if cards:
+                break
+            if attempt == 0:
+                await asyncio.sleep(2)
+
         if not cards:
-            log.warning("Evenementen direct: no rows for %s", section_key)
+            log.warning("Evenementen direct: no rows for %s after retry", section_key)
             continue
 
         batch = secrets.token_hex(6)
