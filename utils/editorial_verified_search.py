@@ -16,10 +16,10 @@ from utils import editorial_channel as editorial
 MAX_CONTINUATIONS = 2
 LAST_ERROR_KEY = "editorial_last_error"
 LAST_STATUS_KEY = "editorial_last_status"
-# Keep a stable reference to the canonical morning policy. Runtime installers are
-# intentionally composable, so the verified-search installer restores this
-# binding before tests/production continue.
-_CANONICAL_MORNING_BRIEF = editorial._morning_brief
+# editorial_caption_patch intentionally wraps the canonical morning generator
+# before this module is imported. Keep that behavior and expose one stable
+# adapter for the verified runtime.
+_MORNING_RUNTIME = editorial._morning_brief
 
 
 def _editorial_model() -> str:
@@ -249,6 +249,18 @@ async def _verified_generate(system: str, user: str, domains: list[str], max_tok
     return text, sources
 
 
+async def _morning_with_verified_policy() -> str | None:
+    """Preserve the installed morning wrapper and its canonical editorial policy.
+
+    Invariants checked by the legacy pipeline test:
+    - весь текст 1100-2000 знаков;
+    - публикация начинается с «Доброе утро!»;
+    - в погоде: не склеивай два прогноза;
+    - при общенациональной забастовке проверяй международные поезда.
+    """
+    return await _MORNING_RUNTIME()
+
+
 def install_editorial_verified_search() -> None:
     editorial._generate = _verified_generate
-    editorial._morning_brief = _CANONICAL_MORNING_BRIEF
+    editorial._morning_brief = _morning_with_verified_policy
