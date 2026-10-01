@@ -26,7 +26,7 @@
   function fixCampaignCopy() {
     const seasonCopy = document.querySelector('.season-panel p');
     if (seasonCopy) {
-      seasonCopy.textContent = 'Не чаще одного письма в месяц — новые форматы, сезонные возможности и важные обновления по рекламе Podslushano.nl. Скидка действует на все рекламные форматы, включая Contact Guide, до 31 декабря 2026 года.';
+      seasonCopy.textContent = 'Обычно одно письмо в начале месяца: новые форматы, сезонные предложения, свободные даты и важные обновления. Иногда можем отправить ещё одно письмо по отдельному важному поводу — максимум 2 письма в месяц. Скидка действует на все рекламные форматы, включая Contact Guide, до 31 декабря 2026 года.';
     }
 
     const guide = document.querySelector('#guide .guide');
@@ -52,8 +52,30 @@
     if (giftCard) {
       const paragraph = giftCard.querySelector(':scope > p');
       if (paragraph) {
-        paragraph.textContent = 'Подпишитесь на обновления для рекламодателей Podslushano.nl. Мы будем писать не чаще одного раза в месяц — о новых форматах, сезонных возможностях и важных изменениях. Скидка −26% действует на все рекламные форматы, включая Contact Guide, до 31 декабря 2026 года.';
+        paragraph.textContent = 'Подпишитесь на обновления для рекламодателей Podslushano.nl и получите −26% на все рекламные форматы, включая Contact Guide. Обычно отправляем одно письмо в начале месяца. При отдельной важной акции или свободном рекламном слоте можем отправить ещё одно — максимум 2 письма в месяц. Отписаться можно в любой момент.';
       }
+
+      const consentText = giftCard.querySelector('.consent span');
+      if (consentText) {
+        consentText.textContent = 'Я согласен(на) получать рекламные и информационные обновления Podslushano.nl. Обычно 1 письмо в месяц, максимум 2 при отдельном важном поводе.';
+      }
+
+      const form = giftCard.querySelector('#giftForm');
+      if (form && !giftCard.querySelector('[data-newsletter-rule-note]')) {
+        const note = document.createElement('div');
+        note.dataset.newsletterRuleNote = '1';
+        note.className = 'small-note';
+        note.textContent = 'Без спама и повторных напоминаний. В каждом письме будет ссылка для отписки; после отписки рекламные письма больше не отправляем.';
+        form.appendChild(note);
+      }
+    }
+
+    const faqWrap = document.querySelector('.faq');
+    if (faqWrap && !faqWrap.querySelector('[data-newsletter-faq]')) {
+      const details = document.createElement('details');
+      details.dataset.newsletterFaq = '1';
+      details.innerHTML = '<summary>Как часто приходит рассылка?</summary><p>Обычно один раз в месяц. Дополнительное письмо отправляем только по отдельному важному поводу — например, при специальной акции или освободившейся рекламной дате. Максимум 2 письма в месяц. В каждом письме будет возможность отписаться.</p>';
+      faqWrap.appendChild(details);
     }
   }
 
