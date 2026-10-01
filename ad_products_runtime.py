@@ -62,7 +62,7 @@ config.AD_FORMATS.update(
             "lead": "Живая онлайн-встреча с аудиторией Podslushano.nl, где подписчики могут задать эксперту вопросы напрямую.",
             "details": [
                 "1 анонс-публикация Instagram",
-                "2 Instagram Stories для набора участников",
+                "4 Instagram Stories для набора участников",
                 "подготовка темы и понятного анонса встречи",
                 "организация Zoom Q&A с подписчиками Podslushano.nl",
                 "до 60 минут живых вопросов и ответов",
@@ -116,3 +116,8 @@ config.AD_FORMATS.update(
         },
     }
 )
+
+# Contact Guide is sold in Telegram rather than through /ads/book. Importing the
+# runtime here lets the Q4 newsletter entitlement follow the same −26% campaign
+# without changing the existing Contact Guide payment and moderation flow.
+import ad_contact_guide_campaign_runtime  # noqa: E402,F401
