@@ -10,6 +10,7 @@ import base64
 import binascii
 import hashlib
 import hmac
+import html
 import re
 import time
 from datetime import datetime
@@ -40,6 +41,7 @@ _ALLOWED_FORMATS = {
 }
 _EMAIL_RE = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 _TOKEN_MARKER = "SEASON26:"
+_UNSUBSCRIBE_PREFIX = b"podslushano:ads:newsletter:unsubscribe:"
 
 
 class AdsNewsletterSubscriber(Base):
@@ -143,6 +145,35 @@ def _token_email(token: str) -> str | None:
     return email.lower()
 
 
+def _issue_unsubscribe_token(email: str) -> str:
+    """Stable signed token for unsubscribe links used after the Q4 campaign ends."""
+    secret = _secret()
+    if not secret:
+        raise RuntimeError("Advertising newsletter secret is not configured")
+    normalized = email.strip().lower()
+    payload = normalized.encode("utf-8")
+    signature = hmac.new(secret, _UNSUBSCRIBE_PREFIX + payload, hashlib.sha256).hexdigest()
+    return f"{_b64encode(payload)}.{signature}"
+
+
+def _unsubscribe_token_email(token: str) -> str | None:
+    secret = _secret()
+    if not token or not secret or "." not in token:
+        return None
+    encoded, signature = token.split(".", 1)
+    try:
+        payload = _b64decode(encoded)
+        expected = hmac.new(
+            secret, _UNSUBSCRIBE_PREFIX + payload, hashlib.sha256
+        ).hexdigest()
+        if not hmac.compare_digest(signature, expected):
+            return None
+        email = payload.decode("utf-8").strip().lower()
+    except (UnicodeError, binascii.Error):
+        return None
+    return email if _EMAIL_RE.match(email) else None
+
+
 def _extract_discount_token(phone: str) -> tuple[str, str | None]:
     parts = [part for part in (phone or "").split("|||") if part]
     token = None
@@ -189,7 +220,7 @@ async def newsletter_subscribe(request: web.Request) -> web.Response:
         )
     if consent not in {"1", "true", "yes", "on"}:
         return web.json_response(
-            {"ok": False, "error": "Нужно подтвердить подписку на ежемесячные обновления."},
+            {"ok": False, "error": "Нужно подтвердить подписку на рекламные обновления."},
             status=400,
         )
 
@@ -239,9 +270,71 @@ async def newsletter_status(request: web.Request) -> web.Response:
     )
 
 
+def _unsubscribe_page(token: str, *, error: str = "") -> str:
+    safe_token = html.escape(token, quote=True)
+    notice = (
+        f'<p style="color:#8b3528">{html.escape(error)}</p>' if error else ""
+    )
+    return f"""<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Отписаться — Podslushano.nl</title><style>
+body{{margin:0;background:#f3eee5;color:#19211e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;display:grid;place-items:center;min-height:100vh;padding:18px}}
+.card{{width:min(480px,100%);background:#fffdf8;border:1px solid #d8ccba;border-radius:22px;padding:26px;box-shadow:0 18px 56px rgba(45,37,25,.10)}}
+h1{{font-size:30px;line-height:1;margin:0 0 12px}}p{{color:#5d5851;line-height:1.5}}button{{border:0;border-radius:999px;padding:13px 18px;background:#183a31;color:#fff;font-weight:800;cursor:pointer}}
+</style></head><body><main class="card"><h1>Отписаться от рассылки?</h1><p>После отписки мы больше не будем отправлять рекламные обновления Podslushano.nl на этот e-mail. Подписаться снова можно будет позже.</p>{notice}<form method="post" action="/ads-newsletter/unsubscribe"><input type="hidden" name="token" value="{safe_token}"><button type="submit">Да, отписаться</button></form></main></body></html>"""
+
+
+async def newsletter_unsubscribe_page(request: web.Request) -> web.Response:
+    token = (request.query.get("token") or "").strip()
+    email = _unsubscribe_token_email(token)
+    if not email:
+        return web.Response(
+            text=_unsubscribe_page(token, error="Ссылка для отписки недействительна."),
+            content_type="text/html",
+            status=400,
+            headers={"Cache-Control": "no-store"},
+        )
+    return web.Response(
+        text=_unsubscribe_page(token),
+        content_type="text/html",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
+async def newsletter_unsubscribe(request: web.Request) -> web.Response:
+    data = await request.post()
+    token = (data.get("token") or "").strip()
+    email = _unsubscribe_token_email(token)
+    if not email:
+        return web.Response(
+            text=_unsubscribe_page(token, error="Ссылка для отписки недействительна."),
+            content_type="text/html",
+            status=400,
+            headers={"Cache-Control": "no-store"},
+        )
+
+    async with get_session() as session:
+        subscriber = await session.scalar(
+            select(AdsNewsletterSubscriber).where(
+                func.lower(AdsNewsletterSubscriber.email) == email
+            )
+        )
+        if subscriber is not None:
+            subscriber.is_active = False
+            await session.commit()
+
+    return web.Response(
+        text="""<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Вы отписаны — Podslushano.nl</title><style>body{margin:0;background:#f3eee5;color:#19211e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;display:grid;place-items:center;min-height:100vh;padding:18px}.card{width:min(480px,100%);background:#fffdf8;border:1px solid #d8ccba;border-radius:22px;padding:26px;box-shadow:0 18px 56px rgba(45,37,25,.10)}h1{font-size:30px;line-height:1;margin:0 0 12px}p{color:#5d5851;line-height:1.5}</style></head><body><main class="card"><h1>Вы отписались</h1><p>Рекламные обновления Podslushano.nl больше не будут приходить на этот e-mail.</p></main></body></html>""",
+        content_type="text/html",
+        headers={"Cache-Control": "no-store"},
+    )
+
+
 def _install_routes(app: web.Application) -> None:
     app.router.add_post("/ads-season/subscribe", newsletter_subscribe)
     app.router.add_get("/ads-season/status", newsletter_status)
+    app.router.add_get("/ads-newsletter/unsubscribe", newsletter_unsubscribe_page)
+    app.router.add_post("/ads-newsletter/unsubscribe", newsletter_unsubscribe)
 
 
 async def start_webserver_with_ads_campaign(bot):
