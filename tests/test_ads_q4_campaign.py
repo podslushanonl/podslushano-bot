@@ -27,6 +27,7 @@ def test_public_products() -> None:
     assert any("7 дней" in item for item in telegram["details"])
     assert expert["options"][0]["price"] == "120.00"
     assert expert["lead_days"] == 7
+    assert any("4 Instagram Stories" in item for item in expert["details"])
 
 
 def test_discount_prices_and_tokens() -> None:
@@ -47,6 +48,10 @@ def test_discount_prices_and_tokens() -> None:
     token = season._issue_token("Advertiser@Example.com")
     assert season._token_email(token) == "advertiser@example.com"
     assert season._token_email(token + "x") is None
+
+    unsubscribe_token = season._issue_unsubscribe_token("Advertiser@Example.com")
+    assert season._unsubscribe_token_email(unsubscribe_token) == "advertiser@example.com"
+    assert season._unsubscribe_token_email(unsubscribe_token + "x") is None
 
     clean, extracted = season._extract_discount_token(
         "+316123|||SEASON26:" + token + "|||GUIDE64:payload"
@@ -101,7 +106,7 @@ def main() -> None:
     test_public_products()
     test_discount_prices_and_tokens()
     asyncio.run(test_discount_checkout_guard())
-    print("[OK] Ads Q4: products + signed −26% discount + Dec 31 guard")
+    print("[OK] Ads Q4: products + signed −26% discount + unsubscribe + Dec 31 guard")
 
 
 if __name__ == "__main__":
