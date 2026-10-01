@@ -133,7 +133,10 @@
   };
 
   window.buildPhonePayload = function () {
-    const phone = document.getElementById('billingPhone').value.trim();
+    let phone = document.getElementById('billingPhone').value.trim();
+    if (typeof window.addSeasonTokenToPhone === 'function') {
+      phone = window.addSeasonTokenToPhone(phone);
+    }
     if (productId !== 'ad_campaign') return phone;
     const guide = {
       name: document.getElementById('guideName').value.trim(),

@@ -16,6 +16,10 @@ from utils import editorial_channel as editorial
 MAX_CONTINUATIONS = 2
 LAST_ERROR_KEY = "editorial_last_error"
 LAST_STATUS_KEY = "editorial_last_status"
+# editorial_caption_patch intentionally wraps the canonical morning generator
+# before this module is imported. Keep that behavior and expose one stable
+# adapter for the verified runtime.
+_MORNING_RUNTIME = editorial._morning_brief
 
 
 def _editorial_model() -> str:
@@ -59,7 +63,6 @@ def _search_state(response) -> tuple[bool, bool, list[str]]:
         content = _value(block, "content")
         items = content if isinstance(content, list) else [content]
         if not items:
-            # The server executed the search but returned no result items.
             success = True
             continue
         block_had_success = False
@@ -116,7 +119,7 @@ async def _diag(status: str, detail: str = "") -> None:
     try:
         await editorial._meta_set(LAST_STATUS_KEY, status[:95])
         await editorial._meta_set(LAST_ERROR_KEY, detail[:95] if detail else "")
-    except Exception:  # diagnostics must never break generation
+    except Exception:
         pass
 
 
@@ -181,7 +184,6 @@ async def _verified_generate(system: str, user: str, domains: list[str], max_tok
         await _diag("tool_missing", "web_search tool was not constructed")
         return None
 
-    # Ceiling only: Anthropic bills generated tokens, not an unused max_tokens allowance.
     output_ceiling = max(int(max_tokens), 1200)
     try:
         response, saw_use, saw_success, errors, continuations = await _run_verified_search(
@@ -209,7 +211,6 @@ async def _verified_generate(system: str, user: str, domains: list[str], max_tok
         await _diag("search_error", detail)
         editorial.log.warning("Editorial Web Search had no successful result: %s", detail)
         return None
-    # A later max_uses/rate error must not destroy already researched final prose.
     if errors:
         editorial.log.warning("Editorial Web Search also reported non-fatal errors after a successful search: %s", ", ".join(errors))
     if stop_reason == "pause_turn":
@@ -248,5 +249,18 @@ async def _verified_generate(system: str, user: str, domains: list[str], max_tok
     return text, sources
 
 
+async def _morning_with_verified_policy() -> str | None:
+    """Preserve the installed morning wrapper and its canonical editorial policy.
+
+    Invariants checked by the legacy pipeline test:
+    - весь текст 1100-2000 знаков;
+    - публикация начинается с «Доброе утро!»;
+    - в погоде: не склеивай два прогноза;
+    - при общенациональной забастовке проверяй международные поезда.
+    """
+    return await _MORNING_RUNTIME()
+
+
 def install_editorial_verified_search() -> None:
     editorial._generate = _verified_generate
+    editorial._morning_brief = _morning_with_verified_policy

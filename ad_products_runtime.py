@@ -1,8 +1,8 @@
 """Canonical advertising products for the public /ads checkout.
 
-AD_PRODUCTS.md is the source of truth for product meaning. Legacy definitions
-remain resolvable for already-created bookings, while the three public product
-IDs below power new sales.
+AD_PRODUCTS.md documents the product family. Legacy definitions remain
+resolvable for already-created bookings, while the public product IDs below
+power new sales from the redesigned /ads page.
 """
 from __future__ import annotations
 
@@ -31,7 +31,6 @@ config.AD_FORMATS.update(
             "details": [
                 "1 основная публикация Instagram: пост, карусель или Reel при наличии подходящего готового видео",
                 "2 Instagram Stories как продолжение основной подачи",
-                "1 отдельный нативный Telegram-пост",
                 "редакционная адаптация текста, заголовка, структуры и CTA",
                 "проверка ссылок и контактов перед публикацией",
             ],
@@ -39,6 +38,39 @@ config.AD_FORMATS.update(
             "options": [{"key": "std", "label": "1 рекламный выход", "price": "99.00"}],
             "dates": 1,
             "lead_days": 2,
+            "public": True,
+        },
+        "ad_telegram": {
+            "name": "Telegram",
+            "badge": "1 публикация · закрепление 7 дней",
+            "lead": "Отдельный нативный рекламный выход в Telegram-канале Podslushano.nl.",
+            "details": [
+                "1 отдельная публикация в Telegram-канале",
+                "редакционная адаптация текста, заголовка, структуры и CTA",
+                "проверка ссылок и контактов перед публикацией",
+                "закрепление публикации в канале на 7 дней",
+            ],
+            "who": "бизнесам и специалистам, которым нужен самостоятельный Telegram-выход без Instagram Stories",
+            "options": [{"key": "std", "label": "Telegram · 1 публикация", "price": "75.00"}],
+            "dates": 1,
+            "lead_days": 2,
+            "public": True,
+        },
+        "ad_expert_live": {
+            "name": "Экспертный эфир",
+            "badge": "Анонс + Zoom Q&A",
+            "lead": "Живая онлайн-встреча с аудиторией Podslushano.nl, где подписчики могут задать эксперту вопросы напрямую.",
+            "details": [
+                "1 анонс-публикация Instagram",
+                "4 Instagram Stories для набора участников",
+                "подготовка темы и понятного анонса встречи",
+                "организация Zoom Q&A с подписчиками Podslushano.nl",
+                "до 60 минут живых вопросов и ответов",
+            ],
+            "who": "экспертам, консультантам и специалистам, которым важно показать компетенцию через прямой разговор с аудиторией",
+            "options": [{"key": "std", "label": "Экспертный эфир", "price": "120.00"}],
+            "dates": 1,
+            "lead_days": 7,
             "public": True,
         },
         "ad_promotion": {
