@@ -32,17 +32,17 @@ def test_static_density_patch() -> None:
 
 
 def test_welcome_template() -> None:
-    html = cleanup._welcome_email_html(
+    html_body = cleanup._welcome_email_html(
         "https://example.test", "https://example.test/unsubscribe?token=abc"
     )
     text = cleanup._welcome_email_text(
         "https://example.test", "https://example.test/unsubscribe?token=abc"
     )
-    assert "Podslushano.nl" in html
-    assert "Спасибо за подписку" in html
-    assert "−26%" in html
-    assert "Выбрать рекламный формат" in html
-    assert "unsubscribe?token=abc" in html
+    assert "Podslushano.nl" in html_body
+    assert "Спасибо за подписку" in html_body
+    assert "−26%" in html_body
+    assert "Выбрать рекламный формат" in html_body
+    assert "unsubscribe?token=abc" in html_body
     assert "−26%" in text
     assert "https://example.test/ads" in text
 
@@ -51,8 +51,9 @@ class FakeRequest:
     scheme = "https"
     host = "ads.example.test"
 
-    def __init__(self, data):
-        self._data = data
+    def __init__(self, data=None, token=""):
+        self._data = data or {}
+        self.query = {"token": token} if token else {}
 
     async def post(self):
         return self._data
@@ -89,6 +90,69 @@ async def test_signup_wrapper() -> None:
         cleanup._send_welcome_email = real_sender
 
 
+async def test_resend_payload_contains_working_unsubscribe_link() -> None:
+    real_client_session = cleanup.aiohttp.ClientSession
+    old_api_key = os.environ.get("RESEND_API_KEY")
+    captured = {}
+
+    class FakeResponse:
+        status = 200
+
+        async def text(self):
+            return '{"id":"email_test"}'
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+    class FakeSession:
+        def __init__(self, *args, **kwargs):
+            captured["session_kwargs"] = kwargs
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+        def post(self, url, **kwargs):
+            captured["url"] = url
+            captured.update(kwargs)
+            return FakeResponse()
+
+    os.environ["RESEND_API_KEY"] = "re_test_key"
+    cleanup.aiohttp.ClientSession = FakeSession
+    try:
+        sent = await cleanup._send_welcome_email(
+            "buyer@example.com", "https://ads.example.test"
+        )
+        assert sent is True
+        assert captured["url"] == "https://api.resend.com/emails"
+        assert captured["headers"]["Authorization"] == "Bearer re_test_key"
+        payload = captured["json"]
+        assert payload["from"] == "Podslushano.nl <ads@podslushano.nl>"
+        assert payload["to"] == ["buyer@example.com"]
+        assert payload["subject"] == "Ваша скидка −26% активна — Podslushano.nl"
+        unsubscribe_url = payload["headers"]["List-Unsubscribe"].strip("<>")
+        assert unsubscribe_url.startswith(
+            "https://ads.example.test/ads-newsletter/unsubscribe?token="
+        )
+        token = unsubscribe_url.split("token=", 1)[1]
+        from urllib.parse import unquote
+
+        assert season._unsubscribe_token_email(unquote(token)) == "buyer@example.com"
+        assert unsubscribe_url in payload["html"]
+        assert unsubscribe_url in payload["text"]
+    finally:
+        cleanup.aiohttp.ClientSession = real_client_session
+        if old_api_key is None:
+            os.environ.pop("RESEND_API_KEY", None)
+        else:
+            os.environ["RESEND_API_KEY"] = old_api_key
+
+
 async def test_existing_subscriber_welcome() -> None:
     real_token_email = season._token_email
     real_campaign = season._campaign_active
@@ -111,6 +175,48 @@ async def test_existing_subscriber_welcome() -> None:
         cleanup._send_welcome_email = real_sender
 
 
+async def test_unsubscribe_get_and_post_deactivate_subscriber() -> None:
+    token = season._issue_unsubscribe_token("buyer@example.com")
+
+    page = await season.newsletter_unsubscribe_page(FakeRequest(token=token))
+    assert page.status == 200
+    assert "Отписаться от рассылки?" in page.text
+    assert token in page.text
+
+    invalid_page = await season.newsletter_unsubscribe_page(FakeRequest(token=token + "x"))
+    assert invalid_page.status == 400
+
+    subscriber = SimpleNamespace(email="buyer@example.com", is_active=True)
+    committed = {"value": False}
+    real_get_session = season.get_session
+
+    class FakeDbSession:
+        async def scalar(self, _statement):
+            return subscriber
+
+        async def commit(self):
+            committed["value"] = True
+
+    class FakeSessionContext:
+        async def __aenter__(self):
+            return FakeDbSession()
+
+        async def __aexit__(self, exc_type, exc, tb):
+            return False
+
+    season.get_session = lambda: FakeSessionContext()
+    try:
+        response = await season.newsletter_unsubscribe(
+            FakeRequest({"token": token})
+        )
+        assert response.status == 200
+        assert "Вы отписались" in response.text
+        assert subscriber.is_active is False
+        assert committed["value"] is True
+    finally:
+        season.get_session = real_get_session
+
+
 async def test_page_injection() -> None:
     real_original = cleanup._ORIGINAL_ADS_PAGE
 
@@ -130,9 +236,13 @@ def main() -> None:
     test_static_density_patch()
     test_welcome_template()
     asyncio.run(test_signup_wrapper())
+    asyncio.run(test_resend_payload_contains_working_unsubscribe_link())
     asyncio.run(test_existing_subscriber_welcome())
+    asyncio.run(test_unsubscribe_get_and_post_deactivate_subscriber())
     asyncio.run(test_page_injection())
-    print("[OK] Ads cleanup: lighter UI + branded welcome e-mail + existing subscriber recovery")
+    print(
+        "[OK] Ads cleanup: lighter UI + Resend welcome payload + signed unsubscribe deactivation"
+    )
 
 
 if __name__ == "__main__":
