@@ -7,6 +7,7 @@ checkout keeps using the existing /ads/book route and Mollie flow.
 from __future__ import annotations
 
 import base64
+import binascii
 import hashlib
 import hmac
 import re
@@ -120,7 +121,7 @@ def _token_email(token: str) -> str | None:
         decoded = payload.decode("utf-8")
         email, expiry_raw = decoded.rsplit("|", 1)
         expiry = int(expiry_raw)
-    except (ValueError, UnicodeError, base64.binascii.Error):
+    except (ValueError, UnicodeError, binascii.Error):
         return None
     if expiry != int(_CAMPAIGN_END.timestamp()) or int(time.time()) > expiry:
         return None
