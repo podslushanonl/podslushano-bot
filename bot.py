@@ -27,9 +27,10 @@ from handlers.ai_sales import ad_lead_reminder_loop
 from handlers.selfadd import reminder_loop
 from handlers.digest import digest_announcement_loop, digest_draft_loop
 from handlers.notifications import notification_loop
-from handlers.evenementen_catalog import evenementen_catalog_loop, install_evenementen_source
+from handlers.evenementen_current_month import evenementen_catalog_loop, install_evenementen_source
 from utils.editorial_channel import editorial_channel_loop, router as editorial_router
-from utils.editorial_research_desk import editorial_research_loop, router as editorial_research_router
+from utils.editorial_research_desk import router as editorial_research_router
+from utils.editorial_research_daily import editorial_research_loop
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
