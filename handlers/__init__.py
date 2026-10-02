@@ -50,3 +50,6 @@ def _install_editorial_stack() -> None:
 
 
 _editorial_overrides.install = _install_editorial_stack
+
+# Рекламная рассылка: список подписчиков прямо в Админ-центре.
+from handlers import admin_newsletter_subscribers as _admin_newsletter_subscribers  # noqa: F401,E402
