@@ -14,6 +14,7 @@ import json
 import html as html_lib
 import logging
 import re
+from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta, timezone
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
@@ -168,6 +169,41 @@ def _extract_text_and_sources(response) -> tuple[str, list[str]]:
     return "".join(text_parts).strip(), sources
 
 
+def _extract_all_text_and_sources(response) -> tuple[str, list[str]]:
+    """Собирает весь текст многошагового серверного поиска без потерь.
+
+    В обычном ответе текст до первого tool-блока часто является служебной
+    преамбулой, поэтому :func:`_extract_text_and_sources` его отбрасывает. Для
+    структурированной афиши это правило неверно: Claude может вывести одну или
+    несколько готовых XML-карточек, снова вызвать поиск, а затем продолжить
+    результат. Здесь сохраняем все text-блоки; парсер карточек сам проигнорирует
+    любой текст вне ``<event>``.
+    """
+    text_parts: list[str] = []
+    sources: list[str] = []
+    seen: set[str] = set()
+    content = response.get("content", []) if isinstance(response, dict) else getattr(
+        response, "content", []
+    )
+    for block in content or []:
+        btype = block.get("type") if isinstance(block, dict) else getattr(block, "type", None)
+        if btype != "text":
+            continue
+        text = block.get("text", "") if isinstance(block, dict) else getattr(block, "text", "")
+        text_parts.append(text or "")
+        citations = (
+            block.get("citations", [])
+            if isinstance(block, dict)
+            else getattr(block, "citations", None) or []
+        )
+        for citation in citations:
+            url = citation.get("url") if isinstance(citation, dict) else getattr(citation, "url", None)
+            if url and url not in seen:
+                seen.add(url)
+                sources.append(url)
+    return "".join(text_parts).strip(), sources
+
+
 def _web_search_errors(response) -> list[str]:
     """Возвращает коды ошибок серверного веб-поиска из успешного HTTP-ответа.
 
@@ -193,6 +229,14 @@ def _web_search_errors(response) -> list[str]:
     return errors
 
 
+@dataclass(slots=True)
+class _CombinedServerToolResponse:
+    """Минимальное представление всех частей многошагового ответа Claude."""
+
+    content: list
+    stop_reason: str | None
+
+
 async def _create_with_server_tool_continuation(
     client,
     *,
@@ -208,6 +252,7 @@ async def _create_with_server_tool_continuation(
     request = dict(kwargs)
     messages = list(request.get("messages") or [])
     response = await client.messages.create(**request)
+    all_content = list(getattr(response, "content", None) or [])
     continuations = 0
     while getattr(response, "stop_reason", None) == "pause_turn":
         if continuations >= max_continuations:
@@ -220,7 +265,11 @@ async def _create_with_server_tool_continuation(
         request["messages"] = messages
         continuations += 1
         response = await client.messages.create(**request)
-    return response
+        all_content.extend(getattr(response, "content", None) or [])
+    return _CombinedServerToolResponse(
+        content=all_content,
+        stop_reason=getattr(response, "stop_reason", None),
+    )
 
 
 async def ai_reply(
@@ -1224,7 +1273,7 @@ async def ai_event_search_places(city: str, radius_km: int) -> list[str]:
             city,
             ", ".join(errors),
         )
-    text, _ = _extract_text_and_sources(response)
+    text, _ = _extract_all_text_and_sources(response)
     return parse_event_search_places(text, city)
 
 
@@ -1235,6 +1284,7 @@ async def ai_event_cards(
     *,
     section_label: str = "",
     horizon_days: int = 90,
+    diagnostics: dict | None = None,
 ) -> list[dict[str, str]]:
     """Ищет реальные будущие события и возвращает данные для отдельных карточек."""
     if not ai_enabled():
@@ -1334,10 +1384,21 @@ async def ai_event_cards(
                 city,
                 ", ".join(errors),
             )
-        text, _ = _extract_text_and_sources(first_response)
+        text, _ = _extract_all_text_and_sources(first_response)
     else:
         text = ""
     cards = parse_event_cards(text)
+    if diagnostics is not None:
+        diagnostics.update(
+            primary_stop_reason=(
+                getattr(first_response, "stop_reason", None) if first_response is not None else "exception"
+            ),
+            primary_errors=(
+                _web_search_errors(first_response) if first_response is not None else []
+            ),
+            primary_text_chars=len(text),
+            primary_cards=len(cards),
+        )
     if len(cards) >= 4:
         return cards
 
@@ -1364,8 +1425,16 @@ async def ai_event_cards(
             city,
             ", ".join(retry_errors),
         )
-    retry_text, _ = _extract_text_and_sources(response)
-    combined = cards + parse_event_cards(retry_text)
+    retry_text, _ = _extract_all_text_and_sources(response)
+    retry_cards = parse_event_cards(retry_text)
+    if diagnostics is not None:
+        diagnostics.update(
+            retry_stop_reason=getattr(response, "stop_reason", None),
+            retry_errors=retry_errors,
+            retry_text_chars=len(retry_text),
+            retry_cards=len(retry_cards),
+        )
+    combined = cards + retry_cards
     unique: list[dict[str, str]] = []
     seen: set[tuple[str, str]] = set()
     for card in combined:
