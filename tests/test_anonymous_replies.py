@@ -107,11 +107,11 @@ async def main():
                           text=text, entities=entities)
             await dp.feed_update(bot, Update(update_id=sequence, message=msg))
 
-        async def click(payload, uid=ADMIN):
+        async def click(payload, uid=ADMIN, chat_id=None):
             nonlocal sequence
             sequence += 1
             msg = Message(message_id=sequence, date=datetime.now(timezone.utc),
-                          chat={"id": uid, "type": "private"}, text="Question")
+                          chat={"id": chat_id or uid, "type": "supergroup" if chat_id else "private"}, text="Question")
             cb = CallbackQuery(id=str(sequence), from_user=User(id=uid, is_bot=False, first_name="Test"),
                                chat_instance="test", message=msg, data=payload)
             await dp.feed_update(bot, Update(update_id=sequence, callback_query=cb))
@@ -157,7 +157,9 @@ async def main():
             assert "не помещается" in transport.calls[-1].text
             await send("Исправленный ответ")
             cancelled = transport.publish_button()
-            await click("alexpub:cancel")
+            # Simulate losing FSM data after restart before cancelling this preview.
+            await dp.fsm.get_context(bot=bot, chat_id=ADMIN, user_id=ADMIN).clear()
+            await click(cancelled.replace("alexpub:publish:", "alexpub:cancel:"))
             await click(cancelled)
             assert not transport.posts, "Cancel invalidates publication button"
             await click("alexq:reply:1")
@@ -175,6 +177,12 @@ async def main():
                 assert (await db.get(AnonymousAnswer, 1)).message_id
             await click(preview)
             assert len(transport.posts) == 1
+            for action in ["answer", "skip", "block"]:
+                await click(f"alexq:{action}:1")
+                async with sessions() as db:
+                    assert (await db.get(AnonymousQuestion, 1)).status == "published"
+            await click("alexq:reply:2", chat_id=-100777)
+            assert "личный чат" in transport.calls[-1].text
 
             # Definite Telegram rejection remains retryable.
             await click("alexq:reply:2")

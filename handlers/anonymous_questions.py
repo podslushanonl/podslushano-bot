@@ -17,7 +17,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-from sqlalchemy import func, select
+from sqlalchemy import func, select, update
 
 import config
 from database.anonymous_questions import AnonymousQuestion, AnonymousQuestionBlock
@@ -271,7 +271,9 @@ async def _set_status(question_id: int, status: str) -> AnonymousQuestion | None
         question = await session.get(AnonymousQuestion, question_id)
         if question is None:
             return None
-        question.status = status
+        await session.execute(update(AnonymousQuestion).where(
+            AnonymousQuestion.id == question_id, AnonymousQuestion.status != "published"
+        ).values(status=status))
         await session.commit()
         await session.refresh(question)
         return question
@@ -296,6 +298,9 @@ async def admin_select_question(callback: CallbackQuery) -> None:
     if question is None:
         await callback.answer("Вопрос не найден", show_alert=True)
         return
+    if question.status == "published":
+        await callback.answer("Этот вопрос уже опубликован", show_alert=True)
+        return
     await callback.message.edit_text(
         _admin_question_text(question)
         + "\n\n📌 Вопрос сохранён. Найти его можно в /alexquestions.\n"
@@ -314,6 +319,9 @@ async def admin_skip_question(callback: CallbackQuery) -> None:
     question = await _set_status(question_id or 0, "skipped")
     if question is None:
         await callback.answer("Вопрос не найден", show_alert=True)
+        return
+    if question.status == "published":
+        await callback.answer("Этот вопрос уже опубликован", show_alert=True)
         return
     await callback.message.edit_text(_admin_question_text(question))
     await callback.answer("Пропущено")
@@ -336,7 +344,9 @@ async def admin_block_sender(callback: CallbackQuery) -> None:
             return
         if await session.get(AnonymousQuestionBlock, question.sender_hash) is None:
             session.add(AnonymousQuestionBlock(sender_hash=question.sender_hash))
-        question.status = "skipped"
+        await session.execute(update(AnonymousQuestion).where(
+            AnonymousQuestion.id == question_id, AnonymousQuestion.status != "published"
+        ).values(status="skipped"))
         await session.commit()
         await session.refresh(question)
 

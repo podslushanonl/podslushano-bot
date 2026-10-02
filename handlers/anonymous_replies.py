@@ -3,7 +3,7 @@ import html
 import logging
 import uuid
 
-from aiogram import F, Router
+from aiogram import BaseMiddleware, F, Router
 from aiogram.enums import ChatType, ChatMemberStatus
 from aiogram.exceptions import TelegramBadRequest, TelegramForbiddenError
 from aiogram.filters import Command
@@ -20,7 +20,19 @@ from database.anonymous_questions import AnonymousAnswer, AnonymousQuestion
 log = logging.getLogger(__name__)
 router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
-router.callback_query.filter(F.message.chat.type == ChatType.PRIVATE)
+class PrivateReplyActions(BaseMiddleware):
+    async def __call__(self, handler, event, data):
+        if (event.data or "").startswith(("alexpub:", "alexq:reply:")) and (
+            not event.message or event.message.chat.type != ChatType.PRIVATE
+        ):
+            text = ("Открой личный чат с ботом и команду /alexquestions, чтобы ответить."
+                    if event.from_user.id in config.ADMIN_IDS else "Недоступно")
+            await event.answer(text, show_alert=True)
+            return
+        return await handler(event, data)
+
+
+router.callback_query.outer_middleware(PrivateReplyActions())
 CHANNEL_KEY = "alex_answer_channel_id"
 
 
@@ -162,23 +174,39 @@ async def connect_channel(callback: CallbackQuery, state: FSMContext):
         await callback.message.answer("Теперь открой /alexquestions, выбери вопрос и нажми «Ответить».")
 
 
-@router.callback_query(F.data == "alexpub:cancel")
+@router.callback_query((F.data == "alexpub:cancel") | F.data.startswith("alexpub:cancel:"))
 async def cancel(callback: CallbackQuery, state: FSMContext):
     if not _admin(callback.from_user.id):
         await callback.answer("Недоступно", show_alert=True)
         return
     data = await state.get_data()
-    if data.get("preview_question") and data.get("preview_version"):
+    qid, version = data.get("preview_question"), data.get("preview_version")
+    if callback.data.startswith("alexpub:cancel:"):
+        try:
+            _, _, raw_id, version = callback.data.split(":")
+            qid = int(raw_id)
+        except ValueError:
+            await callback.answer("Некорректная кнопка", show_alert=True)
+            return
+    if qid and version:
         async with get_session() as db:
-            await db.execute(update(AnonymousAnswer).where(
-                AnonymousAnswer.question_id == data["preview_question"],
-                AnonymousAnswer.version == data["preview_version"],
+            row = await db.get(AnonymousAnswer, qid)
+            if row and row.status != "draft":
+                await callback.answer("Ответ уже отправляется или опубликован. Отменить отправку этой кнопкой нельзя.", show_alert=True)
+                return
+            result = await db.execute(update(AnonymousAnswer).where(
+                AnonymousAnswer.question_id == qid,
+                AnonymousAnswer.version == version,
                 AnonymousAnswer.status == "draft",
             ).values(version=uuid.uuid4().hex))
             await db.commit()
-    await state.clear()
+            if not result.rowcount:
+                await callback.answer("Предпросмотр уже неактуален или отправка началась. Проверь канал и очередь вопросов.", show_alert=True)
+                return
+    if callback.data == "alexpub:cancel" or (qid, version) == (data.get("preview_question"), data.get("preview_version")):
+        await state.clear()
     await callback.answer()
-    await callback.message.answer("Отменено. Ничего не опубликовано. Сохранённый черновик можно открыть через /alexquestions.")
+    await callback.message.answer("Этот предпросмотр отменён. Черновик можно снова открыть через /alexquestions.")
 
 
 async def _preview(message, qid, admin_id, state):
@@ -205,7 +233,7 @@ async def _preview(message, qid, admin_id, state):
     await message.answer(f"Предпросмотр для канала <b>{html.escape(chat.title or '')}</b> 👇")
     await message.answer(post, parse_mode="HTML", reply_markup=_kb([
         [("📣 Опубликовать", f"alexpub:publish:{qid}:{version}")],
-        [("✏️ Изменить ответ", f"alexpub:edit:{qid}"), ("Отмена", "alexpub:cancel")],
+        [("✏️ Изменить ответ", f"alexpub:edit:{qid}"), ("Отмена", f"alexpub:cancel:{qid}:{version}")],
     ]))
 
 
