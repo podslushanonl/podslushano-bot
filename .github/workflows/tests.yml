@@ -36,3 +36,5 @@ jobs:
         run: python tests/test_ads_cleanup_runtime.py
       - name: Run Contact Guide web checkout checks
         run: python tests/test_contact_guide_web_checkout.py
+      - name: Run Admin Center newsletter subscribers checks
+        run: python tests/test_admin_newsletter_subscribers.py
