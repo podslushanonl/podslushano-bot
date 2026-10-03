@@ -161,7 +161,17 @@
     }
   }
 
+  function loadLanguageSwitcherFix() {
+    if (document.querySelector('script[data-pnl-language-switcher-fix]')) return;
+    const script = document.createElement('script');
+    script.src = '/ads-static/i18n-switcher-fix.js';
+    script.dataset.pnlLanguageSwitcherFix = '1';
+    script.async = false;
+    document.head.appendChild(script);
+  }
+
   function boot() {
+    loadLanguageSwitcherFix();
     compactCopy();
     initGiftExperience();
     window.setTimeout(sendWelcomeForExistingSubscriber, 350);
