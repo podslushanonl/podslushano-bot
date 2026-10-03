@@ -30,6 +30,52 @@ _I18N_JS = "/ads-static/i18n.js"
 _Q4_I18N_JS = "/ads-static/i18n-q4.js"
 _RESEND_ENDPOINT = "https://api.resend.com/emails"
 
+# Deliberately inline: mobile Safari may keep the previously loaded static JS.
+# The /ads HTML itself is no-store, so this fix reaches the client immediately
+# after deployment without asking the advertiser to clear browser cache.
+_SWITCHER_INLINE = r"""
+<style id="pnl-language-switcher-force-style">
+#pnl-language-switcher.pnl-language-switcher{
+  position:relative!important;inset:auto!important;top:auto!important;right:auto!important;
+  bottom:auto!important;left:auto!important;z-index:8!important;display:flex!important;
+  width:max-content!important;max-width:100%!important;margin:10px 0 6px auto!important;
+  padding:4px!important;gap:3px!important;border:1px solid rgba(24,24,24,.12)!important;
+  border-radius:999px!important;background:#fff!important;box-shadow:0 4px 14px rgba(0,0,0,.08)!important;
+  transform:none!important;pointer-events:auto!important
+}
+#pnl-language-switcher.pnl-language-switcher button{
+  display:grid!important;place-items:center!important;width:44px!important;height:44px!important;
+  min-width:44px!important;padding:0!important;border:0!important;border-radius:999px!important;
+  background:transparent!important;font:400 24px/1 system-ui,-apple-system,"Segoe UI Emoji","Apple Color Emoji",sans-serif!important;
+  letter-spacing:0!important;cursor:pointer!important;-webkit-tap-highlight-color:transparent;touch-action:manipulation
+}
+#pnl-language-switcher.pnl-language-switcher button.active{background:#171717!important}
+@media(max-width:620px){
+  #pnl-language-switcher.pnl-language-switcher{margin:8px 0 8px auto!important}
+}
+</style>
+<script>
+(function(){
+  const flags={ru:['🇷🇺','Русский'],nl:['🇳🇱','Nederlands'],en:['🇬🇧','English']};
+  function fix(){
+    const s=document.getElementById('pnl-language-switcher');
+    const h=document.querySelector('header.topbar');
+    if(!s||!h)return false;
+    if(s.previousElementSibling!==h)h.insertAdjacentElement('afterend',s);
+    s.querySelectorAll('button[data-lang]').forEach(function(b){
+      const v=flags[b.dataset.lang]; if(!v)return;
+      b.textContent=v[0]; b.setAttribute('aria-label',v[1]); b.setAttribute('title',v[1]);
+    });
+    return true;
+  }
+  fix();
+  document.addEventListener('DOMContentLoaded',fix,{once:true});
+  new MutationObserver(fix).observe(document.documentElement,{childList:true,subtree:true});
+  setTimeout(fix,100); setTimeout(fix,500); setTimeout(fix,1200);
+})();
+</script>
+"""
+
 
 def _public_base_url(request: web.Request) -> str:
     configured = (getattr(config, "WEBHOOK_BASE_URL", "") or "").strip().rstrip("/")
@@ -242,10 +288,17 @@ async def _ads_page_with_density_cleanup(request: web.Request) -> web.Response:
             f'<script src="{_CLEANUP_JS}"></script>\n</body>',
             1,
         )
+    if "pnl-language-switcher-force-style" not in text:
+        text = text.replace("</body>", _SWITCHER_INLINE + "\n</body>", 1)
+
     return web.Response(
         text=text,
         content_type="text/html",
-        headers={"Cache-Control": "no-store", "X-Content-Type-Options": "nosniff"},
+        headers={
+            "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+            "Pragma": "no-cache",
+            "X-Content-Type-Options": "nosniff",
+        },
     )
 
 
