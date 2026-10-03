@@ -27,6 +27,7 @@ log = logging.getLogger(__name__)
 _CLEANUP_CSS = "/ads-static/q4-cleanup.css"
 _CLEANUP_JS = "/ads-static/q4-cleanup.js"
 _I18N_JS = "/ads-static/i18n.js"
+_Q4_I18N_JS = "/ads-static/i18n-q4.js"
 _RESEND_ENDPOINT = "https://api.resend.com/emails"
 
 
@@ -227,6 +228,12 @@ async def _ads_page_with_density_cleanup(request: web.Request) -> web.Response:
         text = text.replace(
             "</head>",
             f'<script src="{_I18N_JS}" defer></script>\n</head>',
+            1,
+        )
+    if "i18n-q4.js" not in text:
+        text = text.replace(
+            "</head>",
+            f'<script src="{_Q4_I18N_JS}" defer></script>\n</head>',
             1,
         )
     if "q4-cleanup.js" not in text:
