@@ -20,6 +20,8 @@ import ad_season_campaign_runtime as season  # noqa: E402
 def test_static_density_patch() -> None:
     css = (ROOT / "static" / "ads-site" / "q4-cleanup.css").read_text(encoding="utf-8")
     js = (ROOT / "static" / "ads-site" / "q4-cleanup.js").read_text(encoding="utf-8")
+    i18n = (ROOT / "static" / "ads-site" / "i18n.js").read_text(encoding="utf-8")
+    q4_i18n = (ROOT / "static" / "ads-site" / "i18n-q4.js").read_text(encoding="utf-8")
     assert ".hero-card," in css
     assert ".season-panel," in css
     assert ".gift-intro" in css
@@ -32,6 +34,17 @@ def test_static_density_patch() -> None:
     assert "Забрать −26%" in js
     assert "/ads-season/welcome" in js
     assert "email_sent" in js
+    assert 'const SUPPORTED = ["ru", "nl", "en"]' in i18n
+    assert "Adverteren — Podslushano.nl" in i18n
+    assert "Advertising — Podslushano.nl" in i18n
+    assert '"Покажите себя аудитории, которая живёт в Нидерландах."' in q4_i18n
+    assert "Bereik een doelgroep die in Nederland woont." in q4_i18n
+    assert "Reach an audience that lives in the Netherlands." in q4_i18n
+    assert '"Под ключ"' in q4_i18n
+    assert "Volledig verzorgd" in q4_i18n
+    assert "Full-service campaign" in q4_i18n
+    assert "monthGen" in q4_i18n
+    assert "parent.setAttribute(\"value\", norm(source))" in q4_i18n
 
 
 def test_welcome_template() -> None:
@@ -230,7 +243,10 @@ async def test_page_injection() -> None:
     try:
         response = await cleanup._ads_page_with_density_cleanup(SimpleNamespace())
         assert "q4-cleanup.css" in response.text
+        assert 'src="/ads-static/i18n.js"' in response.text
+        assert 'src="/ads-static/i18n-q4.js"' in response.text
         assert "q4-cleanup.js" in response.text
+        assert response.text.index("i18n.js") < response.text.index("i18n-q4.js")
     finally:
         cleanup._ORIGINAL_ADS_PAGE = real_original
 
@@ -244,7 +260,7 @@ def main() -> None:
     asyncio.run(test_unsubscribe_get_and_post_deactivate_subscriber())
     asyncio.run(test_page_injection())
     print(
-        "[OK] Ads cleanup: centered gift + active badge + Resend welcome + unsubscribe"
+        "[OK] Ads cleanup: centered gift + active badge + Resend welcome + RU/NL/EN i18n"
     )
 
 
