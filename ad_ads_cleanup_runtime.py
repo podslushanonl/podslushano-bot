@@ -30,9 +30,10 @@ _I18N_JS = "/ads-static/i18n.js"
 _Q4_I18N_JS = "/ads-static/i18n-q4.js"
 _RESEND_ENDPOINT = "https://api.resend.com/emails"
 
-# Deliberately inline: mobile Safari may keep the previously loaded static JS.
-# The /ads HTML itself is no-store, so this fix reaches the client immediately
-# after deployment without asking the advertiser to clear browser cache.
+# Inline on purpose: /ads HTML is no-store, so Safari gets this immediately
+# even when it has an older static asset cached. Keep this script deliberately
+# simple and mutation-free: rewriting button text from a MutationObserver can
+# create an endless DOM mutation loop and freeze the page.
 _SWITCHER_INLINE = r"""
 <style id="pnl-language-switcher-force-style">
 #pnl-language-switcher.pnl-language-switcher{
@@ -63,15 +64,17 @@ _SWITCHER_INLINE = r"""
     if(!s||!h)return false;
     if(s.previousElementSibling!==h)h.insertAdjacentElement('afterend',s);
     s.querySelectorAll('button[data-lang]').forEach(function(b){
-      const v=flags[b.dataset.lang]; if(!v)return;
-      b.textContent=v[0]; b.setAttribute('aria-label',v[1]); b.setAttribute('title',v[1]);
+      const v=flags[b.dataset.lang];
+      if(!v)return;
+      if(b.textContent!==v[0])b.textContent=v[0];
+      if(b.getAttribute('aria-label')!==v[1])b.setAttribute('aria-label',v[1]);
+      if(b.getAttribute('title')!==v[1])b.setAttribute('title',v[1]);
     });
     return true;
   }
   fix();
   document.addEventListener('DOMContentLoaded',fix,{once:true});
-  new MutationObserver(fix).observe(document.documentElement,{childList:true,subtree:true});
-  setTimeout(fix,100); setTimeout(fix,500); setTimeout(fix,1200);
+  setTimeout(fix,100);setTimeout(fix,500);setTimeout(fix,1200);
 })();
 </script>
 """
