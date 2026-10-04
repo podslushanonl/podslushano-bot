@@ -84,6 +84,7 @@ async def configure_profile(bot: Bot) -> None:
                     BotCommand(command="adcalendar", description="Проверить календарь рекламы"),
                     BotCommand(command="gmailconnect", description="Подключить Gmail для материалов"),
                     BotCommand(command="invoices", description="Скачать архив фактур"),
+                    BotCommand(command="amreviews", description="Отзывы AM Projects: публикация и удаление"),
                     BotCommand(command="contact", description="Связаться с нами / поддержка"),
                 ], scope=BotCommandScopeChat(chat_id=admin_id))
             except Exception:
@@ -102,6 +103,8 @@ async def main() -> None:
     import ad_material_72h_preview_runtime
     import ad_material_conversation_guard  # noqa: F401 — paid-диалог только пока собираем материалы
 
+    import am_reviews  # register review model before init_db
+
     config.validate()
     await init_db()
     connected_gmail = await gmail_oauth_runtime.install_saved_refresh_token()
@@ -116,6 +119,7 @@ async def main() -> None:
     dp.callback_query.middleware(RegisterUserMiddleware())
     await configure_profile(bot)
 
+    dp.include_router(am_reviews.router)
     dp.include_router(stories.router)
     dp.include_router(tax_guide.router)
     # ask_alex должен перехватывать только свой deep-link до общего /start.
