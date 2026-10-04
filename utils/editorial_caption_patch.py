@@ -64,7 +64,7 @@ def _fit_morning(text: str) -> str:
     clean = _strip_model_preamble(text)
     if len(clean) <= MORNING_BODY_LIMIT:
         return clean
-    matches = list(re.finditer(r"(?m)^(?=[☁️🌦️🌤️🌧️☀️🚆🚗])", clean))
+    matches = list(re.finditer(r"(?m)^(?=[☁️🌦️🌤️🌧️☀️🚆🚇🚗])", clean))
     if len(matches) < 3:
         return _complete_cut(clean, MORNING_BODY_LIMIT)
     headline = clean[:matches[0].start()].strip()

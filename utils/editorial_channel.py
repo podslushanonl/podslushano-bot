@@ -33,7 +33,7 @@ DRAFT_CHUNK = 95
 PLAN_DAYS = 14
 
 MORNING_SOURCES = [
-    "knmi.nl", "ns.nl", "prorail.nl", "9292.nl",
+    "knmi.nl", "ns.nl", "prorail.nl", "arriva.nl", "9292.nl",
     "rijkswaterstaat.nl", "anwb.nl", "vananaarbeter.nl",
 ]
 EVENT_SOURCES = [
@@ -152,8 +152,9 @@ def _normalize_morning_output(text: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", clean).strip()
 
 
-MORNING_HEADINGS = ("☁️ Погода", "🚆 Транспорт", "🚗 Дороги")
-MORNING_FOOTER = "Информация актуальна на 06:30. Следите за обновлениями в NS, 9292 и ANWB."
+MORNING_HEADINGS = ("🌦️ Погода", "🚇 Транспорт", "🚗 Дороги")
+# Internal template only; the scheduler substitutes the actual completed check time.
+MORNING_FOOTER = "Информация актуальна на {checked_at}. Следите за обновлениями в KNMI, NS, Arriva, 9292 и Rijkswaterstaat."
 
 
 def _morning_parts(text: str) -> tuple[str, str, str, str] | None:
@@ -292,7 +293,7 @@ def _morning_core_is_publishable(text: str) -> bool:
 
 def _format_morning_html(text: str) -> str:
     """Apply the readable Telegram hierarchy from the approved morning post."""
-    clean = _split_readable_paragraphs((text or "").strip())
+    clean = _split_readable_paragraphs((text or "").strip().replace("{checked_at}", _now().strftime("%H:%M, %d.%m.%Y")))
     paragraphs = [part.strip() for part in re.split(r"\n\s*\n", clean) if part.strip()]
     formatted: list[str] = []
     first_body = True
@@ -308,7 +309,7 @@ def _format_morning_html(text: str) -> str:
             formatted.append(
                 f"<blockquote><i><b>{html.escape(label)}:</b>{html.escape(body)}</i></blockquote>"
             )
-        elif paragraph == MORNING_FOOTER:
+        elif paragraph == MORNING_FOOTER or paragraph.startswith("Информация актуальна на "):
             formatted.append(f"<blockquote><i>{escaped}</i></blockquote>")
         elif paragraph.startswith("Нравится разбор с утра?"):
             formatted.append(f"<b>{escaped}</b>")
@@ -388,10 +389,11 @@ async def _morning_brief() -> str | None:
         "отчёт о поиске и не расширенная погодная справка. Верни только публикацию. Никогда "
         "не пиши «теперь у меня есть данные», «готовая публикация», «результат поиска» и "
         "другие служебные фразы.\n\n"
-        "Перед написанием отдельно проверь сегодняшний прогноз KNMI; NS, ProRail и 9292; "
+        "Перед написанием отдельно проверь сегодняшний прогноз и предупреждения KNMI; NS, ProRail, Arriva и 9292; "
         "городской и региональный OV; Rijkswaterstaat, ANWB и VanAnaarBeter. Данные должны "
-        "быть актуальны на 06:30 Europe/Amsterdam. Старые ограничения не переноси без "
-        "подтверждения.\n\n"
+        "быть проверены непосредственно сейчас по Europe/Amsterdam. Старые ограничения не переноси без "
+        "подтверждения. Если оперативный источник недоступен, честно укажи это; не утверждай отсутствие "
+        "сбоев или предупреждений без доступных актуальных данных.\n\n"
         "Редакторская логика: сначала выбери одно главное событие по влиянию на страну. "
         "Вступление должно полностью назвать событие и его масштаб. Никакого многоточия. "
         "Вступление — одно короткое законченное предложение до 260 знаков. Не начинай каждый "
@@ -399,11 +401,11 @@ async def _morning_brief() -> str | None:
         "Если доминирующего события нет, спокойно скажи, что действительно важно утром.\n\n"
         "Структура обязательна:\n"
         "Доброе утро! [полное вступление из 1-2 предложений]\n\n"
-        "☁️ Погода\n\n"
+        "🌦️ Погода\n\n"
         "Один короткий абзац 160-320 знаков: что будет утром и днём, максимум и минимум ровно один "
         "раз, вероятность осадков, ветер и наличие либо отсутствие предупреждений KNMI. "
         "Не описывай уже прошедшую ночь и не склеивай два прогноза с разными цифрами.\n\n"
-        "🚆 Транспорт\n\n"
+        "🚇 Транспорт\n\n"
         "Один или два коротких абзаца, всего 260-650 знаков. Дай только сбои с наибольшим "
         "практическим влиянием; не перечисляй подряд все станции и линии. Укажи, что именно "
         "не ходит или задерживается, где, когда, "
@@ -418,14 +420,14 @@ async def _morning_brief() -> str | None:
         "важные A- или N-дороги, участки, направления и факторы часа пик. Если крупных проблем "
         "нет, прямо скажи об этом со ссылкой на ANWB/Rijkswaterstaat и не выдумывай трассу ради "
         "формата. Закончи одним практическим советом.\n\n"
-        "Последняя строка дословно: «Информация актуальна на 06:30. Следите за обновлениями "
-        "в NS, 9292 и ANWB.» CTA не добавляй — его добавит бот. Весь текст 1100-2000 знаков. "
+        f"Последняя строка дословно: «{MORNING_FOOTER}» — время подставит бот после проверки. "
+        "CTA не добавляй — его добавит бот. Весь текст 1100-2000 знаков. "
         "Между смысловыми абзацами оставляй пустую строку. Без markdown, HTML, ссылок, списков, "
         "канцелярита, Max/Min и слова «критично»."
     )
 
     base_request = (
-        f"Сегодня {_now():%d.%m.%Y}, Europe/Amsterdam. "
+        f"Сейчас {_now():%d.%m.%Y %H:%M}, Europe/Amsterdam. "
         "Проведи отдельный поиск по погоде, OV и дорогам и верни только готовый пост."
     )
     last_errors: list[str] = []
@@ -785,7 +787,7 @@ async def _send_unified_plan(message: Message) -> None:
     lines = [
         "🗓 <b>Контент-план канала · ближайшие 14 дней</b>",
         "",
-        "Утренний бриф публикуется автоматически в 06:30; остальные редакционные материалы идут через подтверждение.",
+        "Утренний бриф публикуется автоматически в 06:00 по Амстердаму; остальные редакционные материалы идут через подтверждение.",
         "10:00 и 18:00 показаны как фиксированные новостные слоты для контроля нагрузки.",
         "",
     ]
@@ -794,7 +796,7 @@ async def _send_unified_plan(message: Message) -> None:
     for offset in range(PLAN_DAYS):
         current = day + timedelta(days=offset)
         items = [
-            ("06:30", "🌦 Утренний пост: погода + транспорт + дороги · автоматически", "editorial"),
+            ("06:00", "🌦 Утренний пост: погода + транспорт + дороги · автоматически", "editorial"),
             ("10:00", "📰 Утренние новости", "fixed"),
             ("18:00", "📰 Вечерние новости", "fixed"),
             ("21:00", "🌙 Вечерний редакционный пост", "editorial"),
