@@ -1736,6 +1736,8 @@ async def start_webserver(bot) -> web.AppRunner:
     """Запускает веб-сервер на нужном порту (для webhook оплаты и health-check)."""
     app = web.Application()
     app["bot"] = bot
+    from am_reviews import install_routes as install_review_routes
+    install_review_routes(app)
     app.router.add_get("/", _health)
     app.router.add_get("/thanks", _thanks)
     app.router.add_get("/privacy", _privacy)
