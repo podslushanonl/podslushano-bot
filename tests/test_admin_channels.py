@@ -24,3 +24,11 @@ def test_normalize_channel_reference_rejects_garbage():
         pass
     else:
         raise AssertionError("invalid reference must raise ValueError")
+
+
+if __name__ == "__main__":
+    test_normalize_channel_reference_accepts_id()
+    test_normalize_channel_reference_accepts_username()
+    test_normalize_channel_reference_accepts_tme_link()
+    test_normalize_channel_reference_rejects_garbage()
+    print("admin channel tests: ok")
