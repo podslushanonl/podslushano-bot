@@ -119,9 +119,16 @@ class AlloBook(StatesGroup):
     waiting_email = State()
 
 
-class AdminCircle(StatesGroup):
-    """Видео-кружок в канал: ждём видео, потом подтверждение публикации."""
+class AdminChannels(StatesGroup):
+    """Управление каналами для ручных публикаций."""
 
+    waiting_target = State()
+
+
+class AdminCircle(StatesGroup):
+    """Видео-кружок: выбор канала → видео → подтверждение публикации."""
+
+    choosing_channel = State()
     waiting_video = State()
     confirm = State()
 

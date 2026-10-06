@@ -134,6 +134,18 @@ class SpecialistClaim(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class AdminChannel(Base):
+    """Telegram-канал, добавленный администратором для ручных публикаций."""
+
+    __tablename__ = "admin_channels"
+
+    chat_id: Mapped[int] = mapped_column(BigInteger, primary_key=True)
+    title: Mapped[str] = mapped_column(String(200))
+    username: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    added_by: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+
+
 class Meta(Base):
     """Служебная таблица «ключ-значение» (например, версия засева базы)."""
 
