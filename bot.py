@@ -74,6 +74,8 @@ async def configure_profile(bot: Bot) -> None:
                     BotCommand(command="start", description="Запустить бота и открыть меню"),
                     BotCommand(command="menu", description="Показать меню"),
                     BotCommand(command="admin", description="Открыть Админ-центр"),
+                    BotCommand(command="channels", description="Каналы для ручных публикаций"),
+                    BotCommand(command="circle", description="Опубликовать видео-кружок"),
                     BotCommand(command="alexquestions", description="Анонимные вопросы Алексу"),
                     BotCommand(command="alexchannel", description="Подключить личный канал для ответов"),
                     BotCommand(command="contentplan", description="Контент-план канала"),
