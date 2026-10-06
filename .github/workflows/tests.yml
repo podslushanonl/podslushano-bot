@@ -38,3 +38,5 @@ jobs:
         run: python tests/test_contact_guide_web_checkout.py
       - name: Run Admin Center newsletter subscribers checks
         run: python tests/test_admin_newsletter_subscribers.py
+      - name: Run admin publishing channel checks
+        run: python tests/test_admin_channels.py
