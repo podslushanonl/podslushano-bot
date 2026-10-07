@@ -256,59 +256,9 @@ async def _budgeted_run_generated(bot, now, kind, date_key, generator, button=Fa
 
 
 async def _budgeted_run_morning(bot, now):
-    """Publish the verified morning brief automatically, without preview or photo."""
-    if not (time(6, 30) <= now.time() < time(9, 0)):
-        return
-
-    from handlers.content import _is_paused
-
-    if await _is_paused():
-        return
-
-    date_key = "editorial_morning_date"
-    today = now.date().isoformat()
-    if await editorial._meta_get(date_key) == today:
-        return
-
-    count_key = f"{date_key}_attempts_{BUDGET_REVISION}_{today}"
-    cooldown_key = f"{date_key}_try_{BUDGET_REVISION}"
-    try:
-        attempts = int(await editorial._meta_get(count_key) or "0")
-    except ValueError:
-        attempts = 0
-    if attempts >= MAX_AUTOMATIC_ATTEMPTS_PER_SLOT:
-        return
-    if not await editorial._attempt_allowed(cooldown_key, now, RETRY_MINUTES):
-        return
-
-    await editorial._meta_set(count_key, attempts + 1)
-    try:
-        text = await editorial._morning_brief()
-        if not text:
-            last_error = await editorial._meta_get("editorial_last_error")
-            await _alert_admins(
-                bot,
-                "утренний пост",
-                "Текст не прошёл редакционную проверку"
-                + (f": {last_error}" if last_error else "."),
-                attempts + 1,
-            )
-            return
-
-        post_text = overrides._with_reaction_cta("morning", text)
-        post_html = editorial._format_morning_html(post_text)
-        await bot.send_message(
-            config.ANNOUNCE_CHANNEL,
-            post_html,
-            parse_mode="HTML",
-            disable_web_page_preview=True,
-        )
-        await editorial._meta_set(date_key, today)
-        await editorial._meta_set("editorial_last_status", "morning_auto_published")
-        await editorial._meta_set("editorial_last_error", "")
-    except Exception as exc:  # noqa: BLE001
-        editorial.log.exception("Automatic morning publication failed: %s", exc)
-        await _alert_admins(bot, "утренний пост", f"Ошибка публикации {type(exc).__name__}.")
+    """Prepare just before six, then publish once in the Amsterdam morning slot."""
+    from utils.morning_autopublish import run_morning
+    await run_morning(bot, now)
 
 
 async def _budgeted_run_evening(bot, now):

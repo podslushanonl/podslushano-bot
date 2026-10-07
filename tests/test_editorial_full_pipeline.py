@@ -151,11 +151,11 @@ async def test_truncated_output_never_keeps_broken_tail():
 
 MORNING_REFERENCE = """Доброе утро! Сегодня погоду затмевает другая новость — общенациональная забастовка транспорта: весь день не ходят не только поезда NS, но и почти все автобусы, трамваи, метро и паромы.
 
-☁️ Погода
+🌦️ Погода
 
 Облачно, дождливо и ветрено, местами возможны грозы — особенно в утренний час пик на западе страны. Максимум +18°C, минимум +13°C, вероятность осадков — 80%, ветер западный, 4 балла. Предупреждений KNMI нет.
 
-🚆 Транспорт
+🚇 Транспорт
 
 С 02:00 сегодня до 02:00 четверга проходит общенациональная забастовка OV. NS не запускает поезда по всей стране; исключением остаётся Airport Sprinter Amsterdam Centraal — Schiphol Airport — Hoofddorp. Практически все международные поезда также отменены.
 
@@ -165,7 +165,7 @@ MORNING_REFERENCE = """Доброе утро! Сегодня погоду зат
 
 ANWB не ожидает транспортного коллапса только из-за забастовки, но дождь и грозы могут осложнить час пик. Грузовикам и автобусам нельзя проезжать по Merwedebrug на A27, поэтому дополнительная нагрузка возможна на A15 и A16; закрытие N3 у Papendrechtsebrug тоже влияет на объезды. На A2 между Utrecht и 's-Hertogenbosch продолжаются работы. Закладывайте больше времени на дорогу.
 
-Информация актуальна на 06:30. Следите за обновлениями в NS, 9292 и ANWB."""
+Информация актуальна на {checked_at}. Следите за обновлениями в KNMI, NS, Arriva, 9292 и Rijkswaterstaat."""
 
 
 async def test_all_four_formats_share_one_generator():
@@ -276,11 +276,12 @@ def test_morning_html_matches_approved_readable_hierarchy():
         MORNING_REFERENCE + "\n\nНравится разбор с утра? Ставьте 🔥"
     )
     assert rendered.startswith("<i>Доброе утро!")
-    assert "<b>☁️ Погода</b>" in rendered
-    assert "<b>🚆 Транспорт</b>" in rendered
+    assert "<b>🌦️ Погода</b>" in rendered
+    assert "<b>🚇 Транспорт</b>" in rendered
     assert "<b>🚗 Дороги</b>" in rendered
     assert "<blockquote><i><b>Важно:</b>" in rendered
-    assert f"<blockquote><i>{editorial.MORNING_FOOTER}</i></blockquote>" in rendered
+    assert "<blockquote><i>Информация актуальна на " in rendered
+    assert "{checked_at}" not in rendered
     assert rendered.endswith("<b>Нравится разбор с утра? Ставьте 🔥</b>")
 
 
@@ -353,11 +354,11 @@ def test_morning_editorial_policy():
 
 Доброе утро! Сегодня общественный транспорт по всей стране…
 
-☁️ Погода
+🌦️ Погода
 
 Прошедшей ночью было дождливо. Максимум 18°C, минимум 13°C. Предупреждений KNMI нет.
 
-🚆 Транспорт
+🚇 Транспорт
 
 По всей стране проходит забастовка, поезда NS не ходят.
 
@@ -365,7 +366,7 @@ def test_morning_editorial_policy():
 
 ANWB не ожидает транспортного коллапса. Закладывайте запас времени.
 
-Информация актуальна на 06:30. Следите за обновлениями в NS, 9292 и ANWB."""
+Информация актуальна на {checked_at}. Следите за обновлениями в KNMI, NS, Arriva, 9292 и Rijkswaterstaat."""
     normalized = editorial._normalize_morning_output(bad)
     problems = editorial._morning_quality_errors(normalized)
     assert normalized.startswith("Доброе утро!")
@@ -384,10 +385,9 @@ ANWB не ожидает транспортного коллапса. Закла
     recovery_problems = editorial._morning_quality_errors(recovered_after_strike)
     assert not any("общенациональной забастовке" in problem for problem in recovery_problems)
 
-    schedule_source = __import__("inspect").getsource(budget._budgeted_run_morning)
-    assert "time(6, 30)" in schedule_source
-    assert "_is_paused" in schedule_source
-    assert "send_message" in schedule_source
+    from utils.morning_autopublish import PREPARE_AT, PUBLISH_AT
+    from datetime import time
+    assert PREPARE_AT < PUBLISH_AT == time(6, 0)
 
     from utils import editorial_caption_patch as captions
     from utils import editorial_overrides as overrides
