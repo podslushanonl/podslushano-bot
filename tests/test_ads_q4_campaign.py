@@ -1,5 +1,6 @@
 """Focused checks for the Q4 2026 /ads campaign and discount contract."""
 import asyncio
+import json
 import os
 import sys
 from pathlib import Path
@@ -102,10 +103,81 @@ async def test_discount_checkout_guard() -> None:
         season._campaign_active = original_active
 
 
+
+
+async def test_checkout_keeps_redesigned_page() -> None:
+    """Backend rejections must not send a discounted buyer to legacy /ads."""
+    from handlers import ads as ads_handler
+    from utils import webserver
+
+    original = ads_handler.book_and_pay
+    captured = {}
+
+    async def fake_book(fmt, opt, dates, fields):
+        captured.update(fmt=fmt, opt=opt, dates=dates, fields=fields)
+        if fmt == "ad_campaign":
+            return None, "Укажите рабочий контакт: Instagram, Telegram, сайт, e-mail или телефон."
+        return "https://www.mollie.com/checkout/example", ""
+
+    class Request:
+        def __init__(self, accept):
+            self.headers = {"Accept": accept}
+
+        async def post(self):
+            return {
+                "fmt": "ad_campaign" if "error" in self.headers["Accept"] else "ad_single",
+                "opt": "q4_26",
+                "dates": "2026-10-27",
+                "email": "buyer@example.com",
+                "buyer_name": "Test Buyer",
+                "address": "Example Street 1",
+                "client_type": "person",
+                "terms": "on",
+            }
+
+    ads_handler.book_and_pay = fake_book
+    try:
+        error_request = Request("application/json; error")
+        response = await webserver._ads_book(error_request)
+        assert response.status == 400
+        payload = json.loads(response.text)
+        assert not payload["ok"]
+        assert "рабочий контакт" in payload["error"]
+        assert captured["opt"] == "q4_26"
+        assert captured["dates"] == ["2026-10-27"]
+
+        success_request = Request("application/json")
+        response = await webserver._ads_book(success_request)
+        assert response.status == 200
+        payload = json.loads(response.text)
+        assert payload == {"ok": True, "checkout_url": "https://www.mollie.com/checkout/example"}
+        assert captured["opt"] == "q4_26"
+
+        html_request = Request("text/html; error")
+        response = await webserver._ads_book(html_request)
+        assert response.status == 400
+        assert "Не удалось перейти к оплате" in response.text
+        assert "Забронировать дату и формат" not in response.text
+    finally:
+        ads_handler.book_and_pay = original
+
+
+def test_new_checkout_script_is_installed() -> None:
+    page = (ROOT / "static/ads-site/index.html").read_text(encoding="utf-8")
+    script = (ROOT / "static/ads-site/checkout-fix.js").read_text(encoding="utf-8")
+    assert 'src="/ads-static/checkout-fix.js"' in page
+    assert "event.defaultPrevented" in script
+    assert "new FormData(form)" in script
+    assert "'Accept': 'application/json'" in script
+    assert "showCheckoutError" in script
+    assert "payload.checkout_url" in script
+
 def main() -> None:
     test_public_products()
     test_discount_prices_and_tokens()
     asyncio.run(test_discount_checkout_guard())
+    asyncio.run(test_checkout_keeps_redesigned_page())
+    test_new_checkout_script_is_installed()
     print("[OK] Ads Q4: products + signed −26% discount + unsubscribe + Dec 31 guard")
 
 
