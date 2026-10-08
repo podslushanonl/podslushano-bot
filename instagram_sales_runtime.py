@@ -150,6 +150,56 @@ def quote_text(product_key: str) -> str:
             f"пришлю индивидуальную ссылку Mollie. Можно выбрать другой формат.")
 
 
+async def answer_product_question(message: str, product_key: str) -> str:
+    """Natural answers grounded in the immutable server-side catalogue."""
+    product = catalog()[product_key]
+    price = product["price"]
+    text = message.lower()
+    if re.search(r"фото|видео|материал|текст|описани|бриф", text):
+        return "Фото, видео и описание можно прислать после оплаты, прямо в этот Direct. Мы поможем оформить материал под выбранный формат."
+    if re.search(r"дат|когда|срок|публикац", text):
+        return "Дату публикации согласуем после оплаты с учётом доступных слотов. Если нужен строго определённый день, напишите его — передадим на проверку."
+    if re.search(r"сч[её]т|фактур|factuur|btw|квитанц", text):
+        return "В цену включён BTW. Для factuur реквизиты запросим после оплаты и отправим PDF на указанный e-mail."
+    if re.search(r"цен|стоим|сколько|скид|акци", text):
+        return quote_text(product_key)
+    if not config.ANTHROPIC_API_KEY:
+        return ("Для формата «" + product["name"] + "» стоимость €" + price
+                + " с BTW. Подскажите, что именно хотите уточнить?")
+    try:
+        from anthropic import AsyncAnthropic
+        client = AsyncAnthropic(api_key=config.ANTHROPIC_API_KEY)
+        response = await client.messages.create(
+            model=config.AI_CHAT_MODEL,
+            max_tokens=180,
+            temperature=0.2,
+            system=(
+                "Вы консультант Podslushano.nl в Instagram. Отвечайте естественно, "
+                "уважительно, кратко и на «вы». Не выдумывайте факты или гарантии. "
+                "Если ответ невозможен только из предоставленных сведений, "
+                "напишите: «Это уточним у редакции». "
+                "После оплаты материалы и дату согласовывают в переписке. "
+                "Нельзя обещать конкретный день без подтверждения, продажи, "
+                "подписчиков, гарантированные охваты или возвраты. "
+                "Стоимость составляет строго €" + price + " (incl. BTW). "
+                "Формат: " + product["name"] + ". Включено: "
+                + "; ".join(product["details"][:8])
+            ),
+            messages=[{"role": "user", "content": message[:750]}],
+        )
+        result = "".join(block.text for block in response.content
+                         if getattr(block, "type", None) == "text").strip()
+        monetary = re.findall(r"(?:€|EUR\s*)\s*\d[\d.,]*", result, re.I)
+        if monetary or not 5 <= len(result) <= 900:
+            # Generated money amounts are disallowed, even correct ones: the
+            # quote template alone owns numerical prices and conditions.
+            return quote_text(product_key)
+        return result
+    except Exception:
+        return "Уточним этот момент у редакции. Можете пока написать, какая задача у вашей рекламы?"
+
+
+
 def invoice_request_text() -> str:
     return ("Оплата подтверждена! Спасибо. Материалы и дату согласуем здесь. "
             "Для оплаченной factuur, пожалуйста, отправьте одним сообщением три строки:\n"
@@ -385,6 +435,8 @@ async def process_event(bot, event: IgSalesEvent) -> None:
             reply = "Спасибо! Передали ваш вопрос редакции, ответим лично."
         elif intent == "buy" and product and state == "quoted":
             action = "checkout"
+        elif intent == "question" and product:
+            reply = await answer_product_question(text, product)
         else:
             selected = decision.get("product") or product or choose_product(text)
             if selected not in catalog():
