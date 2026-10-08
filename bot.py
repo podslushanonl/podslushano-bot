@@ -190,6 +190,7 @@ async def main() -> None:
 
     asyncio.create_task(crm_sync_loop(bot))
     asyncio.create_task(instagram_sales_runtime.worker_loop(bot))
+    asyncio.create_task(instagram_sales_runtime.payment_reconciliation_loop(bot))
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)
