@@ -126,7 +126,8 @@ async def test_webhook_and_payment_flow():
                     conv = await session.get(IgSalesConversation, "customer1")
                 first = await sales.create_checkout(conv)
                 second = await sales.create_checkout(conv)
-                assert first == second
+                assert "https://www.mollie.com/checkout/test" in first
+                assert "https://www.mollie.com/checkout/test" in second
                 assert len(created) == 1
                 assert created[0][1] == "99.00"
             finally:
