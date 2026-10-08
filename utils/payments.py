@@ -36,6 +36,8 @@ async def create_payment(description: str, metadata: dict, amount: str,
         redirect = f"{config.WEBHOOK_BASE_URL}/allo-walks/v2/return?token={metadata['token']}"
     elif metadata.get("kind") == "allo" and metadata.get("source") == "website" and config.WEBHOOK_BASE_URL:
         redirect = f"{config.WEBHOOK_BASE_URL}/allo-walks/success"
+    elif metadata.get("kind") == "ig_ad_sale" and config.WEBHOOK_BASE_URL:
+        redirect = f"{config.WEBHOOK_BASE_URL}/instagram-sales/payment-return"
     elif metadata.get("kind") == "ad" and config.WEBHOOK_BASE_URL:
         booking_id = metadata.get("booking_id")
         redirect = f"{config.WEBHOOK_BASE_URL}/ads/payment-success"

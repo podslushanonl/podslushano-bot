@@ -331,6 +331,8 @@ async def newsletter_unsubscribe(request: web.Request) -> web.Response:
 
 
 def _install_routes(app: web.Application) -> None:
+    from instagram_sales_runtime import install_routes as install_ig_sales_routes
+    install_ig_sales_routes(app)
     app.router.add_post("/ads-season/subscribe", newsletter_subscribe)
     app.router.add_get("/ads-season/status", newsletter_status)
     app.router.add_get("/ads-newsletter/unsubscribe", newsletter_unsubscribe_page)

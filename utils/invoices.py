@@ -422,7 +422,7 @@ async def send_invoice(
     filename = f"factuur-{no}.pdf"
     html = (
         "<p>Здравствуйте!</p>"
-        "<p>Спасибо за размещение в гайде «Подслушано в Нидерландах». "
+        "<p>Спасибо за заказ на Podslushano.nl. "
         f"Во вложении — счёт (factuur) №{no}.</p>"
         f"<p>С уважением,<br>{config.COMPANY_NAME}<br>{config.COMPANY_EMAIL}</p>"
     )
