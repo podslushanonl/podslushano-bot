@@ -22,12 +22,13 @@ from aiohttp import web
 from aiogram import F, Router
 from aiogram.filters import Command
 from aiogram.types import Message
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete
+from sqlalchemy.exc import IntegrityError
 
 import config
 from database.db import get_session
 from database.ig_sales_models import IgSalesConversation, IgSalesEvent, IgSalesOrder
-from utils.payments import create_payment
+from utils.payments import create_payment, get_payment
 from utils.invoices import send_invoice
 
 log = logging.getLogger(__name__)
@@ -258,10 +259,13 @@ async def receive_webhook(request: web.Request) -> web.Response:
                 ))
                 try:
                     await session.commit()
-                except Exception:
+                except IntegrityError:
                     # Concurrent webhook retries can race on the same unique mid.
                     await session.rollback()
                     log.info("Deduplicated IG webhook message")
+                except Exception:
+                    await session.rollback()
+                    raise  # Meta must retry instead of silently losing an event.
     return web.Response(text="ok")
 
 
@@ -273,11 +277,9 @@ async def create_checkout(conversation: IgSalesConversation) -> str:
         existing = await session.scalar(
             select(IgSalesOrder).where(
                 IgSalesOrder.ig_user_id == conversation.ig_user_id,
-                IgSalesOrder.status.in_(("creating", "open", "paid")),
+                IgSalesOrder.status.in_(("creating", "open")),
             ).order_by(IgSalesOrder.created_at.desc())
         )
-        if existing and existing.status == "paid":
-            return invoice_request_text()
         if existing and existing.checkout_url:
             return "Ссылка Mollie для оплаты вашего заказа: " + existing.checkout_url
         if existing:
@@ -291,6 +293,9 @@ async def create_checkout(conversation: IgSalesConversation) -> str:
             product_key=conversation.product_key, amount=product["price"],
             status="creating",
         ))
+        current = await session.get(IgSalesConversation, conversation.ig_user_id)
+        if current:
+            current.order_id = order_id
         await session.commit()
     # NOTE: a checkout link (payments API) is single-use, and the existing
     # Mollie webhook dispatcher can verify it using metadata.
@@ -337,19 +342,32 @@ async def process_event(bot, event: IgSalesEvent) -> None:
     reply = None
     action = None
     if state in {"paid", "awaiting_invoice"}:
-        parsed = parse_invoice_lines(text)
-        if parsed:
-            name, address, email = parsed
+        async with get_session() as session:
+            current = await session.get(IgSalesConversation, event.ig_user_id)
+            recent_order = await session.get(IgSalesOrder, current.order_id) if current.order_id else None
+            invoice_done = bool(recent_order and recent_order.invoice_status in {"sent", "manual_review", "issuing"})
+        if invoice_done and AD_RE.search(text):
             async with get_session() as session:
-                conv = await session.get(IgSalesConversation, event.ig_user_id)
-                conv.invoice_name, conv.invoice_address, conv.invoice_email = name, address, email
-                conv.state = "awaiting_invoice"
+                current = await session.get(IgSalesConversation, event.ig_user_id)
+                current.state, current.order_id = "new", None
                 await session.commit()
-            action = "invoice"
-            reply = "Спасибо! Реквизиты для factuur получены. Проверяем отправку счёта."
+            state, product = "new", None
+        elif invoice_done:
+            reply = "Спасибо! Заказ передан в работу. Материалы можно отправлять прямо сюда."
         else:
-            reply = invoice_request_text()
-    else:
+            parsed = parse_invoice_lines(text)
+            if parsed:
+                name, address, email = parsed
+                async with get_session() as session:
+                    current = await session.get(IgSalesConversation, event.ig_user_id)
+                    current.invoice_name, current.invoice_address, current.invoice_email = name, address, email
+                    current.state = "awaiting_invoice"
+                    await session.commit()
+                action = "invoice"
+                reply = "Спасибо! Реквизиты для factuur получены. Проверяем отправку счёта."
+            else:
+                reply = invoice_request_text()
+    if state not in {"paid", "awaiting_invoice"}:
         decision = await ai_decision(text, product, history)
         intent = decision.get("intent")
         if intent == "stop":
@@ -521,6 +539,39 @@ async def worker_loop(bot) -> None:
         except Exception:
             log.exception("IG sales worker error")
             await asyncio.sleep(10)
+
+
+async def payment_reconciliation_loop(bot) -> None:
+    """Recover payments whose Mollie webhook arrived early or was dropped."""
+    if not enabled():
+        return
+    while True:
+        try:
+            async with get_session() as session:
+                ids = (await session.scalars(select(IgSalesOrder.payment_id).where(
+                    IgSalesOrder.status == "open",
+                    IgSalesOrder.payment_id.is_not(None),
+                ).limit(50))).all()
+            for payment_id in ids:
+                payment = await get_payment(payment_id)
+                if payment:
+                    await on_payment(bot, payment_id, payment)
+            # Limit the lifetime of raw DM messages and model dialogue history.
+            cutoff = datetime.utcnow() - timedelta(days=30)
+            async with get_session() as session:
+                await session.execute(delete(IgSalesEvent).where(
+                    IgSalesEvent.created_at < cutoff,
+                    IgSalesEvent.status.in_(("done", "failed")),
+                ))
+                await session.execute(update(IgSalesConversation).where(
+                    IgSalesConversation.updated_at < cutoff,
+                ).values(history_json="[]"))
+                await session.commit()
+        except asyncio.CancelledError:
+            raise
+        except Exception:
+            log.exception("Instagram sales Mollie reconciliation failed")
+        await asyncio.sleep(120)
 
 
 async def payment_return(request: web.Request) -> web.Response:
