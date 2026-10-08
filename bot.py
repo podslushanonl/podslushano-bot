@@ -11,6 +11,8 @@ import config
 import ad_products_runtime  # noqa: F401 — регистрирует канонические продукты /ads
 import ad_season_campaign_runtime  # Q4 /ads: подписка + защищённая скидка −26%
 import database.ad_sales_models  # noqa: F401 — регистрирует таблицы в Base.metadata
+import database.ig_sales_models  # noqa: F401 — Instagram Direct orders / events
+import instagram_sales_runtime  # noqa: F401 — Instagram Direct AI sales agent
 from database.db import init_db
 from handlers import (
     ad_crm, ad_sales_pipeline, admin, admin_center, ads, afisha, ai_sales, allo, anonymous_questions,
@@ -155,6 +157,7 @@ async def main() -> None:
     dp.include_router(ad_material_admin_gate_runtime.router)
     dp.include_router(ad_material_reminder_runtime.router)
     dp.include_router(ads.router)
+    dp.include_router(instagram_sales_runtime.router)
     dp.include_router(spotlight.router)
     dp.include_router(allo.router)
     dp.include_router(selfadd.router)
@@ -186,6 +189,7 @@ async def main() -> None:
     asyncio.create_task(ad_reminder_loop(bot))
 
     asyncio.create_task(crm_sync_loop(bot))
+    asyncio.create_task(instagram_sales_runtime.worker_loop(bot))
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)
