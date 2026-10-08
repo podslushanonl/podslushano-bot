@@ -112,6 +112,26 @@ async def test_webhook_and_payment_flow():
             async with sessions() as session:
                 order_count = (await session.scalars(select(IgSalesOrder))).all()
                 assert order_count == []
+            # A customer says "Оформить" twice: only one Mollie payment is created.
+            created = []
+            original_pay_enabled = sales.payment_enabled
+            original_create = sales.create_payment
+            async def fake_create_payment(description, metadata, amount):
+                created.append((metadata, amount))
+                return {"id": "tr_automated", "checkout_url": "https://www.mollie.com/checkout/test"}
+            sales.payment_enabled = lambda: True
+            sales.create_payment = fake_create_payment
+            try:
+                async with sessions() as session:
+                    conv = await session.get(IgSalesConversation, "customer1")
+                first = await sales.create_checkout(conv)
+                second = await sales.create_checkout(conv)
+                assert first == second
+                assert len(created) == 1
+                assert created[0][1] == "99.00"
+            finally:
+                sales.payment_enabled = original_pay_enabled
+                sales.create_payment = original_create
             # Simulate a paid order and verify amount/status/duplicate webhook guards.
             async with sessions() as session:
                 session.add(IgSalesOrder(id="order1", ig_user_id="customer1", product_key="ad_single",
