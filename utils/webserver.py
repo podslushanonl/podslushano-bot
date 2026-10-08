@@ -1562,7 +1562,15 @@ async def _ads_book(request: web.Request) -> web.Response:
     checkout, err = await book_and_pay(
         (data.get("fmt") or "").strip(), (data.get("opt") or "").strip(),
         dates, fields)
+    # The redesigned /ads modal submits via fetch. Return an actionable JSON
+    # error without replacing the entire page (and losing the Q4 discount).
+    wants_json = "application/json" in request.headers.get("Accept", "")
     if checkout:
+        if wants_json:
+            return web.json_response(
+                {"ok": True, "checkout_url": checkout},
+                headers={"Cache-Control": "no-store"},
+            )
         # Mollie refuses to render inside embedded frames. Instead of returning
         # a bare 302 (which produces "content blocked" in those browsers), show
         # a short hand-off page that escapes the frame and includes a reliable
@@ -1592,9 +1600,31 @@ target="_blank" rel="noopener">Открыть оплату Mollie</a>
         return web.Response(
             text=page, content_type="text/html",
             headers={"Cache-Control": "no-store"})
+    message = err or "Не удалось оформить бронь."
+    if wants_json:
+        return web.json_response(
+            {"ok": False, "error": message},
+            status=400,
+            headers={"Cache-Control": "no-store"},
+        )
+    # Non-JavaScript fallback: never send the retired tariff selector after
+    # a failed checkout. Customers should not be offered undiscounted prices.
+    safe_message = html_lib.escape(message)
+    page = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Не удалось оформить заказ — Podslushano.nl</title>
+<style>body{{margin:0;background:#f5f1e9;color:#202523;font:16px/1.55 system-ui,-apple-system,sans-serif}}
+main{{max-width:560px;margin:9vh auto;padding:32px;background:#fff;border:1px solid #e1d8c9;border-radius:24px}}
+h1{{font-size:clamp(24px,5vw,36px);line-height:1.15}}p{{color:#5f615f}}
+a{{display:inline-block;margin-top:16px;padding:13px 24px;color:#fff;background:#bf7149;border-radius:30px;text-decoration:none;font-weight:700}}
+@media(max-width:600px){{main{{margin:20px 12px;padding:25px}}}}</style></head>
+<body><main><h1>Не удалось перейти к оплате</h1><p>{safe_message}</p>
+<a href="/ads">Вернуться к оформлению</a></main></body></html>"""
     return web.Response(
-        text=_ads_html(await _taken(), error=err or "Не удалось оформить бронь."),
-        content_type="text/html", status=400)
+        text=page, content_type="text/html", status=400,
+        headers={"Cache-Control": "no-store"},
+    )
 
 
 async def _ads_numr(request: web.Request) -> web.Response:
