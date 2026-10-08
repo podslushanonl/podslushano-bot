@@ -257,6 +257,11 @@ async def _budgeted_run_generated(bot, now, kind, date_key, generator, button=Fa
 
 async def _budgeted_run_morning(bot, now):
     """Publish the verified morning brief automatically, without preview or photo."""
+    # Off by default: automatic AI/Web Search requests cost money, including failed
+    # attempts. Only an explicit Railway opt-in may start the paid morning slot.
+    if os.getenv("EDITORIAL_MORNING_AUTO_ENABLED", "0").strip().lower() not in {"1", "true", "yes", "on"}:
+        return
+
     if not (time(6, 30) <= now.time() < time(9, 0)):
         return
 
