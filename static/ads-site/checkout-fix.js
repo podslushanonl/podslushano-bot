@@ -62,11 +62,13 @@
   // have attached. A previously prevented submit must never create a payment.
   window.addEventListener('load', () => {
     let pending = false;
+    let checkoutCreated = false;
     const button = form.querySelector('button[type="submit"]');
     form.addEventListener('submit', async (event) => {
       if (event.defaultPrevented) return;
       event.preventDefault();
-      if (pending) return;
+      // Do not create a second pending order if Mollie navigation was blocked.
+      if (pending || checkoutCreated) return;
       pending = true;
       const oldLabel = button ? button.textContent : '';
       if (button) {
@@ -92,6 +94,7 @@
           return;
         }
 
+        checkoutCreated = true;
         // Keep a manual link as a fallback for in-app browsers that prevent
         // top-frame navigation after an asynchronous request.
         const errorBox = document.getElementById('reviewError');
@@ -116,8 +119,8 @@
       } finally {
         pending = false;
         if (button) {
-          button.disabled = false;
-          button.textContent = oldLabel;
+          button.disabled = checkoutCreated;
+          button.textContent = checkoutCreated ? 'Оплата создана — откройте Mollie' : oldLabel;
         }
       }
     });
