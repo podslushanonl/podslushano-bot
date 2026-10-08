@@ -1068,6 +1068,10 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         from utils.allo_v2 import on_payment
         await on_payment(payment_id, payment)
         return
+    if kind == "ig_ad_sale":
+        from instagram_sales_runtime import on_payment
+        await on_payment(bot, payment_id, payment)
+        return
     # Платёж за мероприятие афиши — отдельный обработчик (своя таблица)
     if kind == "afisha":
         from handlers.afisha import on_afisha_payment_paid
