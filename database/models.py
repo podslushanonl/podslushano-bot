@@ -134,6 +134,27 @@ class SpecialistClaim(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
 
+class AuthorAgreementAcceptance(Base):
+    """Фиксация принятия условий участия автором Podslushano.nl."""
+
+    __tablename__ = "author_agreement_acceptances"
+    __table_args__ = (
+        UniqueConstraint("email", "agreement_version", name="uq_author_agreement_email_version"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    full_name: Mapped[str] = mapped_column(String(200))
+    city: Mapped[str] = mapped_column(String(120))
+    email: Mapped[str] = mapped_column(String(200), index=True)
+    telegram: Mapped[str] = mapped_column(String(200))
+    instagram: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    phone_model: Mapped[str] = mapped_column(String(120))
+    agreement_version: Mapped[str] = mapped_column(String(20))
+    agreement_sha256: Mapped[str] = mapped_column(String(64))
+    user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    accepted_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
+
+
 class AdminChannel(Base):
     """Telegram-канал, добавленный администратором для ручных публикаций."""
 
