@@ -21,8 +21,11 @@ def test_author_agreement_page_has_required_fields_and_acceptance():
     page = _form_page()
     for field in ("full_name", "city", "email", "telegram", "phone_model", "accept"):
         assert f'name="{field}"' in page
-    assert "Принять и присоединиться" in page
+    assert "Принять условия и отправить анкету" in page
     assert AGREEMENT_SHA256[:12] in page
+    assert "независимого участия" in page
+    assert "каждая платная задача отдельно" in page
+    assert "не означает автоматическое принятие" in page
 
 
 def test_author_agreement_hash_is_sha256():
