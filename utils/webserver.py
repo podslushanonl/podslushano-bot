@@ -1737,7 +1737,9 @@ async def start_webserver(bot) -> web.AppRunner:
     app = web.Application()
     app["bot"] = bot
     from am_reviews import install_routes as install_review_routes
+    from utils.authors_web import install_routes as install_author_routes
     install_review_routes(app)
+    install_author_routes(app)
     app.router.add_get("/", _health)
     app.router.add_get("/thanks", _thanks)
     app.router.add_get("/privacy", _privacy)
