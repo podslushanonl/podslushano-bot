@@ -8,10 +8,10 @@ from utils import ns_trains
 SAMPLE = {"payload": {"departures": [
     {"direction": "Amsterdam Centraal", "plannedDateTime": "2026-10-12T08:16:00+0200",
      "actualDateTime": "2026-10-12T08:19:00+0200", "plannedTrack": "5", "actualTrack": "7",
-     "product": {"shortCategoryName": "IC", "operatorName": "NS"}, "cancelled": False,
+     "product": {"categoryCode": "IC", "shortCategoryName": "NS Intercity", "operatorName": "NS"}, "cancelled": False,
      "routeStations": [{"mediumName": "Amsterdam Amstel"}]},
     {"direction": "Den Haag Centraal", "plannedDateTime": "2026-10-12T08:20:00+0200",
-     "plannedTrack": "11", "product": {"shortCategoryName": "SPR"}, "cancelled": True},
+     "plannedTrack": "11", "product": {"categoryCode": "SPR", "shortCategoryName": "NS Sprinter"}, "cancelled": True},
 ]}}
 
 

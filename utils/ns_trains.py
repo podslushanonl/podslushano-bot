@@ -20,6 +20,9 @@ _STATION_RE = re.compile(r"^[A-Za-z0-9]{2,8}$")
 _CATEGORY_RU = {"IC": "Интерсити", "ICD": "Интерсити Директ", "SPR": "Спринтер",
                 "ICE": "ICE", "EST": "Eurostar", "NSI": "NS International"}
 
+_DISRUPTION_RU = {"CALAMITY": "Сбой", "DISRUPTION": "Нарушение движения",
+                  "MAINTENANCE": "Ремонтные работы"}
+
 _cache: dict[str, tuple[float, dict]] = {}
 
 
@@ -61,7 +64,7 @@ def normalize_departures(payload: dict, limit: int) -> list[dict]:
     out = []
     for d in (payload.get("payload") or {}).get("departures") or []:
         product = d.get("product") or {}
-        cat = product.get("shortCategoryName") or d.get("trainCategory") or ""
+        cat = product.get("categoryCode") or d.get("trainCategory") or product.get("shortCategoryName") or ""
         planned = d.get("plannedDateTime")
         actual = d.get("actualDateTime") or planned
         out.append({
@@ -119,7 +122,8 @@ async def disruptions(request: web.Request) -> web.Response:
         log.warning("NS disruptions: %s", e)
         return _json({"error": "ns_unavailable"}, 502)
     items = raw if isinstance(raw, list) else raw.get("payload") or []
-    out = [{"type": i.get("type"), "title": i.get("title") or ""}
+    out = [{"type": i.get("type"), "type_ru": _DISRUPTION_RU.get(i.get("type"), "Изменения"),
+            "title": i.get("title") or ""}
            for i in items if i.get("isActive", True)]
     return _json({"count": len(out), "items": out[:20], "source": "NS"})
 
