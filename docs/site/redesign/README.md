@@ -71,3 +71,17 @@
   12 записей. В кабинете это переключатель «В своей провинции / Вся NL онлайн».
 - Если появится тариф «несколько провинций», добавляется список `service_provinces` у той же
   записи; копии не создаются.
+
+## Источники данных в прототипе (11.10.2026)
+
+| Блок | Источник | На сайте |
+|---|---|---|
+| Погода | `data.buienradar.nl/2.0/feed/json`, `gpsgadget.buienradar.nl/data/raintext`, радар `api.buienradar.nl/image/1.0/RadarMapNL` | обновлять сервером каждые 10 минут, обязательна ссылка на buienradar.nl |
+| Камеры | 17 YouTube-трансляций из блока «камеры» WordPress | iframe youtube-nocookie.com только после клика |
+| Афиша | страницы организаторов: somewhere.show, tickets.013.nl, the-meeting-point.com, eventcartel.com | постер и описание хранить у себя, ссылка на продавца билетов |
+| allowalks | `content/allo_events.json`, `content/allo_settings.json` | API `utils/allo_v2.py`: каталог, бронь на 60 минут, Mollie, webhook |
+| КонтактGuide | `seeds/specialists_seed.py` без контактов | `/api/guide.json`; тарифы из `config.py` (`LISTING_PRICE_*`) |
+| Провинции | 12 страниц WordPress, полный текст | перенести как есть |
+
+Постер LOBODA не получен: 013.nl закрыт проверкой на бота, lobodaofficial.com не открылся.
+В прототипе для него стоит временная заглушка.
