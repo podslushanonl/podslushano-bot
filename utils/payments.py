@@ -24,7 +24,8 @@ def _headers() -> dict:
 
 
 async def create_payment(description: str, metadata: dict, amount: str,
-                         method: str | None = None) -> dict | None:
+                         method: str | None = None,
+                         redirect_url: str | None = None) -> dict | None:
     """Создаёт платёж в Mollie на сумму amount. Возвращает id и ссылку на оплату.
 
     {"id": "tr_...", "checkout_url": "https://..."} или None при ошибке.
@@ -50,6 +51,8 @@ async def create_payment(description: str, metadata: dict, amount: str,
     else:
         # Остальные платежи без карточки специалиста — назад в бота
         redirect = config.BOT_URL or config.SITE_URL or "https://www.mollie.com"
+    if redirect_url:
+        redirect = redirect_url
     body = {
         "amount": {"currency": config.LISTING_CURRENCY, "value": amount},
         "description": description,

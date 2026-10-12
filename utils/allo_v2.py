@@ -35,6 +35,34 @@ ROOT = Path(__file__).resolve().parent.parent
 HOLD = timedelta(minutes=60)
 
 
+def _ams_now() -> datetime:
+    from zoneinfo import ZoneInfo
+    return datetime.now(ZoneInfo("Europe/Amsterdam"))
+
+
+def _gift_due(send_on: str | None) -> bool:
+    """A scheduled gift goes out at 09:00 Amsterdam time on its date."""
+    if not send_on:
+        return True
+    now = _ams_now()
+    today = now.date().isoformat()
+    return send_on < today or (send_on == today and now.hour >= 9)
+
+
+def _parse_send_on(value) -> str | None:
+    raw = str(value or "").strip()
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", raw):
+        return None
+    try:
+        day = datetime.strptime(raw, "%Y-%m-%d").date()
+    except ValueError:
+        return None
+    today = _ams_now().date()
+    if day <= today or day > today + timedelta(days=365):
+        return None
+    return day.isoformat()
+
+
 def _now() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
@@ -69,7 +97,7 @@ def _cors(request: web.Request, response: web.StreamResponse) -> web.StreamRespo
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Vary"] = "Origin"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-        response.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        response.headers["Access-Control-Allow-Headers"] = "Content-Type, X-Cabinet"
     response.headers["Cache-Control"] = "no-store"
     return response
 
@@ -325,6 +353,9 @@ async def buy_gift(request: web.Request) -> web.Response:
     recipient_name = str(body.get("recipient_name") or "").strip()
     recipient_email = str(body.get("recipient_email") or "").strip().lower()
     message = str(body.get("message") or "").strip()[:800]
+    send_on = _parse_send_on(body.get("send_on"))
+    if body.get("send_on") and not send_on:
+        return _json(request, {"error": "Дата отправки должна быть в будущем, не позже чем через год."}, 400)
     try:
         amount = int(body.get("amount_cents"))
     except (TypeError, ValueError):
@@ -347,7 +378,7 @@ async def buy_gift(request: web.Request) -> web.Response:
             buyer_email=email, recipient_name=recipient_name,
             recipient_email=recipient_email, gift_message=message,
             gross_cents=amount, discount_cents=0, amount_cents=amount,
-            status="pending",
+            status="pending", send_on=send_on,
         )
         session.add(sale)
         await session.commit()
@@ -384,6 +415,7 @@ async def on_payment(payment_id: str, payment: dict) -> None:
         return
     status = payment.get("status")
     should_deliver = False
+    notice = None
     async with get_session() as session:
         await _lock(session)
         sale = await session.get(AlloWebSale, sale_id)
@@ -452,6 +484,16 @@ async def on_payment(payment_id: str, payment: dict) -> None:
                     ))
             await session.commit()
             should_deliver = True
+            scheduled = (sale.kind == "gift" and not _gift_due(sale.send_on))
+            notice = (sale.buyer_email, sale.buyer_name, sale.recipient_name, sale.send_on) if scheduled else None
+    if should_deliver and notice:
+        email, name, recipient, day = notice
+        shown = ".".join(reversed(day.split("-")))
+        await send_email_message(
+            email, "Подарок allowalks оплачен",
+            f"<p>Здравствуйте, {html.escape(name)}.</p><p>Спасибо! Подарочная карта для "
+            f"{html.escape(recipient or '')} оплачена и уйдёт получателю {shown} утром.</p>",
+            f"Здравствуйте, {name}. Подарочная карта для {recipient or ''} оплачена и уйдёт получателю {shown} утром.")
     if should_deliver:
         await _deliver_sale(sale_id)
 
@@ -462,6 +504,8 @@ async def _deliver_sale(sale_id: int) -> None:
         await _lock(session)
         sale = await session.get(AlloWebSale, sale_id)
         if not sale or sale.status != "paid" or sale.email_state not in ("pending", "failed", "sending"):
+            return
+        if sale.kind == "gift" and not _gift_due(sale.send_on):
             return
         if (sale.email_state == "failed" and sale.email_attempted_at
                 and sale.email_attempted_at > _now() - timedelta(minutes=5)):
@@ -572,8 +616,10 @@ async def reconcile_once() -> None:
         pending = (await session.scalars(select(AlloWebSale).where(
             AlloWebSale.status == "pending", AlloWebSale.payment_id.is_not(None))
             .order_by(AlloWebSale.id.desc()).limit(50))).all()
+        today = _ams_now().date().isoformat()
         emails = (await session.scalars(select(AlloWebSale).where(
-            AlloWebSale.status == "paid", AlloWebSale.email_state != "sent")
+            AlloWebSale.status == "paid", AlloWebSale.email_state != "sent",
+            or_(AlloWebSale.send_on.is_(None), AlloWebSale.send_on <= today))
             .order_by(AlloWebSale.id).limit(50))).all()
         payments = [(sale.id, sale.payment_id) for sale in pending]
         email_ids = [sale.id for sale in emails]

@@ -1953,8 +1953,6 @@ h1,.phead h1,.na9 h1{font-family:var(--f-display);font-weight:700;letter-spacing
 /* WordPress integration */
 html.pn-busy body{cursor:progress}
 html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
-.fld:has(#gw),.fld:has(#gd){display:none!important}
-.dn-pay .seg{display:none!important}
 .wpc img{max-width:100%;height:auto;border-radius:16px}
 .wpc h2{font-size:24px;margin:26px 0 10px}.wpc h3{font-size:20px;margin:22px 0 8px}
 .wpc p,.wpc li{font-size:17px;line-height:1.7;color:var(--ink-2);margin-bottom:12px}
@@ -1964,6 +1962,19 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 .wpc table{width:100%;border-collapse:collapse;font-size:15px}.wpc td,.wpc th{border-bottom:1px solid var(--line);padding:8px;text-align:left}
 #wpadminbar{position:fixed!important}
 
+.cab-in{padding:26px;border-radius:24px;display:grid;gap:14px;max-width:640px}
+.cab-in label{font:600 13px var(--f-display);color:var(--ink-2)}
+.cab-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.cab-row input{flex:1;min-width:220px;height:50px;border-radius:14px;border:1px solid var(--line-2);padding:0 14px;font:500 15px var(--f-body);background:#fff}
+.cab-or{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px}.cab-or::before,.cab-or::after{content:"";flex:1;height:1px;background:var(--line)}
+.cab-list{display:grid;gap:14px}
+.cab-c{padding:20px;border-radius:24px;display:grid;gap:10px}
+.cab-h{display:flex;gap:14px;align-items:center}.cab-h h3{font:700 18px var(--f-display)}
+.cab-h .ava.cc{display:grid;place-items:center;border-radius:16px;font:700 17px var(--f-display);flex:none;position:relative;overflow:hidden}
+.cab-ph{width:56px;height:56px;border-radius:16px;overflow:hidden;flex:none}.cab-ph img{width:100%;height:100%;object-fit:cover}
+.cab-meta{display:flex;gap:6px;flex-wrap:wrap}
+.cab-act{display:flex;gap:8px;flex-wrap:wrap}.cab-del{color:#B0234A}
+.cab-form{display:grid;gap:12px}.cab-form textarea{width:100%;border-radius:14px;border:1px solid var(--line-2);padding:12px;font:15px/1.5 var(--f-body)}
+.pbadge{display:inline-flex;align-items:center;gap:6px;font:700 11px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:linear-gradient(135deg,#F6E7B4,#E9C46A);color:#5B4413}
 </style>
 <div id="intro" class="iv11" role="presentation">
 <div class="ivg"><figure class="t1" style="--i:0"><img src="{{IV:canal}}" alt="" decoding="async"></figure><figure class="t2" style="--i:1"><img src="{{IV:kinderdijk}}" alt="" decoding="async"></figure><figure class="t3" style="--i:2"><img src="{{IV:tulips}}" alt="" decoding="async"></figure><figure class="t4" style="--i:3"><img src="{{IV:zaanse}}" alt="" decoding="async"></figure><figure class="t5" style="--i:4"><img src="{{IV:kennemerland}}" alt="" decoding="async"></figure></div>
@@ -3322,7 +3333,7 @@ function donateInit(box){if(!box)return;const st={amt:7,monthly:false};
   const draw=()=>{const b=box.querySelector('[data-dn=pay]');b.textContent=`Внести €${st.amt}${st.monthly?' в месяц':''}`};
   box.addEventListener('click',e=>{const a=e.target.closest('[data-da]');if(a){st.amt=+a.dataset.da;box.querySelectorAll('[data-da]').forEach(x=>x.setAttribute('aria-pressed',x===a));box.querySelector('#dnOwn').value='';draw();return}
     const m=e.target.closest('[data-dm]');if(m){st.monthly=m.dataset.dm==='1';box.querySelectorAll('[data-dm]').forEach(x=>x.setAttribute('aria-selected',x===m));draw();return}
-    if(e.target.closest('[data-dn=pay]')){if(!(st.amt>=1)){toast('Укажите сумму от €1');return}payDonate()}});
+    if(e.target.closest('[data-dn=pay]')){if(!(st.amt>=1)){toast('Укажите сумму от €1');return}payDonate(st)}});
   box.addEventListener('input',e=>{if(e.target.id!=='dnOwn')return;const v=Math.round(+e.target.value.replace(',','.'));st.amt=v||0;box.querySelectorAll('[data-da]').forEach(x=>x.setAttribute('aria-pressed','false'));draw()});
   const sg=box.querySelector('.seg');if(sg){sg._place=seg(sg,b=>{st.monthly=b.dataset.dm==='1';draw()});setTimeout(sg._place,30)}draw()}
 const DONATE_HTML=`<div class="card dn st" id="dnBox">
@@ -3648,12 +3659,12 @@ async function pnPost(url,body,isForm){const r=await fetch(url,{method:'POST',he
   if(!r.ok||j.ok===false||j.error)throw new Error(j.error||'Не удалось открыть оплату. Попробуйте ещё раз.');return j}
 function pnBusy(on){document.documentElement.classList.toggle('pn-busy',on)}
 async function payGift(st){try{pnBusy(true);const name=(st.from||st.buyer.split('@')[0]).trim();
-  const j=await pnPost(PN_BOT+'/api/allo/v2/gift',{name,email:st.buyer,recipient_name:st.self?name:st.to,recipient_email:st.self?st.buyer:st.toE,message:st.msg||'',amount_cents:st.amt*100,agreed:true});
+  const j=await pnPost(PN_BOT+'/api/allo/v2/gift',{name,email:st.buyer,recipient_name:st.self?name:st.to,recipient_email:st.self?st.buyer:st.toE,message:st.msg||'',amount_cents:st.amt*100,agreed:true,send_on:(!st.self&&st.when==='date')?st.date:''});
   location.href=j.checkout_url}catch(e){pnBusy(false);toast(e.message)}}
 async function payPlace(pl,P){try{pnBusy(true);const fd=new FormData();const contact=[pl.ph&&(phoneNorm(pl.ph).f||pl.ph),pl.ig&&('instagram: @'+String(pl.ig).replace(/^@/,'')),pl.tg&&('telegram: @'+String(pl.tg).replace(/^@/,'')),pl.wa&&('whatsapp: '+pl.wa),pl.web].filter(Boolean).join(' · ');
   fd.append('plan',P.id);fd.append('name',pl.brand||pl.n);fd.append('category',pl.k||CAT[pl.c][1]);fd.append('city',pl.city||'');fd.append('description',pl.d);fd.append('contact',contact);fd.append('email',pl.mail||pl.bmail||'');fd.append('online',pl.cov==='nw'?'1':'0');fd.append('terms',pl.agree?'1':'0');fd.append('card_color',pl.col||'white');
   const j=await pnPost(PN_BOT+'/ads/contact-guide/checkout',fd,true);location.href=j.checkout_url}catch(e){pnBusy(false);toast(e.message)}}
-function payDonate(){location.href=PN_MOLLIE_DONATE}
+
 
 /* ---- forms that WordPress stores (newsletter, notify, contact) ---- */
 async function pnForm(kind,data){const fd=new FormData();fd.append('action','pn_form');fd.append('kind',kind);fd.append('_n',PN.nonce||'');Object.entries(data).forEach(([k,v])=>fd.append(k,v));
@@ -3663,6 +3674,60 @@ document.addEventListener('submit',e=>{if(e.target.id!=='cForm')return;const d={
 /* listings and the business cabinet live in the bot for now */
 function postDraw(){$('#postFlow').innerHTML=`<div style="display:grid;gap:14px;justify-items:start"><h3 style="font:700 20px var(--f-display)">Объявление размещается через нашего бота</h3><p class="muted">Бот проверит текст, поможет с фото и опубликует объявление здесь и в канале после модерации.</p><a class="btn btn-acc" href="https://t.me/podslushano_nl_bot" target="_blank" rel="noopener">Открыть бота</a></div>`}
 INIT.cabinet=()=>{};ENTER.cabinet=()=>{const p=$('#p-cabinet .wrap');if(p&&!p.querySelector('.pn-cab'))p.innerHTML=`<div class="phead"><div><h1>Кабинет бизнеса</h1><p>Изменить карточку, продлить размещение или скачать factuur можно в нашем боте.</p></div></div><div class="card pn-cab" style="padding:26px;border-radius:24px;display:grid;gap:14px;justify-items:start;max-width:640px"><p>Откройте бота и выберите «Мои карточки». Изменения появятся на сайте после проверки.</p><a class="btn btn-acc" href="https://t.me/podslushano_nl_bot" target="_blank" rel="noopener">Открыть бота</a></div>`};
+
+
+/* ===================== donations, gift date, business cabinet ===================== */
+async function payDonate(st){try{const box=$('#dnBox');const mail=(box.querySelector('#dnMail')||{}).value||'';
+  if(st.monthly&&!vEmail(mail.trim())){toast('Укажите почту: на неё придёт ссылка для отмены');box.querySelector('#dnMail').focus();return}
+  pnBusy(true);const j=await pnPost(PN_BOT+'/api/donate',{amount_cents:Math.round(st.amt*100),monthly:!!st.monthly,email:mail.trim()});location.href=j.checkout_url}catch(e){pnBusy(false);toast(e.message)}}
+(()=>{const b=$('#dnBox .dn-own');if(b&&!$('#dnMail'))b.insertAdjacentHTML('afterend','<label class="dn-own"><span style="font-size:15px">@</span><input id="dnMail" type="email" placeholder="Почта для подтверждения" aria-label="Почта"></label>')})();
+if(/[?&]donation=thanks/.test(location.search)){setTimeout(()=>toast('Спасибо! Подтверждение придёт на почту, как только платёж пройдёт.'),1200);history.replaceState(null,'',location.pathname)}
+
+/* ---------- business cabinet ---------- */
+const CAB_KEY='pnCab';
+function cabTok(){try{return localStorage.getItem(CAB_KEY)||''}catch(e){return ''}}
+function cabSet(t){try{t?localStorage.setItem(CAB_KEY,t):localStorage.removeItem(CAB_KEY)}catch(e){}}
+async function cabApi(path,body,method){const r=await fetch(PN_BOT+path,{method:method||(body?'POST':'GET'),headers:Object.assign({'X-Cabinet':cabTok()},body instanceof FormData||!body?{}:{'Content-Type':'application/json'}),body:body instanceof FormData?body:body?JSON.stringify(body):undefined});
+  let j={};try{j=await r.json()}catch(e){}if(r.status===401){cabSet('');cabRender();throw new Error(j.error||'Войдите заново')}if(!r.ok||j.ok===false)throw new Error(j.error||'Не получилось. Попробуйте ещё раз.');return j}
+const CAB_ST={active:['Активна','t-mint'],hidden:['Скрыта','t-slate'],awaiting_payment:['Ждёт оплаты','t-butter'],pending:['На проверке','t-sky'],expired:['Срок истёк','t-rose']};
+let cabCards=[];
+function cabWrap(){return $('#p-cabinet .wrap')}
+function cabLogin(){cabWrap().innerHTML=`<div class="phead"><div><h1>Кабинет бизнеса</h1><p>Изменяйте карточку, продлевайте размещение и меняйте фото прямо на сайте.</p></div></div>
+  <div class="cab-in card"><form id="cabLogin" novalidate><label for="cabMail">Почта, указанная для счёта</label><div class="cab-row"><input id="cabMail" type="email" placeholder="name@example.com" autocomplete="email"><button class="btn btn-acc" type="submit">Получить ссылку для входа</button></div><p class="muted" style="font-size:13px">Пришлём письмо со ссылкой. Пароль не нужен.</p></form>
+   <div class="cab-or"><span>или</span></div><a class="btn btn-soft" href="https://t.me/podslushano_nl_bot?start=cabinet_web" target="_blank" rel="noopener"><span class="brandi b-tg" style="width:24px;height:24px;border-radius:8px">${sl('telegram')}</span>Войти через Telegram</a>
+   <p class="muted" style="font-size:13px">Карточки ещё нет? <a href="#place" style="color:var(--accent-deep)">Разместить карточку</a></p></div>`;
+  $('#cabLogin').addEventListener('submit',async e=>{e.preventDefault();const v=$('#cabMail').value.trim();if(!vEmail(v)){toast('Проверьте почту');return}
+    try{await cabApi('/api/cabinet/login',{email:v});$('#cabLogin').outerHTML=finHTML(true,'Проверьте почту',`Если на ${esc(v)} оформлена карточка, мы отправили ссылку для входа. Она действует один час.`)}catch(err){toast(err.message)}})}
+function cabCard(c){const st=CAB_ST[c.status]||[c.status,'t-line'];const until=c.paid_until?c.paid_until.split('-').reverse().join('.'):'';
+  const tile=c.premium&&c.photo?`<span class="cab-ph"><img src="${c.photo}" alt=""></span>`:`<span class="ava cc cc-${c.card_color||'white'}" style="width:56px;height:56px">${esc(initials(c.name))}</span>`;
+  return `<article class="card cab-c" data-cid="${c.id}"><div class="cab-h">${tile}<div style="min-width:0;flex:1"><h3>${esc(c.name)}</h3><div class="muted" style="font-size:13px">${esc(c.category)}${c.city?' · '+esc(c.city):c.online?' · онлайн':''}</div></div>${c.premium?'<span class="pbadge">Премиум</span>':''}</div>
+   <div class="cab-meta"><span class="tag ${st[1]}">${st[0]}</span>${until?`<span class="tag t-line">оплачено до ${until}</span>`:''}${c.pending_edits?`<span class="tag t-sky">правок на проверке: ${c.pending_edits}</span>`:''}</div>
+   <p class="muted" style="font-size:14px">${esc(c.description).slice(0,220)}</p>
+   <div class="cab-act"><button class="btn btn-soft btn-sm" data-cab="edit">Изменить</button>${c.premium?'<button class="btn btn-soft btn-sm" data-cab="photo">Фото</button>':'<button class="btn btn-soft btn-sm" data-cab="color">Цвет</button>'}
+    <button class="btn btn-soft btn-sm" data-cab="renew">Продлить</button>${c.status==='active'?'<button class="btn btn-soft btn-sm" data-cab="hide">Скрыть</button>':c.status==='hidden'?'<button class="btn btn-soft btn-sm" data-cab="show">Показать</button>':''}<button class="btn btn-soft btn-sm cab-del" data-cab="delete">Удалить</button></div></article>`}
+async function cabRender(){const w=cabWrap();if(!w)return;if(!cabTok()){cabLogin();return}
+  w.innerHTML=`<div class="phead"><div><h1>Кабинет бизнеса</h1><p>Изменения текста и фото проверяет модератор, цвет и видимость меняются сразу.</p></div><div style="display:flex;gap:8px"><a class="btn btn-acc btn-sm" href="#place">Новая карточка</a><button class="btn btn-soft btn-sm" id="cabOut">Выйти</button></div></div><div class="cab-list" id="cabList"><div class="muted">Загружаем карточки…</div></div>`;
+  $('#cabOut').onclick=()=>{cabSet('');cabRender()};
+  try{const j=await cabApi('/api/cabinet/cards');cabCards=j.cards||[];$('#cabList').innerHTML=cabCards.length?cabCards.map(cabCard).join(''):`<div class="empty"><img src="{{DEER}}" alt=""><h4>Карточек пока нет</h4><p>Разместите первую: это пять коротких шагов.</p><a class="btn btn-acc btn-sm" href="#place">Разместить карточку</a></div>`}catch(e){if(cabTok())$('#cabList').innerHTML=`<p class="err">${esc(e.message)}</p>`}}
+const CAB_F=[['name','Название или имя',200],['category','Специализация',50],['city','Город',100],['description','Описание',2000],['contact','Контакты',300]];
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-cab]');if(!b)return;const card=b.closest('[data-cid]');const c=cabCards.find(x=>String(x.id)===card.dataset.cid);if(!c)return;const a=b.dataset.cab;
+  try{
+   if(a==='edit'){openSheet(`<h2 id="shTitle">Изменить карточку</h2><p class="muted" style="margin-bottom:12px">Измените нужные поля. Карточка обновится после проверки модератором.</p><form id="cabEdit" class="cab-form">${CAB_F.map(([k,l,m])=>`<div class="fld"><label for="ce_${k}">${l}</label>${k==='description'?`<textarea id="ce_${k}" maxlength="${m}" rows="5">${esc(c[k]||'')}</textarea>`:`<input id="ce_${k}" maxlength="${m}" value="${esc(c[k]||'')}">`}</div>`).join('')}<button class="btn btn-acc" type="submit">Отправить на проверку</button></form>`);
+     $('#cabEdit').addEventListener('submit',async ev=>{ev.preventDefault();let n=0;try{for(const [k] of CAB_F){const v=$('#ce_'+k).value.trim();if(v&&v!==(c[k]||'').trim()){const err=ruErr(v,'Поле');if(err){toast(err);return}await cabApi('/api/cabinet/edit',{id:c.id,field:k,value:v});n++}}closeSheet();toast(n?'Правки отправлены на проверку':'Изменений нет');cabRender()}catch(err){toast(err.message)}});return}
+   if(a==='color'){openSheet(`<h2 id="shTitle">Цвет карточки</h2><div class="colpick" id="cabColors"><div class="sw">${Object.keys(CCOL).map(k=>`<button type="button" data-ccol="${k}" aria-pressed="${(c.card_color||'white')===k}"><span class="cc-${k}" style="background:${COLHEX[k]}"></span>${CCOL[k]}</button>`).join('')}</div></div>`);
+     $('#cabColors').addEventListener('click',async ev=>{const s=ev.target.closest('[data-ccol]');if(!s)return;try{await cabApi('/api/cabinet/color',{id:c.id,color:s.dataset.ccol});closeSheet();toast('Цвет обновлён');cabRender()}catch(err){toast(err.message)}});return}
+   if(a==='photo'){const inp=document.createElement('input');inp.type='file';inp.accept='image/jpeg,image/png,image/webp';inp.onchange=async()=>{const f=inp.files[0];if(!f)return;if(f.size>6e6){toast('Фото должно быть меньше 6 МБ');return}const fd=new FormData();fd.append('id',c.id);fd.append('file',f);try{pnBusy(true);await cabApi('/api/cabinet/photo',fd);toast('Фото отправлено на проверку');cabRender()}catch(err){toast(err.message)}finally{pnBusy(false)}};inp.click();return}
+   if(a==='renew'){openSheet(`<h2 id="shTitle">Продлить размещение</h2><div class="plans" id="cabPlans" style="margin-top:12px">${PLANS.filter(p=>!!p.pr===!!c.premium).map(p=>`<button class="plan${p.pr?' pr':''}" data-rplan="${p.id}" aria-pressed="${p.id===c.plan}"><b>${p.t}</b><span class="pp">€${p.p}</span><small>${p.n}</small></button>`).join('')}</div><button class="btn btn-acc" id="cabPay" style="margin-top:14px">Оплатить</button>`);
+     let plan=c.plan;$('#cabPlans').addEventListener('click',ev=>{const p=ev.target.closest('[data-rplan]');if(!p)return;plan=p.dataset.rplan;$$('#sheet [data-rplan]').forEach(x=>x.setAttribute('aria-pressed',x===p))});
+     $('#cabPay').onclick=async()=>{try{pnBusy(true);const j=await cabApi('/api/cabinet/renew',{id:c.id,plan});location.href=j.checkout_url}catch(err){pnBusy(false);toast(err.message)}};return}
+   if(a==='hide'||a==='show'){await cabApi('/api/cabinet/visibility',{id:c.id,hidden:a==='hide'});toast(a==='hide'?'Карточка скрыта с сайта и из бота':'Карточка снова видна');cabRender();return}
+   if(a==='delete'){if(!confirm(`Удалить карточку «${c.name}» из КонтактGuide? Восстановить её можно только через поддержку.`))return;await cabApi('/api/cabinet/delete',{id:c.id});toast('Карточка удалена');cabRender();return}
+  }catch(err){toast(err.message)}});
+INIT.cabinet=()=>{};
+ENTER.cabinet=async()=>{const q=new URLSearchParams(location.search);const t=q.get('t');
+  if(q.get('paid'))setTimeout(()=>toast('Оплата обрабатывается: срок обновится через минуту'),600);
+  if(t){try{const r=await fetch(PN_BOT+'/api/cabinet/session?t='+encodeURIComponent(t));const j=await r.json();if(j.session)cabSet(j.session);else toast(j.error||'Ссылка устарела')}catch(e){toast('Не удалось войти, попробуйте ещё раз')}}
+  if(t||q.get('paid'))history.replaceState(null,'','/cabinet/');cabRender()};
 
 /* ---------- boot ---------- */
 syncFav();route();if(!consent)setTimeout(()=>cookieBar(false),900);
