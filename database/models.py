@@ -1,5 +1,5 @@
 """Описание таблиц базы данных."""
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, Text, UniqueConstraint, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
@@ -717,3 +717,25 @@ class CommentReplyExample(Base):
     action: Mapped[str] = mapped_column(String(20))
     reply: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
+
+
+class SiteNewsItem(Base):
+    """Статья из новостной ленты, которую бот уже рассмотрел для сайта.
+
+    По source_url бот понимает, что новость уже видел, и не берёт её повторно.
+    status: skipped (не подошла / первый запуск) | published | failed.
+    """
+
+    __tablename__ = "site_news_items"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    source_url: Mapped[str] = mapped_column(String(500), unique=True)
+    title_nl: Mapped[str] = mapped_column(String(500), default="")
+    status: Mapped[str] = mapped_column(String(16), index=True)
+    wp_post_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    wp_link: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    # UTC без часового пояса — пишем явно из Python, чтобы считать сутки по Амстердаму.
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+    )

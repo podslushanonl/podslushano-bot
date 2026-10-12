@@ -33,6 +33,7 @@ from handlers.evenementen_current_month import evenementen_catalog_loop, install
 from utils.editorial_channel import editorial_channel_loop, router as editorial_router
 from utils.editorial_research_desk import router as editorial_research_router
 from utils.editorial_research_daily import editorial_research_loop
+from utils.site_news import site_news_loop
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
 from utils.limits import ThrottleMiddleware
 from utils.users import RegisterUserMiddleware
@@ -182,6 +183,8 @@ async def main() -> None:
     asyncio.create_task(notification_loop(bot))
     asyncio.create_task(editorial_channel_loop(bot))
     asyncio.create_task(editorial_research_loop(bot))
+    # Автоновости на сайт: NOS → русская новость в WordPress раз в 10 минут
+    asyncio.create_task(site_news_loop(bot))
     asyncio.create_task(evenementen_catalog_loop(bot))
     asyncio.create_task(ad_lead_reminder_loop(bot))
     asyncio.create_task(ad_payment_reconciliation_loop(bot))

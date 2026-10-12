@@ -288,6 +288,23 @@ LISTING_DAYS_MONTH: int = _int_env("LISTING_DAYS_MONTH", 30)
 LISTING_DAYS_SIX_MONTH: int = _int_env("LISTING_DAYS_SIX_MONTH", 182)
 LISTING_DAYS_YEAR: int = _int_env("LISTING_DAYS_YEAR", 365)
 
+# --- Автоматические новости на сайт (utils/site_news.py) ---------------------
+# Работает, только если настроен WordPress (WP_*) и ключ ИИ. 0 = выключить.
+SITE_NEWS_ENABLED: bool = os.getenv("SITE_NEWS_ENABLED", "1").strip() != "0"
+# Как часто проверять ленты, секунды.
+SITE_NEWS_INTERVAL: int = max(60, _int_env("SITE_NEWS_INTERVAL", 600))
+# RSS-ленты через запятую.
+SITE_NEWS_FEEDS: list[str] = [
+    u.strip() for u in os.getenv(
+        "SITE_NEWS_FEEDS",
+        "https://feeds.nos.nl/nosnieuwsalgemeen,https://feeds.nos.nl/nosnieuwsbinnenland,"
+        "https://feeds.nos.nl/nosnieuwseconomie",
+    ).split(",") if u.strip()
+]
+# Сколько новостей публиковать максимум за один запуск и за сутки (по Амстердаму).
+SITE_NEWS_PER_RUN: int = _int_env("SITE_NEWS_PER_RUN", 2)
+SITE_NEWS_DAILY_MAX: int = _int_env("SITE_NEWS_DAILY_MAX", 20)
+
 # Доска объявлений: срок жизни объявления и лимит активных у одного пользователя
 BOARD_LISTING_DAYS: int = _int_env("BOARD_LISTING_DAYS", 30)
 BOARD_MAX_ACTIVE: int = _int_env("BOARD_MAX_ACTIVE", 5)

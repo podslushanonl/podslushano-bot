@@ -26,7 +26,7 @@ add_action('after_setup_theme', function () {
 function pn_routes() {
     return [
         'news' => 'news', 'guide' => 'guide', 'events' => 'events', 'live' => 'live',
-        'allowalks' => 'allo', 'shop' => 'shop', 'widget' => 'widget', 'provinces' => 'provinces',
+        'allowalks' => 'allo', 'shop' => 'shop', 'provinces' => 'provinces',
         'work' => 'board', 'place' => 'place', 'cabinet' => 'cabinet', 'business' => 'business',
         'contact' => 'contact', 'travel' => 'travel',
     ];
@@ -41,6 +41,13 @@ add_action('init', 'pn_add_rules');
 add_filter('query_vars', function ($v) { $v[] = 'pn_route'; $v[] = 'pn_key'; return $v; });
 add_action('after_switch_theme', function () { pn_add_rules(); flush_rewrite_rules(); });
 add_filter('redirect_canonical', function ($url) { return get_query_var('pn_route') ? false : $url; });
+// The phone widget page was removed: send old links to the weather page.
+add_action('template_redirect', function () {
+    if (preg_match('#^/widget/?$#', (string) wp_parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH))) {
+        wp_safe_redirect(home_url('/live/'), 301);
+        exit;
+    }
+});
 add_filter('template_include', function ($t) {
     return get_query_var('pn_route') ? PN_DIR . '/index.php' : $t;
 });
@@ -55,7 +62,6 @@ function pn_route_meta($route) {
         'live' => ['Погода и камеры онлайн', 'Погода Buienradar по городам Нидерландов, дождь на 2 часа и живые камеры.'],
         'allo' => ['allowalks: прогулки по Нидерландам', 'Прогулки allowalks в небольшой компании и подарочные карты.'],
         'shop' => ['Магазин', 'Подарочные карты allowalks, размещение в КонтактGuide, гайды и стикеры.'],
-        'widget' => ['Виджет на телефон', 'Погода, дождь, поезда NS и главное дня на экране телефона.'],
         'provinces' => ['Провинции Нидерландов', 'История и особенности двенадцати провинций Нидерландов.'],
         'board' => ['Работа и жильё', 'Вакансии с русским и украинским языком и проверенные площадки для поиска жилья.'],
         'place' => ['Разместить карточку в КонтактGuide', 'Разместите карточку специалиста на сайте и в боте podslushano.nl.'],
@@ -116,9 +122,15 @@ add_filter('wpseo_sitemap_index', function ($x) {
 function pn_complianz() {
     return defined('cmplz_version') || class_exists('COMPLIANZ');
 }
-// The app data script lists Instagram links of specialists; Complianz must not block it as an Instagram embed.
+// The app data and /links/ scripts mention Instagram and YouTube links; Complianz must not block them as embeds.
+add_filter('wp_inline_script_attributes', function ($attr) {
+    if (($attr['id'] ?? '') === 'pn-app-js-before') $attr['data-category'] = 'functional';
+    return $attr;
+});
 add_filter('cmplz_whitelisted_script_tags', function ($tags) {
     $tags[] = 'window.PN=';
+    $tags[] = 'window.PNL=';
+    $tags[] = 'pn-links-app';
     return $tags;
 });
 
@@ -145,8 +157,8 @@ add_action('wp_head', function () {
 /* ---------- assets ---------- */
 add_action('wp_enqueue_scripts', function () {
     if (is_page('links')) return;
-    wp_enqueue_style('pn-app', PN_URI . '/assets/app.css', [], PN_VER);
-    wp_enqueue_script('pn-app', PN_URI . '/assets/app.js', [], PN_VER, true);
+    wp_enqueue_style('pn-app', PN_URI . '/assets/app.css', [], PN_VER . '.' . @filemtime(PN_DIR . '/assets/app.css'));
+    wp_enqueue_script('pn-app', PN_URI . '/assets/app.js', [], PN_VER . '.' . @filemtime(PN_DIR . '/assets/app.js'), true);
     wp_dequeue_style('wp-block-library');
     wp_dequeue_style('global-styles');
     wp_dequeue_style('classic-theme-styles');
