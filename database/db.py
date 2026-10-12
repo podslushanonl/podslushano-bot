@@ -77,6 +77,10 @@ _DISCOVERED_EVENT_LATER_COLUMNS = {
 _EVENT_LISTING_LATER_COLUMNS = {
     "starts_at": "DATETIME",
     "ends_at": "DATETIME",
+    "event_time": "VARCHAR(40)",
+    "venue": "VARCHAR(200)",
+    "category": "VARCHAR(40)",
+    "source": "VARCHAR(10)",
 }
 
 _ALLO_SALE_LATER_COLUMNS = {

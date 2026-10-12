@@ -536,6 +536,11 @@ class EventListing(Base):
     status: Mapped[str] = mapped_column(String(20), default="awaiting_payment")
     payment_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
+    # С сайта: время начала, место, категория и откуда пришла заявка (bot | site)
+    event_time: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    venue: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    category: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    source: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
 
 class DiscoveredEvent(Base):
