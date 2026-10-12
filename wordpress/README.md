@@ -90,3 +90,5 @@ python3 wordpress/build_theme.py
 - `SITE_NEWS_FEEDS` — RSS-ленты через запятую (по умолчанию NOS: algemeen, binnenland, economie).
 - `SITE_NEWS_PER_RUN` — сколько новостей максимум за одну проверку (по умолчанию `2`).
 - `SITE_NEWS_DAILY_MAX` — сколько новостей максимум за сутки по Амстердаму (по умолчанию `20`).
+- `SITE_NEWS_TRIAGE_MODEL` — модель для отбора статей (по умолчанию `claude-haiku-5-5`).
+- `SITE_NEWS_WRITE_MODEL` — модель, которая пишет новость (по умолчанию `claude-sonnet-5-5`).
