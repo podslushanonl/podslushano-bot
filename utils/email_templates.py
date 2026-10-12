@@ -76,16 +76,17 @@ def payment_received(*, kind: str, item: str, amount: str, invoice_no: str | Non
     rows = [(label, esc(item)), ("Сумма", f"€{esc(amount)}")]
     if invoice_no:
         rows.append(("Счёт (factuur)", f"№{esc(invoice_no)}, во вложении"))
-    body = p(f"{hello} Оплату получили, спасибо, что вы с нами.") + facts(rows)
+    body = p(f"{hello} Спасибо, что вы с нами.") + facts(rows)
     if kind in NEXT_STEPS:
         body += ('<p style="margin:6px 0 10px;font:700 15px/1.4 -apple-system,Segoe UI,Roboto,Arial,sans-serif;'
                  'color:#0D1117;">Что дальше</p>' + steps(NEXT_STEPS[kind]))
     body += small("Остались вопросы? Просто ответьте на это письмо, его прочитает живой человек.")
     cta = {"afisha": ("Открыть афишу", site("/events/")), "guide": ("Открыть кабинет бизнеса", site("/cabinet/"))}.get(kind)
-    html = render_email(eyebrow="Оплата получена", title="Всё получили, спасибо!",
+    eyebrow = {"afisha": "Афиша", "guide": "КонтактGuide"}.get(kind, "podslushano.nl")
+    html = render_email(eyebrow=eyebrow, title="Спасибо, всё прошло!",
                         preheader=f"€{amount} · {item}. Рассказываем, что будет дальше.", body=body, cta=cta,
                         reason="Это подтверждение вашего заказа на podslushano.nl.")
-    text = text_version("Оплата получена", [f"{label}: {item}", f"Сумма: €{amount}",
+    text = text_version("Спасибо, всё прошло!", [f"{label}: {item}", f"Сумма: €{amount}",
                                             *(f"{t}. {d}" for t, d in NEXT_STEPS.get(kind, []))], cta)
     return subject, html, text
 
