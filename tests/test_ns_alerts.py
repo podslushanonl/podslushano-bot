@@ -45,6 +45,16 @@ class StationsTests(unittest.TestCase):
         self.assertIn("Совет: Планируйте поездку в приложении NS", text)
 
 
+class NowLineTests(unittest.TestCase):
+    def test_wording(self):
+        f = ns_alerts._now_line
+        self.assertEqual(f(0, 0), "Сейчас на этой станции всё спокойно.")
+        self.assertEqual(f(1, 0), "Сейчас на этой станции есть сбой. Подробности ниже.")
+        self.assertEqual(f(3, 0), "Сейчас на этой станции 3 сбоя. Подробности ниже.")
+        self.assertEqual(f(0, 1), "В ближайшие сутки начнётся ремонт. Подробности ниже.")
+        self.assertEqual(f(5, 1), "Сейчас на этой станции 5 сбоев, в ближайшие сутки начнётся ремонт. Подробности ниже.")
+
+
 class AlertLoopTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.tmp = tempfile.TemporaryDirectory()

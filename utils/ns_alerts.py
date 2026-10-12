@@ -69,11 +69,20 @@ def alert_text(x: dict, station_name: str) -> str:
     return "\n".join(lines)
 
 
-def _now_line(n: int) -> str:
-    if n == 1:
-        return "Сейчас на этой станции есть сбой, подробности ниже."
-    word = "сбоя" if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14) else "сбоев"
-    return f"Сейчас на этой станции {n} {word}, подробности ниже."
+def _now_line(active: int, upcoming: int) -> str:
+    """Что на станции сейчас и что начнётся в ближайшие сутки (ремонт ещё не идёт — не пишем «сейчас»)."""
+    def n_word(n: int) -> str:
+        if n == 1:
+            return "1 сбой"
+        return f"{n} сбоя" if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14) else f"{n} сбоев"
+    parts = []
+    if active:
+        parts.append("Сейчас на этой станции есть сбой" if active == 1 else f"Сейчас на этой станции {n_word(active)}")
+    if upcoming:
+        parts.append(("в" if parts else "В") + " ближайшие сутки начнётся ремонт")
+    if not parts:
+        return "Сейчас на этой станции всё спокойно."
+    return ", ".join(parts) + ". Подробности ниже."
 
 
 def _h(text: str) -> str:
@@ -131,7 +140,8 @@ async def start_subscription(message: Message, code: str) -> None:
     await message.answer(
         f"Готово. Если на станции <b>{_h(name)}</b> отменят поезда, случится сбой или начнётся ремонт, "
         "я сразу напишу и подскажу, как доехать (например, автобусом вместо поезда).\n\n"
-        + ("Сейчас на этой станции всё спокойно." if not current else _now_line(len(current)))
+        + _now_line(sum(1 for x in current if x.get("active", True)),
+                    sum(1 for x in current if not x.get("active", True)))
         + "\n\nУправлять подписками: /trains",
         reply_markup=_manage_kb(subs), parse_mode="HTML")
     for x in current[:3]:
