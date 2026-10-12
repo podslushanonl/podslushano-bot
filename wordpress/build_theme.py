@@ -64,8 +64,10 @@ def build_links():
     j = s.index('const NEWS=')
     j = s.index(';', j) + 1
     s = s[:i] + ("const A='" + A + "';const PNL=window.PNL||{partners:[],events:[],news:[]};"
-                 "const PARTNERS=PNL.partners.map(p=>({...p,img:A+p.img}));"
-                 "const EVENTS=PNL.events.map(e=>({...e,img:A+e.img}));const NEWS=PNL.news;") + s[j:]
+                 # page-links.php sends absolute image URLs (featured images); a relative path is a theme asset
+                 "const AU=u=>!u||/^(https?:)?\\/\\/|^\\//.test(u)?(u||''):A+u;"
+                 "const PARTNERS=PNL.partners.map(p=>({...p,img:AU(p.img)}));"
+                 "const EVENTS=PNL.events.map(e=>({...e,img:AU(e.img)}));const NEWS=PNL.news;") + s[j:]
     s = s.replace("const SITE='https://www.podslushano.nl';", "const SITE=location.origin;")
     s = s.replace('href="${SITE}/news/${n.id}/"', 'href="${n.link||SITE+\'/news/\'}"')
 
@@ -92,6 +94,9 @@ def copy_assets():
         shutil.copytree(os.path.join(SRC, sub), dst, ignore=shutil.ignore_patterns('*.json'))
     d = json.loads(rd('data', 'events_bundle.json'))
     json.dump(d['EV'], open(os.path.join(THEME, 'data', 'events.json'), 'w', encoding='utf-8'), ensure_ascii=False)
+    # fallback and import source for Вакансии (inc/data.php, inc/importer.php)
+    jobs = json.loads(rd('data', 'jobs11.json'))['jobs']
+    json.dump(jobs, open(os.path.join(THEME, 'data', 'jobs.json'), 'w', encoding='utf-8'), ensure_ascii=False)
     shutil.copy(os.path.join(SRC, 'data', 'news_full.json'), os.path.join(THEME, 'data', 'news.json'))
 
 

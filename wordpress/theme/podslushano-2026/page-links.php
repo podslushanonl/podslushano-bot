@@ -1,7 +1,7 @@
 <?php
-/** /links/: standalone ecosystem page for the Instagram bio link. Partners and events: data/links.json. */
+/** /links/: standalone ecosystem page for the Instagram bio link. Partners and events: Партнёры and Афиша in wp-admin (data/links.json while empty). */
 if (!defined('ABSPATH')) exit;
-$data = json_decode((string) @file_get_contents(PN_DIR . '/data/links.json'), true) ?: ['partners' => [], 'events' => []];
+$data = ['partners' => pn_partners(), 'events' => pn_links_events()];
 $news = array_map(function ($n) {
     return ['id' => $n['id'], 'link' => $n['link'], 'h' => $n['h'], 'cat' => $n['cat'], 'date' => $n['date'],
         'thumb' => $n['thumb'] ?: ($n['img'] ?: PN_URI . '/assets/img/group.jpg')];

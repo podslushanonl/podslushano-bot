@@ -2511,13 +2511,14 @@ const CITY={'гаага':'den haag','the hague':'den haag','амстердам':
 
 /* ---------- favorites ---------- */
 // specialists are saved by slug or id: list positions change when the bot adds cards (old index keys are dropped)
-const favs=new Set(store.get('favs',[]).filter(k=>!/^sp\d+$/.test(k)));
+// events are saved as ev:<key>; old position keys (c<n>) are dropped as well
+const favs=new Set(store.get('favs',[]).filter(k=>!/^(sp|c)\d+$/.test(k)));
 function spKey(i){const x=SPEC[i];return 'sp:'+(x&&(x.slug||x.id)||i)}
 function syncFav(){const b=$('#favBadge');b.textContent=favs.size;b.classList.toggle('on',favs.size>0);$$('[data-save]').forEach(x=>x.setAttribute('aria-pressed',favs.has(x.dataset.save)))}
 function burst(el){if(RM)return;const b=document.createElement('span');b.className='burst';for(let i=0;i<8;i++){const a=i/8*6.283,r=22;const d=document.createElement('i');d.style.setProperty('--bx',Math.cos(a)*r+'px');d.style.setProperty('--by',Math.sin(a)*r+'px');b.appendChild(d)}el.appendChild(b);setTimeout(()=>b.remove(),650)}
 document.addEventListener('click',e=>{const s=e.target.closest('[data-save]');if(!s)return;e.preventDefault();e.stopPropagation();const k=s.dataset.save;if(favs.has(k)){favs.delete(k);toast('Убрано из избранного')}else{favs.add(k);burst(s);toast('Сохранено на этом устройстве')}store.set('favs',[...favs]);syncFav()});
 function favList(){const out=[];favs.forEach(k=>{
-    if(/^c\d+$/.test(k)){const i=+k.slice(1),c=CONCERTS[i],e=EV[i];if(c&&e)out.push({k,g:'Афиша',t:c.h,s:`${c.d} ${c.m} · ${c.c}`,ic:'ticket',go:()=>{location.hash='#ev-'+e.key}})}
+    if(k.startsWith('ev:')){const e=EV.find(x=>evFav(x)===k);if(e){const p=dParts(e.date);out.push({k,g:'Афиша',t:e.h,s:`${p.d} ${p.m} · ${e.city}`,ic:'ticket',go:()=>{location.hash='#ev-'+e.key}})}}
     else if(k.startsWith('sp:')){const i=SPEC.findIndex((x,j)=>spKey(j)===k);if(i>=0){const x=SPEC[i];out.push({k,g:'Специалисты',t:x.n,s:`${x.k} · ${where(x)}`,ic:CAT[x.c][2],go:()=>openSpec(i)})}}});return out}
 function openFav(){const L=favList();
   openSheet(`<h2 id="shTitle">Избранное</h2><p class="muted" style="margin:4px 0 14px">Сохраняется на этом устройстве.</p>${L.length?`<div class="fav-l">${L.map((h,n)=>`<div class="fav-r"><button class="pr" data-fgo="${n}"><span class="gi t-slate">${svg(h.ic)}</span><span style="min-width:0"><b>${esc(h.t)}</b><span>${esc(h.g)} · ${esc(h.s)}</span></span>${svg('arrow')}</button><button class="icon-btn" data-funsave="${esc(h.k)}" aria-label="Убрать из избранного">${svg('x')}</button></div>`).join('')}</div>`:`<div class="empty"><img src="{{DEER}}" alt=""><h4>Здесь пока пусто</h4><p>Нажмите на сердце у специалиста или события, и они появятся здесь.</p></div>`}`);
@@ -2574,7 +2575,7 @@ $('#shX').onclick=closeSheet;$('#scrim').onclick=closeSheet;
 /* ---------- PALETTE SEARCH ---------- */
 function buildIdx(){return [...PAGES.map(([id,n,ic])=>({g:'Разделы',t:n,s:'Страница сайта',ic,href:'#'+id,k:n})),
  ...PROV.map(p=>({g:'Провинции',t:p.ru,s:p.nl+' · '+p.short,ic:'map',act:()=>{selProv(p.id);location.hash='#provinces'},k:p.ru+' '+p.nl+' '+p.cap})),
- ...CONCERTS.map(c=>({g:'Афиша',t:c.h,s:`${c.d} ${c.m} · ${c.c}${c.v?' · '+c.v:''}`,ic:'ticket',href:'#events',k:c.h+' '+c.s+' '+c.c})),
+ ...nextEvents().map(e=>{const p=dParts(e.date);return {g:'Афиша',t:e.h,s:`${p.d} ${p.m} · ${e.city}${e.venue?' · '+e.venue:''}`,ic:'ticket',href:'#ev-'+e.key,k:e.h+' '+e.s+' '+e.city+' '+e.venue+' '+(e.cat||'')}}),
  ...SPEC.map((x,i)=>({g:'Специалисты',t:x.n,s:`${x.k} · ${where(x)}`,ic:CAT[x.c][2],act:()=>openSpec(i),k:x.n+' '+x.k+' '+x.city+' '+x.p+' '+(PNL[x.p]?.ru||'')+' '+x.d})),
  ...[...NEWSF,...ART].map(n=>({g:'Новости и статьи',t:n.h,s:(n.cat||'')+(n.date?' · '+n.date:''),ic:'book',href:'#art-'+n.id,k:n.h+' '+(n.lead||'')+' '+(n.cat||'')}))]}
 let IDX=[];
@@ -2612,7 +2613,7 @@ function openSpec(i){const x=SPEC[i],c=CAT[x.c],p=PNL[x.p];
 /* ================= PAGE INITS ================= */
 const INIT={},ENTER={};
 
-function evCard(c,i){return `<article class="card ev"><div class="ev-top"><div class="art" style="background:${c.art};${i===3?'background-size:72px 100%':''}"></div><div class="ev-date"><b>${c.d}</b><span>${c.m}</span></div><button class="save" data-save="c${i}" aria-pressed="${favs.has('c'+i)}" aria-label="Сохранить">${svg('heart')}</button></div><div class="ev-body"><h3>${esc(c.h)}</h3><p class="sub">${esc(c.s)}</p><div class="ev-meta"><span>${svg('pin')}${c.c}${c.v?' · '+c.v:''}</span>${c.t?`<span>${svg('clock')}${c.t}</span>`:''}</div><a class="btn btn-ink btn-sm" href="#events">Купить билеты ${svg('ext')}</a></div></article>`}
+function evCard(c,i){return `<article class="card ev"><div class="ev-top"><div class="art" style="background:${c.art};${i===3?'background-size:72px 100%':''}"></div><div class="ev-date"><b>${c.d}</b><span>${c.m}</span></div><button class="save" data-save="ev:${c.key}" aria-pressed="${favs.has('ev:'+c.key)}" aria-label="Сохранить">${svg('heart')}</button></div><div class="ev-body"><h3>${esc(c.h)}</h3><p class="sub">${esc(c.s)}</p><div class="ev-meta"><span>${svg('pin')}${c.c}${c.v?' · '+c.v:''}</span>${c.t?`<span>${svg('clock')}${c.t}</span>`:''}</div><a class="btn btn-ink btn-sm" href="#events">Купить билеты ${svg('ext')}</a></div></article>`}
 function dragScroll(el){let d=null;el.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse')return;d={x:e.clientX,s:el.scrollLeft,m:false}});addEventListener('pointermove',e=>{if(!d)return;const dx=e.clientX-d.x;if(Math.abs(dx)>4){d.m=true;el.classList.add('drag')}el.scrollLeft=d.s-dx});addEventListener('pointerup',()=>{if(d&&d.m){el.addEventListener('click',ev=>ev.preventDefault(),{once:true,capture:true})}d=null;el.classList.remove('drag')})}
 
 /* TRAVEL */
@@ -2690,7 +2691,7 @@ INIT.contact=()=>{$('#cForm').addEventListener('submit',e=>{e.preventDefault();c
   er.hidden=true;toast('Сообщение готово. В рабочей версии оно уйдёт редакции в бот.')})};
 
 /* LINKS */
-INIT.links=()=>{$('#lEvents').innerHTML=CONCERTS.map((c,i)=>`<button class="pst" data-ev="${i}" style="flex:0 0 132px"><div class="frame" style="border-radius:16px">${posterHTML(c,i)}</div><div style="font-size:12px;font-weight:600;line-height:1.25">${esc(c.h)}</div></button>`).join('');dragScroll($('#lEvents'));
+INIT.links=()=>{$('#lEvents').innerHTML=nextEvents().map(e=>`<a class="pst" href="#ev-${e.key}" style="flex:0 0 132px"><div class="frame" style="border-radius:16px">${posterHTML(e)}</div><div style="font-size:12px;font-weight:600;line-height:1.25">${esc(e.h)}</div></a>`).join('');dragScroll($('#lEvents'));
   $('#lForm').addEventListener('submit',e=>{e.preventDefault();const v=$('#lMail').value.trim();if(!/^\S+@\S+\.\S+$/.test(v)){toast('Проверьте почту: не хватает @ или домена');return}toast('Готово. Первый выпуск «Недели в Нидерландах» придёт в пятницу')})};
 
 
@@ -2779,15 +2780,24 @@ ENTER.cabinet=()=>cabRender();
 
 
 /* ===================== v4 data ===================== */
+/* WordPress data (window.PN). Complianz may turn the inline data script into type="text/plain" (it sees Instagram links in it): read it from there. */
+const PN=window.PN||(()=>{try{const t=(document.getElementById('pn-app-js-before')||{}).textContent||'';const m=t.match(/window\.PN=(\{.*\});\s*(?:\/\/#[^\n]*\s*)?$/s);if(m)return window.PN=JSON.parse(m[1])}catch(e){}return {}})();
 const D4={{DATA4}};
 const IMG={{IMGS}};
-const {WX,CAMS,EV,WALKS:_W0,GIFTS,PLANS}=D4;const WALKS=[];{const C={sorokin:"встреча",loboda:"концерт",vassiliev:"театр",havtan:"концерт",arbenina:"концерт"};EV.forEach(e=>{if(!e.cat)e.cat=C[e.key]||"концерт"})};
+const {WX,CAMS,EV,WALKS:_W0,GIFTS,PLANS}=D4;const WALKS=[];
+// Афиша from wp-admin (or the theme JSON when it is empty): WordPress sends the upcoming events, images as URLs
+if(Array.isArray(PN.events))EV.splice(0,EV.length,...PN.events.map(e=>({h:'',s:'',date:'',time:'',doors:'',venue:'',addr:'',city:'',price:'',org:'',age:'',lang:'',img:'',url:'',note:'',end:'',p:[],...e})).filter(e=>e.key&&/^\d{4}-\d\d-\d\d/.test(e.date)));
+{const C={sorokin:"встреча",loboda:"концерт",vassiliev:"театр",havtan:"концерт",arbenina:"концерт"};EV.forEach(e=>{if(!e.cat)e.cat=C[e.key]||"концерт"})};
 const MON=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
 const MONF=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
 const WD=['вс','пн','вт','ср','чт','пт','сб'];
 const dParts=iso=>{const [y,m,d]=iso.slice(0,10).split('-').map(Number);const dt=new Date(Date.UTC(y,m-1,d));return{d,m:MON[m-1],mf:MONF[m-1],w:WD[dt.getUTCDay()],mi:m}};
 const eur=c=>'€'+(c/100).toFixed(2).replace('.',',').replace(',00','');
 const TODAY=new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Amsterdam'});
+// event image: a bundled key (IMG) or a URL from WordPress; favourites use the event key, not its position
+const evImg=e=>!e||!e.img?'':IMG[e.img]||(/^(https?:)?\/\/|^\//.test(e.img)?e.img:'');
+const evFav=e=>'ev:'+e.key;
+const urlHost=u=>{try{return new URL(u).hostname}catch(x){return ''}};
 CONCERTS.length=0;EV.forEach(e=>{const p=dParts(e.date);CONCERTS.push({d:String(p.d),m:p.m,y:e.date,h:e.h,s:e.s,c:e.city,v:e.venue,t:e.time,key:e.key})});
 
 /* weather icons */
@@ -2829,9 +2839,9 @@ function stageFx(){const st=$('#stage');if(!st||RM)return;const tod=$('#today4')
   const tick=()=>{try{const f=new Intl.DateTimeFormat('ru-RU',{hour:'2-digit',minute:'2-digit',timeZone:'Europe/Amsterdam'});$('#t4clock').textContent=f.format(new Date());$('#t4date').textContent=new Intl.DateTimeFormat('ru-RU',{day:'numeric',month:'long',timeZone:'Europe/Amsterdam'}).format(new Date())}catch(e){}};tick();setInterval(tick,15000)}
 
 /* ---------- posters / events ---------- */
-function posterHTML(c,i){const e=EV[i];if(e&&e.img&&IMG[e.img])return `<span class="bgblur" style="background-image:url(${IMG[e.img]})"></span><img class="pimg" src="${IMG[e.img]}" alt="Постер: ${esc(e.h)}"${e.key==='loboda'?' style="object-position:72% 30%"':''}>`;
-  return `<div class="poster p1" style="container-type:inline-size"><span class="glow"></span><span class="pdate">${c.d} ${c.m} 2026 · ${c.t||''}</span><div class="name">${esc(c.s)}</div><div class="big">${esc(c.h)}</div><span class="pvenue">${esc(c.c)} · 013</span></div>`}
-function evCard4(e,i){const p=dParts(e.date);return `<a class="evc" href="#ev-${e.key}"><div class="pf">${posterHTML(CONCERTS[i],i)}<span class="badge2"><b>${p.d}</b><span>${p.m}</span></span></div><span class="save" data-save="c${i}" aria-pressed="${favs.has('c'+i)}" aria-label="Сохранить" role="button">${svg('heart')}</span><div><h3>${esc(e.h)}</h3><p class="s2">${esc(e.s)}</p><div class="row4"><span class="ev-meta" style="margin:0"><span>${svg('pin')}${esc(e.city)} · ${esc(e.venue.split(',')[0])}</span></span><span class="price">${e.price.startsWith('от')?e.price:''}</span></div></div></a>`}
+function posterHTML(e){if(!e)return '';const u=evImg(e);if(u)return `<span class="bgblur" style="background-image:url(${u})"></span><img class="pimg" src="${u}" alt="Постер: ${esc(e.h)}"${e.pos?` style="object-position:${esc(e.pos)}"`:''}>`;const p=dParts(e.date);
+  return `<div class="poster p1" style="container-type:inline-size"><span class="glow"></span><span class="pdate">${p.d} ${p.m} ${e.date.slice(0,4)}${e.time?' · '+esc(e.time):''}</span><div class="name">${esc(e.s)}</div><div class="big">${esc(e.h)}</div><span class="pvenue">${esc(e.city)}${e.venue?' · '+esc(e.venue.split(',')[0]):''}</span></div>`}
+function evCard4(e,i){const p=dParts(e.date);return `<a class="evc" href="#ev-${e.key}"><div class="pf">${posterHTML(e)}<span class="badge2"><b>${p.d}</b><span>${p.m}</span></span></div><span class="save" data-save="${esc(evFav(e))}" aria-pressed="${favs.has(evFav(e))}" aria-label="Сохранить" role="button">${svg('heart')}</span><div><h3>${esc(e.h)}</h3><p class="s2">${esc(e.s)}</p><div class="row4"><span class="ev-meta" style="margin:0"><span>${svg('pin')}${esc(e.city)}${e.venue?' · '+esc(e.venue.split(',')[0]):''}</span></span><span class="price">${e.price.startsWith('от')?esc(e.price):''}</span></div></div></a>`}
 function walkCard(w,i){const p=dParts(w.starts_at),past=w.starts_at.slice(0,10)<TODAY,ph=w.photos[0];const cat={city:'город',nature:'природа',special:'особый день'}[w.category];
   return `<a class="card wk${past?' past':''}" href="#walk-${w.key}"><div class="ph"><img src="${IMG[ph.img]}" alt="${esc(ph.alt)}" loading="lazy"><span class="badge2"><b>${p.d}</b><span>${p.m}</span></span><span class="tag cat ${w.category==='nature'?'t-mint':w.category==='city'?'t-sky':'t-acc'}">${cat}</span></div><div class="bd"><span class="eyebrow">allowalks · ${esc(w.place)}</span><h3>${esc(w.title)}</h3><p class="muted" style="font-size:14px">${esc(w.intro)}</p><div class="row4"><span class="price">${past?'Прошла':eur(w.price_cents)}</span><span class="tag ${past?'t-slate':'t-mint'}">${past?'архив':'до '+w.capacity+' гостей'}</span></div></div></a>`}
 function openEvent(i){location.hash='#ev-'+EV[i].key}
@@ -2843,13 +2853,13 @@ function evRender(){const items=[...EV.map((e,i)=>({t:'show',date:e.date,city:e.
   $('#evGrid').innerHTML=items.length?items.map(x=>x.html).join(''):`<div class="empty"><img src="{{DEER}}" alt=""><h4>Ничего не нашли</h4><p>Попробуйте другой фильтр.</p></div>`;bindTilt($('#evGrid'))}
 function renderEventPage(key){const i=EV.findIndex(e=>e.key===key),e=EV[i];if(!e){$('#evDet').innerHTML='<div class="empty"><h4>Событие не найдено</h4><a class="btn btn-soft btn-sm" href="#events">К афише</a></div>';return}const p=dParts(e.date);
   const map='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(e.venue.split(',')[0]+', '+e.addr);
-  $('#evDet').innerHTML=`<div class="det"><div class="det-side"><a class="back" href="#events">${svg('left').replace('class="ico"','class="ico" style="width:16px;height:16px"')}Афиша</a><div class="evc" style="cursor:default"><div class="pf">${posterHTML(CONCERTS[i],i)}</div></div></div>
+  $('#evDet').innerHTML=`<div class="det"><div class="det-side"><a class="back" href="#events">${svg('left').replace('class="ico"','class="ico" style="width:16px;height:16px"')}Афиша</a><div class="evc" style="cursor:default"><div class="pf">${posterHTML(e)}</div></div></div>
    <div><span class="eyebrow"><span class="dot"></span>${p.w}, ${p.d} ${p.mf} ${e.date.slice(0,4)}${e.time?' · '+e.time:''}</span><h1 style="margin-top:12px">${esc(e.h)}</h1><p class="sub">${esc(e.s)}</p>
    <dl class="facts4"><div><dt>Дата и время</dt><dd>${p.d} ${p.mf}${e.end&&e.end!==e.date?' – '+dParts(e.end).d+' '+dParts(e.end).mf:''}${e.time?', '+e.time:''}${e.doors?' · двери '+e.doors:''}</dd></div><div><dt>Цена</dt><dd>${esc(e.price||'на сайте организатора')}</dd></div><div><dt>Место</dt><dd>${esc(e.venue)}<br><span class="muted" style="font-weight:400;font-size:13px">${esc(e.addr)}</span><br><a href="${map}" target="_blank" rel="noopener">Открыть на карте</a></dd></div><div><dt>Организатор</dt><dd>${esc(e.org)}</dd></div><div><dt>Язык</dt><dd>${esc(e.lang)}</dd></div><div><dt>Возраст</dt><dd>${e.age||'не указан организатором'}</dd></div></dl>
    ${e.tickets?`<div class="tix">${e.tickets.map(t=>`<div><span${t[2]?' class="so"':''}>${t[0]}</span><b${t[2]?' class="so"':''}>${t[1]}</b>${t[2]?'<span class="tag t-slate">'+t[2]+'</span>':''}</div>`).join('')}</div>`:''}
-   <div class="buybar"><a class="btn btn-acc" href="${e.url}" target="_blank" rel="noopener">${svg('ticket')}Купить билеты</a><button class="btn btn-soft" data-save="c${i}" aria-pressed="${favs.has('c'+i)}" style="gap:8px">${svg('heart')}Сохранить</button></div>
+   <div class="buybar">${e.url?`<a class="btn btn-acc" href="${esc(e.url)}" target="_blank" rel="noopener">${svg('ticket')}Купить билеты</a>`:''}<button class="btn btn-soft" data-save="${esc(evFav(e))}" aria-pressed="${favs.has(evFav(e))}" style="gap:8px">${svg('heart')}Сохранить</button></div>
    <div class="prose" style="margin-top:28px">${e.p.map(x=>`<p>${esc(x)}</p>`).join('')}</div>${e.note?`<div class="note">${svg('info')}<span>${esc(e.note)}</span></div>`:''}
-   <p class="src">Описание и цены с сайта организатора: <a href="${e.url}" target="_blank" rel="noopener">${new URL(e.url).hostname}</a>${e.img?'':' · официальный постер появится, когда его опубликует площадка'}</p></div></div>`;
+   ${e.url?`<p class="src">Описание и цены с сайта организатора: <a href="${esc(e.url)}" target="_blank" rel="noopener">${urlHost(e.url)}</a>${e.img?'':' · официальный постер появится, когда его опубликует площадка'}</p>`:''}</div></div>`;
   document.title='podslushano.nl · '+e.h}
 
 /* ---------- Mollie simulation ---------- */
@@ -3036,7 +3046,6 @@ addEventListener('scroll',()=>{if(cur==='provinces')readProgress()},{passive:tru
 
 
 /* ===================== v5 ===================== */
-(()=>{const lb=EV.find(e=>e.key==='loboda');if(lb){lb.img='ev-loboda';lb.time='20:00';lb.org='Big Life Entertainment · 013 Poppodium';lb.note='Начало 20:00 по постеру организатора. На сайте 013 указано 19:00: уточняйте время входа у площадки. Цены включают сервисный сбор.';const c=CONCERTS.find(x=>x.key==='loboda');if(c)c.t='20:00'}})();
 const SANDBOX=location.protocol==='file:'||/claude|anthropic|usercontent/i.test(location.hostname);
 let consent=store.get('consent',null);
 const CMP=()=>!!(window.PN&&window.PN.cmp);
@@ -3476,7 +3485,7 @@ const HXHTML=`<div class="hx">
 function hxBento(){const n=newsList()[0],c=WC(),e=nextEvents()[0];
   $('#hxBento').innerHTML=`<a class="bt bt-news" href="#art-${n.id}"><img src="${newsImg(n)}" alt=""><div class="in"><span class="kick"><span>${esc(n.cat)}</span>${agoTxt(n)}</span><h3>${esc(n.h)}</h3></div></a>
    <a class="bt bt-wx" href="#live"><span class="c">${esc(c.ru)}</span>${wxIco(c.k,isNight())}<div class="t">${Math.round(c.t)}°</div><div class="d">${esc(c.d)}. ${rainText(c)}</div><img class="mo" src="${MOOSE[mooseKey(c)].img}" alt="Лосёнок одет по погоде"></a>
-   ${e?`<a class="bt bt-ev" href="#ev-${e.key}">${e.img&&IMG[e.img]?`<img src="${IMG[e.img]}" alt="">`:''}<span class="dt">${dParts(e.date).d}<small>${dParts(e.date).m}</small></span><div class="in"><b>${esc(e.h)}</b><small>${esc(e.city)}${e.price?' · '+esc(e.price):''}</small></div></a>`:''}`}
+   ${e?`<a class="bt bt-ev" href="#ev-${e.key}">${evImg(e)?`<img src="${evImg(e)}" alt=""${e.pos?` style="object-position:${esc(e.pos)}"`:''}>`:''}<span class="dt">${dParts(e.date).d}<small>${dParts(e.date).m}</small></span><div class="in"><b>${esc(e.h)}</b><small>${esc(e.city)}${e.price?' · '+esc(e.price):''}</small></div></a>`:''}`}
 INIT.home=()=>{railBtns();hxBento();
   const clk=()=>{try{$('#hxClock').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long',hour:'2-digit',minute:'2-digit',timeZone:'Europe/Amsterdam'}).format(new Date())}catch(x){}};clk();homeTimers.push(setInterval(clk,30000));
   document.addEventListener('click',e=>{const b=e.target.closest('[data-hq]');if(b)goGuide(b.dataset.hq)});
@@ -3669,6 +3678,8 @@ INIT.allo=(()=>{const base=INIT.allo;return()=>{base();
     el.querySelectorAll('.thumbs button[data-i]').forEach(b=>{const m=WMEDIA[w.key][+b.dataset.i];if(m&&m.t==='video')b.classList.add('vid')})})}})();
 /* jobs & housing: only real listings */
 const RJ={{JOBS11}};
+// Вакансии from wp-admin (or the theme JSON when it is empty); expired ones are already left out
+if(Array.isArray(PN.jobs))RJ.jobs=PN.jobs;
 let rjLang='Все';
 function jobCard(j){const p=j.posted?dParts(j.posted):null;return `<article class="jc"><div class="jh"><span class="gi t-butter"><svg class="ico"><use href="#i-briefcase"/></svg></span><div style="min-width:0"><h3>${esc(j.title)}</h3><div class="jco">${esc(j.company)} · ${esc(j.city)}</div></div></div>
   <p>${esc(j.about)}</p><div class="jt"><span class="tag t-acc">${esc(j.lang)}</span><span class="tag t-line">${esc(j.type)}</span>${j.salary?`<span class="tag t-mint">${esc(j.salary)}</span>`:''}</div>
@@ -3689,8 +3700,7 @@ ENTER.event=(()=>{const base=ENTER.event;return()=>{base();const e=EV.find(x=>x.
 
 
 /* ===================== WordPress integration ===================== */
-// Complianz may turn the inline data script into type="text/plain" (it sees Instagram links in it): read it from there.
-const PN=window.PN||(()=>{try{const t=(document.getElementById('pn-app-js-before')||{}).textContent||'';const m=t.match(/window\.PN=(\{.*\});\s*(?:\/\/#[^\n]*\s*)?$/s);if(m)return window.PN=JSON.parse(m[1])}catch(e){}return {}})();const PN_BOT=PN.bot||'https://worker-production-ad76.up.railway.app';
+const PN_BOT=PN.bot||'https://worker-production-ad76.up.railway.app';
 const PN_MOLLIE_DONATE='https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf';
 if(!ROUTES.includes('wp'))ROUTES.push('wp');
 
