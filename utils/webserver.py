@@ -1735,7 +1735,8 @@ async def _reklama_submit(request: web.Request) -> web.Response:
 
 async def start_webserver(bot) -> web.AppRunner:
     """Запускает веб-сервер на нужном порту (для webhook оплаты и health-check)."""
-    app = web.Application()
+    # Постеры афиши и фото кабинета с сайта бывают до 8 МБ (по умолчанию aiohttp пускает 1 МБ)
+    app = web.Application(client_max_size=10 * 1024 * 1024)
     app["bot"] = bot
     from am_reviews import install_routes as install_review_routes
     from utils.authors_web import install_routes as install_author_routes

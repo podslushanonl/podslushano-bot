@@ -218,13 +218,15 @@ async def photo(request: web.Request) -> web.Response:
     if not ev_s.isdigit():
         return web.Response(status=404, text="not found")
     data = None
-    if os.path.exists(poster_path(int(ev_s))):
-        with open(poster_path(int(ev_s)), "rb") as fh:
+    async with get_session() as session:
+        ev = await session.get(EventListing, int(ev_s))
+    if not ev or ev.status != "approved":  # постер публичен только после оплаты и проверки
+        return web.Response(status=404, text="not found")
+    if os.path.exists(poster_path(ev.id)):
+        with open(poster_path(ev.id), "rb") as fh:
             data = fh.read()
     else:
-        async with get_session() as session:
-            ev = await session.get(EventListing, int(ev_s))
-        if ev and ev.photo_file_id and request.app.get("bot"):
+        if ev.photo_file_id and request.app.get("bot"):
             try:
                 bot = request.app["bot"]
                 f = await bot.get_file(ev.photo_file_id)

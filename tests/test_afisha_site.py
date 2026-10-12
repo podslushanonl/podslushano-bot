@@ -107,6 +107,34 @@ class SubmitAndFeedTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(status, 400)
         self.assertIn("постер", body["error"])
 
+    async def test_poster_public_only_when_approved(self):
+        status, _ = await self.post(GOOD, poster())
+        self.assertEqual(status, 200)
+        r = await self.client.get("/ev-photo/1")
+        self.assertEqual(r.status, 404)
+        async with self.sessions() as s:
+            ev = await s.get(EventListing, 1)
+            ev.status = "approved"
+            await s.commit()
+        r = await self.client.get("/ev-photo/1")
+        self.assertEqual((r.status, r.content_type), (200, "image/jpeg"))
+
+    async def test_large_poster_passes_body_limit(self):
+        app = web.Application(client_max_size=10 * 1024 * 1024)
+        afisha_site.install_routes(app)
+        client = TestClient(TestServer(app))
+        await client.start_server()
+        try:
+            big = poster() + b"\0" * (3 * 1024 * 1024)  # 3 МБ: больше стандартного лимита aiohttp
+            form = aiohttp.FormData(default_to_multipart=True)
+            for k, v in GOOD.items():
+                form.add_field(k, v)
+            form.add_field("poster", big, filename="p.png", content_type="image/png")
+            r = await client.post("/api/afisha/submit", data=form)
+            self.assertEqual(r.status, 200, await r.text())
+        finally:
+            await client.close()
+
     async def test_feed_shows_only_approved_upcoming(self):
         now = datetime.utcnow()
         async with self.sessions() as s:
