@@ -38,6 +38,7 @@ from utils.ns_alerts import ns_alerts_loop, router as ns_alerts_router
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
 from utils.limits import ThrottleMiddleware
 from utils.nav_guard import NavigationGuard
+from utils import inbox
 from utils.users import RegisterUserMiddleware
 from utils.ad_calendar import calendar_sync_loop
 from utils.ad_reminders import ad_reminder_loop
@@ -122,6 +123,8 @@ async def main() -> None:
     install_editorial_overrides()
     bot = Bot(token=config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
+    # Уведомления админам — в группу-инбокс с темами (если подключена командой /inbox)
+    inbox.install(bot, dp)
     # Кнопки меню и /start, /menu, /help, /cancel всегда прерывают незаконченную анкету
     dp.message.outer_middleware(NavigationGuard())
     dp.message.middleware(ThrottleMiddleware())
@@ -129,6 +132,7 @@ async def main() -> None:
     dp.callback_query.middleware(RegisterUserMiddleware())
     await configure_profile(bot)
 
+    dp.include_router(inbox.router)
     dp.include_router(am_reviews.router)
     dp.include_router(stories.router)
     dp.include_router(tax_guide.router)
