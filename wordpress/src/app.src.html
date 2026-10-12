@@ -3597,7 +3597,8 @@ ENTER.event=(()=>{const base=ENTER.event;return()=>{base();const e=EV.find(x=>x.
 
 
 /* ===================== WordPress integration ===================== */
-const PN=window.PN||{};const PN_BOT=PN.bot||'https://worker-production-ad76.up.railway.app';
+// Complianz may turn the inline data script into type="text/plain" (it sees Instagram links in it): read it from there.
+const PN=window.PN||(()=>{try{const t=(document.getElementById('pn-app-js-before')||{}).textContent||'';const m=t.match(/window\.PN=(\{.*\});\s*(?:\/\/#[^\n]*\s*)?$/s);if(m)return window.PN=JSON.parse(m[1])}catch(e){}return {}})();const PN_BOT=PN.bot||'https://worker-production-ad76.up.railway.app';
 const PN_MOLLIE_DONATE='https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf';
 if(!ROUTES.includes('wp'))ROUTES.push('wp');
 
