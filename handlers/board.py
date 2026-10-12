@@ -29,8 +29,8 @@ log = logging.getLogger(__name__)
 router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
-DESC = "Omhoog plaatsen advertentie Podslushano-bord"
-DESC_LISTING = "Plaatsing woning-advertentie Podslushano-bord"
+DESC = "Omhoog plaatsen advertentie podslushano.nl-bord"
+DESC_LISTING = "Plaatsing woning-advertentie podslushano.nl-bord"
 
 CATEGORIES = [
     ("housing", "🏠 Жильё"),

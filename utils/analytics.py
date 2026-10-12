@@ -54,7 +54,7 @@ async def log_product_event(
 
 
 _PRODUCT_LABELS = {
-    "home_open": "Открыли «Мой Podslushano»",
+    "home_open": "Открыли «Мой podslushano.nl»",
     "profile_open": "Открыли настройки профиля",
     "profile_completed": "Заполнили профиль",
     "profile_updated": "Изменили профиль",

@@ -1,7 +1,7 @@
 """Admin comment copilot for a dedicated Telegram topic or private session.
 
 The copilot never posts to Instagram. It analyses a screenshot/text, recommends
-whether to reply at all, and learns the Podslushano.nl voice only from variants
+whether to reply at all, and learns the podslushano.nl voice only from variants
 the admin explicitly accepts.
 """
 from __future__ import annotations
@@ -44,7 +44,7 @@ class ConfiguredCommentTopic(BaseFilter):
 
 
 VOICE_RULES = """
-Ты редактор ответов Podslushano.nl в Instagram. Это живое русскоязычное медиа о Нидерландах,
+Ты редактор ответов podslushano.nl в Instagram. Это живое русскоязычное медиа о Нидерландах,
 а не служба поддержки. Нужна собственная узнаваемая манера: быстро, наблюдательно, остроумно,
 иногда с лёгким абсурдом или самоиронией. Можно вдохновляться тем, как сильные бренды общаются
 в комментариях, но запрещено копировать конкретные фразы, персонажей и голос Авиасейлс.

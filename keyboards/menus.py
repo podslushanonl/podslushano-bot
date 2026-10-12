@@ -19,7 +19,7 @@ BTN_SUBMIT = "✍️ Написать в предложку"
 BTN_AD = "📢 Реклама / сотрудничество"
 BTN_CONTACTS = "🔍 Найти специалиста"
 BTN_BOARD = "📋 Объявления"
-BTN_GUIDE = "📚 Полезное о жизни в NL"
+BTN_GUIDE = "📚 Полезное о жизни в Нидерландах"
 BTN_LETTER = "📩 Разобрать письмо"
 BTN_SALARY = "🧮 Калькулятор зарплаты"
 BTN_SELF_ADD = "➕ Добавить себя в гайд"
@@ -28,32 +28,61 @@ BTN_STICKERS = "🎨 Наши стикеры"
 BTN_CONTACT = "✉️ Связаться с нами"
 BTN_SHARE = "📣 Поделиться ботом"
 BTN_SUBSCRIPTIONS = "🔔 Мои подписки"
-BTN_HOME = "🏠 Мой Podslushano"
+BTN_HOME = "🏠 Мой podslushano.nl"
 BTN_CANCEL = "❌ Отмена"
 # Разделы главного меню — открывают подменю (чтобы не было «стены» кнопок)
 BTN_SERVICES = "🛠 Сервисы"
 BTN_FOR_SPECIALISTS = "💼 Специалистам и рекламодателям"
 BTN_MORE = "☰ Ещё"
 BTN_BACK = "⬅️ Назад в меню"
+# Единственная кнопка внизу экрана: открывает карточку меню (handlers/menu.py)
+BTN_MENU = "☰ Меню"
+
+
+# Кнопка «Афиша» меняет эмодзи по сезону; старые подписи остаются у людей в клавиатуре
+EVENTS_BUTTON_TEXTS = frozenset(
+    f"{e} {w}" for e in ("☀️", "🍂", "❄️", "🌷") for w in ("Афиша", "Чем заняться")
+)
+# Старые подписи кнопок, которые ещё могут прийти из закэшированной клавиатуры
+OLD_BTN_HOME = "🏠 Мой Podslushano"
+OLD_BTN_GUIDE = "📚 Полезное о жизни в NL"
+LEGACY_MENU_TEXTS = frozenset({"✍️ Спросить / поделиться", "👤 Мой кабинет специалиста",
+                               OLD_BTN_HOME, OLD_BTN_GUIDE})
+
+
+def menu_texts() -> frozenset[str]:
+    """Все подписи кнопок меню: нажатие на любую из них прерывает незаконченную анкету."""
+    return frozenset({
+        BTN_STORY, BTN_QUESTION, BTN_VIDEO, BTN_SUBMIT, BTN_AD, BTN_CONTACTS, BTN_BOARD, BTN_GUIDE,
+        BTN_LETTER, BTN_SALARY, BTN_SELF_ADD, BTN_CABINET, BTN_STICKERS, BTN_CONTACT, BTN_SHARE,
+        BTN_SUBSCRIPTIONS, BTN_HOME, BTN_CANCEL, BTN_SERVICES, BTN_FOR_SPECIALISTS, BTN_MORE, BTN_BACK,
+        BTN_MENU,
+    }) | EVENTS_BUTTON_TEXTS | LEGACY_MENU_TEXTS
 
 
 def main_menu() -> ReplyKeyboardMarkup:
-    """Главное меню — только основное, редкое убрано в подменю (Сервисы / Ещё)."""
+    """Внизу экрана — одна кнопка «☰ Меню». Все разделы — в карточке меню (handlers/menu.py)."""
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=BTN_MENU)]],
+        resize_keyboard=True,
+        is_persistent=True,
+        input_field_placeholder="Напишите вопрос или откройте меню",
+    )
+
+
+def legacy_main_menu() -> ReplyKeyboardMarkup:
+    """Старая большая клавиатура (оставлена для справки и тестов, в боте не показывается)."""
     keyboard = [
         [KeyboardButton(text=BTN_HOME)],
         [KeyboardButton(text=BTN_CONTACTS)],
         [KeyboardButton(text=BTN_GUIDE)],
         [KeyboardButton(text=BTN_BOARD)],
-        [KeyboardButton(text=events_button_label())],  # ☀️/🍂/❄️/🌷 Чем заняться
+        [KeyboardButton(text=events_button_label())],
         [KeyboardButton(text=BTN_SUBMIT)],
         [KeyboardButton(text=BTN_SERVICES), KeyboardButton(text=BTN_FOR_SPECIALISTS)],
         [KeyboardButton(text=BTN_MORE)],
     ]
-    return ReplyKeyboardMarkup(
-        keyboard=keyboard,
-        resize_keyboard=True,
-        input_field_placeholder="Выбери пункт меню 👇",
-    )
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 
 def services_menu() -> ReplyKeyboardMarkup:

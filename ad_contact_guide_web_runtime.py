@@ -148,7 +148,7 @@ async def contact_guide_checkout(request: web.Request) -> web.Response:
     )
     if not payment or not payment.get("checkout_url") or not payment.get("id"):
         return _json_error(
-            "Не удалось создать оплату Mollie. Данные сохранены — попробуйте ещё раз через минуту.",
+            "Не удалось открыть оплату. Данные сохранены — попробуйте ещё раз через минуту.",
             502,
         )
 
@@ -174,11 +174,11 @@ async def contact_guide_checkout(request: web.Request) -> web.Response:
 def _success_html(title: str, lead: str, detail: str) -> str:
     return f"""<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{html.escape(title)} — Podslushano.nl</title>
+<title>{html.escape(title)} — podslushano.nl</title>
 <style>
 *{{box-sizing:border-box}}body{{margin:0;min-height:100vh;display:grid;place-items:center;padding:20px;background:#f3eee5;color:#19211e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif}}
 .card{{width:min(520px,100%);background:#fffdf8;border:1px solid #d8ccba;border-radius:24px;padding:28px;box-shadow:0 18px 56px rgba(45,37,25,.10)}}.brand{{font-weight:900;font-size:20px;margin-bottom:30px}}.mark{{width:48px;height:48px;border-radius:16px;background:#e1eee6;display:grid;place-items:center;font-size:25px;margin-bottom:16px}}h1{{font-size:34px;line-height:1;margin:0 0 12px;letter-spacing:-.04em}}p{{font-size:15px;line-height:1.55;color:#5d5851;margin:0 0 12px}}.note{{background:#f3eee5;border-radius:14px;padding:13px 15px;font-size:13px;color:#514d47;margin:18px 0}}a{{display:inline-flex;text-decoration:none;background:#183a31;color:#fff;border-radius:999px;padding:12px 18px;font-weight:800}}
-</style></head><body><main class="card"><div class="brand">Podslushano.nl</div><div class="mark">✓</div><h1>{html.escape(title)}</h1><p>{html.escape(lead)}</p><div class="note">{html.escape(detail)}</div><a href="/ads#guide">Вернуться к рекламе</a></main></body></html>"""
+</style></head><body><main class="card"><div class="brand">podslushano.nl</div><div class="mark">✓</div><h1>{html.escape(title)}</h1><p>{html.escape(lead)}</p><div class="note">{html.escape(detail)}</div><a href="/ads#guide">Вернуться к рекламе</a></main></body></html>"""
 
 
 async def contact_guide_success(request: web.Request) -> web.Response:
@@ -207,12 +207,12 @@ async def contact_guide_success(request: web.Request) -> web.Response:
         code = 200
     elif status in {"failed", "canceled", "expired"}:
         title = "Оплата не завершена"
-        lead = "Mollie не подтвердил платёж."
+        lead = "Платёж не подтверждён."
         detail = "Вернитесь на страницу рекламы и оформите Contact Guide ещё раз. Деньги по незавершённому платежу не списываются."
         code = 402
     else:
         title = "Платёж обрабатывается"
-        lead = "Mollie ещё подтверждает оплату. Обычно это занимает совсем немного времени."
+        lead = "Оплата ещё подтверждается. Обычно это занимает совсем немного времени."
         detail = "После подтверждения заявка автоматически уйдёт на проверку, а factuur — на ваш e-mail."
         code = 200
 

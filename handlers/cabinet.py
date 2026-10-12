@@ -564,7 +564,7 @@ async def claim_approve(callback: CallbackQuery) -> None:
     await _safe_send(
         callback.bot, requester,
         f"✅ Карточка «{name}» привязана к твоему аккаунту. "
-        "Управляй ей в «👤 Личный кабинет».",
+        "Управляй ей в меню: «💼 Для бизнеса» → «👤 Кабинет специалиста».",
     )
     await callback.answer("Подтверждено")
 

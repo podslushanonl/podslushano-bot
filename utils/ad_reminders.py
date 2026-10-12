@@ -88,7 +88,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             f"{delivery_html}"
             "<p>Пожалуйста, пришлите всё одним письмом или одной ссылкой. Если часть "
             "материалов будет отправлена позже, укажите это в ответе.</p>"
-            f"<p>Podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
+            f"<p>podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
         )
         text_body = (
             f"Здравствуйте, {_client_name(booking)}!\n\n"
@@ -107,7 +107,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             f"{delivery_text}\n\n"
             "Пожалуйста, пришлите всё одним письмом или одной ссылкой. Если часть "
             "материалов будет отправлена позже, укажите это в ответе.\n\n"
-            f"Podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}"
+            f"podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}"
         )
     elif kind == "24h":
         subject = f"Последний день для материалов · реклама {date_label} · бронь №{booking.id}"
@@ -128,7 +128,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             "размещение на этот день будет пропущено.</p>"
             "<p>Если материалы уже были отправлены другим способом, ответьте на это "
             "письмо и напишите, где именно их найти.</p>"
-            f"<p>Podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
+            f"<p>podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
         )
         text_body = (
             f"Здравствуйте, {_client_name(booking)}!\n\n"
@@ -146,7 +146,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             "размещение на этот день будет пропущено.\n\n"
             "Если материалы уже были отправлены другим способом, ответьте на это "
             "письмо и напишите, где именно их найти.\n\n"
-            f"Podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}"
+            f"podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}"
         )
     else:
         subject = f"Сегодняшнее размещение приостановлено · бронь №{booking.id}"
@@ -167,7 +167,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             "ссылка».</p>"
             "<p>Если вы уже отправляли материалы другим способом, укажите в ответе, "
             "где именно их найти.</p>"
-            f"<p>Podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
+            f"<p>podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
         )
         text_body = (
             f"Здравствуйте, {_client_name(booking)}!\n\n"
@@ -183,7 +183,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             "Google Drive, Dropbox или WeTransfer с доступом «всем, у кого есть ссылка».\n\n"
             "Если вы уже отправляли материалы другим способом, укажите в ответе, где "
             "именно их найти.\n\n"
-            f"Podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}"
+            f"podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}"
         )
     return subject, html_body, text_body
 

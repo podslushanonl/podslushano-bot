@@ -42,3 +42,5 @@ jobs:
         run: python tests/test_admin_newsletter_subscribers.py
       - name: Run admin publishing channel checks
         run: python tests/test_admin_channels.py
+      - name: Run bot navigation, inbox, menu, NS and afisha checks
+        run: python -m unittest tests.test_nav_guard tests.test_inbox tests.test_menu_card tests.test_story_media tests.test_ns_trains tests.test_ns_alerts tests.test_afisha_site

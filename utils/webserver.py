@@ -91,7 +91,7 @@ def _switch(page: str, lang: str) -> str:
 _PRIVACY_RU = """
 <h1>Политика конфиденциальности</h1>
 <p class="upd">Обновлено: 13.09.2026</p>
-<p>Эта политика объясняет, как сервис «Подслушано в Нидерландах»
+<p>Эта политика объясняет, как сервис podslushano.nl
 (Telegram-бот @podslushano_nl_bot) обрабатывает персональные данные.
 Ответственный за обработку (verwerkingsverantwoordelijke) — компания,
 указанная в реквизитах внизу страницы.</p>
@@ -282,7 +282,7 @@ technische en organisatorische maatregelen om gegevens te beschermen.</p>
 _TERMS_RU = """
 <h1>Условия использования</h1>
 <p class="upd">Обновлено: 23.06.2026</p>
-<p>Эти условия регулируют пользование сервисом «Подслушано в Нидерландах»
+<p>Эти условия регулируют пользование сервисом podslushano.nl
 (Telegram-бот @podslushano_nl_bot), который предоставляет компания, указанная в
 реквизитах внизу страницы.</p>
 
@@ -1103,9 +1103,9 @@ def _ads_html(taken: set, error: str = "") -> str:
     return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Реклама — Podslushano.nl</title><style>{_ADS_CSS}</style>\n<script src="/ads-static/i18n.js" defer></script></head><body>
+<title>Реклама — podslushano.nl</title><style>{_ADS_CSS}</style>\n<script src="/ads-static/i18n.js" defer></script></head><body>
 <div class="wrap">
-<h1>Реклама на Podslushano.nl</h1>
+<h1>Реклама на podslushano.nl</h1>
 <div class="sub">Нативное продвижение для услуг, экспертов и мероприятий в Нидерландах</div>
 {stats_html}
 <div class="grid">{''.join(cards)}</div>
@@ -1163,7 +1163,7 @@ def _ads_html(taken: set, error: str = "") -> str:
     <span>Я ознакомился(ась) и принимаю условия сотрудничества. Оплата означает полное согласие с ними.</span></label>
 
   <button type="submit">Перейти к оплате</button>
-  <div class="note">Оплата через Mollie (iDEAL, карты). 100% предоплата, дата
+  <div class="note">Онлайн-оплата. 100% предоплата, дата
     фиксируется только после оплаты. Счёт (factuur) придёт на e-mail. Все цены включают BTW 21%.</div>
 </form></div>
 
@@ -1236,7 +1236,7 @@ def _numr_campaign_html(taken: set[str], error: str = "") -> str:
     return f"""<!doctype html><html lang="nl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>NUMR-campagne — Podslushano.nl</title>
+<title>NUMR-campagne — podslushano.nl</title>
 <link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css">
 <style>
 body{{background:#f5f1ec;color:#181718}}.numr-shell{{max-width:1040px;margin:auto;padding:24px 16px 64px}}
@@ -1265,7 +1265,7 @@ body{{background:#f5f1ec;color:#181718}}.numr-shell{{max-width:1040px;margin:aut
 @media(max-width:760px){{.numr-card{{grid-template-columns:1fr}}.numr-price{{min-height:260px}}.numr-two,.numr-materials ul{{grid-template-columns:1fr}}.numr-book .cal{{grid-template-columns:1fr}}}}
 body.numr-private .pnl-language-switcher{{display:none!important}}
 </style><script src="/ads-static/i18n.js" defer></script></head><body class="numr-private"><main class="numr-shell">
-<div class="numr-top"><span>Podslushano.nl</span><span class="numr-label">Campagnevoorstel</span></div>
+<div class="numr-top"><span>podslushano.nl</span><span class="numr-label">Campagnevoorstel</span></div>
 <section class="numr-card"><div class="numr-copy"><p class="numr-label">Exclusief maatwerkpakket</p>
 <h1>Campagne van 2 maanden</h1><p class="numr-lead">{html_lib.escape(campaign['lead'])}</p><ul>{details}</ul></div>
 <aside class="numr-price"><div><span>Totale campagneprijs<br>inclusief 21% btw</span></div><b>€299</b><p>2 maanden<br>4 Reels · 12 Stories</p></aside></section>
@@ -1276,7 +1276,7 @@ body.numr-private .pnl-language-switcher{{display:none!important}}
 <p class="numr-note">Deze materialen hoeven niet op deze pagina te worden geüpload. Na de betaling nemen we contact op en spreken we af hoe jullie alles het gemakkelijkst kunnen aanleveren. Voor publicatie sturen we de content ter controle van de feitelijke informatie.</p></section>
 
 <section class="numr-book"><p class="numr-label">Boeking en betaling</p><h2>Plan de campagne</h2>
-<p class="numr-intro">Kies vier publicatiedata, vul de factuurgegevens in en rond de betaling veilig af via Mollie.</p>{err}
+<p class="numr-intro">Kies vier publicatiedata, vul de factuurgegevens in en rond de betaling veilig online af.</p>{err}
 <form method="post" action="/ads/numr/book?lang=nl" id="numrForm">
 <input type="hidden" name="dates" id="numrDates"><input type="hidden" name="fmt" value="numr_campaign"><input type="hidden" name="opt" value="std">
 <label>Kies 4 publicatiedata</label>{cal}
@@ -1297,7 +1297,7 @@ body.numr-private .pnl-language-switcher{{display:none!important}}
 <div class="numr-summary" id="numrSummary">Campagne van 2 maanden · kies 4 data · €{option['price']}</div>
 <details><summary>Samenwerkingsvoorwaarden</summary>{terms_html}</details>
 <label class="chk"><input type="checkbox" name="terms" required><span>Ik heb de samenwerkingsvoorwaarden gelezen en ga ermee akkoord. De betaling geldt als volledige aanvaarding.</span></label>
-<button type="submit">Betaal €299 via Mollie →</button><p class="numr-note">100% vooruitbetaling · iDEAL en betaalkaarten · 21% btw inbegrepen. De data worden pas na een geslaagde betaling vastgelegd.</p>
+<button type="submit">Betaal €299 →</button><p class="numr-note">100% vooruitbetaling · 21% btw inbegrepen. De data worden pas na een geslaagde betaling vastgelegd.</p>
 </form></section></main>
 <script>
 (function(){{
@@ -1502,7 +1502,7 @@ async def _ads_payment_success(request: web.Request) -> web.Response:
     else:
         icon, eyebrow = "…", "Проверяем платёж"
         title = "Оплата обрабатывается"
-        text = ("Mollie ещё не подтвердил платёж. Обновите эту страницу через "
+        text = ("Платёж ещё подтверждается. Обновите эту страницу через "
                 "несколько секунд.")
 
     is_numr = bool(booking and booking.fmt == "numr_campaign")
@@ -1518,8 +1518,8 @@ async def _ads_payment_success(request: web.Request) -> web.Response:
                 "Er is niets afgeschreven en de data zijn niet vastgelegd. Ga terug en probeer het opnieuw.",
             "Проверяем платёж": "Betaling controleren",
             "Оплата обрабатывается": "Betaling wordt verwerkt",
-            "Mollie ещё не подтвердил платёж. Обновите эту страницу через несколько секунд.":
-                "Mollie heeft de betaling nog niet bevestigd. Vernieuw deze pagina over enkele seconden.",
+            "Платёж ещё подтверждается. Обновите эту страницу через несколько секунд.":
+                "De betaling wordt nog bevestigd. Vernieuw deze pagina over enkele seconden.",
         }
         eyebrow, title, text = nl_copy.get(eyebrow, eyebrow), nl_copy.get(title, title), nl_copy.get(text, text)
     lang = "nl" if is_numr else "ru"
@@ -1529,10 +1529,10 @@ async def _ads_payment_success(request: web.Request) -> web.Response:
 
     page = f"""<!doctype html><html lang="{lang}"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex"><title>{title} — Podslushano.nl</title>
+<meta name="robots" content="noindex"><title>{title} — podslushano.nl</title>
 <link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css">\n<script src="/ads-static/i18n.js" defer></script></head>
 <body><main class="standalone-shell"><div class="standalone-top">
-<span>Podslushano.nl</span></div><section class="success payment-success-page">
+<span>podslushano.nl</span></div><section class="success payment-success-page">
 <div class="success-icon">{icon}</div><p class="eyebrow">{eyebrow}</p>
 <h1>{title}</h1><p>{text}</p><div class="success-actions">
 <a class="primary" href="{back_href}">{back_label}</a>
@@ -1572,14 +1572,14 @@ async def _ads_book(request: web.Request) -> web.Response:
         checkout_json = json.dumps(checkout)
         page = f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex"><title>Переход к оплате — Podslushano.nl</title>
+<meta name="robots" content="noindex"><title>Переход к оплате — podslushano.nl</title>
 <link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css">\n<script src="/ads-static/i18n.js" defer></script></head>
 <body><main class="standalone-shell"><div class="standalone-top">
-<span>Podslushano.nl</span></div><section class="success payment-success-page">
+<span>podslushano.nl</span></div><section class="success payment-success-page">
 <div class="success-icon">↗</div><p class="eyebrow">Безопасная оплата</p>
-<h1>Открываем Mollie</h1><p>Платёжная страница откроется отдельно.</p>
+<h1>Открываем оплату</h1><p>Платёжная страница откроется отдельно.</p>
 <div class="success-actions"><a class="primary" href="{checkout_href}"
-target="_blank" rel="noopener">Открыть оплату Mollie</a>
+target="_blank" rel="noopener">Открыть оплату</a>
 <a class="secondary" href="/ads">Вернуться назад</a></div>
 </section></main><script>
 (function(){{
@@ -1626,8 +1626,8 @@ async def _ads_numr_book(request: web.Request) -> web.Response:
         checkout_json = json.dumps(checkout)
         page = f"""<!doctype html><html lang="nl"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>Veilige betaling — Podslushano.nl</title><link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css"></head>
-<body><main class="standalone-shell"><div class="standalone-top"><span>Podslushano.nl</span></div>
+<title>Veilige betaling — podslushano.nl</title><link rel="stylesheet" href="/ads-static/assets/index-BJrffRbQ.css"></head>
+<body><main class="standalone-shell"><div class="standalone-top"><span>podslushano.nl</span></div>
 <section class="success payment-success-page"><div class="success-icon">↗</div><p class="eyebrow">Veilige betaling</p>
 <h1>Mollie wordt geopend</h1><p>De betaalpagina wordt afzonderlijk geopend.</p><div class="success-actions">
 <a class="primary" href="{checkout_href}" target="_blank" rel="noopener">Open de Mollie-betaling</a>
@@ -1654,9 +1654,9 @@ def _reklama_html(error: str = "") -> str:
     err = f'<div class="err">{html_lib.escape(error)}</div>' if error else ""
     return f"""<!doctype html><html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Реклама — Podslushano.nl</title><style>{_ADS_CSS}</style>\n<script src="/ads-static/i18n.js" defer></script></head><body>
+<title>Реклама — podslushano.nl</title><style>{_ADS_CSS}</style>\n<script src="/ads-static/i18n.js" defer></script></head><body>
 <div class="wrap">
-<h1>Реклама в Podslushano.nl</h1>
+<h1>Реклама в podslushano.nl</h1>
 <div class="sub">Доходим до русскоязычных в Нидерландах — нативно, без рекламного шума</div>
 <div class="stats">{stats}</div>
 <div class="snote">Данные аудитории на {html_lib.escape(config.AD_STATS_UPDATED)}</div>
@@ -1694,7 +1694,7 @@ def _reklama_thanks() -> str:
 <div class="sub">Заявка получена</div>
 <div class="guide"><p>Мы свяжемся с вами в ближайшее время и пришлём форматы и
 условия под вашу задачу.</p>
-<a class="gcta" href="{config.SITE_URL}">На сайт Podslushano.nl →</a></div>
+<a class="gcta" href="{config.SITE_URL}">На сайт podslushano.nl →</a></div>
 </div></body></html>"""
 
 

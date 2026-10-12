@@ -63,7 +63,7 @@ _AUGUST_2026 = [
             "margarita.ryabok@gmail.com",
         ],
         "description": (
-            "Vermelding in Podslushano-gids: "
+            "Vermelding in podslushano.nl-gids: "
             "Margaryta_Laser Hair Removal in Utrecht (месяц)"
         ),
         "amount": "9.99",
@@ -73,7 +73,7 @@ _AUGUST_2026 = [
         "invoice_date": date(2026, 8, 24),
         "buyer_name": "Inburgering.org",
         "buyer_lines": ["Inburgering.org", "info@inburgering.org"],
-        "description": "Vermelding in Podslushano-gids: Inburgering.org (год)",
+        "description": "Vermelding in podslushano.nl-gids: Inburgering.org (год)",
         "amount": "99.00",
     },
     {
@@ -119,7 +119,7 @@ async def _restore_original_from_resend(no: str, invoice_date: date) -> tuple[bo
         return False, "RESEND_API_KEY не настроен"
 
     headers = {"Authorization": f"Bearer {config.RESEND_API_KEY}"}
-    subject = f"Счёт {no} · Podslushano.nl"
+    subject = f"Счёт {no} · podslushano.nl"
     email_row: dict | None = None
     after: str | None = None
 

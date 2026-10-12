@@ -46,8 +46,8 @@ _EMAIL_RE = re.compile(
 )
 
 # Описание платежа (видно в Mollie/банке) — на нидерландском
-DESC_NEW = "Vermelding in Podslushano-gids"
-DESC_RENEW = "Verlenging vermelding Podslushano-gids"
+DESC_NEW = "Vermelding in podslushano.nl-gids"
+DESC_RENEW = "Verlenging vermelding podslushano.nl-gids"
 
 
 def _price_str(plan: str) -> str:
@@ -533,7 +533,7 @@ async def self_start(message: Message, state: FSMContext) -> None:
     referral = await _has_referral(message.from_user.id)
     await state.update_data(sp_referral=referral)
     await message.answer(
-        "<b>Добавление в Контакт-гайд Podslushano.nl</b>\n\n"
+        "<b>Добавление в Контакт-гайд podslushano.nl</b>\n\n"
         "Заполнение займёт около 3 минут. Перед оплатой вы увидите будущую карточку, "
         "сможете изменить данные и сравнить тарифы.\n\n"
         "После оплаты мы проверим анкету и сообщим, когда карточка появится в поиске. "
@@ -1094,7 +1094,7 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         from handlers.board import on_bump_paid
         await on_bump_paid(bot, payment_id, payment)
         return
-    # Платёж за прогулку Allo Walks — отдельный обработчик (своя таблица)
+    # Платёж за прогулку allowalks — отдельный обработчик (своя таблица)
     if kind == "allo":
         from handlers.allo import on_allo_payment_paid
         await on_allo_payment_paid(bot, payment_id, payment)

@@ -10,7 +10,7 @@ import traceback
 
 from aiogram import Bot, Router
 from aiogram.exceptions import TelegramBadRequest, TelegramNetworkError, TelegramRetryAfter
-from aiogram.types import ErrorEvent, InlineKeyboardButton, InlineKeyboardMarkup
+from aiogram.types import CallbackQuery, ErrorEvent, InlineKeyboardButton, InlineKeyboardMarkup
 
 import config
 
@@ -99,3 +99,10 @@ async def on_error(event: ErrorEvent, bot: Bot) -> None:
             )
         except Exception:  # noqa: BLE001
             pass
+
+
+@router.callback_query()
+async def stale_button(callback: CallbackQuery) -> None:
+    """Кнопка от старого сообщения, у которой больше нет обработчика (анкета сброшена,
+    бот перезапускался). Без ответа Telegram крутит «часики» бесконечно."""
+    await callback.answer("Эта кнопка уже не работает. Откройте меню: /menu", show_alert=False)

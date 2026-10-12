@@ -159,7 +159,7 @@ async def support_reply_send(message: Message, state: FSMContext) -> None:
         return
     try:
         await message.bot.send_message(
-            uid, "💬 <b>Ответ от команды «Подслушано»:</b>"
+            uid, "💬 <b>Ответ от команды podslushano.nl:</b>"
         )
         await message.copy_to(uid)  # переносим текст/фото/файл как есть
         await message.answer("✅ Отправил пользователю.", reply_markup=main_menu())

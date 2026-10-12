@@ -677,7 +677,7 @@ async def confirm_ad_move(callback: CallbackQuery) -> None:
             f"Здравствуйте, {client}!",
             f"Рекламное размещение перенесено с {_date_label(old_date)} на {_date_label(new_date)}.",
             "Пожалуйста, отправьте материалы ответом на это письмо не позднее чем за 48 часов до новой даты.",
-            f"Podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}",
+            f"podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}",
         ],
     )
     await callback.answer("Дата перенесена")
@@ -756,7 +756,7 @@ async def confirm_ad_skip(callback: CallbackQuery) -> None:
             f"Здравствуйте, {client}!",
             f"Рекламное размещение на {_date_label(publish_date)} пропущено, поскольку материалы не были получены вовремя.",
             "Чтобы согласовать новую дату, ответьте на это письмо.",
-            f"Podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}",
+            f"podslushano.nl · {config.SUPPORT_EMAIL or config.COMPANY_EMAIL}",
         ],
     )
     await callback.answer("Размещение пропущено")

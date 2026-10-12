@@ -38,7 +38,7 @@ async def share(message: Message, state: FSMContext) -> None:
     invited = await _invited_count(uid)
     tail = (
         f"\n\nПо твоей ссылке уже пришло друзей: <b>{invited}</b> 🙌 Спасибо!"
-        if invited else "\n\nПоделись — и помоги друзьям освоиться в NL 💛"
+        if invited else "\n\nПоделись — и помоги друзьям освоиться в Нидерландах 💛"
     )
     kb = InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="📣 Отправить друзьям", url=share_url)],

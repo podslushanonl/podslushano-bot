@@ -12,7 +12,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 
-from keyboards.menus import BTN_GUIDE, main_menu
+from keyboards.menus import BTN_GUIDE, main_menu, OLD_BTN_GUIDE
 from utils.analytics import log_event
 
 router = Router()
@@ -297,7 +297,7 @@ GUIDES: dict[str, dict] = {
     },
     "pets": {
         "label": "🐾 Питомцы",
-        "examples": "ввоз животного в NL, hondenbelasting, поиск ветеринара",
+        "examples": "ввоз животного в Нидерланды, hondenbelasting, поиск ветеринара",
         "text": (
             "🐾 <b>Питомцы</b>\n\n"
             "<b>Перевоз животного в Нидерланды</b>\n"
@@ -308,7 +308,7 @@ GUIDES: dict[str, dict] = {
             "• Точные правила ввоза — на сайте <a href=\"https://www.nvwa.nl\">NVWA</a>.\n\n"
             "<b>После переезда</b>\n"
             "• Найди ветеринара (dierenarts) рядом — для прививок и чипа.\n"
-            "• Собак во многих муниципалитетах нужно регистрировать, и есть налог на собак "
+            "• Собак во многих gemeenten нужно регистрировать, и есть налог на собак "
             "(hondenbelasting) — проверь на сайте своего gemeente.\n"
             "• Уборка за собакой обязательна, за нарушение — штраф. Есть зоны для выгула "
             "(hondenlosloopgebied).\n\n"
@@ -413,7 +413,7 @@ def _guide_kb(key: str) -> InlineKeyboardMarkup:
 
 
 @router.message(Command("guide", "info"))
-@router.message(F.text == BTN_GUIDE)
+@router.message(F.text.in_({BTN_GUIDE, OLD_BTN_GUIDE}))
 async def show_menu(message: Message, state: FSMContext) -> None:
     await state.clear()
     await log_event("guide", "menu")

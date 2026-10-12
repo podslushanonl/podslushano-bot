@@ -90,7 +90,7 @@ def _public_base_url(request: web.Request) -> str:
 def _newsletter_from() -> str:
     return (
         os.getenv("ADS_NEWSLETTER_FROM_EMAIL", "").strip()
-        or "Podslushano.nl <ads@podslushano.nl>"
+        or "podslushano.nl <ads@podslushano.nl>"
     )
 
 
@@ -103,17 +103,17 @@ def _welcome_email_html(base_url: str, unsubscribe_url: str) -> str:
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
-<title>Podslushano.nl — рекламные обновления</title>
+<title>podslushano.nl — рекламные обновления</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f3eee5;font-family:Arial,Helvetica,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#f3eee5" style="width:100%;background-color:#f3eee5;">
 <tr><td align="center" style="padding-top:28px;padding-right:14px;padding-bottom:28px;padding-left:14px;">
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background-color:#fffdf8;border-radius:24px;overflow:hidden;">
-<tr><td bgcolor="#fffdf8" style="background-color:#fffdf8;padding-top:24px;padding-right:28px;padding-bottom:20px;padding-left:28px;font-family:Arial,Helvetica,sans-serif;font-size:23px;line-height:28px;color:#19211e;font-weight:800;">Podslushano.nl</td></tr>
+<tr><td bgcolor="#fffdf8" style="background-color:#fffdf8;padding-top:24px;padding-right:28px;padding-bottom:20px;padding-left:28px;font-family:Arial,Helvetica,sans-serif;font-size:23px;line-height:28px;color:#19211e;font-weight:800;">podslushano.nl</td></tr>
 <tr><td bgcolor="#183a31" style="background-color:#183a31;padding-top:32px;padding-right:28px;padding-bottom:32px;padding-left:28px;">
 <p style="margin-top:0;margin-right:0;margin-bottom:10px;margin-left:0;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:16px;color:#bdd0c8;font-weight:700;letter-spacing:1.5px;">РЕКЛАМА · ДО КОНЦА 2026</p>
 <p style="margin-top:0;margin-right:0;margin-bottom:14px;margin-left:0;font-family:Arial,Helvetica,sans-serif;font-size:34px;line-height:37px;color:#ffffff;font-weight:800;">Спасибо за подписку.</p>
-<p style="margin-top:0;margin-right:0;margin-bottom:22px;margin-left:0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:24px;color:#dce7e2;">Сезонная цена уже активна. На рекламные форматы Podslushano.nl действует скидка <strong style="font-size:16px;line-height:24px;color:#ffd99c;">−26%</strong> до 31 декабря 2026 года.</p>
+<p style="margin-top:0;margin-right:0;margin-bottom:22px;margin-left:0;font-family:Arial,Helvetica,sans-serif;font-size:16px;line-height:24px;color:#dce7e2;">Сезонная цена уже активна. На рекламные форматы podslushano.nl действует скидка <strong style="font-size:16px;line-height:24px;color:#ffd99c;">−26%</strong> до 31 декабря 2026 года.</p>
 <table cellpadding="0" cellspacing="0" border="0"><tr><td bgcolor="#fff4df" style="background-color:#fff4df;border-radius:999px;padding-top:12px;padding-right:20px;padding-bottom:12px;padding-left:20px;"><a href="{ads_url}" style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:18px;color:#183a31;font-weight:700;text-decoration:none;display:inline-block;">Выбрать рекламный формат →</a></td></tr></table>
 </td></tr>
 <tr><td bgcolor="#fffdf8" style="background-color:#fffdf8;padding-top:26px;padding-right:28px;padding-bottom:12px;padding-left:28px;">
@@ -122,7 +122,7 @@ def _welcome_email_html(base_url: str, unsubscribe_url: str) -> str:
 <tr><td bgcolor="#f3eee5" style="background-color:#f3eee5;border-radius:14px;padding-top:13px;padding-right:15px;padding-bottom:13px;padding-left:15px;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:19px;color:#514d47;"><strong style="font-size:13px;line-height:19px;color:#19211e;">Что дальше?</strong><br>Когда появится подходящий повод для рекламы, просто откройте страницу — скидка будет привязана к вашей подписке.</td></tr>
 </table>
 </td></tr>
-<tr><td bgcolor="#fffdf8" style="background-color:#fffdf8;padding-top:16px;padding-right:28px;padding-bottom:28px;padding-left:28px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:17px;color:#777168;">Вы получили это письмо после подписки на рекламные обновления Podslushano.nl. <a href="{unsubscribe}" style="font-size:11px;line-height:17px;color:#713b36;text-decoration:underline;">Отписаться</a></td></tr>
+<tr><td bgcolor="#fffdf8" style="background-color:#fffdf8;padding-top:16px;padding-right:28px;padding-bottom:28px;padding-left:28px;font-family:Arial,Helvetica,sans-serif;font-size:11px;line-height:17px;color:#777168;">Вы получили это письмо после подписки на рекламные обновления podslushano.nl. <a href="{unsubscribe}" style="font-size:11px;line-height:17px;color:#713b36;text-decoration:underline;">Отписаться</a></td></tr>
 </table>
 </td></tr>
 </table>
@@ -132,7 +132,7 @@ def _welcome_email_html(base_url: str, unsubscribe_url: str) -> str:
 
 def _welcome_email_text(base_url: str, unsubscribe_url: str) -> str:
     return (
-        "Спасибо за подписку на рекламные обновления Podslushano.nl.\n\n"
+        "Спасибо за подписку на рекламные обновления podslushano.nl.\n\n"
         "Скидка −26% на рекламные форматы активна до 31 декабря 2026 года.\n"
         f"Выбрать формат: {base_url.rstrip('/')}/ads\n\n"
         "Обычно мы отправляем одно письмо в начале месяца: новые форматы, "
@@ -156,7 +156,7 @@ async def _send_welcome_email(email: str, base_url: str) -> bool:
     payload = {
         "from": _newsletter_from(),
         "to": [email],
-        "subject": "Ваша скидка −26% активна — Podslushano.nl",
+        "subject": "Ваша скидка −26% активна — podslushano.nl",
         "html": _welcome_email_html(base_url, unsubscribe_url),
         "text": _welcome_email_text(base_url, unsubscribe_url),
         "headers": {"List-Unsubscribe": f"<{unsubscribe_url}>"},

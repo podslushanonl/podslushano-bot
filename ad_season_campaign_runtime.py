@@ -277,11 +277,11 @@ def _unsubscribe_page(token: str, *, error: str = "") -> str:
     )
     return f"""<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Отписаться — Podslushano.nl</title><style>
+<title>Отписаться — podslushano.nl</title><style>
 body{{margin:0;background:#f3eee5;color:#19211e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;display:grid;place-items:center;min-height:100vh;padding:18px}}
 .card{{width:min(480px,100%);background:#fffdf8;border:1px solid #d8ccba;border-radius:22px;padding:26px;box-shadow:0 18px 56px rgba(45,37,25,.10)}}
 h1{{font-size:30px;line-height:1;margin:0 0 12px}}p{{color:#5d5851;line-height:1.5}}button{{border:0;border-radius:999px;padding:13px 18px;background:#183a31;color:#fff;font-weight:800;cursor:pointer}}
-</style></head><body><main class="card"><h1>Отписаться от рассылки?</h1><p>После отписки мы больше не будем отправлять рекламные обновления Podslushano.nl на этот e-mail. Подписаться снова можно будет позже.</p>{notice}<form method="post" action="/ads-newsletter/unsubscribe"><input type="hidden" name="token" value="{safe_token}"><button type="submit">Да, отписаться</button></form></main></body></html>"""
+</style></head><body><main class="card"><h1>Отписаться от рассылки?</h1><p>После отписки мы больше не будем отправлять рекламные обновления podslushano.nl на этот e-mail. Подписаться снова можно будет позже.</p>{notice}<form method="post" action="/ads-newsletter/unsubscribe"><input type="hidden" name="token" value="{safe_token}"><button type="submit">Да, отписаться</button></form></main></body></html>"""
 
 
 async def newsletter_unsubscribe_page(request: web.Request) -> web.Response:
@@ -324,7 +324,7 @@ async def newsletter_unsubscribe(request: web.Request) -> web.Response:
             await session.commit()
 
     return web.Response(
-        text="""<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Вы отписаны — Podslushano.nl</title><style>body{margin:0;background:#f3eee5;color:#19211e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;display:grid;place-items:center;min-height:100vh;padding:18px}.card{width:min(480px,100%);background:#fffdf8;border:1px solid #d8ccba;border-radius:22px;padding:26px;box-shadow:0 18px 56px rgba(45,37,25,.10)}h1{font-size:30px;line-height:1;margin:0 0 12px}p{color:#5d5851;line-height:1.5}</style></head><body><main class="card"><h1>Вы отписались</h1><p>Рекламные обновления Podslushano.nl больше не будут приходить на этот e-mail.</p></main></body></html>""",
+        text="""<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Вы отписаны — podslushano.nl</title><style>body{margin:0;background:#f3eee5;color:#19211e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;display:grid;place-items:center;min-height:100vh;padding:18px}.card{width:min(480px,100%);background:#fffdf8;border:1px solid #d8ccba;border-radius:22px;padding:26px;box-shadow:0 18px 56px rgba(45,37,25,.10)}h1{font-size:30px;line-height:1;margin:0 0 12px}p{color:#5d5851;line-height:1.5}</style></head><body><main class="card"><h1>Вы отписались</h1><p>Рекламные обновления podslushano.nl больше не будут приходить на этот e-mail.</p></main></body></html>""",
         content_type="text/html",
         headers={"Cache-Control": "no-store"},
     )

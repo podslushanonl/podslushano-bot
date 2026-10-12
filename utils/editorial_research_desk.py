@@ -1,4 +1,4 @@
-"""Interactive editorial radar for the private Podslushano.nl newsroom.
+"""Interactive editorial radar for the private podslushano.nl newsroom.
 
 Each search result is a separate, scannable Telegram card. Editorial choices
 are persisted and become feedback for later searches. Nothing is published to
@@ -230,7 +230,7 @@ async def _generate_digest(stream: ResearchStream) -> dict | None:
     exclusions = " | ".join((recent + published)[:24]) or "нет"
     feedback = await _feedback_prompt()
     system = (
-        "Ты — требовательный выпускающий редактор Podslushano.nl, локального русскоязычного медиа "
+        "Ты — требовательный выпускающий редактор podslushano.nl, локального русскоязычного медиа "
         "о Нидерландах. Проведи свежий веб-поиск. " + stream.instructions + "\n\n" + _QUALITY_RULES
     )
     user = (
@@ -502,7 +502,7 @@ async def _develop(idea: dict, mode: str) -> str | None:
         task = (f"Подготовь практичное редакционное ТЗ для {_FORMAT_LABELS[mode]}: главный хук, логичная структура, "
                 "факты и доказательства для каждого блока, конкретные визуальные материалы, финальный вопрос или CTA. Не пиши готовую публикацию.")
     result = await editorial._generate(
-        "Ты — выпускающий редактор Podslushano.nl. Пиши по-русски, конкретно, без канцелярита и ИИ-штампов.",
+        "Ты — выпускающий редактор podslushano.nl. Пиши по-русски, конкретно, без канцелярита и ИИ-штампов.",
         task + "\n\nКарточка темы:\n" + json.dumps(idea, ensure_ascii=False), [], 1700)
     return result[0] if result else None
 

@@ -38,7 +38,7 @@ BOT_URL: str = os.getenv("BOT_URL", "https://t.me/podslushano_nl_bot")
 LOGO_URL: str = os.getenv("LOGO_URL", "")
 
 # Реквизиты компании (для юридических страниц)
-COMPANY_NAME: str = os.getenv("COMPANY_NAME", "Podslushano.nl")
+COMPANY_NAME: str = os.getenv("COMPANY_NAME", "podslushano.nl")
 COMPANY_EMAIL: str = os.getenv("COMPANY_EMAIL", "podslushano.nl@gmail.com")
 COMPANY_KVK: str = os.getenv("COMPANY_KVK", "98882317")
 COMPANY_BTW: str = os.getenv("COMPANY_BTW", "NL005359099B74")
@@ -144,7 +144,7 @@ except ValueError:
 # Ссылка на ваш стикерпак, например https://t.me/addstickers/ВашПак
 # Если задана — в меню появляется кнопка «🎨 Наши стикеры» с этой ссылкой.
 # Если пусто — кнопки просто нет, всё остальное работает.
-STICKER_PACK_URL: str = os.getenv("STICKER_PACK_URL", "")
+STICKER_PACK_URL: str = os.getenv("STICKER_PACK_URL", "https://t.me/addstickers/Podslushanonl")
 
 # --- Платное само-добавление в гайд (Mollie) --------------------------------
 # Ключ Mollie (test_... или live_...). Без него платный поток выключен.
@@ -170,7 +170,7 @@ LISTING_PRICE_YEAR_PREMIUM: str = os.getenv("LISTING_PRICE_YEAR_PREMIUM", "199.0
 # Лояльный тариф для «старожилов» — карточек из старого бессрочного контакт-гайда
 LISTING_PRICE_MONTH_LEGACY: str = os.getenv("LISTING_PRICE_MONTH_LEGACY", "4.99")
 LISTING_PRICE_YEAR_LEGACY: str = os.getenv("LISTING_PRICE_YEAR_LEGACY", "29.00")
-# --- Allo Walks (разовая прогулка; ранее проданные абонементы продолжают жить) -
+# --- allowalks (разовая прогулка; ранее проданные абонементы продолжают жить) -
 # Цены строкой, как требует Mollie. С BTW 21% внутри.
 ALLO_PRICE_SINGLE: str = os.getenv("ALLO_PRICE_SINGLE", "35.00")
 ALLO_PRICE_PASS: str = os.getenv("ALLO_PRICE_PASS", "90.00")

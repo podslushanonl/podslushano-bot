@@ -41,7 +41,7 @@ router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 # Описание платежа (видно в Mollie/банке) — на нидерландском
-DESC = "Plaatsing evenement in Podslushano-afisha"
+DESC = "Plaatsing evenement in podslushano.nl-afisha"
 
 ONLINE_WORDS = {"онлайн", "online", "по всей стране", "вся страна"}
 
@@ -482,7 +482,7 @@ async def on_afisha_payment_paid(bot, payment_id: str, payment: dict) -> None:
     if inv_email:
         try:
             from utils.invoices import send_invoice
-            desc = f"Plaatsing evenement '{title}' in Podslushano-afisha ({_month_label(month_key)})"
+            desc = f"Plaatsing evenement '{title}' in podslushano.nl-afisha ({_month_label(month_key)})"
             ok, _ = await send_invoice(inv_email, title, desc, config.AFISHA_PRICE)
         except Exception as e:  # noqa: BLE001
             ok = False

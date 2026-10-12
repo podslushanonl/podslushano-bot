@@ -5,7 +5,7 @@ import logging
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
-from aiogram.types import BotCommand, BotCommandScopeChat
+from aiogram.types import BotCommand, BotCommandScopeChat, BotCommandScopeDefault
 
 import config
 import ad_products_runtime  # noqa: F401 — регистрирует канонические продукты /ads
@@ -17,7 +17,7 @@ from database.db import init_db
 from handlers import (
     ad_crm, ad_sales_pipeline, admin, admin_center, ads, afisha, ai_sales, allo, anonymous_questions,
     board, cabinet, chat, comment_copilot, contacts, content, digest, errors, events, guides, home,
-    invoice_admin, letters, moderation, notifications, salary, selfadd, share, spotlight, start, stories,
+    invoice_admin, letters, menu, moderation, notifications, salary, selfadd, share, spotlight, start, stories,
     submissions, support, tax_guide, cabinet_web,
 )
 from handlers import anonymous_replies
@@ -37,6 +37,8 @@ from utils.site_news import site_news_loop
 from utils.ns_alerts import ns_alerts_loop, router as ns_alerts_router
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
 from utils.limits import ThrottleMiddleware
+from utils.nav_guard import NavigationGuard
+from utils import inbox
 from utils.users import RegisterUserMiddleware
 from utils.ad_calendar import calendar_sync_loop
 from utils.ad_reminders import ad_reminder_loop
@@ -47,55 +49,31 @@ from utils.crm_bridge import crm_sync_loop
 
 async def configure_profile(bot: Bot) -> None:
     try:
-        await bot.set_my_commands([
-            BotCommand(command="start", description="Запустить бота и открыть меню"),
-            BotCommand(command="menu", description="Показать меню"),
+        # Пользователям — три команды, всё остальное в карточке меню. Старые команды
+        # (/guide, /board, /salary…) продолжают работать, просто не висят в списке.
+        user_commands = [
+            BotCommand(command="start", description="Начать и открыть меню"),
+            BotCommand(command="menu", description="Меню: все разделы"),
             BotCommand(command="help", description="Что я умею"),
-            BotCommand(command="guide", description="Полезное о жизни в Нидерландах"),
-            BotCommand(command="trains", description="Поезда NS: уведомления о сбоях"),
-            BotCommand(command="afisha", description="Чем заняться: афиша и идеи 🎉"),
-            BotCommand(command="digest", description="Настроить подборку на выходные 🔔"),
-            BotCommand(command="my", description="Мой Podslushano: профиль и сохранённое"),
-            BotCommand(command="notifications", description="Настроить личные уведомления"),
-            BotCommand(command="afisha_add", description="Разместить мероприятие в афише 📅"),
-            BotCommand(command="board", description="Доска объявлений 📋"),
-            BotCommand(command="letter", description="Разобрать письмо по фото"),
-            BotCommand(command="salary", description="Калькулятор netto-зарплаты"),
-            BotCommand(command="share", description="Поделиться ботом с друзьями"),
-            BotCommand(command="contact", description="Связаться с нами / поддержка"),
-            BotCommand(command="report", description="Сообщить об ошибке 🐞"),
-            BotCommand(command="privacy", description="Конфиденциальность и условия"),
-        ])
-        await bot.set_my_short_description("Помощник сообщества «Подслушано в Нидерландах»: ответы о жизни в NL, поиск специалистов, истории и вопросы.")
-        await bot.set_my_description(
-            "«Подслушано в Нидерландах» 🇳🇱 — бот-помощник для русскоязычных жителей Нидерландов.\n\n"
-            "Что я умею:\n• Отвечаю на вопросы о жизни в NL: BSN, DigiD, налоги, жильё, медицина, транспорт\n"
-            "• Найду специалиста из проверенного гайда\n• Приму историю, вопрос, видео или заявку на рекламу\n\n"
-            f"Сайт сообщества: {config.SITE_URL}\n\nНажми «Запустить», чтобы начать 👇"
-        )
+        ]
+        await bot.set_my_commands(user_commands, scope=BotCommandScopeDefault())
+        admin_commands = user_commands + [
+            BotCommand(command="admin", description="Админ-центр: все функции кнопками"),
+            BotCommand(command="inbox", description="Подключить инбокс (в группе с темами)"),
+        ]
         for admin_id in config.ADMIN_IDS:
             try:
-                await bot.set_my_commands([
-                    BotCommand(command="start", description="Запустить бота и открыть меню"),
-                    BotCommand(command="menu", description="Показать меню"),
-                    BotCommand(command="admin", description="Открыть Админ-центр"),
-                    BotCommand(command="channels", description="Каналы для ручных публикаций"),
-                    BotCommand(command="circle", description="Опубликовать видео-кружок"),
-                    BotCommand(command="alexquestions", description="Анонимные вопросы Алексу"),
-                    BotCommand(command="alexchannel", description="Подключить личный канал для ответов"),
-                    BotCommand(command="contentplan", description="Контент-план канала"),
-                    BotCommand(command="editorialpreview", description="Предпросмотр редакционных постов"),
-                    BotCommand(command="ideas", description="Редакционный радар инфоповодов"),
-                    BotCommand(command="comments", description="Ответы на комментарии"),
-                    BotCommand(command="adleads", description="CRM рекламных заявок"),
-                    BotCommand(command="adcalendar", description="Проверить календарь рекламы"),
-                    BotCommand(command="gmailconnect", description="Подключить Gmail для материалов"),
-                    BotCommand(command="invoices", description="Скачать архив фактур"),
-                    BotCommand(command="amreviews", description="Отзывы AM Projects: публикация и удаление"),
-                    BotCommand(command="contact", description="Связаться с нами / поддержка"),
-                ], scope=BotCommandScopeChat(chat_id=admin_id))
-            except Exception:
-                pass
+                await bot.set_my_commands(admin_commands, scope=BotCommandScopeChat(chat_id=admin_id))
+            except Exception as e:  # noqa: BLE001 — админ мог ещё не писать боту
+                logging.info("Команды админа %s не выставлены: %s", admin_id, e)
+        await bot.set_my_short_description("Помощник сообщества podslushano.nl: ответы о жизни в Нидерландах, поиск специалистов, истории и вопросы.")
+        await bot.set_my_description(
+            "podslushano.nl 🇳🇱 — бот-помощник для русскоязычных жителей Нидерландов.\n\n"
+            "Что я умею:\n• Отвечаю на вопросы о жизни в Нидерландах: BSN, DigiD, налоги, жильё, медицина, транспорт\n"
+            "• Найду специалиста из проверенного гайда\n• Афиша, объявления, поезда NS и полезные гайды\n"
+            "• Приму историю, вопрос, видео или заявку на рекламу\n\n"
+            f"Сайт сообщества: {config.SITE_URL}\n\nНажми «Запустить», чтобы начать 👇"
+        )
     except Exception as e:
         logging.warning("Не удалось настроить профиль бота: %s", e)
 
@@ -121,11 +99,16 @@ async def main() -> None:
     install_editorial_overrides()
     bot = Bot(token=config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
+    # Уведомления админам — в группу-инбокс с темами (если подключена командой /inbox)
+    inbox.install(bot, dp)
+    # Кнопки меню и /start, /menu, /help, /cancel всегда прерывают незаконченную анкету
+    dp.message.outer_middleware(NavigationGuard())
     dp.message.middleware(ThrottleMiddleware())
     dp.message.middleware(RegisterUserMiddleware())
     dp.callback_query.middleware(RegisterUserMiddleware())
     await configure_profile(bot)
 
+    dp.include_router(inbox.router)
     dp.include_router(am_reviews.router)
     dp.include_router(stories.router)
     dp.include_router(tax_guide.router)
@@ -134,6 +117,7 @@ async def main() -> None:
     dp.include_router(anonymous_replies.router)
     dp.include_router(anonymous_questions.router)
     dp.include_router(ns_alerts_router)
+    dp.include_router(menu.router)
     dp.include_router(start.router)
     dp.include_router(guides.router)
     dp.include_router(events.router)

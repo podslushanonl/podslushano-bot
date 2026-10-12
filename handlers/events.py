@@ -32,7 +32,7 @@ from states.forms import EventsSearch
 from utils.ai import ai_enabled, ai_event_cards, ai_event_search_places
 from utils.analytics import log_event
 from utils.limits import allow_ai
-from utils.season import EVENTS_LABEL_CORE, current_season
+from utils.season import current_season
 from utils.webpage import fetch_page_image
 
 log = logging.getLogger(__name__)
@@ -94,8 +94,12 @@ def _cities_kb() -> InlineKeyboardMarkup:
 
 
 def _is_events_button(message: Message) -> bool:
-    """Кнопка меню «☀️/🍂/❄️/🌷 Чем заняться» — эмодзи меняется по сезону."""
-    return bool(message.text) and message.text.endswith(EVENTS_LABEL_CORE)
+    """Кнопка меню «☀️/🍂/❄️/🌷 Афиша» — эмодзи меняется по сезону.
+
+    Сравниваем целиком: вопрос, который просто заканчивается словом «Афиша», идёт к ИИ.
+    """
+    from keyboards.menus import EVENTS_BUTTON_TEXTS
+    return (message.text or "").strip() in EVENTS_BUTTON_TEXTS
 
 
 @router.message(Command("afisha", "events"))
@@ -113,10 +117,10 @@ async def events_start(message: Message, state: FSMContext) -> None:
     walks = config.available_allo_walks()
     if walks:
         rows.insert(0, [InlineKeyboardButton(
-            text=f"🚶 Allo Walks · {walks[0]['date'].split(' · ')[0]}",
+            text=f"🚶 allowalks · {walks[0]['date'].split(' · ')[0]}",
             callback_data="ev_allo")])
     kb = InlineKeyboardMarkup(inline_keyboard=rows)
-    allo_line = ("🚶 <b>Allo Walks</b> — прогулки для знакомств и общения.\n"
+    allo_line = ("🚶 <b>allowalks</b> — прогулки для знакомств и общения.\n"
                  if walks else "")
     text = (
         f"{s['emoji']} <b>Афиша Нидерландов</b>\n\n"
@@ -138,7 +142,7 @@ async def events_allo(callback: CallbackQuery, state: FSMContext) -> None:
     from handlers.allo import show_allo
 
     await callback.answer()
-    await show_allo(callback.message, state, with_photos=True)
+    await show_allo(callback.message, state, with_photos=True, user_id=callback.from_user.id)
 
 
 def _ticket_url(ev: EventListing) -> str | None:
@@ -281,7 +285,7 @@ async def events_search(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     if not ai_enabled():
         await callback.message.answer(
-            "Поиск событий сейчас недоступен 🙏 Загляни в «📅 Афиша месяца» — "
+            "Поиск событий сейчас недоступен 🙏 Загляни в «📅 Афиша» в меню — "
             "там наши мероприятия.",
             reply_markup=main_menu(),
         )

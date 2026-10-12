@@ -1,4 +1,4 @@
-"""Публичная витрина Allo Walks: каталог, лист ожидания и подготовка оплаты."""
+"""Публичная витрина allowalks: каталог, лист ожидания и подготовка оплаты."""
 from __future__ import annotations
 
 import html
@@ -46,7 +46,7 @@ async def waitlist(request: web.Request) -> web.Response:
                                 email=email, status="waitlist", agreed=True))
         await session.commit()
     bot = request.app["bot"]
-    message = (f"✨ <b>Новый лист ожидания Allo Walks</b>\n\n"
+    message = (f"✨ <b>Новый лист ожидания allowalks</b>\n\n"
                f"{_safe(walk['title'])}\n{_safe(name)} · {_safe(email)}"
                f"\nTelegram: @{_safe(telegram) if telegram else '—'}")
     for admin_id in config.ADMIN_IDS:
@@ -90,7 +90,7 @@ async def book(request: web.Request) -> web.Response:
         await session.refresh(booking)
         bid = booking.id
     payment = await create_payment(
-        f"Allo Walks: {walk['title']}",
+        f"allowalks: {walk['title']}",
         {"kind": "allo", "source": "website", "walk": key, "plan": "single",
          "booking_id": bid, "user_id": 0, "email": email}, amount, method="ideal")
     if not payment or not payment.get("checkout_url"):

@@ -29,7 +29,7 @@ TAX_POST_TEXT = (
     "Все суммы в гайде — на 2026 год. Мы опирались на официальные источники. Это информационный "
     "разбор, а не индивидуальная налоговая консультация.\n\n"
     "Гайд можно скачать бесплатно по кнопке ниже 👇\n\n"
-    "Если такие разборы вам полезны, их можно поддержать — это помогает нам делать больше подобных материалов."
+    "Если такие разборы вам полезны, можно сделать вклад в развитие — это помогает нам делать больше подобных материалов."
 )
 
 
@@ -49,7 +49,7 @@ def _final_keyboard(bot_username: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [
             InlineKeyboardButton(text="📚 Ещё разборы", url=INSTAGRAM_URL),
-            InlineKeyboardButton(text="❤️ Поддержать разборы", url=TIKKIE_URL),
+            InlineKeyboardButton(text="❤️ Вклад в развитие", url=TIKKIE_URL),
         ],
         [
             InlineKeyboardButton(

@@ -189,7 +189,7 @@ def _cities_kb(cat: str) -> InlineKeyboardMarkup:
 async def ask_query(message: Message, state: FSMContext) -> None:
     await state.set_state(ContactSearch.waiting_for_query)
     await message.answer(
-        "Кого ищем? Напиши словами — например «стоматолог в Амстердаме» — "
+        "Кого ищем? Напиши словами — например «стоматолог в Amsterdam» — "
         "или выбери из категорий ниже 👇",
         reply_markup=cancel_menu(),
     )
@@ -597,7 +597,7 @@ async def process_query(message: Message, state: FSMContext, text: str) -> None:
         await state.set_state(ContactSearch.waiting_for_query)
         await message.answer(
             "Хм, я не совсем понял, кто нужен 🤔 Напиши профессию и город — "
-            "например: <i>«юрист в Роттердаме»</i>, <i>«фотограф в Гааге»</i>, "
+            "например: <i>«юрист в Rotterdam»</i>, <i>«фотограф в Den Haag»</i>, "
             "<i>«репетитор по математике»</i> — и я поищу.",
             reply_markup=feedback_kb(),
         )

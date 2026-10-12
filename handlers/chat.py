@@ -80,7 +80,7 @@ BYE_REPLIES = [
 WHAT_TO_DO_KB = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="❓ Это вопрос — отправить в предложку", callback_data="chat:question")],
-        [InlineKeyboardButton(text="📰 Это история — опубликуйте анонимно", callback_data="chat:story")],
+        [InlineKeyboardButton(text="📰 Это история — отправить в предложку", callback_data="chat:story")],
         [InlineKeyboardButton(text="📋 Ничего, просто покажи меню", callback_data="chat:menu")],
     ]
 )
@@ -248,7 +248,7 @@ async def free_media(message: Message, state: FSMContext) -> None:
             text="📩 Объяснить письмо (по-русски)", callback_data="letter:explain")])
     if is_video:
         rows.append([InlineKeyboardButton(text="🎬 Да, это видео в предложку", callback_data="chat:video")])
-    rows.append([InlineKeyboardButton(text="📰 Это к истории — анонимно", callback_data="chat:story")])
+    rows.append([InlineKeyboardButton(text="📰 Это к истории", callback_data="chat:story")])
     rows.append([InlineKeyboardButton(text="❌ Ничего, я случайно", callback_data="chat:menu")])
     await message.answer(prompt, reply_markup=InlineKeyboardMarkup(inline_keyboard=rows))
 
@@ -258,7 +258,7 @@ async def anything_else(message: Message) -> None:
     """Стикеры, голосовые и прочее — отвечаем тепло, а не сухо."""
     if message.sticker:
         reply = random.choice([
-            "Классный стикер! 😄 А по делу — задай вопрос о жизни в NL или выбери пункт меню 👇",
+            "Классный стикер! 😄 А по делу — задай вопрос о жизни в Нидерландах или выбери пункт меню 👇",
             "Принял стикер 😎 Чем могу помочь? Напиши вопрос или загляни в меню 👇",
         ])
     elif message.voice or message.video_note or message.audio:
@@ -283,9 +283,8 @@ async def chat_action(callback: CallbackQuery, state: FSMContext) -> None:
 
     if action == "menu":
         await callback.message.edit_reply_markup(reply_markup=None)
-        await callback.message.answer(
-            "Хорошо! Вот меню — выбирай 👇", reply_markup=main_menu()
-        )
+        from handlers.menu import send_card
+        await send_card(callback.message)
         await callback.answer()
         return
 
@@ -321,6 +320,14 @@ async def chat_action(callback: CallbackQuery, state: FSMContext) -> None:
                 reply_markup=cancel_menu(),
             )
         await callback.message.edit_reply_markup(reply_markup=None)
+        await callback.answer()
+        return
+
+    if action == "story":
+        # Истории идут через общую анкету: подпись или анонимно, проверка длины, предпросмотр
+        from handlers.stories import start_story_flow
+        await callback.message.edit_reply_markup(reply_markup=None)
+        await start_story_flow(callback.message, state, prefill=text, file_id=file_id, file_type=file_type)
         await callback.answer()
         return
 

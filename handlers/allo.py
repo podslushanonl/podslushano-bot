@@ -1,4 +1,4 @@
-"""Allo Walks — запись и оплата прогулок через бота.
+"""allowalks — запись и оплата прогулок через бота.
 
 Сейчас продаётся разовая прогулка. Ранее купленные абонементы продолжают
 работать как кредиты до конца срока. Оплата — через общий webhook (kind="allo").
@@ -58,9 +58,9 @@ async def _send_intro_photos(message: Message) -> None:
 
 
 ALLO_INTRO = (
-    "🚶 <b>Allo Walks</b> — прогулки для своих 🇳🇱\n\n"
+    "🚶 <b>allowalks</b> — прогулки для своих 🇳🇱\n\n"
     "Знакомое чувство: живёшь в Нидерландах, а познакомиться толком не с кем? "
-    "Allo Walks — как раз про это. Мы собираемся небольшой компанией и идём "
+    "allowalks — как раз про это. Мы собираемся небольшой компанией и идём "
     "спокойным темпом по красивым местам страны — дюны, реки, старые города и "
     "каналы.\n\n"
     "Без спешки и «галопом по Европам». Идём, разговариваем, знакомимся — и "
@@ -69,13 +69,13 @@ ALLO_INTRO = (
     "Это не экскурсия с гидом и не спортивный поход. Это тёплая прогулка со "
     "своими: маленькая группа до {cap} человек, продуманный маршрут и живое "
     "общение. Многие приходят одни — а уходят уже с новыми знакомыми.\n\n"
-    "💶 <b>€{single}</b> за прогулку · оплата через iDEAL\n\n"
+    "💶 <b>€{single}</b> за прогулку · онлайн-оплата\n\n"
     "Выбери дату ниже 👇\n"
     "А чтобы разобраться подробнее — «ℹ️ Как это работает» и «💬 Отзывы»."
 )
 
 ALLO_ABOUT = (
-    "ℹ️ <b>Как проходит прогулка Allo Walks</b>\n\n"
+    "ℹ️ <b>Как проходит прогулка allowalks</b>\n\n"
     "📍 <b>Встреча.</b> Собираемся у станции — точное место и время указаны в "
     "карточке каждой прогулки. Приезжаешь на поезде, через 10–15 минут уже идём.\n\n"
     "🚶 <b>Маршрут.</b> Продуманный маршрут в спокойном темпе. Подстраиваемся под "
@@ -90,7 +90,7 @@ ALLO_ABOUT = (
     "тёплая компания своих, с которой не хочется расходиться. Ты приходишь на "
     "готовое: не нужно ничего планировать, просто приезжай и наслаждайся.\n\n"
     "🎒 <b>Что взять:</b> удобную обувь, воду и одежду по погоде.\n\n"
-    "Как оплатить: выбираешь дату → принимаешь правила → оплата через iDEAL → "
+    "Как оплатить: выбираешь дату → принимаешь правила → онлайн-оплата → "
     "получаешь подтверждение и ссылку на чат участников."
 )
 
@@ -109,13 +109,13 @@ ALLO_REVIEWS = (
 )
 
 ALLO_TERMS = (
-    "📜 <b>Правила Allo Walks</b>\n\n"
-    "<b>1. Организатор и предмет.</b> Прогулки Allo Walks организует {company} "
+    "📜 <b>Правила allowalks</b>\n\n"
+    "<b>1. Организатор и предмет.</b> Прогулки allowalks организует {company} "
     "(KVK {kvk}). Настоящие Правила регулируют условия участия. Совершая оплату, "
     "участник подтверждает согласие с ними.\n\n"
     "<b>2. Стоимость и оплата.</b> Стоимость участия составляет €{single} за одну "
     "прогулку. Цена включает BTW "
-    "21%. Оплата производится через сервис Mollie. Место закрепляется за участником "
+    "21%. Оплата производится онлайн через платёжный сервис. Место закрепляется за участником "
     "после поступления оплаты. Число мест ограничено ({cap} участников на прогулку).\n\n"
     "<b>3. Ранее приобретённые абонементы.</b> Продажа новых абонементов временно "
     "приостановлена. Уже оплаченный абонемент сохраняет право на участие в {credits} "
@@ -328,7 +328,7 @@ async def _maybe_earn_referral(bot, referred_uid: int) -> None:
     try:
         await bot.send_message(
             referrer,
-            f"🎉 Твой друг записался на Allo Walks — тебе бонус "
+            f"🎉 Твой друг записался на allowalks — тебе бонус "
             f"<b>+€{config.ALLO_REFERRAL_BONUS}</b>!\nНакоплено: <b>€{total}</b> — "
             "спишутся автоматически при следующей оплате прогулки.")
     except Exception:  # noqa: BLE001
@@ -374,7 +374,7 @@ async def _settle_credits(session, booking_id: int, paid: bool) -> None:
         await session.commit()
 
 
-# --- Экран Allo Walks --------------------------------------------------------
+# --- Экран allowalks --------------------------------------------------------
 
 def _short_date(w: dict) -> str:
     return w["date"].split(" · ")[0]
@@ -402,13 +402,14 @@ async def _user_paid_booking(session, uid: int, key: str) -> AlloBooking | None:
 
 
 async def show_allo(message: Message, state: FSMContext,
-                    with_photos: bool = False) -> None:
+                    with_photos: bool = False, user_id: int | None = None) -> None:
+    """user_id обязателен при вызове из кнопки: там message.from_user — это сам бот."""
     await state.clear()
     if not config.payments_enabled():
         await message.answer("Запись временно недоступна 🙏 Напиши нам через /contact.",
                              reply_markup=main_menu())
         return
-    uid = message.from_user.id
+    uid = user_id or message.from_user.id
     walks = config.available_allo_walks()
     async with get_session() as session:
         await _expire_stale_holds(session, uid)
@@ -419,7 +420,7 @@ async def show_allo(message: Message, state: FSMContext,
 
     if not walks:
         await message.answer(
-            "Сейчас нет открытых прогулок Allo Walks. Новые даты скоро появятся 🙌",
+            "Сейчас нет открытых прогулок allowalks. Новые даты скоро появятся 🙌",
             reply_markup=main_menu())
         return
 
@@ -442,7 +443,7 @@ async def show_allo(message: Message, state: FSMContext,
                                                   callback_data="allo:full")])
         rows.append([InlineKeyboardButton(text="📜 Правила", callback_data="allo:terms")])
         await message.answer(
-            f"🎟 <b>Твой абонемент Allo Walks</b>\nОсталось прогулок: "
+            f"🎟 <b>Твой абонемент allowalks</b>\nОсталось прогулок: "
             f"<b>{remaining} из {config.ALLO_PASS_CREDITS}</b> · действует до "
             f"{valid_until:%d.%m.%Y}\n\nВыбери прогулку — спишем одну из абонемента 👇",
             reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
@@ -488,7 +489,7 @@ async def cmd_allo(message: Message, state: FSMContext) -> None:
 @router.callback_query(F.data == "allo:menu")
 async def allo_menu(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
-    await show_allo(callback.message, state)
+    await show_allo(callback.message, state, user_id=callback.from_user.id)
 
 
 @router.callback_query(F.data == "allo:full")
@@ -561,7 +562,7 @@ async def _show_pending_payment(callback: CallbackQuery, key: str,
     rows = []
     if checkout:
         rows.append([InlineKeyboardButton(
-            text=f"Оплатить €{_p(booking.amount or config.ALLO_PRICE_SINGLE)} через iDEAL",
+            text=f"Оплатить €{_p(booking.amount or config.ALLO_PRICE_SINGLE)} ",
             url=checkout)])
     rows.append([InlineKeyboardButton(
         text="🔄 Отменить эту попытку и начать заново",
@@ -601,7 +602,7 @@ async def allo_restart(callback: CallbackQuery, state: FSMContext) -> None:
         await _cancel_pending(session, callback.from_user.id, key)
     await callback.message.answer(
         _walk_card(key) + f"\n\n💶 <b>€{_p(config.ALLO_PRICE_SINGLE)}</b> (с BTW). "
-        "Оплачивая, ты принимаешь Правила Allo Walks.",
+        "Оплачивая, ты принимаешь Правила allowalks.",
         reply_markup=_pick_kb(key), disable_web_page_preview=True)
     await callback.answer("Предыдущая попытка отменена")
 
@@ -627,7 +628,7 @@ async def allo_cancel_ask(callback: CallbackQuery) -> None:
         note = "После отмены прогулка вернётся в остаток твоего абонемента."
     elif refundable:
         note = ("Мы отправим администратору запрос на возврат оплаты. Деньги возвращаются "
-                "вручную через Mollie на тот же способ оплаты.")
+                "вручную на тот же способ оплаты.")
     else:
         note = ("До начала осталось менее 24 часов, поэтому по Правилам оплата или "
                 "прогулка из абонемента не возвращается.")
@@ -672,14 +673,14 @@ async def allo_cancel_ok(callback: CallbackQuery) -> None:
         result = "Участие отменено. Одна прогулка возвращена в твой абонемент ✅"
     elif refundable:
         result = ("Участие отменено. Запрос на возврат передан администратору ✅\n"
-                  "Мы напишем после оформления возврата через Mollie.")
+                  "Мы напишем после оформления возврата.")
     else:
         result = "Участие отменено. До начала менее 24 часов, возврат не предусмотрен."
     await callback.message.answer(result, reply_markup=main_menu())
     await callback.answer("Запись отменена")
     await _notify_admins(
         callback.bot,
-        f"❌ <b>Отмена Allo Walks</b>\n{_walk_title(key)}\n"
+        f"❌ <b>Отмена allowalks</b>\n{_walk_title(key)}\n"
         f"{first or ''} @{uname or '—'} · бронь #{bid}\n"
         + (f"Нужен ручной возврат Mollie: <code>{payment_id}</code>"
            if refundable and plan == "single" else
@@ -752,7 +753,7 @@ async def allo_move_ok(callback: CallbackQuery) -> None:
     await callback.answer("Перенос готов")
     await _notify_admins(
         callback.bot,
-        f"🔄 <b>Перенос Allo Walks</b>\n"
+        f"🔄 <b>Перенос allowalks</b>\n"
         f"@{callback.from_user.username or '—'} · бронь #{bid}\n"
         f"{_walk_title(old_key)} → {_walk_title(new_key)}")
 
@@ -814,7 +815,7 @@ def _walk_title(key: str) -> str:
 
 def _walk_card(key: str) -> str:
     w = config.allo_walk(key)
-    return (f"📅 <b>{w['date']}</b>\n<b>Allo Walks: {w['title']}</b>\n\n"
+    return (f"📅 <b>{w['date']}</b>\n<b>allowalks: {w['title']}</b>\n\n"
             f"📍 Сбор: {w['meet']}\n🏁 Финиш: {w['finish']}\n⏱ Длительность: {w['dur']}\n"
             f"👥 Группа: до {config.ALLO_WALK_CAPACITY} человек\n\n{w['desc']}")
 
@@ -905,7 +906,7 @@ async def allo_pick(callback: CallbackQuery, state: FSMContext) -> None:
         # Абонемент больше не продаётся (цена была только для первых прогулок).
         await callback.answer("Абонемент сейчас не продаётся — выбери прогулку.",
                               show_alert=True)
-        await show_allo(callback.message, state)
+        await show_allo(callback.message, state, user_id=callback.from_user.id)
         return
     if not _available_walk(key):
         await callback.answer("Прогулка не найдена", show_alert=True)
@@ -918,11 +919,11 @@ async def allo_pick(callback: CallbackQuery, state: FSMContext) -> None:
         return
     if not free:
         await callback.answer("Мест уже нет 😔 Выбери другую дату.", show_alert=True)
-        await show_allo(callback.message, state)
+        await show_allo(callback.message, state, user_id=callback.from_user.id)
         return
     await callback.message.answer(
         _walk_card(key) + f"\n\n💶 <b>€{_p(config.ALLO_PRICE_SINGLE)}</b> (с BTW). "
-        "Оплачивая, ты принимаешь Правила Allo Walks.",
+        "Оплачивая, ты принимаешь Правила allowalks.",
         reply_markup=_pick_kb(key), disable_web_page_preview=True)
     await callback.answer()
 
@@ -933,11 +934,11 @@ async def allo_agree(callback: CallbackQuery, state: FSMContext) -> None:
     if key == "pass":
         await callback.answer("Абонемент сейчас не продаётся — выбери прогулку.",
                               show_alert=True)
-        await show_allo(callback.message, state)
+        await show_allo(callback.message, state, user_id=callback.from_user.id)
         return
     if not _available_walk(key):
         await callback.answer("Эта прогулка уже недоступна", show_alert=True)
-        await show_allo(callback.message, state)
+        await show_allo(callback.message, state, user_id=callback.from_user.id)
         return
     await state.set_state(AlloBook.waiting_email)
     await state.update_data(allo_walk=key)
@@ -994,7 +995,7 @@ async def allo_email(message: Message, state: FSMContext) -> None:
             session, message.from_user.id, amount, bid)
 
     payment = await create_payment(
-        f"Allo Walks: {_walk_title(key)}",
+        f"allowalks: {_walk_title(key)}",
         {"kind": "allo", "walk": key, "plan": plan,
          "booking_id": bid, "user_id": message.from_user.id, "email": email},
         pay_amount, method="ideal")
@@ -1018,10 +1019,10 @@ async def allo_email(message: Message, state: FSMContext) -> None:
     disc = f"\n🎁 Скидка за друзей: −€{discount}." if discount else ""
     await message.answer(
         f"К оплате: <b>€{_p(pay_amount)}</b> — {_walk_title(key)}.{disc}\n"
-        "Оплата через <b>iDEAL</b>. После оплаты пришлём подтверждение сюда и чек "
+        "Оплата онлайн. После оплаты пришлём подтверждение сюда и чек "
         "на e-mail. 👇",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
-            InlineKeyboardButton(text=f"Оплатить €{_p(pay_amount)} через iDEAL",
+            InlineKeyboardButton(text=f"Оплатить €{_p(pay_amount)} ",
                                  url=payment["checkout_url"])]]))
 
 
@@ -1029,7 +1030,7 @@ async def allo_email(message: Message, state: FSMContext) -> None:
 
 def _chat_invite() -> str:
     """Приглашение в общий чат участников — добавляем к подтверждению оплаты."""
-    return ("\n\n💬 <b>Чат участников Allo Walks</b> — здесь все, кто ходит с нами. "
+    return ("\n\n💬 <b>Чат участников allowalks</b> — здесь все, кто ходит с нами. "
             "Знакомимся, договариваемся о деталях и делимся фото после прогулок. "
             f"Заходи:\n{config.ALLO_CHAT_URL}")
 
@@ -1074,7 +1075,7 @@ async def allo_refund_done(callback: CallbackQuery) -> None:
     try:
         await callback.bot.send_message(
             uid,
-            f"✅ Возврат за Allo Walks оформлен.\n{_walk_title(key)}\n\n"
+            f"✅ Возврат за allowalks оформлен.\n{_walk_title(key)}\n\n"
             "Срок зачисления зависит от банка и способа оплаты.")
     except Exception:  # noqa: BLE001
         pass
@@ -1127,7 +1128,7 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
             except Exception:  # noqa: BLE001
                 pass
             await _notify_admins(
-                bot, f"⚠️ <b>Поздняя оплата Allo Walks — нужен возврат</b>\n"
+                bot, f"⚠️ <b>Поздняя оплата allowalks — нужен возврат</b>\n"
                 f"{_walk_title(key)}\n{first or ''} @{uname or '—'} · "
                 f"Mollie: <code>{payment_id}</code>",
                 reply_markup=_refund_done_kb(bid))
@@ -1148,11 +1149,11 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
     if plan == "pass":
         until = (datetime.utcnow()
                  + timedelta(days=config.ALLO_PASS_VALID_DAYS))
-        body = ("✅ <b>Абонемент Allo Walks активен!</b>\n\n"
+        body = ("✅ <b>Абонемент allowalks активен!</b>\n\n"
                 f"У тебя {config.ALLO_PASS_CREDITS} прогулки на выбор, действуют до "
                 f"{until:%d.%m.%Y}. 🌟 А ещё эти €{_p(amount or config.ALLO_PRICE_PASS)} "
                 "зачтутся в будущее членство закрытого клуба Allo — ты уже вложился.\n\n"
-                "Открой Allo Walks (кнопка «Подробнее» или /allo) и "
+                "Открой allowalks (кнопка «Подробнее» или /allo) и "
                 "выбери даты — за каждую спишется одна прогулка. До встречи! 🚶")
         body += _chat_invite()
     else:
@@ -1174,12 +1175,12 @@ async def on_allo_payment_paid(bot, payment_id: str, payment: dict) -> None:
             from utils.invoices import send_invoice
             paid = (payment.get("amount") or {}).get("value") or amount
             await send_invoice(email, first or "Гость",
-                               f"Allo Walks: {_walk_title(key)}", paid)
+                               f"allowalks: {_walk_title(key)}", paid)
         except Exception as e:  # noqa: BLE001
             log.warning("Счёт Allo не отправлен: %s", e)
 
     await _notify_admins(
-        bot, f"🚶 <b>Оплата Allo Walks</b>\n{_walk_title(key)}\n"
+        bot, f"🚶 <b>Оплата allowalks</b>\n{_walk_title(key)}\n"
              f"{first or ''} @{uname or '—'} · {email} · €{_p(amount or '')}")
 
 
@@ -1241,7 +1242,7 @@ async def cmd_alloopen(message: Message, state: FSMContext) -> None:
 async def cmd_allobookings(message: Message, state: FSMContext) -> None:
     await state.clear()
     async with get_session() as session:
-        lines = ["🚶 <b>Записи Allo Walks</b>"]
+        lines = ["🚶 <b>Записи allowalks</b>"]
         for w in config.ALLO_WALKS:
             taken = await _taken(session, w["key"])
             rows = (await session.scalars(

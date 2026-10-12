@@ -66,10 +66,13 @@ def test_import_bot() -> None:
     check("импорт bot без ошибок", True)
     check("прямая ссылка открывает добавление специалиста",
           config.specialist_add_url().endswith("?start=selfadd"))
-    from keyboards.menus import BTN_HOME, main_menu
+    from keyboards.menus import BTN_MENU, main_menu
+    from handlers.menu import card_kb
     labels = [button.text for row in main_menu().keyboard for button in row]
-    check("Мой Podslushano — первый пункт главного меню",
-          labels[0] == BTN_HOME)
+    check("внизу экрана одна кнопка «☰ Меню»", labels == [BTN_MENU])
+    card = [b.callback_data for row in card_kb().inline_keyboard for b in row]
+    check("в карточке меню есть «Мой podslushano.nl» и поиск специалиста",
+          "m:go:home" in card and "m:go:contacts" in card)
     from handlers.home import home_digest, home_profile
     check("профиль и подборка используют разные обработчики",
           home_profile is not home_digest)
@@ -565,7 +568,7 @@ def test_numr_campaign_page() -> None:
     check("NUMR package requires four publication dates",
           config.AD_FORMATS["numr_campaign"]["dates"] == 4)
     page = webserver._numr_campaign_html(set())
-    check("NUMR page has one fixed package and Mollie checkout",
+    check("NUMR page has one fixed package and checkout",
           "Campagne van 2 maanden" in page
           and "4 Reels · 12 Stories" in page
           and "één van de vier Reels wordt 3 dagen" in page
@@ -573,7 +576,7 @@ def test_numr_campaign_page() -> None:
           and "links naar de App Store en Google Play" in page
           and "toegang tot een testaccount (indien nodig)" in page
           and 'action="/ads/numr/book?lang=nl"' in page
-          and "Betaal €299 via Mollie" in page)
+          and "Betaal €299 →" in page)
     regular_page = webserver._ads_html(set())
     check("private NUMR offer is absent from the regular ads page",
           "numr_campaign" not in regular_page and "NUMR" not in regular_page)
