@@ -10,6 +10,9 @@ from zoneinfo import ZoneInfo
 from urllib.parse import urlsplit
 
 from sqlalchemy import select
+from aiogram import Router
+from aiogram.filters import Command
+from aiogram.types import Message
 
 import aiohttp
 
@@ -19,6 +22,40 @@ from database.models import AdBooking, Meta
 
 log = logging.getLogger(__name__)
 _lock = asyncio.Lock()
+router = Router()
+
+
+async def _record_sync_status(booking_id: int, state: str) -> None:
+    """Store only the latest result, never credentials or customer details."""
+    now = datetime.now(ZoneInfo("Europe/Amsterdam")).isoformat(timespec="seconds")
+    async with get_session() as session:
+        await session.merge(Meta(key="crm:last_sync", value=f"{now}|{booking_id}|{state}"))
+        await session.commit()
+
+
+@router.message(Command("crmstatus"))
+async def crm_status_command(message: Message) -> None:
+    if not message.from_user or message.from_user.id not in config.ADMIN_IDS:
+        return
+    async with get_session() as session:
+        marker = await session.get(Meta, "crm:last_sync")
+        reminder = (await session.scalars(
+            select(Meta).where(Meta.key.like("crm:reminders:%"))
+            .order_by(Meta.key.desc()).limit(1)
+        )).first()
+        count = (await session.scalars(
+            select(AdBooking.id).where(AdBooking.fmt != "closed")
+        )).all()
+    last = marker.value if marker else "Пока нет зарегистрированных результатов"
+    daily = f"{reminder.key} ({reminder.value})" if reminder else "Не зарегистрирована"
+    await message.answer(
+        "<b>CRM — диагностика</b>\n"
+        f"Настройка моста: {'есть' if crm_bridge_enabled() else 'неполная'}\n"
+        f"Броней для сверки: {len(count)}\n"
+        f"Последняя попытка: {last}\n"
+        f"Последняя ежедневная сводка: {daily}\n"
+        "Это состояние Railway-моста, не проверка содержимого закрытой CRM."
+    )
 
 
 def crm_bridge_enabled() -> bool:
@@ -85,6 +122,7 @@ async def _sync_booking(booking_id: int) -> bool:
         payment = await get_payment(booking.payment_id or "")
         if not payment or payment.get("status") != "paid" or not payment.get("paidAt"):
             log.warning("CRM sync awaits verified payment date for booking %s", booking_id)
+            await _record_sync_status(booking_id, "awaiting_verified_payment")
             return False
         payload["paid_at"] = payment["paidAt"]
 
@@ -101,16 +139,23 @@ async def _sync_booking(booking_id: int) -> bool:
             ) as response:
                 if response.status >= 300:
                     log.warning("CRM sync error %s for booking %s", response.status, booking_id)
+                    await _record_sync_status(booking_id, f"http_{response.status}")
                     return False
                 result = await response.json()
                 if not result.get("ok"):
+                    await _record_sync_status(booking_id, "response_not_ok")
                     return False
                 async with get_session() as db_session:
                     await db_session.merge(Meta(key=key, value=digest))
                     await db_session.commit()
+                await _record_sync_status(booking_id, "ok")
                 return True
     except Exception as exc:  # noqa: BLE001 — CRM не должна ломать оплату
         log.warning("CRM sync failed for ad booking %s: %s", booking_id, exc)
+        try:
+            await _record_sync_status(booking_id, "transport_error")
+        except Exception:
+            log.exception("CRM sync diagnostics could not be stored")
         return False
 
 
