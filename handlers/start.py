@@ -139,6 +139,11 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from handlers.content import open_content_destination
         if await open_content_destination(message, state, command.args):
             return
+    # С сайта: «Уведомления в Telegram» о сбоях NS на станции (?start=ns_<код>)
+    if command.args and command.args.startswith("ns_"):
+        from utils.ns_alerts import start_subscription
+        await start_subscription(message, command.args[3:])
+        return
     # Пришёл по кнопке «Задать свой вопрос» из поста-предложки — сразу открываем форму
     if command.args == "ask":
         from handlers.submissions import ask_question
