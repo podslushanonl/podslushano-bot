@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import re
 from datetime import datetime, time
 from zoneinfo import ZoneInfo
@@ -244,8 +245,16 @@ async def _run_once_if_due(bot, now: datetime) -> bool:
     return True
 
 
+def research_enabled() -> bool:
+    # Радар инфоповодов (платный веб-поиск каждое утро) выключен по умолчанию.
+    return os.getenv("EDITORIAL_RESEARCH_ENABLED", "0").strip().lower() in {"1", "true", "yes", "on"}
+
+
 async def editorial_research_loop(bot) -> None:
     """Check the clock cheaply; make at most one paid research attempt per day."""
+    if not research_enabled():
+        log.info("Радар инфоповодов выключен (EDITORIAL_RESEARCH_ENABLED=0)")
+        return
     await asyncio.sleep(20)
     while True:
         try:
