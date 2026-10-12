@@ -2012,8 +2012,13 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 /* small print: dates, sources, hints */
 .hint,.src,.note,figcaption,.na9 figcaption,.muted small{font-size:var(--t-small);line-height:1.45;color:var(--muted)}
 /* labels above titles */
-.eyebrow,.kick{font-size:var(--t-cap);font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent-deep)}
-.eyebrow .dot{background:var(--accent-deep)}
+.eyebrow,.kick{font-size:var(--t-cap);font-weight:700;letter-spacing:.09em;text-transform:uppercase}
+/* orange labels only on light backgrounds; on photos and dark cards they keep the card's own (white) text colour */
+.eyebrow{color:var(--accent-deep)}.eyebrow .dot{background:var(--accent-deep)}
+.kick{color:inherit}
+.slide .eyebrow,.bt-news .eyebrow,.dn .eyebrow,.dark .eyebrow,[class*="-dark"] .eyebrow{color:inherit}
+.slide .eyebrow .dot,.bt-news .eyebrow .dot,.dn .eyebrow .dot{background:currentColor}
+.na9 .kick{color:var(--muted)}
 /* article body: reading size, headings, quotes and lists */
 .artbody,#wpBody{max-width:720px}
 .artbody p,.artbody li,#wpBody p,#wpBody li{font-size:clamp(16.5px,1.3vw,18px);line-height:1.75;color:var(--ink-2);margin-bottom:14px}
