@@ -247,7 +247,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
     )
 
     if kind == "48h":
-        subject = f"Материалы для рекламы {date_raw} · Podslushano.nl"
+        subject = f"Материалы для рекламы {date_raw} · podslushano.nl"
         html_body = (
             f"<p>Здравствуйте, {client}!</p>"
             f"<p>Напоминаем о рекламном выходе <strong>{date_label}</strong>. Если материалы "
@@ -256,7 +256,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             f"{details_html}{send_html}"
             "<p>Если материалы уже у нас или мы уже обсуждаем их с вами, ничего дополнительно "
             "отправлять не нужно.</p>"
-            f"<p>Podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
+            f"<p>podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
         )
         text_body = (
             f"Здравствуйте, {client_raw}!\n\n"
@@ -266,7 +266,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             f"{details_text}\n\n{send_text}\n\n"
             "Если материалы уже у нас или мы уже обсуждаем их с вами, ничего дополнительно "
             "отправлять не нужно.\n\n"
-            f"Podslushano.nl · {support_raw}"
+            f"podslushano.nl · {support_raw}"
         )
     elif kind == "24h":
         subject = f"Напоминание о материалах · реклама {date_raw}"
@@ -280,7 +280,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             f"{send_html}"
             "<p>Если вы уже отправили материалы другим способом, достаточно ответить, где "
             "их найти — после этого автоматические напоминания остановятся.</p>"
-            f"<p>Podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
+            f"<p>podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
         )
         text_body = (
             f"Здравствуйте, {client_raw}!\n\n"
@@ -292,7 +292,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             f"{send_text}\n\n"
             "Если вы уже отправили материалы другим способом, достаточно ответить, где "
             "их найти — после этого автоматические напоминания остановятся.\n\n"
-            f"Podslushano.nl · {support_raw}"
+            f"podslushano.nl · {support_raw}"
         )
     else:
         subject = f"Материалы для сегодняшней рекламы · бронь №{booking.id}"
@@ -305,7 +305,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             "материалы либо напишите, где вы их уже отправили. Мы отдельно согласуем дальнейшие "
             "действия по сегодняшнему выходу.</p>"
             "<p>Это письмо само по себе не отменяет и не переносит размещение.</p>"
-            f"<p>Podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
+            f"<p>podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
         )
         text_body = (
             f"Здравствуйте, {client_raw}!\n\n"
@@ -316,7 +316,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             "либо напишите, где вы их уже отправили. Мы отдельно согласуем дальнейшие действия "
             "по сегодняшнему выходу.\n\n"
             "Это письмо само по себе не отменяет и не переносит размещение.\n\n"
-            f"Podslushano.nl · {support_raw}"
+            f"podslushano.nl · {support_raw}"
         )
     return subject, html_body, text_body
 

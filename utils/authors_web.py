@@ -1,4 +1,4 @@
-"""Public author agreement page for the Podslushano.nl contributor network."""
+"""Public author agreement page for the podslushano.nl contributor network."""
 from __future__ import annotations
 
 import hashlib
@@ -27,12 +27,12 @@ _EMAIL = "podslushano.nl@gmail.com"
 _SITE = "https://www.podslushano.nl"
 
 _AGREEMENT_CANONICAL = f"""
-Podslushano.nl Independent Contributor Terms v{AGREEMENT_VERSION} dated {AGREEMENT_DATE}.
+podslushano.nl Independent Contributor Terms v{AGREEMENT_VERSION} dated {AGREEMENT_DATE}.
 Operator: {_OPERATOR_NAME}; KVK {_KVK}; BTW {_BTW}; {_ADDRESS}; {_EMAIL}.
 
 1. Application and scope.
 Submitting the form records acceptance of these terms. It does not automatically admit the applicant to
-the author pool, create employment, guarantee assignments, compensation or income. If Podslushano.nl
+the author pool, create employment, guarantee assignments, compensation or income. If podslushano.nl
 accepts the applicant as a contributor, these terms govern the ongoing contributor relationship unless
 a separate written agreement for a specific assignment says otherwise.
 
@@ -45,9 +45,9 @@ the actual way the parties work always prevail over labels used in this agreemen
 3. Autonomy and instructions.
 The contributor decides whether to propose content and whether to accept each assignment. After accepting
 an assignment, the contributor independently decides how and when to perform the work and normally uses
-their own phone/equipment. Podslushano.nl may define the intended result: subject, deliverables, platform,
+their own phone/equipment. podslushano.nl may define the intended result: subject, deliverables, platform,
 technical or brand requirements, deadline and a location where the nature of the assignment requires it.
-Podslushano.nl does not direct the contributor's day-to-day working method, hours or work process.
+podslushano.nl does not direct the contributor's day-to-day working method, hours or work process.
 
 4. Voluntary editorial content.
 Stories, video, photos, observations and local reports proposed by the contributor are voluntary. There
@@ -55,21 +55,21 @@ is no required publication frequency. Organic/editorial content is unpaid unless
 agreed before the work is accepted.
 
 5. Events and invitations.
-Podslushano.nl may offer tickets, invitations, accreditation or access to events. Availability is not
+podslushano.nl may offer tickets, invitations, accreditation or access to events. Availability is not
 guaranteed. A ticket or invitation is primarily access needed for the event and is not a recurring wage.
-If Podslushano.nl expects content in return, the expected result is agreed before the contributor accepts.
+If podslushano.nl expects content in return, the expected result is agreed before the contributor accepts.
 
 6. Paid assignments.
 Each commercial or otherwise paid task is offered separately. Before acceptance, the parties agree at
 least the intended result/deliverables, deadline and contributor fee. The contributor may accept or refuse
 without affecting their ability to propose voluntary content. There is no guarantee of recurring paid work.
-Before the first payment, Podslushano.nl may request invoice, KVK/BTW or other information required for
+Before the first payment, podslushano.nl may request invoice, KVK/BTW or other information required for
 lawful payment, bookkeeping or reporting, depending on the contributor's status.
 
 7. Editorial and commercial control.
-Podslushano.nl decides whether submitted content is published, where it is published, how it is edited or
+podslushano.nl decides whether submitted content is published, where it is published, how it is edited or
 formatted, and manages advertiser negotiations, prices, campaigns, brand standards and access permissions.
-This control concerns the publication/result and Podslushano.nl business decisions, not supervision of the
+This control concerns the publication/result and podslushano.nl business decisions, not supervision of the
 contributor's independent work process.
 
 8. Confidentiality.
@@ -80,26 +80,26 @@ after cooperation ends for non-public commercial and operational information.
 
 9. Non-circumvention.
 For 12 months after the contributor's last work with a specific advertiser or partner first introduced
-through Podslushano.nl, the contributor will not knowingly bypass Podslushano.nl to solicit or contract
+through podslushano.nl, the contributor will not knowingly bypass podslushano.nl to solicit or contract
 directly with that contact for substantially similar advertising services without written permission.
-This does not apply to relationships demonstrably existing before the introduction by Podslushano.nl.
+This does not apply to relationships demonstrably existing before the introduction by podslushano.nl.
 
 10. Own projects.
 The contributor may run personal social media, build a personal brand, work for others and earn independently,
-provided they do not misuse Podslushano.nl confidential information, access, brand assets or project-originated
+provided they do not misuse podslushano.nl confidential information, access, brand assets or project-originated
 commercial relationships.
 
 11. Content rights.
 The contributor confirms they have the right to submit the content. By submitting content specifically for
-Podslushano.nl, the contributor grants Podslushano.nl a non-exclusive, worldwide, royalty-free licence to edit,
-format, publish, repost and archive that content across Podslushano.nl channels and materials promoting the
+podslushano.nl, the contributor grants podslushano.nl a non-exclusive, worldwide, royalty-free licence to edit,
+format, publish, repost and archive that content across podslushano.nl channels and materials promoting the
 project. Content created for a paid campaign may also be used by the relevant advertiser within the campaign
 scope agreed for that assignment.
 
 12. Access and representation.
 Access is role-based and may be changed or withdrawn at any time. Passwords, master/admin access, CRM, full
 client lists and financial information are not automatically provided. The contributor may describe themselves
-as a Podslushano.nl author while actively participating, but may not bind Podslushano.nl, quote commercial prices
+as a podslushano.nl author while actively participating, but may not bind podslushano.nl, quote commercial prices
 or present themselves as owner or authorized commercial representative unless explicitly authorized.
 
 13. Ending cooperation.
@@ -108,7 +108,7 @@ closed by mutual agreement. Project access may be revoked immediately when coope
 confidential materials and access data must not be retained or used after exit.
 
 14. Data and law.
-Podslushano.nl stores the applicant's name, city, email, Telegram, optional Instagram, phone model, agreement
+podslushano.nl stores the applicant's name, city, email, Telegram, optional Instagram, phone model, agreement
 version/hash, acceptance timestamp and technical user-agent data for application administration and evidence
 of acceptance. Financial and tax data may be retained where legally required. Dutch law applies. The parties
 first try to resolve disputes informally; if that fails, the competent court in the Netherlands has jurisdiction,
@@ -118,14 +118,14 @@ subject to mandatory law.
 AGREEMENT_SHA256 = hashlib.sha256(_AGREEMENT_CANONICAL.encode("utf-8")).hexdigest()
 
 
-def _layout(body: str, *, title: str = "Авторы Podslushano.nl") -> str:
+def _layout(body: str, *, title: str = "Авторы podslushano.nl") -> str:
     return f"""<!doctype html>
 <html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
-<title>{html.escape(title)} — Podslushano.nl</title>
+<title>{html.escape(title)} — podslushano.nl</title>
 <style>
 :root{{--bg:#f5f4f0;--card:#fff;--text:#171717;--muted:#6f6f6f;--line:#dedbd2;--accent:#ff5a1f;--soft:#fff1ea;}}
 *{{box-sizing:border-box}}
@@ -169,7 +169,7 @@ a{{color:inherit}}
 </style>
 </head>
 <body><main class="wrap">
-<div class="top"><div class="brand">Podslushano.nl</div><div class="version">Условия v{AGREEMENT_VERSION} · {AGREEMENT_DATE}</div></div>
+<div class="top"><div class="brand">podslushano.nl</div><div class="version">Условия v{AGREEMENT_VERSION} · {AGREEMENT_DATE}</div></div>
 {body}
 </main></body></html>"""
 
@@ -178,7 +178,7 @@ def _terms_sections() -> str:
     return """
 <section class="card">
 <h2>Сначала главное</h2>
-<p><b>Это не трудоустройство и не работа по сменам.</b> Анкета подаётся в пул независимых авторов Podslushano.nl и сама по себе не гарантирует место, задания или доход.</p>
+<p><b>Это не трудоустройство и не работа по сменам.</b> Анкета подаётся в пул независимых авторов podslushano.nl и сама по себе не гарантирует место, задания или доход.</p>
 <ul>
 <li>нет фиксированных часов, смен и обязательного количества публикаций;</li>
 <li>не нужно быть постоянно на связи;</li>
@@ -191,7 +191,7 @@ def _terms_sections() -> str:
 <section class="card">
 <h2>Кто решает, как работать</h2>
 <p>Автор самостоятельно решает, <b>как и когда</b> снимать или готовить материал, и обычно использует свой телефон и оборудование.</p>
-<p>Podslushano.nl может определить <b>результат</b>: тему, что нужно передать, формат для площадки, технические требования, дедлайн и место, если без конкретной локации задача невозможна.</p>
+<p>podslushano.nl может определить <b>результат</b>: тему, что нужно передать, формат для площадки, технические требования, дедлайн и место, если без конкретной локации задача невозможна.</p>
 <p>Это не означает управление рабочим днём автора: мы не устанавливаем часы, смены и способ выполнения работы.</p>
 </section>
 
@@ -212,18 +212,18 @@ def _terms_sections() -> str:
 <li><b>оплату автору.</b></li>
 </ul>
 <p>Можно отказаться от любой такой задачи. Отказ не закрывает возможность участвовать в проекте или предлагать свой контент.</p>
-<p class="note">Способ оплаты зависит от статуса автора. Перед первой выплатой Podslushano.nl может запросить данные для счёта, KVK/BTW или другую информацию, необходимую для корректной оплаты, бухгалтерии и обязательной отчётности.</p>
+<p class="note">Способ оплаты зависит от статуса автора. Перед первой выплатой podslushano.nl может запросить данные для счёта, KVK/BTW или другую информацию, необходимую для корректной оплаты, бухгалтерии и обязательной отчётности.</p>
 </section>
 
 <section class="card">
 <h2>Билеты и приглашения</h2>
-<p>Podslushano.nl может предлагать билеты, приглашения и аккредитации на концерты, фестивали, открытия и другие события.</p>
+<p>podslushano.nl может предлагать билеты, приглашения и аккредитации на концерты, фестивали, открытия и другие события.</p>
 <p>Если в обмен ожидается материал, <b>что именно нужно снять или передать согласовывается до того, как автор принимает приглашение.</b> Билеты и приглашения не гарантируются и не являются постоянной зарплатой.</p>
 </section>
 
 <section class="card">
-<h2>Что остаётся за Podslushano.nl</h2>
-<p>Podslushano.nl решает, публиковать ли присланный материал, на какой площадке, как его оформить или отредактировать, а также ведёт переговоры с рекламодателями, определяет цены, рекламные условия, стандарты бренда и уровни доступа.</p>
+<h2>Что остаётся за podslushano.nl</h2>
+<p>podslushano.nl решает, публиковать ли присланный материал, на какой площадке, как его оформить или отредактировать, а также ведёт переговоры с рекламодателями, определяет цены, рекламные условия, стандарты бренда и уровни доступа.</p>
 <p><b>Основатель и главный редактор — Aleksei Maksimovich Egorov.</b> Финальные редакционные и коммерческие решения по проекту остаются за ним.</p>
 </section>
 
@@ -243,21 +243,21 @@ def _terms_sections() -> str:
 <section class="card">
 <h2>Клиенты и собственные проекты</h2>
 <p>Автор может вести свой блог, развивать личный бренд, работать с другими заказчиками и самостоятельно зарабатывать.</p>
-<p>При этом рекламодателя или партнёра, с которым автор познакомился именно через Podslushano.nl, нельзя сознательно уводить из проекта и заключать с ним напрямую аналогичную рекламную сделку в обход Podslushano.nl без письменного разрешения в течение 12 месяцев после последней совместной работы с этим контактом.</p>
-<p>Это ограничение не касается отношений, которые у автора существовали до знакомства через Podslushano.nl.</p>
+<p>При этом рекламодателя или партнёра, с которым автор познакомился именно через podslushano.nl, нельзя сознательно уводить из проекта и заключать с ним напрямую аналогичную рекламную сделку в обход podslushano.nl без письменного разрешения в течение 12 месяцев после последней совместной работы с этим контактом.</p>
+<p>Это ограничение не касается отношений, которые у автора существовали до знакомства через podslushano.nl.</p>
 </section>
 
 <section class="card">
 <h2>Контент и права</h2>
 <p>Автор подтверждает, что имеет право передавать присланные фото, видео и тексты.</p>
-<p>Передавая материал специально для Podslushano.nl, автор предоставляет проекту неисключительное право редактировать, оформлять, публиковать, повторно размещать и хранить этот материал в каналах Podslushano.nl и материалах о самом проекте.</p>
+<p>Передавая материал специально для podslushano.nl, автор предоставляет проекту неисключительное право редактировать, оформлять, публиковать, повторно размещать и хранить этот материал в каналах podslushano.nl и материалах о самом проекте.</p>
 <p>Для платной рекламной задачи дополнительное использование материала рекламодателем действует в рамках условий конкретной кампании.</p>
 </section>
 
 <section class="card">
 <h2>Доступы и представление проекта</h2>
 <p>Доступы выдаются только по необходимости и могут быть изменены или отозваны. Пароли, master/admin-доступы, CRM, полная клиентская база и финансовая информация автоматически авторам не предоставляются.</p>
-<p>Действующий автор может называть себя автором Podslushano.nl, но не может от имени проекта назначать цены, заключать коммерческие договорённости или представляться владельцем/уполномоченным коммерческим представителем без отдельного разрешения.</p>
+<p>Действующий автор может называть себя автором podslushano.nl, но не может от имени проекта назначать цены, заключать коммерческие договорённости или представляться владельцем/уполномоченным коммерческим представителем без отдельного разрешения.</p>
 </section>
 
 <section class="card">
@@ -282,9 +282,9 @@ def _form_page(error: str = "", values: dict | None = None) -> str:
     error_html = f'<div class="error">{html.escape(error)}</div>' if error else ""
     body = f"""
 <section class="hero">
-<p class="eyebrow">Авторы Podslushano.nl</p>
+<p class="eyebrow">Авторы podslushano.nl</p>
 <h1>Стать автором</h1>
-<p class="lead">Анкета и правила для независимых авторов. Здесь сразу понятно, что добровольно, как устроены платные задания и где заканчивается редакционная работа Podslushano.nl.</p>
+<p class="lead">Анкета и правила для независимых авторов. Здесь сразу понятно, что добровольно, как устроены платные задания и где заканчивается редакционная работа podslushano.nl.</p>
 <div class="chips"><span class="chip">без графика</span><span class="chip">можно отказаться</span><span class="chip">каждая платная задача отдельно</span></div>
 </section>
 {_terms_sections()}
@@ -292,7 +292,7 @@ def _form_page(error: str = "", values: dict | None = None) -> str:
 <h2>Кто стоит за проектом</h2>
 <div class="operator">
 <div>Оператор</div><div><b>{_OPERATOR_NAME}</b></div>
-<div>Проект</div><div>Podslushano.nl</div>
+<div>Проект</div><div>podslushano.nl</div>
 <div>KVK</div><div>{_KVK}</div>
 <div>BTW</div><div>{_BTW}</div>
 <div>Адрес</div><div>{_ADDRESS}</div>
@@ -313,7 +313,7 @@ def _form_page(error: str = "", values: dict | None = None) -> str:
 <div class="full"><label>На какой телефон снимаешь?</label><input name="phone_model" maxlength="120" placeholder="Например: iPhone 15 Pro" value="{v("phone_model")}" required></div>
 </div>
 <div class="check"><input type="checkbox" id="adult" name="adult" value="1" required><label for="adult">Мне 18 лет или больше.</label></div>
-<div class="check"><input type="checkbox" id="accept" name="accept" value="1" required><label for="accept">Я прочитал(а) и принимаю условия независимого участия в Podslushano.nl, версия {AGREEMENT_VERSION} от {AGREEMENT_DATE}, включая правила платных заданий, конфиденциальности и работы с клиентами. Я понимаю, что отправка анкеты не означает автоматическое принятие в пул авторов и не создаёт гарантии заданий или дохода.</label></div>
+<div class="check"><input type="checkbox" id="accept" name="accept" value="1" required><label for="accept">Я прочитал(а) и принимаю условия независимого участия в podslushano.nl, версия {AGREEMENT_VERSION} от {AGREEMENT_DATE}, включая правила платных заданий, конфиденциальности и работы с клиентами. Я понимаю, что отправка анкеты не означает автоматическое принятие в пул авторов и не создаёт гарантии заданий или дохода.</label></div>
 <button type="submit">Принять условия и отправить анкету</button>
 <p class="small">После отправки система зафиксирует дату, версию и контрольный хэш принятых условий. Хэш версии: {AGREEMENT_SHA256[:12]}…</p>
 </form>

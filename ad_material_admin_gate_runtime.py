@@ -131,11 +131,11 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
     )
 
     if kind == "48h":
-        subject = f"Материалы для рекламы {date_raw} · Podslushano.nl"
+        subject = f"Материалы для рекламы {date_raw} · podslushano.nl"
         html_body = (
             f"<p>Здравствуйте, {client}!</p>"
             f"<p>Через <strong>48 часов</strong> у вас запланирован рекламный выход в "
-            "Podslushano.nl, а материалы для подготовки публикации мы пока не получили.</p>"
+            "podslushano.nl, а материалы для подготовки публикации мы пока не получили.</p>"
             f"{details_html}"
             "<p>Пожалуйста, пришлите исходные фото/видео, основные факты и условия, а также "
             "ссылку или контакт, который должен быть в рекламе. Это нужно, чтобы мы успели "
@@ -143,11 +143,11 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             f"{delivery_html}"
             "<p>Если вы уже отправили материалы после нашего последнего контакта, это письмо "
             "можно просто проигнорировать.</p>"
-            f"<p>Podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
+            f"<p>podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
         )
         text_body = (
             f"Здравствуйте, {client_raw}!\n\n"
-            "Через 48 часов у вас запланирован рекламный выход в Podslushano.nl, а материалы "
+            "Через 48 часов у вас запланирован рекламный выход в podslushano.nl, а материалы "
             "для подготовки публикации мы пока не получили.\n\n"
             f"{details_text}\n\n"
             "Пожалуйста, пришлите исходные фото/видео, основные факты и условия, а также "
@@ -156,10 +156,10 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             f"{delivery_text}\n\n"
             "Если вы уже отправили материалы после нашего последнего контакта, это письмо "
             "можно просто проигнорировать.\n\n"
-            f"Podslushano.nl · {support_raw}"
+            f"podslushano.nl · {support_raw}"
         )
     elif kind == "24h":
-        subject = f"Материалы для завтрашней рекламы · Podslushano.nl"
+        subject = f"Материалы для завтрашней рекламы · podslushano.nl"
         html_body = (
             f"<p>Здравствуйте, {client}!</p>"
             f"<p>До запланированного рекламного выхода осталось <strong>24 часа</strong>. "
@@ -170,7 +170,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             "условия, а также нужная ссылка или контакт.</p>"
             f"{delivery_html}"
             "<p>Если материалы уже отправлены, это письмо можно проигнорировать.</p>"
-            f"<p>Podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
+            f"<p>podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
         )
         text_body = (
             f"Здравствуйте, {client_raw}!\n\n"
@@ -182,13 +182,13 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             "условия, а также нужная ссылка или контакт.\n\n"
             f"{delivery_text}\n\n"
             "Если материалы уже отправлены, это письмо можно проигнорировать.\n\n"
-            f"Podslushano.nl · {support_raw}"
+            f"podslushano.nl · {support_raw}"
         )
     else:
-        subject = f"Реклама на сегодня: нужны дальнейшие действия · Podslushano.nl"
+        subject = f"Реклама на сегодня: нужны дальнейшие действия · podslushano.nl"
         html_body = (
             f"<p>Здравствуйте, {client}!</p>"
-            f"<p>Сегодня у вас запланирован рекламный выход в Podslushano.nl, но к моменту "
+            f"<p>Сегодня у вас запланирован рекламный выход в podslushano.nl, но к моменту "
             "подготовки мы не получили материалы. Без согласованного контента публикация "
             "сегодня выйти не может.</p>"
             f"{details_html}"
@@ -197,11 +197,11 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             "Новая дата не назначается автоматически и зависит от свободных рекламных слотов.</p>"
             f"{delivery_html}"
             "<p>Если материалы уже были переданы другим способом, просто сообщите нам, где их найти.</p>"
-            f"<p>Podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
+            f"<p>podslushano.nl<br><a href=\"mailto:{support}\">{support}</a></p>"
         )
         text_body = (
             f"Здравствуйте, {client_raw}!\n\n"
-            "Сегодня у вас запланирован рекламный выход в Podslushano.nl, но к моменту "
+            "Сегодня у вас запланирован рекламный выход в podslushano.nl, но к моменту "
             "подготовки мы не получили материалы. Без согласованного контента публикация "
             "сегодня выйти не может.\n\n"
             f"{details_text}\n\n"
@@ -210,7 +210,7 @@ def _message(booking: AdBooking, publish_date: str, kind: str) -> tuple[str, str
             "Новая дата не назначается автоматически и зависит от свободных рекламных слотов.\n\n"
             f"{delivery_text}\n\n"
             "Если материалы уже были переданы другим способом, просто сообщите нам, где их найти.\n\n"
-            f"Podslushano.nl · {support_raw}"
+            f"podslushano.nl · {support_raw}"
         )
     return subject, html_body, text_body
 

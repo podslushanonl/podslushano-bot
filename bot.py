@@ -37,6 +37,7 @@ from utils.site_news import site_news_loop
 from utils.ns_alerts import ns_alerts_loop, router as ns_alerts_router
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
 from utils.limits import ThrottleMiddleware
+from utils.nav_guard import NavigationGuard
 from utils.users import RegisterUserMiddleware
 from utils.ad_calendar import calendar_sync_loop
 from utils.ad_reminders import ad_reminder_loop
@@ -55,7 +56,7 @@ async def configure_profile(bot: Bot) -> None:
             BotCommand(command="trains", description="Поезда NS: уведомления о сбоях"),
             BotCommand(command="afisha", description="Чем заняться: афиша и идеи 🎉"),
             BotCommand(command="digest", description="Настроить подборку на выходные 🔔"),
-            BotCommand(command="my", description="Мой Podslushano: профиль и сохранённое"),
+            BotCommand(command="my", description="Мой podslushano.nl: профиль и сохранённое"),
             BotCommand(command="notifications", description="Настроить личные уведомления"),
             BotCommand(command="afisha_add", description="Разместить мероприятие в афише 📅"),
             BotCommand(command="board", description="Доска объявлений 📋"),
@@ -66,10 +67,10 @@ async def configure_profile(bot: Bot) -> None:
             BotCommand(command="report", description="Сообщить об ошибке 🐞"),
             BotCommand(command="privacy", description="Конфиденциальность и условия"),
         ])
-        await bot.set_my_short_description("Помощник сообщества «Подслушано в Нидерландах»: ответы о жизни в NL, поиск специалистов, истории и вопросы.")
+        await bot.set_my_short_description("Помощник сообщества podslushano.nl: ответы о жизни в Нидерландах, поиск специалистов, истории и вопросы.")
         await bot.set_my_description(
-            "«Подслушано в Нидерландах» 🇳🇱 — бот-помощник для русскоязычных жителей Нидерландов.\n\n"
-            "Что я умею:\n• Отвечаю на вопросы о жизни в NL: BSN, DigiD, налоги, жильё, медицина, транспорт\n"
+            "podslushano.nl 🇳🇱 — бот-помощник для русскоязычных жителей Нидерландов.\n\n"
+            "Что я умею:\n• Отвечаю на вопросы о жизни в Нидерландах: BSN, DigiD, налоги, жильё, медицина, транспорт\n"
             "• Найду специалиста из проверенного гайда\n• Приму историю, вопрос, видео или заявку на рекламу\n\n"
             f"Сайт сообщества: {config.SITE_URL}\n\nНажми «Запустить», чтобы начать 👇"
         )
@@ -121,6 +122,8 @@ async def main() -> None:
     install_editorial_overrides()
     bot = Bot(token=config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
+    # Кнопки меню и /start, /menu, /help, /cancel всегда прерывают незаконченную анкету
+    dp.message.outer_middleware(NavigationGuard())
     dp.message.middleware(ThrottleMiddleware())
     dp.message.middleware(RegisterUserMiddleware())
     dp.callback_query.middleware(RegisterUserMiddleware())

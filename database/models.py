@@ -137,7 +137,7 @@ class SpecialistClaim(Base):
 
 
 class AuthorAgreementAcceptance(Base):
-    """Фиксация принятия условий участия автором Podslushano.nl."""
+    """Фиксация принятия условий участия автором podslushano.nl."""
 
     __tablename__ = "author_agreement_acceptances"
     __table_args__ = (
@@ -367,7 +367,7 @@ class DigestDeliveryLog(Base):
 
 
 class SavedItem(Base):
-    """Карточка, которую пользователь сохранил в «Мой Podslushano»."""
+    """Карточка, которую пользователь сохранил в «Мой podslushano.nl»."""
 
     __tablename__ = "saved_items"
     __table_args__ = (
@@ -610,7 +610,7 @@ class Listing(Base):
 
 
 class AlloBooking(Base):
-    """Запись на прогулку Allo Walks (разовая или абонемент на 3)."""
+    """Запись на прогулку allowalks (разовая или абонемент на 3)."""
 
     __tablename__ = "allo_bookings"
 
@@ -633,7 +633,7 @@ class AlloBooking(Base):
 
 
 class AlloReferral(Base):
-    """Реферал Allo Walks: кто кого привёл. Приводящий получает €10-кредит,
+    """Реферал allowalks: кто кого привёл. Приводящий получает €10-кредит,
     когда приведённый впервые оплачивает прогулку."""
 
     __tablename__ = "allo_referrals"

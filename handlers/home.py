@@ -1,4 +1,4 @@
-"""Персональный центр пользователя «Мой Podslushano»."""
+"""Персональный центр пользователя «Мой podslushano.nl»."""
 import html
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
@@ -21,7 +21,7 @@ from database.models import (
     Specialist,
     Submission,
 )
-from keyboards.menus import BTN_HOME
+from keyboards.menus import BTN_HOME, OLD_BTN_HOME
 from utils.analytics import log_product_event
 
 router = Router()
@@ -36,7 +36,7 @@ TYPE_LABELS = {
 RADIUS_LABELS = {0: "мой город", 25: "до 25 км", 50: "до 50 км", 999: "вся страна"}
 TOPIC_LABELS = {
     "events": "события",
-    "walks": "Allo Walks",
+    "walks": "allowalks",
     "specialists": "специалисты",
     "board": "объявления",
     "guides": "полезное",
@@ -108,7 +108,7 @@ def _profile_kb() -> InlineKeyboardMarkup:
             InlineKeyboardButton(text="🗺 Изменить радиус", callback_data="dg:radius"),
         ],
         [InlineKeyboardButton(text="🎛 Изменить интересы", callback_data="dg:topics")],
-        [InlineKeyboardButton(text="⬅️ Мой Podslushano", callback_data="home:open")],
+        [InlineKeyboardButton(text="⬅️ Мой podslushano.nl", callback_data="home:open")],
     ])
 
 
@@ -123,7 +123,7 @@ def _profile_text(pref: DigestPreference) -> str:
         f"📍 Город: <b>{html.escape(pref.city)}</b>\n"
         f"🗺 Радиус: <b>{RADIUS_LABELS.get(pref.radius_km, f'{pref.radius_km} км')}</b>\n"
         f"🎛 Интересы: {html.escape(', '.join(topics) or 'не выбраны')}\n\n"
-        "Эти данные используются для персональных рекомендаций в «Мой Podslushano»."
+        "Эти данные используются для персональных рекомендаций в «Мой podslushano.nl»."
     )
 
 async def _action_count(session, user_id: int, now: datetime) -> int:
@@ -332,7 +332,7 @@ async def _open_home(message: Message, user_id: int, first_name: str | None) -> 
         pref = await session.get(DigestPreference, user_id)
     snapshot = await _home_snapshot(user_id, pref)
     await message.answer(
-        "🏠 <b>Мой Podslushano</b>\n\n"
+        "🏠 <b>Мой podslushano.nl</b>\n\n"
         f"{html.escape(first_name or 'друг')}, здесь собрана твоя актуальная "
         "сводка.\n\n"
         f"{_profile_summary(pref)}\n\n"
@@ -343,7 +343,7 @@ async def _open_home(message: Message, user_id: int, first_name: str | None) -> 
 
 
 @router.message(Command("my", "home"))
-@router.message(F.text == BTN_HOME)
+@router.message(F.text.in_({BTN_HOME, OLD_BTN_HOME}))
 async def home_open(message: Message, state: FSMContext) -> None:
     await state.clear()
     await _open_home(message, message.from_user.id, message.from_user.first_name)
@@ -391,7 +391,7 @@ async def home_events_open(callback: CallbackQuery) -> None:
     snapshot = await _home_snapshot(callback.from_user.id, pref)
     await log_product_event(callback.from_user.id, "home_events_open")
     back = [InlineKeyboardButton(
-        text="⬅️ Мой Podslushano", callback_data="home:open"
+        text="⬅️ Мой podslushano.nl", callback_data="home:open"
     )]
     if pref is None:
         await callback.message.answer(
@@ -444,7 +444,7 @@ async def home_new_listings_open(callback: CallbackQuery) -> None:
     snapshot = await _home_snapshot(callback.from_user.id, pref)
     await log_product_event(callback.from_user.id, "home_new_listings_open")
     back = [InlineKeyboardButton(
-        text="⬅️ Мой Podslushano", callback_data="home:open"
+        text="⬅️ Мой podslushano.nl", callback_data="home:open"
     )]
     if pref is None:
         await callback.message.answer(
@@ -538,7 +538,7 @@ async def toggle_saved(callback: CallbackQuery) -> None:
         (
             "Событие сохранено. Напоминания включаются в центре уведомлений 🔔"
             if added and item_type in {"event", "discovered_event"}
-            else "Сохранено в «Мой Podslushano» ❤️"
+            else "Сохранено в «Мой podslushano.nl» ❤️"
             if added
             else "Удалено из сохранённого"
         ),
@@ -617,7 +617,7 @@ async def saved_open(callback: CallbackQuery) -> None:
             and row.item_id in discovered
         )
     ]
-    back = [InlineKeyboardButton(text="⬅️ Мой Podslushano", callback_data="home:open")]
+    back = [InlineKeyboardButton(text="⬅️ Мой podslushano.nl", callback_data="home:open")]
     if not valid:
         await callback.message.answer(
             "❤️ <b>Сохранённое</b>\n\nПока пусто. Нажимай «♡ Сохранить» "
@@ -734,7 +734,7 @@ async def actions_open(callback: CallbackQuery) -> None:
     lines = ["🗂 <b>Мои действия</b>"]
     sections = [
         ("📋 Объявления", listings, lambda x: x.title),
-        ("🚶 Allo Walks", walks, lambda x: x.walk_key),
+        ("🚶 allowalks", walks, lambda x: x.walk_key),
         ("🔍 Карточки в гайде", cards, lambda x: x.name),
         ("📅 Мероприятия", events, lambda x: x.title),
         ("✍️ Предложка", submissions, lambda x: x.type),
@@ -757,7 +757,7 @@ async def actions_open(callback: CallbackQuery) -> None:
         buttons.append([InlineKeyboardButton(
             text="👤 Кабинет специалиста", callback_data="home:cabinet"
         )])
-    buttons.append([InlineKeyboardButton(text="⬅️ Мой Podslushano", callback_data="home:open")])
+    buttons.append([InlineKeyboardButton(text="⬅️ Мой podslushano.nl", callback_data="home:open")])
     await callback.message.answer(
         "\n".join(lines), reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons)
     )

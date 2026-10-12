@@ -205,7 +205,7 @@ def _page(title: str, body: str, ok: bool = False) -> str:
     safe_title = html.escape(title)
     return f"""<!doctype html><html lang=\"ru\"><head><meta charset=\"utf-8\">
 <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><meta name=\"robots\" content=\"noindex,nofollow\">
-<title>{safe_title} — Podslushano.nl</title><style>
+<title>{safe_title} — podslushano.nl</title><style>
 body{{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Arial,sans-serif;background:#f4f4f2;margin:0;min-height:100vh;display:grid;place-items:center;color:#171717}}
 .card{{width:min(520px,calc(100% - 32px));box-sizing:border-box;background:white;border:1px solid #deded8;border-radius:24px;padding:34px;box-shadow:0 18px 50px rgba(0,0,0,.08)}}
 .icon{{font-size:42px}}h1{{font-size:26px;margin:14px 0 10px}}p{{line-height:1.55;color:#555}}a{{display:inline-block;margin-top:14px;background:#171717;color:#fff;text-decoration:none;padding:13px 18px;border-radius:999px;font-weight:700}}

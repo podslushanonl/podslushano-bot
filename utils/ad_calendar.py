@@ -106,7 +106,7 @@ def _format_details(booking: AdBooking) -> list[str]:
             "3 Stories с прямой ссылкой к каждому Reel — 12 Stories всего",
             "закрепление одного из четырёх Reels в верхней части профиля на 3 дня",
             "временная ссылка на NUMR на странице Links на время кампании",
-            "создание материалов и публикация на площадках Podslushano.nl",
+            "создание материалов и публикация на площадках podslushano.nl",
             "предварительная проверка клиентом фактической информации",
         ]
     return list((config.AD_FORMATS.get(booking.fmt) or {}).get("details") or [])

@@ -44,10 +44,10 @@ router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 TOPICS = {
     "events": "🎭 События",
-    "walks": "🚶 Allo Walks",
+    "walks": "🚶 allowalks",
     "specialists": "🔍 Специалисты",
     "board": "📋 Объявления",
-    "guides": "📚 Полезное о жизни в NL",
+    "guides": "📚 Полезное о жизни в Нидерландах",
 }
 DEFAULT_TOPICS = {"events", "walks"}
 RADIUS_LABELS = {0: "только мой город", 25: "до 25 км", 50: "до 50 км", 999: "вся страна"}
@@ -182,7 +182,7 @@ def _settings_kb(pref: DigestPreference) -> InlineKeyboardMarkup:
          InlineKeyboardButton(text="🗺 Изменить радиус", callback_data="dg:radius")],
         [InlineKeyboardButton(text="🎛 Выбрать темы", callback_data="dg:topics")],
         [InlineKeyboardButton(text=toggle, callback_data="dg:toggle")],
-        [InlineKeyboardButton(text="⬅️ Мой Podslushano", callback_data="home:open")],
+        [InlineKeyboardButton(text="⬅️ Мой podslushano.nl", callback_data="home:open")],
     ])
 
 
@@ -644,7 +644,7 @@ async def build_digest(pref: DigestPreference) -> str:
         else:
             lines.append("Не удалось найти проверяемые события с рабочими ссылками — попробуй обновить афишу кнопкой ниже.")
     if "walks" in selected and walks:
-        lines.extend(["", "<b>🚶 Allo Walks</b>"])
+        lines.extend(["", "<b>🚶 allowalks</b>"])
         for walk in walks[:2]:
             lines.append(f"• <b>{html.escape(walk['date'])}</b> · {html.escape(walk['title'])}")
             useful += 1
@@ -706,7 +706,7 @@ def _digest_kb(pref: DigestPreference) -> InlineKeyboardMarkup:
     if "events" in _topics(pref.topics_csv):
         rows.append([InlineKeyboardButton(text="🎭 Листать афишу рядом", callback_data="dg:afisha")])
     if "walks" in _topics(pref.topics_csv) and config.available_allo_walks():
-        rows.append([InlineKeyboardButton(text="🚶 Allo Walks", callback_data="ev_allo")])
+        rows.append([InlineKeyboardButton(text="🚶 allowalks", callback_data="ev_allo")])
     if "guides" in _topics(pref.topics_csv):
         from handlers.guides import weekly_tip
         tip = weekly_tip(datetime.now(ZoneInfo("Europe/Amsterdam")).isocalendar().week)
@@ -955,7 +955,7 @@ def digest_announcement_text() -> str:
         "до 25 или 50 км — и отмечаешь, что тебе интересно.\n\n"
         "По четвергам я буду присылать:\n\n"
         "🎭 события рядом — с датой, местом и прямой ссылкой;\n"
-        "🚶 новые Allo Walks;\n"
+        "🚶 новые allowalks;\n"
         "🔍 новых специалистов — имя открывает карточку и контакты;\n"
         "📋 свежие объявления;\n"
         "📚 один практический совет о жизни в Нидерландах прямо в сообщении.\n\n"

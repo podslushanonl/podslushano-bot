@@ -3,6 +3,7 @@ import html
 import logging
 
 from aiogram import F, Router
+from aiogram.enums import ChatType
 from aiogram.filters import Command, CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
@@ -11,10 +12,12 @@ from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMar
 import config
 from database.db import get_session
 from database.models import Meta, Submission
-from keyboards.menus import BTN_STORY, main_menu
+from keyboards.menus import BTN_STORY, cancel_menu, main_menu
 
 log = logging.getLogger(__name__)
 router = Router()
+# Только личка: в группах шаги анкеты не должны ловить чужие сообщения
+router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 STORY_HASHTAG = "#pnl_истории"
 MIN_STORY_LENGTH = 250
@@ -106,10 +109,24 @@ async def set_story_cover(message: Message) -> None:
     await message.answer("✅ Обложка #pnl_истории сохранена. Все истории будут публиковаться с ней.")
 
 
-async def start_story_flow(message: Message, state: FSMContext) -> None:
+async def start_story_flow(message: Message, state: FSMContext, prefill: str | None = None) -> None:
+    """prefill — текст, который человек уже написал в чат (кнопка «Это история»)."""
     await state.clear()
     await state.set_state(StoryWizard.choosing_author)
+    if prefill:
+        await state.update_data(story_prefill=prefill)
     await message.answer("Как хотите опубликовать историю?", reply_markup=_author_keyboard())
+
+
+async def _use_prefill(message: Message, state: FSMContext) -> bool:
+    """Если текст истории уже есть из чата — сразу проверяем его, без повторного ввода."""
+    data = await state.get_data()
+    text = (data.get("story_prefill") or "").strip()
+    if not text:
+        return False
+    await state.update_data(story_prefill=None)
+    await _take_story_text(message, state, text)
+    return True
 
 
 @router.message(CommandStart(deep_link=True), F.text.endswith(" story"))
@@ -134,15 +151,19 @@ async def choose_story_author(callback: CallbackQuery, state: FSMContext) -> Non
     if mode == "anonymous":
         await state.update_data(author_mode="anonymous", author_name=None)
         await state.set_state(StoryWizard.entering_story)
+        if await _use_prefill(callback.message, state):
+            await callback.answer()
+            return
         await callback.message.answer(
             "Напишите свою историю одним сообщением.\n\n"
             "Это может быть смешной случай, работа, знакомство с голландцами, поиск жилья, "
-            "бюрократия, переезд, культурные различия или любой запомнившийся момент."
+            "бюрократия, переезд, культурные различия или любой запомнившийся момент.",
+            reply_markup=cancel_menu(),
         )
     else:
         await state.update_data(author_mode="named")
         await state.set_state(StoryWizard.entering_name)
-        await callback.message.answer("Какое имя указать под историей?")
+        await callback.message.answer("Какое имя указать под историей?", reply_markup=cancel_menu())
     await callback.answer()
 
 
@@ -154,10 +175,13 @@ async def receive_story_name(message: Message, state: FSMContext) -> None:
         return
     await state.update_data(author_name=name[:80])
     await state.set_state(StoryWizard.entering_story)
+    if await _use_prefill(message, state):
+        return
     await message.answer(
         "Теперь напишите свою историю одним сообщением.\n\n"
         "Это может быть смешной случай, работа, знакомство с голландцами, поиск жилья, "
-        "бюрократия, переезд, культурные различия или любой запомнившийся момент."
+        "бюрократия, переезд, культурные различия или любой запомнившийся момент.",
+        reply_markup=cancel_menu(),
     )
 
 
@@ -165,8 +189,12 @@ async def receive_story_name(message: Message, state: FSMContext) -> None:
 async def receive_story_text(message: Message, state: FSMContext) -> None:
     text = (message.text or message.caption or "").strip()
     if not text:
-        await message.answer("Пришлите историю текстом одним сообщением.")
+        await message.answer("Пришлите историю текстом одним сообщением.", reply_markup=cancel_menu())
         return
+    await _take_story_text(message, state, text)
+
+
+async def _take_story_text(message: Message, state: FSMContext, text: str) -> None:
     if len(text) < MIN_STORY_LENGTH:
         await message.answer(
             "Расскажите чуть подробнее 🙂\n\n"
@@ -196,7 +224,8 @@ async def receive_story_text(message: Message, state: FSMContext) -> None:
 @router.callback_query(F.data == "story_edit")
 async def edit_story(callback: CallbackQuery, state: FSMContext) -> None:
     await state.set_state(StoryWizard.entering_story)
-    await callback.message.answer("Отправьте исправленный текст истории одним сообщением.")
+    await callback.message.answer("Отправьте исправленный текст истории одним сообщением.",
+                                  reply_markup=cancel_menu())
     await callback.answer()
 
 

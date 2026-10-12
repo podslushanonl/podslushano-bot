@@ -107,7 +107,7 @@ async def generate_sales_reply(submission: Submission, client_text: str) -> str 
         f"{ {'client':'Клиент','manager':'Менеджер','ai':'AI','system':'Система'}.get(m.role, m.role) }: {m.text}"
         for m in history
     )
-    prompt = f"""Ты — менеджер по рекламе Podslushano.nl. Подготовь только готовый ответ клиенту на русском языке.
+    prompt = f"""Ты — менеджер по рекламе podslushano.nl. Подготовь только готовый ответ клиенту на русском языке.
 Цель — довести до подходящего размещения и оплаты, но без давления и выдуманных обещаний.
 Страница форматов и оплаты: {ADS_URL}
 

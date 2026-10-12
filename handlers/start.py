@@ -32,14 +32,14 @@ router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 WELCOME_SHORT = (
-    "Привет, {name}! 👋 Я — бот сообщества «Подслушано в Нидерландах» 🇳🇱\n\n"
-    "💬 <b>Самое простое — просто напиши мне любой вопрос о жизни в NL.</b>\n"
+    "Привет, {name}! 👋 Я — бот сообщества podslushano.nl 🇳🇱\n\n"
+    "💬 <b>Самое простое — просто напиши мне любой вопрос о жизни в Нидерландах.</b>\n"
     "BSN, DigiD, налоги, жильё, врачи, транспорт, ВНЖ — отвечу по делу и при "
     "необходимости загляну в свежие официальные источники.\n"
     "<i>Например: «Как получить DigiD?» или «Положена ли мне zorgtoeslag?»</i>\n\n"
     "А ещё через меню можно 👇\n"
     "📩 прислать фото непонятного письма (Belastingdienst, gemeente…) — объясню по-русски\n"
-    "📚 открыть «Полезное» — гайды о жизни в NL (жильё, документы, деньги…)\n"
+    "📚 открыть «Полезное» — гайды о жизни в Нидерландах (жильё, документы, деньги…)\n"
     "🔍 найти специалиста из проверенного гайда\n"
     "📰 прислать историю анонимно · ❓ задать вопрос сообществу\n"
     "🎬 прислать видео · 📢 реклама и сотрудничество\n\n"
@@ -48,7 +48,7 @@ WELCOME_SHORT = (
 
 WELCOME = (
     "Привет, {name}! 👋\n\n"
-    "Я — голос «Подслушано в Нидерландах», твой помощник по жизни в NL 🇳🇱 "
+    "Я — голос podslushano.nl, твой помощник по жизни в Нидерландах 🇳🇱 "
     "Помогу разобраться с бытом, найти нужных людей и поделиться своим.\n\n"
     "<b>Вот что я умею</b> 👇\n\n"
     "📰 <b>История / сплетня</b>\n"
@@ -61,14 +61,14 @@ WELCOME = (
     "<i>Например: «Кто сталкивался: отработал, а зарплату не выплатили — "
     "куда обращаться?»</i>\n\n"
     "🎬 <b>Видео</b>\n"
-    "Снимаешь контент о жизни в NL? Пришли ролик — можем опубликовать у себя.\n"
+    "Снимаешь контент о жизни в Нидерландах? Пришли ролик — можем опубликовать у себя.\n"
     "<i>Например: рилс «5 лайфхаков для новичка в Нидерландах»</i>\n\n"
     "📢 <b>Реклама / сотрудничество</b>\n"
     "Хочешь рассказать о своём деле нашей аудитории? Оставь заявку — обсудим.\n"
-    "<i>Например: «Реклама салона красоты в Роттердаме»</i>\n\n"
+    "<i>Например: «Реклама салона красоты в Rotterdam»</i>\n\n"
     "🔍 <b>Найти специалиста</b>\n"
     "Подберу контакт из проверенного гайда — врачи, юристы, мастера и другие.\n"
-    "<i>Например: «Нужен стоматолог в Амстердаме»</i>\n\n"
+    "<i>Например: «Нужен стоматолог в Amsterdam»</i>\n\n"
     "💬 А ещё можно <b>просто спросить меня о жизни в Нидерландах</b> — отвечу "
     "по делу и при необходимости загляну в интернет за свежими данными.\n"
     "<i>Например: «Как получить DigiD?» или «Сколько сейчас стоит продление ВНЖ?»</i>"
@@ -159,7 +159,7 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from handlers.board import start_new_listing
         await start_new_listing(message, state, message.from_user.id)
         return
-    # Пришёл по кнопке «Подробнее» из анонса Allo Walks (?start=allo)
+    # Пришёл по кнопке «Подробнее» из анонса allowalks (?start=allo)
     if command.args == "allo":
         from handlers.allo import show_allo
         await show_allo(message, state, with_photos=True)
@@ -180,7 +180,7 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
             from handlers.contacts import show_specialist_card
             await show_specialist_card(message, state, sid)
             return
-    # Пришёл по реф-ссылке участника Allo Walks (?start=alloref_<uid>)
+    # Пришёл по реф-ссылке участника allowalks (?start=alloref_<uid>)
     if command.args and command.args.startswith("alloref_"):
         from handlers.allo import register_referral, show_allo
         try:
@@ -284,6 +284,7 @@ async def back_to_main(message: Message, state: FSMContext) -> None:
 
 
 @router.message(F.text == BTN_CANCEL)
+@router.message(Command("cancel"))
 async def cancel(message: Message, state: FSMContext) -> None:
     """Кнопка «Отмена» — выходим из любого диалога в главное меню."""
     await state.clear()

@@ -182,7 +182,7 @@ _ADMIN_COMMANDS_HELP = (
     "/setpostbutton — текст кнопки для /post\n"
     "/afishapost — афиша в канал\n"
     "/ig — Instagram-карусель\n\n"
-    "🚶 <b>Allo Walks</b>\n"
+    "🚶 <b>allowalks</b>\n"
     "/allobookings — записи на прогулки\n"
     "/alloclose ДАТА — закрыть дату («мест нет»)\n"
     "/alloopen ДАТА — открыть дату обратно\n\n"
@@ -515,7 +515,7 @@ def _parse_announce_button(raw: str, uname: str) -> tuple[str, str | None, str |
         return "none", None, None
     if low in {"бот", "bot", "открыть бота"}:
         return "ok", "🤖 Открыть бота", f"https://t.me/{uname}"
-    if low in {"allo", "walks", "allo walks", "прогулка", "прогулки", "запись", "записаться"}:
+    if low in {"allo", "walks", "allowalks", "прогулка", "прогулки", "запись", "записаться"}:
         return "ok", "Подробнее", f"https://t.me/{uname}?start=allo"
     if "|" in raw:
         label, _, url = raw.partition("|")
@@ -552,7 +552,7 @@ def _ann_photos_kb(n: int) -> InlineKeyboardMarkup:
 async def _ask_announce_button(message: Message, state: FSMContext) -> None:
     await state.set_state(AdminAnnounce.waiting_button)
     kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text="🚶 «Подробнее» → запись на Allo Walks",
+        [InlineKeyboardButton(text="🚶 «Подробнее» → запись на allowalks",
                               callback_data="announce:btn:allo")],
         [InlineKeyboardButton(text="🤖 «Открыть бота»", callback_data="announce:btn:bot")],
         [InlineKeyboardButton(text="✏️ Своя кнопка (текст | ссылка)",
@@ -1903,7 +1903,7 @@ async def cmd_ig(message: Message, state: FSMContext) -> None:
         "📸 <b>Instagram-карусель.</b> Напиши тему — я подготовлю заголовок-хук, "
         "слайды с текстом и подберу к каждому реальное фото (4:5), покажу "
         "предпросмотр, потом отправлю в Make на публикацию.\n\n"
-        "<i>Например: «5 ошибок новичков с налогами в NL», «как получить BSN», "
+        "<i>Например: «5 ошибок новичков с налогами в Нидерландах», «как получить BSN», "
         "«красивые осенние места рядом с Утрехтом», «голландская кухня: что попробовать».</i>",
         reply_markup=cancel_menu(),
     )
@@ -2519,7 +2519,7 @@ async def cmd_invoice(message: Message, state: FSMContext) -> None:
         return
     info = config.plan_info(plan)
     from utils.invoices import send_invoice
-    desc = f"Vermelding in Podslushano-gids: {name} ({info['title']})"
+    desc = f"Vermelding in podslushano.nl-gids: {name} ({info['title']})"
     ok, detail = await send_invoice(to_email, name, desc, info["price"])
     if ok:
         await message.answer(f"🧾 Счёт отправлен на {to_email}.")
@@ -3365,7 +3365,7 @@ async def _legacy_export(message: Message) -> None:
     y_price, norm_price = _money(y["price"]), _money(norm_y["price"])
     await message.answer(
         "✉️ <b>Шаблон сообщения для рассылки</b> (скопируй, подставь имя и ссылку из CSV):\n\n"
-        "<code>Здравствуйте! 🧡 Пишем вам от команды «Подслушано в Нидерландах».\n\n"
+        "<code>Здравствуйте! 🧡 Пишем вам от команды podslushano.nl.\n\n"
         "Вы — один из специалистов нашего гайда (он есть и на сайте, и в нашем "
         "Telegram-боте). Спасибо, что доверились нам одними из первых!\n\n"
         "Когда вы размещались, оплата была разовой. Но с тех пор гайд заметно "

@@ -132,7 +132,7 @@ async def _commons_image(query: str) -> EditorialImage | None:
 
 def _generation_prompt(text: str, kind: str) -> str:
     base = (
-        "Create ONE premium photorealistic editorial photograph for Podslushano.nl, a modern Russian-language Netherlands media publication. "
+        "Create ONE premium photorealistic editorial photograph for podslushano.nl, a modern Russian-language Netherlands media publication. "
         "The result must be indistinguishable from a professional documentary/news photograph shot on a full-frame camera in the Netherlands in 2026. "
         "Absolutely no illustration, vector art, flat design, 3D render, collage, poster, infographic, typography, captions, logos, watermarks, fake UI or decorative flags. "
         "Use natural optics, believable perspective, physically realistic weather, materials and reflections, restrained editorial color grading, authentic Dutch architecture and infrastructure. "

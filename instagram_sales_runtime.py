@@ -109,7 +109,7 @@ async def ai_decision(text: str, current_product: str | None, previous: list) ->
             max_tokens=180,
             temperature=0,
             system=(
-                "Ты классификатор входящего рекламного запроса Podslushano.nl. "
+                "Ты классификатор входящего рекламного запроса podslushano.nl. "
                 "Верни только JSON: intent = quote | buy | question | handoff | stop; "
                 "product = один из перечисленных ключей; risk = none | review. "
                 "buy только при ЯВНОЙ просьбе оплатить уже предложенный тариф. "
@@ -142,12 +142,12 @@ def quote_text(product_key: str) -> str:
     details = product["details"][:4]
     desc = "\n".join("• " + item for item in details)
     terms = config.WEBHOOK_BASE_URL.rstrip("/") + "/terms" if config.WEBHOOK_BASE_URL else config.SITE_URL
-    return (f"Здравствуйте! Я автоматический менеджер Podslushano.nl по рекламе. "
+    return (f"Здравствуйте! Я автоматический менеджер podslushano.nl по рекламе. "
             f"Подойдёт формат «{product['name']}» — €{product['price']} с BTW.\n\n"
             f"{desc}\n\nПосле оплаты уточним дату и запросим материалы. "
             f"Дату согласуем с учётом доступных слотов. Условия: {terms}\n"
             f"Если всё подходит и вы согласны с условиями, напишите «Оформить» — "
-            f"пришлю индивидуальную ссылку Mollie. Можно выбрать другой формат.")
+            f"пришлю ссылку на оплату. Можно выбрать другой формат.")
 
 
 async def answer_product_question(message: str, product_key: str) -> str:
@@ -174,7 +174,7 @@ async def answer_product_question(message: str, product_key: str) -> str:
             max_tokens=180,
             temperature=0.2,
             system=(
-                "Вы консультант Podslushano.nl в Instagram. Отвечайте естественно, "
+                "Вы консультант podslushano.nl в Instagram. Отвечайте естественно, "
                 "уважительно, кратко и на «вы». Не выдумывайте факты или гарантии. "
                 "Если ответ невозможен только из предоставленных сведений, "
                 "напишите: «Это уточним у редакции». "
@@ -331,7 +331,7 @@ async def create_checkout(conversation: IgSalesConversation) -> str:
             ).order_by(IgSalesOrder.created_at.desc())
         )
         if existing and existing.checkout_url:
-            return "Ссылка Mollie для оплаты вашего заказа: " + existing.checkout_url
+            return "Ссылка для оплаты вашего заказа: " + existing.checkout_url
         if existing:
             return "Оплата уже создаётся, попробуйте ещё раз через минуту."
         product = catalog().get(conversation.product_key or "")
@@ -350,7 +350,7 @@ async def create_checkout(conversation: IgSalesConversation) -> str:
     # NOTE: a checkout link (payments API) is single-use, and the existing
     # Mollie webhook dispatcher can verify it using metadata.
     payment = await create_payment(
-        "Podslushano.nl — " + product["name"] + " #" + order_id[:8],
+        "podslushano.nl — " + product["name"] + " #" + order_id[:8],
         {"kind": "ig_ad_sale", "order_id": order_id}, product["price"],
     )
     async with get_session() as session:
@@ -358,12 +358,12 @@ async def create_checkout(conversation: IgSalesConversation) -> str:
         if not payment or not payment.get("id") or not payment.get("checkout_url"):
             order.status = "error"
             await session.commit()
-            return "Пока не удалось создать ссылку Mollie. Мы получили уведомление и проверим оплату."
+            return "Пока не удалось создать ссылку на оплату. Мы получили уведомление и проверим оплату."
         order.payment_id = payment["id"]
         order.checkout_url = payment["checkout_url"]
         order.status = "open"
         await session.commit()
-    return ("Ссылка для оплаты через Mollie: " + payment["checkout_url"]
+    return ("Ссылка для оплаты: " + payment["checkout_url"]
             + "\nСумма: €" + product["price"] + " с BTW. После оплаты вернёмся к материалам и дате.")
 
 
@@ -485,7 +485,7 @@ async def issue_invoice(bot, ig_user_id: str) -> None:
         )
     try:
         ok, detail = await send_invoice(
-            email, name, "Рекламное размещение Podslushano.nl #" + order_id[:8],
+            email, name, "Рекламное размещение podslushano.nl #" + order_id[:8],
             amount, buyer_lines=[name, address, email],
         )
     except Exception as exc:
@@ -628,13 +628,13 @@ async def payment_reconciliation_loop(bot) -> None:
 
 async def payment_return(request: web.Request) -> web.Response:
     # Public page never trusts a redirect as evidence that a payment succeeded.
-    content = ("<h1>Спасибо!</h1><p>Статус платежа проверяется через Mollie. "
+    content = ("<h1>Спасибо!</h1><p>Статус платежа проверяется. "
                "После подтверждения напишем вам в Instagram Direct, если чат активен."
                "</p><p>Материалы можно прислать позже.</p>")
     return web.Response(text=(
         "<!doctype html><html lang='ru'><meta charset='utf-8'>"
         "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-        "<title>Podslushano.nl · Оплата</title><body style='font:18px system-ui;"
+        "<title>podslushano.nl · Оплата</title><body style='font:18px system-ui;"
         "max-width:520px;margin:12vh auto;padding:24px'>" + content + "</body></html>"
     ), content_type="text/html", headers={"Cache-Control": "no-store"})
 

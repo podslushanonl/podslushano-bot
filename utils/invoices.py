@@ -180,9 +180,9 @@ def _build_pdf(
     c.setFont(_FONT, 9)
     c.drawString(x, y, f"IBAN: {config.COMPANY_IBAN}  ·  BIC: {config.COMPANY_BIC}")
     y -= 5 * mm
-    c.drawString(x, y, "Bedrag voldaan via Mollie / Оплачено через Mollie.")
+    c.drawString(x, y, "Bedrag voldaan / Оплачено.")
     y -= 5 * mm
-    c.drawString(x, y, "Bedankt! / Спасибо за размещение в гайде Подслушано.nl 🙌")
+    c.drawString(x, y, "Bedankt! / Спасибо за размещение в гайде podslushano.nl 🙌")
 
     c.showPage()
     c.save()
@@ -231,7 +231,7 @@ async def _send_email(
         ],
     }
     # Постоянная копия в нашей Gmail. Даже когда Resend удалит запись из
-    # журнала, полученное письмо и PDF останутся у Podslushano.nl.
+    # журнала, полученное письмо и PDF останутся у podslushano.nl.
     own_email = (config.COMPANY_EMAIL or "").strip()
     if own_email and own_email.lower() != to.strip().lower():
         body["bcc"] = [own_email]
@@ -418,11 +418,11 @@ async def send_invoice(
         log.error(detail)
         return False, detail
 
-    subject = f"Счёт {no} · Podslushano.nl"
+    subject = f"Счёт {no} · podslushano.nl"
     filename = f"factuur-{no}.pdf"
     html = (
         "<p>Здравствуйте!</p>"
-        "<p>Спасибо за заказ на Podslushano.nl. "
+        "<p>Спасибо за заказ на podslushano.nl. "
         f"Во вложении — счёт (factuur) №{no}.</p>"
         f"<p>С уважением,<br>{config.COMPANY_NAME}<br>{config.COMPANY_EMAIL}</p>"
     )

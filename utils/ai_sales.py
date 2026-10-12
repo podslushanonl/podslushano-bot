@@ -19,7 +19,7 @@ ADS_URL = "https://worker-production-ad76.up.railway.app/ads"
 _META_PREFIX = "ai_sales:"
 
 SYSTEM_PROMPT = f"""
-Ты — AI Sales Manager русскоязычного медиа-сообщества Podslushano.nl в Нидерландах.
+Ты — AI Sales Manager русскоязычного медиа-сообщества podslushano.nl в Нидерландах.
 Ты анализируешь только входящие заявки на рекламу и сотрудничество.
 
 Главная задача: помочь администратору решить, можно ли принимать рекламу, и

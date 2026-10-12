@@ -1,4 +1,4 @@
-"""Allo Walks storefront API, using the existing Railway/Mollie connection.
+"""allowalks storefront API, using the existing Railway/Mollie connection.
 
 The WordPress page contains only HTML/CSS/JS. Prices, codes, inventory and
 payment status are decided here, never by the browser.
@@ -326,7 +326,7 @@ async def book(request: web.Request) -> web.Response:
         await _deliver_sale(sale_id)
         return _json(request, {"status": "paid", "token": token})
     payment = await create_payment(
-        f"Allo Walks: {event['title']}",
+        f"allowalks: {event['title']}",
         {"kind": "allo_v2", "sale_id": sale_id, "token": token},
         _money(due),
     )
@@ -384,7 +384,7 @@ async def buy_gift(request: web.Request) -> web.Response:
         await session.commit()
         sale_id, token = sale.id, sale.token
     payment = await create_payment(
-        "Подарочный сертификат Allo Walks",
+        "Подарочный сертификат allowalks",
         {"kind": "allo_v2", "sale_id": sale_id, "token": token},
         _money(amount),
     )
@@ -550,15 +550,15 @@ async def _deliver_sale(sale_id: int) -> None:
         safe_name = html.escape(recipient_name or "")
         safe_sender = html.escape(buyer_name)
         safe_message = html.escape(gift_message or "")
-        subject = "Вам подарили прогулку Allo Walks"
-        body = (f"<h1>Для вас — прогулка Allo Walks</h1><p>Здравствуйте, {safe_name}.</p>"
+        subject = "Вам подарили прогулку allowalks"
+        body = (f"<h1>Для вас — прогулка allowalks</h1><p>Здравствуйте, {safe_name}.</p>"
                 f"<p>{safe_sender} подарил(а) вам сертификат на €{_money(amount)}.</p>"
                 + (f"<p>{safe_message}</p>" if safe_message else "")
                 + f"<p>Код сертификата: <strong>{raw}</strong></p>"
-                "<p>Выберите прогулку на странице Allo Walks и введите код при оформлении. "
+                "<p>Выберите прогулку на странице allowalks и введите код при оформлении. "
                 "Остаток сохранится для следующей покупки.</p>")
         plain = (f"Здравствуйте, {recipient_name}. {buyer_name} подарил(а) вам "
-                 f"сертификат Allo Walks на €{_money(amount)}. Код: {raw}. "
+                 f"сертификат allowalks на €{_money(amount)}. Код: {raw}. "
                  "Введите его при покупке прогулки. Остаток сохранится.")
         target = recipient_email
     else:
@@ -569,7 +569,7 @@ async def _deliver_sale(sale_id: int) -> None:
                     sale.email_state = "failed"
                     await session.commit()
             return
-        subject = "Ваше место на прогулке Allo Walks подтверждено"
+        subject = "Ваше место на прогулке allowalks подтверждено"
         body = (f"<h1>Место подтверждено</h1><p>Здравствуйте, {html.escape(buyer_name)}.</p>"
                 f"<p><strong>{html.escape(event_title)}</strong><br>"
                 f"{html.escape(event_starts_at)}<br>"
@@ -657,5 +657,5 @@ async def page(_: web.Request) -> web.Response:
     markup = (ROOT / "static" / "allo-walks" / "wordpress-embed.html").read_text("utf-8")
     return web.Response(text=("<!doctype html><html lang='ru'><head><meta charset='utf-8'>"
                               "<meta name='viewport' content='width=device-width,initial-scale=1'>"
-                              "<title>allo walks</title></head><body style='margin:0'>"
+                              "<title>allowalks</title></head><body style='margin:0'>"
                               + markup + "</body></html>"), content_type="text/html")

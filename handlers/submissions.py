@@ -20,14 +20,13 @@ from keyboards.menus import (
     ANSWER_FOOTER,
     BTN_AD,
     BTN_QUESTION,
-    BTN_STORY,
     BTN_SUBMIT,
     BTN_VIDEO,
     ad_format_menu,
     cancel_menu,
     main_menu,
 )
-from states.forms import AdForm, QuestionForm, StoryForm, VideoForm
+from states.forms import AdForm, QuestionForm, VideoForm
 from utils.ai import ai_enabled, ai_reply
 from utils.analytics import log_event, log_product_event
 from utils.limits import allow_ai
@@ -80,17 +79,6 @@ THANKS = {
 
 # --- Шаг 1: пользователь нажал кнопку — просим прислать содержимое ----------
 
-@router.message(F.text == BTN_STORY)
-async def ask_story(message: Message, state: FSMContext) -> None:
-    await state.set_state(StoryForm.waiting_for_content)
-    await message.answer(
-        "Обожаю истории! 🤫 Расскажи свою — одним сообщением.\n\n"
-        "Публикуем <b>анонимно</b>, имя нигде не появится. Можно приложить фото.\n"
-        "<i>Например: «Сегодня в трамвае в Гааге случилось такое…»</i>",
-        reply_markup=cancel_menu(),
-    )
-
-
 @router.message(F.text == BTN_QUESTION)
 async def ask_question(message: Message, state: FSMContext) -> None:
     await state.set_state(QuestionForm.waiting_for_content)
@@ -100,7 +88,7 @@ async def ask_question(message: Message, state: FSMContext) -> None:
         "• 📍 город / провинцию\n"
         "• 🧩 твою ситуацию и контекст\n"
         "• ❓ что именно хочешь узнать\n\n"
-        "<i>Не «посоветуйте врача», а: «Ищу русскоязычного терапевта в Утрехте, "
+        "<i>Не «посоветуйте врача», а: «Ищу русскоязычного терапевта в Utrecht, "
         "недавно переехали, нужна запись по страховке — к кому обращались?»</i>\n\n"
         "Короткие вопросы из 2–3 слов почти никто не комментирует — пара предложений "
         "сильно повышают шанс на хороший ответ 👍",
@@ -144,12 +132,6 @@ async def submit_question(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
 
 
-@router.callback_query(F.data == "submit:story")
-async def submit_story(callback: CallbackQuery, state: FSMContext) -> None:
-    await ask_story(callback.message, state)
-    await callback.answer()
-
-
 @router.callback_query(F.data == "submit:video")
 async def submit_video(callback: CallbackQuery, state: FSMContext) -> None:
     await ask_video(callback.message, state)
@@ -167,7 +149,7 @@ async def ask_ad(message: Message, state: FSMContext) -> None:
         "ответила предметно.\n\n"
         "<b>1/4.</b> Что рекламируем? Опишите товар, услугу или бренд "
         "в двух-трёх словах.\n"
-        "<i>Например: «Салон маникюра в Роттердаме» или «Доставка русских продуктов»</i>",
+        "<i>Например: «Салон маникюра в Rotterdam» или «Доставка русских продуктов»</i>",
         reply_markup=cancel_menu(),
     )
 
@@ -304,11 +286,6 @@ async def _save_and_notify(
 
 # --- Шаг 2: принимаем содержимое для каждого типа заявки --------------------
 
-@router.message(StoryForm.waiting_for_content)
-async def receive_story(message: Message, state: FSMContext) -> None:
-    await _save_and_notify(message, state, "story")
-
-
 def _too_short_question(text: str) -> bool:
     """Слишком короткий/пустой вопрос — отвечать будет не на что."""
     return len(text.split()) < 6
@@ -333,7 +310,7 @@ async def _question_to_community(
         await message.answer(
             "Чуть подробнее? 🙂 Так подписчикам будет на что ответить.\n"
             "Добавь контекст: город, твою ситуацию, что именно интересует.\n\n"
-            "<i>Например: вместо «кто ездил в Гаагу?» → «едем в Гаагу с детьми на "
+            "<i>Например: вместо «кто ездил в Den Haag?» → «едем в Den Haag с детьми на "
             "выходные в июле, посоветуйте тихие пляжи и что посмотреть рядом?»</i>\n\n"
             "Или пришли как есть ещё раз — опубликуем 👌",
             reply_markup=cancel_menu(),
@@ -556,7 +533,7 @@ async def _ask_video_rights(message: Message, state: FSMContext) -> None:
         "Подтверди, что видео снято тобой или у тебя есть разрешение автора. "
         "Также в нём не должно быть чужих личных данных или кадров, нарушающих "
         "частную жизнь людей. "
-        "Ты разрешаешь Podslushano.nl бесплатно отредактировать его — обрезать, "
+        "Ты разрешаешь podslushano.nl бесплатно отредактировать его — обрезать, "
         "добавить текст или субтитры — и опубликовать в Instagram @podslushano.nl "
         "с выбранным авторством. До публикации разрешение можно отозвать через поддержку.",
         reply_markup=_video_rights_kb(),

@@ -50,7 +50,7 @@ STATUS_LABELS = {
 }
 ENTITY_LABELS = {
     "listing": "Объявление",
-    "walk": "Allo Walks",
+    "walk": "allowalks",
     "event_listing": "Мероприятие",
     "specialist": "Карточка специалиста",
     "submission": "Заявка",
@@ -123,7 +123,7 @@ def _settings_kb(pref: NotificationPreference) -> InlineKeyboardMarkup:
             ),
         ],
         [InlineKeyboardButton(text="☀️ Подборка по четвергам", callback_data="home:digest")],
-        [InlineKeyboardButton(text="⬅️ Мой Podslushano", callback_data="home:open")],
+        [InlineKeyboardButton(text="⬅️ Мой podslushano.nl", callback_data="home:open")],
     ])
 
 

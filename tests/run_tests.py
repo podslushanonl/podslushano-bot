@@ -565,7 +565,7 @@ def test_numr_campaign_page() -> None:
     check("NUMR package requires four publication dates",
           config.AD_FORMATS["numr_campaign"]["dates"] == 4)
     page = webserver._numr_campaign_html(set())
-    check("NUMR page has one fixed package and Mollie checkout",
+    check("NUMR page has one fixed package and checkout",
           "Campagne van 2 maanden" in page
           and "4 Reels · 12 Stories" in page
           and "één van de vier Reels wordt 3 dagen" in page
@@ -573,7 +573,7 @@ def test_numr_campaign_page() -> None:
           and "links naar de App Store en Google Play" in page
           and "toegang tot een testaccount (indien nodig)" in page
           and 'action="/ads/numr/book?lang=nl"' in page
-          and "Betaal €299 via Mollie" in page)
+          and "Betaal €299 →" in page)
     regular_page = webserver._ads_html(set())
     check("private NUMR offer is absent from the regular ads page",
           "numr_campaign" not in regular_page and "NUMR" not in regular_page)

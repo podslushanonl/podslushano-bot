@@ -61,7 +61,7 @@ def _batch_system_prompt() -> str:
         f"- {stream.key} — {stream.label}: {stream.instructions}"
         for stream in _automatic_streams()
     )
-    return f"""Ты — выпускающий редактор Podslushano.nl, русскоязычного медиа о Нидерландах.
+    return f"""Ты — выпускающий редактор podslushano.nl, русскоязычного медиа о Нидерландах.
 Сделай ОДИН объединённый утренний веб-поиск вместо отдельных запросов по рубрикам.
 
 Рубрики:
