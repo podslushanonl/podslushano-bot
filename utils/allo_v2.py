@@ -44,12 +44,28 @@ def _origin(url: str) -> str:
     return f"{p.scheme}://{p.netloc}" if p.scheme in ("http", "https") and p.netloc else ""
 
 
+def allowed_origins() -> set[str]:
+    """Site origins allowed to call the public checkout APIs from the browser.
+
+    Both www and bare-domain variants of the site are accepted, plus any extra
+    origins from SITE_EXTRA_ORIGINS (comma-separated), e.g. a staging copy.
+    """
+    base = {_origin(config.WP_URL), _origin(config.SITE_URL), _origin(config.WEBHOOK_BASE_URL),
+            "https://allo-walks.alex-podslushano.chatgpt.site"}
+    base |= {_origin(o.strip()) for o in os.getenv("SITE_EXTRA_ORIGINS", "").split(",") if o.strip()}
+    out = set()
+    for o in base:
+        if not o:
+            continue
+        out.add(o)
+        scheme, host = o.split("://", 1)
+        out.add(f"{scheme}://{host[4:]}" if host.startswith("www.") else f"{scheme}://www.{host}")
+    return out
+
+
 def _cors(request: web.Request, response: web.StreamResponse) -> web.StreamResponse:
     origin = request.headers.get("Origin", "")
-    allowed = {_origin(config.WP_URL), _origin(config.SITE_URL),
-               _origin(config.WEBHOOK_BASE_URL),
-               "https://allo-walks.alex-podslushano.chatgpt.site"}
-    if origin and origin in allowed:
+    if origin and origin in allowed_origins():
         response.headers["Access-Control-Allow-Origin"] = origin
         response.headers["Vary"] = "Origin"
         response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"

@@ -219,12 +219,24 @@ async def contact_guide_success(request: web.Request) -> web.Response:
     )
 
 
+async def contact_guide_checkout_cors(request: web.Request) -> web.Response:
+    """Checkout called from the WordPress site: same handler, plus CORS for the site origin."""
+    from utils.allo_v2 import _cors
+    return _cors(request, await contact_guide_checkout(request))
+
+
+async def contact_guide_options(request: web.Request) -> web.Response:
+    from utils.allo_v2 import _cors
+    return _cors(request, web.Response(status=204))
+
+
 _ORIGINAL_INSTALL_ROUTES = season._install_routes
 
 
 def _install_routes_with_guide_checkout(app: web.Application) -> None:
     _ORIGINAL_INSTALL_ROUTES(app)
-    app.router.add_post("/ads/contact-guide/checkout", contact_guide_checkout)
+    app.router.add_post("/ads/contact-guide/checkout", contact_guide_checkout_cors)
+    app.router.add_route("OPTIONS", "/ads/contact-guide/checkout", contact_guide_options)
     app.router.add_get("/ads/contact-guide/success", contact_guide_success)
 
 

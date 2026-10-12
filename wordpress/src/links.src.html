@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>podslushano.nl · ссылки</title>
+<meta name="description" content="podslushano.nl: русскоязычное сообщество в Нидерландах. Сайт, канал, бот, афиша, специалисты и прогулки.">
+<style>
+@font-face{font-family:"Evolventa";src:url({{FONT:evo-reg}}) format("woff2");font-weight:300 500;font-display:swap}
+@font-face{font-family:"Evolventa";src:url({{FONT:evo-bold}}) format("woff2");font-weight:600 900;font-display:swap}
+:root{--bg:#F4F5F7;--ink:#0D1117;--ink-2:#2E3540;--muted:#6A7280;--accent:#FF5A1F;--accent-deep:#D9440D;--glass:rgba(255,255,255,.66);--brd:rgba(255,255,255,.92);--spring:cubic-bezier(.34,1.56,.64,1);--ease:cubic-bezier(.22,1,.36,1);--f:"Evolventa",system-ui,-apple-system,"Segoe UI",sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0E1116;--ink:#F2F4F7;--ink-2:#D0D5DD;--muted:#98A2B3;--glass:rgba(28,33,42,.72);--brd:rgba(255,255,255,.08)}}
+:root[data-theme="dark"]{--bg:#0E1116;--ink:#F2F4F7;--ink-2:#D0D5DD;--muted:#98A2B3;--glass:rgba(28,33,42,.72);--brd:rgba(255,255,255,.08)}
+*{box-sizing:border-box;margin:0}
+html,body{background:var(--bg);color:var(--ink);font:400 16px/1.5 var(--f);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+img{display:block;max-width:100%}
+.blob{position:fixed;border-radius:50%;filter:blur(60px);opacity:.55;z-index:0;pointer-events:none;will-change:transform}
+.b1{width:420px;height:420px;background:#FFC2A1;left:-140px;top:-120px;animation:drift1 18s ease-in-out infinite}
+.b2{width:380px;height:380px;background:#B9D6FF;right:-160px;top:220px;animation:drift2 22s ease-in-out infinite}
+.b3{width:360px;height:360px;background:#C8F0D6;left:-120px;top:780px;animation:drift1 26s ease-in-out infinite reverse}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .blob{opacity:.18}}
+:root[data-theme="dark"] .blob{opacity:.18}
+@keyframes drift1{50%{transform:translate(60px,40px) scale(1.1)}}
+@keyframes drift2{50%{transform:translate(-50px,60px) scale(.92)}}
+.wrap{position:relative;z-index:1;max-width:520px;margin:0 auto;padding:max(16px,env(safe-area-inset-top)) 16px calc(40px + env(safe-area-inset-bottom))}
+.glass{background:var(--glass);border:1px solid var(--brd);-webkit-backdrop-filter:blur(22px) saturate(170%);backdrop-filter:blur(22px) saturate(170%);box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 24px 50px -34px rgba(20,25,40,.5)}
+.in{opacity:0;transform:translateY(16px) scale(.98);animation:rise .7s var(--ease) forwards;animation-delay:calc(var(--d,0) * 70ms)}
+@keyframes rise{to{opacity:1;transform:none}}
+/* top bar */
+.top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.chipw{display:inline-flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;font:600 13px var(--f)}
+.chipw i{width:7px;height:7px;border-radius:50%;background:#1DB954;animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(29,185,84,.5)}70%{box-shadow:0 0 0 8px rgba(29,185,84,0)}100%{box-shadow:0 0 0 0 rgba(29,185,84,0)}}
+.thm{width:38px;height:38px;border-radius:50%;display:grid;place-items:center}
+.thm svg{width:18px;height:18px}
+/* hero */
+.hero{margin-top:14px;border-radius:30px;padding:22px 20px 18px;position:relative;overflow:hidden}
+.hero .lg{width:190px;height:auto;border-radius:14px}
+:root[data-theme="dark"] .hero .lg{background:#fff;padding:8px 10px}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hero .lg{background:#fff;padding:8px 10px}}
+.hero h1{font:700 21px/1.2 var(--f);letter-spacing:-.01em;margin-top:12px;max-width:22ch}
+.hero p{color:var(--muted);font-size:14px;margin-top:4px}
+.moose{position:absolute;right:6px;bottom:-6px;height:132px;width:auto;animation:peek 5s ease-in-out infinite;transform-origin:bottom center;filter:drop-shadow(0 10px 12px rgba(30,40,70,.2))}
+@keyframes peek{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(3deg) translateY(-3px)}}
+.stats{display:flex;gap:6px;margin-top:16px;flex-wrap:wrap;max-width:calc(100% - 92px)}
+.stat{display:flex;align-items:center;gap:7px;padding:6px 10px 6px 6px;border-radius:14px;background:rgba(255,255,255,.7);border:1px solid rgba(13,17,23,.06)}
+:root[data-theme="dark"] .stat{background:rgba(255,255,255,.06)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .stat{background:rgba(255,255,255,.06)}}
+.stat .bi{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;color:#fff}
+.stat .bi svg{width:13px;height:13px;fill:currentColor}
+.stat b{font:700 15px var(--f)}
+/* section heads */
+.sh{display:flex;justify-content:space-between;align-items:baseline;margin:26px 4px 10px}
+.sh h2{font:700 18px var(--f);letter-spacing:-.01em}
+.sh a,.sh span{font:600 13px var(--f);color:var(--muted)}
+/* app icons */
+.apps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px 10px}
+.app{display:grid;justify-items:center;gap:7px;text-align:center}
+.ic{position:relative;width:76px;height:76px;border-radius:24px;display:grid;place-items:center;overflow:hidden;box-shadow:0 1px 0 rgba(255,255,255,.55) inset,0 -2px 0 rgba(0,0,0,.12) inset,0 14px 24px -12px var(--sh,rgba(20,25,40,.45));transition:transform .45s var(--spring);animation:float 6s ease-in-out infinite;animation-delay:calc(var(--d,0) * -.7s)}
+.ic::before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.42),rgba(255,255,255,0) 48%);pointer-events:none;z-index:2}
+.ic::after{content:"";position:absolute;top:-60%;left:-80%;width:60%;height:220%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),transparent);transform:rotate(20deg);animation:shine 7s ease-in-out infinite;animation-delay:calc(var(--d,0) * .6s + 1s);z-index:3;pointer-events:none}
+@keyframes shine{0%,78%{left:-80%}92%,100%{left:140%}}
+@keyframes float{50%{transform:translateY(-4px)}}
+.app:active .ic{transform:scale(.9)}
+@media (hover:hover){.app:hover .ic{transform:translateY(-4px) scale(1.04)}}
+.ic svg.g{width:40px;height:40px;position:relative;z-index:1;filter:drop-shadow(0 3px 4px rgba(0,0,0,.18))}
+.ic img{position:relative;z-index:1}
+.app b{font:700 13px/1.15 var(--f)}
+.app small{font-size:11.5px;color:var(--muted);line-height:1.25;max-width:13ch}
+/* partner spotlight */
+.spot{border-radius:28px;position:relative;padding:2px;overflow:hidden;isolation:isolate}
+.spot::before{content:"";position:absolute;inset:-50%;background:conic-gradient(from var(--a,0deg),#FF5A1F,#FFB48E,#9AD4FF,#7CE0A8,#FF5A1F);animation:spin 6s linear infinite;z-index:-1}
+@property --a{syntax:"<angle>";initial-value:0deg;inherits:false}
+@keyframes spin{to{--a:360deg}}
+.spot-in{border-radius:26px;background:var(--bg);overflow:hidden;position:relative}
+.slides{display:grid}
+.slide{grid-area:1/1;opacity:0;transform:translateX(20px);transition:opacity .5s var(--ease),transform .6s var(--ease);pointer-events:none;padding:18px;display:grid;grid-template-columns:72px minmax(0,1fr);gap:14px;align-items:center}
+.slide.on{opacity:1;transform:none;pointer-events:auto}
+.slide .pl{width:72px;height:72px;border-radius:20px;overflow:hidden;box-shadow:0 10px 20px -10px rgba(0,0,0,.4)}
+.slide .pl img{width:100%;height:100%;object-fit:cover}
+.adtag{display:inline-flex;gap:6px;align-items:center;font:700 10px var(--f);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.adtag em{font-style:normal;padding:2px 7px;border-radius:6px;background:rgba(13,17,23,.06);color:var(--ink-2)}
+.slide h3{font:700 17px/1.2 var(--f);margin-top:4px}
+.slide p{font-size:13.5px;color:var(--ink-2);margin-top:4px;line-height:1.4}
+.cta{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:9px 14px;border-radius:12px;font:700 13px var(--f);background:var(--ink);color:var(--bg);transition:transform .3s var(--spring)}
+.cta:active{transform:scale(.95)}
+.cta svg{width:14px;height:14px}
+.bars{display:flex;gap:5px;padding:0 18px 14px}
+.bars i{flex:1;height:3px;border-radius:3px;background:rgba(13,17,23,.1);overflow:hidden}
+.bars i b{display:block;height:100%;background:var(--accent);transform:scaleX(0);transform-origin:left}
+.bars i.done b{transform:scaleX(1)}
+.bars i.run b{animation:bar 5.5s linear forwards}
+@keyframes bar{to{transform:scaleX(1)}}
+/* posters */
+.rail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 16px 14px;margin:0 -16px;scrollbar-width:none}
+.rail::-webkit-scrollbar{display:none}
+.pst{flex:0 0 168px;scroll-snap-align:start;border-radius:22px;overflow:hidden;position:relative;aspect-ratio:3/4.2;background:#111;color:#fff;box-shadow:0 20px 34px -22px rgba(0,0,0,.6);transition:transform .45s var(--spring)}
+.pst:active{transform:scale(.96)}
+.pst img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pst::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.85))}
+.pst .dt{position:absolute;left:10px;top:10px;z-index:1;background:#fff;color:#0D1117;border-radius:12px;padding:5px 8px;text-align:center;font:700 17px/1 var(--f)}
+.pst .dt small{display:block;font:700 9px var(--f);color:#6A7280;margin-top:2px;text-transform:uppercase}
+.pst .ptn{position:absolute;right:10px;top:10px;z-index:1;font:700 9px var(--f);letter-spacing:.08em;text-transform:uppercase;padding:4px 7px;border-radius:7px;background:rgba(255,255,255,.88);color:#2E3540}
+.pst .tx{position:absolute;left:12px;right:12px;bottom:12px;z-index:1;display:grid;gap:3px}
+.pst .tx b{font:700 15px/1.15 var(--f)}
+.pst .tx small{font-size:11.5px;opacity:.85}
+.pst .tx span{margin-top:6px;justify-self:start;font:700 11.5px var(--f);padding:6px 10px;border-radius:10px;background:var(--accent);color:#fff}
+.pst.all{background:linear-gradient(160deg,#FF8A4C,#D9440D);display:grid;place-items:center;text-align:center;padding:16px}
+.pst.all::after{display:none}
+.pst.all b{font:700 18px/1.2 var(--f)}
+/* list cards */
+.lst{border-radius:24px;overflow:hidden}
+.row{display:grid;grid-template-columns:52px minmax(0,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid rgba(13,17,23,.06);transition:background .2s}
+.row:first-child{border-top:0}
+.row:active{background:rgba(13,17,23,.04)}
+.row .th{width:52px;height:52px;border-radius:14px;overflow:hidden;background:#ddd}
+.row .th img{width:100%;height:100%;object-fit:cover}
+.row b{font:700 14px/1.25 var(--f);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.row small{font-size:12px;color:var(--muted)}
+.row svg.ar{width:16px;height:16px;color:var(--muted)}
+.trio{display:grid;gap:10px}
+.tc{border-radius:24px;padding:16px;display:grid;grid-template-columns:48px minmax(0,1fr) auto;gap:12px;align-items:center}
+.tc .ic{width:48px;height:48px;border-radius:15px;animation:none}
+.tc .ic svg.g{width:24px;height:24px}
+.tc b{font:700 15px var(--f)}
+.tc small{display:block;font-size:12.5px;color:var(--muted);line-height:1.35}
+.tc svg.ar{width:18px;height:18px;color:var(--muted)}
+/* socials */
+.soc{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.so{display:grid;justify-items:center;gap:5px;padding:12px 4px;border-radius:20px;font:700 12px var(--f)}
+.so .bi{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;color:#fff;transition:transform .4s var(--spring)}
+.so:active .bi{transform:scale(.9)}
+.so .bi svg{width:20px;height:20px;fill:currentColor}
+.so small{font-size:10.5px;color:var(--muted);font-weight:600}
+.ft{text-align:center;margin-top:26px;font-size:12px;color:var(--muted);display:grid;gap:6px}
+.ft a{text-decoration:underline;text-underline-offset:3px}
+.b-ig{background:radial-gradient(circle at 30% 107%,#fdf497 0%,#fdf497 5%,#fd5949 45%,#d6249f 60%,#285AEB 90%)}.b-tg{background:#26A5E4}.b-fb{background:#0866FF}.b-tt{background:#111}.b-yt{background:#FF0000}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.in{opacity:1;transform:none}}
+@media (min-width:600px){.apps{grid-template-columns:repeat(3,1fr)}.pst{flex-basis:190px}}
+</style>
+</head>
+<body>
+<span class="blob b1"></span><span class="blob b2"></span><span class="blob b3"></span>
+<main class="wrap">
+  <div class="top in"><span class="chipw glass"><i></i><span id="today">сегодня</span></span><button class="thm glass" id="thm" aria-label="Сменить тему"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg></button></div>
+
+  <section class="hero glass in" style="--d:1">
+    <img class="lg" src="{{B64:../logo-orig.webp}}" alt="podslushano.nl">
+    <h1>Русскоязычное сообщество в Нидерландах</h1>
+    <p>Всё полезное собрали на одной странице</p>
+    <div class="stats">
+      <span class="stat"><span class="bi b-ig">{{SL:instagram}}</span><b><span data-n="76">0</span>K</b></span>
+      <span class="stat"><span class="bi b-fb">{{SL:facebook}}</span><b><span data-n="26">0</span>K</b></span>
+      <span class="stat"><span class="bi b-tg">{{SL:telegram}}</span><b><span data-n="4">0</span>K</b></span>
+    </div>
+    <img class="moose" src="{{B64:../img/m-sun.webp}}" alt="Лосёнок podslushano.nl">
+  </section>
+
+  <div class="sh in" style="--d:2"><h2>Партнёры</h2><span>реклама</span></div>
+  <section class="spot in" style="--d:3"><div class="spot-in"><div class="slides" id="slides"></div><div class="bars" id="bars"></div></div></section>
+
+  <div class="sh in" style="--d:4"><h2>Экосистема</h2></div>
+  <nav class="apps" id="apps"></nav>
+
+  <div class="sh in" style="--d:5"><h2>Афиша партнёров</h2><a href="https://www.podslushano.nl/events/">вся афиша</a></div>
+  <div class="rail in" style="--d:6" id="rail"></div>
+
+  <div class="sh in" style="--d:7"><h2>Новости</h2><a href="https://www.podslushano.nl/news/">все новости</a></div>
+  <section class="lst glass in" style="--d:8" id="news"></section>
+
+  <div class="sh in" style="--d:9"><h2>Полезное</h2></div>
+  <section class="trio in" style="--d:10" id="trio"></section>
+
+  <div class="sh in" style="--d:11"><h2>Мы в соцсетях</h2></div>
+  <section class="soc in" style="--d:12" id="soc"></section>
+
+  <footer class="ft"><span>podslushano.nl · Karel Doormanstraat 63, Oss · KVK 98882317</span><span><a href="https://www.podslushano.nl/collaboration-for-business-netherlands/">Разместить партнёрскую ссылку</a> · <a href="https://www.podslushano.nl/privacy-statement-eu/">Privacy</a></span></footer>
+</main>
+<script>
+/* ==== Всё содержимое страницы редактируется здесь ==== */
+const SITE='https://www.podslushano.nl';
+/* Партнёры: ссылка получает utm-метки автоматически, если своих меток в ней нет. until — дата, после которой блок скрывается. */
+const PARTNERS=[
+ {id:'numr',name:'NUMR',title:'Счета для ZZP быстро и понятно',text:'Offerte и factuur на русском, проверка BTW и готовый PDF клиенту. 14 дней бесплатно.',cta:'Открыть NUMR',url:'https://api.numr.nl/app',img:'{{B64:numr.webp}}',until:'2026-12-31'},
+ {id:'sorokin',name:'Somewhere.show',title:'Владимир Сорокин в Амстердаме, 18 октября',text:'Встреча с автором бестселлера «Сказка» в Zuiderkerk: чтение, разговор и автографы.',cta:'Купить билеты',url:'https://somewhere.show/vladimir-sorokin-amsterdamru?utm_source=insta&utm_medium=banner&utm_campaign=insta-podslushanonl-vladimir-sorokin-amsterdamru',img:'{{B64:../img/ev-sorokin.webp}}',pos:'30% center',until:'2026-10-18'},
+ {id:'loboda',name:'Big Life Entertainment',title:'LOBODA в Тилбурге, 21 октября',text:'Концерт на главной сцене 013 Poppodium. Билеты от €64,80.',cta:'Купить билеты',url:'https://tickets.013.nl/4fac218f43134eb7b088e2723b866d41/',img:'{{B64:../img/ev-loboda.webp}}',until:'2026-10-21'},
+ {id:'vassiliev',name:'Somewhere.show',title:'Александр Васильев, 25 октября',text:'Моноспектакль «Секс и мода» в Zuiderkerk, Амстердам. Билеты от €40.',cta:'Купить билеты',url:'https://somewhere.show/alexandre-vassiliev-amsterdamru?utm_source=insta&utm_medium=banner&utm_campaign=insta-podslushanonl-alexandre-vassiliev-amsterdamru',img:'{{B64:../img/ev-vassiliev.webp}}',pos:'70% center',until:'2026-10-25'},
+ {id:'havtan',name:'The Meeting Point',title:'Евгений Хавтан & The Band, 15 ноября',text:'Greatest Hits of «Браво» в Het Zonnehuis, Амстердам. Билеты от €45.',cta:'Купить билеты',url:'https://www.the-meeting-point.com/en/evgeny-havtan-the-band-greatest-hits-of-bravo-15-nov-2026/eid/159',img:'{{B64:../img/ev-havtan.webp}}',until:'2026-11-15'},
+ {id:'arbenina',name:'Event Cartel',title:'Диана Арбенина · Ночные Снайперы',text:'25 ноября, Patronaat в Харлеме. Живой концерт и главные хиты.',cta:'Купить билеты',url:'https://eventcartel.com/events/concert/diana-arbenina-and-the-night-snipers-15732-haarlem-NH-patronaat-tickets-15732?promo=1013b652be5573c3b16dad48dd8feb67',img:'{{B64:../img/ev-arbenina.webp}}',until:'2026-11-25'}];
+const EVENTS=[
+ {d:'2026-10-18',h:'Владимир Сорокин',s:'Zuiderkerk, Амстердам',url:'https://somewhere.show/vladimir-sorokin-amsterdamru?utm_source=insta&utm_medium=banner&utm_campaign=insta-podslushanonl-vladimir-sorokin-amsterdamru',img:'{{B64:../img/ev-sorokin.webp}}',pos:'30% center'},
+ {d:'2026-10-21',h:'LOBODA',s:'013 Poppodium, Тилбург',url:'https://tickets.013.nl/4fac218f43134eb7b088e2723b866d41/',img:'{{B64:../img/ev-loboda.webp}}'},
+ {d:'2026-10-25',h:'Александр Васильев',s:'Zuiderkerk, Амстердам',url:'https://somewhere.show/alexandre-vassiliev-amsterdamru?utm_source=insta&utm_medium=banner&utm_campaign=insta-podslushanonl-alexandre-vassiliev-amsterdamru',img:'{{B64:../img/ev-vassiliev.webp}}',pos:'70% center'},
+ {d:'2026-11-15',h:'Евгений Хавтан & The Band',s:'Het Zonnehuis, Амстердам',url:'https://www.the-meeting-point.com/en/evgeny-havtan-the-band-greatest-hits-of-bravo-15-nov-2026/eid/159',img:'{{B64:../img/ev-havtan.webp}}'},
+ {d:'2026-11-25',h:'Диана Арбенина',s:'Patronaat, Харлем',url:'https://eventcartel.com/events/concert/diana-arbenina-and-the-night-snipers-15732-haarlem-NH-patronaat-tickets-15732?promo=1013b652be5573c3b16dad48dd8feb67',img:'{{B64:../img/ev-arbenina.webp}}'}];
+const NEWS={{NEWS}};
+/* ================================================= */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const AR='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const CH='<svg class="ar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>';
+const MON=['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];const MS=['янв','фев','мар','апр','мая','июн','июл','авг','сен','окт','ноя','дек'];
+const today=new Date();const iso=today.toISOString().slice(0,10);
+function utm(u,id){if(/[?&]utm_/.test(u)||/[?&]promo=/.test(u))return u;return u+(u.includes('?')?'&':'?')+'utm_source=podslushano&utm_medium=links&utm_campaign='+encodeURIComponent(id)}
+try{$('#today').textContent=new Intl.DateTimeFormat('ru-RU',{weekday:'long',day:'numeric',month:'long'}).format(today)}catch(e){}
+/* theme */
+(()=>{const r=document.documentElement;let t=null;try{t=localStorage.getItem('lkTheme')}catch(e){}if(t)r.dataset.theme=t;$('#thm').onclick=()=>{const dark=r.dataset.theme?r.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;r.dataset.theme=dark?'light':'dark';try{localStorage.setItem('lkTheme',r.dataset.theme)}catch(e){}}})();
+/* counters */
+document.querySelectorAll('[data-n]').forEach(el=>{const n=+el.dataset.n;if(RM){el.textContent=n;return}const t0=performance.now();const step=t=>{const k=Math.min(1,(t-t0)/1400),e=1-Math.pow(1-k,3);el.textContent=Math.round(n*e);if(k<1)requestAnimationFrame(step)};setTimeout(()=>requestAnimationFrame(step),400)});
+/* app icons */
+const G={
+ site:`<img src="{{B64:icon-site.webp}}" alt="" style="width:62px">`,
+ tg:`<svg class="g" viewBox="0 0 24 24" fill="#fff">{{SLP:telegram}}</svg>`,
+ bot:`<img src="{{B64:../img/m-wind.webp}}" alt="" style="height:66px;margin-top:16px">`,
+ guide:`<svg class="g" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4" fill="rgba(255,255,255,.25)"/><path d="M3 20c.6-3.4 3-5.4 6-5.4s5.4 2 6 5.4"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c2.4.2 4 1.9 4.5 4.6"/></svg>`,
+ ev:`<svg class="g" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M3 8a2 2 0 0 0 0 4v0a2 2 0 0 1 0 4v2h18v-2a2 2 0 0 1 0-4 2 2 0 0 0 0-4V6H3Z" fill="rgba(255,255,255,.22)"/><path d="M14 6v12" stroke-dasharray="2 2.2"/></svg>`,
+ allo:`<img src="{{B64:../allo-orig.webp}}" alt="" style="width:58px;border-radius:50%">`,
+ ask:`<svg class="g" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11H9l-5 4Z" fill="rgba(255,255,255,.22)"/><path d="M10 9.2a2 2 0 1 1 2.8 1.8c-.6.3-.8.7-.8 1.3"/><circle cx="12" cy="14.4" r=".6" fill="#fff"/></svg>`,
+ trip:`<svg class="g" viewBox="0 0 24 24" fill="#fff"><path d="M21.5 15.5v-2L13 8.5V3.8a1.5 1.5 0 0 0-3 0v4.7l-8.5 5v2l8.5-2.5V18l-2.5 1.8V21l4-1.2 4 1.2v-1.2L13 18v-5Z"/></svg>`,
+ st:`<img src="{{B64:../img/m-sun.webp}}" alt="" style="height:66px;margin-top:14px;filter:drop-shadow(0 0 0 #fff) drop-shadow(1.5px 0 0 #fff) drop-shadow(-1.5px 0 0 #fff) drop-shadow(0 1.5px 0 #fff) drop-shadow(0 -1.5px 0 #fff)">`};
+const APPS=[
+ ['site','Сайт','новости и разделы',SITE+'/','linear-gradient(160deg,#FFFFFF,#EEF1F6)','rgba(20,25,40,.35)'],
+ ['tg','Канал','главное каждый день','https://t.me/podslushanovnl','linear-gradient(160deg,#4CC3FF,#1B8BD6)','rgba(27,139,214,.6)'],
+ ['bot','Бот-помощник','письма, гайды, сервисы','https://t.me/podslushano_nl_bot','linear-gradient(160deg,#FFB27A,#FF5A1F)','rgba(255,90,31,.55)'],
+ ['guide','КонтактGuide','русскоязычные специалисты',SITE+'/guide/','linear-gradient(160deg,#5FD39A,#1F9D63)','rgba(31,157,99,.55)'],
+ ['ev','Афиша','концерты и стендап',SITE+'/events/','linear-gradient(160deg,#FF7A9A,#E0335A)','rgba(224,51,90,.55)'],
+ ['allo','allowalks','прогулки вместе',SITE+'/allowalks/','linear-gradient(160deg,#FFE7D6,#FFC7A3)','rgba(255,120,60,.45)'],
+ ['ask','Предложка','спросить сообщество','https://t.me/podslushano_nl_bot?start=ask','linear-gradient(160deg,#A38BFF,#6A4BE0)','rgba(106,75,224,.55)'],
+ ['trip','Путешествия','билеты и идеи',SITE+'/travel/','linear-gradient(160deg,#7EC4FF,#2E6CB0)','rgba(46,108,176,.55)'],
+ ['st','Стикеры','лосёнок для чатов','https://t.me/addstickers/Podslushanonl','linear-gradient(160deg,#FFE58F,#FFB703)','rgba(255,183,3,.55)']];
+$('#apps').innerHTML=APPS.map(([k,t,s,u,bg,sh],i)=>`<a class="app in" style="--d:${5+i*0.6}" href="${u}" ${u.startsWith(SITE)?'':'target="_blank" rel="noopener"'}><span class="ic" style="background:${bg};--sh:${sh};--d:${i}">${G[k]}</span><b>${t}</b><small>${s}</small></a>`).join('');
+/* partners carousel */
+(()=>{const L=PARTNERS.filter(p=>!p.until||p.until>=iso);if(!L.length){$('.spot').remove();return}
+  $('#slides').innerHTML=L.map((p,i)=>`<div class="slide${i?'':' on'}"><span class="pl"><img src="${p.img}" alt="${esc(p.name)}" style="object-position:${p.pos||'center'}"></span><div><span class="adtag"><em>Партнёр</em>${esc(p.name)}</span><h3>${esc(p.title)}</h3><p>${esc(p.text)}</p><a class="cta" href="${esc(utm(p.url,p.id))}" target="_blank" rel="noopener sponsored">${esc(p.cta)}${AR}</a></div></div>`).join('');
+  $('#bars').innerHTML=L.length>1?L.map(()=>'<i><b></b></i>').join(''):'';
+  let k=0,t=null;const S=[...document.querySelectorAll('.slide')],B=[...document.querySelectorAll('#bars i')];
+  const go=n=>{k=(n+L.length)%L.length;S.forEach((s,j)=>s.classList.toggle('on',j===k));B.forEach((b,j)=>{b.className=j<k?'done':j===k?'run':'';const bb=b.firstChild;bb.style.animation='none';void bb.offsetWidth;bb.style.animation=''});clearTimeout(t);if(L.length>1&&!RM)t=setTimeout(()=>go(k+1),5500)};
+  let sx=null;const sp=$('.spot');sp.addEventListener('pointerdown',e=>sx=e.clientX);sp.addEventListener('pointerup',e=>{if(sx!=null&&Math.abs(e.clientX-sx)>40)go(k+(e.clientX<sx?1:-1));sx=null});go(0)})();
+/* events */
+const evs=EVENTS.filter(e=>e.d>=iso);
+$('#rail').innerHTML=evs.map(e=>{const [y,m,d]=e.d.split('-');return `<a class="pst" href="${esc(e.url)}" target="_blank" rel="noopener sponsored"><img src="${e.img}" alt="" style="object-position:${e.pos||'center'}"><span class="dt">${+d}<small>${MS[+m-1]}</small></span><span class="ptn">Партнёр</span><span class="tx"><b>${esc(e.h)}</b><small>${esc(e.s)}</small><span>Билеты</span></span></a>`}).join('')+`<a class="pst all" href="${SITE}/events/"><b>Вся афиша<br>на сайте</b></a>`;
+/* news */
+$('#news').innerHTML=NEWS.slice(0,3).map(n=>`<a class="row" href="${SITE}/news/${n.id}/"><span class="th"><img src="${n.thumb}" alt=""></span><span><b>${esc(n.h)}</b><small>${esc(n.cat)} · ${+n.date.slice(8)} ${MON[+n.date.slice(5,7)-1]}</small></span>${CH}</a>`).join('');
+/* useful */
+const TR=[['Гайд «Налоги и субсидии 2026»','бесплатно в нашем боте','https://t.me/podslushano_nl_bot?start=tax_guide_2026','linear-gradient(160deg,#7EC4FF,#2E6CB0)','<svg class="g" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M5 4h10l4 4v12H5Z" fill="rgba(255,255,255,.22)"/><path d="M15 4v4h4M8.5 12h7M8.5 15.5h5"/></svg>'],
+ ['Вклад в развитие','новости по-русски, новые разделы и сервер','https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf','linear-gradient(160deg,#FF8FA8,#E0335A)','<svg class="g" viewBox="0 0 24 24" fill="#fff"><path d="M12 20.5s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.9c0 5.6-7.5 10-7.5 10Z"/></svg>'],
+ ['Для бизнеса','реклама и партнёрские ссылки здесь',SITE+'/collaboration-for-business-netherlands/','linear-gradient(160deg,#3A4150,#0D1117)','<svg class="g" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v3l11 5V6L3 11Z" fill="rgba(255,255,255,.22)"/><path d="M14 9a4 4 0 0 1 0 6M7 15l1.5 5"/></svg>']];
+$('#trio').innerHTML=TR.map(([t,s,u,bg,g])=>`<a class="tc glass" href="${u}" ${u.startsWith(SITE)?'':'target="_blank" rel="noopener"'}><span class="ic" style="background:${bg}">${g}</span><span><b>${t}</b><small>${s}</small></span>${CH}</a>`).join('');
+/* socials */
+const SO=[['instagram','b-ig','76K','https://www.instagram.com/podslushano.nl'],['telegram','b-tg','4K','https://t.me/podslushanovnl'],['facebook','b-fb','26K','https://www.facebook.com/podslushano.nl'],['tiktok','b-tt','TikTok','https://www.tiktok.com/@podslushano.nl'],['youtube','b-yt','YouTube','https://www.youtube.com/@podslushanonl']];
+const SL={{SLJSON}};
+$('#soc').innerHTML=SO.map(([k,b,v,u])=>`<a class="so glass" href="${u}" target="_blank" rel="noopener"><span class="bi ${b}"><svg viewBox="0 0 24 24"><path d="${SL[k]}"/></svg></span>${v}</a>`).join('');
+</script>
+</body>
+</html>
