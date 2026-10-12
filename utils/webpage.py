@@ -21,6 +21,7 @@ _BLOCK_RE = re.compile(
     r"(?i)</(p|div|li|h[1-6]|tr|section|article|header|footer)>|<br\s*/?>|<li\b[^>]*>",
 )
 _TAG_RE = re.compile(r"<[^>]+>")
+_ARTICLE_RE = re.compile(r"<article\b[^>]*>(.*?)</article>", re.I | re.S)
 _TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.I | re.S)
 _META_RE = re.compile(r"<meta\b[^>]*>", re.I)
 _IMG_RE = re.compile(r"<img\b[^>]*>", re.I)
@@ -225,7 +226,15 @@ async def fetch_page_text(url: str, max_chars: int = 12000) -> tuple[str, str] |
         return None
 
     html = raw.decode("utf-8", errors="ignore")
+    title, body = _title_and_text(html)
+    if len(body) < 80:
+        log.warning("fetch_page_text пусто/мало текста для %s", url)
+        return None
+    return title[:300], body[:max_chars]
 
+
+def _title_and_text(html: str) -> tuple[str, str]:
+    """(заголовок, читаемый текст) из HTML-страницы."""
     m = _TITLE_RE.search(html)
     title = _TAG_RE.sub("", _html.unescape(m.group(1))).strip() if m else ""
 
@@ -236,8 +245,50 @@ async def fetch_page_text(url: str, max_chars: int = 12000) -> tuple[str, str] |
     body = re.sub(r"[ \t\r\f]+", " ", body)
     body = re.sub(r"\n[ \t]*", "\n", body)
     body = re.sub(r"\n{3,}", "\n\n", body).strip()
+    return title, body
 
-    if len(body) < 80:
-        log.warning("fetch_page_text пусто/мало текста для %s", url)
+
+async def fetch_article(url: str, max_chars: int = 12000) -> dict | None:
+    """Новостная статья одним запросом: {title, text, image, url}.
+
+    image — собственное фото статьи из og:image/twitter:image (у новостных сайтов
+    это главное фото материала), иначе крупная картинка из текста. None — если
+    страница не открылась или это не HTML. url — адрес после редиректов.
+    """
+    url = (url or "").strip()
+    if not url.lower().startswith(("http://", "https://")):
         return None
-    return title[:300], body[:max_chars]
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+            "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+        ),
+        "Accept": "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5",
+        "Accept-Language": "nl,en;q=0.8",
+    }
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                url, headers=headers, timeout=aiohttp.ClientTimeout(total=20),
+                allow_redirects=True,
+            ) as r:
+                ctype = (r.headers.get("Content-Type") or "").lower()
+                if r.status >= 400 or ("html" not in ctype and ctype):
+                    log.warning("fetch_article HTTP %s (%s) для %s", r.status, ctype, url)
+                    return None
+                raw = await r.content.read(2_000_000)
+                page_url = str(r.url)
+    except Exception as e:  # noqa: BLE001
+        log.warning("fetch_article ошибка %s: %s", url, e)
+        return None
+    html = raw.decode("utf-8", errors="ignore")
+    title, body = _title_and_text(html)
+    # Если у страницы есть <article>, берём только его — без меню и подвала сайта
+    m = _ARTICLE_RE.search(html)
+    if m:
+        article_text = _title_and_text(m.group(1))[1]
+        if len(article_text) >= 300:
+            body = article_text
+    image = _meta_image(html, page_url) or _content_image(html, page_url)
+    return {"title": title[:300], "text": body[:max_chars], "image": image,
+            "url": page_url}

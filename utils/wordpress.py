@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import html as _html
 import json
 import logging
 import re
@@ -96,9 +97,14 @@ async def list_categories() -> list[dict]:
 
 
 async def upload_media(
-    filename: str, data: bytes, mime: str = "image/jpeg"
+    filename: str, data: bytes, mime: str = "image/jpeg",
+    caption: str | None = None, alt_text: str | None = None,
 ) -> tuple[dict | None, str]:
-    """Загружает картинку в медиатеку WordPress. Возвращает ({id, source_url}, ошибка)."""
+    """Загружает картинку в медиатеку WordPress. Возвращает ({id, source_url}, ошибка).
+
+    caption/alt_text — подпись и альтернативный текст (например «Фото: NOS»);
+    ставятся вторым запросом, ошибка там не мешает самой загрузке.
+    """
     if not wp_enabled():
         return None, "Публикация на сайт не настроена."
     url = f"{_wp_url()}/wp-json/wp/v2/media"
@@ -116,8 +122,11 @@ async def upload_media(
                 ) as resp:
                     if resp.status in (200, 201):
                         j = await resp.json()
-                        return {"id": j.get("id"),
-                                "source_url": j.get("source_url", "")}, ""
+                        media = {"id": j.get("id"),
+                                 "source_url": j.get("source_url", "")}
+                        if media["id"] and (caption or alt_text):
+                            await _update_media_meta(media["id"], caption, alt_text)
+                        return media, ""
                     body = await resp.text()
                     log.warning("WP upload_media %s: %s", resp.status, body[:300])
                     if resp.status in (401, 403):
@@ -135,6 +144,89 @@ async def upload_media(
             log.warning("Ошибка upload_media: %s", e)
             return None, "Не удалось загрузить фото (сеть/таймаут)."
     return None, "Не удалось загрузить фото (сеть/таймаут)."
+
+
+async def _wp_json(
+    method: str, path: str, *, params: dict | None = None, payload: dict | None = None
+) -> tuple[int, object]:
+    """Простой JSON-запрос к REST API. Возвращает (HTTP-статус, разобранный JSON).
+
+    Статус 0 — сеть/таймаут после всех попыток.
+    """
+    url = f"{_wp_url()}/wp-json/wp/v2/{path.lstrip('/')}"
+    headers = {**_base_headers(), "Content-Type": "application/json"}
+    for attempt in range(_RETRIES):
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.request(
+                    method, url, params=params, json=payload, headers=headers,
+                    ssl=_ssl_param(), timeout=aiohttp.ClientTimeout(total=30),
+                ) as resp:
+                    body = await resp.text()
+                    try:
+                        data = json.loads(body)
+                    except Exception:  # noqa: BLE001
+                        data = None
+                    if resp.status >= 400:
+                        log.warning("WP %s %s: %s %s", method, path, resp.status, body[:300])
+                    return resp.status, data
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            log.warning("WP %s %s попытка %s: %s", method, path, attempt + 1, e)
+            if attempt < _RETRIES - 1:
+                await asyncio.sleep(2 * (attempt + 1))
+        except Exception as e:  # noqa: BLE001
+            log.warning("Ошибка WP %s %s: %s", method, path, e)
+            return 0, None
+    return 0, None
+
+
+async def _update_media_meta(
+    media_id: int, caption: str | None, alt_text: str | None
+) -> None:
+    payload: dict = {}
+    if caption:
+        payload["caption"] = caption
+    if alt_text:
+        payload["alt_text"] = alt_text
+    status, _ = await _wp_json("POST", f"media/{media_id}", payload=payload)
+    if status not in (200, 201):
+        log.warning("Не удалось подписать фото %s (HTTP %s)", media_id, status)
+
+
+async def ensure_category(name: str, parent_id: int | None = None) -> int | None:
+    """id рубрики по названию; если такой нет — создаёт (дочерней к parent_id).
+
+    Ищем по точному названию среди результатов поиска WordPress — так же, как
+    импортёр темы (term_exists по имени). None — если не удалось.
+    """
+    name = (name or "").strip()
+    if not name or not wp_enabled():
+        return None
+    status, data = await _wp_json(
+        "GET", "categories",
+        params={"search": name, "per_page": "100", "_fields": "id,name,parent"},
+    )
+    if status == 200 and isinstance(data, list):
+        wanted = name.casefold()
+        for cat in data:
+            if _html.unescape(str(cat.get("name", ""))).strip().casefold() == wanted:
+                return int(cat["id"])
+    payload: dict = {"name": name}
+    if parent_id:
+        payload["parent"] = parent_id
+    status, data = await _wp_json("POST", "categories", payload=payload)
+    if status in (200, 201) and isinstance(data, dict) and data.get("id"):
+        return int(data["id"])
+    # Рубрика уже есть (поиск её не нашёл) — WordPress сообщает её id
+    if isinstance(data, dict) and data.get("code") == "term_exists":
+        term_id = (data.get("data") or {}).get("term_id") or data.get("additional_data")
+        if isinstance(term_id, list):
+            term_id = term_id[0] if term_id else None
+        try:
+            return int(term_id) if term_id else None
+        except (TypeError, ValueError):
+            return None
+    return None
 
 
 def section_titles(body_html: str) -> list[str]:
@@ -226,11 +318,14 @@ async def create_post(
     status: str = "draft",
     category_ids: list[int] | None = None,
     featured_media: int | None = None,
+    excerpt: str | None = None,
+    slug: str | None = None,
 ) -> tuple[dict | None, str]:
     """Создаёт запись в WordPress. Возвращает (данные_записи, ошибка).
 
     status: 'draft' (черновик) или 'publish'. category_ids — рубрики,
-    featured_media — id картинки-обложки.
+    featured_media — id картинки-обложки, excerpt — анонс, slug — адрес
+    записи (пусто = WordPress сделает сам).
     """
     if not wp_enabled():
         return None, ("Публикация на сайт не настроена: задай WP_URL, WP_USER и "
@@ -241,6 +336,10 @@ async def create_post(
         payload["categories"] = category_ids
     if featured_media:
         payload["featured_media"] = featured_media
+    if excerpt:
+        payload["excerpt"] = excerpt
+    if slug:
+        payload["slug"] = slug
     headers = {**_base_headers(), "Content-Type": "application/json"}
     for attempt in range(_RETRIES):
         try:
