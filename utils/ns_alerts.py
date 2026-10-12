@@ -69,6 +69,13 @@ def alert_text(x: dict, station_name: str) -> str:
     return "\n".join(lines)
 
 
+def _now_line(n: int) -> str:
+    if n == 1:
+        return "Сейчас на этой станции есть сбой, подробности ниже."
+    word = "сбоя" if n % 10 in (2, 3, 4) and n % 100 not in (12, 13, 14) else "сбоев"
+    return f"Сейчас на этой станции {n} {word}, подробности ниже."
+
+
 def _h(text: str) -> str:
     return (text or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
@@ -124,7 +131,7 @@ async def start_subscription(message: Message, code: str) -> None:
     await message.answer(
         f"Готово. Если на станции <b>{_h(name)}</b> отменят поезда, случится сбой или начнётся ремонт, "
         "я сразу напишу и подскажу, как доехать (например, автобусом вместо поезда).\n\n"
-        + ("Сейчас на этой станции всё спокойно." if not current else f"Сейчас на этой станции: {len(current)}. Присылаю.")
+        + ("Сейчас на этой станции всё спокойно." if not current else _now_line(len(current)))
         + "\n\nУправлять подписками: /trains",
         reply_markup=_manage_kb(subs), parse_mode="HTML")
     for x in current[:3]:
