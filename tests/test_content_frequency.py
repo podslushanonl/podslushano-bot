@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 import handlers  # noqa: F401 — ставит обёртку ежедневных постов на seed_content_calendar
 from database.models import Base, ContentPost
 from handlers import content
-from utils import content_frequency
+from utils import action_content, content_calendar_reliability, content_frequency
 
 
 class DailySeedTests(unittest.IsolatedAsyncioTestCase):
@@ -21,8 +21,9 @@ class DailySeedTests(unittest.IsolatedAsyncioTestCase):
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
-        self.patches = [patch.object(content, "get_session", self.sessions),
-                        patch.object(content_frequency, "get_session", self.sessions)]
+        # Все модули цепочки seed_content_calendar ходят в базу через свой get_session
+        self.patches = [patch.object(m, "get_session", self.sessions)
+                        for m in (content, content_frequency, action_content, content_calendar_reliability)]
         for p in self.patches:
             p.start()
 
