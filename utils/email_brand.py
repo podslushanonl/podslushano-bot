@@ -23,7 +23,6 @@ SOCIAL = [
     ("telegram", "Telegram", "https://t.me/podslushanovnl"),
     ("facebook", "Facebook", "https://www.facebook.com/podslushano.nl"),
     ("tiktok", "TikTok", "https://www.tiktok.com/@podslushano.nl"),
-    ("youtube", "YouTube", "https://www.youtube.com/@podslushanonl"),
 ]
 
 
