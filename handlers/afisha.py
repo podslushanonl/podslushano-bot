@@ -194,12 +194,12 @@ async def _safe_send_card(bot, chat_id, ev: EventListing, reply_markup=None) -> 
     await _safe_send(bot, chat_id, caption, reply_markup)
 
 
-async def _email(to: str, subject: str, text: str, link: str) -> None:
+async def _email(to: str, built: tuple[str, str, str]) -> None:
     """Письмо организатору, который подал событие с сайта (у него нет чата с ботом)."""
     try:
         from utils.invoices import send_email_message
-        body = f"<p>{html.escape(text)}</p>" + (f'<p><a href="{html.escape(link)}">Открыть событие</a></p>' if link else "")
-        await send_email_message(to, subject, body, text + (f"\n{link}" if link else ""))
+        subject, html_body, text_body = built
+        await send_email_message(to, subject, html_body, text_body)
     except Exception as e:  # noqa: BLE001
         log.warning("Афиша: письмо организатору не ушло: %s", e)
 
@@ -483,7 +483,8 @@ async def on_afisha_payment_paid(bot, payment_id: str, payment: dict) -> None:
         try:
             from utils.invoices import send_invoice
             desc = f"Plaatsing evenement '{title}' in podslushano.nl-afisha ({_month_label(month_key)})"
-            ok, _ = await send_invoice(inv_email, title, desc, config.AFISHA_PRICE)
+            ok, _ = await send_invoice(inv_email, title, desc, config.AFISHA_PRICE,
+                                      kind="afisha", item=f"«{title}»")
         except Exception as e:  # noqa: BLE001
             ok = False
             log.warning("Афиша: не удалось отправить счёт: %s", e)
@@ -535,10 +536,8 @@ async def afisha_approve(callback: CallbackQuery) -> None:
         pass
     await callback.message.answer(f"✅ «{html.escape(title)}» в афише на {_month_label(month_key)}.")
     if site_email:
-        await _email(site_email, "Ваше событие в афише podslushano.nl",
-                     f"Готово! Событие «{title}» опубликовано в афише podslushano.nl. "
-                     "На сайте оно появится в течение 15 минут.",
-                     f"{config.SITE_URL.rstrip('/')}/events/{ev_key}/")
+        from utils.email_templates import afisha_published
+        await _email(site_email, afisha_published(title=title, url=f"{config.SITE_URL.rstrip('/')}/events/{ev_key}/"))
     if sub:
         await _safe_send(
             callback.bot, sub,
@@ -566,9 +565,8 @@ async def afisha_reject(callback: CallbackQuery) -> None:
         pass
     await callback.message.answer(f"❌ «{html.escape(title)}» отклонено.")
     if site_email:
-        await _email(site_email, "Событие не добавлено в афишу podslushano.nl",
-                     f"К сожалению, событие «{title}» мы не можем добавить в афишу. "
-                     f"Оплату вернём. Вопросы: {config.COMPANY_EMAIL}", "")
+        from utils.email_templates import afisha_rejected
+        await _email(site_email, afisha_rejected(title=title, contact=config.COMPANY_EMAIL))
     if sub:
         await _safe_send(
             callback.bot, sub,

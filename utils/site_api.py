@@ -220,10 +220,8 @@ async def on_donation_payment(payment_id: str, payment: dict) -> None:
     if not meta.get("monthly"):
         if email and await _meta_set(f"don:{payment_id}", "thanks"):
             value = (payment.get("amount") or {}).get("value", "")
-            await send_email_message(
-                email, "Спасибо за вклад в podslushano.nl",
-                f"<p>Спасибо! €{html.escape(value)} уже работают на podslushano.nl: новости по-русски, новые разделы и сервер.</p>",
-                f"Спасибо! €{value} уже работают на podslushano.nl.")
+            from utils.email_templates import donation_thanks
+            await send_email_message(email, *donation_thanks(amount=value.replace(".", ",")))
         return
     customer_id = meta.get("customer_id")
     if not customer_id or await _meta_get(f"don:{payment_id}"):
@@ -245,11 +243,9 @@ async def on_donation_payment(payment_id: str, payment: dict) -> None:
     link = f"{_api_base()}/api/donate/cancel?t={make_token({'k': 'don', 'c': customer_id, 's': sub['id']}, 10 * 365 * 86400)}"
     value = meta.get("amount", "")
     if email:
-        await send_email_message(
-            email, "Ежемесячный вклад в podslushano.nl",
-            f"<p>Спасибо! Каждый месяц €{html.escape(value)} будет идти на развитие podslushano.nl.</p>"
-            f"<p>Отменить можно в любой момент: <a href=\"{html.escape(link)}\">отменить ежемесячный вклад</a>.</p>",
-            f"Спасибо! Каждый месяц €{value} будет идти на развитие podslushano.nl. Отменить: {link}")
+        from utils.email_templates import donation_thanks
+        await send_email_message(email, *donation_thanks(amount=str(value).replace(".", ","), monthly=True,
+                                                         cancel_url=link))
 
 
 async def donate_cancel(request: web.Request) -> web.Response:
@@ -313,11 +309,8 @@ async def cabinet_login(request: web.Request) -> web.Response:
             func.lower(Specialist.invoice_email) == email, Specialist.status != "deleted"))
     if count:
         link = f"{_site()}/cabinet/?t={make_token({'k': 'login', 'e': email}, 3600)}"
-        await send_email_message(
-            email, "Вход в кабинет podslushano.nl",
-            f"<p>Чтобы войти в кабинет бизнеса, нажмите: <a href=\"{html.escape(link)}\">войти в кабинет</a>.</p>"
-            "<p>Ссылка действует один час. Если вы не запрашивали вход, просто удалите это письмо.</p>",
-            f"Вход в кабинет: {link} (ссылка действует один час)")
+        from utils.email_templates import cabinet_login as cabinet_login_email
+        await send_email_message(email, *cabinet_login_email(link=link))
     # Same answer either way, so the form does not reveal which e-mails are registered.
     return _json(request, {"ok": True})
 

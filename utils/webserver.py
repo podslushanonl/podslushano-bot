@@ -1748,6 +1748,8 @@ async def start_webserver(bot) -> web.AppRunner:
     install_site_routes(app)
     from utils.afisha_site import install_routes as install_afisha_site_routes
     install_afisha_site_routes(app)
+    from utils.newsletter import install_routes as install_newsletter_routes
+    install_newsletter_routes(app)
     app.router.add_get("/", _health)
     app.router.add_get("/thanks", _thanks)
     app.router.add_get("/privacy", _privacy)
@@ -1791,6 +1793,8 @@ async def start_webserver(bot) -> web.AppRunner:
     for path in ("/api/allo/v2/events", "/api/allo/v2/book", "/api/allo/v2/gift",
                  "/api/allo/v2/orders/{token}"):
         app.router.add_route("OPTIONS", path, allo_v2.options)
+    # Картинки для писем (логотип, лосёнок, иконки соцсетей) — PNG, чтобы показывались везде
+    app.router.add_static("/email-assets/", Path(__file__).resolve().parent.parent / "static" / "email")
     app.router.add_static("/allo-assets/", Path(__file__).resolve().parent.parent / "assets" / "allo")
     app.router.add_static("/allo-fonts/", Path(__file__).resolve().parent.parent / "assets" / "fonts")
     app.router.add_post("/mollie-webhook", _mollie_webhook)

@@ -329,8 +329,14 @@ async def send_email_message(
     subject: str,
     html_body: str,
     text_body: str,
+    unsubscribe_url: str | None = None,
 ) -> tuple[bool, str]:
-    """Отправляет служебное письмо через тот же канал, что и счета."""
+    """Отправляет служебное письмо через тот же канал, что и счета.
+
+    Письмо без фирменного оформления автоматически получает его (utils.email_brand).
+    """
+    from utils.email_brand import wrap_legacy
+    html_body = wrap_legacy(html_body, subject)
     if not config.invoice_enabled():
         return False, "не настроен ни Gmail (GMAIL_APP_PASSWORD), ни Resend"
     if not to_email:
@@ -344,6 +350,9 @@ async def send_email_message(
             "html": html_body,
             "text": text_body,
         }
+        if unsubscribe_url:  # кнопка «Отписаться» в Gmail и Apple Mail
+            body["headers"] = {"List-Unsubscribe": f"<{unsubscribe_url}>",
+                               "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"}
         headers = {
             "Authorization": f"Bearer {config.RESEND_API_KEY}",
             "Content-Type": "application/json",
@@ -381,8 +390,15 @@ async def send_invoice(
     description: str,
     total_str: str,
     buyer_lines: list | None = None,
+    kind: str = "other",
+    item: str | None = None,
+    greet_name: str | None = None,
 ) -> tuple[bool, str]:
     """Создаёт, архивирует и отправляет PDF-фактуру.
+
+    Письмо — фирменное «Оплата получена» (utils.email_templates.payment_received):
+    kind = afisha | guide | other добавляет шаги «что дальше», item — понятное название
+    заказа по-русски (в самой фактуре остаётся описание на нидерландском).
 
     Архивирование выполняется ДО внешней отправки: временный сбой Resend больше
     не приводит к потере бухгалтерского экземпляра.
@@ -418,14 +434,11 @@ async def send_invoice(
         log.error(detail)
         return False, detail
 
-    subject = f"Счёт {no} · podslushano.nl"
+    from utils.email_templates import payment_received
+    _, html, _ = payment_received(kind=kind, item=item or description, amount=f"{total:.2f}".replace(".", ","),
+                                  invoice_no=str(no), name=greet_name or "")
+    subject = f"✅ Оплата получена · счёт {no} · podslushano.nl"
     filename = f"factuur-{no}.pdf"
-    html = (
-        "<p>Здравствуйте!</p>"
-        "<p>Спасибо за заказ на podslushano.nl. "
-        f"Во вложении — счёт (factuur) №{no}.</p>"
-        f"<p>С уважением,<br>{config.COMPANY_NAME}<br>{config.COMPANY_EMAIL}</p>"
-    )
     if config.RESEND_API_KEY and config.INVOICE_FROM_EMAIL:
         return await _send_email(to_email, subject, html, pdf, filename)
     return await _send_gmail(to_email, subject, html, pdf, filename)

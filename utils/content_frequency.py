@@ -44,6 +44,13 @@ def install_content_frequency(content_module) -> None:
                 ).order_by(ContentPost.scheduled_at, ContentPost.id)
             )).all())
             occupied = {row.scheduled_at.date() for row in rows if row.status != "skipped"}
+            existing_keys = set((await session.scalars(
+                select(ContentPost.campaign_key).where(ContentPost.campaign_key.like("autodaily_%"))
+            )).all())
+            # День, где ежедневный пост уже был (даже пропущенный), повторно не заполняем:
+            # иначе бот снова создавал пост с тем же ключом и цикл падал каждую минуту.
+            occupied |= {datetime.strptime(k[10:16], "%y%m%d").date() for k in existing_keys
+                         if len(k) > 16 and k[10:16].isdigit()}
 
             day = now.date()
             while day <= end:
@@ -81,6 +88,11 @@ def install_content_frequency(content_module) -> None:
                     key = safe[0]
                     template = content_module.TEMPLATES[key]
                     campaign = f"autodaily_{day:%y%m%d}_{key}"
+                    if campaign in existing_keys:  # страховка от UNIQUE campaign_key
+                        occupied.add(day)
+                        day += timedelta(days=1)
+                        continue
+                    existing_keys.add(campaign)
                     row = ContentPost(
                         campaign_key=campaign,
                         template_key=key,

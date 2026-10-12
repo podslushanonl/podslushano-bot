@@ -773,3 +773,20 @@ class NsAlertSent(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
     )
+
+
+class WeekSubscriber(Base):
+    """Подписчик пятничной рассылки «Неделя в Нидерландах» (подписка с подтверждением почты)."""
+
+    __tablename__ = "week_subscribers"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str] = mapped_column(String(200), unique=True, index=True)
+    # pending (ждёт подтверждения) | active | unsubscribed
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
+    source: Mapped[str] = mapped_column(String(40), default="site")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    unsubscribed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

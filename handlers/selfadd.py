@@ -21,7 +21,7 @@ from aiogram.types import (
     InlineKeyboardMarkup,
     Message,
 )
-from sqlalchemy import select
+from sqlalchemy import or_, select
 
 import config
 from database.db import get_session
@@ -1166,7 +1166,8 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         ok = False
         try:
             from utils.invoices import send_invoice
-            ok, _ = await send_invoice(inv_email, name, desc, paid_amount)
+            ok, _ = await send_invoice(inv_email, name, desc, paid_amount,
+                                      kind="guide", item=f"«{name}» ({info['title']})")
         except Exception as e:  # noqa: BLE001
             log.warning("Не удалось отправить счёт: %s", e)
         if ok:
@@ -1325,8 +1326,12 @@ async def send_specialist_reminder(bot, sp: Specialist, kind: str,
     """
     if kind not in ("renewal", "expiry"):
         raise ValueError(f"unknown reminder kind: {kind}")
-    if not sp.submitter_user_id or not sp.paid_until:
+    if not sp.paid_until:
         return False
+    # Письмо на почту для счёта: у карточек, оформленных на сайте, Telegram может не быть
+    emailed = await _email_card_reminder(sp, kind)
+    if not sp.submitter_user_id:
+        return emailed
     if not force and not await _reminder_attempt_allowed(sp, kind):
         return False
 
@@ -1368,6 +1373,39 @@ async def send_specialist_reminder(bot, sp: Specialist, kind: str,
 
     await _notify_admin_reminder_result(bot, sp, kind, sent, message_id, error)
     return sent
+
+
+async def _email_card_reminder(sp: Specialist, kind: str) -> bool:
+    """Фирменное письмо-напоминание (продление за 7 дней / карточка скрыта). Одно на период."""
+    email = (sp.invoice_email or "").strip().lower()
+    if not email or "@" not in email:
+        return False
+    key = f"cardmail:{kind}:{sp.id}:{sp.paid_until:%Y%m%d}"
+    async with get_session() as session:
+        if await session.get(Meta, key):
+            return True
+    from utils.email_templates import card_expired, card_renewal
+    from utils.invoices import send_email_message
+    from utils.site_api import make_token
+    site = (config.SITE_URL or "https://www.podslushano.nl").rstrip("/")
+    link = f"{site}/cabinet/?t={make_token({'k': 'login', 'e': email}, 3 * 86400)}"
+    plan = _price_str(sp.plan or "year")
+    built = (card_renewal(name=sp.name, until=f"{sp.paid_until:%d.%m.%Y}", plan=plan, url=link)
+             if kind == "renewal" else card_expired(name=sp.name, plan=plan, url=link))
+    try:
+        ok, _ = await send_email_message(email, *built)
+    except Exception as e:  # noqa: BLE001
+        log.warning("Письмо-напоминание карточки #%s не ушло: %s", sp.id, e)
+        return False
+    if ok:
+        async with get_session() as session:
+            session.add(Meta(key=key, value="sent"))
+            if kind == "renewal" and not sp.submitter_user_id:
+                row = await session.get(Specialist, sp.id)
+                if row and row.paid_until == sp.paid_until:
+                    row.renewal_reminded = True
+            await session.commit()
+    return ok
 
 
 # --- Реферальная программа в гайде ------------------------------------------
@@ -1724,7 +1762,7 @@ async def _send_renewal_reminders(bot) -> None:
                     Specialist.paid_until <= soon,
                     Specialist.paid_until > now,
                     Specialist.renewal_reminded.is_(False),
-                    Specialist.submitter_user_id.is_not(None),
+                    or_(Specialist.submitter_user_id.is_not(None), Specialist.invoice_email.is_not(None)),
                 )
             )
         ).all()
@@ -1749,7 +1787,8 @@ async def _send_expiry_notices(bot) -> None:
                     Specialist.status == "active",
                     Specialist.paid_until.is_not(None),
                     Specialist.paid_until <= now,
-                    Specialist.submitter_user_id.is_not(None),
+                    # карточки с сайта (без Telegram) тоже истекают и получают письмо
+                    or_(Specialist.submitter_user_id.is_not(None), Specialist.invoice_email.is_not(None)),
                 )
             )
         ).all()
@@ -1767,7 +1806,7 @@ async def _send_expiry_notices(bot) -> None:
                     Specialist.paid_until.is_not(None),
                     Specialist.paid_until <= now,
                     Specialist.paid_until >= now - timedelta(days=7),
-                    Specialist.submitter_user_id.is_not(None),
+                    or_(Specialist.submitter_user_id.is_not(None), Specialist.invoice_email.is_not(None)),
                 )
             )
         ).all()
