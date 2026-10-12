@@ -145,8 +145,8 @@ add_action('wp_head', function () {
 /* ---------- assets ---------- */
 add_action('wp_enqueue_scripts', function () {
     if (is_page('links')) return;
-    wp_enqueue_style('pn-app', PN_URI . '/assets/app.css', [], PN_VER);
-    wp_enqueue_script('pn-app', PN_URI . '/assets/app.js', [], PN_VER, true);
+    wp_enqueue_style('pn-app', PN_URI . '/assets/app.css', [], PN_VER . '.' . @filemtime(PN_DIR . '/assets/app.css'));
+    wp_enqueue_script('pn-app', PN_URI . '/assets/app.js', [], PN_VER . '.' . @filemtime(PN_DIR . '/assets/app.js'), true);
     wp_dequeue_style('wp-block-library');
     wp_dequeue_style('global-styles');
     wp_dequeue_style('classic-theme-styles');
