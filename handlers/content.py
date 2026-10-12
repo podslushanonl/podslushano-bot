@@ -203,12 +203,12 @@ async def seed_content_calendar() -> None:
             await session.execute(
                 sqlite_insert(ContentPost).values(
                     campaign_key=campaign,
-                                    template_key=template_key,
-                                    content_kind=template.kind,
-                                    scheduled_at=scheduled_at,
-                                    status="scheduled",
-                                    button_label=template.button,
-                                    start_payload=f"content_{campaign}",
+                    template_key=template_key,
+                    content_kind=template.kind,
+                    scheduled_at=scheduled_at,
+                    status="scheduled",
+                    button_label=template.button,
+                    start_payload=f"content_{campaign}",
                 ).on_conflict_do_nothing(index_elements=["campaign_key"])
             )
         await session.commit()
