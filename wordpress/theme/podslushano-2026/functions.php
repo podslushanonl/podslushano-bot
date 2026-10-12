@@ -116,6 +116,11 @@ add_filter('wpseo_sitemap_index', function ($x) {
 function pn_complianz() {
     return defined('cmplz_version') || class_exists('COMPLIANZ');
 }
+// The app data script lists Instagram links of specialists; Complianz must not block it as an Instagram embed.
+add_filter('cmplz_whitelisted_script_tags', function ($tags) {
+    $tags[] = 'window.PN=';
+    return $tags;
+});
 
 /* ---------- Plausible on /links/ (that page is standalone and skips wp_head) ---------- */
 function pn_analytics_tags() {
