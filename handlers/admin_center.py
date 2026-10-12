@@ -37,6 +37,7 @@ def _home_kb():
         [InlineKeyboardButton(text="🛠 Система", callback_data="ac:system"), InlineKeyboardButton(text="📥 Инбокс", callback_data="ac:inbox")],
         [InlineKeyboardButton(text="⚡ Быстрые действия", callback_data="ac:quick")],
         [InlineKeyboardButton(text="⌨️ Все команды кнопками", callback_data="ac:cmds")],
+        [InlineKeyboardButton(text="✉️ Письма и рассылка", callback_data="ac:mail")],
     ])
 
 
@@ -362,3 +363,38 @@ async def inbox_info(callback: CallbackQuery):
         "3. Напишите в группе <code>/inbox</code>.\n\nОтключить: <code>/inbox off</code> в группе.",
         _kb([_nav()]))
     await callback.answer()
+
+
+@router.callback_query(F.data == "ac:mail")
+async def mail_center(callback: CallbackQuery):
+    from utils.newsletter import active_count
+    n = await active_count()
+    await _show(callback.message,
+        f"✉️ <b>Письма и рассылка</b>\n\nПодписчиков «Недели в Нидерландах» (подтвердили почту): <b>{n}</b>.\n\n"
+        f"Все письма бота оформлены в фирменном стиле. Кнопка ниже пришлёт примеры всех писем на "
+        f"<code>{config.COMPANY_EMAIL}</code>, чтобы посмотреть их в настоящем почтовом ящике.",
+        _kb([[InlineKeyboardButton(text="📬 Прислать примеры писем мне", callback_data="ac:mailsamples")], _nav()]))
+    await callback.answer()
+
+
+@router.callback_query(F.data == "ac:mailsamples")
+async def mail_samples(callback: CallbackQuery):
+    from utils import email_templates as T
+    from utils.invoices import send_email_message
+    site = (config.SITE_URL or "").rstrip("/")
+    samples = [
+        T.digest(week_label="[даты недели]", items=[
+            {"title": "[Заголовок новости 1]", "text": "[Суть в одном-двух предложениях: что случилось и что это значит для вас.]", "url": site + "/news/"},
+            {"title": "[Заголовок новости 2]", "text": "[Суть в одном-двух предложениях.]", "url": site + "/news/"}],
+            events=[{"title": "[Название события]", "when": "[день, дата]", "url": site + "/events/"}],
+            unsubscribe_url=site),
+        T.payment_received(kind="afisha", item="«[Название события]»", amount="9,99", invoice_no="[номер счёта]"),
+        T.welcome_week(unsubscribe_url=site, gift_url="https://t.me/podslushano_nl_bot?start=tax_guide_2026"),
+        T.card_renewal(name="[Название карточки]", until="[дата]", plan="€99,00 · год", url=site + "/cabinet/"),
+        T.cabinet_login(link=site + "/cabinet/"),
+    ]
+    sent = 0
+    for subject, html_body, text_body in samples:
+        ok, _ = await send_email_message(config.COMPANY_EMAIL, "[пример] " + subject, html_body, text_body)
+        sent += bool(ok)
+    await callback.answer(f"Отправлено {sent} из {len(samples)}", show_alert=True)

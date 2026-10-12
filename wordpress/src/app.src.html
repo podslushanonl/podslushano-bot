@@ -3941,7 +3941,9 @@ async function payPlace(pl,P){try{pnBusy(true);const fd=new FormData();const con
 /* ---- forms that WordPress stores (newsletter, notify, contact) ---- */
 async function pnForm(kind,data){const fd=new FormData();fd.append('action','pn_form');fd.append('kind',kind);Object.entries(data).forEach(([k,v])=>fd.append(k,v));
   const r=await fetch(PN.ajax||'/wp-admin/admin-ajax.php',{method:'POST',body:fd});const j=await r.json().catch(()=>({}));if(!j.success)throw new Error((j.data&&j.data.msg)||'Не удалось отправить. Попробуйте ещё раз.');return j}
-document.addEventListener('submit',e=>{const f=e.target;const map={wForm:['week','#wMail'],awForm:['allowalks','#awMail']};const m=map[f.id];if(!m)return;const v=(f.querySelector(m[1])||{}).value||'';if(!vEmail(v.trim()))return;pnForm(m[0],{email:v.trim()}).catch(err=>toast(err.message))},true);
+document.addEventListener('submit',e=>{const f=e.target;const map={wForm:['week','#wMail'],awForm:['allowalks','#awMail']};const m=map[f.id];if(!m)return;const v=(f.querySelector(m[1])||{}).value||'';if(!vEmail(v.trim()))return;pnForm(m[0],{email:v.trim()}).catch(err=>toast(err.message));
+  /* «Неделя в Нидерландах»: бот присылает письмо с подтверждением, потом приветствие с подарком */
+  if(m[0]==='week')pnPost(PN_BOT+'/api/newsletter/subscribe',{email:v.trim(),source:'site'}).catch(err=>toast(err.message))},true);
 document.addEventListener('submit',e=>{if(e.target.id!=='cForm')return;const d={};e.target.querySelectorAll('input,textarea,select').forEach(x=>{if(x.id&&x.type!=='checkbox')d[x.id]=x.value});if(!vEmail((d.ce||'').trim())||!(d.cm||'').trim())return;pnForm('contact',d).catch(err=>toast(err.message))},true);
 /* listings and the business cabinet live in the bot for now */
 function postDraw(){$('#postFlow').innerHTML=`<div style="display:grid;gap:14px;justify-items:start"><h3 style="font:700 20px var(--f-display)">Объявление размещается через нашего бота</h3><p class="muted">Бот проверит текст, поможет с фото и опубликует объявление здесь и в канале после модерации.</p><a class="btn btn-acc" href="https://t.me/podslushano_nl_bot" target="_blank" rel="noopener">Открыть бота</a></div>`}

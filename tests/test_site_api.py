@@ -152,7 +152,8 @@ class SiteApiDbTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(self.mail.await_count, 0)
         r = await site_api.cabinet_login(Req({"email": "Owner@Example.com"}))
         self.assertTrue(body(r)["ok"])
-        link = self.mail.await_args.args[3].split("Вход в кабинет: ")[1].split(" ")[0]
+        link = self.mail.await_args.args[3].split("Войти: ")[1].split()[0]
+        self.assertIn(link.replace("&", "&amp;"), self.mail.await_args.args[2])  # та же ссылка в кнопке письма
         token = link.split("?t=")[1]
         r = await site_api.cabinet_session(Req(query={"t": token}))
         sess = body(r)["session"]
