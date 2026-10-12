@@ -1,7 +1,7 @@
 <?php
 /** All front-end views render the same app shell; PHP passes the route and live data. */
 if (!defined('ABSPATH')) exit;
-$pn = ['route' => 'home', 'bot' => PN_BOT, 'ajax' => admin_url('admin-ajax.php'), 'nonce' => wp_create_nonce('pn_form')];
+$pn = ['route' => 'home', 'bot' => PN_BOT, 'ajax' => admin_url('admin-ajax.php'), 'cmp' => pn_complianz()];
 $r = get_query_var('pn_route');
 if ($r) {
     $pn['route'] = $r;
@@ -22,6 +22,8 @@ if ($r) {
     $pn['route'] = 'wp';
     $pn['page'] = ['title' => 'Страница не найдена', 'html' => '<p>Такой страницы нет. Попробуйте поиск или вернитесь на главную.</p>'];
 }
+// App pages carry live weather and specialists: keep them out of Cache Enabler. Posts and pages stay cached.
+if (!in_array($pn['route'], ['art', 'wp'], true) && !defined('DONOTCACHEPAGE')) define('DONOTCACHEPAGE', true);
 $pn['wx'] = pn_weather();
 $pn['spec'] = pn_specialists();
 $pn['posts'] = pn_posts('news');

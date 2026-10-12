@@ -2,8 +2,16 @@
 /** Newsletter, allowalks notify and contact form: stored in WordPress, visible in Tools → podslushano. */
 if (!defined('ABSPATH')) exit;
 
+function pn_same_site() {
+    $src = $_SERVER['HTTP_ORIGIN'] ?? ($_SERVER['HTTP_REFERER'] ?? '');
+    $host = strtolower((string) wp_parse_url($src, PHP_URL_HOST));
+    $home = strtolower((string) wp_parse_url(home_url(), PHP_URL_HOST));
+    return $host !== '' && preg_replace('/^www\./', '', $host) === preg_replace('/^www\./', '', $home);
+}
+
 function pn_form_handler() {
-    if (!wp_verify_nonce($_POST['_n'] ?? '', 'pn_form')) wp_send_json_error(['msg' => 'Обновите страницу и попробуйте ещё раз.'], 403);
+    // Same-site check instead of a nonce: Cache Enabler serves cached pages whose nonce has expired.
+    if (!pn_same_site()) wp_send_json_error(['msg' => 'Обновите страницу и попробуйте ещё раз.'], 403);
     $kind = sanitize_key($_POST['kind'] ?? '');
     if (!in_array($kind, ['week', 'allowalks', 'contact'], true)) wp_send_json_error(['msg' => 'Неизвестная форма.'], 400);
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
@@ -18,7 +26,7 @@ function pn_form_handler() {
         if (!is_email($email) || mb_strlen($msg) < 2) wp_send_json_error(['msg' => 'Проверьте почту и текст сообщения.'], 400);
         $fields = [];
         foreach ($_POST as $k => $v) {
-            if (in_array($k, ['action', 'kind', '_n'], true)) continue;
+            if (in_array($k, ['action', 'kind'], true)) continue;
             $fields[sanitize_key($k)] = sanitize_textarea_field(wp_unslash($v));
         }
         $body = "Сообщение с сайта podslushano.nl\n\n";

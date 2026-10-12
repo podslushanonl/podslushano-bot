@@ -66,14 +66,65 @@ function pn_route_meta($route) {
     ];
     return $m[$route] ?? null;
 }
-add_filter('pre_get_document_title', function ($t) {
+function pn_route_title() {
     $r = get_query_var('pn_route');
-    if ($r && ($m = pn_route_meta($r))) {
-        if ($r === 'event' && ($e = pn_event(get_query_var('pn_key')))) return $e['h'] . ' · Афиша podslushano.nl';
-        return $m[0] . ' · podslushano.nl';
-    }
-    return $t;
+    if (!$r || !($m = pn_route_meta($r))) return null;
+    if ($r === 'event' && ($e = pn_event(get_query_var('pn_key')))) return $e['h'] . ' · Афиша podslushano.nl';
+    return $m[0] . ' · podslushano.nl';
+}
+function pn_route_desc() {
+    $r = get_query_var('pn_route');
+    return $r && ($m = pn_route_meta($r)) ? $m[1] : null;
+}
+function pn_route_url() {
+    $r = get_query_var('pn_route');
+    if (!$r) return null;
+    if ($r === 'event') return home_url('/events/' . sanitize_key(get_query_var('pn_key')) . '/');
+    $slug = array_search($r, pn_routes(), true);
+    return $slug ? home_url('/' . $slug . '/') : null;
+}
+add_filter('pre_get_document_title', function ($t) { return pn_route_title() ?? $t; });
+
+/* ---------- Yoast SEO: app routes are virtual, give Yoast their own title, description and URL ---------- */
+foreach (['wpseo_title', 'wpseo_opengraph_title', 'wpseo_twitter_title'] as $f) {
+    add_filter($f, function ($t) { return pn_route_title() ?? $t; });
+}
+foreach (['wpseo_metadesc', 'wpseo_opengraph_desc', 'wpseo_twitter_description'] as $f) {
+    add_filter($f, function ($d) { return pn_route_desc() ?? $d; });
+}
+foreach (['wpseo_canonical', 'wpseo_opengraph_url'] as $f) {
+    add_filter($f, function ($u) { return pn_route_url() ?? $u; });
+}
+// App pages in the Yoast sitemap: /pn-pages-sitemap.xml
+add_action('init', function () {
+    global $wpseo_sitemaps;
+    if (empty($wpseo_sitemaps) || !method_exists($wpseo_sitemaps, 'register_sitemap')) return;
+    $wpseo_sitemaps->register_sitemap('pn-pages', function () {
+        global $wpseo_sitemaps;
+        $urls = array_map(function ($slug) { return home_url('/' . $slug . '/'); }, array_keys(pn_routes()));
+        foreach (pn_events() as $e) if (!empty($e['key'])) $urls[] = home_url('/events/' . $e['key'] . '/');
+        $xml = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        foreach ($urls as $u) $xml .= '<url><loc>' . esc_url($u) . '</loc></url>';
+        $wpseo_sitemaps->set_sitemap($xml . '</urlset>');
+    });
+}, 20);
+add_filter('wpseo_sitemap_index', function ($x) {
+    return $x . '<sitemap><loc>' . esc_url(home_url('/pn-pages-sitemap.xml')) . '</loc></sitemap>';
 });
+
+/* ---------- Complianz: when active, its banner and consent replace the theme's own ---------- */
+function pn_complianz() {
+    return defined('cmplz_version') || class_exists('COMPLIANZ');
+}
+
+/* ---------- Plausible on /links/ (that page is standalone and skips wp_head) ---------- */
+function pn_analytics_tags() {
+    ob_start();
+    wp_head();
+    $head = ob_get_clean();
+    preg_match_all('#<script\b[^>]*>.*?</script>#is', $head, $m);
+    return implode("\n", array_filter($m[0], function ($tag) { return stripos($tag, 'plausible') !== false; })) . "\n";
+}
 add_action('wp_head', function () {
     $r = get_query_var('pn_route');
     $d = '';
