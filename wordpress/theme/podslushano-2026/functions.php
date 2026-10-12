@@ -41,13 +41,16 @@ add_action('init', 'pn_add_rules');
 add_filter('query_vars', function ($v) { $v[] = 'pn_route'; $v[] = 'pn_key'; return $v; });
 add_action('after_switch_theme', function () { pn_add_rules(); flush_rewrite_rules(); });
 add_filter('redirect_canonical', function ($url) { return get_query_var('pn_route') ? false : $url; });
-// The phone widget page was removed: send old links to the weather page.
+// Old addresses: the phone widget page was removed, the old business page is replaced by /business/.
 add_action('template_redirect', function () {
-    if (preg_match('#^/widget/?$#', (string) wp_parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH))) {
-        wp_safe_redirect(home_url('/live/'), 301);
-        exit;
+    $path = (string) wp_parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+    foreach (['#^/widget/?$#' => '/live/', '#^/collaboration-for-business-netherlands/?$#' => '/business/'] as $re => $to) {
+        if (preg_match($re, $path)) {
+            wp_safe_redirect(home_url($to), 301);
+            exit;
+        }
     }
-});
+}, 1);
 add_filter('template_include', function ($t) {
     return get_query_var('pn_route') ? PN_DIR . '/index.php' : $t;
 });
