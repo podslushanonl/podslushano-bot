@@ -43,10 +43,20 @@ async def crm_status_command(message: Message) -> None:
             select(Meta).where(Meta.key.like("crm:reminders:%"))
             .order_by(Meta.key.desc()).limit(1)
         )).first()
-        count = (await session.scalars(
-            select(AdBooking.id).where(AdBooking.fmt != "closed")
+        bookings = (await session.scalars(
+            select(AdBooking).where(AdBooking.fmt != "closed")
         )).all()
-    last = marker.value if marker else "Пока нет зарегистрированных результатов"
+        sync_markers = (await session.scalars(
+            select(Meta).where(Meta.key.like("crm:booking:%"))
+        )).all()
+    saved = {entry.key: entry.value for entry in sync_markers}
+    up_to_date = sum(
+        saved.get(f"crm:booking:{booking.id}") ==
+        hashlib.sha256(json.dumps(booking_payload(booking), sort_keys=True).encode()).hexdigest()
+        for booking in bookings
+    )
+    unmarked = len(bookings) - up_to_date
+    last = marker.value if marker else "Нет новых попыток после установки диагностики"
     daily = f"{reminder.key} ({reminder.value})" if reminder else "Не зарегистрирована"
     await message.answer(
         "<b>CRM — диагностика</b>\n"
@@ -115,7 +125,7 @@ async def _sync_booking(booking_id: int) -> bool:
     async with get_session() as db_session:
         marker = await db_session.get(Meta, key)
         if marker and marker.value == digest:
-            return True
+            return True  # Previously acknowledged by CRM; no network call needed.
 
     if booking.status == "paid":
         from utils.payments import get_payment
