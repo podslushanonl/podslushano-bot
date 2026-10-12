@@ -11,6 +11,7 @@ from aiogram.types import Message
 import config
 from database.db import get_session
 from database.models import BotUser
+from handlers.menu import send_card
 from keyboards.menus import (
     BTN_BACK,
     BTN_CANCEL,
@@ -19,9 +20,6 @@ from keyboards.menus import (
     BTN_SERVICES,
     BTN_STICKERS,
     main_menu,
-    more_menu,
-    services_menu,
-    specialists_menu,
     stickers_button,
 )
 
@@ -32,18 +30,13 @@ router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 WELCOME_SHORT = (
-    "Привет, {name}! 👋 Я — бот сообщества podslushano.nl 🇳🇱\n\n"
-    "💬 <b>Самое простое — просто напиши мне любой вопрос о жизни в Нидерландах.</b>\n"
-    "BSN, DigiD, налоги, жильё, врачи, транспорт, ВНЖ — отвечу по делу и при "
-    "необходимости загляну в свежие официальные источники.\n"
+    "Привет, {name}! 👋 Я помощник podslushano.nl для русскоязычных в Нидерландах.\n\n"
+    "💬 <b>Просто напишите вопрос</b> о жизни здесь: BSN, DigiD, налоги, жильё, врачи, транспорт. "
+    "Отвечу по делу.\n"
     "<i>Например: «Как получить DigiD?» или «Положена ли мне zorgtoeslag?»</i>\n\n"
-    "А ещё через меню можно 👇\n"
-    "📩 прислать фото непонятного письма (Belastingdienst, gemeente…) — объясню по-русски\n"
-    "📚 открыть «Полезное» — гайды о жизни в Нидерландах (жильё, документы, деньги…)\n"
-    "🔍 найти специалиста из проверенного гайда\n"
-    "📰 прислать историю анонимно · ❓ задать вопрос сообществу\n"
-    "🎬 прислать видео · 📢 реклама и сотрудничество\n\n"
-    "Просто напиши или выбери пункт меню. Подробнее — /help 🙂"
+    "📩 Пришлите фото непонятного письма, и я объясню его по-русски.\n\n"
+    "Всё остальное в меню ниже: специалисты, афиша, объявления, гайды, поезда NS, предложка. "
+    "Открыть его снова: кнопка «☰ Меню» внизу или /menu."
 )
 
 WELCOME = (
@@ -87,7 +80,7 @@ def welcome_text(name: str) -> str:
     """Короткое приветствие для /start — с акцентом «просто напиши вопрос»."""
     text = WELCOME_SHORT.format(name=name)
     if config.payments_enabled():
-        text += "\n\n➕ Специалист или бизнес? Размести себя в гайде — кнопка в меню."
+        text += "\n\n➕ Специалист или бизнес? Разместите себя в гайде: меню → «💼 Для бизнеса»."
     return text + _footer()
 
 
@@ -214,12 +207,13 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
     await _attribute_referral(message.from_user.id, command.args)
     name = message.from_user.first_name or "друг"
     await message.answer(welcome_text(name), reply_markup=main_menu())
+    await send_card(message)
 
 
 @router.message(Command("menu"))
 async def cmd_menu(message: Message, state: FSMContext) -> None:
     await state.clear()
-    await message.answer("Вот меню — выбирай 👇", reply_markup=main_menu())
+    await send_card(message)
 
 
 @router.message(Command("help"))
@@ -227,6 +221,7 @@ async def cmd_help(message: Message, state: FSMContext) -> None:
     await state.clear()
     name = message.from_user.first_name or "друг"
     await message.answer(features_text(name), reply_markup=main_menu())
+    await send_card(message)
 
 
 @router.message(Command("privacy", "terms"))
@@ -256,31 +251,28 @@ async def show_stickers(message: Message) -> None:
 async def open_services(message: Message, state: FSMContext) -> None:
     """Раздел «Сервисы» — открываем подменю."""
     await state.clear()
-    await message.answer("🛠 Сервисы — выбери 👇", reply_markup=services_menu())
+    await send_card(message, "services", refresh_keyboard=True)
 
 
 @router.message(F.text == BTN_FOR_SPECIALISTS)
 async def open_specialists(message: Message, state: FSMContext) -> None:
     """Раздел «Специалистам и рекламодателям» — открываем подменю."""
     await state.clear()
-    await message.answer(
-        "💼 Для специалистов и рекламодателей — выбери 👇",
-        reply_markup=specialists_menu(),
-    )
+    await send_card(message, "biz", refresh_keyboard=True)
 
 
 @router.message(F.text == BTN_MORE)
 async def open_more(message: Message, state: FSMContext) -> None:
     """Раздел «Ещё» — связаться и поделиться."""
     await state.clear()
-    await message.answer("☰ Ещё — выбери 👇", reply_markup=more_menu())
+    await send_card(message, "more", refresh_keyboard=True)
 
 
 @router.message(F.text == BTN_BACK)
 async def back_to_main(message: Message, state: FSMContext) -> None:
     """Возврат из подменю в главное меню."""
     await state.clear()
-    await message.answer("Главное меню 👇", reply_markup=main_menu())
+    await send_card(message, refresh_keyboard=True)
 
 
 @router.message(F.text == BTN_CANCEL)

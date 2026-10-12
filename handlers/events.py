@@ -285,7 +285,7 @@ async def events_search(callback: CallbackQuery, state: FSMContext) -> None:
     await callback.answer()
     if not ai_enabled():
         await callback.message.answer(
-            "Поиск событий сейчас недоступен 🙏 Загляни в «📅 Афиша месяца» — "
+            "Поиск событий сейчас недоступен 🙏 Загляни в «📅 Афиша» в меню — "
             "там наши мероприятия.",
             reply_markup=main_menu(),
         )

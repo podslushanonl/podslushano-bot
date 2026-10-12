@@ -283,9 +283,8 @@ async def chat_action(callback: CallbackQuery, state: FSMContext) -> None:
 
     if action == "menu":
         await callback.message.edit_reply_markup(reply_markup=None)
-        await callback.message.answer(
-            "Хорошо! Вот меню — выбирай 👇", reply_markup=main_menu()
-        )
+        from handlers.menu import send_card
+        await send_card(callback.message)
         await callback.answer()
         return
 

@@ -35,6 +35,8 @@ BTN_SERVICES = "🛠 Сервисы"
 BTN_FOR_SPECIALISTS = "💼 Специалистам и рекламодателям"
 BTN_MORE = "☰ Ещё"
 BTN_BACK = "⬅️ Назад в меню"
+# Единственная кнопка внизу экрана: открывает карточку меню (handlers/menu.py)
+BTN_MENU = "☰ Меню"
 
 
 # Кнопка «Афиша» меняет эмодзи по сезону; старые подписи остаются у людей в клавиатуре
@@ -54,26 +56,33 @@ def menu_texts() -> frozenset[str]:
         BTN_STORY, BTN_QUESTION, BTN_VIDEO, BTN_SUBMIT, BTN_AD, BTN_CONTACTS, BTN_BOARD, BTN_GUIDE,
         BTN_LETTER, BTN_SALARY, BTN_SELF_ADD, BTN_CABINET, BTN_STICKERS, BTN_CONTACT, BTN_SHARE,
         BTN_SUBSCRIPTIONS, BTN_HOME, BTN_CANCEL, BTN_SERVICES, BTN_FOR_SPECIALISTS, BTN_MORE, BTN_BACK,
+        BTN_MENU,
     }) | EVENTS_BUTTON_TEXTS | LEGACY_MENU_TEXTS
 
 
 def main_menu() -> ReplyKeyboardMarkup:
-    """Главное меню — только основное, редкое убрано в подменю (Сервисы / Ещё)."""
+    """Внизу экрана — одна кнопка «☰ Меню». Все разделы — в карточке меню (handlers/menu.py)."""
+    return ReplyKeyboardMarkup(
+        keyboard=[[KeyboardButton(text=BTN_MENU)]],
+        resize_keyboard=True,
+        is_persistent=True,
+        input_field_placeholder="Напишите вопрос или откройте меню",
+    )
+
+
+def legacy_main_menu() -> ReplyKeyboardMarkup:
+    """Старая большая клавиатура (оставлена для справки и тестов, в боте не показывается)."""
     keyboard = [
         [KeyboardButton(text=BTN_HOME)],
         [KeyboardButton(text=BTN_CONTACTS)],
         [KeyboardButton(text=BTN_GUIDE)],
         [KeyboardButton(text=BTN_BOARD)],
-        [KeyboardButton(text=events_button_label())],  # ☀️/🍂/❄️/🌷 Чем заняться
+        [KeyboardButton(text=events_button_label())],
         [KeyboardButton(text=BTN_SUBMIT)],
         [KeyboardButton(text=BTN_SERVICES), KeyboardButton(text=BTN_FOR_SPECIALISTS)],
         [KeyboardButton(text=BTN_MORE)],
     ]
-    return ReplyKeyboardMarkup(
-        keyboard=keyboard,
-        resize_keyboard=True,
-        input_field_placeholder="Выбери пункт меню 👇",
-    )
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 
 def services_menu() -> ReplyKeyboardMarkup:

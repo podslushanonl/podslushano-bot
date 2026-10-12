@@ -66,10 +66,13 @@ def test_import_bot() -> None:
     check("импорт bot без ошибок", True)
     check("прямая ссылка открывает добавление специалиста",
           config.specialist_add_url().endswith("?start=selfadd"))
-    from keyboards.menus import BTN_HOME, main_menu
+    from keyboards.menus import BTN_MENU, main_menu
+    from handlers.menu import card_kb
     labels = [button.text for row in main_menu().keyboard for button in row]
-    check("Мой Podslushano — первый пункт главного меню",
-          labels[0] == BTN_HOME)
+    check("внизу экрана одна кнопка «☰ Меню»", labels == [BTN_MENU])
+    card = [b.callback_data for row in card_kb().inline_keyboard for b in row]
+    check("в карточке меню есть «Мой podslushano.nl» и поиск специалиста",
+          "m:go:home" in card and "m:go:contacts" in card)
     from handlers.home import home_digest, home_profile
     check("профиль и подборка используют разные обработчики",
           home_profile is not home_digest)

@@ -34,8 +34,9 @@ def _home_kb():
         [InlineKeyboardButton(text="📝 Контент", callback_data="ac:content"), InlineKeyboardButton(text="💰 Реклама", callback_data="ac:ads")],
         [InlineKeyboardButton(text="🎭 Афиша", callback_data="ac:events"), InlineKeyboardButton(text="📋 Гайд и объявления", callback_data="ac:guide")],
         [InlineKeyboardButton(text="👥 Пользователи", callback_data="ac:users"), InlineKeyboardButton(text="📊 Статистика", callback_data="ac:stats")],
-        [InlineKeyboardButton(text="🛠 Система", callback_data="ac:system")],
+        [InlineKeyboardButton(text="🛠 Система", callback_data="ac:system"), InlineKeyboardButton(text="📥 Инбокс", callback_data="ac:inbox")],
         [InlineKeyboardButton(text="⚡ Быстрые действия", callback_data="ac:quick")],
+        [InlineKeyboardButton(text="⌨️ Все команды кнопками", callback_data="ac:cmds")],
     ])
 
 
@@ -302,3 +303,62 @@ async def commands(callback: CallbackQuery):
         "<code>/digeststats</code> — диагностика подборок",
         reply_markup=_kb([_nav()]),
     ); await callback.answer()
+
+
+# Команды без аргументов, которые раньше нужно было помнить: кнопка запускает их так же,
+# как если бы админ напечатал команду сам.
+RUN_COMMANDS = [
+    ("channels", "📡 Каналы для публикаций"), ("circle", "⭕ Видео-кружок в канал"),
+    ("contentplan", "🗓 Контент-план"), ("editorialpreview", "👀 Редакционные посты"),
+    ("ideas", "💡 Радар инфоповодов"), ("comments", "💬 Ответы на комментарии"),
+    ("alexquestions", "🙋 Вопросы Алексу"), ("alexchannel", "📺 Канал для ответов Алекса"),
+    ("adleads", "📋 CRM рекламных заявок"), ("adcalendar", "📅 Календарь рекламы"),
+    ("slots", "🗓 Занятые даты рекламы"), ("invoices", "🧾 Архив фактур"),
+    ("amreviews", "⭐ Отзывы AM Projects"), ("gmailconnect", "📧 Подключить Gmail"),
+    ("stats", "📊 Статистика"), ("renewals", "📨 Продления карточек"),
+    ("editorialhealth", "🩺 Проверка редакции"), ("wptest", "🌐 Связь с сайтом"),
+]
+
+
+@router.callback_query(F.data == "ac:cmds")
+async def all_commands(callback: CallbackQuery):
+    rows = []
+    for i in range(0, len(RUN_COMMANDS), 2):
+        rows.append([InlineKeyboardButton(text=label, callback_data=f"acrun:{cmd}") for cmd, label in RUN_COMMANDS[i:i + 2]])
+    await _show(callback.message, "⌨️ <b>Все команды</b>\n\nНажмите — команда запустится, как будто вы её написали.",
+                _kb(rows + [_nav()]))
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("acrun:"))
+async def run_command(callback: CallbackQuery, dispatcher, bot):
+    from aiogram.types import Update
+    cmd = callback.data.split(":", 1)[1]
+    if cmd not in {c for c, _ in RUN_COMMANDS}:
+        await callback.answer()
+        return
+    await callback.answer()
+    msg = callback.message.model_copy(update={
+        "from_user": callback.from_user, "text": f"/{cmd}", "message_id": callback.message.message_id,
+        "entities": None, "reply_markup": None, "edit_date": None,
+    })
+    if msg.chat.type != ChatType.PRIVATE:  # админские команды работают в личке
+        await bot.send_message(callback.from_user.id, f"Команда /{cmd} работает в личке с ботом — открываю здесь.")
+        msg = msg.model_copy(update={"chat": msg.chat.model_copy(update={"id": callback.from_user.id, "type": ChatType.PRIVATE})})
+    await dispatcher.feed_update(bot, Update(update_id=0, message=msg))
+
+
+@router.callback_query(F.data == "ac:inbox")
+async def inbox_info(callback: CallbackQuery):
+    from utils.inbox import TOPICS, inbox_chat
+    chat = await inbox_chat()
+    status = f"подключён (группа <code>{chat}</code>)" if chat else "не подключён — уведомления приходят в личку"
+    await _show(callback.message,
+        "📥 <b>Инбокс</b>: " + status + "\n\n"
+        "Все уведомления бота (заявки, оплаты, объявления на проверку, ошибки) приходят в одну группу, "
+        "каждое в свою тему: " + ", ".join(TOPICS.values()) + ".\n\n"
+        "<b>Как подключить:</b>\n1. Создайте закрытую группу и включите в ней «Темы».\n"
+        "2. Добавьте бота и сделайте админом с правом управлять темами.\n"
+        "3. Напишите в группе <code>/inbox</code>.\n\nОтключить: <code>/inbox off</code> в группе.",
+        _kb([_nav()]))
+    await callback.answer()
