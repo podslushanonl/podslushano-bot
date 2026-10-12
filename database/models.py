@@ -74,6 +74,8 @@ class Specialist(Base):
     premium_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     # Кто привёл этого специалиста (id карточки реферера) — для реф-программы
     referred_by_specialist_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # Цвет плитки стандартной карточки на сайте: red | white | blue | green | orange
+    card_color: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
 
 class SpecialistReminderLog(Base):
@@ -687,6 +689,8 @@ class AlloWebSale(Base):
     paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     email_state: Mapped[str] = mapped_column(String(16), default="pending")
     email_attempted_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Подарок: дата отправки получателю (YYYY-MM-DD, Амстердам); None — сразу после оплаты
+    send_on: Mapped[str | None] = mapped_column(String(10), nullable=True)
 
 
 class CommentReplyDraft(Base):

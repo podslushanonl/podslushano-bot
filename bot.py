@@ -18,7 +18,7 @@ from handlers import (
     ad_crm, ad_sales_pipeline, admin, admin_center, ads, afisha, ai_sales, allo, anonymous_questions,
     board, cabinet, chat, comment_copilot, contacts, content, digest, errors, events, guides, home,
     invoice_admin, letters, moderation, notifications, salary, selfadd, share, spotlight, start, stories,
-    submissions, support, tax_guide,
+    submissions, support, tax_guide, cabinet_web,
 )
 from handlers import anonymous_replies
 import ad_campaign_guide_runtime  # noqa: F401 — связывает €299 с Contact Guide Premium
@@ -126,6 +126,7 @@ async def main() -> None:
     dp.include_router(am_reviews.router)
     dp.include_router(stories.router)
     dp.include_router(tax_guide.router)
+    dp.include_router(cabinet_web.router)
     # ask_alex должен перехватывать только свой deep-link до общего /start.
     dp.include_router(anonymous_replies.router)
     dp.include_router(anonymous_questions.router)

@@ -35,6 +35,7 @@ _LATER_COLUMNS = {
     "photo_file_id": "TEXT",
     "premium_until": "DATETIME",
     "referred_by_specialist_id": "INTEGER",
+    "card_color": "VARCHAR(10)",
 }
 
 # Колонки таблицы пользователей, которые могли появиться позже
@@ -76,6 +77,10 @@ _DISCOVERED_EVENT_LATER_COLUMNS = {
 _EVENT_LISTING_LATER_COLUMNS = {
     "starts_at": "DATETIME",
     "ends_at": "DATETIME",
+}
+
+_ALLO_SALE_LATER_COLUMNS = {
+    "send_on": "VARCHAR(10)",
 }
 
 _LISTING_LATER_COLUMNS = {
@@ -220,6 +225,20 @@ async def _migrate() -> None:
                 if name not in board_cols:
                     await conn.exec_driver_sql(
                         f"ALTER TABLE listings ADD COLUMN {name} {ddl}"
+                    )
+
+        def allo_sale_cols(sync_conn):
+            insp = inspect(sync_conn)
+            if "allo_web_sales" not in insp.get_table_names():
+                return None
+            return {c["name"] for c in insp.get_columns("allo_web_sales")}
+
+        sale_cols = await conn.run_sync(allo_sale_cols)
+        if sale_cols is not None:
+            for name, ddl in _ALLO_SALE_LATER_COLUMNS.items():
+                if name not in sale_cols:
+                    await conn.exec_driver_sql(
+                        f"ALTER TABLE allo_web_sales ADD COLUMN {name} {ddl}"
                     )
 
 

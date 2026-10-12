@@ -558,6 +558,7 @@ async def _api_specialists(request: web.Request) -> web.Response:
             "contact": s.contact or "",
             "links": parse_contact_links(s.contact),
             "photo": _photo_url(s),
+            "card_color": getattr(s, "card_color", None),
             "rating": r[0] if r else None,
             "reviews": r[1] if r else 0,
         })
@@ -1742,6 +1743,8 @@ async def start_webserver(bot) -> web.AppRunner:
     install_author_routes(app)
     from utils.ns_trains import install_routes as install_ns_routes
     install_ns_routes(app)
+    from utils.site_api import install_routes as install_site_routes
+    install_site_routes(app)
     app.router.add_get("/", _health)
     app.router.add_get("/thanks", _thanks)
     app.router.add_get("/privacy", _privacy)

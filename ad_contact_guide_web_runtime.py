@@ -22,6 +22,7 @@ from utils.geo import detect_category, detect_city
 
 
 _DISCOUNT_RATE = Decimal("0.26")
+CARD_COLORS = ("red", "white", "blue", "green", "orange")
 _ALLOWED_PLANS = set(selfadd.SELFADD_PLANS)
 
 
@@ -74,6 +75,9 @@ async def contact_guide_checkout(request: web.Request) -> web.Response:
     online = _flag(data.get("online"))
     terms = _flag(data.get("terms"))
     token = (data.get("token") or "").strip()
+    card_color = (data.get("card_color") or "").strip().lower()
+    if card_color not in CARD_COLORS:
+        card_color = None
 
     if not selfadd._valid_name(name):
         return _json_error("Укажите имя специалиста или название компании.")
@@ -121,6 +125,7 @@ async def contact_guide_checkout(request: web.Request) -> web.Response:
             submitter_user_id=None,
             invoice_email=email,
             plan=plan,
+            card_color=card_color,
         )
         session.add(specialist)
         await session.commit()

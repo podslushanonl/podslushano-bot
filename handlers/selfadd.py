@@ -1064,6 +1064,13 @@ async def on_payment_paid(bot, payment_id: str) -> None:
     status = payment.get("status")
     meta = payment.get("metadata") or {}
     kind = meta.get("kind", "new")
+    if kind == "donation":
+        from utils.site_api import on_donation_payment
+        await on_donation_payment(payment_id, payment)
+        return
+    if kind == "donation_sub":
+        log.info("Monthly donation payment %s: %s", payment_id, payment.get("status"))
+        return
     if kind == "allo_v2":
         from utils.allo_v2 import on_payment
         await on_payment(payment_id, payment)
