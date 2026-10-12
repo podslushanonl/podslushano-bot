@@ -9,4 +9,5 @@ $news = array_map(function ($n) {
 if (!$news) $news = json_decode((string) @file_get_contents(PN_DIR . '/data/links-news.json'), true) ?: [];
 $html = (string) @file_get_contents(PN_DIR . '/links.html');
 $json = wp_json_encode(['partners' => $data['partners'], 'events' => $data['events'], 'news' => $news]);
-echo str_replace('/*PNL*/', 'window.PNL=' . $json . ';', $html);
+$html = str_replace('/*PNL*/', 'window.PNL=' . $json . ';', $html);
+echo str_replace('</head>', pn_analytics_tags() . '</head>', $html);

@@ -50,12 +50,12 @@ function pn_weather() {
         $br = pn_http_json('https://data.buienradar.nl/2.0/feed/json', 8);
         if (!$br || empty($br['actual']['stationmeasurements'])) return null;
         $C = [
-            'Amsterdam' => ['Амстердам', 'Schiphol', 52.37, 4.90], 'Rotterdam' => ['Роттердам', 'Rotterdam', 51.92, 4.48],
-            'Den Haag' => ['Гаага', 'Hoek van Holland', 52.08, 4.30], 'Utrecht' => ['Утрехт', 'De Bilt', 52.09, 5.12],
-            'Eindhoven' => ['Эйндховен', 'Eindhoven', 51.44, 5.48], 'Groningen' => ['Гронинген', 'Groningen', 53.22, 6.57],
-            'Maastricht' => ['Маастрихт', 'Maastricht', 50.85, 5.69], 'Arnhem' => ['Арнем', 'Arnhem', 51.98, 5.91],
-            'Tilburg' => ['Тилбург', 'Gilze Rijen', 51.56, 5.09], 'Leeuwarden' => ['Леуварден', 'Leeuwarden', 53.20, 5.80],
-            'Nijmegen' => ['Неймеген', 'Arnhem', 51.84, 5.86],
+            'Amsterdam' => ['Amsterdam', 'Schiphol', 52.37, 4.90], 'Rotterdam' => ['Rotterdam', 'Rotterdam', 51.92, 4.48],
+            'Den Haag' => ['Den Haag', 'Hoek van Holland', 52.08, 4.30], 'Utrecht' => ['Utrecht', 'De Bilt', 52.09, 5.12],
+            'Eindhoven' => ['Eindhoven', 'Eindhoven', 51.44, 5.48], 'Groningen' => ['Groningen', 'Groningen', 53.22, 6.57],
+            'Maastricht' => ['Maastricht', 'Maastricht', 50.85, 5.69], 'Arnhem' => ['Arnhem', 'Arnhem', 51.98, 5.91],
+            'Tilburg' => ['Tilburg', 'Gilze Rijen', 51.56, 5.09], 'Leeuwarden' => ['Leeuwarden', 'Leeuwarden', 53.20, 5.80],
+            'Nijmegen' => ['Nijmegen', 'Arnhem', 51.84, 5.86],
         ];
         $st = $br['actual']['stationmeasurements'];
         $cities = [];
