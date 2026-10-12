@@ -4,7 +4,7 @@
 
 ## Что внутри
 
-- Все страницы прототипа с нормальными адресами: `/news/`, `/guide/`, `/events/`, `/events/<событие>/`, `/live/`, `/allowalks/`, `/shop/`, `/widget/`, `/provinces/`, `/work/`, `/place/`, `/business/`, `/contact/`, `/travel/`.
+- Все страницы прототипа с нормальными адресами: `/news/`, `/guide/`, `/events/`, `/events/<событие>/`, `/live/`, `/allowalks/`, `/shop/`, `/provinces/`, `/work/`, `/place/`, `/business/`, `/contact/`, `/travel/`.
 - `/links/` — отдельная страница для Instagram (шаблон `page-links.php`), партнёры и афиша в `data/links.json`.
 - Записи WordPress — это новости и статьи (статьи — рубрика «Статьи», slug `stati`). Каждая запись открывается по своему адресу в новом дизайне.
 - Города, провинции и учреждения пишутся по-голландски (Amsterdam, Zuid-Holland, KVK). Поиск понимает и русские варианты: «амстердам» найдёт Amsterdam.

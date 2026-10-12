@@ -1994,6 +1994,50 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 #rotWord,#hxClock{will-change:transform;contain:layout paint}
 .h5-r .mascot,.moose img,.bt-wx .mo,[style*="animation:peek"]{will-change:rotate}
 .pn-off,.pn-off *{animation-play-state:paused!important}
+
+/* ===== type scale: every role has its own size, weight and colour, so texts do not merge ===== */
+:root{--t-h1:clamp(30px,4.2vw,50px);--t-h2:clamp(24px,2.8vw,34px);--t-h3:clamp(17px,1.4vw,20px);--t-lead:clamp(19px,1.7vw,22px);--t-body:16px;--t-small:13.5px;--t-cap:11.5px}
+/* page and article titles */
+.phead h1,.na9 h1,#wpBody h1,#legalBody h1{font-size:var(--t-h1);line-height:1.05;font-weight:700;letter-spacing:-.035em;color:var(--ink)}
+/* section titles */
+.sec-h h2,.sh5 h2{font-size:var(--t-h2);line-height:1.1;font-weight:700;letter-spacing:-.03em;color:var(--ink)}
+/* card titles */
+.card h3,.card h4{font-weight:700;letter-spacing:-.01em;line-height:1.25}
+/* subtitles and descriptions under titles */
+.lead,.phead p,.sec-h p,.sub,.desc,.na9 .lead,.reader .intro{font-size:var(--t-lead);line-height:1.5;font-weight:400;color:var(--ink-2);letter-spacing:0}
+.sec-h p,.desc{font-size:clamp(15px,1.2vw,17px);color:var(--muted)}
+.na9 .lead,.reader .intro{font-weight:500;color:var(--ink);line-height:1.45;letter-spacing:-.005em}
+/* body copy in cards */
+.card p{font-size:15px;line-height:1.55}
+/* small print: dates, sources, hints */
+.hint,.src,.note,figcaption,.na9 figcaption,.muted small{font-size:var(--t-small);line-height:1.45;color:var(--muted)}
+/* labels above titles */
+.eyebrow,.kick{font-size:var(--t-cap);font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent-deep)}
+.eyebrow .dot{background:var(--accent-deep)}
+/* article body: reading size, headings, quotes and lists */
+.artbody,#wpBody{max-width:720px}
+.artbody p,.artbody li,#wpBody p,#wpBody li{font-size:clamp(16.5px,1.3vw,18px);line-height:1.75;color:var(--ink-2);margin-bottom:14px}
+.artbody h2,#wpBody h2{font-size:clamp(21px,2vw,26px);line-height:1.2;font-weight:700;letter-spacing:-.02em;color:var(--ink);margin:34px 0 12px}
+.artbody h3,#wpBody h3{font-size:clamp(18px,1.6vw,21px);line-height:1.3;font-weight:700;color:var(--ink);margin:26px 0 10px}
+.artbody ul,#wpBody ul,.artbody ol,#wpBody ol{padding-left:1.2em;margin:0 0 16px}
+.artbody blockquote,#wpBody blockquote,.quote{margin:24px 0;padding:16px 20px;border-left:4px solid var(--accent);border-radius:0 16px 16px 0;background:var(--accent-soft);font-size:clamp(17px,1.5vw,19px);line-height:1.6;font-weight:500;color:var(--ink)}
+.artbody blockquote p,#wpBody blockquote p{font-size:inherit;color:inherit;margin:0}
+.artbody strong,#wpBody strong,.artbody b,#wpBody b{color:var(--ink);font-weight:700}
+@media (max-width:600px){:root{--t-small:13px}.card p{font-size:14.5px}}
+.fav-l{display:grid;gap:6px}.fav-r{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;align-items:center}.fav-r .pr{background:var(--surface-2)}
+
+/* emergency numbers: number and copy icon on top, label underneath, so nothing overlaps on phones */
+.sosg .sos-i{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"n i" "t t";align-items:center;row-gap:4px;padding:12px 14px}
+.sosg .sos-i b{grid-area:n}.sosg .sos-i span{grid-area:t;line-height:1.35}.sosg .sos-i .ico{grid-area:i}
+@media (max-width:600px){.sosg{grid-template-columns:1fr 1fr;gap:8px;padding:0 10px 12px}.sosg .sos-i b{font-size:16px}.sosg .sos-i.hot b{font-size:20px}}
+/* allowalks badge over the photo: stays inside the screen on phones */
+@media (max-width:700px){.allo-frame .g8{left:12px;right:12px;bottom:12px;max-width:calc(100% - 24px)}}
+/* gift card flip: Safari on iPhone can show the back face through the front; hide the face that is turned away */
+.gc .gface{transition:visibility 0s .3s}
+.gc:not(.back) .gface.bk,.gc.back .gface:not(.bk){visibility:hidden}
+/* sticky bars sit right under the header, whatever its height on the device */
+.g-tools{top:calc(var(--hdr-h,68px) + env(safe-area-inset-top,0px))}
+.gbar{top:calc(var(--hdr-h,68px) + 8px + env(safe-area-inset-top,0px))}
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
@@ -2072,7 +2116,6 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
         <div class="pop" id="morePop" hidden>
           <a href="#travel"><span class="pi"><svg class="ico"><use href="#i-plane"/></svg></span><span>Путешествия<small>Отели и билеты из Нидерландов</small></span></a>
           <a href="#shop"><span class="pi"><svg class="ico"><use href="#i-gift"/></svg></span><span>Магазин<small>Подарочные карты, гайды, стикеры</small></span></a>
-          <a href="#widget"><span class="pi"><svg class="ico"><use href="#i-phone"/></svg></span><span>Виджет на телефон<small>Погода и главное за секунду</small></span></a>
           <a href="#live"><span class="pi"><svg class="ico"><use href="#i-cloud"/></svg></span><span>Погода и камеры<small>Buienradar и 17 трансляций</small></span></a>
           <a href="#board"><span class="pi"><svg class="ico"><use href="#i-briefcase"/></svg></span><span>Работа и жильё<small>Объявления после модерации</small></span></a>
           <a href="#business"><span class="pi"><svg class="ico"><use href="#i-hand"/></svg></span><span>Сотрудничество<small>Реклама и партнёрства</small></span></a>
@@ -2146,9 +2189,6 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
       <div class="prail" id="homeShop"></div>
     </div>
 
-    <div class="sec">
-      <div class="wdg st"><div><span class="eyebrow"><span class="dot"></span>Виджет podslushano.nl</span><h2>Погода и поезда<br>на экране телефона</h2><p>Лосёнок одевается по погоде, рядом ближайшие поезда с вашей станции. Добавляется за десять секунд.</p><a class="btn btn-acc" href="#widget" style="margin-top:18px"><svg class="ico"><use href="#i-plus"/></svg>Добавить на экран</a></div><div class="wset" id="homeW"></div></div>
-    </div>
 
     <div class="sec">
       <div class="card week st" id="weekBox">
@@ -2196,15 +2236,7 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 <section class="page" id="p-art" data-title="Статья"><div class="wrap" id="artBody" style="padding-top:30px"></div></section>
 <section class="page" id="p-shop" data-title="Магазин"><div class="wrap"><div class="phead"><div><h1 class="st">Магазин</h1><p class="st" style="--i:1">Только то, что уже можно купить или получить.</p></div></div><div class="shop" id="shopGrid"></div>
   <div class="sec"><div class="sh5"><div><h2 style="font-size:clamp(24px,3vw,34px)">Готовим</h2><p>Появятся, когда будут готовы к продаже.</p></div></div><div class="soon"><div><b>Мерч podslushano.nl</b><p class="muted" style="font-size:14px">Футболки, шопперы и значки с лосёнком.</p><button class="btn btn-soft btn-sm" data-notify="мерч">Сообщить, когда появится</button></div><div><b>Календарь 2027</b><p class="muted" style="font-size:14px">Праздники, сроки налогов и toeslagen, события года.</p><button class="btn btn-soft btn-sm" data-notify="календарь">Сообщить, когда появится</button></div></div></div></div></section>
-<section class="page" id="p-widget" data-title="Виджет на телефон"><div class="wrap"><div class="phead"><div><h1 class="st">Виджет на телефон</h1><p class="st" style="--i:1">Погода, дождь в ближайшие два часа, поезда и главное дня. Открывается за секунду с экрана «Домой».</p></div></div>
-  <div class="wgt"><div>
-   <h2 style="font-size:24px">Как добавить на экран</h2>
-   <div class="howto"><div><b>iPhone · Safari</b><ol><li>Откройте podslushano.nl/now в Safari.</li><li>Нажмите «Поделиться» внизу экрана.</li><li>Выберите «На экран “Домой”» и нажмите «Добавить».</li></ol></div><div><b>Android · Chrome</b><ol><li>Откройте podslushano.nl/now в Chrome.</li><li>Нажмите меню ⋮ в правом верхнем углу.</li><li>Выберите «Добавить на главный экран».</li></ol></div></div>
-   <div class="note" style="margin-top:18px"><svg class="ico"><use href="#i-info"/></svg><span>На экране появится значок podslushano.nl. Он открывает страницу «Сейчас» с актуальными данными. Системные виджеты iOS и Android, которые показывают данные без открытия, требуют отдельного приложения. Это следующий шаг после запуска сайта.</span></div>
-   <h3 style="font-size:18px;margin-top:22px">Что показывает</h3>
-   <div class="lists2" style="margin-top:10px"><div><h4>Сейчас</h4><ul><li>Погода в вашем городе (Buienradar)</li><li>Дождь в ближайшие 2 часа</li><li>Поезда NS по вашему маршруту</li></ul></div><div><h4>Главное дня</h4><ul><li>Ближайшее событие из афиши</li><li>Главная новость дня</li><li>Ваши сохранённые карточки</li></ul></div></div>
-   
-  </div><div class="wgal" id="wGal"></div></div></div></section>
+
 
 <!-- ================= GUIDE ================= -->
 
@@ -2412,7 +2444,7 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
   <div class="wrap">
     <div class="ft">
       <div><a href="#home" class="logo"><img class="lg" src="{{IMG:logo-orig}}" alt="podslushano.nl"></a><p class="req">podslushano.nl@gmail.com<br>KVK: 98882317 · BTW: NL005359099B74<br>Karel Doormanstraat 63, 5342 TJ Oss</p></div>
-      <div><h5>Разделы</h5><a href="#news">Новости и статьи</a><a href="#guide">КонтактGuide</a><a href="#events">Афиша</a><a href="#travel">Путешествия</a><a href="#provinces">Провинции</a><a href="#allo">allowalks</a><a href="#board">Работа и жильё</a><a href="#shop">Магазин</a><a href="#widget">Виджет на телефон</a></div>
+      <div><h5>Разделы</h5><a href="#news">Новости и статьи</a><a href="#guide">КонтактGuide</a><a href="#events">Афиша</a><a href="#travel">Путешествия</a><a href="#provinces">Провинции</a><a href="#allo">allowalks</a><a href="#board">Работа и жильё</a><a href="#shop">Магазин</a></div>
       <div><h5>Сообщество</h5><a href="https://www.instagram.com/podslushano.nl">Instagram</a><a href="https://t.me/podslushanovnl">Telegram</a><a href="https://www.facebook.com/podslushano.nl">Facebook</a><a href="https://www.tiktok.com/@podslushano.nl">TikTok</a><a href="https://www.youtube.com/@podslushanonl">YouTube</a><a href="#links">Links</a></div>
       <div><h5>Документы</h5><a href="#cabinet">Кабинет бизнеса</a><a href="#contact">Связаться</a><a href="#business">Сотрудничество</a><a href="#legal-imprint">Imprint</a><a href="#legal-disclaimer">Disclaimer</a><a href="#legal-privacy">Privacy Statement</a><a href="#legal-cookies">Cookie Policy</a><a href="#legal-terms">Terms and Conditions</a><a href="#" data-cookie>Настройки cookie</a></div>
     </div>
@@ -2474,15 +2506,24 @@ const SOS=[['112','Полиция · Скорая · Пожар',1],['0900-8844'
 const DEST=[['Paris','Франция','PAR','#2B3A67','#FF8A65'],['Lisbon','Португалия','LIS','#F2A541','#1D5592'],['Barcelona','Испания','BCN','#E94F37','#F6BD60'],['Rome','Италия','ROM','#B5651D','#F2C14E'],['London','Великобритания','LON','#1D3557','#E63946'],['Porto','Португалия','OPO','#1D5592','#7EC8E3'],['Prague','Чехия','PRG','#6D2E46','#D5B9B2'],['Vienna','Австрия','VIE','#C1121F','#FDF0D5'],['Istanbul','Турция','IST','#0B6E4F','#FFB703'],['Copenhagen','Дания','CPH','#2E86AB','#F6F5AE'],['Málaga','Испания','AGP','#FF7B00','#FFD000'],['Reykjavik','Исландия','REK','#0B3954','#BFD7EA']];
 const JOBS=[{h:'Ассистент на склад, русский и английский',c:'Tilburg',m:'32–40 ч · EN',v:'€15,20/ч',e:'ещё 23 дня'},{h:'Повар в кафе, без голландского',c:'Amsterdam',m:'24 ч · RU/EN',v:'по договорённости',e:'ещё 9 дней'},{h:'Няня на 3 дня в неделю',c:'Amstelveen',m:'3 дня · RU',v:'€14/ч',e:'ещё 2 дня'},{h:'Мастер маникюра в салон',c:'Utrecht',m:'аренда места',v:'обсуждается',e:'ещё 17 дней'}];
 const HOMES=[{h:'Комната в квартире, Kralingen',c:'Rotterdam',m:'Сдаю · с 1 ноября · 14 м²',v:'€750/мес',e:'ещё 11 дней'},{h:'Ищу студию для пары без животных',c:'Utrecht / Zeist',m:'Ищу · до €1 300',v:'спрос',e:'ещё 6 дней'},{h:'Квартира 2 комнаты на полгода',c:'Den Haag',m:'Сдаю · меблирована',v:'€1 650/мес',e:'ещё 1 день'}];
-const PAGES=[['home','Главная','home'],['guide','КонтактGuide','user'],['events','Афиша','ticket'],['travel','Путешествия','plane'],['provinces','История провинций','map'],['allo','allowalks','walk'],['board','Работа и жильё','briefcase'],['business','Сотрудничество','hand'],['contact','Связаться','chat'],['links','Links','link'],['cabinet','Кабинет бизнеса','card'],['place','Разместить карточку','plus'],['live','Погода и камеры','cloud'],['news','Новости и статьи','book'],['shop','Магазин','gift'],['widget','Виджет на телефон','phone']];
+const PAGES=[['home','Главная','home'],['guide','КонтактGuide','user'],['events','Афиша','ticket'],['travel','Путешествия','plane'],['provinces','История провинций','map'],['allo','allowalks','walk'],['board','Работа и жильё','briefcase'],['business','Сотрудничество','hand'],['contact','Связаться','chat'],['links','Links','link'],['cabinet','Кабинет бизнеса','card'],['place','Разместить карточку','plus'],['live','Погода и камеры','cloud'],['news','Новости и статьи','book'],['shop','Магазин','gift']];
 const CITY={'гаага':'den haag','the hague':'den haag','амстердам':'amsterdam','роттердам':'rotterdam','утрехт':'utrecht','эйндховен':'eindhoven','гронинген':'groningen','маастрихт':'maastricht','харлем':'haarlem','лейден':'leiden','тилбург':'tilburg','делфт':'delft','дельфт':'delft','неймеген':'nijmegen','арнем':'arnhem','алмере':'almere','бреда':'breda','зволле':'zwolle','леуварден':'leeuwarden','амстелвен':'amstelveen','амерсфорт':'amersfoort','апелдорн':'apeldoorn','дордрехт':'dordrecht','схидам':'schiedam','хертогенбос':'hertogenbosch','ден бос':'den bosch','энсхеде':'enschede','схевенинген':'scheveningen','схипхол':'schiphol','северная голландия':'noord-holland','южная голландия':'zuid-holland','северный брабант':'noord-brabant','брабант':'brabant','фрисландия':'friesland','зеландия':'zeeland','лимбург':'limburg','гелдерланд':'gelderland','гельдерланд':'gelderland','оверэйссел':'overijssel','флеволанд':'flevoland','дренте':'drenthe','врач':'huisarts','зубной':'стоматолог'};
 
 /* ---------- favorites ---------- */
-const favs=new Set(store.get('favs',[]));
+// specialists are saved by slug or id: list positions change when the bot adds cards (old index keys are dropped)
+const favs=new Set(store.get('favs',[]).filter(k=>!/^sp\d+$/.test(k)));
+function spKey(i){const x=SPEC[i];return 'sp:'+(x&&(x.slug||x.id)||i)}
 function syncFav(){const b=$('#favBadge');b.textContent=favs.size;b.classList.toggle('on',favs.size>0);$$('[data-save]').forEach(x=>x.setAttribute('aria-pressed',favs.has(x.dataset.save)))}
 function burst(el){if(RM)return;const b=document.createElement('span');b.className='burst';for(let i=0;i<8;i++){const a=i/8*6.283,r=22;const d=document.createElement('i');d.style.setProperty('--bx',Math.cos(a)*r+'px');d.style.setProperty('--by',Math.sin(a)*r+'px');b.appendChild(d)}el.appendChild(b);setTimeout(()=>b.remove(),650)}
 document.addEventListener('click',e=>{const s=e.target.closest('[data-save]');if(!s)return;e.preventDefault();e.stopPropagation();const k=s.dataset.save;if(favs.has(k)){favs.delete(k);toast('Убрано из избранного')}else{favs.add(k);burst(s);toast('Сохранено на этом устройстве')}store.set('favs',[...favs]);syncFav()});
-$('#favBtn').addEventListener('click',()=>toast(favs.size?`В избранном: ${favs.size}`:'Нажмите на сердце у карточки, чтобы сохранить'));
+function favList(){const out=[];favs.forEach(k=>{
+    if(/^c\d+$/.test(k)){const i=+k.slice(1),c=CONCERTS[i],e=EV[i];if(c&&e)out.push({k,g:'Афиша',t:c.h,s:`${c.d} ${c.m} · ${c.c}`,ic:'ticket',go:()=>{location.hash='#ev-'+e.key}})}
+    else if(k.startsWith('sp:')){const i=SPEC.findIndex((x,j)=>spKey(j)===k);if(i>=0){const x=SPEC[i];out.push({k,g:'Специалисты',t:x.n,s:`${x.k} · ${where(x)}`,ic:CAT[x.c][2],go:()=>openSpec(i)})}}});return out}
+function openFav(){const L=favList();
+  openSheet(`<h2 id="shTitle">Избранное</h2><p class="muted" style="margin:4px 0 14px">Сохраняется на этом устройстве.</p>${L.length?`<div class="fav-l">${L.map((h,n)=>`<div class="fav-r"><button class="pr" data-fgo="${n}"><span class="gi t-slate">${svg(h.ic)}</span><span style="min-width:0"><b>${esc(h.t)}</b><span>${esc(h.g)} · ${esc(h.s)}</span></span>${svg('arrow')}</button><button class="icon-btn" data-funsave="${esc(h.k)}" aria-label="Убрать из избранного">${svg('x')}</button></div>`).join('')}</div>`:`<div class="empty"><img src="{{DEER}}" alt=""><h4>Здесь пока пусто</h4><p>Нажмите на сердце у специалиста или события, и они появятся здесь.</p></div>`}`);
+  $('#shBody').onclick=e=>{const g=e.target.closest('[data-fgo]');if(g){const h=L[+g.dataset.fgo];closeSheet();setTimeout(()=>h.go(),350);return}
+    const u=e.target.closest('[data-funsave]');if(u){favs.delete(u.dataset.funsave);store.set('favs',[...favs]);syncFav();openFav()}}}
+$('#favBtn').addEventListener('click',openFav);
 
 /* ---------- ripple ---------- */
 document.addEventListener('pointerdown',e=>{const b=e.target.closest('.btn');if(!b||RM)return;const r=b.getBoundingClientRect(),s=Math.max(r.width,r.height)*2.2,i=document.createElement('span');i.className='ripple';i.style.cssText=`width:${s}px;height:${s}px;left:${e.clientX-r.left-s/2}px;top:${e.clientY-r.top-s/2}px`;b.appendChild(i);setTimeout(()=>i.remove(),650)});
@@ -2500,7 +2541,7 @@ function seg(el,onSel){const pill=el.querySelector('.pill');const place=()=>{con
   el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',x===b));place();onSel(b)});return place}
 
 /* ---------- ROUTER ---------- */
-const ROUTES=['home','guide','events','travel','provinces','allo','board','business','contact','links','cabinet','event','walk','place','live','legal','news','art','shop','widget'];let curParam='';
+const ROUTES=['home','guide','events','travel','provinces','allo','board','business','contact','links','cabinet','event','walk','place','live','legal','news','art','shop'];let curParam='';
 const inits={};let cur=null;
 function navPill(){const a=$(`.nav a[aria-current="page"]`),p=$('#navPill');if(!a||!a.offsetWidth){p.style.opacity=0;return}p.style.opacity=1;p.style.left=a.offsetLeft+'px';p.style.width=a.offsetWidth+'px'}
 function show(id,anchor){
@@ -2565,7 +2606,7 @@ function openSpec(i){const x=SPEC[i],c=CAT[x.c],p=PNL[x.p];
   openSheet(`<div style="display:flex;gap:14px;align-items:center"><span class="ava ${c[3]}">${esc(initials(x.n))}</span><div><span class="tag ${c[3]}">${svg(c[2]).replace('class="ico"','class="ico" style="width:14px;height:14px"')}${c[1]}</span></div></div>
   <h2 id="shTitle">${esc(x.n)}</h2><p class="desc">${esc(x.d)}</p>
   <dl class="kv"><div><dt>Где работает</dt><dd>${x.nw?'вся страна':esc(p?p.ru:x.p)}</dd></div><div><dt>Город</dt><dd>${esc(x.nw?'онлайн':(x.city||'по провинции'))}</dd></div><div><dt>Формат</dt><dd>${x.on?'онлайн и очно':'очно'}</dd></div></dl>
-  <div class="acts"><button class="btn btn-acc" data-close onclick="">${svg('chat')}Связаться</button><button class="btn btn-soft save" style="width:auto;border-radius:999px;padding-inline:18px;height:48px;gap:8px;display:inline-flex" data-save="sp${i}" aria-pressed="${favs.has('sp'+i)}">${svg('heart')}Сохранить</button><button class="btn btn-soft" data-close onclick="">${svg('link')}Поделиться</button></div>
+  <div class="acts"><button class="btn btn-acc" data-close onclick="">${svg('chat')}Связаться</button><button class="btn btn-soft save" style="width:auto;border-radius:999px;padding-inline:18px;height:48px;gap:8px;display:inline-flex" data-save="${spKey(i)}" aria-pressed="${favs.has(spKey(i))}">${svg('heart')}Сохранить</button><button class="btn btn-soft" data-close onclick="">${svg('link')}Поделиться</button></div>
   <p class="muted" style="font-size:12px;margin-top:16px">В прототипе контакты скрыты. На сайте здесь будут телефон, сайт и мессенджеры специалиста.</p>`)}
 
 /* ================= PAGE INITS ================= */
@@ -2892,7 +2933,7 @@ INIT.guide=()=>{
   $('#sos').innerHTML=SOS.map(([n,t,hot])=>`<button class="sos-i${hot?' hot':''}" data-copy="${n}"><b>${n}</b><span>${t}</span>${svg('copy')}</button>`).join('');
 };
 document.addEventListener('click',e=>{const c=e.target.closest('[data-copy]');if(c)copy(c.dataset.copy)});
-function sp4(x){const c=CAT[x.c];return `<div class="sp4" data-sp="${x.i}" role="button" tabindex="0"><div class="top"><span class="ava ${c[3]}">${esc(initials(x.n))}</span><div style="min-width:0;flex:1"><h3>${esc(x.n)}</h3><div class="k">${esc(x.k)}</div></div><button class="save" data-save="sp${x.i}" aria-pressed="${favs.has('sp'+x.i)}" aria-label="Сохранить" style="width:34px;height:34px">${svg('heart')}</button></div><p>${esc(x.d)}</p><div class="tags">${x.nw?`<span class="tag t-mint">онлайн, по всей стране</span>`:`<span class="tag t-line">${esc(where(x))}</span>`}<span class="tag ${c[3]}">${c[1]}</span></div></div>`}
+function sp4(x){const c=CAT[x.c];return `<div class="sp4" data-sp="${x.i}" role="button" tabindex="0"><div class="top"><span class="ava ${c[3]}">${esc(initials(x.n))}</span><div style="min-width:0;flex:1"><h3>${esc(x.n)}</h3><div class="k">${esc(x.k)}</div></div><button class="save" data-save="${spKey(x.i)}" aria-pressed="${favs.has(spKey(x.i))}" aria-label="Сохранить" style="width:34px;height:34px">${svg('heart')}</button></div><p>${esc(x.d)}</p><div class="tags">${x.nw?`<span class="tag t-mint">онлайн, по всей стране</span>`:`<span class="tag t-line">${esc(where(x))}</span>`}<span class="tag ${c[3]}">${c[1]}</span></div></div>`}
 function spCard(x){return sp4(x)}
 function renderG(){const q=$('#gq').value.trim().toLowerCase(),terms=q?[q,CITY[q]].filter(Boolean):[];$('#gProvSel').value=gProv;
   const ok=x=>(gCat==='all'||x.c===gCat)&&(!q||terms.some(t=>(x.n+' '+x.k+' '+x.d+' '+x.city).toLowerCase().includes(t)));
@@ -3081,7 +3122,7 @@ function giftCardHTML(st){const ph=IMG['w-hemelse-orangerie'];return `<div class
   <div class="gface bk"><span class="stripe"></span><div class="msg" id="cMsg">${esc(st.msg||'Пусть будет больше дней вместе')}</div><div class="bot"><span class="who" style="opacity:.7">от: ${esc(st.from||'—')}</span><span class="ser" style="opacity:.6">код придёт письмом</span></div></div></div>`}
 function giftFlow(){const st={s:0,amt:GIFTS[1]||GIFTS[0],dz:'delft',self:false,to:'',toE:'',from:'',msg:'',when:'now',date:'',buyer:''};const box=$('#giftFlow'),stage=$('#gcStage');
   const card=()=>{stage.innerHTML=giftCardHTML(st)+'<p class="flip-hint">Нажмите на карту, чтобы перевернуть</p>';bindCard()};
-  const bindCard=()=>{const c=$('#gcard');c.onclick=()=>c.classList.toggle('back');c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();c.classList.toggle('back')}};
+  const bindCard=()=>{const c=$('#gcard');const flip=()=>{c.classList.remove('live');c.style.transform='';c.classList.toggle('back')};c.onclick=flip;c.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();flip()}};
     if(FINE&&!RM){c.onpointermove=e=>{if(c.classList.contains('back'))return;const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;c.classList.add('live');c.style.transform=`rotateY(${x*22}deg) rotateX(${-y*16}deg)`};c.onpointerleave=()=>{c.classList.remove('live');c.style.transform=''}}};
   const upd=()=>{const a=$('#cAmt'),t=$('#cTo'),m=$('#cMsg');if(a)a.textContent='€'+st.amt;if(t)t.textContent=st.self?'для себя':st.to?'кому: '+st.to:'для вас';if(m)m.textContent=st.msg||'Пусть будет больше дней вместе';const f=$('#gcard .bk .who');if(f)f.textContent='от: '+(st.from||'—')};
   const draw=()=>{let h=stepsBar(['Карта','Кому','Оплата'],st.s);
@@ -3201,7 +3242,7 @@ INIT.allo=(()=>{const base=INIT.allo;return()=>{base();const upcoming=WALKS.filt
   $('#allo-list').insertAdjacentHTML('beforeend',`<div class="sec" style="margin-top:36px"><div class="sh5"><div><h2 style="font-size:clamp(24px,3vw,34px)">Прошедшие прогулки</h2><p>Как это было: фото участников прогулок.</p></div></div><div class="walks">${ARCHIVE.map(archiveCard).join('')}</div></div>`)}})();
 
 /* ---------- specialist card + contacts (override) ---------- */
-function sp4(x){const c=CAT[x.c];const ks=[...new Set((x.ct||[]).map(t=>t[0]))];return `<div class="sp4" data-sp="${x.i}" role="button" tabindex="0"><div class="top"><span class="ava ${c[3]}">${esc(initials(x.brand||x.n))}</span><div style="min-width:0;flex:1"><h3>${esc(x.n)}</h3>${x.brand?`<div class="brand">${esc(x.brand)}</div>`:`<div class="k">${esc(x.k)}</div>`}</div><button class="save" data-save="sp${x.i}" aria-pressed="${favs.has('sp'+x.i)}" aria-label="Сохранить" style="width:34px;height:34px">${svg('heart')}</button></div><p>${esc(x.d)}</p><div class="tags" style="justify-content:space-between;align-items:center"><span style="display:flex;gap:6px;flex-wrap:wrap">${x.nw?`<span class="tag t-mint">онлайн, по всей стране</span>`:`<span class="tag t-line">${esc(whereTxt(x))}</span>`}<span class="tag ${c[3]}">${c[1]}</span></span><span class="ctmini">${ks.map(k=>`<span class="${CTI[k][0]}">${CTI[k][1]?sl(CTI[k][1]):svg(k==='mail'?'mail':k==='web'?'globe':'phone').replace('class="ico"','class="ico" style="width:12px;height:12px"')}</span>`).join('')}</span></div></div>`}
+function sp4(x){const c=CAT[x.c];const ks=[...new Set((x.ct||[]).map(t=>t[0]))];return `<div class="sp4" data-sp="${x.i}" role="button" tabindex="0"><div class="top"><span class="ava ${c[3]}">${esc(initials(x.brand||x.n))}</span><div style="min-width:0;flex:1"><h3>${esc(x.n)}</h3>${x.brand?`<div class="brand">${esc(x.brand)}</div>`:`<div class="k">${esc(x.k)}</div>`}</div><button class="save" data-save="${spKey(x.i)}" aria-pressed="${favs.has(spKey(x.i))}" aria-label="Сохранить" style="width:34px;height:34px">${svg('heart')}</button></div><p>${esc(x.d)}</p><div class="tags" style="justify-content:space-between;align-items:center"><span style="display:flex;gap:6px;flex-wrap:wrap">${x.nw?`<span class="tag t-mint">онлайн, по всей стране</span>`:`<span class="tag t-line">${esc(whereTxt(x))}</span>`}<span class="tag ${c[3]}">${c[1]}</span></span><span class="ctmini">${ks.map(k=>`<span class="${CTI[k][0]}">${CTI[k][1]?sl(CTI[k][1]):svg(k==='mail'?'mail':k==='web'?'globe':'phone').replace('class="ico"','class="ico" style="width:12px;height:12px"')}</span>`).join('')}</span></div></div>`}
 function ctRow(t){const [k]=t;if(k==='ig')return `<a class="ct" href="https://www.instagram.com/${encodeURIComponent(t[1])}/" target="_blank" rel="noopener">${ctIcon('ig')}<span><b>Instagram</b><span class="v">@${esc(t[1])}</span></span>${svg('ext')}</a>`;
   if(k==='tg')return `<a class="ct" href="https://t.me/${encodeURIComponent(t[1])}" target="_blank" rel="noopener">${ctIcon('tg')}<span><b>Telegram</b><span class="v">@${esc(t[1])}</span></span>${svg('ext')}</a>`;
   if(k==='web')return `<a class="ct" href="${esc(t[1])}" target="_blank" rel="noopener">${ctIcon('web')}<span><b>Сайт</b><span class="v">${esc(t[1].replace(/^https?:\/\//,''))}</span></span>${svg('ext')}</a>`;
@@ -3214,7 +3255,7 @@ function openSpec(i){const x=SPEC[i],c=CAT[x.c],p=PNL[x.p];
   <h2 id="shTitle">${esc(x.n)}</h2>${x.brand?`<p class="muted" style="margin:-4px 0 10px;font-weight:600">${esc(x.brand)}</p>`:''}<p class="desc">${esc(x.d)}</p>
   <dl class="kv"><div><dt>Где работает</dt><dd>${x.nw?'по всей стране':esc(p?p.ru:x.p)}</dd></div><div><dt>Город</dt><dd>${esc(x.nw?'онлайн':(x.city||'по провинции'))}</dd></div><div><dt>Специализация</dt><dd>${esc(x.k)}</dd></div></dl>
   <h3 style="font-size:16px;margin-bottom:8px">Связаться ${tip('Контакты','Связывайтесь со специалистом напрямую. Почта копируется нажатием. WhatsApp работает, если специалист им пользуется.')}</h3><div class="cts">${(x.ct||[]).map(ctRow).join('')}</div>
-  <div class="acts"><button class="btn btn-soft" data-save="sp${i}" aria-pressed="${favs.has('sp'+i)}" style="gap:8px">${svg('heart')}Сохранить</button><button class="btn btn-soft" data-share="${i}">${svg('link')}Поделиться</button></div>`)}
+  <div class="acts"><button class="btn btn-soft" data-save="${spKey(i)}" aria-pressed="${favs.has(spKey(i))}" style="gap:8px">${svg('heart')}Сохранить</button><button class="btn btn-soft" data-share="${i}">${svg('link')}Поделиться</button></div>`)}
 document.addEventListener('click',e=>{const s=e.target.closest('[data-share]');if(!s)return;const x=SPEC[+s.dataset.share];copy(`${x.n} · КонтактGuide podslushano.nl`,'Название карточки скопировано')});
 
 /* ---------- Russian-only + phone checks ---------- */
@@ -3442,7 +3483,7 @@ INIT.home=()=>{railBtns();hxBento();
   // ticker
   const days=d=>Math.ceil((new Date(d)-new Date(TODAY))/864e5);
   const T=[...WX.cities.slice(0,7).map(x=>`<a href="#live">${wxIco(x.k,isNight())}${x.ru} <b>${Math.round(x.t)}°</b></a>`),
-    `<a href="#widget"><b>${TRAINS.list[0][0]}</b>поезд в Amsterdam Centraal, путь ${TRAINS.list[0][2]}</a>`,
+    `<a href="#live"><b>${TRAINS.list[0][0]}</b>поезд в Amsterdam Centraal, путь ${TRAINS.list[0][2]}</a>`,
     `<a href="https://www.rijksoverheid.nl/onderwerpen/zomertijd-en-wintertijd" target="_blank" rel="noopener"><b>25 окт</b>переход на зимнее время, часы на час назад</a>`,`<a href="https://www.rijksoverheid.nl/onderwerpen/zorgverzekering" target="_blank" rel="noopener"><b>${days('2026-12-31')} дн.</b>до конца смены медстраховки</a>`,
     ...nextEvents().slice(0,8).map(e=>`<a href="#ev-${e.key}"><b>${dParts(e.date).d} ${dParts(e.date).m}</b>${esc(e.h)} · ${esc(e.city)}</a>`)].join('');
   $('#tick5').innerHTML=`<div class="trk">${T}${T}</div>`;
@@ -3456,7 +3497,7 @@ INIT.home=()=>{railBtns();hxBento();
   $('#gbForm').addEventListener('submit',e=>{e.preventDefault();goGuide($('#gbQ').value.trim())});
   wxCard();camMosaic();
   // widgets
-  const wd=()=>{$('#homeW').innerHTML=wSmall()+wTrains(3)};wd();homeTimers.push(setInterval(wd,60000));
+  const wd=()=>{const h=$('#homeW');if(h)h.innerHTML=wSmall()+wTrains(3)};wd();homeTimers.push(setInterval(wd,60000));
   // province of the day
   const pvMap=ProvMap($('#pv5map'),$('#pv5map'),{spin:true});let pv=PROV.findIndex(p=>p.id===pSel);const showPv=()=>{const p=PROV[pv];pvMap.sel(p.id);const n=$('#pvName');n.style.opacity=0;setTimeout(()=>{n.textContent=p.ru;n.style.opacity=1;$('#pvText').textContent=p.introP.join(' ')},250);$('#pvGo').onclick=e=>{e.preventDefault();selProv(p.id);location.hash='#readerSec'}};
   showPv();$('#pvNext').onclick=()=>{pv=(pv+1)%PROV.length;showPv()};if(!RM)homeTimers.push(setInterval(()=>{pv=(pv+1)%PROV.length;showPv()},9000));
@@ -3506,6 +3547,9 @@ INIT.events=(()=>{const base=INIT.events;return()=>{base();const cats=['Все',
 const IV_HTML=window.__ivHTML||'';
 function playIntro0(){if(!IV_HTML||document.getElementById('intro'))return;document.body.insertAdjacentHTML('afterbegin',IV_HTML);const iv=document.getElementById('intro');iv.querySelector('script')?.remove();document.documentElement.classList.add('iv-on');let done=false;const end=()=>{if(done)return;done=true;iv.classList.add('out');document.documentElement.classList.remove('iv-on');setTimeout(()=>iv.remove(),1100)};iv.addEventListener('click',end);setTimeout(end,3600)}
 document.addEventListener('click',e=>{if(e.target.closest('[data-intro]')){e.preventDefault();scrollTo(0,0);playIntro()}});
+
+/* header height for sticky bars */
+(()=>{const h=$('#hdr');if(!h)return;const set=()=>document.documentElement.style.setProperty('--hdr-h',h.offsetHeight+'px');set();addEventListener('resize',set,{passive:true});if('ResizeObserver' in window)new ResizeObserver(set).observe(h)})();
 
 /* pause looping animations in blocks that are off screen */
 const pnOffIO='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(x=>x.target.classList.toggle('pn-off',!x.isIntersecting)),{rootMargin:'100px'}):null;
@@ -3599,7 +3643,7 @@ function sp4(x){const c=CAT[x.c];const ks=[...new Set((x.ct||[]).map(t=>t[0]))];
      <div class="pb"><span class="pbadge">${svg("spark")}Премиум</span><div><h3>${esc(x.brand||x.n)}</h3><div class="brand">${esc(x.brand?x.n:x.k)}</div></div><p>${esc(x.d)}</p><div class="tags" style="display:flex;gap:6px;flex-wrap:wrap">${where}<span class="tag ${c[3]}">${c[1]}</span></div>
      <div class="pcon">${ks.map(k=>`<span class="brandi ${CTI[k][0]}">${CTI[k][1]?sl(CTI[k][1]):svg(k==='mail'?'mail':k==='web'?'globe':'phone')}</span>`).join('')}<span class="pgo2">Связаться</span></div></div></div>`}
   const col=x.col||'white';
-  return `<div class="sp4" data-sp="${x.i}" role="button" tabindex="0"><div class="top"><span class="ava cc cc-${col}">${esc(initials(x.brand||x.n))}</span><div style="min-width:0;flex:1"><h3>${esc(x.n)}</h3>${x.brand?`<div class="brand">${esc(x.brand)}</div>`:`<div class="k">${esc(x.k)}</div>`}</div><button class="save" data-save="sp${x.i}" aria-pressed="${favs.has('sp'+x.i)}" aria-label="Сохранить" style="width:34px;height:34px">${svg('heart')}</button></div><p>${esc(x.d)}</p><div class="tags" style="justify-content:space-between;align-items:center"><span style="display:flex;gap:6px;flex-wrap:wrap">${where}<span class="tag ${c[3]}">${c[1]}</span></span><span class="ctmini">${mini}</span></div></div>`}
+  return `<div class="sp4" data-sp="${x.i}" role="button" tabindex="0"><div class="top"><span class="ava cc cc-${col}">${esc(initials(x.brand||x.n))}</span><div style="min-width:0;flex:1"><h3>${esc(x.n)}</h3>${x.brand?`<div class="brand">${esc(x.brand)}</div>`:`<div class="k">${esc(x.k)}</div>`}</div><button class="save" data-save="${spKey(x.i)}" aria-pressed="${favs.has(spKey(x.i))}" aria-label="Сохранить" style="width:34px;height:34px">${svg('heart')}</button></div><p>${esc(x.d)}</p><div class="tags" style="justify-content:space-between;align-items:center"><span style="display:flex;gap:6px;flex-wrap:wrap">${where}<span class="tag ${c[3]}">${c[1]}</span></span><span class="ctmini">${mini}</span></div></div>`}
 openSpec=(()=>{const base=openSpec;return i=>{base(i);const x=SPEC[i];const PHS=x&&(x.phsrc||IMG[x.ph]);if(!x||!x.pr||!PHS)return;setTimeout(()=>{const h=document.getElementById('shTitle');if(h&&!h.parentNode.querySelector('.sh-ph'))h.parentNode.insertAdjacentHTML('afterbegin',`<img class="sh-ph" src="${PHS}" alt="${esc(x.brand||x.n)}">`)},0)}})();
 
 /* colour picker / premium photo note in placement flow */
@@ -3675,7 +3719,7 @@ function pnTrains(){fetch(PN_BOT+'/api/ns/departures?station=UT&limit=5').then(r
 pnTrains();setInterval(pnTrains,60000);
 
 /* ---- pretty URLs (History API) ---- */
-const PN_R2P={home:'/',news:'/news/',guide:'/guide/',events:'/events/',live:'/live/',allo:'/allowalks/',shop:'/shop/',widget:'/widget/',provinces:'/provinces/',board:'/work/',place:'/place/',cabinet:'/cabinet/',business:'/business/',contact:'/contact/',travel:'/travel/'};
+const PN_R2P={home:'/',news:'/news/',guide:'/guide/',events:'/events/',live:'/live/',allo:'/allowalks/',shop:'/shop/',provinces:'/provinces/',board:'/work/',place:'/place/',cabinet:'/cabinet/',business:'/business/',contact:'/contact/',travel:'/travel/'};
 const PN_LEGAL={imprint:'/imprint/',privacy:'/privacy-statement-eu/',cookies:'/cookie-policy-eu/',disclaimer:'/disclaimer/',terms:'/terms-and-conditions/'};
 function pnIsApp(p){return Object.values(PN_R2P).includes(p)||/^\/events\/[a-z0-9-]+\/$/.test(p)}
 function pnPath(h){if(PN_R2P[h])return PN_R2P[h];if(h==='links')return '/links/';if(h.startsWith('ev-'))return '/events/'+h.slice(3)+'/';
