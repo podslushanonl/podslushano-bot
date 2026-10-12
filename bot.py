@@ -44,7 +44,7 @@ from utils.ad_calendar import calendar_sync_loop
 from utils.ad_reminders import ad_reminder_loop
 from utils.allo_v2 import reconciliation_loop as allo_reconciliation_loop
 
-from utils.crm_bridge import crm_sync_loop
+from utils.crm_bridge import crm_sync_loop, router as crm_diagnostics_router
 
 
 async def configure_profile(bot: Bot) -> None:
@@ -153,6 +153,7 @@ async def main() -> None:
     dp.include_router(cabinet.router)
     dp.include_router(submissions.router)
     dp.include_router(contacts.router)
+    dp.include_router(crm_diagnostics_router)
     dp.include_router(ad_crm.router)
     dp.include_router(ai_sales.router)
     dp.include_router(moderation.router)
