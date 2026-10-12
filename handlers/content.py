@@ -13,6 +13,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
 from sqlalchemy import func, select
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 
 import config
 from database.db import get_session
@@ -199,15 +200,17 @@ async def seed_content_calendar() -> None:
             if campaign in existing:
                 continue
             template = TEMPLATES[template_key]
-            session.add(ContentPost(
-                campaign_key=campaign,
-                template_key=template_key,
-                content_kind=template.kind,
-                scheduled_at=scheduled_at,
-                status="scheduled",
-                button_label=template.button,
-                start_payload=f"content_{campaign}",
-            ))
+            await session.execute(
+                sqlite_insert(ContentPost).values(
+                    campaign_key=campaign,
+                                    template_key=template_key,
+                                    content_kind=template.kind,
+                                    scheduled_at=scheduled_at,
+                                    status="scheduled",
+                                    button_label=template.button,
+                                    start_payload=f"content_{campaign}",
+                ).on_conflict_do_nothing(index_elements=["campaign_key"])
+            )
         await session.commit()
 
     # После активного первого месяца: вторник — полезная функция, четверг —
@@ -248,15 +251,17 @@ async def seed_content_calendar() -> None:
             if template_key and day not in occupied:
                 template = TEMPLATES[template_key]
                 campaign = f"auto{day:%y%m%d}_{template_key}"[:64]
-                session.add(ContentPost(
+                await session.execute(
+                sqlite_insert(ContentPost).values(
                     campaign_key=campaign,
-                    template_key=template_key,
-                    content_kind=template.kind,
-                    scheduled_at=datetime(day.year, day.month, day.day, hour, minute),
-                    status="scheduled",
-                    button_label=template.button,
-                    start_payload=f"content_{campaign}"[:64],
-                ))
+                                        template_key=template_key,
+                                        content_kind=template.kind,
+                                        scheduled_at=datetime(day.year, day.month, day.day, hour, minute),
+                                        status="scheduled",
+                                        button_label=template.button,
+                                        start_payload=f"content_{campaign}"[:64],
+                ).on_conflict_do_nothing(index_elements=["campaign_key"])
+            )
                 occupied.add(day)
                 last_kind = template.kind
             day += timedelta(days=1)
