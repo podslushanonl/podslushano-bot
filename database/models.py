@@ -739,3 +739,32 @@ class SiteNewsItem(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
     )
+
+
+class NsSubscription(Base):
+    """Подписка на уведомления о сбоях NS по станции (сайт → бот ?start=ns_<код>)."""
+
+    __tablename__ = "ns_subscriptions"
+    __table_args__ = (UniqueConstraint("user_id", "station_code", name="uq_ns_sub_user_station"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    station_code: Mapped[str] = mapped_column(String(8), index=True)
+    station_name: Mapped[str] = mapped_column(String(80), default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+
+
+class NsAlertSent(Base):
+    """Какие сбои уже отправлены человеку, чтобы не повторять одно и то же."""
+
+    __tablename__ = "ns_alerts_sent"
+    __table_args__ = (UniqueConstraint("user_id", "disruption_id", name="uq_ns_alert_user_dis"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    disruption_id: Mapped[str] = mapped_column(String(80))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+    )

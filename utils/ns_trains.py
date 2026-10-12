@@ -17,6 +17,7 @@ log = logging.getLogger(__name__)
 NS_BASE = "https://gateway.apiportal.ns.nl/reisinformatie-api/api"
 DEPARTURES_TTL = 60
 DISRUPTIONS_TTL = 300
+STATIONS_TTL = 24 * 3600
 _STATION_RE = re.compile(r"^[A-Za-z0-9]{2,8}$")
 _CATEGORY_RU = {"IC": "Интерсити", "ICD": "Интерсити Директ", "SPR": "Спринтер",
                 "ICE": "ICE", "EST": "Eurostar", "NSI": "NS International"}
@@ -327,10 +328,27 @@ def _raw_texts(i: dict) -> list[str]:
     return out
 
 
+def _station_codes(obj, out: set | None = None) -> set:
+    """Коды станций, которые затрагивает сбой: ищем stationCode во всей структуре NS."""
+    out = set() if out is None else out
+    if isinstance(obj, dict):
+        code = obj.get("stationCode")
+        if isinstance(code, str) and _STATION_RE.match(code):
+            out.add(code.upper())
+        for v in obj.values():
+            if isinstance(v, (dict, list)):
+                _station_codes(v, out)
+    elif isinstance(obj, list):
+        for v in obj:
+            _station_codes(v, out)
+    return out
+
+
 def normalize_disruption(i: dict) -> dict:
     kind = i.get("type") or ""
     item = {"id": i.get("id") or "", "type": kind, "type_ru": _DISRUPTION_RU.get(kind, "Изменения"),
-            "title": (i.get("title") or "").rstrip("."), "active": bool(i.get("isActive", True))}
+            "title": (i.get("title") or "").rstrip("."), "active": bool(i.get("isActive", True)),
+            "stations": sorted(_station_codes(i))}
     if kind == "CALAMITY":
         item["title"] = _ru(i.get("title") or "").rstrip(".")
         item["text"] = _ru(i.get("description") or "")
@@ -384,11 +402,60 @@ async def _load_disruptions() -> dict:
     return {"now": current, "planned": planned[:30]}
 
 
+async def get_disruptions() -> dict:
+    """{"now": [...], "planned": [...]} из кэша (общий с сайтом), для уведомлений бота."""
+    return await _cached("disruptions", DISRUPTIONS_TTL, _load_disruptions)
+
+
+def normalize_stations(payload) -> list[list[str]]:
+    rows = payload if isinstance(payload, list) else (payload or {}).get("payload") or []
+    out = {}
+    for s in rows:
+        if not isinstance(s, dict):
+            continue
+        code = s.get("code") or (s.get("id") or {}).get("code") or s.get("stationCode")
+        names = s.get("namen") or s.get("names") or {}
+        name = names.get("lang") or names.get("long") or names.get("middel") or names.get("medium") or s.get("name")
+        country = s.get("land") or s.get("country") or "NL"
+        if isinstance(code, str) and name and country == "NL" and _STATION_RE.match(code):
+            out[code.upper()] = name
+    return sorted(([c, n] for c, n in out.items()), key=lambda x: x[1].lower())
+
+
+async def get_stations() -> list[list[str]]:
+    data = await _cached("stations", STATIONS_TTL, lambda: _load_stations())
+    return data["stations"]
+
+
+async def _load_stations() -> dict:
+    return {"stations": normalize_stations(await _ns_get("/v2/stations", {}))}
+
+
+async def station_name(code: str) -> str | None:
+    code = (code or "").upper()
+    try:
+        return dict((c, n) for c, n in await get_stations()).get(code)
+    except Exception as e:  # noqa: BLE001
+        log.warning("NS stations: %s", e)
+        return None
+
+
+async def stations(request: web.Request) -> web.Response:
+    if not _key():
+        return _json({"error": "ns_key_missing"}, 503)
+    try:
+        rows = await get_stations()
+    except Exception as e:  # noqa: BLE001
+        log.warning("NS stations: %s", e)
+        return _json({"error": "ns_unavailable"}, 502)
+    return _json({"stations": rows, "source": "NS"})
+
+
 async def disruptions(request: web.Request) -> web.Response:
     if not _key():
         return _json({"error": "ns_key_missing"}, 503)
     try:
-        data = await _cached("disruptions", DISRUPTIONS_TTL, _load_disruptions)
+        data = await get_disruptions()
     except Exception as e:  # noqa: BLE001
         log.warning("NS disruptions: %s", e)
         return _json({"error": "ns_unavailable"}, 502)
@@ -399,3 +466,4 @@ async def disruptions(request: web.Request) -> web.Response:
 def install_routes(app: web.Application) -> None:
     app.router.add_get("/api/ns/departures", departures)
     app.router.add_get("/api/ns/disruptions", disruptions)
+    app.router.add_get("/api/ns/stations", stations)
