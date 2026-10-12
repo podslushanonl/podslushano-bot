@@ -13,6 +13,16 @@ import aiohttp
 
 log = logging.getLogger(__name__)
 
+
+async def read_limited(response, limit: int) -> bytes:
+    """Весь ответ, но не больше limit байт. content.read(n) отдаёт только первую порцию."""
+    data = bytearray()
+    async for chunk in response.content.iter_chunked(65536):
+        data += chunk
+        if len(data) >= limit:
+            break
+    return bytes(data[:limit])
+
 _DROP_RE = re.compile(
     r"<(script|style|noscript|svg|head|template|iframe)\b[^>]*>.*?</\1>",
     re.I | re.S,
@@ -172,7 +182,7 @@ async def fetch_page_image(url: str) -> str | None:
                 ctype = (response.headers.get("Content-Type") or "").casefold()
                 if response.status >= 400 or ("html" not in ctype and ctype):
                     return None
-                raw = await response.content.read(900_000)
+                raw = await read_limited(response, 900_000)
                 page_url = str(response.url)
     except Exception as exc:  # noqa: BLE001
         log.info("Не удалось получить фото страницы %s: %s", url, exc)
@@ -276,7 +286,7 @@ async def fetch_article(url: str, max_chars: int = 12000) -> dict | None:
                 if r.status >= 400 or ("html" not in ctype and ctype):
                     log.warning("fetch_article HTTP %s (%s) для %s", r.status, ctype, url)
                     return None
-                raw = await r.content.read(2_000_000)
+                raw = await read_limited(r, 2_000_000)
                 page_url = str(r.url)
     except Exception as e:  # noqa: BLE001
         log.warning("fetch_article ошибка %s: %s", url, e)

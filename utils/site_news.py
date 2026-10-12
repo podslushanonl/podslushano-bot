@@ -33,7 +33,7 @@ from database.db import get_session
 from database.models import SiteNewsItem
 from utils import wordpress as wp
 from utils.ai import _extract_text_and_sources, _get_client, _parse_json, ai_enabled
-from utils.webpage import _title_and_text, fetch_article
+from utils.webpage import _title_and_text, fetch_article, read_limited
 
 log = logging.getLogger(__name__)
 
@@ -175,7 +175,7 @@ async def fetch_feed(url: str) -> bytes | None:
                 if r.status != 200:
                     log.warning("Лента %s: HTTP %s", url, r.status)
                     return None
-                return await r.content.read(5_000_000)
+                return await read_limited(r, 5_000_000)
     except Exception as e:  # noqa: BLE001
         log.warning("Лента %s не загрузилась: %s", url, e)
         return None
@@ -432,7 +432,7 @@ async def download_image(url: str) -> tuple[bytes, str] | None:
                 mime = (r.headers.get("Content-Type") or "").split(";")[0].strip().lower()
                 if r.status != 200 or not mime.startswith("image/"):
                     return None
-                data = await r.content.read(_MAX_IMAGE_BYTES + 1)
+                data = await read_limited(r, _MAX_IMAGE_BYTES + 1)
     except Exception as e:  # noqa: BLE001
         log.warning("Фото %s не скачалось: %s", url, e)
         return None
