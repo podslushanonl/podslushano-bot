@@ -1745,6 +1745,8 @@ async def start_webserver(bot) -> web.AppRunner:
     install_ns_routes(app)
     from utils.site_api import install_routes as install_site_routes
     install_site_routes(app)
+    from utils.afisha_site import install_routes as install_afisha_site_routes
+    install_afisha_site_routes(app)
     app.router.add_get("/", _health)
     app.router.add_get("/thanks", _thanks)
     app.router.add_get("/privacy", _privacy)

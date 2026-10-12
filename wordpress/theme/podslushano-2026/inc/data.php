@@ -229,6 +229,19 @@ function pn_sort_events(&$list) {
     usort($list, function ($a, $b) { return strcmp($a['date'] . ' ' . $a['time'], $b['date'] . ' ' . $b['time']); });
 }
 /* Upcoming events: Афиша in wp-admin, or data/events.json while it has no published entries. */
+/* Paid events from organisers (submitted on the site or in the bot, approved by the team). */
+function pn_user_events() {
+    $j = pn_cached('pn_user_ev', 10 * MINUTE_IN_SECONDS, function () {
+        $j = pn_http_json(PN_BOT . '/api/afisha/events', 6);
+        return ($j && isset($j['events']) && is_array($j['events'])) ? ['list' => $j['events']] : null;
+    });
+    $out = [];
+    foreach (($j['list'] ?? []) as $e) {
+        if (!is_array($e) || empty($e['key']) || empty($e['date'])) continue;
+        $out[] = $e + ['h' => '', 's' => '', 'time' => '', 'venue' => '', 'city' => '', 'img' => '', 'url' => '', 'p' => [], 'cat' => 'событие', 'end' => ''];
+    }
+    return $out;
+}
 function pn_events() {
     static $ev = null;
     if ($ev !== null) return $ev;
@@ -237,6 +250,7 @@ function pn_events() {
     } else {
         $ev = array_map(function ($e) { $e['img'] = pn_asset_img($e['img'] ?? ''); return $e; }, pn_theme_json('events.json'));
     }
+    $ev = array_merge($ev, pn_user_events());
     $ev = array_values(array_filter($ev, 'pn_upcoming'));
     pn_sort_events($ev);
     return $ev;

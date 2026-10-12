@@ -268,7 +268,7 @@ def available_allo_walks(now: "datetime | None" = None) -> list[dict]:
 
 
 # Цена размещения одного мероприятия в афише месяца (строкой, как требует Mollie)
-AFISHA_PRICE: str = os.getenv("AFISHA_PRICE", "25.00")
+AFISHA_PRICE: str = os.getenv("AFISHA_PRICE", "9.99")
 # Доска объявлений: цена «поднять наверх» (строкой, как требует Mollie)
 BOARD_BUMP_PRICE: str = os.getenv("BOARD_BUMP_PRICE", "4.99")
 # Доска: символическая плата за размещение жилья (анти-скам). "" / "0" = бесплатно.

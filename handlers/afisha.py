@@ -10,6 +10,7 @@ e-mail) → выбор месяца → оплата Mollie → webhook → за
 """
 import html
 import logging
+import os
 import re
 from datetime import date, datetime, time, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -141,8 +142,13 @@ def _card_text(ev: EventListing) -> str:
     """Подпись-карточка мероприятия (для модерации и экспорта)."""
     lines = [f"📅 <b>{html.escape(ev.title)}</b>"]
     if ev.event_date:
-        lines.append(f"🗓 {html.escape(ev.event_date)}")
-    lines.append(f"📍 {html.escape(_where(ev))}")
+        lines.append(f"🗓 {html.escape(ev.event_date)}"
+                     + (f", {html.escape(ev.event_time)}" if ev.event_time else ""))
+    lines.append(f"📍 {html.escape(_where(ev))}" + (f" · {html.escape(ev.venue)}" if ev.venue else ""))
+    if ev.category:
+        lines.append(f"🏷 {html.escape(ev.category)}")
+    if ev.source == "site":
+        lines.append(f"🌐 заявка с сайта · {html.escape(ev.invoice_email or '')}")
     if ev.description:
         lines.append("")
         lines.append(html.escape(ev.description))
@@ -168,9 +174,34 @@ async def _safe_send_card(bot, chat_id, ev: EventListing, reply_markup=None) -> 
             await bot.send_photo(chat_id, ev.photo_file_id, caption=caption,
                                  reply_markup=reply_markup)
             return
+        from utils.afisha_site import poster_path
+        path = poster_path(ev.id)
+        if os.path.exists(path):
+            from aiogram.types import BufferedInputFile
+            with open(path, "rb") as fh:
+                msg = await bot.send_photo(chat_id, BufferedInputFile(fh.read(), filename="poster.jpg"),
+                                           caption=caption, reply_markup=reply_markup)
+            if msg.photo:  # дальше шлём тот же файл по file_id
+                ev.photo_file_id = msg.photo[-1].file_id
+                async with get_session() as session:
+                    row = await session.get(EventListing, ev.id)
+                    if row:
+                        row.photo_file_id = ev.photo_file_id
+                        await session.commit()
+            return
     except Exception as e:  # noqa: BLE001
         log.warning("Афиша: не удалось отправить постер %s: %s", chat_id, e)
     await _safe_send(bot, chat_id, caption, reply_markup)
+
+
+async def _email(to: str, subject: str, text: str, link: str) -> None:
+    """Письмо организатору, который подал событие с сайта (у него нет чата с ботом)."""
+    try:
+        from utils.invoices import send_email_message
+        body = f"<p>{html.escape(text)}</p>" + (f'<p><a href="{html.escape(link)}">Открыть событие</a></p>' if link else "")
+        await send_email_message(to, subject, body, text + (f"\n{link}" if link else ""))
+    except Exception as e:  # noqa: BLE001
+        log.warning("Афиша: письмо организатору не ушло: %s", e)
 
 
 # --- Анкета организатора -----------------------------------------------------
@@ -495,12 +526,19 @@ async def afisha_approve(callback: CallbackQuery) -> None:
         ev.status = "approved"
         await session.commit()
         sub, title, month_key = ev.submitter_user_id, ev.title, ev.month_key
+        site_email = ev.invoice_email if ev.source == "site" else None
+        ev_key = f"u{ev.id}"
     await callback.answer("Опубликовано")
     try:
         await callback.message.edit_reply_markup(reply_markup=None)
     except Exception:  # noqa: BLE001
         pass
     await callback.message.answer(f"✅ «{html.escape(title)}» в афише на {_month_label(month_key)}.")
+    if site_email:
+        await _email(site_email, "Ваше событие в афише podslushano.nl",
+                     f"Готово! Событие «{title}» опубликовано в афише podslushano.nl. "
+                     "На сайте оно появится в течение 15 минут.",
+                     f"{config.SITE_URL.rstrip('/')}/events/{ev_key}/")
     if sub:
         await _safe_send(
             callback.bot, sub,
@@ -520,12 +558,17 @@ async def afisha_reject(callback: CallbackQuery) -> None:
         ev.status = "rejected"
         await session.commit()
         sub, title = ev.submitter_user_id, ev.title
+        site_email = ev.invoice_email if ev.source == "site" else None
     await callback.answer("Отклонено")
     try:
         await callback.message.edit_reply_markup(reply_markup=None)
     except Exception:  # noqa: BLE001
         pass
     await callback.message.answer(f"❌ «{html.escape(title)}» отклонено.")
+    if site_email:
+        await _email(site_email, "Событие не добавлено в афишу podslushano.nl",
+                     f"К сожалению, событие «{title}» мы не можем добавить в афишу. "
+                     f"Оплату вернём. Вопросы: {config.COMPANY_EMAIL}", "")
     if sub:
         await _safe_send(
             callback.bot, sub,

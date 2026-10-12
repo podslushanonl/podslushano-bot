@@ -374,6 +374,24 @@ p{margin:0}
 .fc > *{position:relative}
 .flow-nav{display:flex;justify-content:center;gap:12px;align-items:center;margin-top:10px}
 .finder{margin-top:28px;padding:clamp(20px,3vw,32px);border-radius:var(--r-xl)}
+.ua-cta{margin-top:32px;padding:24px;border-radius:28px}
+.ua-head{display:flex;gap:18px;align-items:flex-end;justify-content:space-between;flex-wrap:wrap}
+.ua-head h2{font-size:clamp(24px,3vw,34px);letter-spacing:-.03em;margin:10px 0 8px}
+.ua-head p{max-width:60ch;line-height:1.55}
+.ua-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:22px}
+.ua-form[hidden]{display:none}
+.ua-w{grid-column:1/-1}
+.ua-form textarea{min-height:120px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2);padding:14px;font:inherit;font-size:15px;resize:vertical;outline:none;width:100%}
+.ua-form textarea:focus{border-color:var(--ink);background:var(--surface)}
+.ua-chk{display:flex;gap:10px;align-items:center;font-size:15px}
+.ua-chk input{width:20px;height:20px;accent-color:#FF5A1F;flex:none}
+.ua-chk a{text-decoration:underline}
+.ua-file{display:flex;align-items:center;min-height:52px;border-radius:14px;border:1px dashed var(--line-2);background:var(--surface-2);padding:10px 14px;cursor:pointer;font-size:15px;color:var(--ink-2)}
+.ua-file input{position:absolute;opacity:0;width:1px;height:1px}
+.fld label.ua-file{font:400 15px var(--f-body);text-transform:none;letter-spacing:0;padding-left:14px;color:var(--ink-2)}
+.ua-file.on{border-style:solid;border-color:#1F9D55;color:var(--ink)}
+.ua-go{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-top:4px}
+@media(max-width:760px){.ua-cta{padding:18px}.ua-form{grid-template-columns:1fr 1fr}.ua-form .fld:has(#uaCat),.ua-form .fld:has(#uaVenue),.ua-form .fld:has(#uaCity){grid-column:1/-1}}
 .fgrid{display:grid;grid-template-columns:1.3fr 1.3fr 1fr 1fr .8fr auto;gap:10px;margin-top:20px;align-items:end}
 .fld{display:flex;flex-direction:column;gap:6px;min-width:0}
 .fld label{font:500 11px var(--f-mono);text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding-left:4px}
@@ -2347,9 +2365,28 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 
 <section class="page" id="p-events" data-title="Афиша">
   <div class="wrap">
-    <div class="phead"><div><h1 class="st">Афиша</h1><p class="st" style="--i:1">Концерты, стендап, фестивали и встречи. Нажмите на постер, чтобы открыть описание и билеты.</p></div></div>
+    <div class="phead"><div><h1 class="st">Афиша</h1><p class="st" style="--i:1">Концерты, стендап, фестивали и встречи. Нажмите на постер, чтобы открыть описание и билеты.</p></div><a class="btn btn-soft btn-sm st" style="--i:2" href="#uaBox">Добавить своё событие</a></div>
     <div class="filters4 st" id="evF"><button class="chip" aria-pressed="true" data-f="all">Все</button><button class="chip" aria-pressed="false" data-f="show">Концерты и шоу</button><button class="chip" aria-pressed="false" data-f="walk">allowalks</button><button class="chip" aria-pressed="false" data-f="amsterdam">Amsterdam</button><button class="chip" aria-pressed="false" data-f="oct">Октябрь</button><button class="chip" aria-pressed="false" data-f="nov">Ноябрь</button></div>
     <div class="pgrid4" id="evGrid"></div>
+    <div class="card ua-cta st" id="uaBox">
+      <div class="ua-head"><div><span class="eyebrow"><span class="dot"></span>Для организаторов</span><h2>Добавьте своё событие в афишу</h2><p class="muted">Концерт, стендап, встреча, мастер-класс или вечеринка для русскоязычных в Нидерландах. Размещение <b>9,99 €</b>, после проверки нашей командой событие появится в афише.</p></div><button class="btn btn-acc" type="button" id="uaOpen">Добавить событие</button></div>
+      <form class="ua-form" id="uaForm" novalidate hidden>
+        <div class="fld ua-w"><label for="uaTitle">Название</label><input id="uaTitle" maxlength="120" placeholder="Например: Вечер русского стендапа"></div>
+        <div class="fld ua-w"><label for="uaDesc">Описание</label><textarea id="uaDesc" maxlength="3000" placeholder="Что будет, для кого, на каком языке, цена билетов"></textarea></div>
+        <div class="fld"><label for="uaCat">Категория</label><select id="uaCat"><option>концерт</option><option>стендап</option><option>театр</option><option>встреча</option><option>вечеринка</option><option>мастер-класс</option><option>детям</option><option>спорт</option><option>выставка</option><option>фестиваль</option><option>другое</option></select></div>
+        <div class="fld"><label for="uaDate">Дата</label><input id="uaDate" type="date"></div>
+        <div class="fld"><label for="uaEnd">До (если несколько дней)</label><input id="uaEnd" type="date"></div>
+        <div class="fld"><label for="uaTime">Начало</label><input id="uaTime" type="time"></div>
+        <div class="fld"><label for="uaCity">Город</label><input id="uaCity" maxlength="80" placeholder="Amsterdam"></div>
+        <div class="fld"><label for="uaVenue">Место</label><input id="uaVenue" maxlength="160" placeholder="Зал, клуб или адрес"></div>
+        <label class="ua-chk ua-w"><input type="checkbox" id="uaOnline"><span>Онлайн или в нескольких городах</span></label>
+        <div class="fld ua-w"><label for="uaLink">Ссылка на билеты или страницу события</label><input id="uaLink" maxlength="400" placeholder="https://"></div>
+        <div class="fld ua-w"><label for="uaPoster">Постер</label><label class="ua-file" id="uaFileL"><input id="uaPoster" type="file" accept="image/jpeg,image/png,image/webp"><span id="uaFileT">Выберите картинку: JPG, PNG или WebP до 8 МБ</span></label></div>
+        <div class="fld ua-w"><label for="uaMail">Почта</label><input id="uaMail" type="email" maxlength="200" placeholder="На неё придёт счёт и ответ о публикации"></div>
+        <label class="ua-chk ua-w"><input type="checkbox" id="uaAgree"><span>Согласен(на) с <a href="#legal-terms" target="_blank" rel="noopener">условиями размещения</a></span></label>
+        <div class="ua-w ua-go"><button class="btn btn-acc" type="submit">Перейти к оплате · 9,99 €</button><span class="muted">Если событие не пройдёт проверку, вернём оплату.</span></div>
+      </form>
+    </div>
   </div>
 </section>
 <section class="page" id="p-event" data-title="Событие"><div class="wrap" id="evDet"></div></section>
@@ -3916,6 +3953,31 @@ async function payDonate(st){try{const box=$('#dnBox');const mail=(box.querySele
   if(st.monthly&&!vEmail(mail.trim())){toast('Укажите почту: на неё придёт ссылка для отмены');box.querySelector('#dnMail').focus();return}
   pnBusy(true);const j=await pnPost(PN_BOT+'/api/donate',{amount_cents:Math.round(st.amt*100),monthly:!!st.monthly,email:mail.trim()});location.href=j.checkout_url}catch(e){pnBusy(false);toast(e.message)}}
 (()=>{const b=$('#dnBox .dn-own');if(b&&!$('#dnMail'))b.insertAdjacentHTML('afterend','<label class="dn-own"><span style="font-size:15px">@</span><input id="dnMail" type="email" placeholder="Почта для подтверждения" aria-label="Почта"></label>')})();
+/* ---- organisers add their own event to the afisha (paid, checked by the team) ---- */
+(()=>{const f=$('#uaForm');if(!f)return;const today=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
+  $('#uaDate').min=$('#uaEnd').min=today;
+  $('#uaOpen').addEventListener('click',()=>{f.hidden=false;$('#uaOpen').hidden=true;$('#uaTitle').focus()});
+  $('#uaOnline').addEventListener('change',e=>{$('#uaCity').disabled=e.target.checked;if(e.target.checked)$('#uaCity').value=''});
+  $('#uaPoster').addEventListener('change',e=>{const x=e.target.files[0];$('#uaFileT').textContent=x?x.name:'Выберите картинку: JPG, PNG или WebP до 8 МБ';$('#uaFileL').classList.toggle('on',!!x)});
+  f.addEventListener('submit',async e=>{e.preventDefault();const v=id=>($(id).value||'').trim(),bad=(id,m)=>{toast(m);$(id).focus();return true};
+    const file=$('#uaPoster').files[0];
+    if(v('#uaTitle').length<3&&bad('#uaTitle','Напишите название события'))return;
+    if(v('#uaDesc').length<20&&bad('#uaDesc','Опишите событие хотя бы в паре предложений'))return;
+    if(!v('#uaDate')&&bad('#uaDate','Укажите дату'))return;
+    if(!$('#uaOnline').checked&&v('#uaCity').length<2&&bad('#uaCity','Укажите город'))return;
+    if(!file&&bad('#uaPoster','Добавьте постер'))return;
+    if(file.size>8*1024*1024&&bad('#uaPoster','Постер должен быть меньше 8 МБ'))return;
+    if(!vEmail(v('#uaMail'))&&bad('#uaMail','Проверьте почту'))return;
+    if(!$('#uaAgree').checked&&bad('#uaAgree','Подтвердите согласие с условиями'))return;
+    const fd=new FormData();[['title','#uaTitle'],['description','#uaDesc'],['category','#uaCat'],['date','#uaDate'],['end','#uaEnd'],['time','#uaTime'],['city','#uaCity'],['venue','#uaVenue'],['link','#uaLink'],['email','#uaMail']].forEach(([k,id])=>fd.append(k,v(id)));
+    fd.append('online',$('#uaOnline').checked?'1':'0');fd.append('poster',file);
+    try{pnBusy(true);const j=await pnPost(PN_BOT+'/api/afisha/submit',fd,true);location.href=j.checkout_url}catch(err){pnBusy(false);toast(err.message)}})})();
+if(/[?&]afisha=thanks/.test(location.search)){setTimeout(()=>toast('Спасибо! Мы проверим событие и напишем на почту, когда оно появится в афише.'),1200);history.replaceState(null,'',location.pathname)}
+/* approved organiser events straight from the bot, so they show even on a cached page */
+fetch(PN_BOT+'/api/afisha/events').then(r=>r.json()).then(j=>{let add=0;(j.events||[]).forEach(e=>{if(!e.key||EV.some(x=>x.key===e.key)||!/^\d{4}-\d\d-\d\d/.test(e.date||''))return;
+  EV.push({h:'',s:'',date:'',time:'',doors:'',venue:'',addr:'',city:'',price:'',org:'',age:'',lang:'',img:'',url:'',note:'',end:'',p:[],cat:'событие',...e});add++});
+  if(!add)return;EV.sort((a,b)=>(a.date+' '+a.time).localeCompare(b.date+' '+b.time));
+  if(cur==='events'){const b=$('#evF [aria-pressed="true"]');b&&b.click()}if(cur==='event'&&EV.some(x=>x.key===curParam))renderEventPage(curParam)}).catch(()=>{});
 if(/[?&]donation=thanks/.test(location.search)){setTimeout(()=>toast('Спасибо! Подтверждение придёт на почту, как только платёж пройдёт.'),1200);history.replaceState(null,'',location.pathname)}
 
 /* ---------- business cabinet ---------- */
