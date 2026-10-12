@@ -27,7 +27,7 @@ add_action('after_setup_theme', function () {
 function pn_routes() {
     return [
         'news' => 'news', 'guide' => 'guide', 'events' => 'events', 'live' => 'live',
-        'allowalks' => 'allo', 'shop' => 'shop', 'provinces' => 'provinces',
+        'allowalks' => 'allo', 'shop' => 'shop', 'trains' => 'trains', 'provinces' => 'provinces',
         'work' => 'board', 'place' => 'place', 'cabinet' => 'cabinet', 'business' => 'business',
         'contact' => 'contact', 'travel' => 'travel',
     ];
@@ -39,6 +39,14 @@ function pn_add_rules() {
     add_rewrite_rule('^events/([a-z0-9-]+)/?$', 'index.php?pn_route=event&pn_key=$matches[1]', 'top');
 }
 add_action('init', 'pn_add_rules');
+// New sections need fresh rewrite rules: flush once whenever the route list changes.
+add_action('init', function () {
+    $ver = md5(wp_json_encode(pn_routes()));
+    if (get_option('pn_rules_ver') !== $ver) {
+        flush_rewrite_rules(false);
+        update_option('pn_rules_ver', $ver);
+    }
+}, 99);
 add_filter('query_vars', function ($v) { $v[] = 'pn_route'; $v[] = 'pn_key'; return $v; });
 add_action('after_switch_theme', function () { pn_add_rules(); flush_rewrite_rules(); });
 add_filter('redirect_canonical', function ($url) { return get_query_var('pn_route') ? false : $url; });
@@ -64,6 +72,7 @@ function pn_route_meta($route) {
         'events' => ['Афиша: концерты, стендап, фестивали', 'Концерты, стендап, театр и фестивали в Нидерландах для русскоязычных.'],
         'event' => ['Афиша', 'Событие в Нидерландах: дата, место, билеты.'],
         'live' => ['Погода и камеры онлайн', 'Погода Buienradar по городам Нидерландов, дождь на 2 часа и живые камеры.'],
+        'trains' => ['Поезда NS: табло, отмены и сбои', 'Табло отправлений NS по станциям, отмены, сбои и ремонтные работы на железной дороге Нидерландов на русском.'],
         'allo' => ['allowalks: прогулки по Нидерландам', 'Прогулки allowalks в небольшой компании и подарочные карты.'],
         'shop' => ['Магазин', 'Подарочные карты allowalks, размещение в КонтактGuide, гайды и стикеры.'],
         'provinces' => ['Провинции Нидерландов', 'История и особенности двенадцати провинций Нидерландов.'],

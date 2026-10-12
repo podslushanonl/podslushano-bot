@@ -2043,6 +2043,29 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 /* sticky bars sit right under the header, whatever its height on the device */
 .g-tools{top:calc(var(--hdr-h,68px) + env(safe-area-inset-top,0px))}
 .gbar{top:calc(var(--hdr-h,68px) + 8px + env(safe-area-inset-top,0px))}
+.tr-st{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:none}.tr-st::-webkit-scrollbar{display:none}
+.tr-st .chip{flex:none}
+.tr-board{padding:6px 18px;border-radius:24px}
+.tr-row{display:grid;grid-template-columns:62px minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
+.tr-row:last-child{border-bottom:0}
+.tr-t b{display:block;font:700 19px/1 var(--f-display);font-variant-numeric:tabular-nums}
+.tr-t .dl{display:inline-block;margin-top:5px;font:700 12px var(--f-display);color:#B0234A}
+.tr-row.cx .tr-t b{text-decoration:line-through;color:var(--muted)}
+.tr-d b{display:block;font-weight:700;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-d span{display:block;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-d .cxl{color:#B0234A;font-weight:700}
+.tr-p{min-width:46px;text-align:center;padding:7px 9px;border-radius:12px;background:var(--surface-2);font:700 16px var(--f-display)}
+.tr-p small{display:block;font:600 10px var(--f-body);color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+.tr-p.ch{background:#FFEEE6;color:#D9440D}.tr-p.ch small{color:#D9440D}
+.tr-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
+.tr-c{padding:18px;border-radius:22px;display:grid;gap:8px;align-content:start;border-left:5px solid var(--line-2)}
+.tr-c.CALAMITY{border-left-color:#B0234A}.tr-c.DISRUPTION{border-left-color:#FF5A1F}.tr-c.MAINTENANCE{border-left-color:#3A7BD5}
+.tr-c .k{font:700 11.5px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.tr-c h3{font-size:18px;line-height:1.25}
+.tr-c .s{font-weight:600;color:var(--ink)}
+.tr-c p{font-size:14.5px;color:var(--ink-2);line-height:1.5}
+.tr-c .meta{display:flex;flex-wrap:wrap;gap:6px}
+.tr-ok{padding:22px;border-radius:22px;display:flex;gap:12px;align-items:center;font-weight:600}
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
@@ -2121,7 +2144,7 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
         <div class="pop" id="morePop" hidden>
           <a href="#travel"><span class="pi"><svg class="ico"><use href="#i-plane"/></svg></span><span>Путешествия<small>Отели и билеты из Нидерландов</small></span></a>
           <a href="#shop"><span class="pi"><svg class="ico"><use href="#i-gift"/></svg></span><span>Магазин<small>Подарочные карты, гайды, стикеры</small></span></a>
-          <a href="#live"><span class="pi"><svg class="ico"><use href="#i-cloud"/></svg></span><span>Погода и камеры<small>Buienradar и 17 трансляций</small></span></a>
+          <a href="#trains"><span class="pi"><svg class="ico"><use href="#i-clock"/></svg></span><span>Поезда NS<small>Табло, отмены, сбои и ремонт</small></span></a><a href="#live"><span class="pi"><svg class="ico"><use href="#i-cloud"/></svg></span><span>Погода и камеры<small>Buienradar и 17 трансляций</small></span></a>
           <a href="#board"><span class="pi"><svg class="ico"><use href="#i-briefcase"/></svg></span><span>Работа и жильё<small>Объявления после модерации</small></span></a>
           <a href="#business"><span class="pi"><svg class="ico"><use href="#i-hand"/></svg></span><span>Сотрудничество<small>Реклама и партнёрства</small></span></a>
           <a href="#contact"><span class="pi"><svg class="ico"><use href="#i-chat"/></svg></span><span>Связаться<small>Ответим за 5 рабочих дней</small></span></a>
@@ -2215,6 +2238,25 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
   </div>
 </section>
 
+<section class="page" id="p-trains" data-title="Поезда NS">
+  <div class="wrap">
+    <div class="phead"><div><h1 class="st">Поезда NS</h1><p class="st" style="--i:1">Табло отправлений, отмены, сбои и ремонтные работы. Данные NS, обновляются каждую минуту.</p></div></div>
+    <div class="sec" style="margin-top:0">
+      <div class="sec-h st"><div><h2>Отправления</h2><p id="trStName">Utrecht Centraal</p></div></div>
+      <div class="scroller tr-st" id="trStations"></div>
+      <div class="card tr-board" id="trBoard"><p class="muted">Загружаем табло…</p></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h st"><div><h2>Сбои сейчас</h2><p id="trNowSub">Что происходит на железной дороге прямо сейчас</p></div></div>
+      <div class="tr-list" id="trNow"><p class="muted">Загружаем…</p></div>
+    </div>
+    <div class="sec">
+      <div class="sec-h st"><div><h2>Плановые работы</h2><p>На ближайшие 7 дней: где поезда не ходят или ходят реже</p></div></div>
+      <div class="tr-list" id="trPlan"><p class="muted">Загружаем…</p></div>
+    </div>
+    <p class="hint" style="margin-top:28px">Источник: NS. Перед поездкой проверяйте маршрут в приложении NS.</p>
+  </div>
+</section>
 <section class="page" id="p-live" data-title="Погода и камеры">
   <div class="wrap">
     <div class="phead"><div><h1 class="st">Нидерланды сейчас</h1><p class="st" style="--i:1">Погода Buienradar по 11 городам и 17 живых камер.</p></div></div>
@@ -2511,7 +2553,7 @@ const SOS=[['112','Полиция · Скорая · Пожар',1],['0900-8844'
 const DEST=[['Paris','Франция','PAR','#2B3A67','#FF8A65'],['Lisbon','Португалия','LIS','#F2A541','#1D5592'],['Barcelona','Испания','BCN','#E94F37','#F6BD60'],['Rome','Италия','ROM','#B5651D','#F2C14E'],['London','Великобритания','LON','#1D3557','#E63946'],['Porto','Португалия','OPO','#1D5592','#7EC8E3'],['Prague','Чехия','PRG','#6D2E46','#D5B9B2'],['Vienna','Австрия','VIE','#C1121F','#FDF0D5'],['Istanbul','Турция','IST','#0B6E4F','#FFB703'],['Copenhagen','Дания','CPH','#2E86AB','#F6F5AE'],['Málaga','Испания','AGP','#FF7B00','#FFD000'],['Reykjavik','Исландия','REK','#0B3954','#BFD7EA']];
 const JOBS=[{h:'Ассистент на склад, русский и английский',c:'Tilburg',m:'32–40 ч · EN',v:'€15,20/ч',e:'ещё 23 дня'},{h:'Повар в кафе, без голландского',c:'Amsterdam',m:'24 ч · RU/EN',v:'по договорённости',e:'ещё 9 дней'},{h:'Няня на 3 дня в неделю',c:'Amstelveen',m:'3 дня · RU',v:'€14/ч',e:'ещё 2 дня'},{h:'Мастер маникюра в салон',c:'Utrecht',m:'аренда места',v:'обсуждается',e:'ещё 17 дней'}];
 const HOMES=[{h:'Комната в квартире, Kralingen',c:'Rotterdam',m:'Сдаю · с 1 ноября · 14 м²',v:'€750/мес',e:'ещё 11 дней'},{h:'Ищу студию для пары без животных',c:'Utrecht / Zeist',m:'Ищу · до €1 300',v:'спрос',e:'ещё 6 дней'},{h:'Квартира 2 комнаты на полгода',c:'Den Haag',m:'Сдаю · меблирована',v:'€1 650/мес',e:'ещё 1 день'}];
-const PAGES=[['home','Главная','home'],['guide','КонтактGuide','user'],['events','Афиша','ticket'],['travel','Путешествия','plane'],['provinces','История провинций','map'],['allo','allowalks','walk'],['board','Работа и жильё','briefcase'],['business','Сотрудничество','hand'],['contact','Связаться','chat'],['links','Links','link'],['cabinet','Кабинет бизнеса','card'],['place','Разместить карточку','plus'],['live','Погода и камеры','cloud'],['news','Новости и статьи','book'],['shop','Магазин','gift']];
+const PAGES=[['home','Главная','home'],['guide','КонтактGuide','user'],['events','Афиша','ticket'],['travel','Путешествия','plane'],['provinces','История провинций','map'],['allo','allowalks','walk'],['board','Работа и жильё','briefcase'],['business','Сотрудничество','hand'],['contact','Связаться','chat'],['links','Links','link'],['cabinet','Кабинет бизнеса','card'],['place','Разместить карточку','plus'],['trains','Поезда NS','clock'],['live','Погода и камеры','cloud'],['news','Новости и статьи','book'],['shop','Магазин','gift']];
 const CITY={'гаага':'den haag','the hague':'den haag','амстердам':'amsterdam','роттердам':'rotterdam','утрехт':'utrecht','эйндховен':'eindhoven','гронинген':'groningen','маастрихт':'maastricht','харлем':'haarlem','лейден':'leiden','тилбург':'tilburg','делфт':'delft','дельфт':'delft','неймеген':'nijmegen','арнем':'arnhem','алмере':'almere','бреда':'breda','зволле':'zwolle','леуварден':'leeuwarden','амстелвен':'amstelveen','амерсфорт':'amersfoort','апелдорн':'apeldoorn','дордрехт':'dordrecht','схидам':'schiedam','хертогенбос':'hertogenbosch','ден бос':'den bosch','энсхеде':'enschede','схевенинген':'scheveningen','схипхол':'schiphol','северная голландия':'noord-holland','южная голландия':'zuid-holland','северный брабант':'noord-brabant','брабант':'brabant','фрисландия':'friesland','зеландия':'zeeland','лимбург':'limburg','гелдерланд':'gelderland','гельдерланд':'gelderland','оверэйссел':'overijssel','флеволанд':'flevoland','дренте':'drenthe','врач':'huisarts','зубной':'стоматолог'};
 
 /* ---------- favorites ---------- */
@@ -2547,7 +2589,7 @@ function seg(el,onSel){const pill=el.querySelector('.pill');const place=()=>{con
   el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',x===b));place();onSel(b)});return place}
 
 /* ---------- ROUTER ---------- */
-const ROUTES=['home','guide','events','travel','provinces','allo','board','business','contact','links','cabinet','event','walk','place','live','legal','news','art','shop'];let curParam='';
+const ROUTES=['home','guide','events','travel','provinces','allo','board','business','contact','links','cabinet','event','walk','place','live','legal','news','art','shop','trains'];let curParam='';
 const inits={};let cur=null;
 function navPill(){const a=$(`.nav a[aria-current="page"]`),p=$('#navPill');if(!a||!a.offsetWidth){p.style.opacity=0;return}p.style.opacity=1;p.style.left=a.offsetLeft+'px';p.style.width=a.offsetWidth+'px'}
 function show(id,anchor){
@@ -3497,7 +3539,7 @@ INIT.home=()=>{railBtns();hxBento();
   // ticker
   const days=d=>Math.ceil((new Date(d)-new Date(TODAY))/864e5);
   const T=[...WX.cities.slice(0,7).map(x=>`<a href="#live">${wxIco(x.k,isNight())}${x.ru} <b>${Math.round(x.t)}°</b></a>`),
-    `<a href="#live"><b>${TRAINS.list[0][0]}</b>поезд в Amsterdam Centraal, путь ${TRAINS.list[0][2]}</a>`,
+    `<a href="#trains"><b>${TRAINS.list[0][0]}</b>поезд в ${esc(TRAINS.list[0][1])}, путь ${TRAINS.list[0][2]}</a>`,`<a href="#trains"><b>NS</b>сбои, отмены и ремонт на железной дороге</a>`,
     `<a href="https://www.rijksoverheid.nl/onderwerpen/zomertijd-en-wintertijd" target="_blank" rel="noopener"><b>25 окт</b>переход на зимнее время, часы на час назад</a>`,`<a href="https://www.rijksoverheid.nl/onderwerpen/zorgverzekering" target="_blank" rel="noopener"><b>${days('2026-12-31')} дн.</b>до конца смены медстраховки</a>`,
     ...nextEvents().slice(0,8).map(e=>`<a href="#ev-${e.key}"><b>${dParts(e.date).d} ${dParts(e.date).m}</b>${esc(e.h)} · ${esc(e.city)}</a>`)].join('');
   $('#tick5').innerHTML=`<div class="trk">${T}${T}</div>`;
@@ -3564,6 +3606,25 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-intro]')){e.pre
 
 /* header height for sticky bars */
 (()=>{const h=$('#hdr');if(!h)return;const set=()=>document.documentElement.style.setProperty('--hdr-h',h.offsetHeight+'px');set();addEventListener('resize',set,{passive:true});if('ResizeObserver' in window)new ResizeObserver(set).observe(h)})();
+
+/* ---------- NS trains page ---------- */
+const TR_ST=[['UT','Utrecht Centraal'],['ASD','Amsterdam Centraal'],['RTD','Rotterdam Centraal'],['GVC','Den Haag Centraal'],['SHL','Schiphol Airport'],['EHV','Eindhoven Centraal'],['LEDN','Leiden Centraal'],['HLM','Haarlem'],['AMF','Amersfoort Centraal'],['AH','Arnhem Centraal'],['NM','Nijmegen'],['ZL','Zwolle'],['GN','Groningen'],['LW','Leeuwarden'],['BD','Breda'],['TB','Tilburg'],['HT',"'s-Hertogenbosch"],['MT','Maastricht'],['ALM','Almere Centrum'],['DT','Delft'],['DDR','Dordrecht'],['ES','Enschede']];
+let trSt=store.get('trSt','UT');if(!TR_ST.some(x=>x[0]===trSt))trSt='UT';let trTimer=0;
+function trStations(){$('#trStations').innerHTML=TR_ST.map(([c,n])=>`<button class="chip" data-trst="${c}" aria-pressed="${c===trSt}">${esc(n)}</button>`).join('');$('#trStName').textContent=(TR_ST.find(x=>x[0]===trSt)||[])[1]||''}
+async function trBoard(){const box=$('#trBoard');try{const r=await fetch(PN_BOT+'/api/ns/departures?station='+trSt+'&limit=12');const j=await r.json();if(!j.departures)throw 0;
+  box.innerHTML=j.departures.length?j.departures.map(d=>`<div class="tr-row${d.cancelled?' cx':''}"><div class="tr-t"><b>${esc(d.time)}</b>${d.delay&&!d.cancelled?`<span class="dl">+${d.delay} мин</span>`:''}</div><div class="tr-d"><b>${esc(d.direction)}</b><span>${d.cancelled?'<span class="cxl">Отменён</span> · ':''}${esc(d.category||'')}${d.via&&d.via.length?' · через '+esc(d.via.join(', ')):''}</span></div><div class="tr-p${d.track_changed?' ch':''}"><small>${d.track_changed?'новый путь':'путь'}</small>${esc(d.track||'–')}</div></div>`).join(''):'<p class="muted" style="padding:14px 0">Ближайших отправлений нет.</p>';
+  if(j.departures[0]){TRAINS.station=$('#trStName').textContent;}}catch(e){box.innerHTML='<p class="muted" style="padding:14px 0">Не удалось загрузить табло NS. Попробуйте чуть позже.</p>'}}
+function trCard(x,plan){const extra=x.extra_min?`+${x.extra_min}${x.extra_max&&x.extra_max!==x.extra_min?'–'+x.extra_max:''} мин в пути`:'';
+  const when=plan?(x.start_ru?`${x.start_ru}${x.end_ru?' — '+x.end_ru:''}`:''):(x.expected||(x.end_ru?'до '+x.end_ru:''));
+  return `<article class="card tr-c ${x.type}"><span class="k">${esc(x.type_ru||'')}</span><h3>${esc(x.title||'')}</h3>${x.situation?`<p class="s">${esc(x.situation)}</p>`:''}${x.text?`<p>${esc(x.text)}</p>`:''}${x.cause?`<p>Причина: ${esc(x.cause)}</p>`:''}${(x.advice||[]).map(a=>`<p>${esc(a)}</p>`).join('')}
+   <div class="meta">${when?`<span class="tag t-line">${esc(when)}</span>`:''}${extra?`<span class="tag t-butter">${extra}</span>`:''}${x.buses?'<span class="tag t-sky">автобусы вместо поездов</span>':''}</div></article>`}
+async function trDisruptions(){try{const r=await fetch(PN_BOT+'/api/ns/disruptions');const j=await r.json();if(!j.now){if(!j.items)throw 0;j.now=j.items}
+  $('#trNow').innerHTML=j.now.length?j.now.map(x=>trCard(x,false)).join(''):`<div class="card tr-ok">${svg('check')}Сейчас сбоев нет, поезда ходят по расписанию.</div>`;
+  $('#trNowSub').textContent=j.now.length?`Сейчас ${j.now.length} ${j.now.length%10===1&&j.now.length%100!==11?'сообщение':(j.now.length%10>=2&&j.now.length%10<=4&&(j.now.length%100<10||j.now.length%100>=20)?'сообщения':'сообщений')} NS`:'Всё спокойно';
+  $('#trPlan').innerHTML=(j.planned||[]).length?j.planned.map(x=>trCard(x,true)).join(''):`<div class="card tr-ok">${svg('check')}На ближайшую неделю плановых работ нет.</div>`}
+  catch(e){$('#trNow').innerHTML=$('#trPlan').innerHTML='<p class="muted">Не удалось загрузить данные NS. Попробуйте чуть позже.</p>'}}
+INIT.trains=()=>{trStations();$('#trStations').addEventListener('click',e=>{const b=e.target.closest('[data-trst]');if(!b)return;trSt=b.dataset.trst;store.set('trSt',trSt);trStations();$('#trBoard').innerHTML='<p class="muted" style="padding:14px 0">Загружаем табло…</p>';trBoard()})};
+ENTER.trains=()=>{trBoard();trDisruptions();clearInterval(trTimer);trTimer=setInterval(()=>{if(cur!=='trains'){clearInterval(trTimer);return}trBoard();trDisruptions()},60000)};
 
 /* pause looping animations in blocks that are off screen */
 const pnOffIO='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(x=>x.target.classList.toggle('pn-off',!x.isIntersecting)),{rootMargin:'100px'}):null;
@@ -3734,7 +3795,7 @@ function pnTrains(){fetch(PN_BOT+'/api/ns/departures?station=UT&limit=5').then(r
 pnTrains();setInterval(pnTrains,60000);
 
 /* ---- pretty URLs (History API) ---- */
-const PN_R2P={home:'/',news:'/news/',guide:'/guide/',events:'/events/',live:'/live/',allo:'/allowalks/',shop:'/shop/',provinces:'/provinces/',board:'/work/',place:'/place/',cabinet:'/cabinet/',business:'/business/',contact:'/contact/',travel:'/travel/'};
+const PN_R2P={home:'/',trains:'/trains/',news:'/news/',guide:'/guide/',events:'/events/',live:'/live/',allo:'/allowalks/',shop:'/shop/',provinces:'/provinces/',board:'/work/',place:'/place/',cabinet:'/cabinet/',business:'/business/',contact:'/contact/',travel:'/travel/'};
 const PN_LEGAL={imprint:'/imprint/',privacy:'/privacy-statement-eu/',cookies:'/cookie-policy-eu/',disclaimer:'/disclaimer/',terms:'/terms-and-conditions/'};
 function pnIsApp(p){return Object.values(PN_R2P).includes(p)||/^\/events\/[a-z0-9-]+\/$/.test(p)}
 function pnPath(h){if(PN_R2P[h])return PN_R2P[h];if(h==='links')return '/links/';if(h.startsWith('ev-'))return '/events/'+h.slice(3)+'/';
