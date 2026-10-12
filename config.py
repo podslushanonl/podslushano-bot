@@ -124,6 +124,16 @@ MAKE_WEBHOOK_URL: str = os.getenv("MAKE_WEBHOOK_URL", "")
 AI_WEB_SEARCH: bool = os.getenv("AI_WEB_SEARCH", "1").strip().lower() in (
     "1", "true", "yes", "on", "да",
 )
+# Веб-поиск в ответах пользователям (чат-ассистент, калькулятор зарплаты). Выключен по
+# умолчанию: поиск в разы дороже обычного ответа. Админские команды это не затрагивает.
+AI_CHAT_WEB_SEARCH: bool = os.getenv("AI_CHAT_WEB_SEARCH", "0").strip().lower() in (
+    "1", "true", "yes", "on", "да",
+)
+# Автоматические черновики для канала по расписанию (утро, вечер, пятница, суббота).
+# Выключены по умолчанию; посты готовятся по команде админа.
+EDITORIAL_AUTO_ENABLED: bool = os.getenv("EDITORIAL_AUTO_ENABLED", "0").strip().lower() in (
+    "1", "true", "yes", "on", "да",
+)
 # Сколько поисков максимум за один ответ (защита от лишних расходов).
 try:
     AI_WEB_MAX_USES: int = int(os.getenv("AI_WEB_MAX_USES", "2"))
