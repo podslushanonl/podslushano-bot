@@ -78,7 +78,8 @@ def build_links():
     s = re.sub(r'\{\{SL:(\w+)\}\}', lambda m: f'<svg viewBox="0 0 24 24"><path d="{si[m.group(1)]}"/></svg>', s)
     s = re.sub(r'\{\{SLP:(\w+)\}\}', lambda m: f'<path d="{si[m.group(1)]}"/>', s)
     s = s.replace('{{SLJSON}}', json.dumps(si))
-    s = s.replace('<script>\n/* ==== ', '<script>/*PNL*/</script>\n<script>\n/* ==== ', 1)
+    # pn-links-app marks the page script for Complianz's whitelist (it mentions YouTube and Instagram links)
+    s = s.replace('<script>\n/* ==== ', '<script data-category="functional">/*PNL*/</script>\n<script data-category="functional">\n/* pn-links-app */\n/* ==== ', 1)
     assert '/*PNL*/' in s and '{{' not in s, re.findall(r'\{\{[^}]+\}\}', s)[:3]
     open(os.path.join(THEME, 'links.html'), 'w', encoding='utf-8').write(s)
 

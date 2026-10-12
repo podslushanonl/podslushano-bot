@@ -116,9 +116,15 @@ add_filter('wpseo_sitemap_index', function ($x) {
 function pn_complianz() {
     return defined('cmplz_version') || class_exists('COMPLIANZ');
 }
-// The app data script lists Instagram links of specialists; Complianz must not block it as an Instagram embed.
+// The app data and /links/ scripts mention Instagram and YouTube links; Complianz must not block them as embeds.
+add_filter('wp_inline_script_attributes', function ($attr) {
+    if (($attr['id'] ?? '') === 'pn-app-js-before') $attr['data-category'] = 'functional';
+    return $attr;
+});
 add_filter('cmplz_whitelisted_script_tags', function ($tags) {
     $tags[] = 'window.PN=';
+    $tags[] = 'window.PNL=';
+    $tags[] = 'pn-links-app';
     return $tags;
 });
 

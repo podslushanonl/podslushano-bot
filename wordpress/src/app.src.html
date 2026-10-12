@@ -20,7 +20,8 @@
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;overflow-x:clip}
+html{overflow-x:clip}
 body.lock{overflow:hidden}
 a{color:inherit;text-decoration:none}
 button,input,select{font:inherit;color:inherit}
@@ -556,6 +557,12 @@ body{background:var(--bg)}
 @keyframes mesh{50%{transform:translate(7vw,5vh) scale(1.14)}100%{transform:translate(-5vw,-4vh) scale(.94)}}
 .card,.chip,.btn-soft,.icon-btn,.kbd-search,.searchbar,.g-search,.c8,.lphone,.lbtn,.sos-i,.save,.round,.lev,.stepper,.fld select,.fld input,.cform textarea,.opt,.mini-cal div,.kv div,.pinfo .facts div,.tag.t-line,.cc .dd{
   background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);border-color:var(--glass-brd)}
+/* These sit on the still, already blurred background: a live backdrop blur adds nothing visible
+   but costs a GPU layer each (180 on the home page). Buttons and tags that can sit on photos keep it. */
+.card,.chip,.btn-soft,.kbd-search,.searchbar,.g-search,.c8,.lphone,.lbtn,.sos-i,.lev,.stepper,.fld select,.fld input,.cform textarea,.opt,.mini-cal div,.kv div,.pinfo .facts div,.cc .dd{
+  -webkit-backdrop-filter:none;backdrop-filter:none}
+/* date badges and save buttons are near-opaque: the blur under them is invisible */
+.badge2,.save{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 .card{isolation:isolate;box-shadow:var(--glass-edge),0 12px 32px -14px rgba(30,40,70,.22)}
 .card::before{content:"";position:absolute;inset:0;border-radius:inherit;z-index:-1;pointer-events:none;
   background:linear-gradient(155deg,rgba(255,255,255,.72),rgba(255,255,255,.1) 34%,rgba(255,255,255,0) 62%,rgba(255,255,255,.28))}
@@ -1174,6 +1181,11 @@ html.cur-on .cur-dot,html.cur-on .cur-ring{opacity:1}
 .hsearch{margin-top:26px;display:flex;align-items:center;gap:10px;height:62px;padding:0 8px 0 20px;border-radius:20px;background:rgba(255,255,255,.75);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.9);box-shadow:var(--glass-edge),0 24px 50px -24px rgba(30,40,70,.45);width:100%;text-align:left}
 .hsearch .ph{flex:1;font-size:16px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hsearch .ph b{color:var(--ink);font-weight:600}
+.hxs{position:relative;z-index:20;margin-top:26px}.hxs .hsearch{margin-top:0}
+.hsearch .hx-f{flex:1;position:relative;min-width:0;height:100%;display:flex;align-items:center}
+.hsearch .hx-f input{position:absolute;inset:0;width:100%;border:0;outline:0;background:transparent;font:inherit;font-size:16px;color:var(--ink);padding:0}
+.hsearch .ph{pointer-events:none}.hsearch.typing .ph{visibility:hidden}.hsearch:focus-within{box-shadow:0 0 0 3px var(--accent-soft),var(--glass-edge)}
+.hx-res{position:absolute;left:0;right:0;top:calc(100% + 8px);z-index:40;padding:8px;border-radius:20px;background:#fff;border:1px solid var(--line);box-shadow:0 24px 60px -20px rgba(30,40,70,.35)}
 .hsearch .go{width:46px;height:46px;border-radius:14px;background:var(--accent);color:#fff;display:grid;place-items:center;box-shadow:var(--e-acc)}
 .hlinks{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:14px}
 .hl{display:grid;gap:6px;padding:12px;border-radius:16px;background:rgba(255,255,255,.55);border:1px solid rgba(255,255,255,.85);font-size:13px;font-weight:600;transition:transform .45s var(--spring),background .2s}
@@ -1561,7 +1573,7 @@ html.iv-on,html.iv-on body{overflow:hidden}
 @keyframes cpopUp{from{transform:translateY(40px);opacity:0}}
 
 /* hero v9 */
-.hx{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:clamp(24px,4vw,56px);align-items:center;padding-top:clamp(18px,4vw,48px)}
+.hx{position:relative;z-index:30;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);gap:clamp(24px,4vw,56px);align-items:center;padding-top:clamp(18px,4vw,48px)}
 .hx-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font:600 13px var(--f-display);color:var(--muted)}
 .hx-top .hxlive{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.7);border:1px solid rgba(13,17,23,.06);color:var(--ink-2)}
 .hx-top .hxlive i{width:7px;height:7px;border-radius:50%;background:#1DB954;box-shadow:0 0 0 0 rgba(29,185,84,.5);animation:pulse 2s infinite}
@@ -1569,7 +1581,7 @@ html.iv-on,html.iv-on body{overflow:hidden}
 .hx h1{font-size:clamp(44px,6.6vw,92px);line-height:.94;letter-spacing:-.055em;margin-top:18px}
 .hx h1 em{font-style:normal;color:var(--accent)}
 .hx .lead{font-size:clamp(16px,1.4vw,19px);color:var(--ink-2);margin-top:18px;max-width:40ch}
-.hx .hsearch{margin-top:26px}
+.hx .hxs{margin-top:26px}.hx .hxs .hsearch{margin-top:0}
 .hx-q{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
 .hx-q button{font:600 13px var(--f-display);padding:8px 13px;border-radius:999px;background:rgba(255,255,255,.62);border:1px solid rgba(13,17,23,.07);color:var(--ink-2);cursor:pointer;transition:background .2s,transform .3s var(--spring)}
 .hx-q button:hover{background:#fff;transform:translateY(-2px)}
@@ -1975,6 +1987,13 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 .cab-act{display:flex;gap:8px;flex-wrap:wrap}.cab-del{color:#B0234A}
 .cab-form{display:grid;gap:12px}.cab-form textarea{width:100%;border-radius:14px;border:1px solid var(--line-2);padding:12px;font:15px/1.5 var(--f-body)}
 .pbadge{display:inline-flex;align-items:center;gap:6px;font:700 11px var(--f-display);letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;background:linear-gradient(135deg,#F6E7B4,#E9C46A);color:#5B4413}
+#cmplz-manage-consent .cmplz-manage-consent,.cmplz-manage-consent{display:none!important}
+/* animated bits get their own layers, so they do not repaint the blocks around them */
+.hsearch .ph{will-change:transform;contain:layout paint}
+.hsearch .caret,.live::before,.hx-top .hxlive i,.nbar .live i{will-change:opacity}
+#rotWord,#hxClock{will-change:transform;contain:layout paint}
+.h5-r .mascot,.moose img,.bt-wx .mo,[style*="animation:peek"]{will-change:rotate}
+.pn-off,.pn-off *{animation-play-state:paused!important}
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
@@ -2512,20 +2531,27 @@ $('#shX').onclick=closeSheet;$('#scrim').onclick=closeSheet;
 (()=>{const g=$('#grab'),s=$('#sheet');let y0=null,dy=0;g.addEventListener('pointerdown',e=>{y0=e.clientY;g.setPointerCapture(e.pointerId);s.style.transition='none'});g.addEventListener('pointermove',e=>{if(y0==null)return;dy=Math.max(0,e.clientY-y0);s.style.transform=`translate(-50%,${dy}px)`});g.addEventListener('pointerup',()=>{s.style.transition='';if(dy>120)closeSheet();else s.style.transform='';y0=null;dy=0})})();
 
 /* ---------- PALETTE SEARCH ---------- */
-const IDX=[...PAGES.map(([id,n,ic])=>({g:'Разделы',t:n,s:'Страница сайта',ic,href:'#'+id,k:n})),
+function buildIdx(){return [...PAGES.map(([id,n,ic])=>({g:'Разделы',t:n,s:'Страница сайта',ic,href:'#'+id,k:n})),
  ...PROV.map(p=>({g:'Провинции',t:p.ru,s:p.nl+' · '+p.short,ic:'map',act:()=>{selProv(p.id);location.hash='#provinces'},k:p.ru+' '+p.nl+' '+p.cap})),
  ...CONCERTS.map(c=>({g:'Афиша',t:c.h,s:`${c.d} ${c.m} · ${c.c}${c.v?' · '+c.v:''}`,ic:'ticket',href:'#events',k:c.h+' '+c.s+' '+c.c})),
- ...SPEC.map((x,i)=>({g:'Специалисты',t:x.n,s:`${x.k} · ${where(x)}`,ic:CAT[x.c][2],act:()=>openSpec(i),k:x.n+' '+x.k+' '+x.city+' '+x.p+' '+(PNL[x.p]?.ru||'')+' '+x.d}))];
+ ...SPEC.map((x,i)=>({g:'Специалисты',t:x.n,s:`${x.k} · ${where(x)}`,ic:CAT[x.c][2],act:()=>openSpec(i),k:x.n+' '+x.k+' '+x.city+' '+x.p+' '+(PNL[x.p]?.ru||'')+' '+x.d})),
+ ...[...NEWSF,...ART].map(n=>({g:'Новости и статьи',t:n.h,s:(n.cat||'')+(n.date?' · '+n.date:''),ic:'book',href:'#art-'+n.id,k:n.h+' '+(n.lead||'')+' '+(n.cat||'')}))]}
+let IDX=[];
+// Every word must match; Russian city and province names also match their Dutch spelling.
+function idxFind(q){q=q.trim().toLowerCase();if(!q)return IDX.filter(x=>x.g==='Разделы');const whole=CITY[q];
+  const words=whole?[[q,whole]]:q.split(/\s+/).filter(Boolean).map(w=>[w,CITY[w]].filter(Boolean));
+  return IDX.filter(x=>{const k=x.k.toLowerCase();return words.every(ws=>ws.some(t=>k.includes(t)))})}
+function idxHTML(q,hits){const groups={};hits.slice(0,40).forEach(h=>(groups[h.g]=groups[h.g]||[]).push(h));const flat=Object.values(groups).flat();
+  const re=q.trim()?new RegExp('('+q.trim().split(/\s+/).map(w=>w.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')','ig'):null;const hl=t=>re?esc(t).replace(re,'<mark>$1</mark>'):esc(t);
+  let i=0;const html=flat.length?Object.entries(groups).map(([g,a])=>`<div class="pal-g">${g} · ${a.length}</div>`+a.map(h=>`<button class="pr" role="option" data-i="${i}" aria-selected="${i++===0}"><span class="gi t-slate">${svg(h.ic)}</span><span style="min-width:0"><b>${hl(h.t)}</b><span>${hl(h.s)}</span></span>${svg('arrow')}</button>`).join('')).join('')
+   :`<div class="empty" style="margin:8px"><img src="{{DEER}}" alt=""><h4>Ничего не нашли</h4><p>Попробуйте другое слово.</p><button class="btn btn-soft btn-sm" data-gsearch="${esc(q.trim())}">Искать «${esc(q.trim())}» в КонтактGuide</button></div>`;
+  return {flat,html}}
+function idxGo(h){if(!h)return;if(h.href)location.hash=h.href;else h.act()}
 let palSel=0,palHits=[];
-function openPal(){$('#pal').classList.add('on');$('#scrim').hidden=false;requestAnimationFrame(()=>$('#scrim').classList.add('on'));$('#palQ').value='';palSearch('');setTimeout(()=>$('#palQ').focus(),40)}
+function openPal(){IDX=buildIdx();$('#pal').classList.add('on');$('#scrim').hidden=false;requestAnimationFrame(()=>$('#scrim').classList.add('on'));$('#palQ').value='';palSearch('');setTimeout(()=>$('#palQ').focus(),40)}
 function closePal(){$('#pal').classList.remove('on');if(!$('#sheet').classList.contains('on')){$('#scrim').classList.remove('on');setTimeout(()=>$('#scrim').hidden=true,350)}}
-function palSearch(q){q=q.trim().toLowerCase();const terms=q?[q,CITY[q]].filter(Boolean):[];
-  palHits=q?IDX.filter(x=>terms.some(t=>x.k.toLowerCase().includes(t))):IDX.filter(x=>x.g==='Разделы');
-  const groups={};palHits.slice(0,40).forEach(h=>(groups[h.g]=groups[h.g]||[]).push(h));palHits=Object.values(groups).flat();palSel=0;
-  const hl=s=>q?esc(s).replace(new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig'),'<mark>$1</mark>'):esc(s);
-  let i=0;$('#palRes').innerHTML=palHits.length?Object.entries(groups).map(([g,a])=>`<div class="pal-g">${g} · ${a.length}</div>`+a.map(h=>`<button class="pr" role="option" data-i="${i}" aria-selected="${i++===0}"><span class="gi t-slate">${svg(h.ic)}</span><span style="min-width:0"><b>${hl(h.t)}</b><span>${hl(h.s)}</span></span>${svg('arrow')}</button>`).join('')).join('')
-   :`<div class="empty" style="margin:8px"><img src="{{DEER}}" alt=""><h4>Ничего не нашли</h4><p>Попробуйте другое слово или название города по-нидерландски.</p></div>`}
-function palGo(i){const h=palHits[i];if(!h)return;closePal();if(h.href)location.hash=h.href;else h.act()}
+function palSearch(q){const r=idxHTML(q,idxFind(q));palHits=r.flat;palSel=0;$('#palRes').innerHTML=r.html}
+function palGo(i){const h=palHits[i];if(!h)return;closePal();idxGo(h)}
 $('#palQ').addEventListener('input',e=>palSearch(e.target.value));
 $('#palRes').addEventListener('click',e=>{const b=e.target.closest('.pr');if(b)palGo(+b.dataset.i)});
 $('#palQ').addEventListener('keydown',e=>{const n=palHits.length;if(e.key==='ArrowDown'||e.key==='ArrowUp'){e.preventDefault();palSel=(palSel+(e.key==='ArrowDown'?1:-1)+n)%n;$$('.pr').forEach((b,i)=>b.setAttribute('aria-selected',i===palSel));$$('.pr')[palSel]?.scrollIntoView({block:'nearest'})}if(e.key==='Enter')palGo(palSel)});
@@ -2635,7 +2661,8 @@ function confetti(el){if(RM||!el)return;const r=el.getBoundingClientRect(),cx=r.
 /* ---------- glass lens on hero + magnetic buttons ---------- */
 if(FINE&&!RM){const lens=$('#lens');let lx=0,ly=0,tx=0,ty=0,on=false;
   document.addEventListener('pointermove',e=>{const st=e.target.closest&&e.target.closest('.hero');on=!!st&&cur==='home';lens.classList.toggle('on',on);tx=e.clientX-32;ty=e.clientY-32});
-  (function loop(){lx+=(tx-lx)*.18;ly+=(ty-ly)*.18;lens.style.transform=`translate(${lx}px,${ly}px)`;requestAnimationFrame(loop)})();
+  let raf=0;const loop=()=>{lx+=(tx-lx)*.18;ly+=(ty-ly)*.18;lens.style.transform=`translate(${lx}px,${ly}px)`;raf=(Math.abs(tx-lx)+Math.abs(ty-ly)>.5)?requestAnimationFrame(loop):0};
+  document.addEventListener('pointermove',()=>{if(on&&!raf)raf=requestAnimationFrame(loop)},{passive:true});
   document.addEventListener('pointermove',e=>{const b=e.target.closest&&e.target.closest('.btn-acc,.btn-ink');$$('.mag').forEach(x=>{if(x!==b){x.style.translate='';x.classList.remove('mag')}});if(!b)return;const r=b.getBoundingClientRect();b.classList.add('mag');b.style.translate=`${(e.clientX-r.left-r.width/2)*.18}px ${(e.clientY-r.top-r.height/2)*.28}px`},{passive:true});
 }
 
@@ -2996,7 +3023,9 @@ if(FINE&&!RM){const d=document.createElement('div'),r=document.createElement('di
   let x=-100,y=-100,rx=-100,ry=-100;addEventListener('pointermove',e=>{x=e.clientX;y=e.clientY;d.style.transform=`translate(${x}px,${y}px)`;const h=e.target.closest&&e.target.closest('a,button,[role="button"],label,select,.cam,.cm,.evc,.wk,.sp4');r.classList.toggle('hov',!!h)},{passive:true});
   addEventListener('pointerdown',()=>r.classList.add('down'));addEventListener('pointerup',()=>r.classList.remove('down'));
   document.addEventListener('pointerleave',()=>{d.style.opacity=r.style.opacity=0});document.addEventListener('pointerenter',()=>{d.style.opacity=r.style.opacity=''});
-  (function loop(){rx+=(x-rx)*.2;ry+=(y-ry)*.2;r.style.transform=`translate(${rx}px,${ry}px)`;requestAnimationFrame(loop)})()}
+  let raf=0;const loop=()=>{rx+=(x-rx)*.2;ry+=(y-ry)*.2;r.style.transform=`translate(${rx}px,${ry}px)`;raf=(Math.abs(x-rx)+Math.abs(y-ry)>.3)?requestAnimationFrame(loop):0};
+  addEventListener('pointermove',()=>{if(!raf)raf=requestAnimationFrame(loop)},{passive:true})}
+
 
 /* ---------- cookie consent ---------- */
 function cookieBar(settings){let bar=$('#ckBar');if(!bar){bar=document.createElement('div');bar.id='ckBar';bar.className='ck-bar';bar.setAttribute('role','dialog');bar.setAttribute('aria-label','Настройки cookie');document.body.appendChild(bar)}
@@ -3398,7 +3427,7 @@ const HXHTML=`<div class="hx">
         <div class="hx-top st"><span class="hxlive"><i></i><span id="hxClock">сегодня</span></span><span>О Нидерланды! Влюбляем и впечатляем всех</span></div>
         <h1 class="st">Нидерланды<br><em>по-русски</em></h1>
         <p class="lead st" style="--i:2">Новости, специалисты, афиша и погода. Всё, что нужно для жизни здесь, в одном месте.</p>
-        <button class="hsearch st" style="--i:3" data-pal><svg class="ico"><use href="#i-search"/></svg><span class="ph">Найти <b id="hxType">стоматолога в Utrecht</b><i class="caret"></i></span><span class="go"><svg class="ico"><use href="#i-arrow"/></svg></span></button>
+        <div class="hxs st" style="--i:3"><form class="hsearch" id="hxForm" role="search"><svg class="ico"><use href="#i-search"/></svg><span class="hx-f"><input id="hxQ" type="text" autocomplete="off" enterkeyhint="search" aria-label="Поиск по сайту" aria-controls="hxRes"><span class="ph" aria-hidden="true">Найти <b id="hxType">стоматолога в Utrecht</b><i class="caret"></i></span></span><button class="go" type="submit" aria-label="Искать"><svg class="ico"><use href="#i-arrow"/></svg></button></form><div class="hx-res pal-res" id="hxRes" role="listbox" hidden></div></div>
         <div class="hx-q st" style="--i:4"><span>Часто ищут:</span>${['стоматолог','бухгалтер','юрист','психолог','маникюр','нидерландский'].map(q=>`<button type="button" data-hq="${q}">${q}</button>`).join('')}</div>
       </div>
       <div class="bento st" style="--i:2" id="hxBento"></div>
@@ -3478,6 +3507,25 @@ const IV_HTML=window.__ivHTML||'';
 function playIntro0(){if(!IV_HTML||document.getElementById('intro'))return;document.body.insertAdjacentHTML('afterbegin',IV_HTML);const iv=document.getElementById('intro');iv.querySelector('script')?.remove();document.documentElement.classList.add('iv-on');let done=false;const end=()=>{if(done)return;done=true;iv.classList.add('out');document.documentElement.classList.remove('iv-on');setTimeout(()=>iv.remove(),1100)};iv.addEventListener('click',end);setTimeout(end,3600)}
 document.addEventListener('click',e=>{if(e.target.closest('[data-intro]')){e.preventDefault();scrollTo(0,0);playIntro()}});
 
+/* pause looping animations in blocks that are off screen */
+const pnOffIO='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(x=>x.target.classList.toggle('pn-off',!x.isIntersecting)),{rootMargin:'100px'}):null;
+function pnWatchAnims(){if(!pnOffIO)return;$$('.page.on > *, .page.on .wrap > *, footer > *').forEach(el=>pnOffIO.observe(el))}
+addEventListener('popstate',()=>setTimeout(pnWatchAnims,300));document.addEventListener('click',()=>setTimeout(pnWatchAnims,400));setTimeout(pnWatchAnims,800);
+
+/* hero search: type right in the hero, results drop down under it */
+let hxHits=[];
+function hxSearch(){const inp=$('#hxQ'),box=$('#hxRes');if(!inp||!box)return;const q=inp.value;if(!q.trim()){box.hidden=true;hxHits=[];return}
+  if(!IDX.length)IDX=buildIdx();const r=idxHTML(q,idxFind(q));hxHits=r.flat;box.innerHTML=r.html;box.hidden=false}
+document.addEventListener('input',e=>{if(e.target.id==='hxQ'){e.target.closest('.hsearch').classList.toggle('typing',!!e.target.value);hxSearch()}});
+document.addEventListener('focusin',e=>{if(e.target.id==='hxQ'){IDX=buildIdx();e.target.closest('.hsearch').classList.add('typing');hxSearch()}});
+document.addEventListener('focusout',e=>{if(e.target.id==='hxQ'&&!e.target.value)e.target.closest('.hsearch').classList.remove('typing')});
+document.addEventListener('submit',e=>{if(e.target.id!=='hxForm')return;e.preventDefault();const q=$('#hxQ').value.trim();if(!q){$('#hxQ').focus();return}
+  if(hxHits[0]){$('#hxRes').hidden=true;idxGo(hxHits[0])}else goGuide(q)});
+document.addEventListener('click',e=>{const b=e.target.closest('#hxRes .pr');if(b){$('#hxRes').hidden=true;idxGo(hxHits[+b.dataset.i]);return}
+  const g=e.target.closest('[data-gsearch]');if(g){$('#hxRes')&&($('#hxRes').hidden=true);if($('#pal').classList.contains('on'))closePal();goGuide(g.dataset.gsearch);return}
+  if(!e.target.closest('.hxs')&&$('#hxRes'))$('#hxRes').hidden=true});
+document.addEventListener('keydown',e=>{if(e.target.id==='hxQ'&&e.key==='Escape'){$('#hxRes').hidden=true;e.target.blur()}});
+
 /* typing search placeholder */
 (()=>{const EX=['стоматолога в Utrecht','курсы нидерландского','билеты на LOBODA','юриста по аренде','погоду в Den Haag','бухгалтера для ZZP','историю Zeeland','стендап в Amsterdam'];
   let i=0,j=0,del=false,el=null;
@@ -3526,7 +3574,7 @@ function lightbox(items,start){let i=start||0;const lb=document.createElement('d
 document.addEventListener('click',e=>{const b=e.target.closest('[data-gal]');if(!b)return;e.preventDefault();lightbox(WMEDIA[b.dataset.gal]||[],+(b.dataset.i||0))});
 INIT.allo=(()=>{const base=INIT.allo;return()=>{base();
   $$('#awPast .pw').forEach((el,k)=>{const w=PASTW[k],M=WMEDIA[w.key]||[];const nPh=M.filter(m=>m.t==='img').length,nV=M.filter(m=>m.t==='video').length;
-    const ph=el.querySelector('.pw-ph');ph.setAttribute('data-gal',w.key);ph.setAttribute('role','button');ph.setAttribute('tabindex','0');ph.setAttribute('aria-label','Открыть фото и видео: '+w.title);
+    const ph=el.querySelector('.pw-ph');ph.setAttribute('data-gal',w.key);ph.setAttribute('role','button');ph.setAttribute('tabindex','0');ph.setAttribute('aria-label','Открыть фото: '+w.title);
     ph.insertAdjacentHTML('beforeend',`<span class="gcount">${svg('image')}${nPh} фото${nV?` · ${nV} видео`:''}</span>`);
     el.querySelector('.pw-tx').insertAdjacentHTML('beforeend',`<div class="thumbs">${M.map((m,i)=>`<button type="button" data-gal="${w.key}" data-i="${i}" aria-label="Открыть: ${esc(m.cap)}">${m.t==='video'?`<span class="vt">${svg('right')}</span>`:''}<img src="${m.poster||m.src}" alt=""></button>`).join('')}<button type="button" class="tmore" data-gal="${w.key}">Смотреть ${svg('arrow')}</button></div>`)})}})();
 INIT.home=(()=>{const b=INIT.home;return()=>{b();const sh=$('#homeShop');if(sh){sh.innerHTML=PRODUCTS10.map(prodCard).join('');dragScroll(sh)}}})();
@@ -3563,13 +3611,13 @@ function colPickHTML(){const prem=(PLANS.find(p=>p.id===pl.plan)||{}).pr;if(prem
   box.addEventListener('click',e=>{const b=e.target.closest('[data-pcol]');if(b){pl.col=b.dataset.pcol;box.querySelectorAll('[data-pcol]').forEach(x=>x.setAttribute('aria-pressed',x===b));return}
     if(e.target.closest('[data-plan]'))setTimeout(()=>{const cp=box.querySelector('.colpick');if(cp)cp.outerHTML=colPickHTML()},0)})})();
 
-/* past walks: graded photos, stills and videos */
+/* past walks: graded photos */
 Object.assign(WMEDIA,{
  kennemerland:[{t:'img',src:'media/kennemerland.webp',cap:'Zuid-Kennemerland, 11 июля 2026'},
-  ...['1HDXc5','1QPuxZ','1T3a6B','1eVJi3'].map(k=>({t:'video',src:`media/v-${k}.mp4`,poster:`media/s-${k}-1.webp`,cap:'Видео с прогулки, Zuid-Kennemerland'})),
+  ...['1HDXc5','1QPuxZ','1T3a6B','1eVJi3'].map(k=>({t:'img',src:`media/s-${k}-1.webp`,cap:'Zuid-Kennemerland, 11 июля 2026'})),
   ...['1HDXc5','1QPuxZ','1T3a6B','1eVJi3'].map(k=>({t:'img',src:`media/s-${k}-2.webp`,cap:'Zuid-Kennemerland, 11 июля 2026'}))],
  nijmegen:[{t:'img',src:'media/nijmegen.webp',cap:'Nijmegen, 25 июля 2026'},
-  ...['19e8UH','1SeG3-','1_9suW'].map(k=>({t:'video',src:`media/v-${k}.mp4`,poster:`media/s-${k}-1.webp`,cap:'Видео с прогулки, Nijmegen'})),
+  ...['19e8UH','1SeG3-','1_9suW'].map(k=>({t:'img',src:`media/s-${k}-1.webp`,cap:'Nijmegen, 25 июля 2026'})),
   ...['19e8UH','1SeG3-','1_9suW'].map(k=>({t:'img',src:`media/s-${k}-2.webp`,cap:'Nijmegen, 25 июля 2026'}))]});
 PASTW[0].img='media/kennemerland.webp';PASTW[0].when='11 июля 2026';PASTW[1].img='media/nijmegen.webp';PASTW[1].when='25 июля 2026';
 INIT.allo=(()=>{const base=INIT.allo;return()=>{base();
