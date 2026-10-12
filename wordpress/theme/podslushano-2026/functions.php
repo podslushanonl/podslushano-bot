@@ -13,6 +13,7 @@ define('PN_DIR', get_template_directory());
 define('PN_URI', get_template_directory_uri());
 
 require PN_DIR . '/inc/data.php';
+require PN_DIR . '/inc/content.php';
 require PN_DIR . '/inc/forms.php';
 require PN_DIR . '/inc/importer.php';
 

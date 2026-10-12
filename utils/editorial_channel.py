@@ -845,10 +845,12 @@ async def editorial_channel_loop(bot) -> None:
     while True:
         try:
             now = _now()
-            await _run_morning(bot, now)
-            await _run_event(bot, now)
-            await _run_curiosity(bot, now)
-            await _run_evening(bot, now)
+            # Платные черновики с веб-поиском — только если включены явно.
+            if config.EDITORIAL_AUTO_ENABLED:
+                await _run_morning(bot, now)
+                await _run_event(bot, now)
+                await _run_curiosity(bot, now)
+                await _run_evening(bot, now)
             await _queue_due_content_post(bot, now)
         except Exception as exc:  # noqa: BLE001
             log.exception("Editorial channel loop failed: %s", exc)

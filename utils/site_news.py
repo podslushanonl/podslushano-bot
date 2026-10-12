@@ -295,9 +295,11 @@ _WRITE_SYSTEM = f"""Ты — редактор новостей podslushano.nl д
 
 
 async def _ask_claude(model: str, system: str, content: str, max_tokens: int) -> str:
+    # Низкое усилие: задача — отбор и пересказ, долгие размышления тут только тратят токены.
     resp = await _get_client().messages.create(
         model=model, max_tokens=max_tokens, system=system,
         messages=[{"role": "user", "content": content}],
+        extra_body={"output_config": {"effort": "low"}},
     )
     return _extract_text_and_sources(resp)[0].strip()
 
@@ -310,8 +312,8 @@ async def triage(items: list[FeedItem]) -> tuple[list[str], dict[str, str]] | No
         lines.append(f"- url: {item.url}\n  заголовок: {item.title}\n  описание: {desc}")
     try:
         raw = await _ask_claude(
-            config.AI_CHAT_MODEL, _TRIAGE_SYSTEM,
-            "Статьи:\n" + "\n".join(lines), max_tokens=1500)
+            config.SITE_NEWS_TRIAGE_MODEL, _TRIAGE_SYSTEM,
+            "Статьи:\n" + "\n".join(lines), max_tokens=4000)
     except Exception as e:  # noqa: BLE001
         log.warning("Отбор новостей: ошибка Claude: %s", e)
         return None
@@ -363,7 +365,7 @@ async def write_article(item: FeedItem, page_text: str) -> dict | None:
         f"Текст статьи:\n{page_text[:9000]}"
     )
     try:
-        raw = await _ask_claude(config.AI_POST_MODEL, _WRITE_SYSTEM, content, max_tokens=2500)
+        raw = await _ask_claude(config.SITE_NEWS_WRITE_MODEL, _WRITE_SYSTEM, content, max_tokens=8000)
     except Exception as e:  # noqa: BLE001
         log.warning("Новость для сайта: ошибка Claude: %s", e)
         return None

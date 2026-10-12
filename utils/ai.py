@@ -261,7 +261,7 @@ async def ai_reply(
         return await client.messages.create(**kwargs)
 
     try:
-        response = await _create(_web_search_tool())
+        response = await _create(_web_search_tool() if config.AI_CHAT_WEB_SEARCH else None)
     except Exception as e:  # noqa: BLE001 — веб-поиск не сработал, пробуем без него
         log.warning("ИИ с веб-поиском не сработал (%s) — пробую без поиска", e)
         try:
@@ -1011,7 +1011,7 @@ async def ai_salary(gross_month: float, ruling30: bool) -> str | None:
     client = _get_client()
     try:
         kwargs = dict(model=config.AI_CHAT_MODEL, max_tokens=900, system=system, messages=messages)
-        tools = _web_search_tool()
+        tools = _web_search_tool() if config.AI_CHAT_WEB_SEARCH else None
         if tools:
             kwargs["tools"] = tools
         resp = await client.messages.create(**kwargs)

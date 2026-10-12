@@ -152,16 +152,147 @@ function pn_posts($type = 'news', $n = 24) {
     return $out;
 }
 
-/* ---------- events (bundled data, used for titles) ---------- */
+/* ---------- Афиша, вакансии, партнёры: wp-admin (inc/content.php), the theme JSON while a type has no entries ---------- */
+function pn_today() {
+    return (new DateTime('now', new DateTimeZone('Europe/Amsterdam')))->format('Y-m-d');
+}
+function pn_theme_json($file) {
+    $j = json_decode((string) @file_get_contents(PN_DIR . '/data/' . $file), true);
+    return is_array($j) ? $j : [];
+}
+function pn_has_entries($type) {
+    $c = wp_count_posts($type);
+    return $c && !empty($c->publish);
+}
+function pn_entries($type, $args = []) {
+    return get_posts($args + ['post_type' => $type, 'post_status' => 'publish', 'posts_per_page' => -1, 'no_found_rows' => true, 'suppress_filters' => false]);
+}
+function pn_m($id, $k) {
+    return (string) get_post_meta($id, '_pn_' . $k, true);
+}
+function pn_thumb($id) {
+    $t = get_post_thumbnail_id($id);
+    return $t ? (string) (wp_get_attachment_image_url($t, 'large') ?: '') : '';
+}
+/* Theme image: "ev-sorokin" or "img/ev-sorokin.webp" -> URL of assets/img/<file>. */
+function pn_asset_img($img) {
+    if (!$img) return '';
+    if (preg_match('#^(https?:)?//|^/#', $img)) return $img;
+    $f = basename($img);
+    if (strpos($f, '.') === false) {
+        foreach (['webp', 'jpg', 'png'] as $ext) if (file_exists(PN_DIR . '/assets/img/' . $f . '.' . $ext)) return PN_URI . '/assets/img/' . $f . '.' . $ext;
+        return '';
+    }
+    return file_exists(PN_DIR . '/assets/img/' . $f) ? PN_URI . '/assets/img/' . $f : '';
+}
+/* Editor content -> plain paragraphs (the app escapes and wraps them). */
+function pn_paragraphs($content) {
+    $html = wpautop(preg_replace('/<!--.*?-->/s', '', (string) $content));
+    preg_match_all('#<(p|h[1-6]|li|blockquote)\b[^>]*>(.*?)</\1>#si', $html, $m);
+    $out = [];
+    foreach ($m[2] as $x) {
+        $t = trim(html_entity_decode(wp_strip_all_tags(preg_replace('#<br\s*/?>#i', "\n", $x)), ENT_QUOTES, 'UTF-8'));
+        if ($t !== '') $out[] = $t;
+    }
+    return $out;
+}
+function pn_title($p) {
+    return html_entity_decode(get_the_title($p), ENT_QUOTES, 'UTF-8');
+}
+
+/* Event in the shape of the EV items of events_bundle.json; img is a URL. */
+function pn_event_item($p) {
+    $id = $p->ID;
+    $e = ['key' => $p->post_name, 'h' => pn_title($p)];
+    foreach (['s', 'date', 'time', 'doors', 'venue', 'addr', 'city', 'price', 'org', 'age', 'lang'] as $k) $e[$k] = pn_m($id, $k);
+    $e['img'] = pn_thumb($id);
+    $e['url'] = pn_m($id, 'url');
+    $e['p'] = pn_paragraphs($p->post_content);
+    $e['note'] = pn_m($id, 'note');
+    $e['cat'] = pn_m($id, 'cat') ?: 'концерт';
+    $e['end'] = pn_m($id, 'end');
+    $e['partner'] = pn_m($id, 'partner') === '1';
+    $e['pos'] = pn_m($id, 'pos');
+    $tix = [];
+    foreach (preg_split('/\r?\n/', pn_m($id, 'tickets')) as $line) {
+        $c = array_map('trim', explode('|', $line));
+        if ($c[0] === '') continue;
+        $tix[] = [$c[0], $c[1] ?? '', $c[2] ?? ''];
+    }
+    if ($tix) $e['tickets'] = $tix;
+    return $e;
+}
+function pn_upcoming($e) {
+    return !empty($e['date']) && ((!empty($e['end']) ? $e['end'] : $e['date']) >= pn_today());
+}
+function pn_sort_events(&$list) {
+    usort($list, function ($a, $b) { return strcmp($a['date'] . ' ' . $a['time'], $b['date'] . ' ' . $b['time']); });
+}
+/* Upcoming events: Афиша in wp-admin, or data/events.json while it has no published entries. */
 function pn_events() {
     static $ev = null;
-    if ($ev === null) {
-        $j = json_decode((string) @file_get_contents(PN_DIR . '/data/events.json'), true);
-        $ev = is_array($j) ? $j : [];
+    if ($ev !== null) return $ev;
+    if (pn_has_entries('pn_event')) {
+        $ev = array_map('pn_event_item', pn_entries('pn_event'));
+    } else {
+        $ev = array_map(function ($e) { $e['img'] = pn_asset_img($e['img'] ?? ''); return $e; }, pn_theme_json('events.json'));
     }
+    $ev = array_values(array_filter($ev, 'pn_upcoming'));
+    pn_sort_events($ev);
     return $ev;
 }
 function pn_event($key) {
     foreach (pn_events() as $e) if (($e['key'] ?? '') === $key) return $e;
     return null;
+}
+/* Events for /links/ (shape of data/links.json events): entries with «Показывать на /links/». */
+function pn_links_events() {
+    if (!pn_has_entries('pn_event')) {
+        $L = array_map(function ($e) { $e['img'] = pn_asset_img($e['img'] ?? ''); return $e; }, pn_theme_json('links.json')['events'] ?? []);
+        return array_values(array_filter($L, function ($e) { return ($e['d'] ?? '') >= pn_today(); }));
+    }
+    $L = [];
+    foreach (pn_entries('pn_event', ['meta_key' => '_pn_links', 'meta_value' => '1']) as $p) {
+        $e = pn_event_item($p);
+        if (!pn_upcoming($e) || !$e['img']) continue;
+        $where = trim(explode(',', $e['venue'])[0]);
+        $L[] = ['d' => $e['date'], 'h' => $e['h'], 's' => implode(', ', array_filter([$where, $e['city']])), 'url' => $e['url'] ?: home_url('/events/' . $e['key'] . '/'),
+            'img' => $e['img'], 'pos' => $e['pos'], 't' => $e['date'] . ' ' . $e['time']];
+    }
+    usort($L, function ($a, $b) { return strcmp($a['t'], $b['t']); });
+    return array_map(function ($e) { unset($e['t']); return $e; }, $L);
+}
+
+/* Jobs (shape of jobs11.json "jobs"): Вакансии in wp-admin, newest first; expired («Показывать до») are left out. */
+function pn_jobs() {
+    $today = pn_today();
+    if (!pn_has_entries('pn_job')) return pn_theme_json('jobs.json');
+    $L = [];
+    foreach (pn_entries('pn_job') as $p) {
+        $id = $p->ID;
+        $until = pn_m($id, 'until');
+        if ($until && $until < $today) continue;
+        $L[] = ['id' => $p->post_name, 'title' => pn_title($p), 'company' => pn_m($id, 'company'), 'city' => pn_m($id, 'city'),
+            'lang' => pn_m($id, 'lang'), 'type' => pn_m($id, 'type'), 'salary' => pn_m($id, 'salary'), 'posted' => pn_m($id, 'posted'),
+            'about' => implode("\n\n", pn_paragraphs($p->post_content)), 'source' => pn_m($id, 'source'), 'url' => pn_m($id, 'url'),
+            '_t' => $p->post_date];
+    }
+    usort($L, function ($a, $b) { return strcmp(($b['posted'] ?: substr($b['_t'], 0, 10)) . $b['_t'], ($a['posted'] ?: substr($a['_t'], 0, 10)) . $a['_t']); });
+    return array_map(function ($j) { unset($j['_t']); return $j; }, $L);
+}
+
+/* Partners for the /links/ carousel (shape of data/links.json "partners"); expired are left out. */
+function pn_partners() {
+    $today = pn_today();
+    if (!pn_has_entries('pn_partner')) {
+        $L = array_map(function ($x) { $x['img'] = pn_asset_img($x['img'] ?? ''); return $x; }, pn_theme_json('links.json')['partners'] ?? []);
+    } else {
+        $L = [];
+        foreach (pn_entries('pn_partner', ['orderby' => ['menu_order' => 'ASC', 'date' => 'DESC']]) as $p) {
+            $id = $p->ID;
+            $L[] = ['id' => $p->post_name, 'name' => pn_m($id, 'name'), 'title' => pn_title($p), 'text' => pn_m($id, 'text'), 'cta' => pn_m($id, 'cta') ?: 'Подробнее',
+                'url' => pn_m($id, 'url'), 'img' => pn_thumb($id) ?: PN_URI . '/assets/img/group.jpg', 'pos' => pn_m($id, 'pos'), 'until' => pn_m($id, 'until')];
+        }
+    }
+    return array_values(array_filter($L, function ($x) use ($today) { return empty($x['until']) || $x['until'] >= $today; }));
 }

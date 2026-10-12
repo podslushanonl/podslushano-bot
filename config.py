@@ -124,6 +124,16 @@ MAKE_WEBHOOK_URL: str = os.getenv("MAKE_WEBHOOK_URL", "")
 AI_WEB_SEARCH: bool = os.getenv("AI_WEB_SEARCH", "1").strip().lower() in (
     "1", "true", "yes", "on", "да",
 )
+# Веб-поиск в ответах пользователям (чат-ассистент, калькулятор зарплаты). Выключен по
+# умолчанию: поиск в разы дороже обычного ответа. Админские команды это не затрагивает.
+AI_CHAT_WEB_SEARCH: bool = os.getenv("AI_CHAT_WEB_SEARCH", "0").strip().lower() in (
+    "1", "true", "yes", "on", "да",
+)
+# Автоматические черновики для канала по расписанию (утро, вечер, пятница, суббота).
+# Выключены по умолчанию; посты готовятся по команде админа.
+EDITORIAL_AUTO_ENABLED: bool = os.getenv("EDITORIAL_AUTO_ENABLED", "0").strip().lower() in (
+    "1", "true", "yes", "on", "да",
+)
 # Сколько поисков максимум за один ответ (защита от лишних расходов).
 try:
     AI_WEB_MAX_USES: int = int(os.getenv("AI_WEB_MAX_USES", "2"))
@@ -304,6 +314,10 @@ SITE_NEWS_FEEDS: list[str] = [
 # Сколько новостей публиковать максимум за один запуск и за сутки (по Амстердаму).
 SITE_NEWS_PER_RUN: int = _int_env("SITE_NEWS_PER_RUN", 2)
 SITE_NEWS_DAILY_MAX: int = _int_env("SITE_NEWS_DAILY_MAX", 20)
+# Модели для новостей сайта — отдельно от остального бота, чтобы цену и качество новостей
+# можно было менять независимо. Отбор — дешёвая Haiku, текст — Sonnet.
+SITE_NEWS_TRIAGE_MODEL: str = os.getenv("SITE_NEWS_TRIAGE_MODEL", "claude-haiku-5-5")
+SITE_NEWS_WRITE_MODEL: str = os.getenv("SITE_NEWS_WRITE_MODEL", "claude-sonnet-5-5")
 
 # Доска объявлений: срок жизни объявления и лимит активных у одного пользователя
 BOARD_LISTING_DAYS: int = _int_env("BOARD_LISTING_DAYS", 30)
