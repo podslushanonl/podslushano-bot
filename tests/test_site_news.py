@@ -287,3 +287,17 @@ class RunTests(unittest.IsolatedAsyncioTestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReadLimitedTests(unittest.IsolatedAsyncioTestCase):
+    async def test_reads_all_chunks_up_to_limit(self):
+        from utils.webpage import read_limited
+
+        class Content:
+            async def iter_chunked(self, n):
+                for part in (b"<rss>", b"<channel>", b"</channel></rss>"):
+                    yield part
+
+        resp = SimpleNamespace(content=Content())
+        self.assertEqual(await read_limited(resp, 1000), b"<rss><channel></channel></rss>")
+        self.assertEqual(await read_limited(resp, 7), b"<rss><c")
