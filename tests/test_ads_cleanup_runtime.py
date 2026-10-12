@@ -54,7 +54,7 @@ def test_welcome_template() -> None:
     text = cleanup._welcome_email_text(
         "https://example.test", "https://example.test/unsubscribe?token=abc"
     )
-    assert "Podslushano.nl" in html_body
+    assert "podslushano.nl" in html_body
     assert "Спасибо за подписку" in html_body
     assert "−26%" in html_body
     assert "Выбрать рекламный формат" in html_body
@@ -148,9 +148,9 @@ async def test_resend_payload_contains_working_unsubscribe_link() -> None:
         assert captured["url"] == "https://api.resend.com/emails"
         assert captured["headers"]["Authorization"] == "Bearer re_test_key"
         payload = captured["json"]
-        assert payload["from"] == "Podslushano.nl <ads@podslushano.nl>"
+        assert payload["from"] == "podslushano.nl <ads@podslushano.nl>"
         assert payload["to"] == ["buyer@example.com"]
-        assert payload["subject"] == "Ваша скидка −26% активна — Podslushano.nl"
+        assert payload["subject"] == "Ваша скидка −26% активна — podslushano.nl"
         unsubscribe_url = payload["headers"]["List-Unsubscribe"].strip("<>")
         assert unsubscribe_url.startswith(
             "https://ads.example.test/ads-newsletter/unsubscribe?token="

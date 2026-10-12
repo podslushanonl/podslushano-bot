@@ -327,7 +327,7 @@ async def chat_action(callback: CallbackQuery, state: FSMContext) -> None:
         # Истории идут через общую анкету: подпись или анонимно, проверка длины, предпросмотр
         from handlers.stories import start_story_flow
         await callback.message.edit_reply_markup(reply_markup=None)
-        await start_story_flow(callback.message, state, prefill=text)
+        await start_story_flow(callback.message, state, prefill=text, file_id=file_id, file_type=file_type)
         await callback.answer()
         return
 

@@ -109,12 +109,16 @@ async def set_story_cover(message: Message) -> None:
     await message.answer("✅ Обложка #pnl_истории сохранена. Все истории будут публиковаться с ней.")
 
 
-async def start_story_flow(message: Message, state: FSMContext, prefill: str | None = None) -> None:
-    """prefill — текст, который человек уже написал в чат (кнопка «Это история»)."""
+async def start_story_flow(message: Message, state: FSMContext, prefill: str | None = None,
+                           file_id: str | None = None, file_type: str | None = None) -> None:
+    """prefill — текст, который человек уже написал в чат (кнопка «Это история»);
+    file_id/file_type — фото или файл из того же сообщения: уйдёт модераторам вместе с историей."""
     await state.clear()
     await state.set_state(StoryWizard.choosing_author)
     if prefill:
         await state.update_data(story_prefill=prefill)
+    if file_id:
+        await state.update_data(story_file_id=file_id, story_file_type=file_type)
     await message.answer("Как хотите опубликовать историю?", reply_markup=_author_keyboard())
 
 
@@ -248,7 +252,8 @@ async def submit_story_for_moderation(callback: CallbackQuery, state: FSMContext
     signature = "Анонимно" if data.get("author_mode") == "anonymous" else data.get("author_name", "Без имени")
     stored_text = f"{text}\n\n©️ {signature}"
     from handlers.submissions import create_submission
-    await create_submission(callback.bot, callback.from_user, "story", stored_text)
+    await create_submission(callback.bot, callback.from_user, "story", stored_text,
+                            data.get("story_file_id"), data.get("story_file_type"))
     await state.clear()
     await callback.message.answer(
         "Спасибо ❤️ История отправлена на проверку.\n\n"
