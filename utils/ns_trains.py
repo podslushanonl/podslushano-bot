@@ -169,7 +169,34 @@ _CAUSE_RU = {
     "een beperkte inzet van personeel": "нехватка персонала",
     "een bermbrand": "пожар у путей",
     "een ongeval": "происшествие",
+    "brandmelding": "сработала пожарная сигнализация",
+    "een brandmelding": "сработала пожарная сигнализация",
+    "acties in het buitenland": "забастовка за границей",
+    "beperkingen materieel": "нехватка поездов",
+    "beperkingen in de materieelinzet": "нехватка поездов",
+    "een defect aan de bovenleiding": "повреждение контактной сети",
+    "een storing in de stroomvoorziening": "отключение электричества",
+    "een defect materieel": "неисправный поезд",
 }
+_ADVICE_RU = {
+    "plan uw reis in de app": "Планируйте поездку в приложении NS",
+    "plan je reis in de app": "Планируйте поездку в приложении NS",
+    "reis met de volgende trein": "Садитесь на следующий поезд",
+    "houd rekening met een langere reistijd": "Поездка займёт больше времени",
+    "neem de bus": "Поезжайте автобусом",
+}
+# Типовые фразы NS о ситуации: переводим шаблоном, без запроса к ИИ.
+_KIND_RU = {"treinen": ("поезда", "поездов"), "stoptreinen": ("пригородные поезда", "пригородных поездов"),
+            "sprinters": ("спринтеры", "спринтеров"), "intercity's": ("интерсити", "интерсити"),
+            "intercitytreinen": ("интерсити", "интерсити"),
+            "internationale treinen": ("международные поезда", "международных поездов"),
+            "intercity direct-treinen": ("Интерсити Директ", "Интерсити Директ")}
+_SIT_RES = [
+    (re.compile(r"^tussen (.+?) en (.+?) rijden er (geen|minder) (.+?)$", re.I), "between"),
+    (re.compile(r"^van (.+?) naar (.+?) rijden er (geen|minder) (.+?)$", re.I), "from"),
+    (re.compile(r"^tussen (.+?) en (.+?) zijn de beperkingen voorbij$", re.I), "over"),
+    (re.compile(r"^tussen (.+?) en (.+?) rijden er (?:extra )?bussen$", re.I), "bus"),
+]
 _tr_cache: dict[str, str] = {}
 _RU_MONTHS = ["янв", "фев", "мар", "апр", "мая", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"]
 _RU_DAYS = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"]
@@ -181,34 +208,73 @@ def _norm(text: str) -> str:
 
 
 def _dict_ru(text: str, table: dict) -> str | None:
-    return table.get(_norm(text)) if text else None
+    if not text:
+        return None
+    t = _norm(text)
+    return table.get(t) or table.get("een " + t) or (table.get(t[4:]) if t.startswith("een ") else None)
+
+
+def _strip_cause(sit: str) -> str:
+    """«Door een defecte bovenleiding: tussen A en B …» → «tussen A en B …» (причина идёт отдельным полем)."""
+    m = re.match(r"^\s*(door|vanwege|wegens)\b[^:]{0,120}:\s*(.+)$", sit or "", re.I | re.S)
+    return m.group(2).strip() if m else (sit or "").strip()
+
+
+def _situation_ru(sit: str) -> str | None:
+    s = _strip_cause(sit).rstrip(".").strip()
+    if not s:
+        return None
+    for rx, kind in _SIT_RES:
+        m = rx.match(s)
+        if not m:
+            continue
+        a, b = m.group(1), m.group(2)
+        if kind == "over":
+            return f"Между {a} и {b} ограничения сняты, поезда снова ходят."
+        if kind == "bus":
+            return f"Между {a} и {b} вместо поездов ходят автобусы."
+        what = _KIND_RU.get(m.group(4).strip().lower())
+        if not what:
+            return None
+        where = f"Между {a} и {b}" if kind == "between" else f"Из {a} в {b}"
+        return f"{where} не ходят {what[0]}." if m.group(3).lower() == "geen" else f"{where} ходит меньше {what[1]}, чем обычно."
+    d = _dict_ru(s, _SITUATION_RU)
+    return d + "." if d else None
 
 
 async def _translate(texts: list[str]) -> None:
-    """Переводит фразы, которых нет в словарях, одним запросом к Haiku. Тихо пропускает ошибки."""
+    """Переводит фразы, которых нет в словарях, запросами к Haiku пачками. Тихо пропускает ошибки."""
     todo = [t for t in dict.fromkeys(texts) if t and t not in _tr_cache]
     if not todo or not os.getenv("ANTHROPIC_API_KEY"):
         return
-    try:
-        import config
-        from utils.ai import _get_client, _parse_json
-        prompt = ("Переведи на русский короткие сообщения NS о поездах. Названия станций и городов оставь "
-                  "как есть, латиницей. Коротко, без пояснений. Ответь строго JSON-массивом строк "
-                  "в том же порядке.\n" + json.dumps(todo, ensure_ascii=False))
-        resp = await _get_client().messages.create(
-            model=getattr(config, "SITE_NEWS_TRIAGE_MODEL", "claude-haiku-5-5"), max_tokens=3000,
-            messages=[{"role": "user", "content": prompt}],
-            extra_body={"output_config": {"effort": "low"}})
-        raw = "".join(b.text for b in resp.content if getattr(b, "type", "") == "text")
-        out = _parse_json(raw) if raw.strip().startswith("{") else json.loads(raw[raw.index("["):raw.rindex("]") + 1])
-        if isinstance(out, list) and len(out) == len(todo):
-            for src, ru in zip(todo, out):
+    import config
+    from utils.ai import _get_client, _parse_json
+    for n in range(0, len(todo), 15):
+        batch = todo[n:n + 15]
+        raw, stop = "", ""
+        try:
+            prompt = ("Переведи на русский короткие сообщения NS о поездах. Названия станций, городов и стран "
+                      "в Нидерландах оставь латиницей как есть. Коротко, без пояснений. Ответь только JSON-объектом "
+                      "вида {\"1\": \"перевод\", …} с теми же номерами.\n"
+                      + json.dumps({str(k + 1): t for k, t in enumerate(batch)}, ensure_ascii=False))
+            resp = await _get_client().messages.create(
+                model=getattr(config, "SITE_NEWS_TRIAGE_MODEL", "claude-haiku-5-5"), max_tokens=4000,
+                messages=[{"role": "user", "content": prompt}],
+                extra_body={"output_config": {"effort": "low"}})
+            stop = getattr(resp, "stop_reason", "")
+            raw = "".join(getattr(b, "text", "") for b in resp.content if getattr(b, "type", "") == "text")
+            out = _parse_json(raw)
+            for k, src in enumerate(batch):
+                ru = out.get(str(k + 1))
                 if isinstance(ru, str) and ru.strip():
                     _tr_cache[src] = ru.strip()
-        if len(_tr_cache) > 2000:
-            _tr_cache.clear()
-    except Exception as e:  # noqa: BLE001 — без перевода покажем оригинал
-        log.info("NS: перевод не удался: %s", e)
+            if not out:
+                log.info("NS: перевод не разобран (stop=%s): %r", stop, raw[:200])
+        except Exception as e:  # noqa: BLE001 — без перевода покажем оригинал
+            log.info("NS: перевод не удался: %s (stop=%s) %r", e, stop, raw[:200])
+            return
+    if len(_tr_cache) > 2000:
+        _tr_cache.clear()
 
 
 def _ru(text: str, table: dict | None = None) -> str:
@@ -250,11 +316,11 @@ def _raw_texts(i: dict) -> list[str]:
     out = []
     sit = (span.get("situation") or {}).get("label") or ""
     cause = (span.get("cause") or {}).get("label") or ""
-    if sit and not _dict_ru(sit, _SITUATION_RU):
-        out.append(sit)
+    if sit and not _situation_ru(sit):
+        out.append(_strip_cause(sit))
     if cause and not _dict_ru(cause, _CAUSE_RU):
         out.append(cause)
-    out += [a for a in span.get("advices") or [] if isinstance(a, str)][:2]
+    out += [a for a in span.get("advices") or [] if isinstance(a, str) and not _dict_ru(a, _ADVICE_RU)][:2]
     exp = (i.get("expectedDuration") or {}).get("description")
     if exp:
         out.append(exp)
@@ -282,7 +348,7 @@ def normalize_disruption(i: dict) -> dict:
             if alt:
                 break
     item.update({
-        "situation": _ru(sit, _SITUATION_RU),
+        "situation": _situation_ru(sit) or _ru(_strip_cause(sit)),
         "cause": _ru(cause, _CAUSE_RU),
         "start": i.get("start") or span.get("start") or "",
         "end": i.get("end") or span.get("end") or "",
@@ -290,7 +356,7 @@ def normalize_disruption(i: dict) -> dict:
         "expected": _ru((i.get("expectedDuration") or {}).get("description") or ""),
         "extra_min": lo, "extra_max": hi,
         "buses": bool(alt),
-        "advice": [_ru(a) for a in (span.get("advices") or []) if isinstance(a, str)][:2],
+        "advice": [_ru(a, _ADVICE_RU) for a in (span.get("advices") or []) if isinstance(a, str)][:2],
         "impact": (i.get("impact") or {}).get("value"),
     })
     return item

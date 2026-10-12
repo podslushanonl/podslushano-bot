@@ -59,10 +59,6 @@ class NsTrainsTests(unittest.IsolatedAsyncioTestCase):
             ns_trains._cache.clear()
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 DIS = [
     {"id": "d1", "type": "DISRUPTION", "title": "Den Haag - Rotterdam.", "isActive": True,
      "start": "2026-10-12T15:10:00+0200", "end": "2026-10-12T18:00:00+0200",
@@ -83,7 +79,7 @@ class NsDisruptionTests(unittest.IsolatedAsyncioTestCase):
     def test_dictionary_translation_and_fields(self):
         n = ns_trains.normalize_disruption(DIS[0])
         self.assertEqual(n["title"], "Den Haag - Rotterdam")
-        self.assertEqual(n["situation"], "Поездов меньше обычного")
+        self.assertEqual(n["situation"], "Поездов меньше обычного.")
         self.assertEqual(n["cause"], "неисправность пути")
         self.assertEqual((n["extra_min"], n["extra_max"]), (15, 30))
         self.assertTrue(n["buses"])
@@ -105,3 +101,20 @@ class NsDisruptionTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([x["id"] for x in data["now"]], ["c1", "d1"])  # calamity first
         self.assertEqual(data["planned"], [])  # 2099 is beyond the 7-day window
         self.assertEqual(data["now"][0]["title"], "Staking in België")  # untranslated fallback
+
+
+class NsSituationTemplateTests(unittest.TestCase):
+    def test_real_ns_sentences(self):
+        from utils.ns_trains import _situation_ru, _dict_ru, _CAUSE_RU
+        self.assertEqual(_situation_ru("Door een defecte bovenleiding: tussen Heerhugowaard en Hoorn rijden er geen treinen."),
+                         "Между Heerhugowaard и Hoorn не ходят поезда.")
+        self.assertEqual(_situation_ru("Door werkzaamheden: van Den Haag Centraal naar Den Haag HS rijden er geen Sprinters."),
+                         "Из Den Haag Centraal в Den Haag HS не ходят спринтеры.")
+        self.assertEqual(_situation_ru("Tussen Schiedam Centrum en Rotterdam Centraal zijn de beperkingen voorbij."),
+                         "Между Schiedam Centrum и Rotterdam Centraal ограничения сняты, поезда снова ходят.")
+        self.assertIsNone(_situation_ru("Iets heel anders gebeurt hier."))
+        self.assertEqual(_dict_ru("defecte bovenleiding", _CAUSE_RU), "повреждение контактной сети")
+
+
+if __name__ == "__main__":
+    unittest.main()
