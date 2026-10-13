@@ -102,7 +102,7 @@ export default function Profile() {
       </View>
       <View style={{ alignItems: 'center', gap: 4 }}>
         <Icon name="sparkles" size={16} color={c.faint} />
-        <Txt v="footnote" center>podslushano.nl · жизнь в Нидерландах по-русски</Txt>
+        <Txt v="footnote" center>podslushano.nl · Нидерланды изнутри</Txt>
       </View>
       <CitySheet visible={picker} value={city} onPick={setCity} onClose={() => setPicker(false)} />
     </TabScreen>

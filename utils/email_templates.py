@@ -20,7 +20,7 @@ from utils.email_brand import (
 def digest(*, week_label: str, items: list[dict], events: list[dict] | None = None,
            unsubscribe_url: str | None = None) -> tuple[str, str, str]:
     """items: [{"title", "text", "url"}], events: [{"title", "when", "url"}]."""
-    subject = f"🇳🇱 Неделя в Нидерландах: главное за 3 минуты · {week_label}"
+    subject = f"🇳🇱 Неделя в Нидерландах · {week_label}"
     pre = "Короткие новости без политики, куда сходить на выходных и одна полезность."
     news = "".join(
         f'<p style="margin:0 0 6px;font:700 17px/1.35 -apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#0D1117;">'
@@ -32,13 +32,13 @@ def digest(*, week_label: str, items: list[dict], events: list[dict] | None = No
               'letter-spacing:.08em;text-transform:uppercase;color:#FF5A1F;">Куда сходить</p>'
               + bullets([f'<a href="{esc(e["url"])}" style="color:#0D1117;font-weight:600;">{esc(e["title"])}</a>'
                          f' · {esc(e["when"])}' for e in events[:5]]))
-    body = (p("Привет! Лосёнок собрал для вас всё важное за неделю. Налейте koffie, это на три минуты.")
+    body = (p("Привет! Лосёнок собрал, что изменилось за неделю и куда сходить в выходные. Налейте koffie.")
             + news + ev)
-    html = render_email(eyebrow="Неделя в Нидерландах", title=f"Главное за неделю · {esc(week_label)}",
+    html = render_email(eyebrow="Неделя в Нидерландах", title=f"Что изменилось за неделю · {esc(week_label)}",
                         preheader=pre, body=body, cta=("Все новости на сайте", site("/news/")),
                         reason="Вы подписаны на пятничную рассылку «Неделя в Нидерландах».",
                         unsubscribe_url=unsubscribe_url)
-    text = text_version(f"Главное за неделю · {week_label}",
+    text = text_version(f"Что изменилось за неделю · {week_label}",
                         [f'{it["title"]}\n{it["text"]}\n{it["url"]}' for it in items[:6]],
                         ("Все новости", site("/news/")), unsubscribe_url)
     return subject, html, text

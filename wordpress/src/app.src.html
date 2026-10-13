@@ -2354,7 +2354,7 @@ html.hw .hw-bat{color:#05030A}
     </div>
 
     <div class="sec">
-      <div class="sh5 st"><div><h2>Новости</h2><p>Главное в Нидерландах сегодня, коротко и по-русски.</p></div><a class="btn btn-soft btn-sm" href="#news">Все новости и статьи</a></div>
+      <div class="sh5 st"><div><h2>Новости</h2><p>Что случилось сегодня и как это касается вас.</p></div><a class="btn btn-soft btn-sm" href="#news">Все новости и статьи</a></div>
       <div id="homeNews"></div>
     </div>
     <div class="sec" id="homeSave">
@@ -2419,8 +2419,8 @@ html.hw .hw-bat{color:#05030A}
       <div class="card week st" id="weekBox">
         <div>
           <span class="eyebrow"><span class="dot"></span>Неделя в Нидерландах</span>
-          <h2 style="margin-top:12px">Главное за неделю.<br><span>За 3 минуты.</span></h2>
-          <p class="lead2">Каждую пятницу: что изменилось в стране, куда сходить на выходных и новые специалисты рядом.</p>
+          <h2 style="margin-top:12px">Что изменилось за неделю<br><span>и куда пойти в выходные</span></h2>
+          <p class="lead2">Одно письмо по пятницам: новые правила и цены, события на выходных и новые специалисты рядом с вами.</p>
           <form class="wform" id="wForm" novalidate><label class="sr" for="wMail">Почта</label><input id="wMail" type="email" placeholder="Ваша почта"><button class="btn btn-acc" type="submit">Получать по пятницам</button><a class="btn btn-soft" href="https://t.me/podslushano_nl_bot" target="_blank" rel="noopener">{{SL:telegram}}В Telegram</a></form>
           <p class="err" id="wErr" hidden style="margin-top:8px"></p>
         </div>
@@ -2457,7 +2457,7 @@ html.hw .hw-bat{color:#05030A}
 </section>
 <section class="page" id="p-save" data-title="Сэкономить">
   <div class="wrap">
-    <div class="phead"><div><h1 class="st">Сэкономить</h1><p class="st" style="--i:1">Разбираем по-русски, где в Нидерландах переплачивают и как выбрать выгоднее. Сравнение и оформление — у сравнителя или поставщика, мы подсказываем, на что смотреть.</p></div></div>
+    <div class="phead"><div><h1 class="st">Сэкономить</h1><p class="st" style="--i:1">Где в Нидерландах чаще всего переплачивают и как выбрать выгоднее. Сравниваете и оформляете вы сами, у сравнителя или поставщика, а мы подсказываем, на что смотреть.</p></div></div>
     <div class="sec" style="margin-top:0">
       <div class="sec-h st"><div><h2>Медстраховка 2027</h2><p>Сменить страховку на следующий год можно до 31 декабря</p></div></div>
       <div class="sv-g">
@@ -2515,7 +2515,7 @@ html.hw .hw-bat{color:#05030A}
 <section class="page" id="p-legal" data-title="Документы"><div class="wrap legal" id="legalBody"></div></section>
 
 
-<section class="page" id="p-news" data-title="Новости"><div class="wrap"><div class="phead"><div><h1 class="st">Новости и статьи</h1><p class="st" style="--i:1">Что происходит в Нидерландах: коротко, по-русски и без политики.</p></div></div><div id="newsBody"></div></div></section>
+<section class="page" id="p-news" data-title="Новости"><div class="wrap"><div class="phead"><div><h1 class="st">Новости и статьи</h1><p class="st" style="--i:1">Что меняется в стране и как это касается вас. Без политики.</p></div></div><div id="newsBody"></div></div></section>
 <section class="page" id="p-art" data-title="Статья"><div class="wrap" id="artBody" style="padding-top:30px"></div></section>
 <section class="page" id="p-shop" data-title="Магазин"><div class="wrap"><div class="phead"><div><h1 class="st">Магазин</h1><p class="st" style="--i:1">Только то, что уже можно купить или получить.</p></div></div><div class="shop" id="shopGrid"></div>
   <div class="sec"><div class="sh5"><div><h2 style="font-size:clamp(24px,3vw,34px)">Готовим</h2><p>Появятся, когда будут готовы к продаже.</p></div></div><div class="soon"><div><b>Мерч podslushano.nl</b><p class="muted" style="font-size:14px">Футболки, шопперы и значки с лосёнком.</p><button class="btn btn-soft btn-sm" data-notify="мерч">Сообщить, когда появится</button></div><div><b>Календарь 2027</b><p class="muted" style="font-size:14px">Праздники, сроки налогов и toeslagen, события года.</p><button class="btn btn-soft btn-sm" data-notify="календарь">Сообщить, когда появится</button></div></div></div></div></section>
@@ -3502,7 +3502,7 @@ INIT.home=()=>{railBtns();
    `<div class="slide" data-href="#ev-loboda"><img loading="lazy" decoding="async" class="bg" src="${IMG['ev-loboda']}" alt="" style="object-position:70% 35%"><span class="shade"></span><div class="sc"><span class="kick"><span class="dot"></span>Афиша · 21 октября</span><h3>LOBODA в Tilburg</h3><p>013 Poppodium · начало 20:00 · от €64,80</p><a class="btn btn-acc btn-sm" href="#ev-loboda">Подробнее и билеты</a></div></div>`,
    `<div class="slide" data-href="#walk-${wk.key}"><img loading="lazy" decoding="async" class="bg" src="${IMG[wk.photos[0].img]}" alt=""><span class="shade"></span><div class="sc"><span class="kick"><img loading="lazy" decoding="async" src="{{IMG:allo-orig}}" alt="" style="width:22px;border-radius:50%">allowalks · ${dParts(wk.starts_at).d} ${dParts(wk.starts_at).mf}</span><h3>${esc(wk.title)}</h3><p>${esc(wk.place)} · ${eur(wk.price_cents)} · до ${wk.capacity} гостей</p><a class="btn btn-acc btn-sm" href="#walk-${wk.key}">Забронировать место</a></div></div>`,
    `<div class="slide wxs" data-href="#live"><span class="big">${Math.round(c.t)}°</span>${wxIco(c.k,isNight())}<div class="sc"><span class="kick">Погода · ${c.ru}</span><h3>${c.d}</h3><p>Дождь: ${rainText(c)} · ветер ${c.w} Bft</p><a class="btn btn-acc btn-sm" href="#live">Прогноз и камеры</a></div></div>`,
-   `<div class="slide gds" data-href="#guide"><div class="avm"><div class="row">${[...cats,...cats].map(x=>`<span>${svg(x[2]).replace('class="ico"','class="ico" style="width:16px;height:16px"')}${x[1]}</span>`).join('')}</div><div class="row">${[...cats,...cats].reverse().map(x=>`<span>${x[1]}</span>`).join('')}</div></div><div class="sc"><span class="kick">КонтактGuide</span><h3>${SPEC.length} специалистов говорят по-русски</h3><p>Врачи, юристы, мастера и репетиторы в 12 провинциях и онлайн.</p><a class="btn btn-acc btn-sm" href="#guide">Найти специалиста</a></div></div>`,
+   `<div class="slide gds" data-href="#guide"><div class="avm"><div class="row">${[...cats,...cats].map(x=>`<span>${svg(x[2]).replace('class="ico"','class="ico" style="width:16px;height:16px"')}${x[1]}</span>`).join('')}</div><div class="row">${[...cats,...cats].reverse().map(x=>`<span>${x[1]}</span>`).join('')}</div></div><div class="sc"><span class="kick">КонтактGuide</span><h3>${SPEC.length} русскоязычных специалистов</h3><p>Врачи, юристы, мастера и репетиторы в 12 провинциях и онлайн.</p><a class="btn btn-acc btn-sm" href="#guide">Найти специалиста</a></div></div>`,
    `<div class="slide" data-href="#ev-sorokin"><img loading="lazy" decoding="async" class="bg" src="${IMG['ev-sorokin']}" alt="" style="object-position:30% center"><span class="shade"></span><div class="sc"><span class="kick"><span class="dot"></span>Афиша · 18 октября</span><h3>Владимир Сорокин</h3><p>Zuiderkerk, Amsterdam · от €30</p><a class="btn btn-acc btn-sm" href="#ev-sorokin">Подробнее и билеты</a></div></div>`];
   const box=$('#stories');box.innerHTML=`<div class="st-bars">${S.map(()=>'<i><b></b></i>').join('')}</div>${S.join('')}<div class="st-nav"><button aria-label="Предыдущий"></button><button aria-label="Следующий"></button></div>`;
   let si=0,tmr=null;const DUR=6000;const go=k=>{si=(k+S.length)%S.length;$$('#stories .slide').forEach((s,j)=>s.classList.toggle('on',j===si));$$('#stories .st-bars i').forEach((b,j)=>{b.className=j<si?'done':j===si?'run':'';b.style.setProperty('--dur',DUR+'ms');if(j===si){const bb=b.querySelector('b');bb.style.animation='none';void bb.offsetWidth;bb.style.animation=''}});clearTimeout(tmr);if(!RM)tmr=setTimeout(()=>go(si+1),DUR)};
@@ -3799,7 +3799,7 @@ INIT.widget=()=>{const draw=()=>{$('#wGal').innerHTML=wSmall()+wRain()+wTrains(3
 const HXHTML=`<div class="hx">
       <div>
         <div class="hx-top st"><span class="hxlive"><i></i><span id="hxClock">сегодня</span></span><span>О Нидерланды! Влюбляем и впечатляем всех</span></div>
-        <h1 class="st">Нидерланды<br><em>по-русски</em></h1>
+        <h1 class="st">Нидерланды<br><em>изнутри</em></h1>
         <p class="lead st" style="--i:2">Новости, специалисты, афиша и погода. Всё, что нужно для жизни здесь, в одном месте.</p>
         <div class="hxs st" style="--i:3"><form class="hsearch" id="hxForm" role="search"><svg class="ico"><use href="#i-search"/></svg><span class="hx-f"><input id="hxQ" type="text" autocomplete="off" enterkeyhint="search" aria-label="Поиск по сайту" aria-controls="hxRes"><span class="ph" aria-hidden="true">Найти <b id="hxType">стоматолога в Utrecht</b><i class="caret"></i></span></span><button class="go" type="submit" aria-label="Искать"><svg class="ico"><use href="#i-arrow"/></svg></button></form><div class="hx-res pal-res" id="hxRes" role="listbox" hidden></div></div>
         <div class="hx-q st" style="--i:4"><span>Часто ищут:</span>${['стоматолог','бухгалтер','юрист','психолог','маникюр','нидерландский'].map(q=>`<button type="button" data-hq="${q}">${q}</button>`).join('')}</div>
@@ -3978,10 +3978,10 @@ const PRODUCTS10=[
  {k:'kg',cat:'Для бизнеса',t:'Карточка в КонтактGuide',d:'Ваши услуги на сайте и в боте: все контакты, город, описание. Меняете сами в кабинете.',p:'от €9,99 в месяц',href:'#place',cta:'Разместить',bg:'linear-gradient(150deg,#E2F3E9,#B9EBD2)'},
  {k:'tax',cat:'Бесплатно',t:'Гайд «Налоги и субсидии 2026»',d:'Налоги, toeslagen, льготы, ZZP и изменения 2026 года простым языком.',p:'бесплатно',href:'https://t.me/podslushano_nl_bot?start=tax_guide_2026',cta:'Получить в боте',ext:1,bg:'linear-gradient(150deg,#E3EEFA,#B8D4FF)'},
  {k:'stick',cat:'Бесплатно',t:'Стикерпак с лосёнком',d:'Лосёнок на все погоды Нидерландов: дождь, ветер, солнце и морось.',p:'бесплатно',href:'https://t.me/addstickers/Podslushanonl',cta:'Добавить в Telegram',ext:1,bg:'linear-gradient(150deg,#FFF1E6,#FFC9A8)'},
- {k:'dn',cat:'Подарки',t:'Вклад в развитие',d:'Разово или каждый месяц. Идёт на новости по-русски, новые разделы и сервер.',p:'от €3',href:'#dnBox',cta:'Внести вклад',bg:'linear-gradient(150deg,#F1ECFF,#D9CCFF)'}];
+ {k:'dn',cat:'Подарки',t:'Вклад в развитие',d:'Разово или каждый месяц. Идёт на новости, новые разделы и сервер.',p:'от €3',href:'#dnBox',cta:'Внести вклад',bg:'linear-gradient(150deg,#F1ECFF,#D9CCFF)'}];
 function prodVisual(k){
   if(k==='gift')return `<div class="pv-gift">${['canals','delft','tulips'].map((d,i)=>`<span class="gcm" style="--r:${(i-1)*9}deg;--x:${(i-1)*34}%;--z:${i===1?3:1}">${gArt(d,1)}<img loading="lazy" decoding="async" src="{{IMG:allo-orig}}" alt=""><b>€50</b></span>`).join('')}</div>`;
-  if(k==='kg')return `<div class="pv-kg"><div class="mk"><div class="r1"><span class="av">АК</span><div><b>Анна К.</b><small>юрист · Utrecht</small></div><span class="ok">${svg('check').replace('class="ico"','class="ico" style="width:12px;height:12px"')}</span></div><p>Аренда, трудовые договоры, IND. Консультации по-русски.</p><div class="r2"><span class="brandi b-ig">${sl('instagram')}</span><span class="brandi b-tg">${sl('telegram')}</span><span class="brandi b-wa">${sl('whatsapp')}</span><span class="cta">Связаться</span></div></div><span class="lbl">Так выглядит ваша карточка</span></div>`;
+  if(k==='kg')return `<div class="pv-kg"><div class="mk"><div class="r1"><span class="av">АК</span><div><b>Анна К.</b><small>юрист · Utrecht</small></div><span class="ok">${svg('check').replace('class="ico"','class="ico" style="width:12px;height:12px"')}</span></div><p>Аренда, трудовые договоры, IND. Консультации на русском.</p><div class="r2"><span class="brandi b-ig">${sl('instagram')}</span><span class="brandi b-tg">${sl('telegram')}</span><span class="brandi b-wa">${sl('whatsapp')}</span><span class="cta">Связаться</span></div></div><span class="lbl">Так выглядит ваша карточка</span></div>`;
   if(k==='tax')return `<div class="pv-book"><div class="bk"><span class="fl"><i></i><i></i><i></i></span><small>гайд podslushano.nl</small><b>Налоги<br>и субсидии</b><em>2026</em><span class="ft">toeslagen · ZZP · льготы</span></div></div>`;
   if(k==='stick')return `<div class="pv-st">${['m-rain','m-sun','m-wind','m-cold'].map((m,i)=>`<img loading="lazy" decoding="async" src="${IMG[m]}" alt="" style="--r:${[-14,8,-4,12][i]}deg;--d:${i*.4}s">`).join('')}</div>`;
   if(k==='dn')return `<div class="pv-dn">${[3,7,15].map((a,i)=>`<span style="--d:${i*.5}s" class="${a===7?'on':''}">€${a}</span>`).join('')}<i>${svg('heart')}</i></div>`;
@@ -4272,7 +4272,7 @@ ENTER.cabinet=async()=>{const q=new URLSearchParams(location.search);const t=q.g
   const PK=[
     {id:'tax',page:'save',hint:'Там, где учат не переплачивать',t:'Синий конверт',s:'Вечер. В почтовом ящике синий конверт от Belastingdienst. Руки дрожат, соседи выглядывают из-за штор. Внутри пересчёт toeslag: вернуть нужно €0,00. Объяснение на четырёх страницах. Самое страшное: вы прочитали все четыре.'},
     {id:'ns',page:'trains',hint:'Там, где опаздывают поезда',t:'Последний поезд',s:'23:47, Utrecht Centraal. Табло мигает: «Rijdt niet». Причина: «seinstoring». Вместо поезда обещают автобус. Автобус тоже «rijdt niet». Домой вы попадаете к двум ночи и впервые от души говорите «ja hoor». Поздравляем, интеграция пройдена.'},
-    {id:'gp',page:'guide',hint:'Среди специалистов, которые говорят по-русски',t:'Приём у huisarts',s:'Болит всё, температура 39, вы уже видели свет в конце тоннеля. Huisarts внимательно слушает, кивает и произносит заклинание: «Neem een paracetamolletje». Если через две недели не пройдёт, приходите ещё. Свет в конце тоннеля, кстати, посоветовал то же самое.'},
+    {id:'gp',page:'guide',hint:'Среди специалистов КонтактGuide',t:'Приём у huisarts',s:'Болит всё, температура 39, вы уже видели свет в конце тоннеля. Huisarts внимательно слушает, кивает и произносит заклинание: «Neem een paracetamolletje». Если через две недели не пройдёт, приходите ещё. Свет в конце тоннеля, кстати, посоветовал то же самое.'},
     {id:'home',page:'board',hint:'Там, где ищут работу и квартиру',t:'Квартира мечты',s:'Уютная студия 24 м² в Amsterdam, всего €1 950 в месяц. Душ над унитазом, лестница под углом 70 градусов, на просмотр пришли 46 человек. Квартиру отдали тому, кто пришёл с котом: хозяйка сказала, что кот выглядит надёжнее. Вы до сих пор не уверены, что это была шутка.'},
     {id:'rain',page:'live',hint:'Там, где смотрят на дождь в прямом эфире',t:'Прогноз: 0% дождя',s:'Утро, +17, солнце. Buienradar обещает 0% осадков, и вы, как настоящий новичок, выходите без куртки. Через семь минут горизонтальный дождь, град и радуга одновременно. Голландец рядом едет на велосипеде с зонтом в одной руке и кофе в другой. Даже не обернулся.'},
     {id:'tikkie',page:'events',hint:'Среди концертов и вечеринок',t:'Tikkie в полночь',s:'Ровно в 00:00 вибрирует телефон. Коллега, с которым вы полгода назад пили кофе, прислал Tikkie на €0,87 с припиской «geen haast». Вы оплачиваете за три секунды. С тех пор на любой звонок рука сама тянется к банковскому приложению.'},
@@ -4329,7 +4329,7 @@ ENTER.cabinet=async()=>{const q=new URLSearchParams(location.search);const t=q.g
     x.fillStyle='#FFD79A';x.font='600 54px Evolventa,sans-serif';x.fillText('за '+mmss(st.t1-st.t0),90,520);
     x.fillStyle='#D9CDE3';x.font='400 40px Evolventa,sans-serif';x.fillText('Сможете быстрее?',90,610);
     x.fillStyle='#fff';x.font='600 52px Mont,Evolventa,sans-serif';x.fillText('podslushano.nl',90,1230);
-    x.fillStyle='#BFAFD0';x.font='400 32px Evolventa,sans-serif';x.fillText('жизнь в Нидерландах по-русски',90,1282);
+    x.fillStyle='#BFAFD0';x.font='400 32px Evolventa,sans-serif';x.fillText('Нидерланды изнутри',90,1282);
     return await new Promise(r=>c.toBlob(r,'image/png'));
   }
   async function card(){
