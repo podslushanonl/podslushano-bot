@@ -45,8 +45,23 @@ ROOMS = [
     ("travel", "Путешествия", "topic"), ("talk", "Просто поговорить", "topic"),
 ]
 
-_BAD = re.compile(r"(х[уy][йяеёию]|п[иі]зд|[её]б[ауол]|бл[яь]д|\bсук[аи]\b|муд[аи]к|пид[оа]р|долбо[её]б|шлюх)", re.I)
-_LINK = re.compile(r"(https?://|www\.|t\.me/|\b[a-z0-9-]+\.(?:com|nl|ru|ua|net|org|me|io)\b)", re.I)
+# Мат ищем только с начала слова: «хлеба», «требования», «застрахуйтесь» — обычные слова
+_W = r"(?<![а-яёa-z])"
+_BAD = re.compile(_W + r"(?:"
+                  r"ху[йяеёию]|пизд|"
+                  r"(?:за|у|вы|на|по|отъ|об|подъ|разъ|съ|до)?[её]б(?:а|ан|ат|л|ну|ук|уч|ош)|"
+                  r"бл[яь]д|бля\b|сук[аи]\b|муд[аи]к|пид[оа]р|долбо[её]б|шлюх)", re.I)
+_HOST = re.compile(r"(?:https?://)?(?:www\.)?((?:[a-z0-9-]+\.)+[a-z]{2,})(?=[/\s:?#]|$)", re.I)
+OWN_HOSTS = ("podslushano.nl",)
+
+
+def foreign_links(text: str) -> bool:
+    """Есть ли в тексте ссылка не на наш сайт (каждая ссылка проверяется отдельно)."""
+    for m in _HOST.finditer(text):
+        host = m.group(1).lower()
+        if not any(host == h or host.endswith("." + h) for h in OWN_HOSTS):
+            return True
+    return False
 _hits: dict[str, list[float]] = {}
 
 
@@ -73,8 +88,7 @@ def check_text(u: AppUser, text: str, limit: int) -> str | None:
         return f"Слишком длинно: не больше {limit} символов."
     if _BAD.search(text):
         return "Без мата, пожалуйста: перепишите сообщение."
-    if _LINK.search(text) and (_now() - (u.created_at or _now())) < timedelta(days=LINK_AFTER_DAYS) \
-            and "podslushano.nl" not in text.lower():
+    if foreign_links(text) and (_now() - (u.created_at or _now())) < timedelta(days=LINK_AFTER_DAYS):
         return f"Ссылки можно отправлять через {LINK_AFTER_DAYS} дня после регистрации."
     return None
 
@@ -139,7 +153,8 @@ async def rooms(request: web.Request) -> web.Response:
         await ensure_rooms(session)
         since = _now() - timedelta(days=1)
         counts = dict((await session.execute(select(ChatMessage.room_id, func.count()).where(
-            ChatMessage.created_at >= since, ChatMessage.deleted.is_(False)).group_by(ChatMessage.room_id))).all())
+            ChatMessage.created_at >= since, ChatMessage.deleted.is_(False), ChatMessage.hidden.is_(False))
+            .group_by(ChatMessage.room_id))).all())
         out = [{"slug": r.slug, "title": r.title, "kind": r.kind, "today": counts.get(r.id, 0)}
                for r in (await session.execute(select(ChatRoom).where(ChatRoom.active.is_(True))
                                                .order_by(ChatRoom.sort))).scalars()]
@@ -173,7 +188,8 @@ async def messages(request: web.Request) -> web.Response:
             await session.commit()
             return _json(request, {"ok": True, "message": _item(m, {me.id: me}, me)})
 
-        q = select(ChatMessage).where(ChatMessage.room_id == room.id, ChatMessage.deleted.is_(False))
+        q = select(ChatMessage).where(ChatMessage.room_id == room.id, ChatMessage.deleted.is_(False),
+                                      ChatMessage.hidden.is_(False))
         after, before = request.query.get("after"), request.query.get("before")
         if after and after.isdigit():
             q = q.where(ChatMessage.id > int(after)).order_by(ChatMessage.id).limit(100)
@@ -212,7 +228,7 @@ async def posts(request: web.Request) -> web.Response:
             await session.commit()
             return _json(request, {"ok": True, "post": _item(p, {me.id: me}, me, {"city": p.city})})
 
-        q = select(UserPost).where(UserPost.deleted.is_(False)).order_by(UserPost.id.desc()).limit(30)
+        q = select(UserPost).where(UserPost.deleted.is_(False), UserPost.hidden.is_(False)).order_by(UserPost.id.desc()).limit(30)
         before = request.query.get("before")
         if before and before.isdigit():
             q = q.where(UserPost.id < int(before))
@@ -253,7 +269,7 @@ async def report(request: web.Request) -> web.Response:
         if not me:
             return _err(request, "Войдите, чтобы пожаловаться.", 401)
         obj = await session.get(Model, int(data.get("id") or 0)) if Model else None
-        if not obj:
+        if not obj or obj.deleted:
             return _err(request, "Не найдено.", 404)
         dup = await session.scalar(select(ContentReport.id).where(
             ContentReport.kind == kind, ContentReport.target_id == obj.id, ContentReport.reporter_id == me.id))
@@ -265,9 +281,9 @@ async def report(request: web.Request) -> web.Response:
         n = await session.scalar(select(func.count(func.distinct(ContentReport.reporter_id))).where(
             ContentReport.kind == kind, ContentReport.target_id == obj.id)) or 0
         if n >= AUTO_HIDE_REPORTS:
-            obj.deleted = True
+            obj.hidden = True
         author = await session.get(AppUser, obj.user_id)
-        text, rid, hidden = obj.text, r.id, obj.deleted
+        text, rid, hidden = obj.text, r.id, obj.hidden
         await session.commit()
     bot = request.app.get("bot") if hasattr(request.app, "get") else None
     if bot:
@@ -321,11 +337,11 @@ async def moderate(rid: int, action: str) -> str:
             ContentReport.kind == r.kind, ContentReport.target_id == r.target_id))).scalars())
         if action == "keep":
             if obj:
-                obj.deleted = False
-            res, msg = "kept", "Оставлено, сообщение снова видно."
+                obj.hidden = False  # удалённое самим автором так и остаётся удалённым
+            res, msg = "kept", "Оставлено." + (" Автор сам удалил его раньше." if obj and obj.deleted else " Сообщение снова видно.")
         else:
             if obj:
-                obj.deleted = True
+                obj.hidden = True
             res, msg = "deleted", "Удалено."
             if action in ("ban1", "banx") and obj:
                 u = await session.get(AppUser, obj.user_id)

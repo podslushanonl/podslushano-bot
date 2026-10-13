@@ -79,6 +79,33 @@ class CommunityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.post(url, 1, text="заходите на example.com")).status, 200)
         self.assertEqual((await self.post(url, 1, text="и ещё раз")).status, 429)
 
+    async def test_filter_has_no_false_positives_and_links_checked_each(self):
+        for t in ["Купила хлеба", "Требования к документам", "Учеба в университете", "Застрахуйтесь до 31 декабря"]:
+            self.assertIsNone(community._BAD.search(t), t)
+        for t in ["заебал", "пиздец", "ну ты и сука"]:
+            self.assertIsNotNone(community._BAD.search(t), t)
+        self.assertTrue(community.foreign_links("evil.example.com podslushano.nl"))
+        self.assertTrue(community.foreign_links("evil.com/podslushano.nl"))
+        self.assertFalse(community.foreign_links("см. https://www.podslushano.nl/save/"))
+        await self.post("/api/app/rules", 4)
+        r = await self.post("/api/app/rooms/nl/messages", 4, text="evil.example.com podslushano.nl")
+        self.assertEqual(r.status, 400)
+
+    async def test_keep_does_not_restore_author_deleted(self):
+        for uid in (1, 2):
+            await self.post("/api/app/rules", uid)
+        p = await (await self.post("/api/app/posts", 1, text="Мой пост")).json()
+        pid = p["post"]["id"]
+        await self.post("/api/app/report", 2, kind="post", id=pid)
+        await self.post("/api/app/delete", 1, kind="post", id=pid)
+        async with self.sessions() as s:
+            from sqlalchemy import select
+            from database.models import ContentReport
+            rid = (await s.execute(select(ContentReport.id))).scalars().first()
+        self.assertIn("сам удалил", await community.moderate(rid, "keep"))
+        self.assertEqual((await (await self.c.get("/api/app/posts")).json())["posts"], [])
+        self.assertEqual((await self.post("/api/app/report", 2, kind="post", id=pid)).status, 404)
+
     async def test_reports_autohide_moderation_ban_and_block(self):
         for uid in (1, 2, 3, 4, 5):
             await self.post("/api/app/rules", uid)
