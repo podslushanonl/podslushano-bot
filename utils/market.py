@@ -53,7 +53,19 @@ STATUS_LABELS = {
     "awaiting_payment": "Ждёт оплаты", "pending": "На проверке", "approved": "Опубликовано",
     "rejected": "Отклонено", "closed": "Снято", "expired": "Срок истёк", "archived": "В архиве",
 }
-_photo_cache: OrderedDict[int, tuple[str, bytes]] = OrderedDict()
+_photo_cache: OrderedDict[tuple[int, int], tuple[str, bytes]] = OrderedDict()
+MAX_PHOTOS = 8
+
+
+def all_photos(l: Listing) -> list[str]:
+    """file_id всех фото: обложка первой."""
+    try:
+        ids = [x for x in json.loads(l.photos or "[]") if isinstance(x, str) and x]
+    except ValueError:
+        ids = []
+    if l.photo_file_id and (not ids or ids[0] != l.photo_file_id):
+        ids = [l.photo_file_id] + [x for x in ids if x != l.photo_file_id]
+    return ids[:MAX_PHOTOS]
 _PHOTO_CACHE_SIZE = 150
 
 
@@ -79,11 +91,12 @@ def _active():
 def item_json(l: Listing, me: AppUser | None = None, full: bool = False) -> dict:
     status = board._status(l, _now())
     mine = bool(me and l.app_user_id == me.id)
-    photo = ""
-    if l.photo_file_id:
-        photo = f"/api/app/market/{l.id}/photo"
-        if status != "approved":  # фото до публикации видит только автор — по подписанной ссылке
-            photo += "?k=" + make_token({"k": "lphoto", "l": l.id}, 6 * 3600)
+    # фото до публикации видит только автор — по подписанной ссылке
+    grant = "" if status == "approved" else "k=" + make_token({"k": "lphoto", "l": l.id}, 6 * 3600)
+    urls = [f"/api/app/market/{l.id}/photo" + (f"?i={i}" if i else "") for i in range(len(all_photos(l)))]
+    if grant:
+        urls = [u + ("&" if "?" in u else "?") + grant for u in urls]
+    photo = urls[0] if urls else ""
     d = {
         "id": l.id, "cat": l.category, "cat_title": _cat_label(l.category),
         "intent": l.intent or "", "intent_title": board.INTENT_LABELS.get((l.category, l.intent), ""),
@@ -92,6 +105,8 @@ def item_json(l: Listing, me: AppUser | None = None, full: bool = False) -> dict
         "photo": photo,
         "at": (l.bumped_at or l.created_at or _now()).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "mine": mine,
+        # Автору можно написать прямо в приложении, если он сам подавал объявление через приложение
+        "chat": bool(l.app_user_id) and not mine,
     }
     if full:
         d |= {
@@ -99,6 +114,7 @@ def item_json(l: Listing, me: AppUser | None = None, full: bool = False) -> dict
             "contacts": [{"type": x["type"], "title": _LABELS.get(x["type"], x["label"]), "url": x["url"]}
                          for x in parse_contact_links(l.contact)],
             "until": l.expires_at.strftime("%Y-%m-%d") if l.expires_at and status == "approved" else "",
+            "photos": urls,
         }
     if d["mine"]:
         d |= {"status": status, "status_title": STATUS_LABELS.get(status, status)}
@@ -163,29 +179,35 @@ async def photo(request: web.Request) -> web.Response:
     lid = int(request.match_info["id"])
     async with get_session() as session:
         l = await session.get(Listing, lid)
-    if not l or not l.photo_file_id:
+    ids = all_photos(l) if l else []
+    try:
+        idx = int(request.query.get("i", "0"))
+    except ValueError:
+        idx = -1
+    if not 0 <= idx < len(ids):
         raise web.HTTPNotFound()
+    file_id = ids[idx]
     if board._status(l, _now()) != "approved":
         grant = read_token(request.query.get("k", ""), "lphoto")
         if not grant or grant.get("l") != lid:
             raise web.HTTPNotFound()
-    cached = _photo_cache.get(lid)
-    if cached and cached[0] == l.photo_file_id:
-        _photo_cache.move_to_end(lid)
+    cached = _photo_cache.get((lid, idx))
+    if cached and cached[0] == file_id:
+        _photo_cache.move_to_end((lid, idx))
         data = cached[1]
     else:
         bot = request.app.get("bot")
         if not bot:
             raise web.HTTPNotFound()
         try:
-            f = await bot.get_file(l.photo_file_id)
+            f = await bot.get_file(file_id)
             buf = io.BytesIO()
             await bot.download_file(f.file_path, buf)
             data = buf.getvalue()
         except Exception as e:  # noqa: BLE001
             log.warning("Барахолка: фото %s не скачано: %s", lid, e)
             raise web.HTTPNotFound()
-        _photo_cache[lid] = (l.photo_file_id, data)
+        _photo_cache[(lid, idx)] = (file_id, data)
         while len(_photo_cache) > _PHOTO_CACHE_SIZE:
             _photo_cache.popitem(last=False)
     public = board._status(l, _now()) == "approved"
@@ -327,34 +349,57 @@ async def submit(request: web.Request) -> web.Response:
                                      "Снимите одно из них в «Моих объявлениях».", 429)
         if _rate(f"market:{me.id}", 10, 3600):
             return _err(request, "Слишком часто. Попробуйте через час.", 429)
-        jpeg = None
-        if data.get("photo"):
+        # Фото: новый список «photos» — элементы "keep:<номер>" (оставить существующее) или картинка data:...;
+        # старый клиент присылает одно «photo» (картинка или "" — убрать)
+        old_ids = all_photos(existing) if existing else []
+        plan: list[str | bytes] = []
+        if isinstance(data.get("photos"), list):
+            for item in data["photos"][:MAX_PHOTOS]:
+                item = str(item or "")
+                if item.startswith("keep:"):
+                    try:
+                        plan.append(old_ids[int(item[5:])])
+                    except (ValueError, IndexError):
+                        continue
+                elif item:
+                    jpeg = prepare_photo(item)
+                    if not jpeg:
+                        return _err(request, "Не получилось прочитать одно из фото. Попробуйте другое.")
+                    plan.append(jpeg)
+        elif data.get("photo"):
             jpeg = prepare_photo(str(data["photo"]))
             if not jpeg:
                 return _err(request, "Не получилось прочитать фото. Попробуйте другое.")
+            plan = [jpeg]
+        elif data.get("photo") != "":
+            plan = list(old_ids)
         # Оплачено — только если объявление уже прошло этап оплаты (статус сменил вебхук оплаты),
         # а не просто когда для него создавалась ссылка на оплату
         was_paid = bool(existing and existing.category == "housing" and existing.payment_id
                         and existing.status != "awaiting_payment")
         l = existing or Listing(app_user_id=me.id, submitter_user_id=me.tg_id)
-        photo_id = l.photo_file_id
         board._apply_form(l, form)
-        l.photo_file_id = None if data.get("photo") == "" else photo_id
         l.expires_at = l.bumped_at = None
         needs_payment = form["l_cat"] == "housing" and board._housing_paid() and not was_paid
         l.status = "awaiting_payment" if needs_payment else "pending"
         if not existing:
             session.add(l)
         await session.flush()
-        if jpeg:
+        ids: list[str] = []
+        for item in plan:
+            if isinstance(item, str):
+                ids.append(item)
+                continue
             if not bot:
                 await session.rollback()
                 return _err(request, "Фото сейчас не загрузить. Попробуйте позже.", 503)
-            file_id = await _upload_photo(bot, jpeg, l.id)
+            file_id = await _upload_photo(bot, item, l.id)
             if not file_id:
                 await session.rollback()
                 return _err(request, "Фото не загрузилось. Попробуйте ещё раз.", 502)
-            l.photo_file_id = file_id
+            ids.append(file_id)
+        l.photo_file_id = ids[0] if ids else None
+        l.photos = json.dumps(ids) if ids else None
         await session.commit()
         await session.refresh(l)
         result = {"ok": True, "id": l.id, "status": l.status}

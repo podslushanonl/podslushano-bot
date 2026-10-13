@@ -71,7 +71,7 @@ _MODULE_TOPIC = [
     ("utils.editorial", "content"), ("handlers.content", "content"), ("utils.site_news", "content"),
     ("handlers.digest", "content"), ("handlers.spotlight", "content"), ("handlers.photo_refresh", "content"),
     ("utils.authors_web", "content"), ("handlers.guides", "content"),
-    ("utils.community", "moderation"), ("utils.market", "board"),
+    ("utils.community", "moderation"), ("utils.dm", "moderation"), ("utils.market", "board"),
     ("handlers.errors", "errors"), ("bot", "errors"),
 ]
 _SEND = (SendMessage, SendPhoto, SendVideo, SendDocument, SendAnimation, SendAudio, SendVoice,

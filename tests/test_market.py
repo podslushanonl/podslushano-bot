@@ -31,10 +31,15 @@ def jpeg_b64(w=2400, h=1200) -> str:
 class FakeBot:
     def __init__(self):
         self.photos, self.messages, self.deleted = [], [], []
+        self.uploads = 0
 
     async def send_photo(self, chat_id, photo, caption=None, reply_markup=None, **kw):
         self.photos.append((chat_id, photo, caption, reply_markup))
-        return SimpleNamespace(photo=[SimpleNamespace(file_id="small"), SimpleNamespace(file_id="FILE1")],
+        fid = "FILE1"
+        if not isinstance(photo, str):  # загрузка нового фото — каждому свой file_id
+            self.uploads += 1
+            fid = "FILE1" if self.uploads == 1 else f"FILE{self.uploads}"
+        return SimpleNamespace(photo=[SimpleNamespace(file_id="small"), SimpleNamespace(file_id=fid)],
                                chat=SimpleNamespace(id=-100), message_id=len(self.photos))
 
     async def send_message(self, chat_id, text, reply_markup=None, **kw):
@@ -173,6 +178,27 @@ class MarketTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.post(f"/api/app/market/{ids[0]}/close", 2)).status, 404)
         self.assertEqual((await self.post(f"/api/app/market/{ids[0]}/close", 1)).status, 200)
         self.assertEqual((await self.get(f"/api/app/market/{ids[0]}", 2)).status, 404)
+
+    async def test_several_photos_keep_and_reorder(self):
+        d = await (await self.post("/api/app/market", 1, GOODS | {"photos": [jpeg_b64(800, 600), jpeg_b64(600, 800)]})).json()
+        await self.approve(d["id"])
+        item = (await (await self.get(f"/api/app/market/{d['id']}", 2)).json())["item"]
+        self.assertEqual(item["photos"], [f"/api/app/market/{d['id']}/photo", f"/api/app/market/{d['id']}/photo?i=1"])
+        self.assertEqual((await self.get(item["photos"][1])).status, 200)
+        self.assertEqual((await self.get(f"/api/app/market/{d['id']}/photo?i=5")).status, 404)
+        # правка: второе фото становится обложкой, первое убираем, добавляем новое
+        await self.post("/api/app/market", 1, GOODS | {"id": d["id"], "photos": ["keep:1", jpeg_b64(500, 500)]})
+        async with self.sessions() as s:
+            l = await s.get(Listing, d["id"])
+        self.assertEqual((l.photo_file_id, market.all_photos(l)), ("FILE2", ["FILE2", "FILE3"]))
+        mine = (await (await self.get(f"/api/app/market/{d['id']}", 1)).json())["item"]
+        self.assertEqual(len(mine["photos"]), 2)
+        self.assertTrue(all("k=" in u for u in mine["photos"]))   # снова на проверке — ссылки только автору
+        self.assertEqual((await self.get(mine["photos"][1])).status, 200)
+        # «photo»: "" от старого клиента убирает все фото
+        await self.post("/api/app/market", 1, GOODS | {"id": d["id"], "photo": ""})
+        async with self.sessions() as s:
+            self.assertEqual(market.all_photos(await s.get(Listing, d["id"])), [])
 
     async def test_validation(self):
         cases = [
