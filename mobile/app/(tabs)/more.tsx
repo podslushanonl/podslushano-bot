@@ -1,9 +1,11 @@
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Card, Eyebrow, H, P } from '@/components/ui';
+import { Button, Card, Eyebrow, H, P } from '@/components/ui';
 import { C } from '@/constants/theme';
 import { SITE, TG_BOT, goUrl } from '@/lib/api';
+import { useAuth } from '@/lib/auth';
 
 const web = (path: string) => () => WebBrowser.openBrowserAsync(SITE + path);
 
@@ -38,16 +40,41 @@ const SOCIAL: [any, string, string][] = [
   [require('@/assets/images/social/tiktok.png'), 'TikTok', 'https://www.tiktok.com/@podslushano.nl'],
 ];
 
+function Account() {
+  const { user, favorites, ready } = useAuth();
+  if (!ready) return null;
+  if (!user) return (
+    <Card style={{ backgroundColor: C.ink, borderColor: C.ink }}>
+      <Eyebrow color="#FFB48E">Мой podslushano</Eyebrow>
+      <H size={20}><Text style={{ color: '#fff' }}>Войдите, чтобы сохранять события</Text></H>
+      <Text style={st.darkP}>Избранное, ваш город, а скоро — уведомления о поездах, чаты и объявления. Пароль не нужен.</Text>
+      <Button title="Войти или создать аккаунт" onPress={() => router.push('/login')} />
+    </Card>
+  );
+  return (
+    <Card style={{ backgroundColor: C.ink, borderColor: C.ink }}>
+      <Eyebrow color="#FFB48E">Мой podslushano</Eyebrow>
+      <H size={20}><Text style={{ color: '#fff' }}>{user.name ? `Привет, ${user.name}!` : 'Привет!'}</Text></H>
+      <Text style={st.darkP}>{user.city ? `Ваш город: ${user.city}` : 'Укажите город в профиле'}</Text>
+      {favorites.length ? (
+        <View style={{ gap: 6, marginTop: 4 }}>
+          <Text style={[st.darkP, { fontWeight: '700' }]}>Избранные события</Text>
+          {favorites.slice(0, 5).map((f) => (
+            <Pressable key={f.key} onPress={() => router.push({ pathname: '/event/[key]', params: { key: f.key } })}>
+              <Text style={{ color: '#fff', fontSize: 15 }}>♥ {f.title || f.key}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : <Text style={st.darkP}>Нажмите ♥ на событии в афише, чтобы сохранить его здесь.</Text>}
+      <Button title="Профиль" soft onPress={() => router.push('/profile')} />
+    </Card>
+  );
+}
+
 export default function More() {
   return (
     <ScrollView contentContainerStyle={{ padding: 16, gap: 18, paddingBottom: 40 }}>
-      <Card style={{ backgroundColor: C.ink, borderColor: C.ink }}>
-        <Eyebrow color="#FFB48E">Скоро</Eyebrow>
-        <H size={20}><Text style={{ color: '#fff' }}>Мой podslushano</Text></H>
-        <Text style={{ color: '#C9CED6', fontSize: 15, lineHeight: 21 }}>
-          Вход, избранное, ваши события и объявления, уведомления о поездах. Появится в следующем обновлении.
-        </Text>
-      </Card>
+      <Account />
       {SECTIONS.map((sec) => (
         <View key={sec.title} style={{ gap: 8 }}>
           <Text style={st.sec}>{sec.title}</Text>
@@ -84,4 +111,5 @@ const st = StyleSheet.create({
   d: { fontSize: 13, color: C.muted, marginTop: 2 },
   chev: { fontSize: 24, color: C.muted, marginLeft: 8 },
   social: { flexDirection: 'row', gap: 14, justifyContent: 'center', marginTop: 6 },
+  darkP: { color: '#C9CED6', fontSize: 15, lineHeight: 21 },
 });

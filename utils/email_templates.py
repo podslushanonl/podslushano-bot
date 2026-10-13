@@ -213,3 +213,17 @@ def cabinet_login(*, link: str) -> tuple[str, str, str]:
     html = render_email(title="Вход в кабинет", preheader="Ссылка действует 1 час.", body="", cta=("Войти в кабинет", link),
                         after_cta=body, reason="Кто-то запросил вход в кабинет бизнеса для этой почты.")
     return subject, html, text_version("Вход в кабинет бизнеса", ["Ссылка действует 1 час."], ("Войти", link))
+
+
+def app_login_code(*, code: str) -> tuple[str, str, str]:
+    """Код для входа в приложение podslushano (аккаунт создаётся при первом входе)."""
+    subject = f"🔑 {code} — код для входа в podslushano"
+    body = (p("Введите этот код в приложении, чтобы войти. Пароль не нужен.")
+            + box(f'<div style="font:800 34px/1.2 -apple-system,Segoe UI,Roboto,Arial,sans-serif;letter-spacing:.3em;'
+                  f'text-align:center;color:#0D1117;">{code}</div>')
+            + small("Код действует 15 минут. Если вы не запрашивали вход, просто удалите письмо: "
+                    "без кода в аккаунт никто не попадёт."))
+    html = render_email(title="Вход в podslushano", preheader=f"Ваш код: {code}. Действует 15 минут.", body=body,
+                        hero="deer", reason="Кто-то запросил вход в приложение podslushano для этой почты.")
+    return subject, html, text_version("Вход в podslushano", [f"Ваш код: {code}", "Код действует 15 минут."])
+
