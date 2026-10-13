@@ -13,6 +13,7 @@ export default function Trains() {
   const [list, setList] = useState<[string, string][]>([]);
   const [deps, setDeps] = useState<Departure[] | null>(null);
   const [dis, setDis] = useState<Disruption[]>([]);
+  const [disState, setDisState] = useState<'loading' | 'ok' | 'error'>('loading');
   const [picker, setPicker] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -27,6 +28,9 @@ export default function Trains() {
     if (x.status === 'fulfilled') {
       const all = [...(x.value.now || []), ...(x.value.planned || [])];
       setDis(all.filter((i) => (i.stations || []).includes(st[0])));
+      setDisState('ok');
+    } else {
+      setDisState('error');
     }
   }, [st]);
 
@@ -37,7 +41,7 @@ export default function Trains() {
   }, [load]);
 
   const choose = (s: [string, string]) => {
-    setSt(s); setPicker(false); setDeps(null);
+    setSt(s); setPicker(false); setDeps(null); setDisState('loading');
     AsyncStorage.setItem(KEY, JSON.stringify(s)).catch(() => {});
   };
 
@@ -61,10 +65,12 @@ export default function Trains() {
           {d.situation ? <P>{d.situation}</P> : null}
           {d.text ? <P muted>{d.text}</P> : null}
         </Card>
-      )) : (
+      )) : disState === 'ok' ? (
         <Card style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
           <View style={s.okDot} /><P>На этой станции сбоев нет.</P>
         </Card>
+      ) : (
+        <Card><P muted>{disState === 'error' ? 'Не удалось проверить сбои. Потяните вниз, чтобы обновить.' : 'Проверяем сбои…'}</P></Card>
       )}
 
       <Card>

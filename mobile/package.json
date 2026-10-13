@@ -34,7 +34,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "export:bot": "expo export --platform web && rm -rf ../static/app && cp -r dist ../static/app"
   },
   "private": true
 }

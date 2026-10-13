@@ -31,4 +31,3 @@ export function useApp() {
   return { data, error, refreshing, refresh };
 }
 
-export const findEvent = (key: string) => cache?.events.find((e) => e.key === key);

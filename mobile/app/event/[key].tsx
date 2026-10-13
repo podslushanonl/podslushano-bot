@@ -2,15 +2,18 @@ import { Image } from 'expo-image';
 import { Stack, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { Button, Card, Eyebrow, H, P } from '@/components/ui';
+import { Button, Card, ErrorBox, Eyebrow, H, Loading, P } from '@/components/ui';
 import { C } from '@/constants/theme';
 import { SITE } from '@/lib/api';
 import { dayMonth, weekday } from '@/lib/format';
-import { findEvent } from '@/lib/useApp';
+import { useApp } from '@/lib/useApp';
 
 export default function EventScreen() {
   const { key } = useLocalSearchParams<{ key: string }>();
-  const e = findEvent(String(key));
+  // При открытии по ссылке (podslushano://event/...) данных ещё нет: грузим, а не говорим «не найдено»
+  const { data, error, refresh } = useApp();
+  if (!data) return error ? <ErrorBox onRetry={refresh} /> : <Loading />;
+  const e = data.events.find((x) => x.key === String(key));
   if (!e) return <View style={{ padding: 24 }}><P muted>Событие не найдено.</P></View>;
   const when = `${weekday(e.date)}, ${dayMonth(e.date)}${e.end && e.end !== e.date ? ` — ${dayMonth(e.end)}` : ''}${e.time ? ` · ${e.time}` : ''}`;
   const ticket = e.tickets?.[0]?.[2] || e.url;
