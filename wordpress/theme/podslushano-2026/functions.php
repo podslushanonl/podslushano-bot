@@ -191,3 +191,29 @@ add_filter('get_custom_logo_image_attributes', function ($attr) {
     return $attr;
 });
 
+
+/* ---------- Mobile app (podslushano): one public JSON with the live content ---------- */
+add_action('rest_api_init', function () {
+    register_rest_route('pn/v1', '/app', [
+        'methods' => 'GET',
+        'permission_callback' => '__return_true',
+        'callback' => function () {
+            $events = array_map(function ($e) {
+                return array_intersect_key($e, array_flip(['key', 'h', 's', 'date', 'time', 'end', 'venue', 'addr', 'city', 'price', 'img', 'url', 'cat', 'p', 'tickets', 'partner']));
+            }, array_slice(pn_events(), 0, 60));
+            $jobs = array_map(function ($j) {
+                return array_intersect_key($j, array_flip(['id', 'title', 'company', 'city', 'lang', 'type', 'salary', 'posted', 'about', 'url']));
+            }, array_slice(pn_jobs(), 0, 40));
+            $resp = new WP_REST_Response([
+                'v' => 1,
+                'news' => pn_posts('news', 30),
+                'events' => $events,
+                'jobs' => $jobs,
+                'wx' => pn_weather(),
+                'bot' => PN_BOT,
+            ]);
+            $resp->header('Cache-Control', 'public, max-age=120');
+            return $resp;
+        },
+    ]);
+});

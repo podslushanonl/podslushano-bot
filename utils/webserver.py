@@ -1797,6 +1797,21 @@ async def start_webserver(bot) -> web.AppRunner:
         app.router.add_route("OPTIONS", path, allo_v2.options)
     # Картинки для писем (логотип, лосёнок, иконки соцсетей) — PNG, чтобы показывались везде
     app.router.add_static("/email-assets/", Path(__file__).resolve().parent.parent / "static" / "email")
+    # Веб-превью мобильного приложения podslushano (сборка mobile/: npm run export:bot)
+    app_dir = Path(__file__).resolve().parent.parent / "static" / "app"
+    if app_dir.is_dir():
+        app.router.add_static("/app/_expo/", app_dir / "_expo")
+        app.router.add_static("/app/assets/", app_dir / "assets")
+
+        async def _app_page(request: web.Request) -> web.StreamResponse:
+            name = request.match_info.get("tail", "")
+            f = app_dir / name
+            if name and "/" not in name and f.is_file():
+                return web.FileResponse(f)
+            return web.FileResponse(app_dir / "index.html", headers={"Cache-Control": "no-cache"})
+
+        app.router.add_get("/app", _app_page)
+        app.router.add_get("/app/{tail:.*}", _app_page)
     app.router.add_static("/allo-assets/", Path(__file__).resolve().parent.parent / "assets" / "allo")
     app.router.add_static("/allo-fonts/", Path(__file__).resolve().parent.parent / "assets" / "fonts")
     app.router.add_post("/mollie-webhook", _mollie_webhook)
