@@ -89,6 +89,7 @@ _ALLO_SALE_LATER_COLUMNS = {
 
 _LISTING_LATER_COLUMNS = {
     "intent": "VARCHAR(20)",
+    "app_user_id": "INTEGER",
 }
 
 # Аккаунты приложения: правила сообщества и бан (чаты, посты)

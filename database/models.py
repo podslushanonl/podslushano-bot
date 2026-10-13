@@ -600,6 +600,8 @@ class Listing(Base):
     contact: Mapped[str | None] = mapped_column(String(300), nullable=True)
     submitter_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     submitter_username: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Автор из приложения podslushano (app_users.id); у поданных через бота — None
+    app_user_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     # Статус: awaiting_payment | pending | approved | rejected | closed | expired | archived
     status: Mapped[str] = mapped_column(String(20), default="pending", index=True)
     # Платёж за «поднятие» (если было) и время поднятия (для сортировки вверх)

@@ -20,6 +20,10 @@ export default function RootLayout() {
         <Stack.Screen name="profile" options={{ title: 'Профиль' }} />
         <Stack.Screen name="chat/[slug]" options={{ title: 'Чат' }} />
         <Stack.Screen name="rules" options={{ title: 'Правила', presentation: 'modal' }} />
+        <Stack.Screen name="trains" options={{ title: 'Поезда NS' }} />
+        <Stack.Screen name="market/[id]" options={{ title: 'Объявление' }} />
+        <Stack.Screen name="market/new" options={{ title: 'Новое объявление', presentation: 'modal' }} />
+        <Stack.Screen name="market/my" options={{ title: 'Мои объявления' }} />
         <Stack.Screen name="new-post" options={{ title: 'Новый пост', presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
