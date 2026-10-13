@@ -29,7 +29,7 @@ function pn_routes() {
         'news' => 'news', 'guide' => 'guide', 'events' => 'events', 'live' => 'live',
         'allowalks' => 'allo', 'shop' => 'shop', 'trains' => 'trains', 'provinces' => 'provinces',
         'work' => 'board', 'place' => 'place', 'cabinet' => 'cabinet', 'business' => 'business',
-        'contact' => 'contact', 'travel' => 'travel',
+        'contact' => 'contact', 'travel' => 'travel', 'save' => 'save',
     ];
 }
 function pn_add_rules() {
@@ -72,6 +72,7 @@ function pn_route_meta($route) {
         'events' => ['Афиша: концерты, стендап, фестивали', 'Концерты, стендап, театр и фестивали в Нидерландах для русскоязычных.'],
         'event' => ['Афиша', 'Событие в Нидерландах: дата, место, билеты.'],
         'live' => ['Погода и камеры онлайн', 'Погода Buienradar по городам Нидерландов, дождь на 2 часа и живые камеры.'],
+        'save' => ['Сэкономить: медстраховка 2027 и eSIM', 'Как выбрать медстраховку на 2027 год и не переплатить, eigen risico, типы полиса, eSIM для поездок. По-русски.'],
         'trains' => ['Поезда NS: табло, отмены и сбои', 'Табло отправлений NS по станциям, отмены, сбои и ремонтные работы на железной дороге Нидерландов на русском.'],
         'allo' => ['allowalks: прогулки по Нидерландам', 'Прогулки allowalks в небольшой компании и подарочные карты.'],
         'shop' => ['Магазин', 'Подарочные карты allowalks, размещение в КонтактGuide, гайды и стикеры.'],

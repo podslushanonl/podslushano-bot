@@ -38,6 +38,7 @@ def _home_kb():
         [InlineKeyboardButton(text="⚡ Быстрые действия", callback_data="ac:quick")],
         [InlineKeyboardButton(text="⌨️ Все команды кнопками", callback_data="ac:cmds")],
         [InlineKeyboardButton(text="✉️ Письма и рассылка", callback_data="ac:mail")],
+        [InlineKeyboardButton(text="💶 Сэкономить: переходы", callback_data="ac:savings")],
     ])
 
 
@@ -374,6 +375,13 @@ async def mail_center(callback: CallbackQuery):
         f"Все письма бота оформлены в фирменном стиле. Кнопка ниже пришлёт примеры всех писем на "
         f"<code>{config.COMPANY_EMAIL}</code>, чтобы посмотреть их в настоящем почтовом ящике.",
         _kb([[InlineKeyboardButton(text="📬 Прислать примеры писем мне", callback_data="ac:mailsamples")], _nav()]))
+    await callback.answer()
+
+
+@router.callback_query(F.data == "ac:savings")
+async def savings_stats(callback: CallbackQuery):
+    from utils.savings import stats_text
+    await _show(callback.message, await stats_text(), _kb([_nav()]))
     await callback.answer()
 
 
