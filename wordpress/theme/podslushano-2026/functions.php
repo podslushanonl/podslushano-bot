@@ -181,3 +181,13 @@ add_action('wp_enqueue_scripts', function () {
 }, 20);
 remove_action('wp_head', 'print_emoji_detection_script', 7);
 remove_action('wp_print_styles', 'print_emoji_styles');
+
+/* The site logo is only used inside the (usually hidden) Complianz banner: load a small
+   size and only when the banner is actually shown, instead of a 1024px PNG on every page. */
+add_filter('get_custom_logo_image_attributes', function ($attr) {
+    $attr['sizes'] = '96px';
+    $attr['loading'] = 'lazy';
+    unset($attr['fetchpriority']);
+    return $attr;
+});
+
