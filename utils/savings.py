@@ -37,6 +37,8 @@ router = Router()
 SITE_PAGE = "https://podslushano.nl/save/"
 REMIND_MONTH, REMIND_DAY = 12, 12      # напоминание о медстраховке приходит 12 декабря
 EIGEN_RISICO = 400                       # обязательный eigen risico 2027
+# Пороги дохода для zorgtoeslag 2027 (предварительные, по бюджету; окончательные — в ноябре)
+TOESLAG_SINGLE, TOESLAG_PAIR = 43000, 54000
 
 DEFAULT_LINKS = {
     "zorg_compare": ("Сравнить медстраховки", "https://www.zorgwijzer.nl/"),
@@ -101,7 +103,7 @@ ZORG_TEXT = (
     "• <b>Naturapolis</b> — только врачи и больницы с договором, обычно дешевле.\n"
     "• <b>Restitutiepolis</b> — любой врач, дороже.\n"
     "• <b>Budgetpolis</b> — самый дешёвый, но выбор клиник меньше.\n\n"
-    "Ответьте на 4 вопроса, и я подскажу, на что смотреть именно вам."
+    "Ответьте на 6 коротких вопросов, и я подскажу, на что смотреть именно вам."
 )
 
 ESIM_TEXT = (
@@ -122,19 +124,25 @@ QUESTIONS = [
     ("Нужен стоматолог для взрослых?", ("Да", "Нет")),
     ("Часто ходите к врачам или постоянно принимаете лекарства?", ("Часто", "Редко")),
     ("Важно лечиться у конкретного врача или в конкретной клинике?", ("Да, важно", "Не важно")),
+    ("Нужны физиотерапия, очки или линзы?", ("Да", "Нет")),
+    (f"Ваш годовой доход (брутто) примерно до €{TOESLAG_SINGLE:,} на одного или до €{TOESLAG_PAIR:,} "
+     "вместе с партнёром?".replace(",", " "), ("Да, до", "Больше")),
 ]
 
 
 def quiz_hints(answers: str) -> list[str]:
-    """answers — строка из 4 символов '1' (первый вариант) / '0' (второй)."""
-    kids, dentist, often, own_doctor = (answers + "0000")[:4]
+    """answers — строка из 6 символов '1' (первый вариант) / '0' (второй)."""
+    kids, dentist, often, own_doctor, extras, low_income = (answers + "000000")[:6]
     out = []
     if kids == "1":
         out.append("Детей до 18 добавьте в свой полис: они застрахованы бесплатно, стоматолог для них уже в базовом пакете.")
     if dentist == "1":
         out.append("Смотрите aanvullende tandartsverzekering. Сравнивайте не только цену, но и лимит в год и процент возмещения.")
-    else:
-        out.append("Если стоматолог и физиотерапия не нужны, допстраховка может быть лишней: базового пакета достаточно.")
+    if extras == "1":
+        out.append("Физиотерапия, очки и линзы почти не входят в базовый пакет: смотрите aanvullende verzekering "
+                   "и сравнивайте, сколько сеансов и какую сумму в год она покрывает.")
+    if dentist != "1" and extras != "1":
+        out.append("Стоматолог, физиотерапия и очки не нужны — допстраховка, скорее всего, лишняя: базового пакета достаточно.")
     if often == "1":
         out.append(f"Не берите добровольный eigen risico: обязательные €{EIGEN_RISICO}, скорее всего, и так уйдут за год.")
     else:
@@ -146,7 +154,11 @@ def quiz_hints(answers: str) -> list[str]:
     else:
         out.append("Если не важно, где лечиться, naturapolis или budgetpolis обычно дешевле. Проверьте, что ближайшая "
                    "больница есть в списке договорных.")
-    out.append("Спросите на работе про коллективную скидку (collectiviteit), а при невысоком доходе проверьте zorgtoeslag.")
+    if low_income == "1":
+        out.append("Вам, скорее всего, положена <b>zorgtoeslag</b>: государство возвращает часть взноса каждый месяц. "
+                   "Если ещё не получаете, проверьте и подайте заявку на сайте Belastingdienst (кнопка ниже). "
+                   "Учитываются и сбережения.")
+    out.append("Спросите на работе про коллективную скидку (collectiviteit): многие работодатели её дают.")
     return out
 
 
@@ -168,7 +180,7 @@ def menu_kb() -> InlineKeyboardMarkup:
 
 
 def zorg_kb() -> InlineKeyboardMarkup:
-    return _kb([[_cb("📝 Ответить на 4 вопроса", "sv:q:")], [_url("🔍 Сравнить цены", "zorg_compare")],
+    return _kb([[_cb("📝 Ответить на 6 вопросов", "sv:q:")], [_url("🔍 Сравнить цены", "zorg_compare")],
                 [_cb("🔔 Напомнить до 31 декабря", "sv:remind")], [_cb("⬅️ Назад", "sv:menu")]])
 
 
@@ -238,7 +250,7 @@ async def cb_esim(callback: CallbackQuery) -> None:
     await callback.answer()
 
 
-@router.callback_query(F.data.regexp(r"^sv:q:[01]{0,4}$"))
+@router.callback_query(F.data.regexp(r"^sv:q:[01]{0,6}$"))
 async def cb_quiz(callback: CallbackQuery) -> None:
     answers = callback.data[5:]
     text, kb = result(answers) if len(answers) >= len(QUESTIONS) else question(answers)
@@ -285,7 +297,7 @@ async def send_due(bot: Bot, today: date | None = None) -> int:
         for r in rows:
             try:
                 await bot.send_message(r.user_id, REMINDER_TEXT + _note(["zorg_compare"]), reply_markup=_kb([
-                    [_url("🔍 Сравнить цены", "zorg_compare")], [_cb("🏥 Что выбрать: 4 вопроса", "sv:q:")]]),
+                    [_url("🔍 Сравнить цены", "zorg_compare")], [_cb("🏥 Что выбрать: 6 вопросов", "sv:q:")]]),
                     disable_web_page_preview=True)
                 sent += 1
             except TelegramForbiddenError:
