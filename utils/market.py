@@ -40,7 +40,7 @@ from utils.app_api import _user
 from utils.community import _rate, can_write, check_text
 from utils.contact_links import parse_contact_links
 from utils.payments import create_payment
-from utils.site_api import _err, _json
+from utils.site_api import _err, _json, make_token, read_token
 
 log = logging.getLogger(__name__)
 
@@ -78,14 +78,20 @@ def _active():
 
 def item_json(l: Listing, me: AppUser | None = None, full: bool = False) -> dict:
     status = board._status(l, _now())
+    mine = bool(me and l.app_user_id == me.id)
+    photo = ""
+    if l.photo_file_id:
+        photo = f"/api/app/market/{l.id}/photo"
+        if status != "approved":  # фото до публикации видит только автор — по подписанной ссылке
+            photo += "?k=" + make_token({"k": "lphoto", "l": l.id}, 6 * 3600)
     d = {
         "id": l.id, "cat": l.category, "cat_title": _cat_label(l.category),
         "intent": l.intent or "", "intent_title": board.INTENT_LABELS.get((l.category, l.intent), ""),
         "title": l.title, "price": l.price or "",
         "city": "Вся страна" if l.is_nationwide else (l.city or ""),
-        "photo": f"/api/app/market/{l.id}/photo" if l.photo_file_id else "",
+        "photo": photo,
         "at": (l.bumped_at or l.created_at or _now()).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "mine": bool(me and l.app_user_id == me.id),
+        "mine": mine,
     }
     if full:
         d |= {
@@ -159,6 +165,10 @@ async def photo(request: web.Request) -> web.Response:
         l = await session.get(Listing, lid)
     if not l or not l.photo_file_id:
         raise web.HTTPNotFound()
+    if board._status(l, _now()) != "approved":
+        grant = read_token(request.query.get("k", ""), "lphoto")
+        if not grant or grant.get("l") != lid:
+            raise web.HTTPNotFound()
     cached = _photo_cache.get(lid)
     if cached and cached[0] == l.photo_file_id:
         _photo_cache.move_to_end(lid)
@@ -178,7 +188,9 @@ async def photo(request: web.Request) -> web.Response:
         _photo_cache[lid] = (l.photo_file_id, data)
         while len(_photo_cache) > _PHOTO_CACHE_SIZE:
             _photo_cache.popitem(last=False)
-    return web.Response(body=data, content_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
+    public = board._status(l, _now()) == "approved"
+    return web.Response(body=data, content_type="image/jpeg",
+                        headers={"Cache-Control": "public, max-age=86400" if public else "private, no-store"})
 
 
 # ---------------------------------------------------------------- подача
@@ -320,7 +332,10 @@ async def submit(request: web.Request) -> web.Response:
             jpeg = prepare_photo(str(data["photo"]))
             if not jpeg:
                 return _err(request, "Не получилось прочитать фото. Попробуйте другое.")
-        was_paid = bool(existing and existing.category == "housing" and existing.payment_id)
+        # Оплачено — только если объявление уже прошло этап оплаты (статус сменил вебхук оплаты),
+        # а не просто когда для него создавалась ссылка на оплату
+        was_paid = bool(existing and existing.category == "housing" and existing.payment_id
+                        and existing.status != "awaiting_payment")
         l = existing or Listing(app_user_id=me.id, submitter_user_id=me.tg_id)
         photo_id = l.photo_file_id
         board._apply_form(l, form)

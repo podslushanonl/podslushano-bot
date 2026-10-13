@@ -138,6 +138,12 @@ class MarketTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(mine["item"]["form"]["contacts"]["telegram"], "@anna_nl")
         my = await (await self.get("/api/app/market/my", 1)).json()
         self.assertEqual([x["id"] for x in my["items"]], [d["id"]])
+        # фото до публикации: по прямой ссылке не отдаётся, автору — по подписанной
+        self.assertEqual((await self.get(f"/api/app/market/{d['id']}/photo")).status, 404)
+        self.assertIn("?k=", mine["item"]["photo"])
+        self.assertEqual((await self.get(mine["item"]["photo"])).status, 200)
+        other = await self.get(mine["item"]["photo"].replace(f"/{d['id']}/", "/999/"))
+        self.assertEqual(other.status, 404)
 
     async def test_browse_filters_and_photo(self):
         ids = []
@@ -195,6 +201,10 @@ class MarketTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(meta.kwargs["redirect_url"], "https://bot.example/app/market/my")
         again = await (await self.post(f"/api/app/market/{d['id']}/pay", 1)).json()
         self.assertTrue(again["ok"])
+        # правка до оплаты не отправляет объявление на проверку бесплатно
+        edited = await (await self.post("/api/app/market", 1, body | {"id": d["id"], "price": "€700"})).json()
+        self.assertEqual(edited["status"], "awaiting_payment")
+        self.assertEqual(self.bot.messages, [])
 
     async def test_limit_and_report(self):
         with patch.object(market.config, "BOARD_MAX_ACTIVE", 1):
