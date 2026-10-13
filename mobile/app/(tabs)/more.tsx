@@ -16,6 +16,7 @@ const SECTIONS: { title: string; items: [string, string, () => void][] }[] = [
     ['Сравнить медстраховки', 'Цены на 2027 год', () => WebBrowser.openBrowserAsync(goUrl('zorg_compare'))],
   ] },
   { title: 'Сервисы', items: [
+    ['Поезда NS', 'Отправления и сбои на железной дороге', () => router.push('/trains')],
     ['КонтактGuide', 'Русскоязычные специалисты', web('/guide/')],
     ['Работа и жильё', 'Объявления после модерации', web('/work/')],
     ['Погода и камеры', 'Buienradar и живые камеры', web('/live/')],
@@ -47,7 +48,7 @@ function Account() {
     <Card style={{ backgroundColor: C.ink, borderColor: C.ink }}>
       <Eyebrow color="#FFB48E">Мой podslushano</Eyebrow>
       <H size={20}><Text style={{ color: '#fff' }}>Войдите, чтобы сохранять события</Text></H>
-      <Text style={st.darkP}>Избранное, ваш город, а скоро — уведомления о поездах, чаты и объявления. Пароль не нужен.</Text>
+      <Text style={st.darkP}>Избранное, ваш город, чаты и объявления на барахолке. Пароль не нужен.</Text>
       <Button title="Войти или создать аккаунт" onPress={() => router.push('/login')} />
     </Card>
   );
