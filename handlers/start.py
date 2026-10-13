@@ -132,6 +132,11 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from handlers.content import open_content_destination
         if await open_content_destination(message, state, command.args):
             return
+    # QR на задней обложке календаря Nederland 2027 (?start=cal_<номер>)
+    if command.args and command.args.startswith("cal_"):
+        from calendar_shop_runtime import handle_start as calendar_start
+        await calendar_start(message, command.args[4:])
+        return
     # С сайта: «Уведомления в Telegram» о сбоях NS на станции (?start=ns_<код>)
     if command.args and command.args.startswith("ns_"):
         from utils.ns_alerts import start_subscription

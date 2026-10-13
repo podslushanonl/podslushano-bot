@@ -24,6 +24,7 @@ from handlers import anonymous_replies
 import ad_campaign_guide_runtime  # noqa: F401 — связывает €299 с Contact Guide Premium
 import ad_ads_cleanup_runtime  # noqa: F401 — облегчённая /ads + welcome e-mail после подписки
 import ad_contact_guide_web_runtime  # noqa: F401 — Contact Guide: анкета + Mollie прямо на /ads
+import calendar_shop_runtime  # календарь Nederland 2027: заказ на сайте, PDF, подписка и напоминания
 from handlers.ad_sales_pipeline import ad_payment_reconciliation_loop
 from handlers.ai_sales import ad_lead_reminder_loop
 from handlers.selfadd import reminder_loop
@@ -190,6 +191,7 @@ async def main() -> None:
     asyncio.create_task(ad_reminder_loop(bot))
 
     asyncio.create_task(crm_sync_loop(bot))
+    asyncio.create_task(calendar_shop_runtime.calendar_loop(bot))
     asyncio.create_task(instagram_sales_runtime.worker_loop(bot))
     asyncio.create_task(instagram_sales_runtime.payment_reconciliation_loop(bot))
 

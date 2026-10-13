@@ -1075,6 +1075,10 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         from utils.allo_v2 import on_payment
         await on_payment(payment_id, payment)
         return
+    if kind == "calendar":
+        from calendar_shop_runtime import on_payment as on_calendar_payment
+        await on_calendar_payment(bot, payment_id, payment)
+        return
     if kind == "ig_ad_sale":
         from instagram_sales_runtime import on_payment
         await on_payment(bot, payment_id, payment)
