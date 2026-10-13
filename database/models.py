@@ -596,6 +596,8 @@ class Listing(Base):
     city: Mapped[str] = mapped_column(String(100), default="")
     is_nationwide: Mapped[bool] = mapped_column(Boolean, default=False)
     photo_file_id: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Все фото объявления из приложения (JSON-список file_id, первое = photo_file_id); у объявлений из бота — пусто
+    photos: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Контакт автора, который показываем покупателям (@username / телефон / сайт)
     contact: Mapped[str | None] = mapped_column(String(300), nullable=True)
     submitter_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
@@ -945,3 +947,40 @@ class UserBlock(Base):
     user_id: Mapped[int] = mapped_column(Integer, index=True)
     blocked_id: Mapped[int] = mapped_column(Integer)
 
+
+
+class DmConversation(Base):
+    """Личный диалог в приложении между двумя пользователями (обычно по объявлению барахолки)."""
+
+    __tablename__ = "dm_conversations"
+    __table_args__ = (UniqueConstraint("listing_id", "buyer_id", "seller_id", name="uq_dm_pair"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    listing_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    buyer_id: Mapped[int] = mapped_column(Integer, index=True)    # кто начал диалог
+    seller_id: Mapped[int] = mapped_column(Integer, index=True)   # автор объявления
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+    last_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+    )
+    # До какого сообщения каждый участник прочитал (id последнего прочитанного)
+    buyer_read: Mapped[int] = mapped_column(Integer, default=0)
+    seller_read: Mapped[int] = mapped_column(Integer, default=0)
+    # Когда продавцу последний раз уходило напоминание в Telegram (не чаще раза в 10 минут)
+    nudged_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class DmMessage(Base):
+    """Сообщение личного диалога."""
+
+    __tablename__ = "dm_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    conv_id: Mapped[int] = mapped_column(Integer, index=True)
+    sender_id: Mapped[int] = mapped_column(Integer)
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )

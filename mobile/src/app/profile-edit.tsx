@@ -1,0 +1,43 @@
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
+import { saveProfile, useAuth } from '@/api/auth';
+import { CitySheet } from '@/features/common/CitySheet';
+import { Button, Chip, Field, PageScreen, Txt, useToast } from '@/ui';
+
+export default function ProfileEdit() {
+  const { user } = useAuth();
+  const toast = useToast();
+  const [name, setName] = useState(user?.name || '');
+  const [city, setCity] = useState(user?.city || '');
+  const [picker, setPicker] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const save = async () => {
+    setBusy(true); setErr('');
+    try {
+      await saveProfile({ name: name.trim(), city });
+      toast('Сохранено');
+      if (router.canGoBack()) router.back(); else router.replace('/profile');
+    } catch (e: any) { setErr(e?.message || 'Не сохранилось'); } finally { setBusy(false); }
+  };
+  return (
+    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <PageScreen title="Профиль" footer={<Button title="Сохранить" kind="primary" loading={busy} disabled={name.trim().length < 2} onPress={save} />}>
+        <View style={{ gap: 6 }}>
+          <Txt v="title1">{user?.name ? 'Профиль' : 'Как вас зовут?'}</Txt>
+          <Txt v="callout" tone="muted">Имя видят другие участники в чатах, постах и объявлениях. Можно только имя, без фамилии.</Txt>
+        </View>
+        <Field label="Имя" value={name} onChangeText={setName} maxLength={80} placeholder="Анна" autoComplete="given-name" />
+        <View style={{ gap: 8 }}>
+          <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold', marginLeft: 4 }}>Город</Txt>
+          <View style={{ flexDirection: 'row' }}>
+            <Chip title={city || 'Выбрать город'} icon="location" on={!!city} onPress={() => setPicker(true)} />
+          </View>
+        </View>
+        {err ? <Txt v="callout" tone="danger">{err}</Txt> : null}
+      </PageScreen>
+      <CitySheet visible={picker} value={city} onPick={setCity} onClose={() => setPicker(false)} />
+    </KeyboardAvoidingView>
+  );
+}

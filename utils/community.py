@@ -24,6 +24,7 @@ from sqlalchemy import func, select
 import config
 from database.db import get_session
 from database.models import AppUser, ChatMessage, ChatRoom, ContentReport, UserBlock, UserPost
+from utils import realtime
 from utils.app_api import _user
 from utils.site_api import _body, _err, _json
 
@@ -186,6 +187,10 @@ async def messages(request: web.Request) -> web.Response:
             m = ChatMessage(room_id=room.id, user_id=me.id, text=text)
             session.add(m)
             await session.commit()
+            # Сразу всем, у кого этот чат открыт (кроме скрывших автора)
+            hidden_for = set((await session.execute(select(UserBlock.user_id).where(UserBlock.blocked_id == me.id))).scalars())
+            await realtime.push_room(room.slug, {"type": "room", "slug": room.slug, "message": _item(m, {me.id: me}, None)},
+                                     skip_users=hidden_for | {me.id})
             return _json(request, {"ok": True, "message": _item(m, {me.id: me}, me)})
 
         q = select(ChatMessage).where(ChatMessage.room_id == room.id, ChatMessage.deleted.is_(False),

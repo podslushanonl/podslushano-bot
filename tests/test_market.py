@@ -13,7 +13,7 @@ from aiohttp.test_utils import TestClient, TestServer
 from PIL import Image
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from database.models import AppUser, Base, Listing
+from database.models import AppUser, Base, Listing, Meta
 from handlers import board
 from utils import app_api, community, market
 from utils.site_api import make_token
@@ -31,10 +31,15 @@ def jpeg_b64(w=2400, h=1200) -> str:
 class FakeBot:
     def __init__(self):
         self.photos, self.messages, self.deleted = [], [], []
+        self.uploads = 0
 
     async def send_photo(self, chat_id, photo, caption=None, reply_markup=None, **kw):
         self.photos.append((chat_id, photo, caption, reply_markup))
-        return SimpleNamespace(photo=[SimpleNamespace(file_id="small"), SimpleNamespace(file_id="FILE1")],
+        fid = "FILE1"
+        if not isinstance(photo, str):  # загрузка нового фото — каждому свой file_id
+            self.uploads += 1
+            fid = "FILE1" if self.uploads == 1 else f"FILE{self.uploads}"
+        return SimpleNamespace(photo=[SimpleNamespace(file_id="small"), SimpleNamespace(file_id=fid)],
                                chat=SimpleNamespace(id=-100), message_id=len(self.photos))
 
     async def send_message(self, chat_id, text, reply_markup=None, **kw):
@@ -138,6 +143,12 @@ class MarketTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(mine["item"]["form"]["contacts"]["telegram"], "@anna_nl")
         my = await (await self.get("/api/app/market/my", 1)).json()
         self.assertEqual([x["id"] for x in my["items"]], [d["id"]])
+        # фото до публикации: по прямой ссылке не отдаётся, автору — по подписанной
+        self.assertEqual((await self.get(f"/api/app/market/{d['id']}/photo")).status, 404)
+        self.assertIn("?k=", mine["item"]["photo"])
+        self.assertEqual((await self.get(mine["item"]["photo"])).status, 200)
+        other = await self.get(mine["item"]["photo"].replace(f"/{d['id']}/", "/999/"))
+        self.assertEqual(other.status, 404)
 
     async def test_browse_filters_and_photo(self):
         ids = []
@@ -168,6 +179,27 @@ class MarketTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.post(f"/api/app/market/{ids[0]}/close", 1)).status, 200)
         self.assertEqual((await self.get(f"/api/app/market/{ids[0]}", 2)).status, 404)
 
+    async def test_several_photos_keep_and_reorder(self):
+        d = await (await self.post("/api/app/market", 1, GOODS | {"photos": [jpeg_b64(800, 600), jpeg_b64(600, 800)]})).json()
+        await self.approve(d["id"])
+        item = (await (await self.get(f"/api/app/market/{d['id']}", 2)).json())["item"]
+        self.assertEqual(item["photos"], [f"/api/app/market/{d['id']}/photo", f"/api/app/market/{d['id']}/photo?i=1"])
+        self.assertEqual((await self.get(item["photos"][1])).status, 200)
+        self.assertEqual((await self.get(f"/api/app/market/{d['id']}/photo?i=5")).status, 404)
+        # правка: второе фото становится обложкой, первое убираем, добавляем новое
+        await self.post("/api/app/market", 1, GOODS | {"id": d["id"], "photos": ["keep:1", jpeg_b64(500, 500)]})
+        async with self.sessions() as s:
+            l = await s.get(Listing, d["id"])
+        self.assertEqual((l.photo_file_id, market.all_photos(l)), ("FILE2", ["FILE2", "FILE3"]))
+        mine = (await (await self.get(f"/api/app/market/{d['id']}", 1)).json())["item"]
+        self.assertEqual(len(mine["photos"]), 2)
+        self.assertTrue(all("k=" in u for u in mine["photos"]))   # снова на проверке — ссылки только автору
+        self.assertEqual((await self.get(mine["photos"][1])).status, 200)
+        # «photo»: "" от старого клиента убирает все фото
+        await self.post("/api/app/market", 1, GOODS | {"id": d["id"], "photo": ""})
+        async with self.sessions() as s:
+            self.assertEqual(market.all_photos(await s.get(Listing, d["id"])), [])
+
     async def test_validation(self):
         cases = [
             (GOODS | {"contacts": {}}, "контакт"),
@@ -195,6 +227,23 @@ class MarketTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(meta.kwargs["redirect_url"], "https://bot.example/app/market/my")
         again = await (await self.post(f"/api/app/market/{d['id']}/pay", 1)).json()
         self.assertTrue(again["ok"])
+        # правка до оплаты не отправляет объявление на проверку бесплатно
+        edited = await (await self.post("/api/app/market", 1, body | {"id": d["id"], "price": "€700"})).json()
+        self.assertEqual(edited["status"], "awaiting_payment")
+        self.assertEqual(self.bot.messages, [])
+        # снять неоплаченное и снова подать — всё равно нужна оплата
+        await self.post(f"/api/app/market/{d['id']}/close", 1)
+        again2 = await (await self.post("/api/app/market", 1, body | {"id": d["id"]})).json()
+        self.assertEqual(again2["status"], "awaiting_payment")
+        self.assertEqual(self.bot.messages, [])
+        # после успешной оплаты (отметка вебхука) правка не требует новой оплаты
+        async with self.sessions() as s:
+            l = await s.get(Listing, d["id"])
+            l.status = "approved"
+            s.add(Meta(key=f"pay:{l.payment_id}", value="done"))
+            await s.commit()
+        paid = await (await self.post("/api/app/market", 1, body | {"id": d["id"], "price": "€690"})).json()
+        self.assertEqual(paid["status"], "pending")
 
     async def test_limit_and_report(self):
         with patch.object(market.config, "BOARD_MAX_ACTIVE", 1):
