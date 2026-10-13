@@ -17,23 +17,29 @@ from utils import savings
 
 class TextTests(unittest.TestCase):
     def test_quiz_hints(self):
-        h = " ".join(savings.quiz_hints("1111"))
+        h = " ".join(savings.quiz_hints("111111"))
         self.assertIn("бесплатно", h)
         self.assertIn("tandartsverzekering", h)
         self.assertIn("Не берите добровольный", h)
         self.assertIn("restitutiepolis", h)
-        h = " ".join(savings.quiz_hints("0000"))
+        self.assertIn("Физиотерапия, очки", h)
+        self.assertIn("zorgtoeslag", h)
+        self.assertNotIn("лишняя", h)
+        h = " ".join(savings.quiz_hints("000000"))
+        self.assertIn("лишняя", h)
+        self.assertNotIn("zorgtoeslag", h)
         self.assertIn("до €900", h)
         self.assertIn("naturapolis", h)
         self.assertNotIn("Детей", h)
 
     def test_quiz_flow_and_callback_size(self):
         text, kb = savings.question("")
-        self.assertIn("Вопрос 1 из 4", text)
+        self.assertIn("Вопрос 1 из 6", text)
         self.assertEqual(kb.inline_keyboard[0][0].callback_data, "sv:q:1")
-        text, kb = savings.question("101")
-        self.assertIn("Вопрос 4 из 4", text)
-        text, kb = savings.result("1010")
+        text, kb = savings.question("10101")
+        self.assertIn("Вопрос 6 из 6", text)
+        self.assertIn("€43 000", text)
+        text, kb = savings.result("101011")
         self.assertIn("не персональный финансовый совет", text)
         for row in kb.inline_keyboard:
             for b in row:
