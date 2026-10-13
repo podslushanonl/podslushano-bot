@@ -74,11 +74,11 @@ def go_url(key: str, source: str = "bot") -> str:
     return f"{base}/go/{key}?s={source}" if base else (target(key) or SITE_PAGE)
 
 
-PARTNER_NOTE = "\n\n<i>Часть ссылок партнёрские: если вы что-то оформите, мы можем получить вознаграждение. Для вас цена та же.</i>"
+PARTNER_MARK = " · партнёр"   # метка на кнопке с партнёрской ссылкой (требование к рекламе)
 
 
-def _note(keys: list[str]) -> str:
-    return PARTNER_NOTE if any(is_partner(k) for k in keys) else ""
+def label(text: str, key: str) -> str:
+    return text + PARTNER_MARK if is_partner(key) else text
 
 
 # ---------------------------------------------------------------- тексты
@@ -167,7 +167,7 @@ def _kb(rows) -> InlineKeyboardMarkup:
 
 
 def _url(text: str, key: str) -> InlineKeyboardButton:
-    return InlineKeyboardButton(text=text, url=go_url(key))
+    return InlineKeyboardButton(text=label(text, key), url=go_url(key))
 
 
 def _cb(text: str, data: str) -> InlineKeyboardButton:
@@ -186,7 +186,7 @@ def zorg_kb() -> InlineKeyboardMarkup:
 
 def esim_kb() -> InlineKeyboardMarkup:
     keys = ["esim_holafly", "esim_saily", "esim_airalo"]
-    return _kb([[_url(DEFAULT_LINKS[k][0], k) for k in keys], [_cb("⬅️ Назад", "sv:menu")]])
+    return _kb([[_url(DEFAULT_LINKS[k][0], k)] for k in keys] + [[_cb("⬅️ Назад", "sv:menu")]])
 
 
 def question(answers: str) -> tuple[str, InlineKeyboardMarkup]:
@@ -200,7 +200,7 @@ def result(answers: str) -> tuple[str, InlineKeyboardMarkup]:
     hints = "\n".join(f"• {h}" for h in quiz_hints(answers))
     text = (f"<b>На что смотреть вам</b>\n\n{hints}\n\n"
             "Теперь сравните цены на 2027 год и оформите новую страховку до 31 декабря.\n\n"
-            "<i>Это общая информация, а не персональный финансовый совет.</i>" + _note(["zorg_compare", "zorg_toeslag"]))
+            "<i>Это общая информация, а не персональный финансовый совет.</i>")
     return text, _kb([[_url("🔍 Сравнить цены", "zorg_compare")], [_url("💶 Проверить zorgtoeslag", "zorg_toeslag")],
                       [_cb("🔔 Напомнить до 31 декабря", "sv:remind")], [_cb("⬅️ Назад", "sv:zorg")]])
 
@@ -219,7 +219,7 @@ async def open_menu(message: Message, state: FSMContext | None = None) -> None:
 
 async def open_topic(message: Message, topic: str) -> None:
     if topic == "esim":
-        await message.answer(ESIM_TEXT + _note(list(k for k in DEFAULT_LINKS if k.startswith("esim"))),
+        await message.answer(ESIM_TEXT,
                              reply_markup=esim_kb(), disable_web_page_preview=True)
     else:
         await message.answer(ZORG_TEXT, reply_markup=zorg_kb(), disable_web_page_preview=True)
@@ -246,7 +246,7 @@ async def cb_zorg(callback: CallbackQuery) -> None:
 
 @router.callback_query(F.data == "sv:esim")
 async def cb_esim(callback: CallbackQuery) -> None:
-    await _edit(callback, ESIM_TEXT + _note([k for k in DEFAULT_LINKS if k.startswith("esim")]), esim_kb())
+    await _edit(callback, ESIM_TEXT, esim_kb())
     await callback.answer()
 
 
@@ -296,7 +296,7 @@ async def send_due(bot: Bot, today: date | None = None) -> int:
         sent = 0
         for r in rows:
             try:
-                await bot.send_message(r.user_id, REMINDER_TEXT + _note(["zorg_compare"]), reply_markup=_kb([
+                await bot.send_message(r.user_id, REMINDER_TEXT, reply_markup=_kb([
                     [_url("🔍 Сравнить цены", "zorg_compare")], [_cb("🏥 Что выбрать: 6 вопросов", "sv:q:")]]),
                     disable_web_page_preview=True)
                 sent += 1
@@ -366,5 +366,12 @@ async def stats_text(days: int = 30) -> str:
     return "\n".join(lines)
 
 
+async def partners(request: web.Request) -> web.Response:
+    """Для сайта: какие кнопки помечать «партнёр»."""
+    from utils.allo_v2 import _cors
+    return _cors(request, web.json_response({k: is_partner(k) for k in DEFAULT_LINKS}))
+
+
 def install_routes(app: web.Application) -> None:
     app.router.add_get("/go/{key}", go)
+    app.router.add_get("/api/savings/partners", partners)

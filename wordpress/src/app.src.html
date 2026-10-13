@@ -2106,6 +2106,7 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 .sv-c ul{margin:0;padding-left:18px;display:grid;gap:8px;line-height:1.5}
 .sv-c .k{font:700 11.5px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 .sv-act{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.sv-pb{margin-left:8px;padding:2px 7px;border-radius:999px;background:var(--surface-2);color:var(--muted);font:600 11px var(--f-display);letter-spacing:.02em}
 .tr-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .tr-c{padding:18px;border-radius:22px;display:grid;gap:8px;align-content:start;border-left:5px solid var(--line-2)}
 .tr-c.CALAMITY{border-left-color:#B0234A}.tr-c.DISRUPTION{border-left-color:#FF5A1F}.tr-c.MAINTENANCE{border-left-color:#3A7BD5}
@@ -2350,7 +2351,7 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
           <div class="sv-act"><a class="btn btn-soft" data-go="esim_holafly" href="https://esim.holafly.com/" target="_blank" rel="noopener">Holafly</a><a class="btn btn-soft" data-go="esim_saily" href="https://saily.com/" target="_blank" rel="noopener">Saily</a><a class="btn btn-soft" data-go="esim_airalo" href="https://www.airalo.com/" target="_blank" rel="noopener">Airalo</a></div></div>
       </div>
     </div>
-    <p class="hint" style="margin-top:28px">Это общая информация, а не персональный финансовый совет. Часть ссылок может быть партнёрской: если вы что-то оформите, мы можем получить вознаграждение, для вас цена та же.</p>
+    <p class="hint" style="margin-top:28px">Это общая информация, а не персональный финансовый совет.</p>
   </div>
 </section>
 <section class="page" id="p-live" data-title="Погода и камеры">
@@ -3952,7 +3953,8 @@ function pnTrains(){fetch(PN_BOT+'/api/ns/departures?station=UT&limit=5').then(r
   const hw=$('#homeW');if(hw)hw.innerHTML=wSmall()+wTrains(3);const wg=$('#wGal');if(wg)wg.innerHTML=wSmall()+wRain()+wTrains(3)+wLarge()}).catch(()=>{})}
 pnTrains();setInterval(pnTrains,60000);
 
-INIT.save=()=>{$$('#p-save [data-go]').forEach(a=>{a.href=PN_BOT+'/go/'+a.dataset.go+'?s=site'})};
+INIT.save=()=>{$$('#p-save [data-go]').forEach(a=>{a.href=PN_BOT+'/go/'+a.dataset.go+'?s=site'});
+  fetch(PN_BOT+'/api/savings/partners').then(r=>r.json()).then(p=>{$$('#p-save [data-go]').forEach(a=>{if(p[a.dataset.go]&&!a.querySelector('.sv-pb'))a.insertAdjacentHTML('beforeend','<span class="sv-pb">партнёр</span>')})}).catch(()=>{})};
 
 /* ---- pretty URLs (History API) ---- */
 const PN_R2P={home:'/',trains:'/trains/',save:'/save/',news:'/news/',guide:'/guide/',events:'/events/',live:'/live/',allo:'/allowalks/',shop:'/shop/',provinces:'/provinces/',board:'/work/',place:'/place/',cabinet:'/cabinet/',business:'/business/',contact:'/contact/',travel:'/travel/'};
