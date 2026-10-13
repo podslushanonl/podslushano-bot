@@ -1756,6 +1756,8 @@ async def start_webserver(bot) -> web.AppRunner:
     install_savings_routes(app)
     from utils.app_api import install_routes as install_app_routes
     install_app_routes(app)
+    from utils.community import install_routes as install_community_routes
+    install_community_routes(app)
     app.router.add_get("/", _health)
     app.router.add_get("/thanks", _thanks)
     app.router.add_get("/privacy", _privacy)

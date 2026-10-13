@@ -91,6 +91,12 @@ _LISTING_LATER_COLUMNS = {
     "intent": "VARCHAR(20)",
 }
 
+# Аккаунты приложения: правила сообщества и бан (чаты, посты)
+_APP_USER_LATER_COLUMNS = {
+    "rules_at": "DATETIME",
+    "banned_until": "DATETIME",
+}
+
 
 async def init_db() -> None:
     """Создаёт таблицы, добавляет недостающие колонки и засевает специалистов."""
@@ -230,6 +236,18 @@ async def _migrate() -> None:
                     await conn.exec_driver_sql(
                         f"ALTER TABLE listings ADD COLUMN {name} {ddl}"
                     )
+
+        def app_user_cols(sync_conn):
+            insp = inspect(sync_conn)
+            if "app_users" not in insp.get_table_names():
+                return None
+            return {c["name"] for c in insp.get_columns("app_users")}
+
+        au_cols = await conn.run_sync(app_user_cols)
+        if au_cols is not None:
+            for name, ddl in _APP_USER_LATER_COLUMNS.items():
+                if name not in au_cols:
+                    await conn.exec_driver_sql(f"ALTER TABLE app_users ADD COLUMN {name} {ddl}")
 
         def allo_sale_cols(sync_conn):
             insp = inspect(sync_conn)

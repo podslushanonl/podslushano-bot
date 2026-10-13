@@ -835,6 +835,8 @@ class AppUser(Base):
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
     )
     last_seen: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    rules_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)      # принял правила сообщества
+    banned_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)  # бан в чатах и постах
 
 
 class AppLogin(Base):
@@ -867,3 +869,75 @@ class AppFavorite(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
     )
+
+
+class ChatRoom(Base):
+    """Комната чата приложения: город или тема (страна — на будущее: Германия, Бельгия)."""
+
+    __tablename__ = "chat_rooms"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    slug: Mapped[str] = mapped_column(String(40), unique=True)
+    title: Mapped[str] = mapped_column(String(80))
+    kind: Mapped[str] = mapped_column(String(10), default="city")   # city | topic
+    country: Mapped[str] = mapped_column(String(2), default="NL")
+    sort: Mapped[int] = mapped_column(Integer, default=0)
+    active: Mapped[bool] = mapped_column(Boolean, default=True)
+
+
+class ChatMessage(Base):
+    """Сообщение в комнате чата."""
+
+    __tablename__ = "chat_messages"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    room_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+    )
+    deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class UserPost(Base):
+    """Пост пользователя в ленте приложения."""
+
+    __tablename__ = "user_posts"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    text: Mapped[str] = mapped_column(Text)
+    city: Mapped[str] = mapped_column(String(80), default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+    )
+    deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class ContentReport(Base):
+    """Жалоба на сообщение чата или пост; уходит модераторам в Telegram."""
+
+    __tablename__ = "content_reports"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    kind: Mapped[str] = mapped_column(String(10))       # msg | post
+    target_id: Mapped[int] = mapped_column(Integer, index=True)
+    reporter_id: Mapped[int] = mapped_column(Integer)
+    reason: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+    resolved: Mapped[str] = mapped_column(String(20), default="")   # "" | deleted | kept | banned
+
+
+class UserBlock(Base):
+    """Пользователь скрыл автора: его сообщения и посты больше не показываются."""
+
+    __tablename__ = "user_blocks"
+    __table_args__ = (UniqueConstraint("user_id", "blocked_id", name="uq_user_block"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    blocked_id: Mapped[int] = mapped_column(Integer)
+
