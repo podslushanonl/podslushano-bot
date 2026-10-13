@@ -34,7 +34,7 @@ from sqlalchemy import func, or_, select
 
 import config
 from database.db import get_session
-from database.models import AppUser, Listing
+from database.models import AppUser, Listing, Meta
 from handlers import board
 from utils.app_api import _user
 from utils.community import _rate, can_write, check_text
@@ -373,10 +373,11 @@ async def submit(request: web.Request) -> web.Response:
             plan = [jpeg]
         elif data.get("photo") != "":
             plan = list(old_ids)
-        # Оплачено — только если объявление уже прошло этап оплаты (статус сменил вебхук оплаты),
-        # а не просто когда для него создавалась ссылка на оплату
-        was_paid = bool(existing and existing.category == "housing" and existing.payment_id
-                        and existing.status != "awaiting_payment")
+        # Оплачено — только если вебхук оплаты отметил этот платёж успешным (Meta pay:<id> = done),
+        # а не когда для объявления просто создавали ссылку на оплату или меняли статус
+        paid_mark = (await session.get(Meta, f"pay:{existing.payment_id}")
+                     if existing and existing.category == "housing" and existing.payment_id else None)
+        was_paid = bool(paid_mark and paid_mark.value == "done")
         l = existing or Listing(app_user_id=me.id, submitter_user_id=me.tg_id)
         board._apply_form(l, form)
         l.expires_at = l.bumped_at = None

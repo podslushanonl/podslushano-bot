@@ -13,7 +13,7 @@ from aiohttp.test_utils import TestClient, TestServer
 from PIL import Image
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from database.models import AppUser, Base, Listing
+from database.models import AppUser, Base, Listing, Meta
 from handlers import board
 from utils import app_api, community, market
 from utils.site_api import make_token
@@ -231,6 +231,19 @@ class MarketTests(unittest.IsolatedAsyncioTestCase):
         edited = await (await self.post("/api/app/market", 1, body | {"id": d["id"], "price": "€700"})).json()
         self.assertEqual(edited["status"], "awaiting_payment")
         self.assertEqual(self.bot.messages, [])
+        # снять неоплаченное и снова подать — всё равно нужна оплата
+        await self.post(f"/api/app/market/{d['id']}/close", 1)
+        again2 = await (await self.post("/api/app/market", 1, body | {"id": d["id"]})).json()
+        self.assertEqual(again2["status"], "awaiting_payment")
+        self.assertEqual(self.bot.messages, [])
+        # после успешной оплаты (отметка вебхука) правка не требует новой оплаты
+        async with self.sessions() as s:
+            l = await s.get(Listing, d["id"])
+            l.status = "approved"
+            s.add(Meta(key=f"pay:{l.payment_id}", value="done"))
+            await s.commit()
+        paid = await (await self.post("/api/app/market", 1, body | {"id": d["id"], "price": "€690"})).json()
+        self.assertEqual(paid["status"], "pending")
 
     async def test_limit_and_report(self):
         with patch.object(market.config, "BOARD_MAX_ACTIVE", 1):
