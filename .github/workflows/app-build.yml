@@ -1,0 +1,35 @@
+# Сборка мобильного приложения podslushano в Expo (EAS) — запускается вручную:
+# GitHub → Actions → «App build» → Run workflow. Нужен секрет репозитория EXPO_TOKEN.
+name: App build
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "android | ios | all"
+        default: android
+        required: true
+      profile:
+        description: "preview (тестовая версия по ссылке) | production (для магазинов)"
+        default: preview
+        required: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+      - run: eas build --platform ${{ inputs.platform }} --profile ${{ inputs.profile }} --non-interactive --no-wait

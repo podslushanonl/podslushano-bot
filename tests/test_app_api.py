@@ -65,6 +65,15 @@ class AppApiTests(unittest.IsolatedAsyncioTestCase):
         r = await self.client.post("/api/app/auth/verify", json={"email": "b@example.com", "code": code})
         self.assertEqual(r.status, 429)
 
+    async def test_parallel_wrong_codes_cannot_bypass_limit(self):
+        import asyncio
+        code = await self._code("c@example.com")
+        wrong = "123456" if code != "123456" else "654321"
+        await asyncio.gather(*[self.client.post("/api/app/auth/verify", json={"email": "c@example.com", "code": wrong})
+                               for _ in range(20)])
+        r = await self.client.post("/api/app/auth/verify", json={"email": "c@example.com", "code": code})
+        self.assertEqual(r.status, 429)
+
     async def test_telegram_login_and_profile(self):
         start = await (await self.client.post("/api/app/auth/tg")).json()
         self.assertIn("applogin_" + start["nonce"], start["url"])
