@@ -8,6 +8,7 @@ import { C } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { Msg, block, messages, removeOwn, report, routeForError, sendMessage, timeLabel } from '@/lib/community';
 
+const PAGE = 50; // столько последних сообщений сервер отдаёт без after/before
 const POLL_MS = 4000;
 
 export default function ChatRoom() {
@@ -32,11 +33,22 @@ export default function ChatRoom() {
     setTimeout(() => listRef.current?.scrollToEnd({ animated: true }), 50);
   };
 
+  const polls = useRef(0);
   const poll = useCallback(async () => {
     try {
-      const d = await messages(String(slug), last.current || undefined);
-      if (!last.current) setList([]);
-      merge(d.messages);
+      // Каждый 5-й опрос (≈20 с) — полная сверка: так пропадают сообщения, скрытые модератором
+      const full = !last.current || polls.current++ % 5 === 4;
+      const d = await messages(String(slug), full ? undefined : last.current);
+      if (full) {
+        last.current = Math.max(last.current, 0, ...d.messages.map((m) => m.id));
+        setList((cur) => {
+          // Сервер отдаёт последние PAGE сообщений. Если пришло меньше — это все видимые,
+          // старше окна ничего не осталось (в том числе когда пришёл пустой список)
+          const oldest = d.messages.length >= PAGE ? d.messages[0].id : -Infinity;
+          const keep = (cur || []).filter((m) => m.id < oldest); // старше загруженного окна не трогаем
+          return [...keep, ...d.messages];
+        });
+      } else merge(d.messages);
     } catch { setList((cur) => cur || []); }
   }, [slug]);
 

@@ -897,7 +897,8 @@ class ChatMessage(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
     )
-    deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted: Mapped[bool] = mapped_column(Boolean, default=False)   # удалил сам автор
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False)    # скрыто модерацией / жалобами
 
 
 class UserPost(Base):
@@ -912,7 +913,8 @@ class UserPost(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
     )
-    deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    deleted: Mapped[bool] = mapped_column(Boolean, default=False)   # удалил сам автор
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False)    # скрыто модерацией / жалобами
 
 
 class ContentReport(Base):

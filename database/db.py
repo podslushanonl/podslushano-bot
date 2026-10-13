@@ -92,6 +92,8 @@ _LISTING_LATER_COLUMNS = {
 }
 
 # Аккаунты приложения: правила сообщества и бан (чаты, посты)
+_HIDDEN_LATER_TABLES = ("chat_messages", "user_posts")   # колонка hidden (модерация) появилась позже
+
 _APP_USER_LATER_COLUMNS = {
     "rules_at": "DATETIME",
     "banned_until": "DATETIME",
@@ -242,6 +244,24 @@ async def _migrate() -> None:
             if "app_users" not in insp.get_table_names():
                 return None
             return {c["name"] for c in insp.get_columns("app_users")}
+
+        for table in _HIDDEN_LATER_TABLES:
+            def tcols(sync_conn, t=table):
+                insp = inspect(sync_conn)
+                return {c["name"] for c in insp.get_columns(t)} if t in insp.get_table_names() else None
+
+            cols = await conn.run_sync(tcols)
+            if cols is not None and "hidden" not in cols:
+                await conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN hidden BOOLEAN DEFAULT 0")
+                # Раньше автоскрытие по жалобам ставило deleted=1. Такие записи (3+ разных жалобы
+                # без решения модератора) переносим в hidden, чтобы «Оставить» могло их вернуть.
+                if await conn.run_sync(lambda c: "content_reports" in inspect(c).get_table_names()):
+                    kind = "msg" if table == "chat_messages" else "post"
+                    await conn.exec_driver_sql(
+                        f"UPDATE {table} SET hidden = 1, deleted = 0 WHERE deleted = 1 AND ("
+                        f"SELECT COUNT(DISTINCT reporter_id) FROM content_reports r "
+                        f"WHERE r.kind = '{kind}' AND r.target_id = {table}.id AND r.resolved = '') >= 3"
+                    )
 
         au_cols = await conn.run_sync(app_user_cols)
         if au_cols is not None:
