@@ -49,14 +49,16 @@ class TextTests(unittest.TestCase):
         with patch.dict(os.environ, {"SAVINGS_LINKS": ""}):
             self.assertFalse(savings.is_partner("zorg_compare"))
             self.assertEqual(savings.target("zorg_compare"), "https://www.zorgwijzer.nl/")
-            self.assertEqual(savings._note(["zorg_compare"]), "")
+            self.assertEqual(savings.label("Сравнить", "zorg_compare"), "Сравнить")
         with patch.dict(os.environ, {"SAVINGS_LINKS": '{"zorg_compare": "https://p.example/x", "bad": "https://e", '
                                                        '"esim_saily": "http://insecure"}'}):
             self.assertTrue(savings.is_partner("zorg_compare"))
             self.assertEqual(savings.target("zorg_compare"), "https://p.example/x")
             self.assertFalse(savings.is_partner("esim_saily"))
             self.assertIsNone(savings.target("bad"))
-            self.assertIn("партнёрские", savings._note(["zorg_compare"]))
+            self.assertEqual(savings.label("Сравнить", "zorg_compare"), "Сравнить · партнёр")
+            self.assertEqual(savings.zorg_kb().inline_keyboard[1][0].text, "🔍 Сравнить цены · партнёр")
+            self.assertNotIn("партнёр", savings.ESIM_TEXT + savings.result("000000")[0])
         with patch.dict(os.environ, {"SAVINGS_LINKS": "{oops"}):
             self.assertEqual(savings.target("esim_saily"), "https://saily.com/")
 
@@ -103,6 +105,17 @@ class DbTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([(r.key, r.source) for r in rows], [("esim_saily", "igscript")])
         text = await savings.stats_text()
         self.assertIn("Saily: <b>1</b>", text)
+
+
+
+class PartnersApiTests(unittest.IsolatedAsyncioTestCase):
+    async def test_partners_flags(self):
+        import json
+        with patch.dict(os.environ, {"SAVINGS_LINKS": '{"esim_saily": "https://p.example/s"}'}):
+            resp = await savings.partners(SimpleNamespace(headers={}))
+        data = json.loads(resp.body)
+        self.assertTrue(data["esim_saily"])
+        self.assertFalse(data["zorg_compare"])
 
 
 if __name__ == "__main__":
