@@ -15,6 +15,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends ffmpeg \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Chromium для печатного PDF календаря (calendar_print): ставим браузер и системные библиотеки
+RUN python -m playwright install --with-deps chromium
+
 # Затем код
 COPY . .
 
