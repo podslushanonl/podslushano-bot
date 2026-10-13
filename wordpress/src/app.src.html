@@ -2229,6 +2229,7 @@ html.hw .hw-bat{color:#05030A}
 .hw-st p.story{text-align:left;font-size:16px;line-height:1.6;color:var(--ink-2)}
 .hw-st .hw-dots{justify-content:center;margin:18px 0 4px}
 .hw-st .hw-dots i{background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)}
+.hw-st .btn[disabled]{opacity:.5;pointer-events:none}
 .hw-st .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
 .hw-st img.card9{width:min(100%,320px);border-radius:20px;box-shadow:var(--e3);margin:6px auto 0;display:block}
 .hw-hints{display:grid;gap:8px;text-align:left;margin-top:12px}
@@ -2236,6 +2237,7 @@ html.hw .hw-bat{color:#05030A}
 .hw-hints svg{width:28px;flex:none}
 .hw-hints div.no svg{filter:grayscale(1);opacity:.35}
 .hw-hints small{display:block;color:var(--muted)}
+.hw-roll.still{animation:none;left:16px}.hw-roll.still svg{animation:none}
 @media (max-width:900px){.hw-roll{bottom:calc(92px + env(safe-area-inset-bottom,0px))}html.hw .hw-sky .moon{top:64px;right:-22px;width:84px;opacity:.75}}
 @media (prefers-reduced-motion:reduce){.hw-b .pks svg,.hw-pk,.hw-spider svg,.hw-flame{animation:none}}
 </style>
@@ -4253,6 +4255,7 @@ ENTER.cabinet=async()=>{const q=new URLSearchParams(location.search);const t=q.g
   const qp=new URLSearchParams(location.search).get('halloween');
   if(qp!=null)ss.set('hw',qp==='0'?'0':'1');
   const preview=ss.get('hw')==='1';
+  if(ss.get('hw')==='0')return;
   const mode=preview||md==='10-31'?'live':md>='10-01'&&md<'10-31'?'teaser':'';
   const B=$('#hwBanner');
   if(!mode||!B)return;
@@ -4332,10 +4335,11 @@ ENTER.cabinet=async()=>{const q=new URLSearchParams(location.search);const t=q.g
   async function card(){
     const share=`Охота на тыкв на podslushano.nl: 7 из 7 за ${mmss(st.t1-st.t0)} 🎃 Сможете быстрее?`;
     openSheet(`<div class="hw-st"><h2 id="shTitle">Все 7 тыкв найдены</h2><p class="muted">Ваше время: ${mmss(st.t1-st.t0)}. Поделитесь карточкой в сторис или отправьте друзьям.</p><div id="hwCard" style="min-height:120px;display:grid;place-items:center"><span class="muted">Рисуем карточку…</span></div>
-      <div class="acts"><button class="btn btn-acc" data-hw="share">Поделиться</button><button class="btn btn-soft" data-hw="save">Сохранить картинку</button></div></div>`);
+      <div class="acts"><button class="btn btn-acc" data-hw="share" disabled>Поделиться</button><button class="btn btn-soft" data-hw="save" disabled>Сохранить картинку</button></div></div>`);
     const blob=await cardBlob();const url=blob?URL.createObjectURL(blob):'';
     const box=$('#hwCard');if(box)box.innerHTML=url?`<img class="card9" src="${url}" alt="Карточка: 7 из 7 тыкв на podslushano.nl">`:'';
     card.blob=blob;card.url=url;card.text=share;
+    $$('#sheet [data-hw=share],#sheet [data-hw=save]').forEach(b=>{b.disabled=b.dataset.hw==='save'&&!url});
   }
   async function doShare(){
     const site='https://www.podslushano.nl/';const t=card.text||'Охота на тыкв на podslushano.nl 🎃';
@@ -4363,11 +4367,12 @@ ENTER.cabinet=async()=>{const q=new URLSearchParams(location.search);const t=q.g
     const b=document.createElement('button');b.type='button';b.className='hw-pk';b.setAttribute('aria-label','Тыква с историей');b.innerHTML=pk();
     b.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();found(p,b)});h.appendChild(b);
   });
-  if(RM)return;
   const fiets=PK.find(p=>p.roll);
   const roll=()=>{if(st.f.includes(fiets.id)||document.hidden||$('.hw-roll'))return;
-    const b=document.createElement('button');b.type='button';b.className='hw-pk hw-roll';b.setAttribute('aria-label','Катящаяся тыква с историей');b.innerHTML=pk();
+    const b=document.createElement('button');b.type='button';b.className='hw-pk hw-roll'+(RM?' still':'');b.setAttribute('aria-label','Катящаяся тыква с историей');b.innerHTML=pk();
     b.addEventListener('click',()=>{b.style.animationPlayState='paused';found(fiets,b)});b.addEventListener('animationend',ev=>{if(ev.target===b)b.remove()});document.body.appendChild(b)};
+  // без анимаций седьмая тыква просто стоит в углу экрана, чтобы её всё равно можно было найти
+  if(RM){roll();return}
   setTimeout(roll,9000);setInterval(roll,27000);
   const bats=()=>{if(document.hidden)return;for(let i=0;i<2+Math.round(Math.random());i++){const d=document.createElement('span');d.className='hw-bat';d.innerHTML='<svg viewBox="0 0 64 30"><use href="#hw-bat"/></svg>';
     d.style.setProperty('--y0',(8+Math.random()*30)+'vh');d.style.setProperty('--y1',(4+Math.random()*30)+'vh');d.style.animationDelay=(i*.6)+'s';d.style.width=(30+Math.random()*24)+'px';
