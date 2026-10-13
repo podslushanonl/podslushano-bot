@@ -2126,6 +2126,120 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 .tr-c p{font-size:14.5px;color:var(--ink-2);line-height:1.5}
 .tr-c .meta{display:flex;flex-wrap:wrap;gap:6px}
 .tr-ok{padding:22px;border-radius:22px;display:flex;gap:12px;align-items:center;font-weight:600}
+/* ---------- Хэллоуин: тизер до 31 октября, тема в сам день (по времени Amsterdam) ---------- */
+.hw-b{position:relative;overflow:hidden;margin-top:18px;border-radius:var(--r-l);padding:clamp(22px,3.4vw,36px);color:#F6EEE4;background:radial-gradient(120% 140% at 85% 10%,#3A1D52 0%,#1E1030 45%,#120A1C 100%);box-shadow:0 24px 60px -28px rgba(40,10,60,.65);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:18px 28px;align-items:center;isolation:isolate}
+.hw-b[hidden]{display:none}
+.hw-b::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(1.5px 1.5px at 12% 22%,#fff8 50%,transparent),radial-gradient(1.5px 1.5px at 32% 70%,#fff6 50%,transparent),radial-gradient(1px 1px at 48% 18%,#fff9 50%,transparent),radial-gradient(1.5px 1.5px at 62% 82%,#fff5 50%,transparent),radial-gradient(1px 1px at 72% 34%,#fff8 50%,transparent),radial-gradient(1px 1px at 22% 88%,#fff6 50%,transparent)}
+.hw-b .moon{position:absolute;right:clamp(-30px,-2vw,-10px);top:-60px;width:190px;height:190px;border-radius:50%;background:radial-gradient(circle at 38% 38%,#FFF6DA,#F4D894 60%,#E2B864);box-shadow:0 0 80px 20px rgba(255,214,120,.18);opacity:.9;z-index:-1}
+.hw-b .moon::after{content:"";position:absolute;width:26px;height:26px;border-radius:50%;left:46%;top:56%;background:rgba(200,150,70,.25);box-shadow:-48px -30px 0 -6px rgba(200,150,70,.2),30px -54px 0 -9px rgba(200,150,70,.2)}
+.hw-b .eyebrow{color:#FFB48E}
+.hw-b h2{font-size:clamp(24px,3.4vw,36px);line-height:1.08;margin:8px 0 10px;color:#fff;max-width:20ch}
+.hw-b p{color:#D9CDE3;max-width:56ch}
+.hw-b .acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px;align-items:center}
+.hw-b .btn-soft{background:rgba(255,255,255,.1);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.16)}
+.hw-b .cnt{font:600 13px var(--f-mono);color:#FFD79A;letter-spacing:.04em}
+.hw-b .pks{display:flex;align-items:flex-end;gap:2px;padding-right:clamp(0px,3vw,40px)}
+.hw-b .pks svg{width:clamp(56px,7vw,86px);height:auto;filter:drop-shadow(0 10px 18px rgba(255,120,30,.35));transform-origin:50% 100%;animation:hwBob 3.6s ease-in-out infinite}
+.hw-b .pks svg:nth-child(1){width:clamp(40px,5vw,60px);animation-delay:-1.2s}
+.hw-b .pks svg:nth-child(3){width:clamp(46px,5.6vw,68px);animation-delay:-2.3s}
+.hw-dots{display:flex;gap:6px;margin-top:14px}
+.hw-dots i{width:22px;height:22px;border-radius:50%;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.18);display:grid;place-items:center}
+.hw-dots i.on{background:#FF7A1A;box-shadow:0 0 14px rgba(255,122,26,.7)}
+.hw-dots i.on::after{content:"";width:8px;height:8px;border-radius:50%;background:#FFE29A}
+@keyframes hwBob{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-6px) rotate(3deg)}}
+@media (max-width:700px){.hw-b{grid-template-columns:minmax(0,1fr)}.hw-b .pks{justify-content:flex-end;margin-top:-6px;padding-right:0}.hw-b .pks svg{width:52px}.hw-b .pks svg:nth-child(1),.hw-b .pks svg:nth-child(3){width:38px}.hw-b .moon{width:120px;height:120px;top:-40px}}
+
+/* Тема дня: ночь, луна, летучие мыши. Карточки остаются светлыми «плашками», текст на ночном фоне — светлый */
+html.hw{color-scheme:light}
+html.hw body{background:#140D1E}
+html.hw .hw-sky{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(70% 50% at 80% 0%,#3B1E58 0%,transparent 70%),radial-gradient(60% 40% at 0% 100%,#3A1A12 0%,transparent 70%),linear-gradient(#170F24,#120B1B 60%,#160D14)}
+html.hw .hw-sky::before{content:"";position:absolute;inset:0;background:radial-gradient(1.5px 1.5px at 8% 12%,#fff9 50%,transparent),radial-gradient(1px 1px at 18% 40%,#fff7 50%,transparent),radial-gradient(1.5px 1.5px at 28% 8%,#fff8 50%,transparent),radial-gradient(1px 1px at 42% 30%,#fff6 50%,transparent),radial-gradient(1.5px 1.5px at 56% 14%,#fff9 50%,transparent),radial-gradient(1px 1px at 66% 46%,#fff5 50%,transparent),radial-gradient(1px 1px at 90% 34%,#fff7 50%,transparent),radial-gradient(1.5px 1.5px at 36% 62%,#fff5 50%,transparent),radial-gradient(1px 1px at 76% 70%,#fff5 50%,transparent),radial-gradient(1px 1px at 12% 78%,#fff4 50%,transparent)}
+html.hw .hw-sky .moon{position:absolute;right:6vw;top:110px;width:clamp(70px,9vw,120px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 38% 38%,#FFF6DA,#F1D28C 62%,#DDB060);box-shadow:0 0 90px 30px rgba(255,214,120,.14)}
+html.hw .hw-sky .fog{position:absolute;left:0;right:0;bottom:0;height:34vh;background:linear-gradient(transparent,rgba(120,90,150,.16))}
+html.hw{--bg:#140D1E;--glass:rgba(255,251,247,.94);--glass-2:rgba(255,251,247,.97);--glass-brd:rgba(255,255,255,.9)}
+html.hw .mesh{display:none}
+html.hw .hdr{background:rgba(255,251,247,.9)!important;border-color:rgba(255,140,60,.25)!important;box-shadow:0 10px 30px -18px rgba(0,0,0,.6)}
+html.hw .nav{background:rgba(255,251,247,.92)}
+html.hw .hx h1,html.hw .hx-top{color:#FFF6EC}
+html.hw .hx h1 em{text-shadow:0 0 28px rgba(255,110,30,.55)}
+html.hw .hx .lead,html.hw .hx-q span{color:#D2C5DE}
+html.hw .scrim{background:rgba(10,6,16,.5)}
+html.hw .hx-q button,html.hw .hx-top .hxlive,html.hw .hsearch,html.hw .searchbar{background:rgba(255,251,247,.94)}
+html.hw .tabbar{background:rgba(255,251,247,.92)!important}
+html.hw .evc h3,html.hw .pst h3{color:#FFF6EC}
+html.hw .evc .s2,html.hw .evc .ev-meta,html.hw .evc .price,html.hw .pst p{color:#C9BCD6}
+html.hw footer.site{background:rgba(255,251,247,.96)}
+html.hw .sec-h h2,html.hw .allo-hero h1,html.hw .crumbs span:last-child{color:#FFF6EC}
+html.hw .sec-h p,html.hw .allo-hero>div>p,html.hw .allo-hero h1 span,html.hw .allo-head span,html.hw .crumbs,html.hw .flow-nav,html.hw .flow-nav span,html.hw .allo-hero p:not([class*=btn]),html.hw #gcStage>p{color:#C9BCD6}
+html.hw .seg{background:rgba(255,251,247,.9)}
+html.hw .rd{--ink:#FFF6EC;--ink-2:#E6DCEE;--muted:#B9AACB;--accent-deep:#FF8A50;color:var(--ink)}
+html.hw .sh5 h2,html.hw .phead h1{color:#FFF6EC}
+html.hw .sh5 p,html.hw .phead p{color:#C9BCD6}
+html.hw .page>.wrap>.sec>h2,html.hw .sec>.sh5 .muted{color:#C9BCD6}
+html.hw .btn-soft{box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+html.hw .card{box-shadow:0 0 0 1px rgba(255,140,60,.10),0 18px 40px -18px rgba(0,0,0,.6)}
+html.hw ::selection{background:#FF7A1A;color:#140D1E}
+
+/* Тыквы охоты: сидят на заголовках разделов, мерцают изнутри */
+.hw-pk{display:inline-block;width:.95em;height:.95em;margin-left:.22em;vertical-align:-.08em;cursor:pointer;transform-origin:50% 90%;animation:hwWig 5s ease-in-out infinite;-webkit-tap-highlight-color:transparent;position:relative}
+.hw-pk svg{width:100%;height:100%;display:block;overflow:visible;filter:drop-shadow(0 4px 10px rgba(255,120,30,.45))}
+.hw-pk:hover{animation:hwJump .6s var(--spring)}
+.hw-pk.got{animation:hwGot .7s var(--ease) forwards;pointer-events:none}
+@keyframes hwWig{0%,86%,100%{transform:rotate(0)}89%{transform:rotate(-9deg)}93%{transform:rotate(8deg)}97%{transform:rotate(-4deg)}}
+@keyframes hwJump{40%{transform:translateY(-22%) scale(1.08)}}
+@keyframes hwGot{30%{transform:scale(1.4) rotate(-10deg);opacity:1}100%{transform:translateY(-140%) scale(.4) rotate(30deg);opacity:0}}
+.hw-flame{animation:hwFl 2.4s steps(2) infinite}
+@keyframes hwFl{0%,100%{opacity:1}50%{opacity:.75}}
+
+/* Катящаяся тыква, призрак, летучие мыши, паук */
+.hw-roll{position:fixed;left:0;bottom:calc(24px + env(safe-area-inset-bottom,0px));z-index:70;width:54px;height:54px;padding:0;animation:hwRoll 8s linear forwards}
+.hw-roll svg{width:100%;height:100%;animation:hwSpin 1.6s linear infinite}
+@keyframes hwRoll{from{transform:translateX(-70px)}to{transform:translateX(calc(100vw + 20px))}}
+@keyframes hwSpin{to{transform:rotate(360deg)}}
+.hw-ghost{position:fixed;z-index:44;top:30vh;left:0;width:64px;height:78px;padding:0;opacity:.0;animation:hwGh 16s ease-in-out forwards}
+.hw-ghost svg{width:100%;height:100%;animation:hwFloat 2.4s ease-in-out infinite}
+@keyframes hwGh{0%{transform:translateX(-80px);opacity:0}10%{opacity:.92}50%{transform:translateX(50vw) translateY(-6vh)}90%{opacity:.92}100%{transform:translateX(calc(100vw + 40px)) translateY(4vh);opacity:0}}
+@keyframes hwFloat{50%{transform:translateY(-10px)}}
+.hw-bat{position:fixed;z-index:43;top:0;left:0;width:46px;pointer-events:none;color:#0B0710;animation:hwBat 9s linear forwards}
+html.hw .hw-bat{color:#05030A}
+.hw-bat svg{width:100%;height:auto;animation:hwFlap .22s ease-in-out infinite alternate;transform-origin:50% 40%}
+@keyframes hwBat{from{transform:translate(-60px,var(--y0))}35%{transform:translate(35vw,var(--y1))}70%{transform:translate(68vw,var(--y0))}to{transform:translate(calc(100vw + 60px),var(--y1))}}
+@keyframes hwFlap{to{transform:scaleY(.45)}}
+.hw-spider{position:fixed;z-index:49;top:0;right:clamp(18px,8vw,120px);width:34px;padding:0;transform:translateY(-120%);transition:transform 1.6s var(--ease)}
+.hw-spider.on{transform:translateY(var(--dy,120px))}
+.hw-spider::before{content:"";position:absolute;left:50%;bottom:70%;width:1px;height:100vh;background:rgba(230,220,240,.55)}
+.hw-spider svg{width:100%;height:auto;display:block;animation:hwSway 3s ease-in-out infinite;transform-origin:50% 0}
+@keyframes hwSway{50%{transform:rotate(6deg)}}
+
+/* Заставка при первом входе в день Хэллоуина */
+.hw-intro{position:fixed;inset:0;z-index:200;display:grid;place-items:center;background:radial-gradient(80% 60% at 50% 40%,#2B153F,#0E0816 70%);color:#fff;text-align:center;transition:opacity .7s var(--ease),visibility .7s;cursor:pointer}
+.hw-intro.off{opacity:0;visibility:hidden}
+.hw-intro .pk{width:min(38vw,190px);margin:0 auto 18px;animation:hwIn 1.4s var(--spring) both}
+.hw-intro .pk .hw-face{animation:hwLit 1.8s .5s both}
+.hw-intro b{display:block;font:600 clamp(26px,5vw,44px)/1.1 var(--f-display);letter-spacing:-.02em;animation:stin .9s .5s var(--ease) both}
+.hw-intro span{display:block;margin-top:10px;color:#CBBBD9;animation:stin .9s .7s var(--ease) both}
+@keyframes hwIn{from{transform:scale(.3) rotate(-25deg);opacity:0}}
+@keyframes hwLit{0%{opacity:0}30%{opacity:1}40%{opacity:.3}55%{opacity:1}65%{opacity:.6}100%{opacity:1}}
+
+/* Окно истории и итоговая карточка */
+.hw-st{text-align:center;padding-top:6px}
+.hw-st .big{display:block;width:96px;margin:0 auto 6px;filter:drop-shadow(0 12px 22px rgba(255,120,30,.35))}
+.hw-st .eyebrow{display:flex;justify-content:center}
+.hw-st h2{font-size:26px;margin:6px 0 12px}
+.hw-st p.story{text-align:left;font-size:16px;line-height:1.6;color:var(--ink-2)}
+.hw-st .hw-dots{justify-content:center;margin:18px 0 4px}
+.hw-st .hw-dots i{background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)}
+.hw-st .btn[disabled]{opacity:.5;pointer-events:none}
+.hw-st .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+.hw-st img.card9{width:min(100%,320px);border-radius:20px;box-shadow:var(--e3);margin:6px auto 0;display:block}
+.hw-hints{display:grid;gap:8px;text-align:left;margin-top:12px}
+.hw-hints div{display:flex;gap:12px;align-items:center;padding:12px 14px;border-radius:16px;background:var(--surface-2)}
+.hw-hints svg{width:28px;flex:none}
+.hw-hints div.no svg{filter:grayscale(1);opacity:.35}
+.hw-hints small{display:block;color:var(--muted)}
+.hw-roll.still{animation:none;left:16px}.hw-roll.still svg{animation:none}
+@media (max-width:900px){.hw-roll{bottom:calc(92px + env(safe-area-inset-bottom,0px))}html.hw .hw-sky .moon{top:64px;right:-22px;width:84px;opacity:.75}}
+@media (prefers-reduced-motion:reduce){.hw-b .pks svg,.hw-pk,.hw-spider svg,.hw-flame{animation:none}}
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
@@ -2227,6 +2341,12 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
   <div class="wrap">
     <div id="hxRoot"></div>
     <div class="tick5 st" style="--i:5" id="tick5" aria-label="Сегодня в Нидерландах"></div>
+    <div class="hw-b st" style="--i:6" id="hwBanner" hidden aria-live="polite"><span class="moon" aria-hidden="true"></span>
+      <div><span class="eyebrow" id="hwEye">31 октября · Хэллоуин</span><h2 id="hwH">31 октября podslushano.nl превратится в тыкву</h2><p id="hwP">В Хэллоуин по разделам сайта спрячутся 7 тыкв, и в каждой — страшилка из жизни в Нидерландах. Найдите все и получите карточку для сторис.</p>
+        <div id="hwDots"></div>
+        <div class="acts" id="hwActs"></div></div>
+      <div class="pks" aria-hidden="true"><svg viewBox="0 0 64 64"><use href="#hw-pk"/></svg><svg viewBox="0 0 64 64"><use href="#hw-pk"/></svg><svg viewBox="0 0 64 64"><use href="#hw-pk"/></svg></div>
+    </div>
 
     <div class="sec">
       <div class="sh5 st"><div><h2>Афиша</h2><p>Листайте вбок. Нажмите на постер, чтобы открыть описание и билеты.</p></div><div class="arrows"><button class="icon-btn" data-rail="-1" aria-label="Назад"><svg class="ico"><use href="#i-left"/></svg></button><button class="icon-btn" data-rail="1" aria-label="Вперёд"><svg class="ico"><use href="#i-right"/></svg></button><a class="btn btn-soft btn-sm" href="#events">Вся афиша</a></div></div>
@@ -2662,6 +2782,13 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
   <div class="pal-res" id="palRes" role="listbox"></div>
   <div class="pal-foot"><span>↑↓ выбрать</span><span>Enter открыть</span><span>Den Haag = Den Haag</span></div>
 </div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<radialGradient id="hwG" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#FFA24A"/><stop offset=".6" stop-color="#FF7A1A"/><stop offset="1" stop-color="#D9520A"/></radialGradient>
+<symbol id="hw-pk" viewBox="0 0 64 64"><path d="M31 17c0-6 1.5-10 5.5-12.5l3.6 2.8C37 9.6 35.6 12.8 35.6 17z" fill="#4E7A2C"/><path d="M36 9c4-3 9-3 12 0" fill="none" stroke="#5E8F35" stroke-width="2" stroke-linecap="round"/><ellipse cx="19" cy="39" rx="14" ry="19" fill="#D9520A"/><ellipse cx="45" cy="39" rx="14" ry="19" fill="#D9520A"/><ellipse cx="32" cy="39" rx="16" ry="21.5" fill="url(#hwG)"/><path d="M25 21c-3 6-3 30 0 37M39 21c3 6 3 30 0 37" fill="none" stroke="#C04A08" stroke-width="1.4" opacity=".55"/><g class="hw-face hw-flame" fill="#FFD45C"><path d="M21 33l6-6 4 7zM43 33l-6-6-4 7z"/><path d="M30 38h4l-2 4z"/><path d="M18 44c5 7 23 7 28 0l-3 1-2 3-3-2-3 3-3-3-3 3-3-3-3 2-2-3z"/></g></symbol>
+<symbol id="hw-bat" viewBox="0 0 64 30"><path fill="currentColor" d="M32 10c-2 0-3.2-3-3.2-3L28 9.5c-4-4-11-6-16-2 2 1 3 3 3 5-4-2-9-2-15 2 5 0 8 3 9 6 4-3 9-3 13 0 3-2 6-1 8 1 0 0 1-4 2-4s2 4 2 4c2-2 5-3 8-1 4-3 9-3 13 0 1-3 4-6 9-6-6-4-11-4-15-2 0-2 1-4 3-5-5-4-12-2-16 2l-.8-2.5S34 10 32 10z"/></symbol>
+<symbol id="hw-ghost" viewBox="0 0 64 78"><path d="M32 3C16 3 6 15 6 32v40l7-6 7 7 6-7 6 7 6-7 6 7 7-7 7 6V32C58 15 48 3 32 3z" fill="#F7F2FB"/><path d="M32 3C16 3 6 15 6 32v40l7-6 7 7 6-7 6 7 6-7 6 7 7-7 7 6V32C58 15 48 3 32 3z" fill="none" stroke="#CFC3DD" stroke-width="2"/><ellipse cx="23" cy="31" rx="4.5" ry="6" fill="#241634"/><ellipse cx="41" cy="31" rx="4.5" ry="6" fill="#241634"/><ellipse cx="32" cy="46" rx="5" ry="6.5" fill="#241634"/><circle cx="17" cy="40" r="3.5" fill="#FFB8C8" opacity=".6"/><circle cx="47" cy="40" r="3.5" fill="#FFB8C8" opacity=".6"/></symbol>
+<symbol id="hw-spider" viewBox="0 0 34 40"><g stroke="#1B1224" stroke-width="2" fill="none" stroke-linecap="round"><path d="M12 18l-9-6-2 6M12 21l-10 1-1 6M13 24l-8 7v6M22 18l9-6 2 6M22 21l10 1 1 6M21 24l8 7v6"/></g><circle cx="17" cy="14" r="6" fill="#1B1224"/><ellipse cx="17" cy="25" rx="8" ry="9" fill="#1B1224"/><circle cx="14.5" cy="13" r="1.8" fill="#fff"/><circle cx="19.5" cy="13" r="1.8" fill="#fff"/><circle cx="14.8" cy="13.4" r=".8" fill="#1B1224"/><circle cx="19.8" cy="13.4" r=".8" fill="#1B1224"/></symbol>
+</defs></svg>
 <div class="toast" id="toast" role="status"><svg class="ico"><use href="#i-check"/></svg><span id="toastT"></span></div>
 
 <script>
@@ -4117,6 +4244,155 @@ ENTER.cabinet=async()=>{const q=new URLSearchParams(location.search);const t=q.g
   if(q.get('paid'))setTimeout(()=>toast('Оплата обрабатывается: срок обновится через минуту'),600);
   if(t){try{const r=await fetch(PN_BOT+'/api/cabinet/session?t='+encodeURIComponent(t));const j=await r.json();if(j.session)cabSet(j.session);else toast(j.error||'Ссылка устарела')}catch(e){toast('Не удалось войти, попробуйте ещё раз')}}
   if(t||q.get('paid'))history.replaceState(null,'','/cabinet/');cabRender()};
+
+/* ---------- HALLOWEEN ----------
+   До 31 октября на главной висит анонс. 31 октября (время Amsterdam) сайт сам переодевается: ночь, заставка,
+   летучие мыши, паук и охота на 7 тыкв с историями. С 1 ноября всё исчезает. Посмотреть заранее: ?halloween=1, выключить: ?halloween=0 */
+(()=>{
+  const ss={get(k){try{return sessionStorage.getItem('pod2:'+k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem('pod2:'+k,v)}catch(e){}}};
+  let today;try{today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Amsterdam',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){today=new Date().toISOString().slice(0,10)}
+  const y=today.slice(0,4),md=today.slice(5);
+  const qp=new URLSearchParams(location.search).get('halloween');
+  if(qp!=null)ss.set('hw',qp==='0'?'0':'1');
+  const preview=ss.get('hw')==='1';
+  if(ss.get('hw')==='0')return;
+  const mode=preview||md==='10-31'?'live':md>='10-01'&&md<'10-31'?'teaser':'';
+  const B=$('#hwBanner');
+  if(!mode||!B)return;
+  const pk=(c='')=>`<svg class="${c}" viewBox="0 0 64 64" aria-hidden="true"><use href="#hw-pk"/></svg>`;
+  B.hidden=false;
+  if(mode==='teaser'){
+    const days=Math.round((Date.parse(y+'-10-31')-Date.parse(today))/864e5);
+    const word=n=>n%10===1&&n%100!==11?'день':[2,3,4].includes(n%10)&&![12,13,14].includes(n%100)?'дня':'дней';
+    $('#hwActs').innerHTML=`<a class="btn btn-acc" href="https://t.me/podslushanovnl" target="_blank" rel="noopener">Не пропустить в Telegram</a><span class="cnt">${days===1?'Уже завтра':'Через '+days+' '+word(days)}</span>`;
+    return;
+  }
+
+  /* Тыквы и их истории. Где спрятана каждая — в подсказке */
+  const PK=[
+    {id:'tax',page:'save',hint:'Там, где учат не переплачивать',t:'Синий конверт',s:'Вечер. В почтовом ящике синий конверт от Belastingdienst. Руки дрожат, соседи выглядывают из-за штор. Внутри пересчёт toeslag: вернуть нужно €0,00. Объяснение на четырёх страницах. Самое страшное: вы прочитали все четыре.'},
+    {id:'ns',page:'trains',hint:'Там, где опаздывают поезда',t:'Последний поезд',s:'23:47, Utrecht Centraal. Табло мигает: «Rijdt niet». Причина: «seinstoring». Вместо поезда обещают автобус. Автобус тоже «rijdt niet». Домой вы попадаете к двум ночи и впервые от души говорите «ja hoor». Поздравляем, интеграция пройдена.'},
+    {id:'gp',page:'guide',hint:'Среди специалистов, которые говорят по-русски',t:'Приём у huisarts',s:'Болит всё, температура 39, вы уже видели свет в конце тоннеля. Huisarts внимательно слушает, кивает и произносит заклинание: «Neem een paracetamolletje». Если через две недели не пройдёт, приходите ещё. Свет в конце тоннеля, кстати, посоветовал то же самое.'},
+    {id:'home',page:'board',hint:'Там, где ищут работу и квартиру',t:'Квартира мечты',s:'Уютная студия 24 м² в Amsterdam, всего €1 950 в месяц. Душ над унитазом, лестница под углом 70 градусов, на просмотр пришли 46 человек. Квартиру отдали тому, кто пришёл с котом: хозяйка сказала, что кот выглядит надёжнее. Вы до сих пор не уверены, что это была шутка.'},
+    {id:'rain',page:'live',hint:'Там, где смотрят на дождь в прямом эфире',t:'Прогноз: 0% дождя',s:'Утро, +17, солнце. Buienradar обещает 0% осадков, и вы, как настоящий новичок, выходите без куртки. Через семь минут горизонтальный дождь, град и радуга одновременно. Голландец рядом едет на велосипеде с зонтом в одной руке и кофе в другой. Даже не обернулся.'},
+    {id:'tikkie',page:'events',hint:'Среди концертов и вечеринок',t:'Tikkie в полночь',s:'Ровно в 00:00 вибрирует телефон. Коллега, с которым вы полгода назад пили кофе, прислал Tikkie на €0,87 с припиской «geen haast». Вы оплачиваете за три секунды. С тех пор на любой звонок рука сама тянется к банковскому приложению.'},
+    {id:'fiets',roll:1,hint:'Она не сидит на месте: подождите на любой странице',t:'Велосипед-призрак',s:'Вы оставили велосипед у станции буквально на десять минут. Вернулись: велосипеда нет, замок на месте. Хороший замок, за €60. Говорят, в ночь на Хэллоуин все пропавшие велосипеды Нидерландов собираются на дне канала и звенят звонками. Ваш звенит громче всех.'},
+  ];
+  const KEY='hw'+y;
+  const st=Object.assign({f:[],t0:0,t1:0},store.get(KEY,{}));
+  const save=()=>store.set(KEY,st);
+  const dots=()=>`<div class="hw-dots" aria-label="Найдено ${st.f.length} из 7">${PK.map(p=>`<i class="${st.f.includes(p.id)?'on':''}"></i>`).join('')}</div>`;
+  const mmss=ms=>{const s=Math.max(1,Math.round(ms/1000)),m=Math.floor(s/60);return m>=60?Math.floor(m/60)+' ч '+(m%60)+' мин':m+':'+String(s%60).padStart(2,'0')};
+  const done=()=>st.f.length>=PK.length;
+
+  function banner(){
+    $('#hwEye').textContent='Сегодня Хэллоуин';
+    $('#hwH').textContent=done()?'Все 7 тыкв найдены':'Сайт захватили тыквы';
+    $('#hwP').textContent=done()?`Ваше время: ${mmss(st.t1-st.t0)}. Отправьте карточку друзьям: пусть попробуют быстрее.`:'По разделам спрятались 7 тыкв, в каждой страшилка из жизни в Нидерландах. Нажмите на тыкву, чтобы открыть историю. Найдите все и получите карточку для сторис.';
+    $('#hwDots').innerHTML=dots();
+    $('#hwActs').innerHTML=done()?'<button class="btn btn-acc" data-hw="card">Моя карточка</button><button class="btn btn-soft" data-hw="hints">Все истории</button>':`<button class="btn btn-acc" data-hw="hints">Подсказки</button><span class="cnt">Найдено ${st.f.length} из 7</span>`;
+  }
+
+  function story(p){
+    const n=st.f.length;
+    openSheet(`<div class="hw-st">${pk('big')}<span class="eyebrow">Тыква ${n} из 7</span><h2 id="shTitle">${p.t}</h2><p class="story">${p.s}</p>${dots()}
+      <div class="acts">${done()?'<button class="btn btn-acc" data-hw="card">Забрать карточку</button>':'<button class="btn btn-acc" data-close>Искать дальше</button><button class="btn btn-soft" data-hw="hints">Подсказки</button>'}</div></div>`);
+  }
+  function hints(){
+    openSheet(`<div class="hw-st"><h2 id="shTitle">Охота на тыкв</h2><p class="muted">Тыквы сидят рядом с названиями разделов, одна катается по сайту. Найдено ${st.f.length} из 7.</p>
+      <div class="hw-hints">${PK.map(p=>{const got=st.f.includes(p.id);return `<div class="${got?'':'no'}" ${got?`data-hw="story" data-id="${p.id}" role="button" tabindex="0" style="cursor:pointer"`:''}>${pk()}<span><b>${got?p.t:'Тыква не найдена'}</b><small>${got?'Нажмите, чтобы перечитать':p.hint}</small></span></div>`}).join('')}</div>
+      <div class="acts">${done()?'<button class="btn btn-acc" data-hw="card">Моя карточка</button>':'<button class="btn btn-acc" data-close>Искать</button>'}</div></div>`);
+  }
+  function found(p,el){
+    if(st.f.includes(p.id)){story(p);return}
+    if(!st.t0)st.t0=Date.now();
+    st.f.push(p.id);if(done())st.t1=Date.now();save();
+    el&&el.classList.add('got');
+    try{navigator.vibrate&&navigator.vibrate(30)}catch(e){}
+    setTimeout(()=>{el&&el.remove();story(p);banner()},el?380:0);
+  }
+
+  /* Итоговая карточка для сторис: рисуем в canvas, чтобы ей можно было поделиться как картинкой */
+  async function cardBlob(){
+    const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+    const g=x.createLinearGradient(0,0,0,H);g.addColorStop(0,'#2B153F');g.addColorStop(.55,'#160D22');g.addColorStop(1,'#0E0816');x.fillStyle=g;x.fillRect(0,0,W,H);
+    for(let i=0;i<90;i++){x.fillStyle=`rgba(255,255,255,${.2+Math.random()*.6})`;x.beginPath();x.arc(Math.random()*W,Math.random()*H*.7,Math.random()*2+.5,0,7);x.fill()}
+    const mg=x.createRadialGradient(820,230,10,840,250,140);mg.addColorStop(0,'#FFF6DA');mg.addColorStop(.7,'#F1D28C');mg.addColorStop(1,'#DDB060');x.fillStyle=mg;x.beginPath();x.arc(840,250,130,0,7);x.fill();
+    try{await Promise.all(['700 120px Mont','600 64px Mont','400 40px Evolventa','600 54px Evolventa'].map(f=>document.fonts.load(f)))}catch(e){}
+    const svgEl=document.querySelector('#hw-pk');const src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><radialGradient id="hwG" cx="40%" cy="35%" r="70%"><stop offset="0" stop-color="#FFA24A"/><stop offset=".6" stop-color="#FF7A1A"/><stop offset="1" stop-color="#D9520A"/></radialGradient></defs>${svgEl?svgEl.innerHTML:''}</svg>`);
+    const im=new Image();await new Promise(r=>{im.onload=r;im.onerror=r;im.src=src});
+    x.shadowColor='rgba(255,120,30,.55)';x.shadowBlur=60;
+    [[110,820,170],[300,770,240],[560,800,200],[780,850,150]].forEach(([px,py,s])=>{try{x.drawImage(im,px,py,s,s)}catch(e){}});
+    x.shadowBlur=0;x.fillStyle='#FFB48E';x.font='600 34px Evolventa,sans-serif';x.fillText('ХЭЛЛОУИН '+y,90,150);
+    x.fillStyle='#fff';x.font='700 120px Mont,Evolventa,sans-serif';x.fillText('7 из 7',90,330);
+    x.font='600 64px Mont,Evolventa,sans-serif';x.fillText('тыкв найдено',90,420);
+    x.fillStyle='#FFD79A';x.font='600 54px Evolventa,sans-serif';x.fillText('за '+mmss(st.t1-st.t0),90,520);
+    x.fillStyle='#D9CDE3';x.font='400 40px Evolventa,sans-serif';x.fillText('Сможете быстрее?',90,610);
+    x.fillStyle='#fff';x.font='600 52px Mont,Evolventa,sans-serif';x.fillText('podslushano.nl',90,1230);
+    x.fillStyle='#BFAFD0';x.font='400 32px Evolventa,sans-serif';x.fillText('жизнь в Нидерландах по-русски',90,1282);
+    return await new Promise(r=>c.toBlob(r,'image/png'));
+  }
+  async function card(){
+    const share=`Охота на тыкв на podslushano.nl: 7 из 7 за ${mmss(st.t1-st.t0)} 🎃 Сможете быстрее?`;
+    openSheet(`<div class="hw-st"><h2 id="shTitle">Все 7 тыкв найдены</h2><p class="muted">Ваше время: ${mmss(st.t1-st.t0)}. Поделитесь карточкой в сторис или отправьте друзьям.</p><div id="hwCard" style="min-height:120px;display:grid;place-items:center"><span class="muted">Рисуем карточку…</span></div>
+      <div class="acts"><button class="btn btn-acc" data-hw="share" disabled>Поделиться</button><button class="btn btn-soft" data-hw="save" disabled>Сохранить картинку</button></div></div>`);
+    const blob=await cardBlob();const url=blob?URL.createObjectURL(blob):'';
+    const box=$('#hwCard');if(box)box.innerHTML=url?`<img class="card9" src="${url}" alt="Карточка: 7 из 7 тыкв на podslushano.nl">`:'';
+    card.blob=blob;card.url=url;card.text=share;
+    $$('#sheet [data-hw=share],#sheet [data-hw=save]').forEach(b=>{b.disabled=b.dataset.hw==='save'&&!url});
+  }
+  async function doShare(){
+    const site='https://www.podslushano.nl/';const t=card.text||'Охота на тыкв на podslushano.nl 🎃';
+    try{
+      const f=card.blob&&new File([card.blob],'podslushano-halloween.png',{type:'image/png'});
+      if(f&&navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],text:t+' '+site});return}
+      if(navigator.share){await navigator.share({text:t,url:site});return}
+    }catch(e){if(e&&e.name==='AbortError')return}
+    copy(t+' '+site,'Текст и ссылка скопированы');
+  }
+  function doSave(){if(!card.url)return;const a=document.createElement('a');a.href=card.url;a.download='podslushano-halloween.png';document.body.appendChild(a);a.click();a.remove()}
+
+  document.addEventListener('click',e=>{
+    const t=e.target.closest('[data-hw]');if(!t)return;const a=t.dataset.hw;
+    if(a==='hints')hints();else if(a==='card')card();else if(a==='share')doShare();else if(a==='save')doSave();
+    else if(a==='story'){const p=PK.find(x=>x.id===t.dataset.id);p&&story(p)}
+  });
+
+  /* ---- Ночь: фон, тыквы на заголовках, катящаяся тыква, мыши, призрак, паук ---- */
+  document.documentElement.classList.add('hw');
+  banner();
+  document.body.insertAdjacentHTML('afterbegin','<div class="hw-sky" aria-hidden="true"><span class="moon"></span><span class="fog"></span></div>');
+  PK.filter(p=>p.page&&!st.f.includes(p.id)).forEach(p=>{
+    const h=$(`#p-${p.page} .phead h1`);if(!h)return;
+    const b=document.createElement('button');b.type='button';b.className='hw-pk';b.setAttribute('aria-label','Тыква с историей');b.innerHTML=pk();
+    b.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();found(p,b)});h.appendChild(b);
+  });
+  const fiets=PK.find(p=>p.roll);
+  const roll=()=>{if(st.f.includes(fiets.id)||document.hidden||$('.hw-roll'))return;
+    const b=document.createElement('button');b.type='button';b.className='hw-pk hw-roll'+(RM?' still':'');b.setAttribute('aria-label','Катящаяся тыква с историей');b.innerHTML=pk();
+    b.addEventListener('click',()=>{b.style.animationPlayState='paused';found(fiets,b)});b.addEventListener('animationend',ev=>{if(ev.target===b)b.remove()});document.body.appendChild(b)};
+  // без анимаций седьмая тыква просто стоит в углу экрана, чтобы её всё равно можно было найти
+  if(RM){roll();return}
+  setTimeout(roll,9000);setInterval(roll,27000);
+  const bats=()=>{if(document.hidden)return;for(let i=0;i<2+Math.round(Math.random());i++){const d=document.createElement('span');d.className='hw-bat';d.innerHTML='<svg viewBox="0 0 64 30"><use href="#hw-bat"/></svg>';
+    d.style.setProperty('--y0',(8+Math.random()*30)+'vh');d.style.setProperty('--y1',(4+Math.random()*30)+'vh');d.style.animationDelay=(i*.6)+'s';d.style.width=(30+Math.random()*24)+'px';
+    d.addEventListener('animationend',()=>d.remove());document.body.appendChild(d)}};
+  setTimeout(bats,3200);setInterval(bats,21000);
+  const BOO=['Это призрак вашего депозита за аренду. Он тоже не вернётся.','Бу! Простите, это был просто новый код DigiD.','Призрак ждёт ответа от gemeente. Уже третий месяц.','Призрак ищет huisarts, который принимает новых пациентов.'];
+  let boo=0;const ghost=()=>{if(document.hidden||$('.hw-ghost'))return;const g=document.createElement('button');g.type='button';g.className='hw-ghost';g.setAttribute('aria-label','Призрак');g.innerHTML='<svg viewBox="0 0 64 78"><use href="#hw-ghost"/></svg>';
+    g.style.top=(18+Math.random()*44)+'vh';g.addEventListener('click',()=>{toast(BOO[boo++%BOO.length]);g.remove()});g.addEventListener('animationend',ev=>{if(ev.target===g)g.remove()});document.body.appendChild(g)};
+  setTimeout(ghost,16000);setInterval(ghost,45000);
+  const sp=document.createElement('button');sp.type='button';sp.className='hw-spider';sp.setAttribute('aria-label','Паук');sp.innerHTML='<svg viewBox="0 0 34 40"><use href="#hw-spider"/></svg>';document.body.appendChild(sp);
+  const spDown=()=>{sp.style.setProperty('--dy',(90+Math.random()*90)+'px');sp.classList.add('on')};
+  sp.addEventListener('click',()=>{sp.classList.remove('on');toast('Паук испугался и ушёл записываться на inburgering');setTimeout(spDown,40000)});
+  setTimeout(spDown,2000);
+
+  /* Заставка: один раз за визит */
+  if(!ss.get('hwIntro')){ss.set('hwIntro','1');
+    const o=document.createElement('div');o.className='hw-intro';o.setAttribute('role','presentation');
+    o.innerHTML=`<div>${pk('pk')}<b>podslushano.nl</b><span>Сегодня тут немного страшно. Найдите 7 тыкв</span></div>`;
+    const off=()=>{o.classList.add('off');setTimeout(()=>o.remove(),800)};o.addEventListener('click',off);document.body.appendChild(o);setTimeout(off,2600)}
+})();
 
 /* ---------- boot ---------- */
 syncFav();route();if(!consent&&!CMP())setTimeout(()=>cookieBar(false),900);
