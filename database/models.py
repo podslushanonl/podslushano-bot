@@ -819,3 +819,51 @@ class LinkClick(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
     )
+
+
+class AppUser(Base):
+    """Аккаунт в приложении podslushano: вход по коду из письма и/или через Telegram."""
+
+    __tablename__ = "app_users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    email: Mapped[str | None] = mapped_column(String(200), unique=True, nullable=True, index=True)
+    tg_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, nullable=True, index=True)
+    name: Mapped[str] = mapped_column(String(80), default="")
+    city: Mapped[str] = mapped_column(String(80), default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+    last_seen: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class AppLogin(Base):
+    """Ожидающий вход: код из письма (email) или подтверждение в Telegram (nonce)."""
+
+    __tablename__ = "app_logins"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    kind: Mapped[str] = mapped_column(String(10))            # email | tg
+    key: Mapped[str] = mapped_column(String(200), index=True)  # почта или nonce
+    code_hash: Mapped[str] = mapped_column(String(64), default="")
+    tg_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
+    tg_name: Mapped[str] = mapped_column(String(80), default="")
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    expires_at: Mapped[datetime] = mapped_column(DateTime)
+    used: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class AppFavorite(Base):
+    """Избранное пользователя приложения (сейчас — события афиши)."""
+
+    __tablename__ = "app_favorites"
+    __table_args__ = (UniqueConstraint("user_id", "kind", "key", name="uq_app_fav"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    kind: Mapped[str] = mapped_column(String(20), default="event")
+    key: Mapped[str] = mapped_column(String(120))
+    title: Mapped[str] = mapped_column(String(200), default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )

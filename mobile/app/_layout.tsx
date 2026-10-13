@@ -16,6 +16,8 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerTintColor: C.ink, headerBackTitle: 'Назад', contentStyle: { backgroundColor: C.bg } }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="event/[key]" options={{ title: 'Событие' }} />
+        <Stack.Screen name="login" options={{ title: 'Вход', presentation: 'modal' }} />
+        <Stack.Screen name="profile" options={{ title: 'Профиль' }} />
       </Stack>
     </ThemeProvider>
   );

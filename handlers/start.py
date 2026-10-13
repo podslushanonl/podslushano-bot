@@ -137,6 +137,16 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from utils.ns_alerts import start_subscription
         await start_subscription(message, command.args[3:])
         return
+    # Вход в приложение podslushano через Telegram (?start=applogin_<nonce>)
+    if command.args and command.args.startswith("applogin_"):
+        from utils.app_api import confirm_tg
+        u = message.from_user
+        ok = await confirm_tg(command.args[9:], u.id, u.first_name or "")
+        await message.answer(
+            "Готово! Вернитесь в приложение podslushano: вход подтверждён." if ok else
+            "Ссылка для входа устарела. Вернитесь в приложение и нажмите «Войти через Telegram» ещё раз.",
+            parse_mode=None)
+        return
     # Раздел «Сэкономить»: ?start=save, save_zorg (медстраховка), save_esim (eSIM)
     if command.args in ("save", "save_zorg", "save_esim"):
         from utils.savings import open_menu, open_topic

@@ -1,25 +1,33 @@
 import { Image } from 'expo-image';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { Stack, router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Button, Card, ErrorBox, Eyebrow, H, Loading, P } from '@/components/ui';
 import { C } from '@/constants/theme';
 import { SITE } from '@/lib/api';
 import { dayMonth, weekday } from '@/lib/format';
+import { toggleFavorite, useAuth } from '@/lib/auth';
 import { useApp } from '@/lib/useApp';
 
 export default function EventScreen() {
   const { key } = useLocalSearchParams<{ key: string }>();
   // При открытии по ссылке (podslushano://event/...) данных ещё нет: грузим, а не говорим «не найдено»
   const { data, error, refresh } = useApp();
+  const { user, favorites } = useAuth();
   if (!data) return error ? <ErrorBox onRetry={refresh} /> : <Loading />;
   const e = data.events.find((x) => x.key === String(key));
   if (!e) return <View style={{ padding: 24 }}><P muted>Событие не найдено.</P></View>;
   const when = `${weekday(e.date)}, ${dayMonth(e.date)}${e.end && e.end !== e.date ? ` — ${dayMonth(e.end)}` : ''}${e.time ? ` · ${e.time}` : ''}`;
   const ticket = e.tickets?.[0]?.[2] || e.url;
+  const fav = favorites.some((f) => f.key === e.key);
+  const heart = () => (user ? toggleFavorite(e.key, e.h, !fav).catch(() => {}) : router.push('/login'));
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 40 }}>
-      <Stack.Screen options={{ title: e.h }} />
+      <Stack.Screen options={{ title: e.h, headerRight: () => (
+        <Pressable onPress={heart} hitSlop={12} accessibilityLabel={fav ? 'Убрать из избранного' : 'В избранное'}>
+          <Text style={{ fontSize: 24, color: fav ? C.accent : C.muted }}>{fav ? '♥' : '♡'}</Text>
+        </Pressable>
+      ) }} />
       {e.img ? <Image source={e.img} style={st.img} contentFit="cover" /> : null}
       <View style={{ padding: 16, gap: 12 }}>
         <Eyebrow>{e.cat || 'событие'}</Eyebrow>
