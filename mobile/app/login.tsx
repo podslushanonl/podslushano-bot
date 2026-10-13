@@ -54,7 +54,8 @@ export default function Login() {
   const tg = () => { if (!busy) run(async () => {
     const { nonce, url } = await startTelegram();
     const started = Date.now();
-    await AsyncStorage.setItem(PENDING, JSON.stringify({ nonce, started }));
+    // Сохранение nonce — только для продолжения после возврата; если хранилище недоступно, вход всё равно идёт
+    AsyncStorage.setItem(PENDING, JSON.stringify({ nonce, started })).catch(() => {});
     poll(nonce, started);
     // В браузере открываем Telegram в новой вкладке, чтобы страница приложения не выгрузилась
     if (Platform.OS === 'web') window.open(url, '_blank', 'noopener'); else Linking.openURL(url);
