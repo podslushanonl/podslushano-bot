@@ -35,8 +35,8 @@ export default function AppTabs() {
   const { user } = useAuth();
   const unread = useConversations(!!user).data?.unread || 0;
   return (
-    <Tabs>
-      <TabSlot />
+    <Tabs style={{ flex: 1 }}>
+      <TabSlot style={{ flex: 1 }} />
       <TabList style={{ display: 'none' }}>
         {TABS.map((t) => <TabTrigger key={t.name} name={t.name} href={t.href} />)}
       </TabList>
