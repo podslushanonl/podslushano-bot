@@ -20,7 +20,9 @@ const store = {
   del: () => (Platform.OS === 'web' ? AsyncStorage.removeItem(KEY) : SecureStore.deleteItemAsync(KEY)),
 };
 
-async function call<T = any>(path: string, body?: object, method?: string): Promise<T> {
+export class ApiError extends Error { constructor(msg: string, public status: number) { super(msg); } }
+
+export async function call<T = any>(path: string, body?: object, method?: string): Promise<T> {
   const r = await fetch(BOT + path, {
     method: method || (body ? 'POST' : 'GET'),
     headers: { 'Content-Type': 'application/json', ...(state.token ? { Authorization: `Bearer ${state.token}` } : {}) },
@@ -28,7 +30,7 @@ async function call<T = any>(path: string, body?: object, method?: string): Prom
   });
   const d = await r.json().catch(() => ({}));
   if (r.status === 401 && state.token) { await logout(); }
-  if (!r.ok || d.ok === false) throw new Error(d.error || 'Что-то пошло не так. Попробуйте ещё раз.');
+  if (!r.ok || d.ok === false) throw new ApiError(d.error || 'Что-то пошло не так. Попробуйте ещё раз.', r.status);
   return d as T;
 }
 

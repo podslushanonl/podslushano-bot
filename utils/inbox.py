@@ -49,6 +49,7 @@ TOPICS = {
     "ads": "📢 Реклама",
     "allo": "🚶 allowalks",
     "content": "📰 Контент и новости",
+    "moderation": "🛡 Модерация",
     "errors": "⚠️ Ошибки",
     "other": "🗂 Прочее",
 }
@@ -70,6 +71,7 @@ _MODULE_TOPIC = [
     ("utils.editorial", "content"), ("handlers.content", "content"), ("utils.site_news", "content"),
     ("handlers.digest", "content"), ("handlers.spotlight", "content"), ("handlers.photo_refresh", "content"),
     ("utils.authors_web", "content"), ("handlers.guides", "content"),
+    ("utils.community", "moderation"),
     ("handlers.errors", "errors"), ("bot", "errors"),
 ]
 _SEND = (SendMessage, SendPhoto, SendVideo, SendDocument, SendAnimation, SendAudio, SendVoice,

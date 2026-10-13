@@ -36,6 +36,7 @@ from utils.editorial_research_daily import editorial_research_loop
 from utils.site_news import site_news_loop
 from utils.ns_alerts import ns_alerts_loop, router as ns_alerts_router
 from utils.savings import router as savings_router, savings_loop
+from utils.community import router as community_router
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
 from utils.limits import ThrottleMiddleware
 from utils.nav_guard import NavigationGuard
@@ -119,6 +120,7 @@ async def main() -> None:
     dp.include_router(anonymous_questions.router)
     dp.include_router(ns_alerts_router)
     dp.include_router(savings_router)
+    dp.include_router(community_router)
     dp.include_router(menu.router)
     dp.include_router(start.router)
     dp.include_router(guides.router)

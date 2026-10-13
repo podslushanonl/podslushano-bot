@@ -21,7 +21,9 @@ export default function TabLayout() {
         tabBarIcon: icon({ ios: 'newspaper.fill', android: 'newspaper', web: 'newspaper' }) }} />
       <Tabs.Screen name="afisha" options={{ title: 'Афиша',
         tabBarIcon: icon({ ios: 'ticket.fill', android: 'confirmation_number', web: 'confirmation_number' }) }} />
-      <Tabs.Screen name="trains" options={{ title: 'Поезда NS',
+      <Tabs.Screen name="chats" options={{ title: 'Чаты',
+        tabBarIcon: icon({ ios: 'bubble.left.and.bubble.right.fill', android: 'forum', web: 'forum' }) }} />
+      <Tabs.Screen name="trains" options={{ title: 'Поезда NS', tabBarLabel: 'Поезда',
         tabBarIcon: icon({ ios: 'tram.fill', android: 'train', web: 'train' }) }} />
       <Tabs.Screen name="more" options={{ title: 'Ещё',
         tabBarIcon: icon({ ios: 'ellipsis.circle.fill', android: 'more_horiz', web: 'more_horiz' }) }} />
