@@ -18,7 +18,7 @@ import secrets
 from datetime import datetime, timedelta, timezone
 
 from aiohttp import web
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 
 from database.db import get_session
 from database.models import AppFavorite, AppLogin, AppUser
@@ -97,13 +97,21 @@ async def auth_verify(request: web.Request) -> web.Response:
             AppLogin.kind == "email", AppLogin.key == email, AppLogin.used.is_(False)))).scalar_one_or_none()
         if not row or row.expires_at < _now():
             return _err(request, "Код устарел. Запросите новый.")
-        if row.attempts >= MAX_ATTEMPTS:
+        # Попытку списываем атомарно ДО проверки: параллельные запросы не обойдут лимит
+        took = await session.execute(update(AppLogin).where(
+            AppLogin.id == row.id, AppLogin.attempts < MAX_ATTEMPTS, AppLogin.used.is_(False))
+            .values(attempts=AppLogin.attempts + 1))
+        await session.commit()
+        if took.rowcount != 1:
             return _err(request, "Слишком много попыток. Запросите новый код.", 429)
         if not secrets.compare_digest(row.code_hash, _hash(email, code)):
-            row.attempts += 1
-            await session.commit()
             return _err(request, "Неверный код.")
-        row.used = True
+        # Код одноразовый: только один запрос может его «погасить»
+        claimed = await session.execute(update(AppLogin).where(AppLogin.id == row.id, AppLogin.used.is_(False))
+                                        .values(used=True))
+        if claimed.rowcount != 1:
+            await session.rollback()
+            return _err(request, "Код уже использован. Запросите новый.")
         u = (await session.execute(select(AppUser).where(AppUser.email == email))).scalar_one_or_none()
         if not u:
             u = AppUser(email=email)
@@ -146,7 +154,11 @@ async def auth_tg_poll(request: web.Request) -> web.Response:
             return _err(request, "Ссылка устарела. Начните вход заново.", 410)
         if not row.tg_id:
             return _json(request, {"ok": True, "pending": True})
-        row.used = True
+        claimed = await session.execute(update(AppLogin).where(AppLogin.id == row.id, AppLogin.used.is_(False))
+                                        .values(used=True))
+        if claimed.rowcount != 1:
+            await session.rollback()
+            return _err(request, "Ссылка устарела. Начните вход заново.", 410)
         u = (await session.execute(select(AppUser).where(AppUser.tg_id == row.tg_id))).scalar_one_or_none()
         if not u:
             u = AppUser(tg_id=row.tg_id, name=row.tg_name)

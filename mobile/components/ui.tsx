@@ -23,9 +23,10 @@ export function P({ children, muted, lines }: { children: ReactNode; muted?: boo
   return <Text numberOfLines={lines} style={[s.p, muted && { color: C.muted }]}>{children}</Text>;
 }
 
-export function Button({ title, onPress, soft }: { title: string; onPress: () => void; soft?: boolean }) {
+export function Button({ title, onPress, soft, disabled }: { title: string; onPress: () => void; soft?: boolean; disabled?: boolean }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [s.btn, soft ? s.btnSoft : s.btnAcc, pressed && { opacity: 0.85 }]}>
+    <Pressable onPress={onPress} disabled={disabled} accessibilityState={{ disabled: !!disabled }}
+      style={({ pressed }) => [s.btn, soft ? s.btnSoft : s.btnAcc, pressed && { opacity: 0.85 }, disabled && { opacity: 0.55 }]}>
       <Text style={[s.btnT, soft && { color: C.ink }]}>{title}</Text>
     </Pressable>
   );
