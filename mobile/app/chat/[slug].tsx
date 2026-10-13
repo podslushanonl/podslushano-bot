@@ -8,6 +8,7 @@ import { C } from '@/constants/theme';
 import { useAuth } from '@/lib/auth';
 import { Msg, block, messages, removeOwn, report, routeForError, sendMessage, timeLabel } from '@/lib/community';
 
+const PAGE = 50; // столько последних сообщений сервер отдаёт без after/before
 const POLL_MS = 4000;
 
 export default function ChatRoom() {
@@ -41,7 +42,9 @@ export default function ChatRoom() {
       if (full) {
         last.current = Math.max(last.current, 0, ...d.messages.map((m) => m.id));
         setList((cur) => {
-          const oldest = d.messages[0]?.id ?? Infinity;
+          // Сервер отдаёт последние PAGE сообщений. Если пришло меньше — это все видимые,
+          // старше окна ничего не осталось (в том числе когда пришёл пустой список)
+          const oldest = d.messages.length >= PAGE ? d.messages[0].id : -Infinity;
           const keep = (cur || []).filter((m) => m.id < oldest); // старше загруженного окна не трогаем
           return [...keep, ...d.messages];
         });

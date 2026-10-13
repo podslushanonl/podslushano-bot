@@ -80,12 +80,15 @@ class CommunityTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.post(url, 1, text="и ещё раз")).status, 429)
 
     async def test_filter_has_no_false_positives_and_links_checked_each(self):
-        for t in ["Купила хлеба", "Требования к документам", "Учеба в университете", "Застрахуйтесь до 31 декабря"]:
+        for t in ["Купила хлеба", "Требования к документам", "Учеба в университете", "Застрахуйтесь до 31 декабря",
+                  "Стало похуже", "Захудалый городок", "Mr. Smith, т.е. он"]:
             self.assertIsNone(community._BAD.search(t), t)
-        for t in ["заебал", "пиздец", "ну ты и сука"]:
+        for t in ["заебал", "пиздец", "ну ты и сука", "иди нахуй", "охуеть", "ахуенно"]:
             self.assertIsNotNone(community._BAD.search(t), t)
         self.assertTrue(community.foreign_links("evil.example.com podslushano.nl"))
         self.assertTrue(community.foreign_links("evil.com/podslushano.nl"))
+        for t in ["https://evil.com!", "пишите на example.com,", "(example.com)", "evil.com."]:
+            self.assertTrue(community.foreign_links(t), t)
         self.assertFalse(community.foreign_links("см. https://www.podslushano.nl/save/"))
         await self.post("/api/app/rules", 4)
         r = await self.post("/api/app/rooms/nl/messages", 4, text="evil.example.com podslushano.nl")
