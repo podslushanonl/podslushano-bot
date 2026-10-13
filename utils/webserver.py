@@ -1750,6 +1750,8 @@ async def start_webserver(bot) -> web.AppRunner:
     install_afisha_site_routes(app)
     from utils.newsletter import install_routes as install_newsletter_routes
     install_newsletter_routes(app)
+    from utils.savings import install_routes as install_savings_routes
+    install_savings_routes(app)
     app.router.add_get("/", _health)
     app.router.add_get("/thanks", _thanks)
     app.router.add_get("/privacy", _privacy)

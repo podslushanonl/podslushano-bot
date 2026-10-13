@@ -790,3 +790,32 @@ class WeekSubscriber(Base):
     )
     confirmed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     unsubscribed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class SavingsReminder(Base):
+    """«Напомнить до 31 декабря» из раздела «Сэкономить» (одно напоминание на тему в год)."""
+
+    __tablename__ = "savings_reminders"
+    __table_args__ = (UniqueConstraint("user_id", "topic", "year", name="uq_savings_rem"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    topic: Mapped[str] = mapped_column(String(20), default="zorg")
+    year: Mapped[int] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+    sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class LinkClick(Base):
+    """Переход по ссылке раздела «Сэкономить» через /go/<ключ> (бот, сайт, Instagram)."""
+
+    __tablename__ = "link_clicks"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    key: Mapped[str] = mapped_column(String(40), index=True)
+    source: Mapped[str] = mapped_column(String(20), default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+    )

@@ -54,7 +54,7 @@ def card_kb(section: str = "main") -> InlineKeyboardMarkup:
         [_b("🔍 Найти специалиста", "m:go:contacts"), _b("📅 Афиша", "m:go:events")],
         [_b("📋 Объявления", "m:go:board"), _b("📚 Жизнь в Нидерландах", "m:go:guide")],
         [_b("✍️ Предложка", "m:go:submit"), _b("🚆 Поезда NS", "m:go:trains")],
-        [_b("👤 Мой podslushano.nl", "m:go:home")],
+        [_b("💶 Сэкономить", "m:go:save"), _b("👤 Мой podslushano.nl", "m:go:home")],
         [_b("🛠 Сервисы", "m:services"), _b("💼 Для бизнеса", "m:biz"), _b("☰ Ещё", "m:more")],
     ])
 
@@ -89,6 +89,7 @@ def _entries() -> dict:
     from handlers import board, cabinet, contacts, events, guides, home, letters, salary, selfadd, share, submissions, support
     from handlers.afisha import afisha_add_start
     from utils.ns_alerts import cmd_trains
+    from utils.savings import open_menu as savings_menu
 
     async def trains(message, state):
         await state.clear()
@@ -97,6 +98,7 @@ def _entries() -> dict:
     return {
         "contacts": contacts.ask_query, "events": events.events_start, "board": board.board_open,
         "guide": guides.show_menu, "submit": submissions.submit_menu, "trains": trains, "home": home.home_open,
+        "save": savings_menu,
         "letter": letters.letter_start, "salary": salary.salary_start, "selfadd": selfadd.self_start,
         "afisha_add": afisha_add_start, "cabinet": cabinet.cabinet_open, "ad": submissions.ask_ad,
         "contact": support.contact_start, "share": share.share,

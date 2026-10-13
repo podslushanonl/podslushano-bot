@@ -137,6 +137,14 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
         from utils.ns_alerts import start_subscription
         await start_subscription(message, command.args[3:])
         return
+    # Раздел «Сэкономить»: ?start=save, save_zorg (медстраховка), save_esim (eSIM)
+    if command.args in ("save", "save_zorg", "save_esim"):
+        from utils.savings import open_menu, open_topic
+        if command.args == "save":
+            await open_menu(message)
+        else:
+            await open_topic(message, command.args[5:])
+        return
     # Пришёл по кнопке «Задать свой вопрос» из поста-предложки — сразу открываем форму
     if command.args == "ask":
         from handlers.submissions import ask_question

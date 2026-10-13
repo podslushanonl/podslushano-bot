@@ -2100,6 +2100,12 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 .htr-ok{display:flex;gap:10px;align-items:center;padding:16px;border-radius:18px;background:var(--surface-2);font-weight:600}
 .htr-ok svg{width:22px;height:22px;color:#1F9D55;flex:none}
 @media(max-width:760px){.htr{padding:16px}.htr-grid{grid-template-columns:1fr}}
+.sv-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+.sv-c{padding:22px;border-radius:24px;display:grid;gap:12px;align-content:start}
+.sv-c h3{margin:0;font:700 20px/1.25 var(--f-display)}
+.sv-c ul{margin:0;padding-left:18px;display:grid;gap:8px;line-height:1.5}
+.sv-c .k{font:700 11.5px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.sv-act{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
 .tr-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}
 .tr-c{padding:18px;border-radius:22px;display:grid;gap:8px;align-content:start;border-left:5px solid var(--line-2)}
 .tr-c.CALAMITY{border-left-color:#B0234A}.tr-c.DISRUPTION{border-left-color:#FF5A1F}.tr-c.MAINTENANCE{border-left-color:#3A7BD5}
@@ -2187,7 +2193,7 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
         <div class="pop" id="morePop" hidden>
           <a href="#travel"><span class="pi"><svg class="ico"><use href="#i-plane"/></svg></span><span>Путешествия<small>Отели и билеты из Нидерландов</small></span></a>
           <a href="#shop"><span class="pi"><svg class="ico"><use href="#i-gift"/></svg></span><span>Магазин<small>Подарочные карты, гайды, стикеры</small></span></a>
-          <a href="#trains"><span class="pi"><svg class="ico"><use href="#i-clock"/></svg></span><span>Поезда NS<small>Табло, отмены, сбои и ремонт</small></span></a><a href="#live"><span class="pi"><svg class="ico"><use href="#i-cloud"/></svg></span><span>Погода и камеры<small>Buienradar и 17 трансляций</small></span></a>
+          <a href="#save"><span class="pi"><svg class="ico"><use href="#i-coin"/></svg></span><span>Сэкономить<small>Медстраховка 2027 и eSIM</small></span></a><a href="#trains"><span class="pi"><svg class="ico"><use href="#i-clock"/></svg></span><span>Поезда NS<small>Табло, отмены, сбои и ремонт</small></span></a><a href="#live"><span class="pi"><svg class="ico"><use href="#i-cloud"/></svg></span><span>Погода и камеры<small>Buienradar и 17 трансляций</small></span></a>
           <a href="#board"><span class="pi"><svg class="ico"><use href="#i-briefcase"/></svg></span><span>Работа и жильё<small>Объявления после модерации</small></span></a>
           <a href="#business"><span class="pi"><svg class="ico"><use href="#i-hand"/></svg></span><span>Сотрудничество<small>Реклама и партнёрства</small></span></a>
           <a href="#contact"><span class="pi"><svg class="ico"><use href="#i-chat"/></svg></span><span>Связаться<small>Ответим за 5 рабочих дней</small></span></a>
@@ -2307,6 +2313,44 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
       <div class="tr-list" id="trPlan"><p class="muted">Загружаем…</p></div>
     </div>
     <p class="hint" style="margin-top:28px">Источник: NS. Нажмите «Уведомления о сбоях», и наш Telegram-бот напишет, если на вашей станции отменят поезда, случится сбой или начнётся ремонт, и подскажет, как доехать. Перед поездкой проверяйте маршрут в приложении NS.</p>
+  </div>
+</section>
+<section class="page" id="p-save" data-title="Сэкономить">
+  <div class="wrap">
+    <div class="phead"><div><h1 class="st">Сэкономить</h1><p class="st" style="--i:1">Разбираем по-русски, где в Нидерландах переплачивают и как выбрать выгоднее. Сравнение и оформление — у сравнителя или поставщика, мы подсказываем, на что смотреть.</p></div></div>
+    <div class="sec" style="margin-top:0">
+      <div class="sec-h st"><div><h2>Медстраховка 2027</h2><p>Сменить страховку на следующий год можно до 31 декабря</p></div></div>
+      <div class="sv-g">
+        <div class="card sv-c st"><span class="k">Главное за минуту</span><ul>
+          <li>Базовый пакет (basisverzekering) по закону <b>одинаковый у всех</b> страховщиков. Сравнивайте цену, тип полиса и допстраховку.</li>
+          <li>Eigen risico в 2027 году — <b>€400</b>. Его вы платите сами, прежде чем страховка начнёт платить. Не касается семейного врача (huisarts) и детей до 18.</li>
+          <li>Дети до 18 застрахованы <b>бесплатно</b> в полисе родителя.</li>
+          <li>Стоматолог для взрослых и почти вся физиотерапия <b>не входят</b> в базовый пакет: это aanvullende verzekering.</li>
+          <li>Новые цены страховщики объявляют до 12 ноября. Новый страховщик сам расторгнет старый договор.</li></ul></div>
+        <div class="card sv-c st" style="--i:1"><span class="k">Типы полиса</span><ul>
+          <li><b>Naturapolis</b> — только врачи и больницы с договором, обычно дешевле.</li>
+          <li><b>Restitutiepolis</b> — любой врач, дороже.</li>
+          <li><b>Budgetpolis</b> — самый дешёвый, но выбор клиник меньше.</li>
+          <li><b>Добровольный eigen risico</b> (до €500 сверху) снижает взнос, но в плохой год заплатите до €900 сами.</li>
+          <li>Спросите на работе про коллективную скидку, а при невысоком доходе проверьте zorgtoeslag.</li></ul></div>
+        <div class="card sv-c st" style="--i:2"><span class="k">Что выбрать именно вам</span><p style="margin:0">Ответьте в нашем Telegram-боте на 4 вопроса: дети, стоматолог, как часто ходите к врачам, важен ли конкретный врач. Бот подскажет, на что смотреть, и напомнит до 31 декабря.</p>
+          <div class="sv-act"><a class="btn btn-acc" href="https://t.me/podslushano_nl_bot?start=save_zorg" target="_blank" rel="noopener">4 вопроса в боте</a><a class="btn btn-soft" data-go="zorg_compare" href="https://www.zorgwijzer.nl/" target="_blank" rel="noopener">Сравнить цены</a><a class="btn btn-soft" data-go="zorg_toeslag" href="https://www.belastingdienst.nl/wps/wcm/connect/nl/zorgtoeslag/zorgtoeslag" target="_blank" rel="noopener">Zorgtoeslag</a></div></div>
+      </div>
+    </div>
+    <div class="sec">
+      <div class="sec-h st"><div><h2>Интернет в поездке: eSIM</h2><p>Сим-карта по QR-коду за 5 минут до вылета</p></div></div>
+      <div class="sv-g">
+        <div class="card sv-c st"><span class="k">Что важно знать</span><ul>
+          <li><b>По ЕС eSIM не нужна:</b> голландская сим-карта работает в странах ЕС по домашнему тарифу.</li>
+          <li>Пригодится за пределами ЕС: Турция, Египет, ОАЭ, Великобритания, США, Грузия, Украина.</li>
+          <li>Проверьте, что телефон поддерживает eSIM и не привязан к оператору (simlock).</li>
+          <li>Обычно это только интернет, без номера: звонить можно через WhatsApp и Telegram.</li>
+          <li>Устанавливайте дома по Wi-Fi, а включайте по прилёте.</li></ul></div>
+        <div class="card sv-c st" style="--i:1"><span class="k">Сравните цены на свою страну</span><p style="margin:0">Тарифы на одно направление у разных сервисов часто отличаются в разы. Посмотрите два-три варианта перед покупкой.</p>
+          <div class="sv-act"><a class="btn btn-soft" data-go="esim_holafly" href="https://esim.holafly.com/" target="_blank" rel="noopener">Holafly</a><a class="btn btn-soft" data-go="esim_saily" href="https://saily.com/" target="_blank" rel="noopener">Saily</a><a class="btn btn-soft" data-go="esim_airalo" href="https://www.airalo.com/" target="_blank" rel="noopener">Airalo</a></div></div>
+      </div>
+    </div>
+    <p class="hint" style="margin-top:28px">Это общая информация, а не персональный финансовый совет. Часть ссылок может быть партнёрской: если вы что-то оформите, мы можем получить вознаграждение, для вас цена та же.</p>
   </div>
 </section>
 <section class="page" id="p-live" data-title="Погода и камеры">
@@ -2624,7 +2668,7 @@ const SOS=[['112','Полиция · Скорая · Пожар',1],['0900-8844'
 const DEST=[['Paris','Франция','PAR','#2B3A67','#FF8A65'],['Lisbon','Португалия','LIS','#F2A541','#1D5592'],['Barcelona','Испания','BCN','#E94F37','#F6BD60'],['Rome','Италия','ROM','#B5651D','#F2C14E'],['London','Великобритания','LON','#1D3557','#E63946'],['Porto','Португалия','OPO','#1D5592','#7EC8E3'],['Prague','Чехия','PRG','#6D2E46','#D5B9B2'],['Vienna','Австрия','VIE','#C1121F','#FDF0D5'],['Istanbul','Турция','IST','#0B6E4F','#FFB703'],['Copenhagen','Дания','CPH','#2E86AB','#F6F5AE'],['Málaga','Испания','AGP','#FF7B00','#FFD000'],['Reykjavik','Исландия','REK','#0B3954','#BFD7EA']];
 const JOBS=[{h:'Ассистент на склад, русский и английский',c:'Tilburg',m:'32–40 ч · EN',v:'€15,20/ч',e:'ещё 23 дня'},{h:'Повар в кафе, без голландского',c:'Amsterdam',m:'24 ч · RU/EN',v:'по договорённости',e:'ещё 9 дней'},{h:'Няня на 3 дня в неделю',c:'Amstelveen',m:'3 дня · RU',v:'€14/ч',e:'ещё 2 дня'},{h:'Мастер маникюра в салон',c:'Utrecht',m:'аренда места',v:'обсуждается',e:'ещё 17 дней'}];
 const HOMES=[{h:'Комната в квартире, Kralingen',c:'Rotterdam',m:'Сдаю · с 1 ноября · 14 м²',v:'€750/мес',e:'ещё 11 дней'},{h:'Ищу студию для пары без животных',c:'Utrecht / Zeist',m:'Ищу · до €1 300',v:'спрос',e:'ещё 6 дней'},{h:'Квартира 2 комнаты на полгода',c:'Den Haag',m:'Сдаю · меблирована',v:'€1 650/мес',e:'ещё 1 день'}];
-const PAGES=[['home','Главная','home'],['guide','КонтактGuide','user'],['events','Афиша','ticket'],['travel','Путешествия','plane'],['provinces','История провинций','map'],['allo','allowalks','walk'],['board','Работа и жильё','briefcase'],['business','Сотрудничество','hand'],['contact','Связаться','chat'],['links','Links','link'],['cabinet','Кабинет бизнеса','card'],['place','Разместить карточку','plus'],['trains','Поезда NS','clock'],['live','Погода и камеры','cloud'],['news','Новости и статьи','book'],['shop','Магазин','gift']];
+const PAGES=[['home','Главная','home'],['guide','КонтактGuide','user'],['events','Афиша','ticket'],['travel','Путешествия','plane'],['provinces','История провинций','map'],['allo','allowalks','walk'],['board','Работа и жильё','briefcase'],['business','Сотрудничество','hand'],['contact','Связаться','chat'],['links','Links','link'],['cabinet','Кабинет бизнеса','card'],['place','Разместить карточку','plus'],['trains','Поезда NS','clock'],['save','Сэкономить','coin'],['live','Погода и камеры','cloud'],['news','Новости и статьи','book'],['shop','Магазин','gift']];
 const CITY={'гаага':'den haag','the hague':'den haag','амстердам':'amsterdam','роттердам':'rotterdam','утрехт':'utrecht','эйндховен':'eindhoven','гронинген':'groningen','маастрихт':'maastricht','харлем':'haarlem','лейден':'leiden','тилбург':'tilburg','делфт':'delft','дельфт':'delft','неймеген':'nijmegen','арнем':'arnhem','алмере':'almere','бреда':'breda','зволле':'zwolle','леуварден':'leeuwarden','амстелвен':'amstelveen','амерсфорт':'amersfoort','апелдорн':'apeldoorn','дордрехт':'dordrecht','схидам':'schiedam','хертогенбос':'hertogenbosch','ден бос':'den bosch','энсхеде':'enschede','схевенинген':'scheveningen','схипхол':'schiphol','северная голландия':'noord-holland','южная голландия':'zuid-holland','северный брабант':'noord-brabant','брабант':'brabant','фрисландия':'friesland','зеландия':'zeeland','лимбург':'limburg','гелдерланд':'gelderland','гельдерланд':'gelderland','оверэйссел':'overijssel','флеволанд':'flevoland','дренте':'drenthe','врач':'huisarts','зубной':'стоматолог'};
 
 /* ---------- favorites ---------- */
@@ -2660,7 +2704,7 @@ function seg(el,onSel){const pill=el.querySelector('.pill');const place=()=>{con
   el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-selected',x===b));place();onSel(b)});return place}
 
 /* ---------- ROUTER ---------- */
-const ROUTES=['home','guide','events','travel','provinces','allo','board','business','contact','links','cabinet','event','walk','place','live','legal','news','art','shop','trains'];let curParam='';
+const ROUTES=['home','guide','events','travel','provinces','allo','board','business','contact','links','cabinet','event','walk','place','live','legal','news','art','shop','trains','save'];let curParam='';
 const inits={};let cur=null;
 function navPill(){const a=$(`.nav a[aria-current="page"]`),p=$('#navPill');if(!a||!a.offsetWidth){p.style.opacity=0;return}p.style.opacity=1;p.style.left=a.offsetLeft+'px';p.style.width=a.offsetWidth+'px'}
 function show(id,anchor){
@@ -3908,8 +3952,10 @@ function pnTrains(){fetch(PN_BOT+'/api/ns/departures?station=UT&limit=5').then(r
   const hw=$('#homeW');if(hw)hw.innerHTML=wSmall()+wTrains(3);const wg=$('#wGal');if(wg)wg.innerHTML=wSmall()+wRain()+wTrains(3)+wLarge()}).catch(()=>{})}
 pnTrains();setInterval(pnTrains,60000);
 
+INIT.save=()=>{$$('#p-save [data-go]').forEach(a=>{a.href=PN_BOT+'/go/'+a.dataset.go+'?s=site'})};
+
 /* ---- pretty URLs (History API) ---- */
-const PN_R2P={home:'/',trains:'/trains/',news:'/news/',guide:'/guide/',events:'/events/',live:'/live/',allo:'/allowalks/',shop:'/shop/',provinces:'/provinces/',board:'/work/',place:'/place/',cabinet:'/cabinet/',business:'/business/',contact:'/contact/',travel:'/travel/'};
+const PN_R2P={home:'/',trains:'/trains/',save:'/save/',news:'/news/',guide:'/guide/',events:'/events/',live:'/live/',allo:'/allowalks/',shop:'/shop/',provinces:'/provinces/',board:'/work/',place:'/place/',cabinet:'/cabinet/',business:'/business/',contact:'/contact/',travel:'/travel/'};
 const PN_LEGAL={imprint:'/imprint/',privacy:'/privacy-statement-eu/',cookies:'/cookie-policy-eu/',disclaimer:'/disclaimer/',terms:'/terms-and-conditions/'};
 function pnIsApp(p){return Object.values(PN_R2P).includes(p)||/^\/events\/[a-z0-9-]+\/$/.test(p)}
 function pnPath(h){if(PN_R2P[h])return PN_R2P[h];if(h==='links')return '/links/';if(h.startsWith('ev-'))return '/events/'+h.slice(3)+'/';
