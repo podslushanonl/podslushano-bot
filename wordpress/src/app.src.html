@@ -2287,6 +2287,7 @@ html.hw-lock,html.hw-lock body{overflow:hidden}
 </style>
 <script>/* Хэллоуин: заставка стартует первой строкой страницы, параллельно с загрузкой сайта. После взрыва тыквы искры собираются в podslushano.nl, буквы «o» — горящие тыквы. */
 (function(){try{
+if(!window.PN_HALLOWEEN)return; /* Хэллоуин выключен: тема и заставка не показываются. Включить: window.PN_HALLOWEEN=true */
 var q=new URLSearchParams(location.search).get('halloween'),S=sessionStorage,d;
 try{d=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Amsterdam',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){d=''}
 if(q==='0'||S.getItem('pod2:hw')==='0')return;
@@ -2433,7 +2434,7 @@ if(!v)lite();else{v.muted=true;
     <div id="hxRoot"></div>
     <div class="tick5 st" style="--i:5" id="tick5" aria-label="Сегодня в Нидерландах"></div>
     <div class="hw-b st" style="--i:6" id="hwBanner" hidden aria-live="polite">
-      <div><span class="eyebrow" id="hwEye">31 октября · Хэллоуин</span><h2 id="hwH">31 октября на podslushano.nl спрячутся 7 тыкв</h2><p id="hwP">В каждой страшилка из жизни в Нидерландах и совет, как в неё не попасть. Найдите все семь и получите важные даты 2027 года прямо в телефон.</p>
+      <div><span class="eyebrow" id="hwEye">31 октября · Хэллоуин</span><h2 id="hwH">31 октября на podslushano.nl спрячутся 7 тыкв</h2><p id="hwP">В каждой страшилка из жизни в Нидерландах и совет, как в неё не попасть. Найдите все семь и проверьте, сколько у вас уйдёт времени.</p>
         <div id="hwDots"></div>
         <div class="acts" id="hwActs"></div></div>
       <div class="pk3" aria-hidden="true"><img alt="" src="{{IMG:hw-pk}}" loading="lazy" decoding="async"><img alt="" src="{{IMG:hw-pk}}" loading="lazy" decoding="async"><img alt="" src="{{IMG:hw-pk}}" loading="lazy" decoding="async"></div>
@@ -2458,9 +2459,9 @@ if(!v)lite();else{v.muted=true;
             <li><svg class="ico"><use href="#i-check"/></svg><span>Ваша подпись на обложке, например «Календарь семьи Ивановых»</span></li>
             <li><svg class="ico"><use href="#i-check"/></svg><span>Каникулы только вашего региона: Noord, Midden или Zuid</span></li>
             <li><svg class="ico"><use href="#i-check"/></svg><span>До 15 личных дат прямо в сетке: дни рождения, годовщины</span></li>
-            <li><svg class="ico"><use href="#i-check"/></svg><span>QR на обложке: все даты попадут в телефон, а бот напомнит о сроках</span></li>
+            <li><svg class="ico"><use href="#i-check"/></svg><span>QR на календаре: ваши даты попадут в телефон, а бот напомнит о сроках</span></li>
           </ul>
-          <div class="acts"><a class="btn btn-acc" data-calorder href="#">Заказать календарь</a><button class="btn btn-soft" type="button" data-calsub>Даты в телефон бесплатно</button><span class="pp"><span data-calprice>€30</span> · доставка по Нидерландам включена</span></div>
+          <div class="acts"><a class="btn btn-acc" data-calorder href="#">Заказать календарь</a><span class="pp"><span data-calprice>€30</span> · доставка по Нидерландам включена</span></div>
         </div>
         <div class="calmk" role="img" aria-label="Календарь Nederland 2027: обложка и страница апреля"><span class="rings"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="pg back"><img loading="lazy" decoding="async" src="{{IMG:cal-april}}" alt=""></span><span class="pg front"><img loading="lazy" decoding="async" src="{{IMG:cal-cover}}" alt=""></span></div>
       </div>
@@ -4343,20 +4344,14 @@ const CAL_ORDER=PN_BOT+'/calendar?utm_source=site';
 const calInfo={text:'€30',open:true};
 const calApply=()=>{$$('[data-calprice]').forEach(e=>e.textContent=calInfo.text);if(!calInfo.open)$$('[data-calorder],[data-calorder2],#homeCal .pp,a.pc10[href^="'+PN_BOT+'/calendar"]').forEach(e=>e.style.display='none')};
 fetch(PN_BOT+'/calendar/info.json').then(r=>r.json()).then(j=>{const v=Number(j.price);if(v>0)calInfo.text='€'+(Number.isInteger(v)?v:v.toFixed(2).replace('.',','));calInfo.open=j.open!==false;calApply()}).catch(()=>{});
-const CAL_ICS=PN_BOT.replace(/^https?:/,'webcal:')+'/calendar/nederland-2027.ics';
 $$('[data-calorder]').forEach(a=>{a.href=CAL_ORDER;a.target='_blank';a.rel='noopener'});
-function calSub(){openSheet(`<h2 id="shTitle">Даты 2027 в телефон</h2><p class="muted" style="margin-top:6px">Праздники, schoolvakanties всех регионов, сроки налогов и страховки. Бесплатно, обновляется само. Личные даты и напоминания в боте есть в печатном календаре.</p>
-  <div class="cal-sub"><a href="${CAL_ICS}"><svg class="ico"><use href="#i-cal"/></svg><span>iPhone и Mac<small>Откроется Apple Calendar, нажмите «Подписаться»</small></span></a>
-  <a href="https://calendar.google.com/calendar/r?cid=${encodeURIComponent(CAL_ICS)}" target="_blank" rel="noopener"><svg class="ico"><use href="#i-cal"/></svg><span>Google Calendar<small>Android и компьютер</small></span></a>
-  <a href="${PN_BOT}/calendar/nederland-2027.ics" download><svg class="ico"><use href="#i-cal"/></svg><span>Скачать файл .ics<small>Для Outlook и других календарей</small></span></a></div>
-  <a class="btn btn-acc" style="width:100%;margin-top:16px" href="${CAL_ORDER}" target="_blank" rel="noopener" data-calorder2>Заказать печатный календарь · <span data-calprice>${calInfo.text}</span></a>`)}
-document.addEventListener('click',e=>{if(e.target.closest('[data-calsub]')){e.preventDefault();calSub()}});
 (()=>{const m=$('#homeCal .calmk');if(!m||RM||!('IntersectionObserver' in window))return;let t;new IntersectionObserver(es=>es.forEach(x=>{clearInterval(t);if(x.isIntersecting)t=setInterval(()=>m.classList.toggle('flip'),3200)})).observe(m)})();
 /* ---------- HALLOWEEN ----------
    До 31 октября на главной анонс. 31 октября (время Amsterdam) сайт сам переодевается: видео-заставка, ночь и дым,
    искры, 7 настоящих тыкв с историями. Каждую историю можно отправить другу открыткой, за все 7 — даты 2027 в телефон.
    С 1 ноября всё исчезает. Предпросмотр: ?halloween=1, выключить: ?halloween=0. Открытка от друга: ?hw=<тыква>&to=&from= */
 (()=>{
+  if(!window.PN_HALLOWEEN)return; // выключено по решению редакции
   const ss={get(k){try{return sessionStorage.getItem('pod2:'+k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem('pod2:'+k,v)}catch(e){}}};
   let today;try{today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Amsterdam',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){today=new Date().toISOString().slice(0,10)}
   const y=today.slice(0,4),md=today.slice(5);
@@ -4429,9 +4424,9 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-calsub]')){e.pr
       $('#hwActs').innerHTML=`<a class="btn btn-acc" href="https://t.me/podslushanovnl" target="_blank" rel="noopener">Не пропустить в Telegram</a><span class="cnt">${days===1?'Уже завтра':'Через '+days+' '+word(days)}</span>`;return}
     $('#hwEye').textContent='Сегодня Хэллоуин';
     $('#hwH').textContent=done()?'Все 7 тыкв найдены':'По сайту спрятаны 7 тыкв';
-    $('#hwP').textContent=done()?`Ваше время: ${mmss(st.t1-st.t0)}. Даты 2027 уже ждут вас, а друзьям отправьте карточку: пусть попробуют быстрее.`:'В каждой страшилка из жизни в Нидерландах и совет, как в неё не попасть. Нажмите на тыкву, чтобы открыть историю и отправить её другу. За все семь — важные даты 2027 года в телефон.';
+    $('#hwP').textContent=done()?`Ваше время: ${mmss(st.t1-st.t0)}. Отправьте друзьям карточку: пусть попробуют быстрее.`:'В каждой страшилка из жизни в Нидерландах и совет, как в неё не попасть. Нажмите на тыкву, чтобы открыть историю и отправить её другу.';
     $('#hwDots').innerHTML=dots();
-    $('#hwActs').innerHTML=done()?'<button class="btn btn-acc" data-hw="card">Мой подарок</button><button class="btn btn-soft" data-hw="hints">Все истории</button>':`<button class="btn btn-acc" data-hw="hints">Подсказки</button><span class="cnt">Найдено ${st.f.length} из 7</span>`;
+    $('#hwActs').innerHTML=done()?'<button class="btn btn-acc" data-hw="card">Моя карточка</button><button class="btn btn-soft" data-hw="hints">Все истории</button>':`<button class="btn btn-acc" data-hw="hints">Подсказки</button><span class="cnt">Найдено ${st.f.length} из 7</span>`;
   }
 
   /* ---- Окно тыквы ---- */
@@ -4440,14 +4435,14 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-calsub]')){e.pr
     const n=st.f.length;
     const head=recv?`${recv.to?`<span class="to">${esc(recv.to)}, это вам${recv.from?' от '+esc(recv.from):''}</span>`:recv.from?`<span class="to">Вам тыква от ${esc(recv.from)}</span>`:''}<span class="eyebrow">Вам прислали тыкву с podslushano.nl</span>`:`<span class="eyebrow">Тыква ${n} из 7${p.sec?' · '+p.sec:''}</span>`;
     const acts=recv&&mode!=='live'?`<a class="btn btn-acc" href="https://t.me/podslushanovnl" target="_blank" rel="noopener">Следить за podslushano.nl</a>`
-      :done()?'<button class="btn btn-acc" data-hw="card">Забрать подарок</button><button class="btn btn-soft" data-hw="send" data-id="'+p.id+'">Отправить другу</button>'
+      :done()?'<button class="btn btn-acc" data-hw="card">Моя карточка</button><button class="btn btn-soft" data-hw="send" data-id="'+p.id+'">Отправить другу</button>'
       :`<button class="btn btn-acc" data-hw="send" data-id="${p.id}">Отправить другу</button><button class="btn btn-soft" data-close>${recv?'Найти остальные':'Искать дальше'}</button>`;
     openSheet(`<div class="hw-st">${pkImg('big')}${head}<h2 id="shTitle">${p.t}</h2><p class="story">${p.s}</p>${anti(p)}${mode==='live'?dots():''}<div class="acts">${acts}</div><div id="hwSend"></div></div>`);
   }
   function hints(){
     openSheet(`<div class="hw-st"><h2 id="shTitle">Охота на тыкв</h2><p class="muted" style="text-align:center">Тыквы сидят рядом с названиями разделов, одна катается по сайту. Найдено ${st.f.length} из 7.</p>
       <div class="hw-hints">${PK.map(p=>{const got=st.f.includes(p.id);return `<div class="${got?'':'no'}" ${got?`data-hw="story" data-id="${p.id}" role="button" tabindex="0" style="cursor:pointer"`:''}>${pkImg()}<span><b>${got?p.t:'Тыква не найдена'}</b><small>${got?'Перечитать или отправить другу':p.hint}</small></span></div>`}).join('')}</div>
-      <div class="acts">${done()?'<button class="btn btn-acc" data-hw="card">Мой подарок</button>':'<button class="btn btn-acc" data-close>Искать</button>'}</div></div>`);
+      <div class="acts">${done()?'<button class="btn btn-acc" data-hw="card">Моя карточка</button>':'<button class="btn btn-acc" data-close>Искать</button>'}</div></div>`);
   }
   function found(p,el){
     if(el){const r=el.getBoundingClientRect();FX.burst(r.left+r.width/2,r.top+r.height/2)}
@@ -4505,7 +4500,6 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-calsub]')){e.pr
 
   async function card(){
     openSheet(`<div class="hw-st">${pkImg('big')}<h2 id="shTitle">Все 7 тыкв найдены</h2><p class="muted" style="text-align:center">Ваше время: ${mmss(st.t1-st.t0)}.</p>
-      <div class="gift"><b>Ваш подарок: важные даты 2027 в телефон</b><p class="muted" style="font-size:14px">Праздники, schoolvakanties, сроки налогов и страховки. Бесплатно, календарь обновляется сам.</p><div class="row"><button class="btn btn-acc btn-sm" data-calsub>Добавить в телефон</button><a class="btn btn-soft btn-sm" href="${CAL_ORDER}&utm_campaign=halloween${y}" target="_blank" rel="noopener">Печатный календарь</a></div></div>
       <div id="hwFin" style="min-height:80px;display:grid;place-items:center"><span class="muted" style="margin-top:12px">Рисуем карточку…</span></div>
       <div class="acts"><button class="btn btn-acc" data-hw="finshare" disabled>Поделиться</button><button class="btn btn-soft" data-hw="finsave" disabled>Сохранить картинку</button></div></div>`);
     const blob=await finalCard();card.blob=blob;const url=blob?URL.createObjectURL(blob):'';

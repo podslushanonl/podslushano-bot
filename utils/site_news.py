@@ -116,7 +116,10 @@ def _parse_date(raw: str | None) -> datetime | None:
         try:
             dt = datetime.fromisoformat(raw.replace("Z", "+00:00"))  # Atom
         except ValueError:
-            return None
+            try:  # NL Times: «14 October 2026 - 20:20», время по Амстердаму
+                dt = datetime.strptime(raw, "%d %B %Y - %H:%M").replace(tzinfo=AMSTERDAM)
+            except ValueError:
+                return None
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=timezone.utc)
     return dt.astimezone(timezone.utc)
@@ -255,7 +258,7 @@ async def _record_many(items: list[FeedItem], status: str, reason: str) -> None:
 # --- Claude ------------------------------------------------------------------
 
 _TRIAGE_SYSTEM = """Ты — выпускающий редактор podslushano.nl, русскоязычного медиа для жителей Нидерландов.
-Тебе дают свежие статьи голландских новостных лент. Отбери те, что действительно полезны или
+Тебе дают свежие статьи новостных лент о Нидерландах (на нидерландском и английском). Отбери те, что действительно полезны или
 важны русскоязычным жителям Нидерландов.
 
 БЕРЁМ: транспорт (NS, поезда, пробки, дороги, Schiphol, общественный транспорт), погоду и
@@ -265,14 +268,15 @@ _TRIAGE_SYSTEM = """Ты — выпускающий редактор podslushano
 
 НЕ БЕРЁМ: партийную политику, выборы и парламентские дебаты, зарубежные новости без влияния
 на Нидерланды, спортивные результаты, светские сплетни, live-блоги, повторы одной и той же
-истории (из нескольких статей об одном событии выбери максимум одну — самую полную).
+истории (из нескольких статей об одном событии выбери максимум одну — самую полную), а также
+статьи о событиях, которые уже есть в списке «Уже опубликовано» — даже из другого источника.
 
 Лучше не взять ничего, чем взять проходное. Расставь выбранные по важности.
 Ответь СТРОГО JSON без пояснений:
 {"chosen": ["url", ...], "skipped": {"url": "короткая причина на русском", ...}}"""
 
 _WRITE_SYSTEM = f"""Ты — редактор новостей podslushano.nl для русскоязычных жителей Нидерландов.
-По голландской статье напиши короткую новость на русском.
+По статье из нидерландского или англоязычного источника напиши короткую новость на русском.
 
 Правила:
 • Пиши по-русски, нейтральным новостным стилем редакции.
@@ -304,7 +308,19 @@ async def _ask_claude(model: str, system: str, content: str, max_tokens: int) ->
     return _extract_text_and_sources(resp)[0].strip()
 
 
-async def triage(items: list[FeedItem]) -> tuple[list[str], dict[str, str]] | None:
+async def recent_published_titles(now: datetime | None = None, hours: int = 36) -> list[str]:
+    """Заголовки источников, уже опубликованных за последние сутки-полтора: одна история
+    приходит и от NOS, и от NL Times — второй раз её не берём."""
+    since = ((now or _utcnow()) - timedelta(hours=hours)).replace(tzinfo=None)
+    async with get_session() as session:
+        rows = await session.scalars(
+            select(SiteNewsItem.title_nl).where(
+                SiteNewsItem.status == "published", SiteNewsItem.created_at >= since,
+            ).order_by(SiteNewsItem.created_at.desc()).limit(60))
+        return [t for t in rows.all() if t]
+
+
+async def triage(items: list[FeedItem], published: list[str] | None = None) -> tuple[list[str], dict[str, str]] | None:
     """Один запрос на всю пачку. (выбранные url по важности, {url: причина}) или None."""
     lines = []
     for item in items:
@@ -313,7 +329,8 @@ async def triage(items: list[FeedItem]) -> tuple[list[str], dict[str, str]] | No
     try:
         raw = await _ask_claude(
             config.SITE_NEWS_TRIAGE_MODEL, _TRIAGE_SYSTEM,
-            "Статьи:\n" + "\n".join(lines), max_tokens=4000)
+            ("Уже опубликовано:\n" + "\n".join(f"- {t}" for t in published) + "\n\n" if published else "")
+            + "Статьи:\n" + "\n".join(lines), max_tokens=4000)
     except Exception as e:  # noqa: BLE001
         log.warning("Отбор новостей: ошибка Claude: %s", e)
         return None
@@ -545,7 +562,7 @@ async def run_once(bot, now: datetime | None = None) -> None:
         await _record_many(new, "skipped", "дневной лимит")
         return
 
-    picked = await triage(new)
+    picked = await triage(new, await recent_published_titles(now))
     if picked is None:
         return  # Claude не ответил — попробуем в следующий раз
     chosen, reasons = picked

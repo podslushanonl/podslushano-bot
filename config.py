@@ -303,12 +303,12 @@ LISTING_DAYS_YEAR: int = _int_env("LISTING_DAYS_YEAR", 365)
 SITE_NEWS_ENABLED: bool = os.getenv("SITE_NEWS_ENABLED", "1").strip() != "0"
 # Как часто проверять ленты, секунды.
 SITE_NEWS_INTERVAL: int = max(60, _int_env("SITE_NEWS_INTERVAL", 600))
-# RSS-ленты через запятую.
+# RSS-ленты через запятую: NOS (нидерландский) и NL Times (английский).
 SITE_NEWS_FEEDS: list[str] = [
     u.strip() for u in os.getenv(
         "SITE_NEWS_FEEDS",
         "https://feeds.nos.nl/nosnieuwsalgemeen,https://feeds.nos.nl/nosnieuwsbinnenland,"
-        "https://feeds.nos.nl/nosnieuwseconomie",
+        "https://feeds.nos.nl/nosnieuwseconomie,https://nltimes.nl/rss",
     ).split(",") if u.strip()
 ]
 # Сколько новостей публиковать максимум за один запуск и за сутки (по Амстердаму).
