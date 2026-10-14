@@ -2,8 +2,8 @@
 import enum
 from datetime import datetime, timezone
 
-from sqlalchemy import (BigInteger, Boolean, CheckConstraint, DateTime, Enum, ForeignKey, Index, Integer, String, Text,
-                        UniqueConstraint, func)
+from sqlalchemy import (BigInteger, Boolean, CheckConstraint, DateTime, Enum, ForeignKey, Index, Integer, LargeBinary,
+                        String, Text, UniqueConstraint, func)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, validates
 
 
@@ -974,7 +974,7 @@ class ChatMessage(Base):
 
 
 class UserPost(Base):
-    """Пост пользователя в ленте приложения."""
+    """Пост пользователя в ленте приложения. Репост — пост с repost_of (свой текст необязателен)."""
 
     __tablename__ = "user_posts"
 
@@ -982,11 +982,58 @@ class UserPost(Base):
     user_id: Mapped[int] = mapped_column(Integer, index=True)
     text: Mapped[str] = mapped_column(Text)
     city: Mapped[str] = mapped_column(String(80), default="")
+    # Страна автора на момент публикации — для ленты «Рядом»
+    country: Mapped[Country] = mapped_column(_enum(Country, "ck_user_post_country", 20), default=Country.NL,
+                                             server_default=Country.NL.value, nullable=False, index=True)
+    repost_of: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    photo_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
     )
     deleted: Mapped[bool] = mapped_column(Boolean, default=False)   # удалил сам автор
     hidden: Mapped[bool] = mapped_column(Boolean, default=False)    # скрыто модерацией / жалобами
+
+    @validates("country")
+    def _check_country(self, _key, value):
+        return Country.parse(value)
+
+
+class PostPhoto(Base):
+    """Фото поста: JPEG прямо в базе (не зависит от Telegram), до 4 на пост."""
+
+    __tablename__ = "post_photos"
+    __table_args__ = (UniqueConstraint("post_id", "idx", name="uq_post_photo"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    post_id: Mapped[int] = mapped_column(Integer, index=True)
+    idx: Mapped[int] = mapped_column(Integer, default=0)
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+
+
+class PostLike(Base):
+    """Лайк поста: один на человека."""
+
+    __tablename__ = "post_likes"
+    __table_args__ = (UniqueConstraint("post_id", "user_id", name="uq_post_like"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    post_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
+class PostComment(Base):
+    """Комментарий к посту. Те же правила, что у сообщений: мат, ссылки, лимиты, жалобы."""
+
+    __tablename__ = "post_comments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    post_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class ContentReport(Base):
@@ -995,7 +1042,7 @@ class ContentReport(Base):
     __tablename__ = "content_reports"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    kind: Mapped[str] = mapped_column(String(10))       # msg | post
+    kind: Mapped[str] = mapped_column(String(10))       # msg | post | comment
     target_id: Mapped[int] = mapped_column(Integer, index=True)
     reporter_id: Mapped[int] = mapped_column(Integer)
     reason: Mapped[str] = mapped_column(String(200), default="")

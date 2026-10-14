@@ -140,14 +140,16 @@ async def profile(request: web.Request) -> web.Response:
         rel = await relation(session, me.id, u.id)
         friends = await session.scalar(select(func.count()).select_from(Friendship).where(
             or_(Friendship.user_id == u.id, Friendship.friend_id == u.id), Friendship.status == ACCEPTED)) or 0
-        posts = [] if rel == "blocked" else list((await session.execute(select(UserPost).where(
+        posts = [] if rel in ("blocked", "unavailable") else list((await session.execute(select(UserPost).where(
             UserPost.user_id == u.id, UserPost.deleted.is_(False), UserPost.hidden.is_(False))
             .order_by(UserPost.id.desc()).limit(20))).scalars())
+        from utils.feed import posts_json   # лента импортирует этот модуль
+        posts = await posts_json(session, posts, me)
         await session.commit()
     return _json(request, {
         "ok": True, "user": card(u) | {"since": (u.created_at.strftime("%Y-%m-%d") if u.created_at else "")},
         "relation": rel, "friends": friends, "can_message": rel == "friends",
-        "posts": [{"id": p.id, "text": p.text, "city": p.city, "at": p.created_at.strftime("%Y-%m-%dT%H:%M:%SZ")} for p in posts],
+        "posts": posts,
     })
 
 
