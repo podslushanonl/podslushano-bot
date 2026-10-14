@@ -378,6 +378,11 @@ async def _migrate() -> None:
             for name, ddl in _USER_POST_LATER_COLUMNS.items():
                 if name not in up_cols:
                     await conn.exec_driver_sql(f"ALTER TABLE user_posts ADD COLUMN {name} {ddl}")
+            if "country" not in up_cols and await conn.run_sync(lambda c: "app_users" in inspect(c).get_table_names()):
+                # Старым постам — страна их автора (а не «Нидерланды» по умолчанию)
+                await conn.exec_driver_sql(
+                    "UPDATE user_posts SET country = (SELECT u.country FROM app_users u WHERE u.id = user_posts.user_id) "
+                    "WHERE EXISTS (SELECT 1 FROM app_users u WHERE u.id = user_posts.user_id)")
             await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_user_posts_country ON user_posts (country)")
             await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_user_posts_repost_of ON user_posts (repost_of)")
 

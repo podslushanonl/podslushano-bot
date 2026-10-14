@@ -41,7 +41,7 @@ export default function Home() {
   const content = useContent();
   // «Всё» — все посты вперемешку с новостями; «Друзья» и «Рядом» — только посты людей
   const scope: Scope = filter === 'friends' ? 'friends' : filter === 'near' ? 'near' : 'all';
-  const posts = useFeed(scope, { city: filter === 'near' && onlyCity ? city : undefined, enabled: filter !== 'news' && (filter !== 'friends' || !!user) });
+  const posts = useFeed(scope, { city: filter === 'near' && onlyCity ? city : undefined, country, enabled: filter !== 'news' && (filter !== 'friends' || !!user) });
   const { openMenu, sheet } = usePostMenu();
 
   const rows = useMemo<Row[]>(() => {

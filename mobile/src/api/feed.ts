@@ -16,10 +16,13 @@ type Page = { posts: Post[]; more: boolean };
 export const MAX_POST_PHOTOS = 4;
 export const postPhoto = (path: string) => BOT + path;
 
-export const useFeed = (scope: Scope, opts: { city?: string; enabled?: boolean } = {}) => useInfiniteQuery({
-  queryKey: ['feed', scope, opts.city || ''], enabled: opts.enabled ?? true, staleTime: 20_000,
+/** Для «Рядом» страна передаётся явно и входит в ключ кэша: после смены страны лента обновится сама. */
+export const useFeed = (scope: Scope, opts: { city?: string; country?: string; enabled?: boolean } = {}) => useInfiniteQuery({
+  queryKey: ['feed', scope, scope === 'near' ? opts.country || '' : '', opts.city || ''], enabled: opts.enabled ?? true, staleTime: 20_000,
   initialPageParam: 0,
-  queryFn: ({ pageParam }) => api<Page>(`/api/app/posts?scope=${scope}${opts.city ? `&city=${encodeURIComponent(opts.city)}` : ''}${pageParam ? `&before=${pageParam}` : ''}`),
+  queryFn: ({ pageParam }) => api<Page>(`/api/app/posts?scope=${scope}`
+    + (scope === 'near' && opts.country ? `&country=${encodeURIComponent(opts.country)}` : '')
+    + (opts.city ? `&city=${encodeURIComponent(opts.city)}` : '') + (pageParam ? `&before=${pageParam}` : '')),
   getNextPageParam: (last: Page) => (last.more && last.posts.length ? last.posts[last.posts.length - 1].id : undefined),
 });
 export const feedPosts = (d?: InfiniteData<Page>) => (d?.pages || []).flatMap((p) => p.posts);

@@ -84,6 +84,7 @@ async def posts_json(session, posts: list[UserPost], me: AppUser | None) -> list
     reposts = await _count(session, UserPost.repost_of, ids, UserPost.deleted.is_(False), UserPost.hidden.is_(False))
     liked = set((await session.execute(select(PostLike.post_id).where(
         PostLike.user_id == me.id, PostLike.post_id.in_(ids)))).scalars()) if me and ids else set()
+    hidden = await _hidden_authors(session, me) if orig_ids else set()   # блокировка действует и на репосты
     out = []
     for p in posts:
         d = {"id": p.id, "text": p.text, "at": _at(p.created_at), "city": p.city or "", "country": p.country.value,
@@ -94,7 +95,8 @@ async def posts_json(session, posts: list[UserPost], me: AppUser | None) -> list
             o = originals.get(p.repost_of)
             d["repost"] = ({"id": o.id, "text": o.text, "at": _at(o.created_at), "city": o.city or "",
                             "author": _author(users.get(o.user_id), o.user_id), "photos": _photos(o)}
-                           if o and not o.deleted and not o.hidden else {"id": p.repost_of, "deleted": True})
+                           if o and not o.deleted and not o.hidden and o.user_id not in hidden
+                           else {"id": p.repost_of, "deleted": True})
         out.append(d)
     return out
 
@@ -183,17 +185,17 @@ async def create(request: web.Request) -> web.Response:
                 return _err(request, reason)
         elif not raw_photos and not orig:
             return _err(request, "Напишите текст или добавьте фото.")
-        if orig:
-            if _rate(f"repost:{me.id}", 20, 86400):
-                return _err(request, "Слишком много репостов за день. Попробуйте завтра.", 429)
-        elif _rate(f"p60:{me.id}", 1, 60) or _rate(f"pday:{me.id}", 10, 86400):
-            return _err(request, "Можно публиковать до 10 постов в день и не чаще раза в минуту.", 429)
-        jpegs = []
+        jpegs = []   # сначала фото: битая картинка не должна съедать лимит публикаций
         for raw in raw_photos:
             jpeg = prepare_photo(raw)
             if not jpeg:
                 return _err(request, "Не получилось прочитать одно из фото. Попробуйте другое.")
             jpegs.append(jpeg)
+        if orig:
+            if _rate(f"repost:{me.id}", 20, 86400):
+                return _err(request, "Слишком много репостов за день. Попробуйте завтра.", 429)
+        elif _rate(f"p60:{me.id}", 1, 60) or _rate(f"pday:{me.id}", 10, 86400):
+            return _err(request, "Можно публиковать до 10 постов в день и не чаще раза в минуту.", 429)
         p = UserPost(user_id=me.id, text=text, city=me.city or "", country=me.country,
                      repost_of=orig.id if orig else None, photo_count=len(jpegs))
         session.add(p)

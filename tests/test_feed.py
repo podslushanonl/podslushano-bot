@@ -106,6 +106,8 @@ class FeedBase:
         community._hits.clear()
         st, d = await self.post("/api/app/posts", 1, {"text": "x", "photos": ["data:image/jpeg;base64,bm90IGEgcGljdHVyZQ=="]})
         self.assertEqual(st, 400)
+        # битое фото не съело лимит: сразу можно опубликовать нормальный пост
+        self.assertEqual((await self.post("/api/app/posts", 1, {"text": "Теперь с текстом"}))[0], 200)
 
     # ------------------------------------------------------------ лайки
 
@@ -169,6 +171,15 @@ class FeedBase:
         mine = [x for x in (await self.get("/api/app/posts"))[1]["posts"] if x["id"] == r["id"]][0]
         self.assertEqual(mine["repost"], {"id": p["id"], "deleted": True})
 
+    async def test_repost_of_blocked_author_is_hidden(self):
+        p = await self.publish(1, "Пост Анны", photos=[jpeg_b64()])
+        r = await self.publish(2, "Смотрите", repost_of=p["id"])
+        await self.post("/api/app/friends/block", 4, {"user_id": 1})     # Гена заблокировал Анну
+        seen = [x for x in (await self.get("/api/app/posts", 4))[1]["posts"] if x["id"] == r["id"]][0]
+        self.assertEqual(seen["repost"], {"id": p["id"], "deleted": True})   # текст и фото Анны не утекают
+        other = [x for x in (await self.get("/api/app/posts", 3))[1]["posts"] if x["id"] == r["id"]][0]
+        self.assertEqual(other["repost"]["text"], "Пост Анны")
+
     # ------------------------------------------------------------ виды ленты
 
     async def test_scopes(self):
@@ -212,7 +223,8 @@ class FeedBase:
             await c.exec_driver_sql("CREATE TABLE user_posts (id INTEGER PRIMARY KEY, user_id INTEGER, text TEXT, "
                                     "city VARCHAR(80), created_at TIMESTAMP, deleted BOOLEAN, hidden BOOLEAN)")
             await c.exec_driver_sql("INSERT INTO user_posts VALUES (1, 1, 'старый пост', 'Utrecht', "
-                                    "'2026-10-01 10:00:00', FALSE, FALSE)")
+                                    "'2026-10-01 10:00:00', FALSE, FALSE), (2, 2, 'старый из Berlin', 'Berlin', "
+                                    "'2026-10-01 11:00:00', FALSE, FALSE)")
         with patch.object(db, "engine", self.engine):
             await db._migrate()
             await db._migrate()
@@ -221,8 +233,10 @@ class FeedBase:
             idx = await c.run_sync(lambda x: {i["name"] for i in inspect(x).get_indexes("user_posts")})
         self.assertTrue({"country", "repost_of", "photo_count"} <= cols)
         self.assertTrue({"ix_user_posts_country", "ix_user_posts_repost_of"} <= idx)
-        old = (await self.get("/api/app/posts?scope=near&country=Нидерланды"))[1]["posts"][0]
-        self.assertEqual((old["text"], old["country"], old["photos"], old["likes"]), ("старый пост", "Нидерланды", [], 0))
+        old = (await self.get("/api/app/posts?scope=near&country=Нидерланды"))[1]["posts"]
+        self.assertEqual([(x["text"], x["country"], x["photos"], x["likes"]) for x in old], [("старый пост", "Нидерланды", [], 0)])
+        de = (await self.get("/api/app/posts?scope=near&country=Германия"))[1]["posts"]   # страна автора, не по умолчанию
+        self.assertEqual([x["text"] for x in de], ["старый из Berlin"])
 
 
 class FeedSqliteTests(FeedBase, unittest.IsolatedAsyncioTestCase):

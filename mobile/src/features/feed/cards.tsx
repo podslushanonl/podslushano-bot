@@ -96,7 +96,7 @@ export function PostPhotos({ paths, onPress }: { paths: string[]; onPress?: () =
 function RepostBox({ r, onOpen }: { r: RepostOf; onOpen: (id: number) => void }) {
   const { c } = useTheme();
   if (r.deleted) {
-    return <View style={{ borderRadius: 16, borderWidth: 1, borderColor: c.line, padding: 14 }}><Txt v="callout" tone="muted">Пост удалён</Txt></View>;
+    return <View style={{ borderRadius: 16, borderWidth: 1, borderColor: c.line, padding: 14 }}><Txt v="callout" tone="muted">Пост удалён или недоступен</Txt></View>;
   }
   return (
     <Tap onPress={() => onOpen(r.id)} scaleTo={0.99} style={{ borderRadius: 16, borderWidth: 1, borderColor: c.line, padding: 12, gap: 8 }}>
