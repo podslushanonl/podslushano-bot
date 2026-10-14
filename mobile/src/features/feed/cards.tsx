@@ -79,11 +79,14 @@ export function PostCard({ p, onMenu }: { p: Msg; onMenu: () => void }) {
   return (
     <Card>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <Avatar name={p.author.name} id={p.author.id} size={42} />
-        <View style={{ flex: 1 }}>
-          <Txt v="headline">{p.author.name}</Txt>
-          <Txt v="footnote">{[p.city || p.author.city, timeLabel(p.at)].filter(Boolean).join(' · ')}</Txt>
-        </View>
+        <Tap onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(p.author.id) } })} scaleTo={0.98}
+          accessibilityLabel={`Профиль: ${p.author.name}`} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Avatar name={p.author.name} id={p.author.id} size={42} />
+          <View style={{ flex: 1 }}>
+            <Txt v="headline">{p.author.name}</Txt>
+            <Txt v="footnote">{[p.city || p.author.city, timeLabel(p.at)].filter(Boolean).join(' · ')}</Txt>
+          </View>
+        </Tap>
         <IconButton icon="more" label="Действия с постом" onPress={onMenu} kind="plain" size={36} />
       </View>
       <Txt v="body" tone="ink">{p.text}</Txt>

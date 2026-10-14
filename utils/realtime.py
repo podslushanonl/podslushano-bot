@@ -1,9 +1,11 @@
 """Живое соединение приложения podslushano (WebSocket): сообщения приходят сразу, без опроса.
 
 GET /api/app/ws?token=<токен входа> — одно соединение на устройство.
-Клиент шлёт: {"type":"join"|"leave","room":slug} — подписка на городской/тематический чат,
+Клиент шлёт: {"type":"join"|"leave","room":slug} — подписка на чат (открыт всем, дружба не нужна),
+             {"type":"say","room":slug,"text":...,"ref":...} — сообщение в чат, ответ {"type":"said","ref":...},
              {"type":"typing","conv":id} — «печатает…» собеседнику в личном диалоге.
-Сервер шлёт: {"type":"dm",...}, {"type":"read",...}, {"type":"typing",...}, {"type":"room",...}.
+Сервер шлёт: {"type":"dm",...}, {"type":"read",...}, {"type":"typing",...}, {"type":"room",...},
+             {"type":"friend","event":"request"|"accepted",...}.
 
 Работает в одном процессе бота (как и сейчас на Railway). Кто сейчас в сети — видно по online().
 """
@@ -27,6 +29,8 @@ _rooms: dict[str, set[web.WebSocketResponse]] = defaultdict(set)
 _who: dict[web.WebSocketResponse, int] = {}
 # Обработчик «печатает…»: (кто, диалог) -> кому переслать; задаётся модулем личных сообщений
 typing_handler = None
+# Отправка в комнату по WebSocket: (кто, комната, текст) -> ответ; задаётся модулем сообщества
+say_handler = None
 
 
 def online(uid: int) -> bool:
@@ -60,7 +64,7 @@ async def ws_handler(request: web.Request) -> web.StreamResponse:
                 uid = 0
     if not uid:
         raise web.HTTPUnauthorized()
-    ws = web.WebSocketResponse(heartbeat=25, max_msg_size=4096)
+    ws = web.WebSocketResponse(heartbeat=25, max_msg_size=8192)
     await ws.prepare(request)
     _users[uid].add(ws)
     _who[ws] = uid
@@ -84,6 +88,14 @@ async def ws_handler(request: web.Request) -> web.StreamResponse:
                 else:
                     _rooms[slug].discard(ws)
                     joined.discard(slug)
+            elif kind == "say" and say_handler:
+                ref = str(ev.get("ref") or "")[:40]
+                try:
+                    res = await say_handler(uid, str(ev.get("room") or "")[:40], str(ev.get("text") or "")[:2000])
+                except Exception as e:  # noqa: BLE001
+                    log.warning("say: %s", e)
+                    res = {"ok": False, "error": "Не отправилось. Попробуйте ещё раз.", "status": 500}
+                await _send(ws, json.dumps({"type": "said", "ref": ref} | res, ensure_ascii=False))
             elif kind == "typing" and typing_handler:
                 try:
                     await typing_handler(uid, int(ev.get("conv") or 0))

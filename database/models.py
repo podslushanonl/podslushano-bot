@@ -1,12 +1,49 @@
 """Описание таблиц базы данных."""
+import enum
 from datetime import datetime, timezone
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Integer, String, Text, UniqueConstraint, func
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+from sqlalchemy import (BigInteger, Boolean, CheckConstraint, DateTime, Enum, ForeignKey, Index, Integer, String, Text,
+                        UniqueConstraint, func)
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, validates
 
 
 class Base(DeclarativeBase):
     pass
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
+class Country(str, enum.Enum):
+    """Страны приложения. В базе хранится русское название (значение), а не код."""
+
+    NL = "Нидерланды"
+    DE = "Германия"
+    BE = "Бельгия"
+
+    @classmethod
+    def parse(cls, value: "Country | str") -> "Country":
+        """Строгая проверка: только эти три названия (или сам элемент перечисления), иначе ValueError."""
+        if isinstance(value, cls):
+            return value
+        text = str(value or "").strip()
+        for c in cls:
+            if text == c.value:
+                return c
+        raise ValueError(f"Неизвестная страна: {text!r}")
+
+
+class FriendStatus(str, enum.Enum):
+    PENDING = "pending"     # заявка отправлена, ждёт ответа
+    ACCEPTED = "accepted"   # в друзьях
+    BLOCKED = "blocked"     # user_id заблокировал friend_id
+
+
+def _enum(cls: type[enum.Enum], name: str, length: int) -> Enum:
+    # Не родной ENUM базы, а VARCHAR + CHECK: одинаково работает в SQLite и PostgreSQL и легко расширяется
+    return Enum(cls, name=name, native_enum=False, create_constraint=True, length=length,
+                values_callable=lambda e: [x.value for x in e], validate_strings=True)
 
 
 class Submission(Base):
@@ -65,7 +102,7 @@ class Specialist(Base):
     # Id платежа в Mollie (для платного потока)
     payment_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
     # Тариф размещения, например month | year | 6m_premium (для продления той же ценой)
-    plan: Mapped[str] = mapped_column(String(10), default="year")
+    plan: Mapped[str] = mapped_column(String(20), default="year")
     # Напомнили ли уже о продлении (чтобы не слать дважды)
     renewal_reminded: Mapped[bool] = mapped_column(Boolean, default=False)
     # Фото карточки (Telegram file_id) — для премиум-размещения
@@ -98,7 +135,7 @@ class SpecialistReminderLog(Base):
     # sent | failed
     status: Mapped[str] = mapped_column(String(20), index=True)
     message_text: Mapped[str] = mapped_column(Text)
-    telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    telegram_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
 
@@ -175,7 +212,7 @@ class Meta(Base):
     __tablename__ = "meta"
 
     key: Mapped[str] = mapped_column(String(50), primary_key=True)
-    value: Mapped[str] = mapped_column(String(100))
+    value: Mapped[str] = mapped_column(Text)   # бывают file_id Telegram и списки id — длиннее 100 символов
 
 
 class EditorialIdea(Base):
@@ -361,7 +398,7 @@ class DigestDeliveryLog(Base):
     city: Mapped[str] = mapped_column(String(100), default="")
     status: Mapped[str] = mapped_column(String(10))  # sent | failed
     message_text: Mapped[str] = mapped_column(Text)
-    telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    telegram_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
@@ -419,7 +456,7 @@ class NotificationDelivery(Base):
     delivery_key: Mapped[str] = mapped_column(String(120), index=True)
     kind: Mapped[str] = mapped_column(String(30), index=True)
     status: Mapped[str] = mapped_column(String(10), default="sent")
-    telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    telegram_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
@@ -462,7 +499,7 @@ class AnnouncementDelivery(Base):
     campaign_key: Mapped[str] = mapped_column(String(80), index=True)
     user_id: Mapped[int] = mapped_column(BigInteger, index=True)
     status: Mapped[str] = mapped_column(String(10))  # sent | blocked | failed
-    telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    telegram_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
 
@@ -483,7 +520,7 @@ class ContentPost(Base):
     button_label: Mapped[str] = mapped_column(String(60))
     start_payload: Mapped[str] = mapped_column(String(64), unique=True)
     dynamic_refs: Mapped[str] = mapped_column(Text, default="")
-    telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    telegram_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     error_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     sent_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now())
@@ -835,12 +872,42 @@ class AppUser(Base):
     tg_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, nullable=True, index=True)
     name: Mapped[str] = mapped_column(String(80), default="")
     city: Mapped[str] = mapped_column(String(80), default="")
+    country: Mapped[Country] = mapped_column(_enum(Country, "ck_app_user_country", 20), default=Country.NL,
+                                             server_default=Country.NL.value, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
     )
     last_seen: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     rules_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)      # принял правила сообщества
     banned_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)  # бан в чатах и постах
+
+    @validates("country")
+    def _check_country(self, _key, value):
+        return Country.parse(value)
+
+
+class Friendship(Base):
+    """Связь двух аккаунтов приложения. Одна запись на пару для заявки и дружбы:
+    user_id — кто отправил заявку, friend_id — кому. Блокировка направленная: user_id заблокировал friend_id
+    (встречные блокировки — две записи). Личные сообщения доступны только при статусе accepted.
+    pair_key «меньший:больший id» у заявки и дружбы (у блокировки пусто) уникален, поэтому
+    одновременные встречные заявки не создадут две записи на одну пару."""
+
+    __tablename__ = "friendships"
+    __table_args__ = (
+        Index("ix_friendship_pair", "user_id", "friend_id", unique=True),
+        Index("ix_friendship_friend_status", "friend_id", "status"),
+        Index("ix_friendship_pair_key", "pair_key", unique=True),
+        CheckConstraint("user_id <> friend_id", name="ck_friendship_not_self"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("app_users.id", ondelete="CASCADE"))
+    friend_id: Mapped[int] = mapped_column(Integer, ForeignKey("app_users.id", ondelete="CASCADE"))
+    status: Mapped[FriendStatus] = mapped_column(_enum(FriendStatus, "ck_friendship_status", 10), default=FriendStatus.PENDING)
+    pair_key: Mapped[str | None] = mapped_column(String(24), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 
 
 class AppLogin(Base):
@@ -876,7 +943,7 @@ class AppFavorite(Base):
 
 
 class ChatRoom(Base):
-    """Комната чата приложения: город или тема (страна — на будущее: Германия, Бельгия)."""
+    """Комната чата приложения: город или тема. country пустая — общая комната для всех стран."""
 
     __tablename__ = "chat_rooms"
 
@@ -884,7 +951,7 @@ class ChatRoom(Base):
     slug: Mapped[str] = mapped_column(String(40), unique=True)
     title: Mapped[str] = mapped_column(String(80))
     kind: Mapped[str] = mapped_column(String(10), default="city")   # city | topic
-    country: Mapped[str] = mapped_column(String(2), default="NL")
+    country: Mapped[Country | None] = mapped_column(_enum(Country, "ck_chat_room_country", 20), nullable=True)
     sort: Mapped[int] = mapped_column(Integer, default=0)
     active: Mapped[bool] = mapped_column(Boolean, default=True)
 
@@ -937,20 +1004,8 @@ class ContentReport(Base):
     resolved: Mapped[str] = mapped_column(String(20), default="")   # "" | deleted | kept | banned
 
 
-class UserBlock(Base):
-    """Пользователь скрыл автора: его сообщения и посты больше не показываются."""
-
-    __tablename__ = "user_blocks"
-    __table_args__ = (UniqueConstraint("user_id", "blocked_id", name="uq_user_block"),)
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    user_id: Mapped[int] = mapped_column(Integer, index=True)
-    blocked_id: Mapped[int] = mapped_column(Integer)
-
-
-
 class DmConversation(Base):
-    """Личный диалог в приложении между двумя пользователями (обычно по объявлению барахолки)."""
+    """Личный диалог двух друзей в приложении: просто переписка (listing_id пустой) или по объявлению барахолки."""
 
     __tablename__ = "dm_conversations"
     __table_args__ = (UniqueConstraint("listing_id", "buyer_id", "seller_id", name="uq_dm_pair"),)
@@ -984,3 +1039,35 @@ class DmMessage(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
     )
+
+
+# ---------------------------------------------------------------- длина строк
+# PostgreSQL, в отличие от SQLite, не принимает строку длиннее VARCHAR(n) и роняет запрос.
+# Подрезаем такие значения перед записью (с предупреждением в лог), чтобы длинный ввод
+# из формы или от ИИ не превращался в ошибку 500. Enum и Text не трогаем.
+import logging as _logging
+
+from sqlalchemy import event as _event
+
+_log = _logging.getLogger(__name__)
+
+
+@_event.listens_for(Base, "before_insert", propagate=True)
+@_event.listens_for(Base, "before_update", propagate=True)
+def _fit_strings(mapper, _connection, target) -> None:
+    for col in mapper.columns:
+        n = getattr(col.type, "length", None)
+        if not n or isinstance(col.type, Enum) or not isinstance(col.type, String):
+            continue
+        key = mapper.get_property_by_column(col).key
+        value = getattr(target, key, None)
+        if isinstance(value, str) and len(value) > n:
+            _log.warning("%s.%s: %d символов > %d, подрезано", mapper.class_.__name__, key, len(value), n)
+            setattr(target, key, value[:n])
+
+
+@_event.listens_for(Friendship, "before_insert")
+@_event.listens_for(Friendship, "before_update")
+def _friendship_pair_key(_mapper, _connection, row: Friendship) -> None:
+    a, b = sorted((row.user_id, row.friend_id))
+    row.pair_key = None if row.status == FriendStatus.BLOCKED else f"{a}:{b}"

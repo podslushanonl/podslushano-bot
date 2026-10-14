@@ -210,8 +210,12 @@ async def _body(request: web.Request) -> dict:
 
 
 async def _lock(session) -> None:
-    # The project uses SQLite on one Railway volume. Serialize stock/code checks.
-    await session.execute(text("BEGIN IMMEDIATE"))
+    # Serialize stock/code checks: SQLite — exclusive write transaction,
+    # PostgreSQL — transaction-scoped advisory lock (released on commit/rollback).
+    if session.bind.dialect.name == "postgresql":
+        await session.execute(text("SELECT pg_advisory_xact_lock(4207001)"))
+    else:
+        await session.execute(text("BEGIN IMMEDIATE"))
 
 
 async def _inventory(session, key: str, capacity: int) -> dict:

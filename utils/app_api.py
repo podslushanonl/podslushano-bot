@@ -8,7 +8,7 @@
   GET /api/app/auth/tg?nonce= → {token, user}, когда вход подтверждён.
 
 Дальше запросы с заголовком Authorization: Bearer <token>:
-GET/POST /api/app/me (имя, город), POST /api/app/favorites {kind, key, title, on}.
+GET/POST /api/app/me (имя, город, страна — только Нидерланды, Германия или Бельгия), POST /api/app/favorites {kind, key, title, on}.
 """
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ from aiohttp import web
 from sqlalchemy import delete, select, update
 
 from database.db import get_session
-from database.models import AppFavorite, AppLogin, AppUser
+from database.models import AppFavorite, AppLogin, AppUser, Country
 from utils.email_templates import app_login_code
 from utils.invoices import send_email_message
 from utils.newsletter import _limited
@@ -49,7 +49,8 @@ def _ip(request: web.Request) -> str:
 
 
 def user_json(u: AppUser) -> dict:
-    return {"id": u.id, "name": u.name, "city": u.city, "email": u.email or "", "telegram": bool(u.tg_id)}
+    return {"id": u.id, "name": u.name, "city": u.city, "country": u.country.value, "email": u.email or "",
+            "telegram": bool(u.tg_id)}
 
 
 def _session(u: AppUser) -> dict:
@@ -177,6 +178,11 @@ async def me(request: web.Request) -> web.Response:
             return _err(request, "Войдите заново.", 401)
         if request.method == "POST":
             data = await _body(request)
+            if "country" in data:
+                try:
+                    u.country = Country.parse(data.get("country"))
+                except ValueError:
+                    return _err(request, "Страна: Нидерланды, Германия или Бельгия.")
             if "name" in data:
                 u.name = str(data.get("name") or "").strip()[:80]
             if "city" in data:

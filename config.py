@@ -653,9 +653,24 @@ FLOOD_WINDOW: int = _int_env("FLOOD_WINDOW", 8)
 # Сколько ответов ИИ в день на одного пользователя (0 = без лимита).
 AI_DAILY_LIMIT: int = _int_env("AI_DAILY_LIMIT", 40)
 
-# Путь к файлу базы данных SQLite (лежит рядом с проектом)
+# База данных. По умолчанию — файл SQLite рядом с проектом. Если в Railway задан DATABASE_URL
+# (PostgreSQL, например ${{Postgres.DATABASE_URL}}), бот работает с PostgreSQL через asyncpg.
+# Перенос данных из SQLite: python scripts/sqlite_to_postgres.py (см. описание в скрипте).
 DB_PATH = os.path.join(os.path.dirname(__file__), "data", "bot.db")
-DB_URL = f"sqlite+aiosqlite:///{DB_PATH}"
+SQLITE_URL = f"sqlite+aiosqlite:///{DB_PATH}"
+
+
+def _db_url(raw: str) -> str:
+    raw = (raw or "").strip()
+    if not raw:
+        return SQLITE_URL
+    for prefix in ("postgres://", "postgresql://", "postgresql+psycopg2://"):
+        if raw.startswith(prefix):
+            return "postgresql+asyncpg://" + raw[len(prefix):]
+    return raw
+
+
+DB_URL = _db_url(os.getenv("DATABASE_URL", ""))
 
 
 def validate() -> None:

@@ -7,7 +7,7 @@ import { useAuth } from '@/api/auth';
 import { Listing, useMarket, useMarketMeta } from '@/api/market';
 import { CitySheet } from '@/features/common/CitySheet';
 import { Tile } from '@/features/market/Tile';
-import { useCity } from '@/lib/useCity';
+import { useCity, useCountry } from '@/lib/useCity';
 import { radius, type as T, useTheme } from '@/theme';
 import { Button, ChipRow, Empty, Glass, Icon, IconButton, LargeTitle, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useScrollY } from '@/ui';
 
@@ -16,6 +16,7 @@ export default function Market() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const [myCity] = useCity();
+  const country = useCountry();
   const [cat, setCat] = useState('');
   const [city, setCity] = useState('');
   const [q, setQ] = useState('');
@@ -87,7 +88,7 @@ export default function Market() {
           </Glass>
         </Tap>
       </View>
-      <CitySheet visible={picker} value={city} onPick={setCity} onClose={() => setPicker(false)} extra={[myCity]} allLabel="Все города" />
+      <CitySheet visible={picker} value={city} country={country} onPick={setCity} onClose={() => setPicker(false)} extra={[myCity]} allLabel="Все города" />
     </View>
   );
 }

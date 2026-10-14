@@ -12,11 +12,10 @@ from aiogram.enums import ChatType
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup, Message
-from sqlalchemy import func, select
-from sqlalchemy.dialects.sqlite import insert as sqlite_insert
+from sqlalchemy import Integer, cast, func, select
 
 import config
-from database.db import get_session
+from database.db import dialect_insert, get_session
 from database.models import (
     BotUser,
     ContentClick,
@@ -201,7 +200,7 @@ async def seed_content_calendar() -> None:
                 continue
             template = TEMPLATES[template_key]
             await session.execute(
-                sqlite_insert(ContentPost).values(
+                dialect_insert(ContentPost).values(
                     campaign_key=campaign,
                     template_key=template_key,
                     content_kind=template.kind,
@@ -252,7 +251,7 @@ async def seed_content_calendar() -> None:
                 template = TEMPLATES[template_key]
                 campaign = f"auto{day:%y%m%d}_{template_key}"[:64]
                 await session.execute(
-                sqlite_insert(ContentPost).values(
+                dialect_insert(ContentPost).values(
                     campaign_key=campaign,
                                         template_key=template_key,
                                         content_kind=template.kind,
@@ -670,8 +669,8 @@ async def content_stats(message: Message) -> None:
                 ContentPost.template_key,
                 ContentPost.status,
                 func.count(ContentClick.id),
-                func.coalesce(func.sum(ContentClick.is_new_user), 0),
-                func.coalesce(func.sum(ContentClick.destination_opened), 0),
+                func.coalesce(func.sum(cast(ContentClick.is_new_user, Integer)), 0),
+                func.coalesce(func.sum(cast(ContentClick.destination_opened, Integer)), 0),
             ).outerjoin(
                 ContentClick, ContentClick.campaign_key == ContentPost.campaign_key
             ).group_by(ContentPost.id).order_by(ContentPost.scheduled_at)

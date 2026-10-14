@@ -108,6 +108,8 @@ def item_json(l: Listing, me: AppUser | None = None, full: bool = False) -> dict
         # Автору можно написать прямо в приложении, если он сам подавал объявление через приложение
         "chat": bool(l.app_user_id) and not mine,
     }
+    if d["chat"]:
+        d["seller_id"] = l.app_user_id   # профиль продавца: писать в личку можно, когда вы друзья
     if full:
         d |= {
             "description": l.description or "",

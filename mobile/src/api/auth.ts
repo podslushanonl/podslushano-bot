@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { api, ApiError, setToken, setUnauthorizedHandler, tokenStore } from './client';
 import { queryClient } from './query';
 
-export type User = { id: number; name: string; city: string; email: string; telegram: boolean };
+export type User = { id: number; name: string; city: string; country: string; email: string; telegram: boolean };
 export type Favorite = { kind: string; key: string; title: string };
 type State = { ready: boolean; user: User | null; favorites: Favorite[] };
 
@@ -54,7 +54,7 @@ export async function pollTelegram(nonce: string) {
   return true;
 }
 
-export async function saveProfile(p: { name?: string; city?: string }) {
+export async function saveProfile(p: { name?: string; city?: string; country?: string }) {
   const d = await api<{ user: User; favorites: Favorite[] }>('/api/app/me', p);
   set({ user: d.user, favorites: d.favorites });
 }

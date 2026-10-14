@@ -8,7 +8,7 @@ import { queryClient } from '@/api/query';
 import { CitySheet } from '@/features/common/CitySheet';
 import { EventCard, JobCard, NewsCard, PostCard, SaveCard } from '@/features/feed/cards';
 import { NowCard } from '@/features/home/NowCard';
-import { useCity } from '@/lib/useCity';
+import { useCity, useCountry } from '@/lib/useCity';
 import { radius, useTheme } from '@/theme';
 import { ActionSheet, Avatar, Glass, Icon, IconButton, IconName, Segmented, SheetAction, Skeleton, TabScreen, Tap, Txt, useToast } from '@/ui';
 
@@ -33,6 +33,7 @@ export default function Home() {
   const { c } = useTheme();
   const { user } = useAuth();
   const [city, setCity] = useCity();
+  const country = useCountry();
   const [picker, setPicker] = useState(false);
   const [filter, setFilter] = useState<'all' | 'news' | 'people'>('all');
   const [menu, setMenu] = useState<Msg | null>(null);
@@ -135,7 +136,7 @@ export default function Home() {
           <Txt v="callout" tone="muted" center>{content.isError ? 'Не получилось загрузить ленту. Потяните вниз, чтобы обновить.' : 'Пока пусто.'}</Txt>
         )}
       </TabScreen>
-      <CitySheet visible={picker} value={city} onPick={setCity} onClose={() => setPicker(false)} />
+      <CitySheet visible={picker} value={city} country={country} onPick={setCity} onClose={() => setPicker(false)} />
       <ActionSheet visible={!!menu} actions={menu ? actions(menu) : []} onClose={() => setMenu(null)} />
     </>
   );

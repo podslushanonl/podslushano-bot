@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
-import { api, BOT, getToken } from './client';
+import { api, ApiError, BOT, getToken } from './client';
 import { queryClient } from './query';
 
 export type Peer = { id: number; name: string };
@@ -8,6 +8,8 @@ export type DmListing = { id: number; title: string; price: string; photo: strin
 export type DmMessage = { id: number; text: string; at: string; mine: boolean; read: boolean };
 export type Conversation = {
   id: number; peer: Peer; listing: DmListing; unread: number;
+  /** Можно ли писать (только друзьям); приходит при открытии диалога. */
+  can_write?: boolean;
   last: { text: string; at: string; mine: boolean } | null;
 };
 
@@ -29,7 +31,10 @@ export const reportDialog = (id: number) => api(`/api/app/dm/${id}/report`, {});
 
 export type RoomMsg = { id: number; text: string; at: string; author: { id: number; name: string; city: string }; mine: boolean };
 type Ev = { type: 'dm'; conv: number; message: DmMessage } | { type: 'typing'; conv: number } | { type: 'read'; conv: number; upto: number }
-  | { type: 'room'; slug: string; message: RoomMsg };
+  | { type: 'room'; slug: string; message: RoomMsg }
+  | { type: 'friend'; event: 'request' | 'accepted'; user: { id: number; name: string } }
+  | { type: 'said'; ref: string; ok: boolean; message?: RoomMsg; error?: string; status?: number };
+const waiting = new Map<string, (e: Extract<Ev, { type: 'said' }>) => void>();
 const listeners = new Set<(e: Ev) => void>();
 let ws: WebSocket | null = null;
 let retry = 0;
@@ -50,6 +55,11 @@ function connect() {
         cur && !cur.messages.some((x) => x.id === e.message.id) ? { ...cur, messages: [...cur.messages, e.message] } : cur);
       queryClient.invalidateQueries({ queryKey: ['me', 'dm'], exact: true });
     }
+    if (e.type === 'friend') {
+      queryClient.invalidateQueries({ queryKey: ['me', 'friends'] });
+      queryClient.invalidateQueries({ queryKey: ['me', 'user', e.user.id] });
+    }
+    if (e.type === 'said') { waiting.get(e.ref)?.(e); waiting.delete(e.ref); return; }
     if (e.type === 'read') {
       queryClient.setQueryData<{ conversation: Conversation; messages: DmMessage[] }>(['me', 'dm', e.conv], (cur) =>
         cur ? { ...cur, messages: cur.messages.map((x) => (x.mine && x.id <= e.upto ? { ...x, read: true } : x)) } : cur);
@@ -85,6 +95,23 @@ export function joinRoom(slug: string) {
   };
 }
 export const realtimeConnected = () => !!ws && ws.readyState === 1;
+
+let refN = 0;
+/** Отправка в общий чат по WebSocket. null — соединения нет (тогда отправляем обычным запросом). */
+export function sayInRoom(room: string, text: string): Promise<RoomMsg> | null {
+  const sock = ws;
+  if (!sock || sock.readyState !== 1) return null;
+  const ref = `s${Date.now()}_${++refN}`;
+  return new Promise<RoomMsg>((resolve, reject) => {
+    const timer = setTimeout(() => { waiting.delete(ref); reject(new ApiError('Не отправилось. Проверьте интернет.', 0)); }, 8000);
+    waiting.set(ref, (e) => {
+      clearTimeout(timer);
+      if (e.ok && e.message) resolve(e.message);
+      else reject(new ApiError(e.error || 'Не отправилось', e.status || 400));
+    });
+    sock.send(JSON.stringify({ type: 'say', room, text, ref }));
+  });
+}
 
 export function sendTyping(conv: number) {
   if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'typing', conv }));

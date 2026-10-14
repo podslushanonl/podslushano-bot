@@ -13,6 +13,8 @@ export type Listing = {
   status?: string; status_title?: string;
   /** Продавцу можно написать в приложении (он сам подавал объявление через приложение). */
   chat?: boolean;
+  /** Аккаунт продавца в приложении: личка открывается, когда вы друзья. */
+  seller_id?: number;
   description?: string; contacts?: Contact[]; until?: string; photos?: string[];
   form?: { city: string; nationwide: boolean; contacts: ContactForm };
 };

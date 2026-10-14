@@ -9,7 +9,14 @@ import config
 from database.models import Base, Meta, Specialist
 
 # Движок и фабрика сессий — создаются один раз на всё приложение
-engine = create_async_engine(config.DB_URL, echo=False)
+# SQLite (файл data/bot.db) по умолчанию; PostgreSQL — если задан DATABASE_URL (см. config.DB_URL)
+engine = create_async_engine(
+    config.DB_URL, echo=False,
+    # PostgreSQL: время сессии в UTC — как и везде в коде (naive UTC); иначе func.now() сдвинется
+    **({} if config.DB_URL.startswith("sqlite") else {
+        "pool_pre_ping": True, "pool_size": 10, "max_overflow": 10,
+        "connect_args": {"server_settings": {"timezone": "UTC"}}}),
+)
 async_session = async_sessionmaker(engine, expire_on_commit=False)
 
 # Версия засева базы специалистов. Повышай число, когда меняешь данные/логику —
@@ -22,18 +29,18 @@ ONLINE_PROVINCE_THRESHOLD = 6
 
 # Колонки, которые могли появиться позже (для миграции существующей базы)
 _LATER_COLUMNS = {
-    "is_online": "BOOLEAN DEFAULT 0",
-    "is_premium": "BOOLEAN DEFAULT 0",
+    "is_online": "BOOLEAN DEFAULT FALSE",
+    "is_premium": "BOOLEAN DEFAULT FALSE",
     "status": "VARCHAR(20) DEFAULT 'active'",
     "source": "VARCHAR(20) DEFAULT 'seed'",
     "submitter_user_id": "BIGINT",
     "invoice_email": "VARCHAR(200)",
-    "paid_until": "DATETIME",
+    "paid_until": "TIMESTAMP",
     "payment_id": "VARCHAR(100)",
     "plan": "VARCHAR(10) DEFAULT 'year'",
-    "renewal_reminded": "BOOLEAN DEFAULT 0",
+    "renewal_reminded": "BOOLEAN DEFAULT FALSE",
     "photo_file_id": "TEXT",
-    "premium_until": "DATETIME",
+    "premium_until": "TIMESTAMP",
     "referred_by_specialist_id": "INTEGER",
     "card_color": "VARCHAR(10)",
 }
@@ -65,8 +72,8 @@ _AD_LATER_COLUMNS = {
 }
 
 _DISCOVERED_EVENT_LATER_COLUMNS = {
-    "starts_at": "DATETIME",
-    "ends_at": "DATETIME",
+    "starts_at": "TIMESTAMP",
+    "ends_at": "TIMESTAMP",
     "section_key": "VARCHAR(24) DEFAULT 'nearby'",
     "source_url": "VARCHAR(700) DEFAULT ''",
     "ticket_url": "VARCHAR(700) DEFAULT ''",
@@ -75,8 +82,8 @@ _DISCOVERED_EVENT_LATER_COLUMNS = {
 }
 
 _EVENT_LISTING_LATER_COLUMNS = {
-    "starts_at": "DATETIME",
-    "ends_at": "DATETIME",
+    "starts_at": "TIMESTAMP",
+    "ends_at": "TIMESTAMP",
     "event_time": "VARCHAR(40)",
     "venue": "VARCHAR(200)",
     "category": "VARCHAR(40)",
@@ -97,14 +104,17 @@ _LISTING_LATER_COLUMNS = {
 _HIDDEN_LATER_TABLES = ("chat_messages", "user_posts")   # колонка hidden (модерация) появилась позже
 
 _APP_USER_LATER_COLUMNS = {
-    "rules_at": "DATETIME",
-    "banned_until": "DATETIME",
+    "rules_at": "TIMESTAMP",
+    "banned_until": "TIMESTAMP",
+    "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
 }
+_COUNTRY_VALUES = "('Нидерланды', 'Германия', 'Бельгия')"
 
 
 async def init_db() -> None:
     """Создаёт таблицы, добавляет недостающие колонки и засевает специалистов."""
     os.makedirs(os.path.dirname(config.DB_PATH), exist_ok=True)
+    await _import_sqlite_once()
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -112,6 +122,41 @@ async def init_db() -> None:
     await _migrate()
     await _seed_if_needed()
     await _repair_misclassified_specialists()
+
+
+SQLITE_IMPORTED_KEY = "sqlite_imported_at"
+
+
+async def _import_sqlite_once() -> None:
+    """Переезд на PostgreSQL без консоли: при SQLITE_IMPORT=1 бот при старте сам переносит
+    данные из data/bot.db в пустую базу PostgreSQL (scripts/sqlite_to_postgres.py) и ставит
+    отметку в meta — повторно не переносит. Ошибка переноса останавливает запуск (всё в одной
+    транзакции, база остаётся пустой), чтобы бот не заработал с половиной данных."""
+    if config.DB_URL.startswith("sqlite") or os.getenv("SQLITE_IMPORT", "").strip() != "1":
+        return
+    import logging
+    log = logging.getLogger(__name__)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    async with async_session() as session:
+        if await session.get(Meta, SQLITE_IMPORTED_KEY):
+            log.info("SQLite уже перенесён в PostgreSQL — SQLITE_IMPORT можно убрать")
+            return
+    if not os.path.exists(config.DB_PATH):
+        log.warning("SQLITE_IMPORT=1, но файла %s нет — переносить нечего", config.DB_PATH)
+        return
+    from scripts.sqlite_to_postgres import run
+    log.warning("Переношу данные из %s в PostgreSQL…", config.DB_PATH)
+    code = await run(config.DB_PATH, config.DB_URL, dry_run=False, force=False)
+    if code == 3:
+        log.warning("В PostgreSQL уже есть данные — перенос пропущен, ставлю отметку")
+    elif code != 0:
+        raise RuntimeError(f"Перенос SQLite → PostgreSQL не удался (код {code}), см. лог выше")
+    from datetime import datetime, timezone
+    async with async_session() as session:
+        await session.merge(Meta(key=SQLITE_IMPORTED_KEY, value=datetime.now(timezone.utc).isoformat()))
+        await session.commit()
+    log.warning("Перенос в PostgreSQL завершён")
 
 
 async def _repair_misclassified_specialists() -> None:
@@ -254,13 +299,13 @@ async def _migrate() -> None:
 
             cols = await conn.run_sync(tcols)
             if cols is not None and "hidden" not in cols:
-                await conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN hidden BOOLEAN DEFAULT 0")
+                await conn.exec_driver_sql(f"ALTER TABLE {table} ADD COLUMN hidden BOOLEAN DEFAULT FALSE")
                 # Раньше автоскрытие по жалобам ставило deleted=1. Такие записи (3+ разных жалобы
                 # без решения модератора) переносим в hidden, чтобы «Оставить» могло их вернуть.
                 if await conn.run_sync(lambda c: "content_reports" in inspect(c).get_table_names()):
                     kind = "msg" if table == "chat_messages" else "post"
                     await conn.exec_driver_sql(
-                        f"UPDATE {table} SET hidden = 1, deleted = 0 WHERE deleted = 1 AND ("
+                        f"UPDATE {table} SET hidden = TRUE, deleted = FALSE WHERE deleted = TRUE AND ("
                         f"SELECT COUNT(DISTINCT reporter_id) FROM content_reports r "
                         f"WHERE r.kind = '{kind}' AND r.target_id = {table}.id AND r.resolved = '') >= 3"
                     )
@@ -270,6 +315,22 @@ async def _migrate() -> None:
             for name, ddl in _APP_USER_LATER_COLUMNS.items():
                 if name not in au_cols:
                     await conn.exec_driver_sql(f"ALTER TABLE app_users ADD COLUMN {name} {ddl}")
+
+        tables = set(await conn.run_sync(lambda c: inspect(c).get_table_names()))
+        # Комнаты чатов: раньше страна хранилась кодом NL — теперь русским названием (или пусто для общей)
+        if "chat_rooms" in tables:
+            await conn.exec_driver_sql(
+                f"UPDATE chat_rooms SET country = 'Нидерланды' WHERE country NOT IN {_COUNTRY_VALUES}")
+        # Блокировки переехали в friendships (статус blocked); старую таблицу сохраняем под другим именем
+        if "user_blocks" in tables and "friendships" in tables:
+            await conn.exec_driver_sql(
+                "INSERT INTO friendships (user_id, friend_id, status, created_at, updated_at) "
+                "SELECT DISTINCT b.user_id, b.blocked_id, 'blocked', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP "
+                "FROM user_blocks b WHERE b.user_id <> b.blocked_id "
+                "AND EXISTS (SELECT 1 FROM app_users u WHERE u.id = b.user_id) "
+                "AND EXISTS (SELECT 1 FROM app_users u WHERE u.id = b.blocked_id) "
+                "AND NOT EXISTS (SELECT 1 FROM friendships f WHERE f.user_id = b.user_id AND f.friend_id = b.blocked_id)")
+            await conn.exec_driver_sql("ALTER TABLE user_blocks RENAME TO user_blocks_migrated")
 
         def allo_sale_cols(sync_conn):
             insp = inspect(sync_conn)
@@ -457,6 +518,15 @@ async def _sync_seed_cards() -> None:
             ))
 
         await session.commit()
+
+
+def dialect_insert(model):
+    """INSERT с поддержкой .on_conflict_do_nothing(...) для текущей базы (SQLite или PostgreSQL)."""
+    if config.DB_URL.startswith("postgresql"):
+        from sqlalchemy.dialects.postgresql import insert
+    else:
+        from sqlalchemy.dialects.sqlite import insert
+    return insert(model)
 
 
 def get_session() -> AsyncSession:
