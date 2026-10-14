@@ -277,6 +277,31 @@ class RunTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(create.await_count, 2)
         self.assertNotIn(its[2].url, rows)
 
+    async def test_triage_sees_recently_published_titles(self):
+        # Та же история из другого источника: отбору показываем, что уже вышло за последние сутки
+        async with self.sessions() as s:
+            s.add(SiteNewsItem(source_url="https://nos.nl/l/old-ns", title_nl="Storing bij NS rond Utrecht",
+                               status="published", created_at=NOW.replace(tzinfo=None) - timedelta(hours=3)))
+            s.add(SiteNewsItem(source_url="https://nos.nl/l/older", title_nl="Oude kwestie",
+                               status="published", created_at=NOW.replace(tzinfo=None) - timedelta(days=3)))
+            await s.commit()
+        self.feed = [item("https://nltimes.nl/2026/10/12/ns-disruption-utrecht", "NS disruption near Utrecht")]
+        ask = AsyncMock(return_value=json.dumps({"chosen": [], "skipped": {
+            "https://nltimes.nl/2026/10/12/ns-disruption-utrecht": "уже опубликовано"}}))
+        with patch.object(site_news, "_ask_claude", ask):
+            await site_news.run_once(self.bot, NOW)
+        prompt = ask.call_args.args[2]
+        self.assertIn("Уже опубликовано:\n- Storing bij NS rond Utrecht", prompt)
+        self.assertNotIn("Oude kwestie", prompt)
+        row = (await self.rows())["https://nltimes.nl/2026/10/12/ns-disruption-utrecht"]
+        self.assertEqual((row.status, row.reason), ("skipped", "уже опубликовано"))
+
+    def test_nltimes_in_default_feeds(self):
+        self.assertEqual(site_news._parse_date("14 October 2026 - 20:20"),
+                         datetime(2026, 10, 14, 18, 20, tzinfo=timezone.utc))
+        self.assertTrue(any("nltimes.nl" in u for u in config.SITE_NEWS_FEEDS))
+        self.assertEqual(site_news.source_name("https://nltimes.nl/rss"), "NL Times")
+
     async def test_triage_failure_records_nothing(self):
         await self.seed("https://nos.nl/l/seen")
         self.feed = [item("https://nos.nl/l/50", "X", site_news._plain(LONG_NL))]
