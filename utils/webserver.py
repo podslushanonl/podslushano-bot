@@ -1740,6 +1740,8 @@ async def start_webserver(bot) -> web.AppRunner:
     app["bot"] = bot
     from utils.morning_bridge import install_routes as install_morning_routes
     install_morning_routes(app)
+    from utils.news_bridge import install_routes as install_news_routes
+    install_news_routes(app)
     from am_reviews import install_routes as install_review_routes
     from utils.authors_web import install_routes as install_author_routes
     install_review_routes(app)

@@ -23,9 +23,9 @@ def test_validation_and_escaping():
     bridge.validate(p, moment())
     result=bridge.render(p)
     assert '&lt;b&gt;не HTML&lt;/b&gt;' in result
-    assert '<b>🌦️ Погода</b>' in result
-    assert '05:50, 13.10.2026' in result
-    assert result.endswith(f'<b>{bridge.CTA}</b>')
+    assert '\n\n🌦️ Погода\n\n' in result
+    assert '05:50, 13 октября' in result
+    assert result.endswith(bridge.CTA)
     for invalid in [dict(p,date='2026-10-12'),dict(p,checked_at='2026-10-13T04:00:00+02:00'),dict(p,checked_at='2026-10-13T05:50:00'),dict(p,sources=[])]:
         with pytest.raises(ValueError): bridge.validate(invalid,moment())
 
