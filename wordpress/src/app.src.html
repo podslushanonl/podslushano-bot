@@ -4343,6 +4343,7 @@ const CAL_ORDER=PN_BOT+'/calendar?utm_source=site';
 const calInfo={text:'€30',open:true};
 const calApply=()=>{$$('[data-calprice]').forEach(e=>e.textContent=calInfo.text);if(!calInfo.open)$$('[data-calorder],[data-calorder2],#homeCal .pp,a.pc10[href^="'+PN_BOT+'/calendar"]').forEach(e=>e.style.display='none')};
 fetch(PN_BOT+'/calendar/info.json').then(r=>r.json()).then(j=>{const v=Number(j.price);if(v>0)calInfo.text='€'+(Number.isInteger(v)?v:v.toFixed(2).replace('.',','));calInfo.open=j.open!==false;calApply()}).catch(()=>{});
+$$('[data-calorder]').forEach(a=>{a.href=CAL_ORDER;a.target='_blank';a.rel='noopener'});
 (()=>{const m=$('#homeCal .calmk');if(!m||RM||!('IntersectionObserver' in window))return;let t;new IntersectionObserver(es=>es.forEach(x=>{clearInterval(t);if(x.isIntersecting)t=setInterval(()=>m.classList.toggle('flip'),3200)})).observe(m)})();
 /* ---------- HALLOWEEN ----------
    До 31 октября на главной анонс. 31 октября (время Amsterdam) сайт сам переодевается: видео-заставка, ночь и дым,
