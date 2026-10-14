@@ -13,7 +13,7 @@ from urllib.parse import urlsplit
 
 from aiohttp import web
 import config
-from utils.morning_bridge import TZ, channel_status
+from utils.morning_bridge import TZ, channel_status, deliver
 
 log = logging.getLogger(__name__)
 LOCK = asyncio.Lock()
@@ -157,7 +157,7 @@ async def publish_due(bot,now=None):
             if not claimed:
                 continue
             try:
-                message = await bot.send_message(config.ANNOUNCE_CHANNEL,render(payload),parse_mode='HTML',disable_web_page_preview=True)
+                message = await deliver(bot,render(payload))
             except Exception:
                 with db() as conn:
                     conn.execute("UPDATE news SET state='delivery_unknown',error='Check channel before retry' WHERE day=? AND slot=?",key)
@@ -174,6 +174,8 @@ async def lifecycle(app):
             try:
                 if os.getenv('NEWS_BRIDGE_TOKEN'):
                     await publish_due(app['bot'])
+                    from utils.publication_test import publish_due as publish_tests
+                    await publish_tests(app['bot'])
             except Exception:
                 log.exception('News bridge scheduler error')
             await asyncio.sleep(5)
@@ -189,4 +191,6 @@ async def lifecycle(app):
 def install_routes(app):
     app.router.add_get('/api/news/status',status)
     app.router.add_post('/api/news',ingest)
+    from utils.publication_test import install_routes as install_test_routes
+    install_test_routes(app)
     app.cleanup_ctx.append(lifecycle)
