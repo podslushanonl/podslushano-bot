@@ -2398,7 +2398,7 @@ html.hw .hw-bat{color:#05030A}
             <li><svg class="ico"><use href="#i-check"/></svg><span>До 15 личных дат прямо в сетке: дни рождения, годовщины</span></li>
             <li><svg class="ico"><use href="#i-check"/></svg><span>QR на обложке: все даты попадут в телефон, а бот напомнит о сроках</span></li>
           </ul>
-          <div class="acts"><a class="btn btn-acc" data-calorder href="#">Заказать календарь</a><button class="btn btn-soft" type="button" data-calsub>Даты в телефон бесплатно</button><span class="pp">€30 · доставка по Нидерландам включена</span></div>
+          <div class="acts"><a class="btn btn-acc" data-calorder href="#">Заказать календарь</a><button class="btn btn-soft" type="button" data-calsub>Даты в телефон бесплатно</button><span class="pp"><span data-calprice>€30</span> · доставка по Нидерландам включена</span></div>
         </div>
         <div class="calmk" role="img" aria-label="Календарь Nederland 2027: обложка и страница апреля"><span class="rings"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="pg back"><img loading="lazy" decoding="async" src="{{IMG:cal-april}}" alt=""></span><span class="pg front"><img loading="lazy" decoding="async" src="{{IMG:cal-cover}}" alt=""></span></div>
       </div>
@@ -4021,7 +4021,7 @@ document.addEventListener('keydown',e=>{if(e.target.id==='hxQ'&&e.key==='Escape'
 
 /* shop */
 const PRODUCTS10=[
- {k:'cal',cat:'Подарки',t:'Календарь эмигранта 2027',d:'Настенный A4 с вашей подписью, каникулами вашего региона и личными датами. Бот напомнит о сроках.',p:'€30 · с доставкой',href:'#homeCal',cal:1,cta:'Заказать',bg:'linear-gradient(150deg,#FFF3E8,#FFD9B8)'},
+ {k:'cal',cat:'Подарки',t:'Календарь эмигранта 2027',d:'Настенный A4 с вашей подписью, каникулами вашего региона и личными датами. Бот напомнит о сроках.',p:'<span data-calprice>€30</span> · с доставкой',href:'#homeCal',cal:1,cta:'Заказать',bg:'linear-gradient(150deg,#FFF3E8,#FFD9B8)'},
  {k:'gift',cat:'Подарки',t:'Подарочная карта allowalks',d:'Прогулка в подарок в одном из шести голландских дизайнов. Письмо с кодом придёт в выбранный день.',p:'от €25',href:'#allo-gift',cta:'Выбрать дизайн',bg:'linear-gradient(150deg,#EAF1FF,#FFE9DA)'},
  {k:'kg',cat:'Для бизнеса',t:'Карточка в КонтактGuide',d:'Ваши услуги на сайте и в боте: все контакты, город, описание. Меняете сами в кабинете.',p:'от €9,99 в месяц',href:'#place',cta:'Разместить',bg:'linear-gradient(150deg,#E2F3E9,#B9EBD2)'},
  {k:'tax',cat:'Бесплатно',t:'Гайд «Налоги и субсидии 2026»',d:'Налоги, toeslagen, льготы, ZZP и изменения 2026 года простым языком.',p:'бесплатно',href:'https://t.me/podslushano_nl_bot?start=tax_guide_2026',cta:'Получить в боте',ext:1,bg:'linear-gradient(150deg,#E3EEFA,#B8D4FF)'},
@@ -4037,7 +4037,7 @@ function prodVisual(k){
   return ''}
 function prodCard(p){return `<a class="pc10" href="${p.cal?CAL_ORDER:p.href}" ${p.cal||p.ext?'target="_blank" rel="noopener"':''} data-pcat="${p.cat}"><div class="pvis" style="background:${p.bg}">${prodVisual(p.k)}<span class="ptag">${p.cat}</span></div><div class="pbd"><h3>${p.t}</h3><p>${p.d}</p><div class="pft"><span class="pp">${p.p}</span><span class="pgo">${p.cta}${svg(p.ext?'ext':'arrow')}</span></div></div></a>`}
 let shopCat='Все';
-INIT.shop=()=>{const draw=()=>{$('#shopGrid').innerHTML=PRODUCTS10.filter(p=>shopCat==='Все'||p.cat===shopCat).map(prodCard).join('');$$('#shopTabs .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sc===shopCat))};
+INIT.shop=()=>{const draw=()=>{$('#shopGrid').innerHTML=PRODUCTS10.filter(p=>shopCat==='Все'||p.cat===shopCat).map(prodCard).join('');calApply();$$('#shopTabs .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sc===shopCat))};
   $('#shopTabs').addEventListener('click',e=>{const b=e.target.closest('[data-sc]');if(!b)return;shopCat=b.dataset.sc;draw()});
   let fd=0;const D=['delft','tulips','canals','molen','oranje','noordzee'];const fc=$('#shopFeat');
   const FCOL={delft:'#13306B',tulips:'#10203A',canals:'#fff',molen:'#2B1A10',oranje:'#fff',noordzee:'#0F2E47'};const fdraw=()=>{const fcd=fc.querySelector('.fcard');fcd.style.color=FCOL[D[fd]];fcd.classList.toggle('dark',FCOL[D[fd]]!=='#fff');fcd.innerHTML=`${gArt(D[fd])}<span class="sheen"></span><div class="top"><span class="brand"><img loading="lazy" decoding="async" src="{{IMG:allo-orig}}" alt=""><span><b>allowalks</b><small>подарочная карта</small></span></span></div><div class="amt">€50</div>`;fc.querySelectorAll('[data-fd]').forEach((b,i)=>b.setAttribute('aria-pressed',i===fd))};
@@ -4445,15 +4445,19 @@ ENTER.cabinet=async()=>{const q=new URLSearchParams(location.search);const t=q.g
 
 /* ---------- calendar 2027 ---------- */
 const CAL_ORDER=PN_BOT+'/calendar?utm_source=site';
+// цена и приём заказов берутся из настроек бота (CALENDAR_PRICE, CALENDAR_SALES_OPEN), как в форме оплаты
+const calInfo={text:'€30',open:true};
+const calApply=()=>{$$('[data-calprice]').forEach(e=>e.textContent=calInfo.text);if(!calInfo.open)$$('[data-calorder],[data-calorder2],#homeCal .pp,a.pc10[href^="'+PN_BOT+'/calendar"]').forEach(e=>e.style.display='none')};
+fetch(PN_BOT+'/calendar/info.json').then(r=>r.json()).then(j=>{const v=Number(j.price);if(v>0)calInfo.text='€'+(Number.isInteger(v)?v:v.toFixed(2).replace('.',','));calInfo.open=j.open!==false;calApply()}).catch(()=>{});
 const CAL_ICS=PN_BOT.replace(/^https?:/,'webcal:')+'/calendar/nederland-2027.ics';
 $$('[data-calorder]').forEach(a=>{a.href=CAL_ORDER;a.target='_blank';a.rel='noopener'});
 function calSub(){openSheet(`<h2 id="shTitle">Даты 2027 в телефон</h2><p class="muted" style="margin-top:6px">Праздники, schoolvakanties всех регионов, сроки налогов и страховки. Бесплатно, обновляется само. Личные даты и напоминания в боте есть в печатном календаре.</p>
   <div class="cal-sub"><a href="${CAL_ICS}"><svg class="ico"><use href="#i-cal"/></svg><span>iPhone и Mac<small>Откроется Apple Calendar, нажмите «Подписаться»</small></span></a>
   <a href="https://calendar.google.com/calendar/r?cid=${encodeURIComponent(CAL_ICS)}" target="_blank" rel="noopener"><svg class="ico"><use href="#i-cal"/></svg><span>Google Calendar<small>Android и компьютер</small></span></a>
   <a href="${PN_BOT}/calendar/nederland-2027.ics" download><svg class="ico"><use href="#i-cal"/></svg><span>Скачать файл .ics<small>Для Outlook и других календарей</small></span></a></div>
-  <a class="btn btn-acc" style="width:100%;margin-top:16px" href="${CAL_ORDER}" target="_blank" rel="noopener">Заказать печатный календарь · €30</a>`)}
+  <a class="btn btn-acc" style="width:100%;margin-top:16px" href="${CAL_ORDER}" target="_blank" rel="noopener" data-calorder2>Заказать печатный календарь · <span data-calprice>${calInfo.text}</span></a>`)}
 document.addEventListener('click',e=>{if(e.target.closest('[data-calsub]')){e.preventDefault();calSub()}});
-(()=>{const m=$('#homeCal .calmk');if(!m||RM)return;let t;new IntersectionObserver(es=>es.forEach(x=>{clearInterval(t);if(x.isIntersecting)t=setInterval(()=>m.classList.toggle('flip'),3200)})).observe(m)})();
+(()=>{const m=$('#homeCal .calmk');if(!m||RM||!('IntersectionObserver' in window))return;let t;new IntersectionObserver(es=>es.forEach(x=>{clearInterval(t);if(x.isIntersecting)t=setInterval(()=>m.classList.toggle('flip'),3200)})).observe(m)})();
 /* ---------- boot ---------- */
 syncFav();route();if(!consent&&!CMP())setTimeout(()=>cookieBar(false),900);
 })();

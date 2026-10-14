@@ -1,6 +1,7 @@
 """Календарь Nederland 2027: форма заказа, оплата, привязка в боте, ICS и напоминания."""
 import datetime as dt
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -141,6 +142,12 @@ class FlowTests(unittest.IsolatedAsyncioTestCase):
         self.assertGreaterEqual(n, 1)
         again = await shop._send_reminders(bot2, dt.date(2027, 2, 3))
         self.assertEqual(again, 0)  # без дублей
+
+    async def test_public_info_follows_settings(self):
+        with patch.dict(os.environ, {"CALENDAR_PRICE": "34.5", "CALENDAR_SALES_OPEN": "0"}):
+            resp = await shop.public_info(None)
+        self.assertEqual(json.loads(resp.body), {"price": "34.50", "open": False})
+        self.assertEqual(resp.headers["Access-Control-Allow-Origin"], "*")
 
     async def test_unpaid_order_is_not_exposed(self):
         row = await self._order()

@@ -331,8 +331,15 @@ async def public_ics(request: web.Request) -> web.Response:
                         headers={"Cache-Control": "public, max-age=3600"})
 
 
+async def public_info(request: web.Request) -> web.Response:
+    """Цена и открыт ли приём заказов — сайт показывает те же значения, что и форма оплаты."""
+    return web.json_response({"price": calendar_price(), "open": calendar_sales_open()},
+                             headers={"Access-Control-Allow-Origin": "*", "Cache-Control": "public, max-age=300"})
+
+
 def install_routes(app: web.Application) -> None:
     app.router.add_get("/calendar", calendar_page)
+    app.router.add_get("/calendar/info.json", public_info)
     app.router.add_post("/calendar/order", create_order)
     app.router.add_get("/calendar/thanks", thanks_page)
     app.router.add_get("/calendar/nederland-2027.ics", public_ics)
