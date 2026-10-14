@@ -21,6 +21,7 @@ from __future__ import annotations
 
 from aiohttp import web
 from sqlalchemy import and_, delete, func, or_, select
+from sqlalchemy.exc import IntegrityError
 
 from database.db import get_session
 from database.models import AppUser, Country, Friendship, FriendStatus, UserPost
@@ -214,9 +215,21 @@ async def request_friend(request: web.Request) -> web.Response:
             return _json(request, {"ok": True, "relation": "friends"})
         if _rate(f"friendreq:{me.id}", 30, 86400):
             return _err(request, "Слишком много заявок за день. Попробуйте завтра.", 429)
-        session.add(Friendship(user_id=me.id, friend_id=other.id, status=PENDING))
-        await session.commit()
-    await realtime.push_user(other.id, {"type": "friend", "event": "request", "user": card(me)})
+        me_id, other_id, me_card = me.id, other.id, card(me)   # после rollback объекты протухают
+        session.add(Friendship(user_id=me_id, friend_id=other_id, status=PENDING))
+        try:
+            await session.commit()
+        except IntegrityError:
+            # Встречная заявка пришла в ту же секунду — пара уже занята: принимаем её
+            await session.rollback()
+            row = (await session.execute(select(Friendship).where(
+                Friendship.user_id == other_id, Friendship.friend_id == me_id, Friendship.status == PENDING))).scalar_one_or_none()
+            if row:
+                row.status = ACCEPTED
+            rel = "friends" if row else await relation(session, me_id, other_id)
+            await session.commit()
+            return _json(request, {"ok": True, "relation": rel})
+    await realtime.push_user(other_id, {"type": "friend", "event": "request", "user": me_card})
     return _json(request, {"ok": True, "relation": "outgoing"})
 
 

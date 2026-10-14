@@ -21,7 +21,9 @@ export function useCity(): [string, (c: string) => void] {
   const { user } = useAuth();
   const l = useSyncExternalStore((f) => { subs.add(f); return () => subs.delete(f); }, () => local, () => local);
   useEffect(() => { if (user?.city && !local) { local = user.city; subs.forEach((f) => f()); } }, [user?.city]);
-  const city = user?.city || l || 'Amsterdam';
+  // Город с устройства подходит, только если он из страны аккаунта (после смены страны старый не тянется)
+  const cities = CITIES_BY_COUNTRY[asCountry(user?.country)];
+  const city = user?.city || (l && (!user || cities.includes(l)) ? l : '') || cities[0];
   const setCity = (c: string) => {
     local = c;
     AsyncStorage.setItem(KEY, c).catch(() => {});

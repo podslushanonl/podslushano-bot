@@ -9,11 +9,11 @@ import tempfile
 import unittest
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
-from sqlalchemy import func, select, text
+from sqlalchemy import func, inspect, select, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from database import db
@@ -126,6 +126,26 @@ class SocialBase:
         idx = {i.name: ([c.name for c in i.columns], i.unique) for i in Friendship.__table__.indexes}
         self.assertEqual(idx["ix_friendship_pair"], (["user_id", "friend_id"], True))
 
+    async def test_one_row_per_pair_even_for_reciprocal_requests(self):
+        from sqlalchemy.exc import IntegrityError
+        async with self.sessions() as s:
+            s.add(Friendship(user_id=1, friend_id=2, status=FriendStatus.PENDING))
+            await s.commit()
+            s.add(Friendship(user_id=2, friend_id=1, status=FriendStatus.PENDING))
+            with self.assertRaises(IntegrityError):
+                await s.commit()
+            await s.rollback()
+            # встречные блокировки — две записи, это можно
+            s.add_all([Friendship(user_id=3, friend_id=4, status=FriendStatus.BLOCKED),
+                       Friendship(user_id=4, friend_id=3, status=FriendStatus.BLOCKED)])
+            await s.commit()
+        # гонка: заявка 2→1 не увидела встречную (устаревшее чтение) — сервер принимает встречную, а не падает
+        with patch.object(social, "_rows", AsyncMock(return_value=[])):
+            st, d = await self.post("/api/app/friends/request", 2, {"user_id": 1})
+        self.assertEqual((st, d["relation"]), (200, "friends"))
+        lists = (await self.get("/api/app/friends", 2))[1]
+        self.assertEqual(([u["id"] for u in lists["friends"]], lists["incoming"], lists["outgoing"]), ([1], [], []))
+
     # ------------------------------------------------------------ 2. ЛС только между друзьями
 
     async def test_dm_requires_accepted_friendship(self):
@@ -221,6 +241,15 @@ class MigrationScriptTests(unittest.IsolatedAsyncioTestCase):
             s.add(Friendship(user_id=7, friend_id=8, status=FriendStatus.ACCEPTED))
             await s.commit()
         await src.dispose()
+        async with create_async_engine(PG_URL).begin() as c:
+            await c.run_sync(Base.metadata.drop_all)
+        before = Path(path).read_bytes()
+        self.assertEqual(await mig.run(path, PG_URL, dry_run=True, force=False), 0)   # проверка без записи
+        self.assertEqual(Path(path).read_bytes(), before)                               # SQLite не тронут
+        probe = create_async_engine(PG_URL)
+        async with probe.connect() as c:
+            self.assertNotIn("app_users", await c.run_sync(lambda x: inspect(x).get_table_names()))   # в PG пусто
+        await probe.dispose()
         self.assertEqual(await mig.run(path, PG_URL, dry_run=False, force=True), 0)
         self.assertEqual(await mig.run(path, PG_URL, dry_run=False, force=False), 3)   # второй раз — не затирает
         dst = create_async_engine(PG_URL)

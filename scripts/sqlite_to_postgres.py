@@ -11,6 +11,7 @@
 
 Что делает скрипт:
 - доводит SQLite до текущей схемы (те же миграции, что при старте бота);
+  в режиме --dry-run — на временной копии файла, а в PostgreSQL ничего не создаёт и не пишет;
 - создаёт таблицы в PostgreSQL; целевая база должна быть пустой (иначе --force);
 - копирует все таблицы в порядке зависимостей пачками, сохраняя id;
 - строки длиннее VARCHAR(n) подрезает и сообщает об этом (SQLite длину не проверял);
@@ -21,7 +22,9 @@ from __future__ import annotations
 import argparse
 import asyncio
 import os
+import sqlite3
 import sys
+import tempfile
 from datetime import timezone
 from pathlib import Path
 
@@ -69,6 +72,14 @@ async def run(sqlite_path: str, target_url: str, dry_run: bool, force: bool) -> 
     if not Path(sqlite_path).exists():
         print(f"Нет файла SQLite: {sqlite_path}")
         return 2
+    tmp = None
+    if dry_run:
+        # Проверка без записи: миграции гоняем на копии SQLite, исходный файл не трогаем
+        tmp = tempfile.TemporaryDirectory()
+        copy = str(Path(tmp.name) / "bot.db")
+        with sqlite3.connect(sqlite_path) as a, sqlite3.connect(copy) as b:
+            a.backup(b)
+        sqlite_path = copy
     src = create_async_engine(f"sqlite+aiosqlite:///{sqlite_path}")
     dst = create_async_engine(target_url, connect_args={"server_settings": {"timezone": "UTC"}})
 
@@ -89,25 +100,30 @@ async def run(sqlite_path: str, target_url: str, dry_run: bool, force: bool) -> 
     if extra:
         print("Пропускаю таблицы без модели (резервные/устаревшие):", ", ".join(extra))
 
-    # 2. Целевая база: таблицы и проверка, что она пустая
-    async with dst.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # 2. Целевая база: таблицы (кроме --dry-run) и проверка, что она пустая
+    if not dry_run:
+        async with dst.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+    async with dst.connect() as conn:
+        dst_tables = set(await conn.run_sync(lambda c: inspect(c).get_table_names()))
         filled = []
         for table in Base.metadata.sorted_tables:
-            n = await conn.scalar(select(func.count()).select_from(table))
+            n = await conn.scalar(select(func.count()).select_from(table)) if table.name in dst_tables else 0
             if n:
                 filled.append(f"{table.name}={n}")
     if filled and not force:
         print("В PostgreSQL уже есть данные:", ", ".join(filled[:10]), "… Остановлено (флаг --force — перезаписать).")
         await src.dispose()
         await dst.dispose()
+        if tmp:
+            tmp.cleanup()
         return 3
 
     # 3. Копирование
     cut: dict[str, int] = {}
     report = []
-    async with src.connect() as s, dst.begin() as d:
-        if filled and force:
+    async with src.connect() as s, (dst.connect() if dry_run else dst.begin()) as d:
+        if filled and force and not dry_run:
             for table in reversed(Base.metadata.sorted_tables):
                 await d.execute(table.delete())
         for table in Base.metadata.sorted_tables:
@@ -134,8 +150,6 @@ async def run(sqlite_path: str, target_url: str, dry_run: bool, force: bool) -> 
                     if seq:
                         await d.execute(text(f"SELECT setval('{seq}', COALESCE((SELECT MAX({pk[0].name}) FROM {table.name}), 1), "
                                              f"(SELECT MAX({pk[0].name}) FROM {table.name}) IS NOT NULL)"))
-        if dry_run:
-            await d.rollback()
 
     bad = [(n, a, b) for n, a, b in report if a != b]
     for name, a, b in report:
@@ -147,6 +161,8 @@ async def run(sqlite_path: str, target_url: str, dry_run: bool, force: bool) -> 
           + f" Таблиц: {sum(1 for _, a, _ in report if a)}, строк: {sum(a for _, a, _ in report)}.")
     await src.dispose()
     await dst.dispose()
+    if tmp:
+        tmp.cleanup()
     if bad and not dry_run:
         print("НЕ СОШЛОСЬ число строк:", bad)
         return 4

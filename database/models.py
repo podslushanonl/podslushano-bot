@@ -889,12 +889,15 @@ class AppUser(Base):
 class Friendship(Base):
     """Связь двух аккаунтов приложения. Одна запись на пару для заявки и дружбы:
     user_id — кто отправил заявку, friend_id — кому. Блокировка направленная: user_id заблокировал friend_id
-    (встречные блокировки — две записи). Личные сообщения доступны только при статусе accepted."""
+    (встречные блокировки — две записи). Личные сообщения доступны только при статусе accepted.
+    pair_key «меньший:больший id» у заявки и дружбы (у блокировки пусто) уникален, поэтому
+    одновременные встречные заявки не создадут две записи на одну пару."""
 
     __tablename__ = "friendships"
     __table_args__ = (
         Index("ix_friendship_pair", "user_id", "friend_id", unique=True),
         Index("ix_friendship_friend_status", "friend_id", "status"),
+        Index("ix_friendship_pair_key", "pair_key", unique=True),
         CheckConstraint("user_id <> friend_id", name="ck_friendship_not_self"),
     )
 
@@ -902,6 +905,7 @@ class Friendship(Base):
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey("app_users.id", ondelete="CASCADE"))
     friend_id: Mapped[int] = mapped_column(Integer, ForeignKey("app_users.id", ondelete="CASCADE"))
     status: Mapped[FriendStatus] = mapped_column(_enum(FriendStatus, "ck_friendship_status", 10), default=FriendStatus.PENDING)
+    pair_key: Mapped[str | None] = mapped_column(String(24), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, onupdate=_utcnow)
 
@@ -1060,3 +1064,10 @@ def _fit_strings(mapper, _connection, target) -> None:
         if isinstance(value, str) and len(value) > n:
             _log.warning("%s.%s: %d символов > %d, подрезано", mapper.class_.__name__, key, len(value), n)
             setattr(target, key, value[:n])
+
+
+@_event.listens_for(Friendship, "before_insert")
+@_event.listens_for(Friendship, "before_update")
+def _friendship_pair_key(_mapper, _connection, row: Friendship) -> None:
+    a, b = sorted((row.user_id, row.friend_id))
+    row.pair_key = None if row.status == FriendStatus.BLOCKED else f"{a}:{b}"
