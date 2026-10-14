@@ -52,7 +52,9 @@ def calendar_price() -> str:
 
 
 def calendar_sales_open() -> bool:
-    return __import__("os").getenv("CALENDAR_SALES_OPEN", "1").strip().lower() not in {"0", "false", "no", "off"}
+    """Приём заказов закрыт по умолчанию: форма заказа не утверждена и не должна быть публичной.
+    Открыть: CALENDAR_SALES_OPEN=1 в Railway."""
+    return __import__("os").getenv("CALENDAR_SALES_OPEN", "0").strip().lower() not in {"0", "false", "no", "off"}
 
 
 # ---------------------------------------------------------------- models
@@ -235,13 +237,15 @@ document.getElementById('add').onclick=function(){{var h=document.querySelector(
 
 
 async def calendar_page(request: web.Request) -> web.Response:
+    if not calendar_sales_open():
+        raise web.HTTPNotFound()
     return order_page()
 
 
 async def create_order(request: web.Request) -> web.Response:
-    data = await request.post()
     if not calendar_sales_open():
-        return order_page("Приём заказов временно закрыт.", data)
+        raise web.HTTPNotFound()
+    data = await request.post()
     if not config.payments_enabled():
         return order_page("Оплата временно недоступна. Попробуйте чуть позже.", data)
     fields, err = parse_form(data)
