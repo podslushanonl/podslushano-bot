@@ -6,7 +6,10 @@
 «Удалить», «Бан 24 ч», «Бан навсегда», «Оставить». После 3 жалоб от разных людей
 сообщение скрывается автоматически до решения модератора.
 
-Сообщения забираются опросом (GET …/messages?after=<id>) раз в несколько секунд.
+Чаты открыты всем пользователям приложения, дружба не нужна (в отличие от личных сообщений).
+Есть общая комната для всех стран («Общий чат») и комнаты Нидерландов, Германии и Бельгии.
+Новые сообщения приходят через живое соединение (utils.realtime): подписка {"type":"join"},
+отправка — POST …/messages или прямо по WebSocket {"type":"say","room":slug,"text":...}.
 """
 from __future__ import annotations
 
@@ -23,8 +26,8 @@ from sqlalchemy import func, select
 
 import config
 from database.db import get_session
-from database.models import AppUser, ChatMessage, ChatRoom, ContentReport, UserBlock, UserPost
-from utils import realtime
+from database.models import AppUser, ChatMessage, ChatRoom, ContentReport, Country, UserPost
+from utils import realtime, social
 from utils.app_api import _user
 from utils.site_api import _body, _err, _json
 
@@ -36,15 +39,23 @@ AUTO_HIDE_REPORTS = 3
 LINK_AFTER_DAYS = 3
 FOREVER = datetime(2100, 1, 1)
 
+_NL, _DE, _BE = Country.NL, Country.DE, Country.BE
 ROOMS = [
-    # (slug, название, вид)
-    ("nl", "Вся страна", "city"), ("amsterdam", "Amsterdam", "city"), ("rotterdam", "Rotterdam", "city"),
-    ("den-haag", "Den Haag", "city"), ("utrecht", "Utrecht", "city"), ("eindhoven", "Eindhoven", "city"),
-    ("groningen", "Groningen", "city"), ("noord-brabant", "Noord-Brabant", "city"), ("limburg", "Limburg", "city"),
-    ("work", "Работа", "topic"), ("housing", "Жильё", "topic"), ("docs", "Документы и налоги", "topic"),
-    ("health", "Врачи и медицина", "topic"), ("kids", "Мамы и дети", "topic"), ("cars", "Авто", "topic"),
-    ("travel", "Путешествия", "topic"), ("talk", "Просто поговорить", "topic"),
+    # (slug, название, вид, страна; None — общая для всех стран)
+    ("all", "Общий чат", "topic", None),
+    ("nl", "Вся страна", "city", _NL), ("amsterdam", "Amsterdam", "city", _NL), ("rotterdam", "Rotterdam", "city", _NL),
+    ("den-haag", "Den Haag", "city", _NL), ("utrecht", "Utrecht", "city", _NL), ("eindhoven", "Eindhoven", "city", _NL),
+    ("groningen", "Groningen", "city", _NL), ("noord-brabant", "Noord-Brabant", "city", _NL), ("limburg", "Limburg", "city", _NL),
+    ("work", "Работа", "topic", _NL), ("housing", "Жильё", "topic", _NL), ("docs", "Документы и налоги", "topic", _NL),
+    ("health", "Врачи и медицина", "topic", _NL), ("kids", "Мамы и дети", "topic", _NL), ("cars", "Авто", "topic", _NL),
+    ("travel", "Путешествия", "topic", _NL), ("talk", "Просто поговорить", "topic", _NL),
+    ("de", "Вся Германия", "city", _DE), ("berlin", "Berlin", "city", _DE), ("muenchen", "München", "city", _DE),
+    ("hamburg", "Hamburg", "city", _DE), ("koeln", "Köln", "city", _DE), ("frankfurt", "Frankfurt am Main", "city", _DE),
+    ("duesseldorf", "Düsseldorf", "city", _DE), ("nrw", "Nordrhein-Westfalen", "city", _DE),
+    ("be", "Вся Бельгия", "city", _BE), ("brussel", "Brussel", "city", _BE), ("antwerpen", "Antwerpen", "city", _BE),
+    ("gent", "Gent", "city", _BE), ("liege", "Liège", "city", _BE), ("leuven", "Leuven", "city", _BE),
 ]
+_rooms_synced: set[int] = set()   # движки базы, где комнаты уже сверены
 
 # Мат ищем только с начала слова: «хлеба», «требования», «застрахуйтесь» — обычные слова
 _W = r"(?<![а-яёa-z])"
@@ -108,17 +119,23 @@ def can_write(u: AppUser | None) -> tuple[str, int] | None:
 
 
 async def ensure_rooms(session) -> None:
-    if await session.scalar(select(func.count()).select_from(ChatRoom)):
+    """Досоздаёт недостающие комнаты из ROOMS и проставляет страны (один раз за запуск процесса)."""
+    key = id(session.bind)
+    if key in _rooms_synced:
         return
-    for i, (slug, title, kind) in enumerate(ROOMS):
-        session.add(ChatRoom(slug=slug, title=title, kind=kind, sort=i))
+    have = {r.slug: r for r in (await session.execute(select(ChatRoom))).scalars()}
+    for i, (slug, title, kind, country) in enumerate(ROOMS):
+        r = have.get(slug)
+        if not r:
+            session.add(ChatRoom(slug=slug, title=title, kind=kind, country=country, sort=i))
+        elif r.country != country or r.sort != i:
+            r.country, r.sort = country, i
     await session.commit()
+    _rooms_synced.add(key)
 
 
 async def _blocked(session, u: AppUser | None) -> set[int]:
-    if not u:
-        return set()
-    return set((await session.execute(select(UserBlock.blocked_id).where(UserBlock.user_id == u.id))).scalars())
+    return await social.blocked_by(session, u.id) if u else set()
 
 
 async def _names(session, ids: set[int]) -> dict[int, AppUser]:
@@ -156,7 +173,8 @@ async def rooms(request: web.Request) -> web.Response:
         counts = dict((await session.execute(select(ChatMessage.room_id, func.count()).where(
             ChatMessage.created_at >= since, ChatMessage.deleted.is_(False), ChatMessage.hidden.is_(False))
             .group_by(ChatMessage.room_id))).all())
-        out = [{"slug": r.slug, "title": r.title, "kind": r.kind, "today": counts.get(r.id, 0)}
+        out = [{"slug": r.slug, "title": r.title, "kind": r.kind, "country": r.country.value if r.country else "",
+                "today": counts.get(r.id, 0)}
                for r in (await session.execute(select(ChatRoom).where(ChatRoom.active.is_(True))
                                                .order_by(ChatRoom.sort))).scalars()]
     return _json(request, {"ok": True, "rooms": out})
@@ -175,23 +193,10 @@ async def messages(request: web.Request) -> web.Response:
         me = await _user(request, session)
         if request.method == "POST":
             data = await _body(request)
-            text = str(data.get("text") or "").strip()
-            denied = can_write(me)
-            if denied:
-                return _err(request, *denied)
-            reason = check_text(me, text, MSG_MAX)
-            if reason:
-                return _err(request, reason)
-            if _rate(f"m3:{me.id}", 1, 3) or _rate(f"m300:{me.id}", 20, 300):
-                return _err(request, "Не так быстро: подождите немного.", 429)
-            m = ChatMessage(room_id=room.id, user_id=me.id, text=text)
-            session.add(m)
-            await session.commit()
-            # Сразу всем, у кого этот чат открыт (кроме скрывших автора)
-            hidden_for = set((await session.execute(select(UserBlock.user_id).where(UserBlock.blocked_id == me.id))).scalars())
-            await realtime.push_room(room.slug, {"type": "room", "slug": room.slug, "message": _item(m, {me.id: me}, None)},
-                                     skip_users=hidden_for | {me.id})
-            return _json(request, {"ok": True, "message": _item(m, {me.id: me}, me)})
+            item, err = await say(session, me, room, str(data.get("text") or ""))
+            if err:
+                return _err(request, *err)
+            return _json(request, {"ok": True, "message": item})
 
         q = select(ChatMessage).where(ChatMessage.room_id == room.id, ChatMessage.deleted.is_(False),
                                       ChatMessage.hidden.is_(False))
@@ -210,6 +215,42 @@ async def messages(request: web.Request) -> web.Response:
         await session.commit()
         return _json(request, {"ok": True, "room": {"slug": room.slug, "title": room.title},
                                "messages": [_item(m, users, me) for m in rows]})
+
+
+async def say(session, me: AppUser | None, room: ChatRoom, text: str) -> tuple[dict | None, tuple[str, int] | None]:
+    """Сообщение в комнату: общие правила (вход, имя, правила, бан, мат, лимиты), без проверки дружбы.
+    Возвращает (сообщение, None) или (None, (текст ошибки, код))."""
+    text = text.strip()
+    denied = can_write(me)
+    if denied:
+        return None, denied
+    reason = check_text(me, text, MSG_MAX)
+    if reason:
+        return None, (reason, 400)
+    if _rate(f"m3:{me.id}", 1, 3) or _rate(f"m300:{me.id}", 20, 300):
+        return None, ("Не так быстро: подождите немного.", 429)
+    m = ChatMessage(room_id=room.id, user_id=me.id, text=text)
+    session.add(m)
+    await session.commit()
+    # Сразу всем, у кого этот чат открыт (кроме заблокировавших автора)
+    hidden_for = await social.blockers_of(session, me.id)
+    await realtime.push_room(room.slug, {"type": "room", "slug": room.slug, "message": _item(m, {me.id: me}, None)},
+                             skip_users=hidden_for | {me.id})
+    return _item(m, {me.id: me}, me), None
+
+
+async def ws_say(uid: int, slug: str, text: str) -> dict:
+    """Отправка в комнату прямо по WebSocket: тот же путь, что и POST …/messages."""
+    async with get_session() as session:
+        room = await _room(session, slug)
+        if not room:
+            return {"ok": False, "error": "Нет такого чата.", "status": 404}
+        me = await session.get(AppUser, uid)
+        item, err = await say(session, me, room, text)
+        await session.commit()
+    return {"ok": True, "message": item} if item else {"ok": False, "error": err[0], "status": err[1]}
+
+realtime.say_handler = ws_say
 
 
 # ---------------------------------------------------------------- посты
@@ -297,15 +338,18 @@ async def report(request: web.Request) -> web.Response:
 
 
 async def block(request: web.Request) -> web.Response:
+    """Скрыть автора из чата или ленты — это та же блокировка, что и в профиле (utils.social)."""
     data = await _body(request)
     async with get_session() as session:
         me = await _user(request, session)
         if not me:
             return _err(request, "Войдите заново.", 401)
-        target = int(data.get("user_id") or 0)
-        if target and target != me.id and not await session.scalar(select(UserBlock.id).where(
-                UserBlock.user_id == me.id, UserBlock.blocked_id == target)):
-            session.add(UserBlock(user_id=me.id, blocked_id=target))
+        try:
+            target = int(data.get("user_id") or 0)
+        except (TypeError, ValueError):
+            target = 0
+        if target and target != me.id and await session.get(AppUser, target):
+            await social.block_user(session, me.id, target)
             await session.commit()
     return _json(request, {"ok": True})
 

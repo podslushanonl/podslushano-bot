@@ -1,4 +1,4 @@
-"""Личные сообщения приложения: диалоги по объявлениям, живое соединение, прочитано, блокировки, жалобы."""
+"""Личные сообщения приложения: только друзьям; диалоги по объявлениям, живое соединение, прочитано, блокировки, жалобы."""
 import asyncio
 import tempfile
 import unittest
@@ -11,8 +11,8 @@ from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from database.models import AppUser, Base, Listing, UserBlock
-from utils import app_api, community, dm, realtime
+from database.models import AppUser, Base, Friendship, FriendStatus, Listing
+from utils import app_api, community, dm, realtime, social
 from utils.site_api import make_token
 
 
@@ -32,7 +32,7 @@ class DmTests(unittest.IsolatedAsyncioTestCase):
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
-        self.patches = [patch.object(m, "get_session", self.sessions) for m in (app_api, community, dm, realtime)] + [
+        self.patches = [patch.object(m, "get_session", self.sessions) for m in (app_api, community, dm, realtime, social)] + [
             patch.object(dm.config, "ADMIN_IDS", [999]),
             patch.object(dm.config, "WEBHOOK_BASE_URL", "https://bot.example"),
         ]
@@ -52,6 +52,8 @@ class DmTests(unittest.IsolatedAsyncioTestCase):
                 Listing(id=11, category="goods", title="Из бота", description="d", contact="Telegram: @x_nl",
                         status="approved", expires_at=later, submitter_user_id=777),
                 Listing(id=12, category="goods", title="На проверке", description="d", status="pending", app_user_id=1),
+                # Сергей и Борис — друзья; Олег (4) с Сергеем не дружит
+                Friendship(user_id=2, friend_id=1, status=FriendStatus.ACCEPTED),
             ])
             await s.commit()
         self.bot = FakeBot()
@@ -92,6 +94,8 @@ class DmTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.start(2, 11))[0], 409)      # автор не в приложении
         self.assertEqual((await self.start(2, 12))[0], 404)      # не опубликовано
         self.assertEqual((await self.start(1, 10))[0], 400)      # своё объявление
+        st, d = await self.start(4)                               # не друзья — писать нельзя
+        self.assertEqual((st, d["error"]), (403, social.NOT_FRIENDS))
         st, d = await self.start()
         self.assertEqual(st, 200)
         self.assertEqual((await self.start())[1]["id"], d["id"])  # тот же диалог
@@ -126,9 +130,7 @@ class DmTests(unittest.IsolatedAsyncioTestCase):
         cid = (await self.start())[1]["id"]
         url = f"/api/app/dm/{cid}"
         self.assertEqual((await self.post(url, 2, {"text": "ну ты и сука"})).status, 400)
-        async with self.sessions() as s:
-            s.add(UserBlock(user_id=1, blocked_id=2))
-            await s.commit()
+        self.assertEqual((await self.post("/api/app/block", 1, {"user_id": 2})).status, 200)
         self.assertEqual((await self.post(url, 2, {"text": "Почему молчите?"})).status, 403)
         self.assertEqual((await self.start(2, 10))[0], 403)
         self.assertEqual((await self.post(f"{url}/report", 1)).status, 200)

@@ -2,13 +2,14 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { block, routeForError } from '@/api/community';
+import { routeForError } from '@/api/community';
 import { DmMessage, markRead, onRealtime, reportDialog, sendDm, sendTyping, useDialog } from '@/api/dm';
 import { photoUrl } from '@/api/market';
+import { blockPerson } from '@/api/social';
 import { queryClient } from '@/api/query';
 import { Bubble, CHAT_HEADER_SPACE, ChatHeader, ChatShell, Composer } from '@/features/chat/ChatUI';
 import { radius, useTheme } from '@/theme';
-import { ActionSheet, Avatar, Empty, IconButton, Img, Skeleton, Tap, Txt, useToast } from '@/ui';
+import { ActionSheet, Avatar, Button, Empty, IconButton, Img, Skeleton, Tap, Txt, useToast } from '@/ui';
 
 export default function Dialog() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,6 +27,8 @@ export default function Dialog() {
   const lastTyping = useRef(0);
   const cv = q.data?.conversation;
   const messages = useMemo(() => [...(q.data?.messages || [])].reverse(), [q.data]);
+  const locked = cv?.can_write === false;   // писать можно только друзьям
+  const openPeer = () => cv && router.push({ pathname: '/user/[id]', params: { id: String(cv.peer.id) } });
 
   useEffect(() => {
     const off = onRealtime((e) => {
@@ -74,7 +77,7 @@ export default function Dialog() {
     <ChatShell
       header={
         <ChatHeader title={cv?.peer.name || 'Диалог'} sub={typing ? 'печатает…' : cv?.listing ? 'по объявлению' : undefined} onBack={back}
-          left={cv ? <Avatar name={cv.peer.name} id={cv.peer.id} size={40} /> : null}
+          left={cv ? <Tap onPress={openPeer} scaleTo={0.92} accessibilityLabel={`Профиль: ${cv.peer.name}`}><Avatar name={cv.peer.name} id={cv.peer.id} size={40} /></Tap> : null}
           right={cv ? <IconButton icon="more" label="Действия" kind="plain" onPress={() => setMenu(true)} /> : null}
           below={cv?.listing ? (
             <Tap onPress={() => router.push({ pathname: '/market/[id]', params: { id: String(cv.listing!.id) } })} scaleTo={0.98}
@@ -87,7 +90,12 @@ export default function Dialog() {
             </Tap>
           ) : null} />
       }
-      composer={<Composer value={text} onChange={change} onSend={send} busy={busy} />}>
+      composer={locked ? (
+        <View style={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 12), gap: 8, alignItems: 'center' }}>
+          <Txt v="footnote" center>Писать в личные сообщения можно только друзьям.</Txt>
+          <Button title={`Открыть профиль: ${cv!.peer.name}`} kind="secondary" size="s" full={false} icon="person" onPress={openPeer} />
+        </View>
+      ) : <Composer value={text} onChange={change} onSend={send} busy={busy} />}>
       {q.isLoading ? (
         <View style={{ paddingTop: CHAT_HEADER_SPACE(insets.top, 70), paddingHorizontal: 14, gap: 10 }}>
           <Skeleton w="60%" h={50} r={20} /><Skeleton w="45%" h={44} r={20} style={{ alignSelf: 'flex-end' }} />
@@ -108,7 +116,8 @@ export default function Dialog() {
       )}
       <ActionSheet visible={menu} onClose={() => setMenu(false)} actions={cv ? [
         { title: 'Пожаловаться', icon: 'flag', danger: true, onPress: () => reportDialog(conv).then(() => toast('Жалоба отправлена модераторам')).catch((e) => toast(e?.message || 'Ошибка', 'error')) },
-        { title: `Заблокировать: ${cv.peer.name}`, icon: 'block', onPress: () => block(cv.peer.id).then(() => { toast('Пользователь заблокирован'); back(); }).catch((e) => toast(e?.message || 'Ошибка', 'error')) },
+        { title: `Профиль: ${cv.peer.name}`, icon: 'person', onPress: openPeer },
+        { title: `Заблокировать: ${cv.peer.name}`, icon: 'block', onPress: () => blockPerson(cv.peer.id).then(() => { toast('Пользователь заблокирован'); back(); }).catch((e) => toast(e?.message || 'Ошибка', 'error')) },
       ] : []} />
     </ChatShell>
   );

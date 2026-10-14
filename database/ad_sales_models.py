@@ -24,7 +24,7 @@ class AdConversationMessage(Base):
     # inbound | outbound | suggestion | status | payment | production
     kind: Mapped[str] = mapped_column(String(20), default="inbound", index=True)
     text: Mapped[str] = mapped_column(Text)
-    telegram_message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    telegram_message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
 
 

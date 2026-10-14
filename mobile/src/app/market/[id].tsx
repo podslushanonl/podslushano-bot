@@ -8,6 +8,7 @@ import { toggleFavorite, useAuth } from '@/api/auth';
 import { BOT } from '@/api/client';
 import { routeForError } from '@/api/community';
 import { startDialog } from '@/api/dm';
+import { addFriend, useProfile } from '@/api/social';
 import { absUrl, CAT_ICON, closeListing, marketChanged, payListing, REPORT_REASONS, reportListing, useListing } from '@/api/market';
 import { openUrl } from '@/lib/open';
 import { radius, useTheme } from '@/theme';
@@ -58,6 +59,8 @@ export default function ListingScreen() {
   const q = useListing(Number(id));
   const fav = favorites.some((f) => f.kind === 'listing' && f.key === String(id));
   const l = q.data;
+  const seller = useProfile(l?.seller_id || 0, !!user && !!l?.chat);
+  const sellerRel = seller.data?.relation;
   const [reportOpen, setReportOpen] = useState(false);
   const [busy, setBusy] = useState(false);
 
@@ -174,11 +177,21 @@ export default function ListingScreen() {
         <View style={{ position: 'absolute', left: 12, right: 12, bottom: insets.bottom + 12 }}>
           <Glass radius={radius.xxl} strong style={{ padding: 8, flexDirection: 'row', gap: 8 }}>
             {l.chat ? (
-              <Button title="Написать продавцу" kind="primary" icon="bubble" style={{ flex: 1 }} loading={busy}
-                onPress={() => (user ? run(async () => {
-                  const d = await startDialog(l.id);
-                  router.push({ pathname: '/dm/[id]', params: { id: String(d.id) } });
-                }) : router.push('/login'))} />
+              // Личные сообщения — только друзьям: иначе сначала заявка в друзья продавцу
+              !user || sellerRel === 'friends' ? (
+                <Button title="Написать продавцу" kind="primary" icon="bubble" style={{ flex: 1 }} loading={busy}
+                  onPress={() => (user ? run(async () => {
+                    const d = await startDialog(l.id);
+                    router.push({ pathname: '/dm/[id]', params: { id: String(d.id) } });
+                  }) : router.push('/login'))} />
+              ) : sellerRel === 'none' ? (
+                <Button title="Добавить продавца в друзья" kind="accent" icon="plus" style={{ flex: 1 }} loading={busy}
+                  onPress={() => run(async () => { await addFriend(l.seller_id!); toast('Заявка отправлена. Когда продавец примет её, сможете написать.'); })} />
+              ) : (
+                <Button title={sellerRel === 'outgoing' ? 'Заявка отправлена' : 'Профиль продавца'} kind="secondary" icon="person"
+                  style={{ flex: 1 }} loading={seller.isLoading}
+                  onPress={() => l.seller_id && router.push({ pathname: '/user/[id]', params: { id: String(l.seller_id) } })} />
+              )
             ) : (
               <Button title={main!.type === 'phone' ? 'Позвонить' : main!.type === 'email' ? 'Написать на почту' : `Написать в ${main!.title}`}
                 kind="primary" icon={main!.type === 'phone' ? 'phone' : 'bubble'} style={{ flex: 1 }} onPress={() => openUrl(main!.url)} />

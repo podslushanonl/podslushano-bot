@@ -575,7 +575,7 @@ async def build_digest(pref: DigestPreference) -> str:
             select(Listing).where(
                 Listing.status == "approved",
                 or_(Listing.expires_at.is_(None), Listing.expires_at > datetime.utcnow()),
-            ).order_by(Listing.bumped_at.desc(), Listing.id.desc()).limit(40)
+            ).order_by(Listing.bumped_at.desc().nulls_last(), Listing.id.desc()).limit(40)
         )).all()
         saved_rows = (await session.scalars(
             select(SavedItem).where(SavedItem.user_id == pref.user_id)

@@ -7,6 +7,16 @@ on:
 jobs:
   run-tests:
     runs-on: ubuntu-latest
+    # PostgreSQL — для проверки, что приложение готово к переезду базы (tests/test_social.py)
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pn_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -42,5 +52,7 @@ jobs:
         run: python tests/test_admin_newsletter_subscribers.py
       - name: Run admin publishing channel checks
         run: python tests/test_admin_channels.py
-      - name: Run bot navigation, inbox, menu, NS and afisha checks
-        run: python -m unittest tests.test_nav_guard tests.test_inbox tests.test_menu_card tests.test_story_media tests.test_ns_trains tests.test_ns_alerts tests.test_afisha_site tests.test_newsletter_emails tests.test_card_email_reminders tests.test_content_frequency tests.test_savings tests.test_app_api tests.test_community tests.test_market tests.test_dm tests.test_calendar_shop tests.test_tax_guide_web
+      - name: Run bot navigation, inbox, menu, NS, afisha and app checks (app also on PostgreSQL)
+        env:
+          TEST_DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/pn_test
+        run: python -m unittest tests.test_nav_guard tests.test_inbox tests.test_menu_card tests.test_story_media tests.test_ns_trains tests.test_ns_alerts tests.test_afisha_site tests.test_newsletter_emails tests.test_card_email_reminders tests.test_content_frequency tests.test_savings tests.test_app_api tests.test_community tests.test_market tests.test_dm tests.test_calendar_shop tests.test_tax_guide_web tests.test_social

@@ -6,7 +6,8 @@ import { Room, useRooms } from '@/api/community';
 import { Conversation, useConversations } from '@/api/dm';
 import { photoUrl } from '@/api/market';
 import { timeLabel } from '@/features/feed/cards';
-import { useCity } from '@/lib/useCity';
+import { useFriends } from '@/api/social';
+import { useCity, useCountry } from '@/lib/useCity';
 import { radius, useTheme } from '@/theme';
 import { Avatar, Badge, Button, Empty, Group, Icon, Img, Row, Segmented, Skeleton, TabScreen, Tap, Txt } from '@/ui';
 
@@ -36,13 +37,25 @@ function ConversationRow({ cv, first }: { cv: Conversation; first: boolean }) {
   );
 }
 
-function RoomsList({ rooms }: { rooms: Room[] }) {
+function RoomsList({ rooms: all }: { rooms: Room[] }) {
   const { c } = useTheme();
   const [city] = useCity();
+  const country = useCountry();
+  // Общие комнаты (для всех стран) и комнаты своей страны
+  const common = all.filter((r) => !r.country);
+  const rooms = all.filter((r) => r.country === country);
   const mine = rooms.find((r) => r.kind === 'city' && r.title === city);
   const open = (r: Room) => router.push({ pathname: '/room/[slug]', params: { slug: r.slug, title: r.title } });
   return (
     <View style={{ gap: 18 }}>
+      {common.length ? (
+        <Group title="Для всех · Нидерланды, Германия, Бельгия">
+          {common.map((r, i) => (
+            <Row key={r.slug} first={i === 0} title={r.title} sub={r.today ? `${r.today} сообщ. за сутки` : 'Общайтесь со всеми — дружба не нужна'}
+              icon="globe" onPress={() => open(r)} />
+          ))}
+        </Group>
+      ) : null}
       {mine ? (
         <Tap onPress={() => open(mine)} scaleTo={0.98} style={{ backgroundColor: c.hero, borderRadius: radius.xxl, padding: 18, gap: 12 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -65,7 +78,7 @@ function RoomsList({ rooms }: { rooms: Room[] }) {
       </Group>
       <Group title="Темы">
         {rooms.filter((r) => r.kind === 'topic').map((r, i) => (
-          <Row key={r.slug} first={i === 0} title={r.title} sub={r.today ? `${r.today} сообщ. за сутки` : 'Вся страна'} icon="people" onPress={() => open(r)} />
+          <Row key={r.slug} first={i === 0} title={r.title} sub={r.today ? `${r.today} сообщ. за сутки` : country} icon="people" onPress={() => open(r)} />
         ))}
       </Group>
       <Txt v="footnote" center>Будьте вежливы: у нас есть модерация. Правила — в профиле.</Txt>
@@ -78,25 +91,35 @@ export default function Messages() {
   const [tab, setTab] = useState<'dm' | 'rooms'>(user ? 'dm' : 'rooms');
   const rooms = useRooms();
   const dms = useConversations(!!user);
+  const friends = useFriends(!!user);
+  const requests = friends.data?.incoming.length || 0;
   return (
     <TabScreen title="Сообщения" refreshing={rooms.isRefetching || dms.isRefetching}
-      onRefresh={() => { rooms.refetch(); if (user) dms.refetch(); }}>
+      onRefresh={() => { rooms.refetch(); if (user) { dms.refetch(); friends.refetch(); } }}>
       <Segmented value={tab} onChange={setTab} items={[
         { key: 'dm', title: dms.data?.unread ? `Личные · ${dms.data.unread}` : 'Личные' },
-        { key: 'rooms', title: 'Чаты городов и тем' },
+        { key: 'rooms', title: 'Общие чаты' },
       ]} />
       {tab === 'rooms' ? (
         rooms.data ? <RoomsList rooms={rooms.data} /> : <View style={{ gap: 10 }}><Skeleton h={120} r={34} /><Skeleton h={260} r={22} /></View>
       ) : !user ? (
-        <Empty icon="bubble" title="Личные сообщения" text="Пишите продавцам прямо в приложении — без обмена телефонами."
+        <Empty icon="bubble" title="Личные сообщения" text="Переписывайтесь с друзьями прямо в приложении — без обмена телефонами."
           action={<Button title="Войти" kind="primary" onPress={() => router.push('/login')} />} />
-      ) : dms.isLoading ? (
-        <View style={{ gap: 10 }}>{[0, 1, 2].map((i) => <Skeleton key={i} h={74} r={22} />)}</View>
-      ) : dms.data?.items.length ? (
-        <Group>{dms.data.items.map((cv, i) => <ConversationRow key={cv.id} cv={cv} first={i === 0} />)}</Group>
       ) : (
-        <Empty icon="bubble" title="Пока нет диалогов" text="Откройте объявление на барахолке и нажмите «Написать продавцу»."
-          action={<Button title="Открыть барахолку" kind="secondary" onPress={() => router.push('/market')} />} />
+        <>
+          <Group>
+            <Row first title="Друзья" sub={requests ? `Новые заявки в друзья: ${requests}` : 'Личные сообщения — для друзей'}
+              icon="people" right={<Badge n={requests} />} onPress={() => router.push('/friends')} />
+          </Group>
+          {dms.isLoading ? (
+            <View style={{ gap: 10 }}>{[0, 1, 2].map((i) => <Skeleton key={i} h={74} r={22} />)}</View>
+          ) : dms.data?.items.length ? (
+            <Group>{dms.data.items.map((cv, i) => <ConversationRow key={cv.id} cv={cv} first={i === 0} />)}</Group>
+          ) : (
+            <Empty icon="bubble" title="Пока нет диалогов" text="Добавьте человека в друзья — и пишите друг другу. Найти людей можно по имени или в общих чатах."
+              action={<Button title="Найти друзей" kind="secondary" onPress={() => router.push('/friends')} />} />
+          )}
+        </>
       )}
     </TabScreen>
   );

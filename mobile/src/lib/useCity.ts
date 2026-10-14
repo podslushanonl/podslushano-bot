@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useEffect, useSyncExternalStore } from 'react';
 import { saveProfile, useAuth } from '@/api/auth';
+import { asCountry, CITIES_BY_COUNTRY, Country } from './countries';
 
 // Город пользователя: из профиля, если вошёл, иначе — выбранный на этом устройстве
 const KEY = 'pn_city';
@@ -8,8 +9,13 @@ let local = '';
 const subs = new Set<() => void>();
 AsyncStorage.getItem(KEY).then((v) => { if (v) { local = v; subs.forEach((f) => f()); } }).catch(() => {});
 
-export const CITIES = ['Amsterdam', 'Rotterdam', 'Den Haag', 'Utrecht', 'Eindhoven', 'Groningen', 'Tilburg', 'Almere', 'Breda',
-  'Nijmegen', 'Arnhem', 'Haarlem', 'Leiden', 'Maastricht', 'Zwolle', 'Amersfoort', 'Delft', 'Enschede', 'Den Bosch', 'Oss'];
+export const CITIES = CITIES_BY_COUNTRY['Нидерланды'];
+
+/** Страна пользователя из профиля; без входа — Нидерланды. */
+export function useCountry(): Country {
+  const { user } = useAuth();
+  return asCountry(user?.country);
+}
 
 export function useCity(): [string, (c: string) => void] {
   const { user } = useAuth();

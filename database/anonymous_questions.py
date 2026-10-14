@@ -47,4 +47,4 @@ class AnonymousAnswer(Base):
     # draft | publishing | published | uncertain. Never auto-retry uncertain sends.
     status: Mapped[str] = mapped_column(String(20), default="draft")
     channel_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
-    message_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    message_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)

@@ -4,9 +4,10 @@ import { View } from 'react-native';
 import { logout, useAuth } from '@/api/auth';
 import { SITE } from '@/api/client';
 import { useMyListings } from '@/api/market';
+import { useFriends } from '@/api/social';
 import { CitySheet } from '@/features/common/CitySheet';
 import { openBot, openUrl } from '@/lib/open';
-import { useCity } from '@/lib/useCity';
+import { useCity, useCountry } from '@/lib/useCity';
 import { radius, useTheme } from '@/theme';
 import { Avatar, Button, Group, Icon, Img, Row, TabScreen, Tap, Txt, useToast } from '@/ui';
 
@@ -31,6 +32,8 @@ export default function Profile() {
   const { c } = useTheme();
   const { user, favorites, ready } = useAuth();
   const [city, setCity] = useCity();
+  const country = useCountry();
+  const friends = useFriends(!!user);
   const [picker, setPicker] = useState(false);
   const mine = useMyListings(!!user);
   const toast = useToast();
@@ -44,11 +47,13 @@ export default function Profile() {
             <Avatar name={user.name || user.email} id={user.id} size={72} />
             <View style={{ flex: 1, gap: 3 }}>
               <Txt v="title2">{user.name || 'Без имени'}</Txt>
-              <Txt v="subhead" tone="muted" numberOfLines={1}>{[user.city, user.email || (user.telegram ? 'через Telegram' : '')].filter(Boolean).join(' · ')}</Txt>
+              <Txt v="subhead" tone="muted" numberOfLines={1}>{[[user.city, country].filter(Boolean).join(', '), user.email || (user.telegram ? 'через Telegram' : '')].filter(Boolean).join(' · ')}</Txt>
             </View>
             <Button title="Изменить" kind="secondary" size="s" full={false} onPress={() => router.push('/profile-edit')} />
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Stat n={friends.data?.friends.length ?? 0} label={friends.data?.incoming.length ? `друзья · ${friends.data.incoming.length} новых` : 'друзья'}
+              onPress={() => router.push('/friends')} />
             <Stat n={active} label="объявления" onPress={() => router.push('/market/my')} />
             <Stat n={favorites.length} label="в избранном" onPress={() => router.push('/market')} />
           </View>
@@ -74,7 +79,10 @@ export default function Profile() {
       )}
 
       <Group title="Настройки">
-        <Row first title="Мой город" sub={city} icon="location" onPress={() => setPicker(true)} />
+        <Row first title="Мой город" sub={`${city}, ${country}`} icon="location" onPress={() => setPicker(true)} />
+        {user ? <Row title="Друзья" sub={friends.data?.incoming.length ? `Заявок в друзья: ${friends.data.incoming.length}` : 'Найти людей, заявки'}
+          icon="people" onPress={() => router.push('/friends')} /> : null}
+        {user ? <Row title="Мой профиль" sub="Как его видят другие" icon="person" onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(user.id) } })} /> : null}
         {user ? <Row title="Мои объявления" icon="market" onPress={() => router.push('/market/my')} /> : null}
         <Row title="Правила сообщества" icon="shield" onPress={() => router.push('/rules')} />
       </Group>
@@ -104,7 +112,7 @@ export default function Profile() {
         <Icon name="sparkles" size={16} color={c.faint} />
         <Txt v="footnote" center>podslushano.nl · Нидерланды изнутри</Txt>
       </View>
-      <CitySheet visible={picker} value={city} onPick={setCity} onClose={() => setPicker(false)} />
+      <CitySheet visible={picker} value={city} country={country} onPick={setCity} onClose={() => setPicker(false)} />
     </TabScreen>
   );
 }

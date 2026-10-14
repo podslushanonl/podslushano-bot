@@ -1764,6 +1764,8 @@ async def start_webserver(bot) -> web.AppRunner:
     install_market_routes(app)
     from utils.dm import install_routes as install_dm_routes
     install_dm_routes(app)
+    from utils.social import install_routes as install_social_routes
+    install_social_routes(app)
     from utils.realtime import install_routes as install_realtime_routes
     install_realtime_routes(app)
     app.router.add_get("/", _health)

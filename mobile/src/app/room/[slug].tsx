@@ -78,6 +78,7 @@ export default function RoomScreen() {
   const actions = (m: Msg): SheetAction[] => m.mine
     ? [{ title: 'Удалить сообщение', icon: 'trash', danger: true, onPress: () => removeOwn('msg', m.id).then(() => setList((x) => (x || []).filter((y) => y.id !== m.id))).catch(fail) }]
     : [
+        { title: `Профиль: ${m.author.name}`, icon: 'person', onPress: () => router.push({ pathname: '/user/[id]', params: { id: String(m.author.id) } }) },
         { title: 'Пожаловаться', icon: 'flag', danger: true, onPress: () => report('msg', m.id).then(() => toast('Жалоба отправлена модераторам')).catch(fail) },
         { title: `Скрыть сообщения: ${m.author.name}`, icon: 'block', onPress: () => block(m.author.id).then(() => setList((x) => (x || []).filter((y) => y.author.id !== m.author.id))).catch(fail) },
       ];
@@ -85,7 +86,7 @@ export default function RoomScreen() {
 
   return (
     <ChatShell
-      header={<ChatHeader title={roomTitle} sub="Городской чат · модерация включена" onBack={() => (router.canGoBack() ? router.back() : router.replace('/messages'))} />}
+      header={<ChatHeader title={roomTitle} sub={slug === 'all' ? 'Для всех стран · модерация включена' : 'Общий чат · модерация включена'} onBack={() => (router.canGoBack() ? router.back() : router.replace('/messages'))} />}
       composer={<Composer value={text} onChange={setText} onSend={send} busy={busy} placeholder={user ? 'Сообщение' : 'Войдите, чтобы писать'}
         onFocus={() => { if (!user) router.push('/login'); }} />}>
       {list === null ? (
