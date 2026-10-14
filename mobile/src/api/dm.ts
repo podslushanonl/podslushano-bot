@@ -33,6 +33,7 @@ export type RoomMsg = { id: number; text: string; at: string; author: { id: numb
 type Ev = { type: 'dm'; conv: number; message: DmMessage } | { type: 'typing'; conv: number } | { type: 'read'; conv: number; upto: number }
   | { type: 'room'; slug: string; message: RoomMsg }
   | { type: 'friend'; event: 'request' | 'accepted'; user: { id: number; name: string } }
+  | { type: 'post'; event: 'like' | 'comment' | 'repost'; post: number; user: { id: number; name: string } }
   | { type: 'said'; ref: string; ok: boolean; message?: RoomMsg; error?: string; status?: number };
 const waiting = new Map<string, (e: Extract<Ev, { type: 'said' }>) => void>();
 const listeners = new Set<(e: Ev) => void>();
@@ -59,6 +60,7 @@ function connect() {
       queryClient.invalidateQueries({ queryKey: ['me', 'friends'] });
       queryClient.invalidateQueries({ queryKey: ['me', 'user', e.user.id] });
     }
+    if (e.type === 'post') queryClient.invalidateQueries({ queryKey: ['post', e.post] });
     if (e.type === 'said') { waiting.get(e.ref)?.(e); waiting.delete(e.ref); return; }
     if (e.type === 'read') {
       queryClient.setQueryData<{ conversation: Conversation; messages: DmMessage[] }>(['me', 'dm', e.conv], (cur) =>

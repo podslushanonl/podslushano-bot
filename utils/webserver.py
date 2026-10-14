@@ -1762,6 +1762,8 @@ async def start_webserver(bot) -> web.AppRunner:
     install_app_routes(app)
     from utils.community import install_routes as install_community_routes
     install_community_routes(app)
+    from utils.feed import install_routes as install_feed_routes
+    install_feed_routes(app)
     from utils.market import install_routes as install_market_routes
     install_market_routes(app)
     from utils.dm import install_routes as install_dm_routes

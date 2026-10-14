@@ -4,9 +4,9 @@ import { View } from 'react-native';
 import { useAuth } from '@/api/auth';
 import { routeForError } from '@/api/community';
 import { acceptFriend, addFriend, blockPerson, Relation, removeFriend, startChat, unblockPerson, useProfile } from '@/api/social';
-import { timeLabel } from '@/features/feed/cards';
-import { radius, useTheme } from '@/theme';
-import { ActionSheet, Avatar, Button, Card, Empty, IconButton, PageScreen, Skeleton, Txt, useToast } from '@/ui';
+import { PostCard } from '@/features/feed/cards';
+import { usePostMenu } from '@/features/feed/usePostMenu';
+import { ActionSheet, Avatar, Button, Empty, IconButton, PageScreen, Skeleton, Txt, useToast } from '@/ui';
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const since = (d: string) => { const [y, m] = d.split('-').map(Number); return y && m ? `с ${MONTHS[m - 1]} ${y}` : ''; };
@@ -15,12 +15,12 @@ const friendsWord = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'друг' 
 export default function UserProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const uid = Number(id);
-  const { c } = useTheme();
   const toast = useToast();
   const { user: me, ready } = useAuth();
   const q = useProfile(uid, !!me);
   const [busy, setBusy] = useState(false);
   const [menu, setMenu] = useState(false);
+  const { openMenu, sheet: postSheet } = usePostMenu();
   const p = q.data;
 
   const run = async (fn: () => Promise<unknown>, ok?: string) => {
@@ -78,14 +78,10 @@ export default function UserProfile() {
           {p.posts.length ? (
             <View style={{ gap: 10 }}>
               <Txt v="overline" style={{ marginLeft: 6 }}>Посты</Txt>
-              {p.posts.map((x) => (
-                <Card key={x.id} style={{ borderRadius: radius.l, gap: 6 }}>
-                  <Txt v="body" selectable>{x.text}</Txt>
-                  <Txt v="caption" color={c.faint}>{[x.city, timeLabel(x.at)].filter(Boolean).join(' · ')}</Txt>
-                </Card>
-              ))}
+              {p.posts.map((x) => <PostCard key={x.id} p={x} onMenu={() => openMenu(x)} />)}
             </View>
           ) : null}
+          {postSheet}
           <ActionSheet visible={menu} onClose={() => setMenu(false)} actions={[
             ...(p.relation === 'friends' ? [{ title: 'Удалить из друзей', icon: 'people' as const, onPress: () => run(() => removeFriend(uid), 'Удалён из друзей') }] : []),
             { title: `Заблокировать: ${p.user.name}`, icon: 'block', danger: true, onPress: () => run(() => blockPerson(uid), 'Пользователь заблокирован') },

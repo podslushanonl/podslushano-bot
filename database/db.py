@@ -108,6 +108,11 @@ _APP_USER_LATER_COLUMNS = {
     "banned_until": "TIMESTAMP",
     "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
 }
+_USER_POST_LATER_COLUMNS = {
+    "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
+    "repost_of": "INTEGER",
+    "photo_count": "INTEGER NOT NULL DEFAULT 0",
+}
 _COUNTRY_VALUES = "('Нидерланды', 'Германия', 'Бельгия')"
 
 
@@ -365,6 +370,21 @@ async def _migrate() -> None:
                     await conn.exec_driver_sql(f"ALTER TABLE app_users ADD COLUMN {name} {ddl}")
             # Индекс страны: таблица в PostgreSQL создана до него, create_all его уже не добавит
             await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_app_users_country ON app_users (country)")
+
+        # Посты: страна (лента «Рядом»), репосты, число фото — появились в этапе 2
+        up_cols = await conn.run_sync(lambda c: {x["name"] for x in inspect(c).get_columns("user_posts")}
+                                      if "user_posts" in inspect(c).get_table_names() else None)
+        if up_cols is not None:
+            for name, ddl in _USER_POST_LATER_COLUMNS.items():
+                if name not in up_cols:
+                    await conn.exec_driver_sql(f"ALTER TABLE user_posts ADD COLUMN {name} {ddl}")
+            if "country" not in up_cols and await conn.run_sync(lambda c: "app_users" in inspect(c).get_table_names()):
+                # Старым постам — страна их автора (а не «Нидерланды» по умолчанию)
+                await conn.exec_driver_sql(
+                    "UPDATE user_posts SET country = (SELECT u.country FROM app_users u WHERE u.id = user_posts.user_id) "
+                    "WHERE EXISTS (SELECT 1 FROM app_users u WHERE u.id = user_posts.user_id)")
+            await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_user_posts_country ON user_posts (country)")
+            await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_user_posts_repost_of ON user_posts (repost_of)")
 
         tables = set(await conn.run_sync(lambda c: inspect(c).get_table_names()))
         # Комнаты чатов: раньше страна хранилась кодом NL — теперь русским названием (или пусто для общей)

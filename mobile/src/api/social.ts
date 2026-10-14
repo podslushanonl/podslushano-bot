@@ -1,12 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { api } from './client';
+import type { Post } from './feed';
 import { queryClient } from './query';
 
 /** Отношение ко мне: self — это я; incoming — он позвал меня; blocked — я заблокировал; unavailable — меня заблокировали. */
 export type Relation = 'self' | 'none' | 'outgoing' | 'incoming' | 'friends' | 'blocked' | 'unavailable';
 export type Person = { id: number; name: string; city: string; country: string; relation?: Relation };
-export type ProfilePost = { id: number; text: string; city: string; at: string };
-export type Profile = { user: Person & { since: string }; relation: Relation; friends: number; can_message: boolean; posts: ProfilePost[] };
+export type Profile = { user: Person & { since: string }; relation: Relation; friends: number; can_message: boolean; posts: Post[] };
 export type FriendLists = { friends: Person[]; incoming: Person[]; outgoing: Person[]; blocked: Person[] };
 
 export const useProfile = (id: number, enabled = true) => useQuery({

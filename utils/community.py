@@ -27,7 +27,7 @@ from sqlalchemy import func, select
 
 import config
 from database.db import get_session
-from database.models import AppUser, ChatMessage, ChatRoom, ContentReport, Country, UserPost
+from database.models import AppUser, ChatMessage, ChatRoom, ContentReport, Country, PostComment, UserPost
 from utils import realtime, social
 from utils.app_api import _user
 from utils.site_api import _body, _err, _json
@@ -254,42 +254,10 @@ async def ws_say(uid: int, slug: str, text: str) -> dict:
 realtime.say_handler = ws_say
 
 
-# ---------------------------------------------------------------- посты
-
-async def posts(request: web.Request) -> web.Response:
-    async with get_session() as session:
-        me = await _user(request, session)
-        if request.method == "POST":
-            data = await _body(request)
-            text = str(data.get("text") or "").strip()
-            denied = can_write(me)
-            if denied:
-                return _err(request, *denied)
-            reason = check_text(me, text, POST_MAX)
-            if reason:
-                return _err(request, reason)
-            if _rate(f"p60:{me.id}", 1, 60) or _rate(f"pday:{me.id}", 5, 86400):
-                return _err(request, "Можно публиковать до 5 постов в день и не чаще раза в минуту.", 429)
-            p = UserPost(user_id=me.id, text=text, city=me.city or "")
-            session.add(p)
-            await session.commit()
-            return _json(request, {"ok": True, "post": _item(p, {me.id: me}, me, {"city": p.city})})
-
-        q = select(UserPost).where(UserPost.deleted.is_(False), UserPost.hidden.is_(False)).order_by(UserPost.id.desc()).limit(30)
-        before = request.query.get("before")
-        if before and before.isdigit():
-            q = q.where(UserPost.id < int(before))
-        rows = list((await session.execute(q)).scalars())
-        hidden = await _blocked(session, me)
-        rows = [p for p in rows if p.user_id not in hidden]
-        users = await _names(session, {p.user_id for p in rows})
-        return _json(request, {"ok": True, "posts": [_item(p, users, me, {"city": p.city}) for p in rows]})
-
-
 # ---------------------------------------------------------------- удалить своё, пожаловаться, скрыть автора
 
 def _model(kind: str):
-    return {"msg": ChatMessage, "post": UserPost}.get(kind)
+    return {"msg": ChatMessage, "post": UserPost, "comment": PostComment}.get(kind)
 
 
 async def delete_own(request: web.Request) -> web.Response:
@@ -365,7 +333,7 @@ def mod_kb(rid: int) -> InlineKeyboardMarkup:
 
 async def notify_moderators(bot, rid: int, kind: str, text: str, author: AppUser | None, reporter: AppUser,
                             hidden: bool) -> None:
-    where = "сообщение в чате" if kind == "msg" else "пост в ленте"
+    where = {"msg": "сообщение в чате", "post": "пост в ленте", "comment": "комментарий в ленте"}.get(kind, kind)
     body = (f"🛡 <b>Жалоба на {where}</b>{' · скрыто автоматически (3 жалобы)' if hidden else ''}\n\n"
             f"Автор: {html.escape((author.name if author else '') or '—')} (id {author.id if author else '—'})\n"
             f"Пожаловался: {html.escape(reporter.name or '—')}\n\n«{html.escape(text[:800])}»")
@@ -420,8 +388,6 @@ def install_routes(app: web.Application) -> None:
     app.router.add_get("/api/app/rooms", rooms)
     app.router.add_get("/api/app/rooms/{slug}/messages", messages)
     app.router.add_post("/api/app/rooms/{slug}/messages", messages)
-    app.router.add_get("/api/app/posts", posts)
-    app.router.add_post("/api/app/posts", posts)
     app.router.add_post("/api/app/delete", delete_own)
     app.router.add_post("/api/app/report", report)
     app.router.add_post("/api/app/block", block)

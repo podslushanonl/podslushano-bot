@@ -10,7 +10,7 @@ from aiohttp.test_utils import TestClient, TestServer
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from database.models import AppUser, Base
-from utils import app_api, community
+from utils import app_api, community, feed
 from utils.site_api import make_token
 
 
@@ -21,7 +21,7 @@ class CommunityTests(unittest.IsolatedAsyncioTestCase):
         async with self.engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
-        self.patches = [patch.object(app_api, "get_session", self.sessions), patch.object(community, "get_session", self.sessions)]
+        self.patches = [patch.object(m, "get_session", self.sessions) for m in (app_api, community, feed)]
         for p in self.patches:
             p.start()
         community._hits.clear()
@@ -34,6 +34,7 @@ class CommunityTests(unittest.IsolatedAsyncioTestCase):
             await s.commit()
         app = web.Application()
         community.install_routes(app)
+        feed.install_routes(app)
         self.c = TestClient(TestServer(app))
         await self.c.start_server()
 

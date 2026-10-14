@@ -13,12 +13,10 @@ export const fetchMessages = (slug: string, after?: number) =>
 /** Сообщение в общий чат: по живому соединению (WebSocket), без него — обычным запросом. */
 export const sendMessage = async (slug: string, text: string): Promise<Msg> =>
   (await sayInRoom(slug, text)) ?? api<{ message: Msg }>(`/api/app/rooms/${slug}/messages`, { text }).then((d) => d.message);
-export const usePosts = () => useQuery({ queryKey: ['posts'], queryFn: () => api<{ posts: Msg[] }>('/api/app/posts').then((d) => d.posts), staleTime: 30_000 });
-export const sendPost = (text: string) => api<{ post: Msg }>('/api/app/posts', { text }).then((d) => d.post);
 export const acceptRules = () => api('/api/app/rules', {});
-export const report = (kind: 'msg' | 'post', id: number) => api('/api/app/report', { kind, id });
+export const report = (kind: 'msg' | 'post' | 'comment', id: number) => api('/api/app/report', { kind, id });
 export const block = (userId: number) => api('/api/app/block', { user_id: userId });
-export const removeOwn = (kind: 'msg' | 'post', id: number) => api('/api/app/delete', { kind, id });
+export const removeOwn = (kind: 'msg' | 'post' | 'comment', id: number) => api('/api/app/delete', { kind, id });
 
 /** Ошибка доступа → куда отправить человека: войти, указать имя, принять правила. true — обработано. */
 export function routeForError(e: unknown): boolean {
