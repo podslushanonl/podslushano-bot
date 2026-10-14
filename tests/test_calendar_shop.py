@@ -84,7 +84,8 @@ class FlowTests(unittest.IsolatedAsyncioTestCase):
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
         self.p = [patch.object(shop, "get_session", self.sessions),
                   patch.multiple(config, WEBHOOK_BASE_URL="https://bot.test", BOT_URL="https://t.me/podslushano_nl_bot", ADMIN_IDS=[1]),
-                  patch.object(config, "payments_enabled", return_value=True)]
+                  patch.object(config, "payments_enabled", return_value=True),
+                  patch.dict(os.environ, {"CALENDAR_SALES_OPEN": "1"})]
         for x in self.p:
             x.start()
 
@@ -148,6 +149,16 @@ class FlowTests(unittest.IsolatedAsyncioTestCase):
             resp = await shop.public_info(None)
         self.assertEqual(json.loads(resp.body), {"price": "34.50", "open": False})
         self.assertEqual(resp.headers["Access-Control-Allow-Origin"], "*")
+
+    async def test_order_page_hidden_until_sales_open(self):
+        # Форма заказа не публичная, пока приём не открыт явно
+        with patch.dict(os.environ, {"CALENDAR_SALES_OPEN": ""}):
+            os.environ.pop("CALENDAR_SALES_OPEN")
+            with self.assertRaises(web.HTTPNotFound):
+                await shop.calendar_page(None)
+            with self.assertRaises(web.HTTPNotFound):
+                await shop.create_order(None)
+        self.assertEqual((await shop.calendar_page(None)).status, 200)
 
     async def test_unpaid_order_is_not_exposed(self):
         row = await self._order()

@@ -1754,6 +1754,8 @@ async def start_webserver(bot) -> web.AppRunner:
     install_newsletter_routes(app)
     from utils.savings import install_routes as install_savings_routes
     install_savings_routes(app)
+    from handlers.tax_guide import install_routes as install_tax_guide_routes
+    install_tax_guide_routes(app)
     from utils.app_api import install_routes as install_app_routes
     install_app_routes(app)
     from utils.community import install_routes as install_community_routes

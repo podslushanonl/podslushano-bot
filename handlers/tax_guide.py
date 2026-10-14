@@ -168,3 +168,36 @@ async def publish_tax_guide_confirm(callback: CallbackQuery) -> None:
     await callback.message.edit_reply_markup(reply_markup=None)
     await callback.message.answer("✅ Пост с налоговым гайдом опубликован: фото, текст и кнопки — одним сообщением.")
     await callback.answer("Опубликовано")
+
+
+# ---------------------------------------------------------------- сайт
+# Гайд скачивается прямо с сайта: PDF хранится в Telegram (загружает админ командой
+# /set_tax_guide_pdf), сервер забирает его оттуда один раз и отдаёт по обычной ссылке.
+
+_pdf_cache: dict[str, bytes] = {}
+
+
+async def guide_pdf(request):
+    from aiohttp import web
+    file_id = await _get_meta(TAX_PDF_KEY)
+    if not file_id:
+        raise web.HTTPNotFound(text="Гайд временно недоступен")
+    data = _pdf_cache.get(file_id)
+    if data is None:
+        bot = request.app["bot"]
+        try:
+            tg_file = await bot.get_file(file_id)
+            buf = await bot.download_file(tg_file.file_path)
+            data = buf.read() if hasattr(buf, "read") else bytes(buf)
+        except Exception as e:  # noqa: BLE001
+            log.warning("Гайд для сайта не скачался из Telegram: %s", e)
+            raise web.HTTPServiceUnavailable(text="Гайд временно недоступен, попробуйте позже")
+        _pdf_cache.clear()
+        _pdf_cache[file_id] = data
+    return web.Response(body=data, content_type="application/pdf", headers={
+        "Content-Disposition": 'inline; filename="podslushano-nalogi-i-subsidii-2026.pdf"',
+        "Cache-Control": "public, max-age=3600", "Access-Control-Allow-Origin": "*"})
+
+
+def install_routes(app) -> None:
+    app.router.add_get("/guide/nalogi-2026.pdf", guide_pdf)

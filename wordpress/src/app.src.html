@@ -2449,28 +2449,11 @@ if(!v)lite();else{v.muted=true;
       <div class="sh5 st"><div><h2>Новости</h2><p>Что случилось сегодня и как это касается вас.</p></div><a class="btn btn-soft btn-sm" href="#news">Все новости и статьи</a></div>
       <div id="homeNews"></div>
     </div>
-    <div class="sec" id="homeCal">
-      <div class="card calb st">
-        <div>
-          <span class="eyebrow"><span class="dot"></span>Календарь эмигранта · 2027</span>
-          <h2>Весь год в Нидерландах<br><em>на одной стене</em></h2>
-          <p class="lead2">Настенный календарь A4: праздники, schoolvakanties, сроки налогов и страховки, события и куда поехать в каждом месяце. Печатаем для вас лично.</p>
-          <ul>
-            <li><svg class="ico"><use href="#i-check"/></svg><span>Ваша подпись на обложке, например «Календарь семьи Ивановых»</span></li>
-            <li><svg class="ico"><use href="#i-check"/></svg><span>Каникулы только вашего региона: Noord, Midden или Zuid</span></li>
-            <li><svg class="ico"><use href="#i-check"/></svg><span>До 15 личных дат прямо в сетке: дни рождения, годовщины</span></li>
-            <li><svg class="ico"><use href="#i-check"/></svg><span>QR на календаре: ваши даты попадут в телефон, а бот напомнит о сроках</span></li>
-          </ul>
-          <div class="acts"><a class="btn btn-acc" data-calorder href="#">Заказать календарь</a><span class="pp"><span data-calprice>€30</span> · доставка по Нидерландам включена</span></div>
-        </div>
-        <div class="calmk" role="img" aria-label="Календарь Nederland 2027: обложка и страница апреля"><span class="rings"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="pg back"><img loading="lazy" decoding="async" src="{{IMG:cal-april}}" alt=""></span><span class="pg front"><img loading="lazy" decoding="async" src="{{IMG:cal-cover}}" alt=""></span></div>
-      </div>
-    </div>
     <div class="sec" id="homeSave">
       <div class="sh5 st"><div><h2>Сэкономить</h2><p>Разбираем, где в Нидерландах переплачивают, и как выбрать выгоднее.</p></div><a class="btn btn-soft btn-sm" href="#save">Все советы</a></div>
       <div class="svb">
-        <div class="card svb-t st" data-until="2026-12-31"><span class="gi t-rose"><svg class="ico"><use href="#i-heart"/></svg></span><span class="eyebrow">Медстраховка 2027 · до 31 декабря</span><h3>Не переплачивайте за страховку</h3><p>Базовый пакет у всех страховщиков одинаковый, разница только в цене. 6 вопросов в боте, и вы будете знать, на что смотреть.</p>
-          <div class="sv-act"><a class="btn btn-acc" href="https://t.me/podslushano_nl_bot?start=save_zorg" target="_blank" rel="noopener">6 вопросов в боте</a><a class="btn btn-soft" data-go="zorg_compare" href="https://www.zorgwijzer.nl/" target="_blank" rel="noopener">Сравнить цены</a></div></div>
+        <div class="card svb-t st" data-until="2026-12-31"><span class="gi t-rose"><svg class="ico"><use href="#i-heart"/></svg></span><span class="eyebrow">Медстраховка 2027 · до 31 декабря</span><h3>Не переплачивайте за страховку</h3><p>Базовый пакет у всех страховщиков одинаковый, разница только в цене. Ответьте на 6 вопросов, и вы будете знать, на что смотреть.</p>
+          <div class="sv-act"><button class="btn btn-acc" type="button" data-zq>6 вопросов: что выбрать</button><a class="btn btn-soft" data-go="zorg_compare" href="https://www.zorgwijzer.nl/" target="_blank" rel="noopener">Сравнить цены</a></div></div>
         <div class="card svb-t st" style="--i:1"><span class="gi t-sky"><svg class="ico"><use href="#i-globe"/></svg></span><span class="eyebrow">Путешествия · eSIM</span><h3>Интернет в поездке без роуминга</h3><p>За пределами ЕС выручит eSIM: ставится по QR-коду за 5 минут. Сравните цены на свою страну, они отличаются в разы.</p>
           <div class="sv-act"><a class="btn btn-acc" href="#travel" data-esim>Выбрать eSIM</a></div></div>
       </div>
@@ -2479,7 +2462,7 @@ if(!v)lite();else{v.muted=true;
     <div class="sec">
       <div class="sh5 st"><div><h2>Поезда NS</h2><p>Ваша станция: ближайшие поезда, отмены и ремонт.</p></div><a class="btn btn-soft btn-sm" href="#trains">Все поезда и сбои</a></div>
       <div class="card htr st">
-        <div class="tr-bar"><div class="tr-pick"><svg class="ico"><use href="#i-search"/></svg><label class="sr" for="htrQ">Ваша станция</label><input id="htrQ" autocomplete="off" placeholder="Ваша станция, например Hoorn"><div class="tr-sug" id="htrSug" hidden></div></div><a class="btn btn-acc tr-sub" id="htrSub" href="https://t.me/podslushano_nl_bot?start=ns_UT" target="_blank" rel="noopener"><span class="brandi b-tg">{{SL:telegram}}</span>Уведомления о сбоях</a></div>
+        <div class="tr-bar"><div class="tr-pick"><svg class="ico"><use href="#i-search"/></svg><label class="sr" for="htrQ">Ваша станция</label><input id="htrQ" autocomplete="off" placeholder="Ваша станция, например Hoorn"><div class="tr-sug" id="htrSug" hidden></div></div></div>
         <div class="htr-grid"><div><h3 id="htrName">Utrecht Centraal</h3><div id="htrBoard"><p class="muted" style="padding:14px 0">Загружаем табло…</p></div></div><div class="htr-dis" id="htrDis"></div></div>
       </div>
     </div>
@@ -2549,7 +2532,7 @@ if(!v)lite();else{v.muted=true;
     <div class="phead"><div><h1 class="st">Поезда NS</h1><p class="st" style="--i:1">Табло отправлений, отмены, сбои и ремонтные работы. Данные NS, обновляются каждую минуту.</p></div></div>
     <div class="sec" style="margin-top:0">
       <div class="sec-h st"><div><h2>Отправления</h2><p id="trStName">Utrecht Centraal</p></div></div>
-      <div class="tr-bar"><div class="tr-pick"><svg class="ico"><use href="#i-search"/></svg><label class="sr" for="trQ">Найти станцию</label><input id="trQ" autocomplete="off" placeholder="Найти любую станцию NS"><div class="tr-sug" id="trSug" hidden></div></div><a class="btn btn-acc tr-sub" id="trSub" href="https://t.me/podslushano_nl_bot?start=ns_UT" target="_blank" rel="noopener"><span class="brandi b-tg">{{SL:telegram}}</span>Уведомления о сбоях</a></div>
+      <div class="tr-bar"><div class="tr-pick"><svg class="ico"><use href="#i-search"/></svg><label class="sr" for="trQ">Найти станцию</label><input id="trQ" autocomplete="off" placeholder="Найти любую станцию NS"><div class="tr-sug" id="trSug" hidden></div></div></div>
       <div class="scroller tr-st" id="trStations"></div>
       <div class="card tr-board" id="trBoard"><p class="muted">Загружаем табло…</p></div>
     </div>
@@ -2561,7 +2544,7 @@ if(!v)lite();else{v.muted=true;
       <div class="sec-h st"><div><h2>Плановые работы</h2><p>На ближайшие 7 дней: где поезда не ходят или ходят реже</p></div></div>
       <div class="tr-list" id="trPlan"><p class="muted">Загружаем…</p></div>
     </div>
-    <p class="hint" style="margin-top:28px">Источник: NS. Нажмите «Уведомления о сбоях», и наш Telegram-бот напишет, если на вашей станции отменят поезда, случится сбой или начнётся ремонт, и подскажет, как доехать. Перед поездкой проверяйте маршрут в приложении NS.</p>
+    <p class="hint" style="margin-top:28px">Источник: NS. Здесь видно, если на станции отменят поезда, случится сбой или начнётся ремонт. Перед поездкой проверяйте маршрут в приложении NS.</p>
   </div>
 </section>
 <section class="page" id="p-save" data-title="Сэкономить">
@@ -2582,8 +2565,8 @@ if(!v)lite();else{v.muted=true;
           <li><b>Budgetpolis</b> — самый дешёвый, но выбор клиник меньше.</li>
           <li><b>Добровольный eigen risico</b> (до €500 сверху) снижает взнос, но в плохой год заплатите до €900 сами.</li>
           <li>Спросите на работе про коллективную скидку, а при невысоком доходе проверьте zorgtoeslag.</li></ul></div>
-        <div class="card sv-c st" style="--i:2"><span class="k">Что выбрать именно вам</span><p style="margin:0">Ответьте в нашем Telegram-боте на 6 коротких вопросов: дети, стоматолог, как часто ходите к врачам, свой врач, физиотерапия и очки, доход. Бот подскажет, на что смотреть, и напомнит до 31 декабря.</p>
-          <div class="sv-act"><a class="btn btn-acc" href="https://t.me/podslushano_nl_bot?start=save_zorg" target="_blank" rel="noopener">6 вопросов в боте</a><a class="btn btn-soft" data-go="zorg_compare" href="https://www.zorgwijzer.nl/" target="_blank" rel="noopener">Сравнить цены</a><a class="btn btn-soft" data-go="zorg_toeslag" href="https://www.belastingdienst.nl/wps/wcm/connect/nl/zorgtoeslag/zorgtoeslag" target="_blank" rel="noopener">Zorgtoeslag</a></div></div>
+        <div class="card sv-c st" style="--i:2"><span class="k">Что выбрать именно вам</span><p style="margin:0">Ответьте на 6 коротких вопросов: дети, стоматолог, как часто ходите к врачам, свой врач, физиотерапия и очки, доход. Сразу увидите, на что смотреть именно вам.</p>
+          <div class="sv-act"><button class="btn btn-acc" type="button" data-zq>6 вопросов: что выбрать</button><a class="btn btn-soft" data-go="zorg_compare" href="https://www.zorgwijzer.nl/" target="_blank" rel="noopener">Сравнить цены</a><a class="btn btn-soft" data-go="zorg_toeslag" href="https://www.belastingdienst.nl/wps/wcm/connect/nl/zorgtoeslag/zorgtoeslag" target="_blank" rel="noopener">Zorgtoeslag</a></div></div>
       </div>
     </div>
     <div class="sec">
@@ -2627,7 +2610,7 @@ if(!v)lite();else{v.muted=true;
 <section class="page" id="p-news" data-title="Новости"><div class="wrap"><div class="phead"><div><h1 class="st">Новости и статьи</h1><p class="st" style="--i:1">Что меняется в стране и как это касается вас. Без политики.</p></div></div><div id="newsBody"></div></div></section>
 <section class="page" id="p-art" data-title="Статья"><div class="wrap" id="artBody" style="padding-top:30px"></div></section>
 <section class="page" id="p-shop" data-title="Магазин"><div class="wrap"><div class="phead"><div><h1 class="st">Магазин</h1><p class="st" style="--i:1">Только то, что уже можно купить или получить.</p></div></div><div class="shop" id="shopGrid"></div>
-  <div class="sec"><div class="sh5"><div><h2 style="font-size:clamp(24px,3vw,34px)">Готовим</h2><p>Появятся, когда будут готовы к продаже.</p></div></div><div class="soon"><div><b>Мерч podslushano.nl</b><p class="muted" style="font-size:14px">Футболки, шопперы и значки с лосёнком.</p><button class="btn btn-soft btn-sm" data-notify="мерч">Сообщить, когда появится</button></div></div></div></div></section>
+  <div class="sec"><div class="sh5"><div><h2 style="font-size:clamp(24px,3vw,34px)">Готовим</h2><p>Появятся, когда будут готовы к продаже.</p></div></div><div class="soon"><div><b>Мерч podslushano.nl</b><p class="muted" style="font-size:14px">Футболки, шопперы и значки с лосёнком.</p></div><div><b>Календарь эмигранта 2027</b><p class="muted" style="font-size:14px">Праздники, schoolvakanties, сроки налогов и страховки, события года.</p></div></div></div></div></section>
 
 
 <!-- ================= GUIDE ================= -->
@@ -2854,7 +2837,7 @@ if(!v)lite();else{v.muted=true;
       <div class="lsec">Неделя в Нидерландах</div>
       <form class="wform" id="lForm" style="margin-top:0" novalidate><label class="sr" for="lMail">Почта</label><input id="lMail" type="email" placeholder="Почта для выпусков" style="height:48px"><button class="btn btn-acc btn-sm" type="submit" style="height:48px">Получать</button></form>
       <div class="lsec">Полезное</div>
-      <a class="lbtn" href="https://t.me/podslushano_nl_bot?start=tax_guide_2026" target="_blank" rel="noopener"><span class="gi t-mint"><svg class="ico"><use href="#i-book"/></svg></span><span><b>Налоги и субсидии 2026</b><span>бесплатный гайд</span></span><svg class="ico muted"><use href="#i-right"/></svg></a>
+      <a class="lbtn" data-guidepdf href="#" target="_blank" rel="noopener"><span class="gi t-mint"><svg class="ico"><use href="#i-book"/></svg></span><span><b>Налоги и субсидии 2026</b><span>бесплатный гайд</span></span><svg class="ico muted"><use href="#i-right"/></svg></a>
       <a class="lbtn" href="https://api.numr.nl/app" target="_blank" rel="noopener"><span class="gi t-slate"><svg class="ico"><use href="#i-coin"/></svg></span><span><b>NUMR · партнёр</b><span>счета для ZZP, 14 дней бесплатно</span></span><svg class="ico muted"><use href="#i-ext"/></svg></a>
       <a class="lbtn" href="https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf" target="_blank" rel="noopener"><span class="gi t-butter"><svg class="ico"><use href="#i-heart"/></svg></span><span><b>Поддержать проект</b><span>помогает оплачивать сервисы и контент</span></span><svg class="ico muted"><use href="#i-ext"/></svg></a>
       <a class="lbtn" href="#business"><span class="gi t-acc"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>Для бизнеса</b><span>сотрудничество и реклама</span></span><svg class="ico muted"><use href="#i-right"/></svg></a>
@@ -3726,7 +3709,7 @@ ENTER.art=()=>renderArt(curParam);
 const PRODUCTS=[
  {t:'Подарочная карта allowalks',d:'Прогулка в подарок: €25, €50 или €100. Красивое письмо с кодом в нужный день.',p:'от €25',href:'#allo-gift',bg:'linear-gradient(125deg,#5B4413,#B88A2E 25%,#F6E2A8 45%,#C99B3C 60%,#E9CF85)',img:'allo',cta:'Выбрать карту'},
  {t:'Карточка в КонтактGuide',d:'Ваши услуги на сайте и в боте. Онлайн-оплата и кабинет для изменений.',p:'от €9,99 в месяц',href:'#place',bg:'linear-gradient(135deg,#E2F3E9,#AEE9CB)',ic:'user',cta:'Разместить'},
- {t:'Гайд «Налоги и субсидии 2026»',d:'Налоги, toeslagen, льготы, ZZP и изменения 2026 года в одном понятном гайде.',p:'бесплатно',href:'https://t.me/podslushano_nl_bot?start=tax_guide_2026',bg:'linear-gradient(135deg,#E3EEFA,#A7CCFF)',ic:'book',cta:'Получить в боте',ext:1},
+ {t:'Гайд «Налоги и субсидии 2026»',d:'Налоги, toeslagen, льготы, ZZP и изменения 2026 года в одном понятном гайде.',p:'бесплатно',href:'#',gpdf:1,bg:'linear-gradient(135deg,#E3EEFA,#A7CCFF)',ic:'book',cta:'Скачать PDF',ext:1},
  {t:'Стикерпак podslushano.nl',d:'Лосёнок и его друзья для ваших чатов в Telegram.',p:'бесплатно',href:'https://t.me/addstickers/Podslushanonl',bg:'linear-gradient(135deg,#FFEEE6,#FFB48E)',img:'deer',cta:'Добавить в Telegram',ext:1},
  {t:'Поддержать проект',d:'Помогает оплачивать сервисы и выпускать полезные материалы дальше.',p:'сумму выбираете вы',href:'https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf',bg:'linear-gradient(135deg,#EEEAFB,#D6CAFF)',ic:'heart',cta:'Поддержать',ext:1}];
 INIT.shop=()=>{$('#shopGrid').innerHTML=PRODUCTS.map(p=>`<a class="card prod" href="${p.href}" ${p.ext?'target="_blank" rel="noopener"':''}><div class="pv" style="background:${p.bg}">${p.img==='allo'?`<img loading="lazy" decoding="async" src="{{IMG:allo-orig}}" alt="" style="width:96px;border-radius:50%;box-shadow:0 14px 30px -10px rgba(0,0,0,.4);animation:float2 6s ease-in-out infinite">`:p.img==='deer'?`<img loading="lazy" decoding="async" src="{{DEER}}" alt="Лосёнок" style="height:150px;width:auto;animation:peek 6s ease-in-out infinite;transform-origin:bottom">`:`<span class="gi" style="width:84px;height:84px;border-radius:26px;background:rgba(255,255,255,.7);display:grid;place-items:center">${svg(p.ic).replace('class="ico"','class="ico" style="width:38px;height:38px"')}</span>`}</div><div class="pb"><h3>${p.t}</h3><p class="muted" style="font-size:14px">${p.d}</p><div class="row4"><span class="price">${p.p}</span><span class="btn btn-ink btn-sm">${p.cta}${p.ext?svg('ext'):''}</span></div></div></a>`).join('')}
@@ -3753,7 +3736,7 @@ INIT.home=(()=>{const base=INIT.home;return()=>{base();
   const SOC=[['instagram','b-ig','Instagram','77K','https://www.instagram.com/podslushano.nl'],['telegram','b-tg','Telegram','4K','https://t.me/podslushanovnl'],['facebook','b-fb','Facebook','27K','https://www.facebook.com/podslushano.nl'],['tiktok','b-tt','TikTok','@podslushano.nl','https://www.tiktok.com/@podslushano.nl']];
   $('#soc5').innerHTML=SOC.map(([k,b,n,v,u])=>`<a class="card so" href="${u}" target="_blank" rel="noopener"><span class="brandi ${b}">${sl(k)}</span><span class="n" style="${v.startsWith('@')?'font-size:17px':''}">${v}</span><span class="muted">${n}</span></a>`).join('')}})();
 
-document.addEventListener('click',e=>{const b=e.target.closest('[data-notify]');if(!b)return;toast('Напишем в бот, когда '+b.dataset.notify+' появится в продаже')});
+
 
 /* ---------- v7: лосёнок по погоде ---------- */
 const MOOSE={summer:{img:'{{IMG:m-summer}}',say:'Жарко! Шорты, вода и тень.'},sun:{img:'{{IMG:m-sun}}',say:'Солнце. Очки не забудьте.'},cold:{img:'{{IMG:m-cold}}',say:'Холодно. Шарф и тёплые ботинки.'},rain:{img:'{{IMG:m-rain}}',say:'Дождь. Дождевик лучше зонта: ветер.'},wind:{img:'{{IMG:m-wind}}',say:'Ветрено. Капюшон и куртка потеплее.'},drizzle:{img:'{{IMG:m-drizzle}}',say:'Морось. Резиновые сапоги и сумка, которая не промокнет.'}};
@@ -3978,10 +3961,8 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-intro]')){e.pre
 const TR_ST=[['UT','Utrecht Centraal'],['ASD','Amsterdam Centraal'],['RTD','Rotterdam Centraal'],['GVC','Den Haag Centraal'],['SHL','Schiphol Airport'],['EHV','Eindhoven Centraal'],['LEDN','Leiden Centraal'],['HLM','Haarlem'],['AMF','Amersfoort Centraal'],['AH','Arnhem Centraal'],['NM','Nijmegen'],['ZL','Zwolle'],['GN','Groningen'],['LW','Leeuwarden'],['BD','Breda'],['TB','Tilburg'],['HT',"'s-Hertogenbosch"],['MT','Maastricht'],['ALM','Almere Centrum'],['DT','Delft'],['DDR','Dordrecht'],['ES','Enschede']];
 let trSt=String(store.get('trSt','UT')||'UT').toUpperCase();if(!/^[A-Z0-9]{2,8}$/.test(trSt))trSt='UT';
 let trStN=store.get('trStN','')||(TR_ST.find(x=>x[0]===trSt)||[])[1]||trSt;let trTimer=0,htrTimer=0,trAll=null,trDis=null;
-const trSubUrl=()=>'https://t.me/podslushano_nl_bot?start=ns_'+trSt;
 async function trLoadAll(){if(trAll)return trAll;try{const r=await fetch(PN_BOT+'/api/ns/stations');const j=await r.json();if(j.stations&&j.stations.length)trAll=j.stations}catch(e){}return trAll||TR_ST}
 function trSet(c,n){trSt=c;trStN=n;store.set('trSt',c);store.set('trStN',n);
-  $$('#trSub,#htrSub').forEach(a=>a.href=trSubUrl());
   if($('#trStations')&&$('#trStations').innerHTML){trStations();$('#trBoard').innerHTML='<p class="muted" style="padding:14px 0">Загружаем табло…</p>';trBoard();if(trDis)trDisRender(trDis)}
   if(htrInit){$('#htrName').textContent=n;$('#htrQ').value='';$('#htrQ').placeholder=n;htrLoad()}}
 const trFold=t=>String(t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/g,' ').replace(/\s+/g,' ').trim();
@@ -4016,7 +3997,7 @@ function trDisRender(j){
   $('#trPlan').innerHTML=j.planned.length?trMineFirst(j.planned).map(x=>trCard(x,true)).join(''):`<div class="card tr-ok">${svg('check')}На ближайшую неделю плановых работ нет.</div>`}
 async function trDisruptions(){try{trDisRender(await trFetchDis())}
   catch(e){$('#trNow').innerHTML=$('#trPlan').innerHTML='<p class="muted">Не удалось загрузить данные NS. Попробуйте чуть позже.</p>'}}
-INIT.trains=()=>{trStations();$('#trSub').href=trSubUrl();trPicker($('#trQ'),$('#trSug'));
+INIT.trains=()=>{trStations();trPicker($('#trQ'),$('#trSug'));
   $('#trStations').addEventListener('click',e=>{const b=e.target.closest('[data-trst]');if(b)trSet(b.dataset.trst,b.dataset.n)})};
 ENTER.trains=()=>{trBoard();trDisruptions();clearInterval(trTimer);trTimer=setInterval(()=>{if(cur!=='trains'){clearInterval(trTimer);return}trBoard();trDisruptions()},60000)};
 /* home: your station */
@@ -4027,11 +4008,11 @@ async function htrLoad(){const st=trSt,board=$('#htrBoard'),dis=$('#htrDis');
   try{const j=await trFetchDis();if(st!==trSt)return;const now=j.now.filter(trMine),soon=j.planned.filter(trMine).slice(0,2);
     const cancelled=[...board.querySelectorAll('.tr-row.cx')].length;
     dis.innerHTML=(now.length||soon.length)?[...now.map(x=>trCard(x,false)),...soon.map(x=>trCard(x,true))].slice(0,3).join(''):
-      `<div class="htr-ok">${svg('check')}<span>${cancelled?'Есть отменённые поезда, смотрите табло. Сбоев NS на станции нет.':'На вашей станции всё спокойно: сбоев и ремонта нет.'}</span></div><p class="muted" style="font-size:14px">Нажмите «Уведомления о сбоях», и бот напишет в Telegram, если что-то изменится.</p>`}
+      `<div class="htr-ok">${svg('check')}<span>${cancelled?'Есть отменённые поезда, смотрите табло. Сбоев NS на станции нет.':'На вашей станции всё спокойно: сбоев и ремонта нет.'}</span></div>`}
   catch(e){dis.innerHTML=''}}
 let htrInit=0;
 ENTER.home=(()=>{const base=ENTER.home;return()=>{base&&base();if(!$('#htrQ'))return;
-  if(!htrInit){htrInit=1;trPicker($('#htrQ'),$('#htrSug'));$('#htrName').textContent=trStN;$('#htrQ').placeholder=trStN;$('#htrSub').href=trSubUrl()}
+  if(!htrInit){htrInit=1;trPicker($('#htrQ'),$('#htrSug'));$('#htrName').textContent=trStN;$('#htrQ').placeholder=trStN}
   htrLoad();clearInterval(htrTimer);htrTimer=setInterval(()=>{if(cur!=='home'){clearInterval(htrTimer);return}htrLoad()},60000)}})();
 
 /* pause looping animations in blocks that are off screen */
@@ -4065,10 +4046,9 @@ document.addEventListener('keydown',e=>{if(e.target.id==='hxQ'&&e.key==='Escape'
 
 /* shop */
 const PRODUCTS10=[
- {k:'cal',cat:'Подарки',t:'Календарь эмигранта 2027',d:'Настенный A4 с вашей подписью, каникулами вашего региона и личными датами. Бот напомнит о сроках.',p:'<span data-calprice>€30</span> · с доставкой',href:'#homeCal',cal:1,cta:'Заказать',bg:'linear-gradient(150deg,#FFF3E8,#FFD9B8)'},
  {k:'gift',cat:'Подарки',t:'Подарочная карта allowalks',d:'Прогулка в подарок в одном из шести голландских дизайнов. Письмо с кодом придёт в выбранный день.',p:'от €25',href:'#allo-gift',cta:'Выбрать дизайн',bg:'linear-gradient(150deg,#EAF1FF,#FFE9DA)'},
  {k:'kg',cat:'Для бизнеса',t:'Карточка в КонтактGuide',d:'Ваши услуги на сайте и в боте: все контакты, город, описание. Меняете сами в кабинете.',p:'от €9,99 в месяц',href:'#place',cta:'Разместить',bg:'linear-gradient(150deg,#E2F3E9,#B9EBD2)'},
- {k:'tax',cat:'Бесплатно',t:'Гайд «Налоги и субсидии 2026»',d:'Налоги, toeslagen, льготы, ZZP и изменения 2026 года простым языком.',p:'бесплатно',href:'https://t.me/podslushano_nl_bot?start=tax_guide_2026',cta:'Получить в боте',ext:1,bg:'linear-gradient(150deg,#E3EEFA,#B8D4FF)'},
+ {k:'tax',cat:'Бесплатно',t:'Гайд «Налоги и субсидии 2026»',d:'Налоги, toeslagen, льготы, ZZP и изменения 2026 года простым языком.',p:'бесплатно',href:'#',gpdf:1,cta:'Скачать PDF',ext:1,bg:'linear-gradient(150deg,#E3EEFA,#B8D4FF)'},
  {k:'stick',cat:'Бесплатно',t:'Стикерпак с лосёнком',d:'Лосёнок на все погоды Нидерландов: дождь, ветер, солнце и морось.',p:'бесплатно',href:'https://t.me/addstickers/Podslushanonl',cta:'Добавить в Telegram',ext:1,bg:'linear-gradient(150deg,#FFF1E6,#FFC9A8)'},
  {k:'dn',cat:'Подарки',t:'Вклад в развитие',d:'Разово или каждый месяц. Идёт на новости, новые разделы и сервер.',p:'от €3',href:'#dnBox',cta:'Внести вклад',bg:'linear-gradient(150deg,#F1ECFF,#D9CCFF)'}];
 function prodVisual(k){
@@ -4079,9 +4059,9 @@ function prodVisual(k){
   if(k==='stick')return `<div class="pv-st">${['m-rain','m-sun','m-wind','m-cold'].map((m,i)=>`<img loading="lazy" decoding="async" src="${IMG[m]}" alt="" style="--r:${[-14,8,-4,12][i]}deg;--d:${i*.4}s">`).join('')}</div>`;
   if(k==='dn')return `<div class="pv-dn">${[3,7,15].map((a,i)=>`<span style="--d:${i*.5}s" class="${a===7?'on':''}">€${a}</span>`).join('')}<i>${svg('heart')}</i></div>`;
   return ''}
-function prodCard(p){return `<a class="pc10" href="${p.cal?CAL_ORDER:p.href}" ${p.cal||p.ext?'target="_blank" rel="noopener"':''} data-pcat="${p.cat}"><div class="pvis" style="background:${p.bg}">${prodVisual(p.k)}<span class="ptag">${p.cat}</span></div><div class="pbd"><h3>${p.t}</h3><p>${p.d}</p><div class="pft"><span class="pp">${p.p}</span><span class="pgo">${p.cta}${svg(p.ext?'ext':'arrow')}</span></div></div></a>`}
+function prodCard(p){return `<a class="pc10" href="${p.gpdf?PN_BOT+'/guide/nalogi-2026.pdf':p.href}" ${p.ext?'target="_blank" rel="noopener"':''} data-pcat="${p.cat}"><div class="pvis" style="background:${p.bg}">${prodVisual(p.k)}<span class="ptag">${p.cat}</span></div><div class="pbd"><h3>${p.t}</h3><p>${p.d}</p><div class="pft"><span class="pp">${p.p}</span><span class="pgo">${p.cta}${svg(p.ext?'ext':'arrow')}</span></div></div></a>`}
 let shopCat='Все';
-INIT.shop=()=>{const draw=()=>{$('#shopGrid').innerHTML=PRODUCTS10.filter(p=>shopCat==='Все'||p.cat===shopCat).map(prodCard).join('');calApply();$$('#shopTabs .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sc===shopCat))};
+INIT.shop=()=>{const draw=()=>{$('#shopGrid').innerHTML=PRODUCTS10.filter(p=>shopCat==='Все'||p.cat===shopCat).map(prodCard).join('');$$('#shopTabs .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sc===shopCat))};
   $('#shopTabs').addEventListener('click',e=>{const b=e.target.closest('[data-sc]');if(!b)return;shopCat=b.dataset.sc;draw()});
   let fd=0;const D=['delft','tulips','canals','molen','oranje','noordzee'];const fc=$('#shopFeat');
   const FCOL={delft:'#13306B',tulips:'#10203A',canals:'#fff',molen:'#2B1A10',oranje:'#fff',noordzee:'#0F2E47'};const fdraw=()=>{const fcd=fc.querySelector('.fcard');fcd.innerHTML=`${gArt(D[fd])}<span class="sheen"></span><div class="wm"><b>allowalks</b><small>подарочная карта</small></div><div class="wb"><div class="amt">€50</div><span class="url">podslushano.nl/allowalks</span></div>`;fcd.className='gc nl fcard '+D[fd];fc.querySelectorAll('[data-fd]').forEach((b,i)=>b.setAttribute('aria-pressed',i===fd))};
@@ -4209,7 +4189,7 @@ pnTrains();setInterval(pnTrains,60000);
 
 /* «Сэкономить»: ссылки через счётчик бота, метка «партнёр», сезонные плитки */
 (function pnSave(){const go=$$('[data-go]');go.forEach(a=>{a.href=PN_BOT+'/go/'+a.dataset.go+'?s=site'+(a.closest('#homeSave')?'_home':'')});
-  if(go.length)fetch(PN_BOT+'/api/savings/partners').then(r=>r.json()).then(p=>{go.forEach(a=>{if(p[a.dataset.go]&&!a.querySelector('.sv-pb'))a.insertAdjacentHTML('beforeend','<span class="sv-pb">партнёр</span>')})}).catch(()=>{});
+  if(go.length)fetch(PN_BOT+'/api/savings/partners').then(r=>r.json()).then(p=>{window.PN_PARTNERS=p;go.forEach(a=>{if(p[a.dataset.go]&&!a.querySelector('.sv-pb'))a.insertAdjacentHTML('beforeend','<span class="sv-pb">партнёр</span>')})}).catch(()=>{});
   const today=new Date().toISOString().slice(0,10);$$('[data-until]').forEach(t=>{if(today>t.dataset.until)t.remove()});
   document.addEventListener('click',e=>{if(!e.target.closest('[data-esim]'))return;setTimeout(()=>{const x=$('#esim');x&&x.scrollIntoView({behavior:'smooth',block:'start'})},800)})})();
 
@@ -4254,9 +4234,8 @@ document.addEventListener('submit',e=>{const f=e.target;const map={wForm:['week'
   /* «Неделя в Нидерландах»: бот присылает письмо с подтверждением, потом приветствие с подарком */
   if(m[0]==='week')pnPost(PN_BOT+'/api/newsletter/subscribe',{email:v.trim(),source:'site'}).catch(err=>toast(err.message))},true);
 document.addEventListener('submit',e=>{if(e.target.id!=='cForm')return;const d={};e.target.querySelectorAll('input,textarea,select').forEach(x=>{if(x.id&&x.type!=='checkbox')d[x.id]=x.value});if(!vEmail((d.ce||'').trim())||!(d.cm||'').trim())return;pnForm('contact',d).catch(err=>toast(err.message))},true);
-/* listings and the business cabinet live in the bot for now */
-function postDraw(){$('#postFlow').innerHTML=`<div style="display:grid;gap:14px;justify-items:start"><h3 style="font:700 20px var(--f-display)">Объявление размещается через нашего бота</h3><p class="muted">Бот проверит текст, поможет с фото и опубликует объявление здесь и в канале после модерации.</p><a class="btn btn-acc" href="https://t.me/podslushano_nl_bot" target="_blank" rel="noopener">Открыть бота</a></div>`}
-INIT.cabinet=()=>{};ENTER.cabinet=()=>{const p=$('#p-cabinet .wrap');if(p&&!p.querySelector('.pn-cab'))p.innerHTML=`<div class="phead"><div><h1>Кабинет бизнеса</h1><p>Изменить карточку, продлить размещение или скачать factuur можно в нашем боте.</p></div></div><div class="card pn-cab" style="padding:26px;border-radius:24px;display:grid;gap:14px;justify-items:start;max-width:640px"><p>Откройте бота и выберите «Мои карточки». Изменения появятся на сайте после проверки.</p><a class="btn btn-acc" href="https://t.me/podslushano_nl_bot" target="_blank" rel="noopener">Открыть бота</a></div>`};
+/* «Разместить»: объявление подаётся в приложении podslushano (веб-версия), там же проверка и личные сообщения */
+function postDraw(){$('#postFlow').innerHTML=`<div style="display:grid;gap:14px;justify-items:start"><h3 style="font:700 20px var(--f-display)">Подать объявление</h3><p class="muted">Работа, жильё и барахолка: объявление проверит модератор, и оно появится на сайте и в приложении podslushano. Писать вам смогут прямо в приложении.</p><a class="btn btn-acc" href="${PN_BOT}/app/market/new" target="_blank" rel="noopener">Подать объявление</a></div>`}
 
 
 /* ===================== donations, gift date, business cabinet ===================== */
@@ -4302,7 +4281,7 @@ let cabCards=[];
 function cabWrap(){return $('#p-cabinet .wrap')}
 function cabLogin(){cabWrap().innerHTML=`<div class="phead"><div><h1>Кабинет бизнеса</h1><p>Изменяйте карточку, продлевайте размещение и меняйте фото прямо на сайте.</p></div></div>
   <div class="cab-in card"><form id="cabLogin" novalidate><label for="cabMail">Почта, указанная для счёта</label><div class="cab-row"><input id="cabMail" type="email" placeholder="name@example.com" autocomplete="email"><button class="btn btn-acc" type="submit">Получить ссылку для входа</button></div><p class="muted" style="font-size:13px">Пришлём письмо со ссылкой. Пароль не нужен.</p></form>
-   <div class="cab-or"><span>или</span></div><a class="btn btn-soft" href="https://t.me/podslushano_nl_bot?start=cabinet_web" target="_blank" rel="noopener"><span class="brandi b-tg" style="width:24px;height:24px;border-radius:8px">${sl('telegram')}</span>Войти через Telegram</a>
+   
    <p class="muted" style="font-size:13px">Карточки ещё нет? <a href="#place" style="color:var(--accent-deep)">Разместить карточку</a></p></div>`;
   $('#cabLogin').addEventListener('submit',async e=>{e.preventDefault();const v=$('#cabMail').value.trim();if(!vEmail(v)){toast('Проверьте почту');return}
     try{await cabApi('/api/cabinet/login',{email:v});$('#cabLogin').outerHTML=finHTML(true,'Проверьте почту',`Если на ${esc(v)} оформлена карточка, мы отправили ссылку для входа. Она действует один час.`)}catch(err){toast(err.message)}})}
@@ -4338,14 +4317,28 @@ ENTER.cabinet=async()=>{const q=new URLSearchParams(location.search);const t=q.g
   if(t){try{const r=await fetch(PN_BOT+'/api/cabinet/session?t='+encodeURIComponent(t));const j=await r.json();if(j.session)cabSet(j.session);else toast(j.error||'Ссылка устарела')}catch(e){toast('Не удалось войти, попробуйте ещё раз')}}
   if(t||q.get('paid'))history.replaceState(null,'','/cabinet/');cabRender()};
 
-/* ---------- calendar 2027 ---------- */
-const CAL_ORDER=PN_BOT+'/calendar?utm_source=site';
-// цена и приём заказов берутся из настроек бота (CALENDAR_PRICE, CALENDAR_SALES_OPEN), как в форме оплаты
-const calInfo={text:'€30',open:true};
-const calApply=()=>{$$('[data-calprice]').forEach(e=>e.textContent=calInfo.text);if(!calInfo.open)$$('[data-calorder],[data-calorder2],#homeCal .pp,a.pc10[href^="'+PN_BOT+'/calendar"]').forEach(e=>e.style.display='none')};
-fetch(PN_BOT+'/calendar/info.json').then(r=>r.json()).then(j=>{const v=Number(j.price);if(v>0)calInfo.text='€'+(Number.isInteger(v)?v:v.toFixed(2).replace('.',','));calInfo.open=j.open!==false;calApply()}).catch(()=>{});
-$$('[data-calorder]').forEach(a=>{a.href=CAL_ORDER;a.target='_blank';a.rel='noopener'});
-(()=>{const m=$('#homeCal .calmk');if(!m||RM||!('IntersectionObserver' in window))return;let t;new IntersectionObserver(es=>es.forEach(x=>{clearInterval(t);if(x.isIntersecting)t=setInterval(()=>m.classList.toggle('flip'),3200)})).observe(m)})();
+$$('[data-guidepdf]').forEach(a=>a.href=PN_BOT+'/guide/nalogi-2026.pdf');
+
+/* ---------- медстраховка: 6 вопросов прямо на сайте ---------- */
+const ZQ=[['Есть дети до 18 лет?','Да','Нет'],['Нужен стоматолог для взрослых?','Да','Нет'],['Часто ходите к врачам или постоянно принимаете лекарства?','Часто','Редко'],
+ ['Важно лечиться у конкретного врача или в конкретной клинике?','Да, важно','Не важно'],['Нужны физиотерапия, очки или линзы?','Да','Нет'],
+ ['Ваш годовой доход (брутто) примерно до €43 000 на одного или до €54 000 вместе с партнёром?','Да, до','Больше']];
+function zqHints(a){const [kids,dent,often,own,extra,low]=a,o=[];
+  if(kids)o.push('Детей до 18 добавьте в свой полис: они застрахованы бесплатно, стоматолог для них уже в базовом пакете.');
+  if(dent)o.push('Смотрите aanvullende tandartsverzekering. Сравнивайте не только цену, но и лимит в год и процент возмещения.');
+  if(extra)o.push('Физиотерапия, очки и линзы почти не входят в базовый пакет: смотрите aanvullende verzekering и сравнивайте, сколько сеансов и какую сумму в год она покрывает.');
+  if(!dent&&!extra)o.push('Стоматолог, физиотерапия и очки не нужны — допстраховка, скорее всего, лишняя: базового пакета достаточно.');
+  o.push(often?'Не берите добровольный eigen risico: обязательные €400, скорее всего, и так уйдут за год.':'Болеете редко и есть запас денег — добровольный eigen risico (до €500 сверху) снижает взнос. Но в плохой год заплатите до €900 сами.');
+  o.push(own?'Нужна свобода выбора — смотрите restitutiepolis или проверьте, есть ли у вашей клиники договор со страховщиком (gecontracteerde zorg).':'Если не важно, где лечиться, naturapolis или budgetpolis обычно дешевле. Проверьте, что ближайшая больница есть в списке договорных.');
+  if(low)o.push('Вам, скорее всего, положена zorgtoeslag: государство возвращает часть взноса каждый месяц. Если ещё не получаете, проверьте на сайте Belastingdienst. Учитываются и сбережения.');
+  o.push('Спросите на работе про коллективную скидку (collectiviteit): многие работодатели её дают.');return o}
+function zqGo(k,c,t){const pb=(window.PN_PARTNERS||{})[k]?'<span class="sv-pb">партнёр</span>':'';return `<a class="btn ${c}" href="${PN_BOT}/go/${k}?s=site_quiz" target="_blank" rel="noopener">${t}${pb}</a>`}
+function zqDraw(a){if(a.length<ZQ.length){const [q,y,n]=ZQ[a.length];openSheet(`<span class="eyebrow">Медстраховка 2027 · вопрос ${a.length+1} из ${ZQ.length}</span><h2 id="shTitle" style="margin:10px 0 18px;font-size:24px">${q}</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-acc" data-zqa="1">${y}</button><button class="btn btn-soft" data-zqa="0">${n}</button></div>${a.length?'<button class="btn btn-soft btn-sm" data-zqb style="margin-top:14px">Назад</button>':''}`);zqDraw.a=a;return}
+  openSheet(`<span class="eyebrow">Медстраховка 2027</span><h2 id="shTitle" style="margin:10px 0 14px;font-size:24px">На что смотреть вам</h2><ul style="display:grid;gap:10px;padding-left:18px;color:var(--ink-2)">${zqHints(a).map(h=>`<li>${h}</li>`).join('')}</ul><p class="muted" style="margin-top:14px;font-size:14px">Сменить страховку на 2027 год можно до 31 декабря. Это общая информация, а не персональный финансовый совет.</p><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">${zqGo('zorg_compare','btn-acc','Сравнить цены')}${a[5]?zqGo('zorg_toeslag','btn-soft','Проверить zorgtoeslag'):''}<button class="btn btn-soft" data-zq>Пройти заново</button></div>`)}
+document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preventDefault();zqDraw([]);return}
+  const b=e.target.closest('[data-zqa]');if(b){zqDraw([...(zqDraw.a||[]),b.dataset.zqa==='1']);return}
+  if(e.target.closest('[data-zqb]'))zqDraw((zqDraw.a||[]).slice(0,-1))});
+
 /* ---------- HALLOWEEN ----------
    До 31 октября на главной анонс. 31 октября (время Amsterdam) сайт сам переодевается: видео-заставка, ночь и дым,
    искры, 7 настоящих тыкв с историями. Каждую историю можно отправить другу открыткой, за все 7 — даты 2027 в телефон.
@@ -4369,7 +4362,7 @@ $$('[data-calorder]').forEach(a=>{a.href=CAL_ORDER;a.target='_blank';a.rel='noop
   const PK=[
     {id:'tand',page:'save',sec:'Сэкономить',hint:'Там, где учат не переплачивать',t:'Счёт от tandarts',
      s:'Вы сходили к стоматологу «просто проверить». Через неделю приходит счёт: снимок, чистка и одна маленькая пломба — €312. Вы перечитываете страховку. Слово tandarts там встречается ровно один раз: в списке того, что не покрывается.',
-     a:'У взрослых стоматолог не входит в базовую страховку. Дополнительную можно добавить до 31 декабря, а 6 вопросов в боте подскажут, нужна ли она вам.',link:['Подобрать страховку','https://t.me/podslushano_nl_bot?start=save_zorg']},
+     a:'У взрослых стоматолог не входит в базовую страховку. Дополнительную можно добавить до 31 декабря, а 6 вопросов на сайте подскажут, нужна ли она вам.',link:['Подобрать страховку','#save']},
     {id:'ovchk',page:'trains',sec:'Поезда NS',hint:'Там, где опаздывают поезда',t:'Забытый check-out',
      s:'Целый месяц вы ездили на работу и гордились собой. Потом открыли выписку: шесть списаний по €20. Турникет на выходе не пикнул, а вы не обернулись. Шесть раз.',
      a:'Поездку с забытым check-out можно вернуть на сайте NS в разделе о возврате денег. Проверяйте, что турникет пикнул и на выходе.',link:['Табло NS','#trains']},
