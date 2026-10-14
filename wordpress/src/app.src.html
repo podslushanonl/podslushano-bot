@@ -1479,7 +1479,7 @@ html.cur-on .cur-dot,html.cur-on .cur-ring{opacity:1}
 .prod .pb{padding:18px 20px 20px;display:grid;gap:8px;flex:1;align-content:start}
 .prod h3{font-size:19px}
 .prod .row4{margin-top:auto;padding-top:8px}
-.soon{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.soon{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .soon>div{padding:20px;border-radius:22px;border:1.5px dashed var(--line-2);display:grid;gap:8px}
 /* widget */
 .wgt{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,400px);gap:clamp(24px,4vw,56px);align-items:center}
@@ -2240,6 +2240,35 @@ html.hw .hw-bat{color:#05030A}
 .hw-roll.still{animation:none;left:16px}.hw-roll.still svg{animation:none}
 @media (max-width:900px){.hw-roll{bottom:calc(92px + env(safe-area-inset-bottom,0px))}html.hw .hw-sky .moon{top:64px;right:-22px;width:84px;opacity:.75}}
 @media (prefers-reduced-motion:reduce){.hw-b .pks svg,.hw-pk,.hw-spider svg,.hw-flame{animation:none}}
+
+/* ---------- Календарь эмигранта 2027: блок на главной, карточка в магазине ---------- */
+.calb{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(22px,4vw,56px);align-items:center;padding:clamp(24px,3.6vw,44px);border-radius:var(--r-xl);overflow:hidden}
+.calb h2{font-size:clamp(28px,3.6vw,46px);line-height:1.02;margin-top:12px}
+.calb h2 em{font-style:normal;color:var(--accent)}
+.calb p.lead2{color:var(--ink-2);margin-top:14px;max-width:46ch}
+.calb ul{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:9px}
+.calb li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--ink-2)}
+.calb li .ico{width:18px;height:18px;color:var(--accent);margin-top:3px}
+.calb .acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:22px}
+.calb .pp{font:600 15px var(--f-mono);color:var(--muted)}
+.calmk{position:relative;aspect-ratio:1.42;perspective:1400px}
+.calmk .pg{position:absolute;inset:0;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 2px 4px rgba(16,24,40,.06),0 30px 60px -24px rgba(16,24,40,.35);transform-origin:50% 0;transition:transform .9s var(--spring)}
+.calmk .pg img{width:100%;height:100%;object-fit:cover;display:block}
+.calmk .pg.back{transform:translate(7%,9%) rotate(4deg) scale(.94)}
+.calmk .pg.front{transform:rotate(-2deg)}
+.calmk:hover .pg.front,.calmk.flip .pg.front{transform:rotateX(68deg) translateY(-6%);opacity:.0;transition:transform .9s var(--ease),opacity .5s .3s}
+.calmk:hover .pg.back,.calmk.flip .pg.back{transform:rotate(0) scale(1)}
+.calmk .rings{position:absolute;left:9%;right:9%;top:-9px;display:flex;justify-content:space-between;z-index:3;transform:rotate(-2deg)}
+.calmk .rings i{width:9px;height:22px;border-radius:6px;background:linear-gradient(90deg,#9AA3AE,#E9EDF2 45%,#7F8893);box-shadow:0 2px 3px rgba(0,0,0,.25)}
+.calmk .badge{position:absolute;right:-6px;bottom:-12px;z-index:4;background:var(--ink);color:#fff;border-radius:999px;padding:9px 16px;font:600 14px var(--f-display);box-shadow:var(--e2);transform:rotate(-4deg)}
+.cal-sub{display:grid;gap:10px;margin-top:14px}
+.cal-sub a{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;background:var(--surface-2);font-weight:600}
+.cal-sub a small{display:block;font-weight:400;color:var(--muted)}
+.cal-sub .ico{width:22px;height:22px}
+.pv-cal{position:absolute;inset:0;display:grid;place-items:center}
+.pv-cal .calmk{width:78%}
+.pv-cal .calmk .rings{top:-6px}.pv-cal .calmk .rings i{width:6px;height:14px}
+@media (max-width:900px){.calb{grid-template-columns:1fr}.calb .calmk{order:-1;margin:6px 4px 10px}}
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
@@ -2356,6 +2385,23 @@ html.hw .hw-bat{color:#05030A}
     <div class="sec">
       <div class="sh5 st"><div><h2>Новости</h2><p>Что случилось сегодня и как это касается вас.</p></div><a class="btn btn-soft btn-sm" href="#news">Все новости и статьи</a></div>
       <div id="homeNews"></div>
+    </div>
+    <div class="sec" id="homeCal">
+      <div class="card calb st">
+        <div>
+          <span class="eyebrow"><span class="dot"></span>Календарь эмигранта · 2027</span>
+          <h2>Весь год в Нидерландах<br><em>на одной стене</em></h2>
+          <p class="lead2">Настенный календарь A4: праздники, schoolvakanties, сроки налогов и страховки, события и куда поехать в каждом месяце. Печатаем для вас лично.</p>
+          <ul>
+            <li><svg class="ico"><use href="#i-check"/></svg><span>Ваша подпись на обложке, например «Календарь семьи Ивановых»</span></li>
+            <li><svg class="ico"><use href="#i-check"/></svg><span>Каникулы только вашего региона: Noord, Midden или Zuid</span></li>
+            <li><svg class="ico"><use href="#i-check"/></svg><span>До 15 личных дат прямо в сетке: дни рождения, годовщины</span></li>
+            <li><svg class="ico"><use href="#i-check"/></svg><span>QR на обложке: все даты попадут в телефон, а бот напомнит о сроках</span></li>
+          </ul>
+          <div class="acts"><a class="btn btn-acc" data-calorder href="#">Заказать календарь</a><button class="btn btn-soft" type="button" data-calsub>Даты в телефон бесплатно</button><span class="pp">€30 · доставка по Нидерландам включена</span></div>
+        </div>
+        <div class="calmk" role="img" aria-label="Календарь Nederland 2027: обложка и страница апреля"><span class="rings"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="pg back"><img loading="lazy" decoding="async" src="{{IMG:cal-april}}" alt=""></span><span class="pg front"><img loading="lazy" decoding="async" src="{{IMG:cal-cover}}" alt=""></span></div>
+      </div>
     </div>
     <div class="sec" id="homeSave">
       <div class="sh5 st"><div><h2>Сэкономить</h2><p>Разбираем, где в Нидерландах переплачивают, и как выбрать выгоднее.</p></div><a class="btn btn-soft btn-sm" href="#save">Все советы</a></div>
@@ -2518,7 +2564,7 @@ html.hw .hw-bat{color:#05030A}
 <section class="page" id="p-news" data-title="Новости"><div class="wrap"><div class="phead"><div><h1 class="st">Новости и статьи</h1><p class="st" style="--i:1">Что меняется в стране и как это касается вас. Без политики.</p></div></div><div id="newsBody"></div></div></section>
 <section class="page" id="p-art" data-title="Статья"><div class="wrap" id="artBody" style="padding-top:30px"></div></section>
 <section class="page" id="p-shop" data-title="Магазин"><div class="wrap"><div class="phead"><div><h1 class="st">Магазин</h1><p class="st" style="--i:1">Только то, что уже можно купить или получить.</p></div></div><div class="shop" id="shopGrid"></div>
-  <div class="sec"><div class="sh5"><div><h2 style="font-size:clamp(24px,3vw,34px)">Готовим</h2><p>Появятся, когда будут готовы к продаже.</p></div></div><div class="soon"><div><b>Мерч podslushano.nl</b><p class="muted" style="font-size:14px">Футболки, шопперы и значки с лосёнком.</p><button class="btn btn-soft btn-sm" data-notify="мерч">Сообщить, когда появится</button></div><div><b>Календарь 2027</b><p class="muted" style="font-size:14px">Праздники, сроки налогов и toeslagen, события года.</p><button class="btn btn-soft btn-sm" data-notify="календарь">Сообщить, когда появится</button></div></div></div></div></section>
+  <div class="sec"><div class="sh5"><div><h2 style="font-size:clamp(24px,3vw,34px)">Готовим</h2><p>Появятся, когда будут готовы к продаже.</p></div></div><div class="soon"><div><b>Мерч podslushano.nl</b><p class="muted" style="font-size:14px">Футболки, шопперы и значки с лосёнком.</p><button class="btn btn-soft btn-sm" data-notify="мерч">Сообщить, когда появится</button></div></div></div></div></section>
 
 
 <!-- ================= GUIDE ================= -->
@@ -3972,21 +4018,24 @@ document.addEventListener('keydown',e=>{if(e.target.id==='hxQ'&&e.key==='Escape'
     else{j--;el.textContent=w.slice(0,j);if(j===0){del=false;i=(i+1)%EX.length;setTimeout(tick,350);return}setTimeout(tick,22)}};
   setTimeout(tick,600)})();
 
+
 /* shop */
 const PRODUCTS10=[
+ {k:'cal',cat:'Подарки',t:'Календарь эмигранта 2027',d:'Настенный A4 с вашей подписью, каникулами вашего региона и личными датами. Бот напомнит о сроках.',p:'€30 · с доставкой',href:'#homeCal',cal:1,cta:'Заказать',bg:'linear-gradient(150deg,#FFF3E8,#FFD9B8)'},
  {k:'gift',cat:'Подарки',t:'Подарочная карта allowalks',d:'Прогулка в подарок в одном из шести голландских дизайнов. Письмо с кодом придёт в выбранный день.',p:'от €25',href:'#allo-gift',cta:'Выбрать дизайн',bg:'linear-gradient(150deg,#EAF1FF,#FFE9DA)'},
  {k:'kg',cat:'Для бизнеса',t:'Карточка в КонтактGuide',d:'Ваши услуги на сайте и в боте: все контакты, город, описание. Меняете сами в кабинете.',p:'от €9,99 в месяц',href:'#place',cta:'Разместить',bg:'linear-gradient(150deg,#E2F3E9,#B9EBD2)'},
  {k:'tax',cat:'Бесплатно',t:'Гайд «Налоги и субсидии 2026»',d:'Налоги, toeslagen, льготы, ZZP и изменения 2026 года простым языком.',p:'бесплатно',href:'https://t.me/podslushano_nl_bot?start=tax_guide_2026',cta:'Получить в боте',ext:1,bg:'linear-gradient(150deg,#E3EEFA,#B8D4FF)'},
  {k:'stick',cat:'Бесплатно',t:'Стикерпак с лосёнком',d:'Лосёнок на все погоды Нидерландов: дождь, ветер, солнце и морось.',p:'бесплатно',href:'https://t.me/addstickers/Podslushanonl',cta:'Добавить в Telegram',ext:1,bg:'linear-gradient(150deg,#FFF1E6,#FFC9A8)'},
  {k:'dn',cat:'Подарки',t:'Вклад в развитие',d:'Разово или каждый месяц. Идёт на новости, новые разделы и сервер.',p:'от €3',href:'#dnBox',cta:'Внести вклад',bg:'linear-gradient(150deg,#F1ECFF,#D9CCFF)'}];
 function prodVisual(k){
+  if(k==='cal')return `<div class="pv-cal"><div class="calmk"><span class="rings">${'<i></i>'.repeat(10)}</span><span class="pg back"><img loading="lazy" decoding="async" src="{{IMG:cal-april}}" alt=""></span><span class="pg front"><img loading="lazy" decoding="async" src="{{IMG:cal-cover}}" alt=""></span></div></div>`;
   if(k==='gift')return `<div class="pv-gift">${['canals','delft','tulips'].map((d,i)=>`<span class="gcm" style="--r:${(i-1)*9}deg;--x:${(i-1)*34}%;--z:${i===1?3:1}">${gArt(d,1)}<img loading="lazy" decoding="async" src="{{IMG:allo-orig}}" alt=""><b>€50</b></span>`).join('')}</div>`;
   if(k==='kg')return `<div class="pv-kg"><div class="mk"><div class="r1"><span class="av">АК</span><div><b>Анна К.</b><small>юрист · Utrecht</small></div><span class="ok">${svg('check').replace('class="ico"','class="ico" style="width:12px;height:12px"')}</span></div><p>Аренда, трудовые договоры, IND. Консультации на русском.</p><div class="r2"><span class="brandi b-ig">${sl('instagram')}</span><span class="brandi b-tg">${sl('telegram')}</span><span class="brandi b-wa">${sl('whatsapp')}</span><span class="cta">Связаться</span></div></div><span class="lbl">Так выглядит ваша карточка</span></div>`;
   if(k==='tax')return `<div class="pv-book"><div class="bk"><span class="fl"><i></i><i></i><i></i></span><small>гайд podslushano.nl</small><b>Налоги<br>и субсидии</b><em>2026</em><span class="ft">toeslagen · ZZP · льготы</span></div></div>`;
   if(k==='stick')return `<div class="pv-st">${['m-rain','m-sun','m-wind','m-cold'].map((m,i)=>`<img loading="lazy" decoding="async" src="${IMG[m]}" alt="" style="--r:${[-14,8,-4,12][i]}deg;--d:${i*.4}s">`).join('')}</div>`;
   if(k==='dn')return `<div class="pv-dn">${[3,7,15].map((a,i)=>`<span style="--d:${i*.5}s" class="${a===7?'on':''}">€${a}</span>`).join('')}<i>${svg('heart')}</i></div>`;
   return ''}
-function prodCard(p){return `<a class="pc10" href="${p.href}" ${p.ext?'target="_blank" rel="noopener"':''} data-pcat="${p.cat}"><div class="pvis" style="background:${p.bg}">${prodVisual(p.k)}<span class="ptag">${p.cat}</span></div><div class="pbd"><h3>${p.t}</h3><p>${p.d}</p><div class="pft"><span class="pp">${p.p}</span><span class="pgo">${p.cta}${svg(p.ext?'ext':'arrow')}</span></div></div></a>`}
+function prodCard(p){return `<a class="pc10" href="${p.cal?CAL_ORDER:p.href}" ${p.cal||p.ext?'target="_blank" rel="noopener"':''} data-pcat="${p.cat}"><div class="pvis" style="background:${p.bg}">${prodVisual(p.k)}<span class="ptag">${p.cat}</span></div><div class="pbd"><h3>${p.t}</h3><p>${p.d}</p><div class="pft"><span class="pp">${p.p}</span><span class="pgo">${p.cta}${svg(p.ext?'ext':'arrow')}</span></div></div></a>`}
 let shopCat='Все';
 INIT.shop=()=>{const draw=()=>{$('#shopGrid').innerHTML=PRODUCTS10.filter(p=>shopCat==='Все'||p.cat===shopCat).map(prodCard).join('');$$('#shopTabs .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sc===shopCat))};
   $('#shopTabs').addEventListener('click',e=>{const b=e.target.closest('[data-sc]');if(!b)return;shopCat=b.dataset.sc;draw()});
@@ -4394,6 +4443,17 @@ ENTER.cabinet=async()=>{const q=new URLSearchParams(location.search);const t=q.g
     const off=()=>{o.classList.add('off');setTimeout(()=>o.remove(),800)};o.addEventListener('click',off);document.body.appendChild(o);setTimeout(off,2600)}
 })();
 
+/* ---------- calendar 2027 ---------- */
+const CAL_ORDER=PN_BOT+'/calendar?utm_source=site';
+const CAL_ICS=PN_BOT.replace(/^https?:/,'webcal:')+'/calendar/nederland-2027.ics';
+$$('[data-calorder]').forEach(a=>{a.href=CAL_ORDER;a.target='_blank';a.rel='noopener'});
+function calSub(){openSheet(`<h2 id="shTitle">Даты 2027 в телефон</h2><p class="muted" style="margin-top:6px">Праздники, schoolvakanties всех регионов, сроки налогов и страховки. Бесплатно, обновляется само. Личные даты и напоминания в боте есть в печатном календаре.</p>
+  <div class="cal-sub"><a href="${CAL_ICS}"><svg class="ico"><use href="#i-cal"/></svg><span>iPhone и Mac<small>Откроется Apple Calendar, нажмите «Подписаться»</small></span></a>
+  <a href="https://calendar.google.com/calendar/r?cid=${encodeURIComponent(CAL_ICS)}" target="_blank" rel="noopener"><svg class="ico"><use href="#i-cal"/></svg><span>Google Calendar<small>Android и компьютер</small></span></a>
+  <a href="${PN_BOT}/calendar/nederland-2027.ics" download><svg class="ico"><use href="#i-cal"/></svg><span>Скачать файл .ics<small>Для Outlook и других календарей</small></span></a></div>
+  <a class="btn btn-acc" style="width:100%;margin-top:16px" href="${CAL_ORDER}" target="_blank" rel="noopener">Заказать печатный календарь · €30</a>`)}
+document.addEventListener('click',e=>{if(e.target.closest('[data-calsub]')){e.preventDefault();calSub()}});
+(()=>{const m=$('#homeCal .calmk');if(!m||RM)return;let t;new IntersectionObserver(es=>es.forEach(x=>{clearInterval(t);if(x.isIntersecting)t=setInterval(()=>m.classList.toggle('flip'),3200)})).observe(m)})();
 /* ---------- boot ---------- */
 syncFav();route();if(!consent&&!CMP())setTimeout(()=>cookieBar(false),900);
 })();
