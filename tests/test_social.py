@@ -264,6 +264,37 @@ class MigrationScriptTests(unittest.IsolatedAsyncioTestCase):
         tmp.cleanup()
 
 
+    async def test_bot_imports_sqlite_on_first_start(self):
+        """SQLITE_IMPORT=1: init_db сам переносит данные один раз; без флага и на SQLite ничего не делает."""
+        tmp = tempfile.TemporaryDirectory()
+        path = str(Path(tmp.name) / "bot.db")
+        src = create_async_engine(f"sqlite+aiosqlite:///{path}")
+        async with src.begin() as c:
+            await c.run_sync(Base.metadata.create_all)
+        async with async_sessionmaker(src)() as s:
+            s.add(AppUser(id=11, name="Ира", country="Германия"))
+            await s.commit()
+        await src.dispose()
+        dst = create_async_engine(PG_URL)
+        async with dst.begin() as c:
+            await c.run_sync(Base.metadata.drop_all)
+        with patch.multiple(db.config, DB_URL=PG_URL, DB_PATH=path), patch.object(db, "engine", dst), \
+                patch.object(db, "async_session", async_sessionmaker(dst, expire_on_commit=False)), \
+                patch.dict(os.environ, {"SQLITE_IMPORT": "1"}):
+            await db._import_sqlite_once()
+            async with async_sessionmaker(dst)() as s:
+                s.add(AppUser(id=12, name="Новая"))      # бот уже работает на PostgreSQL
+                await s.commit()
+            await db._import_sqlite_once()                # перезапуск — второй раз не переносит
+        async with async_sessionmaker(dst)() as s:
+            self.assertEqual(sorted((await s.execute(select(AppUser.id))).scalars()), [11, 12])
+            self.assertTrue(await s.get(db.Meta, db.SQLITE_IMPORTED_KEY))
+        async with dst.begin() as c:
+            await c.run_sync(Base.metadata.drop_all)
+        await dst.dispose()
+        tmp.cleanup()
+
+
 class LegacyMigrationTests(unittest.IsolatedAsyncioTestCase):
     """Старая база SQLite: колонки country нет, страны комнат кодом NL, блокировки в user_blocks."""
 

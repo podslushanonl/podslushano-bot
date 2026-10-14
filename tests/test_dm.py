@@ -1,4 +1,4 @@
-"""Личные сообщения приложения: только друзьям; диалоги по объявлениям, живое соединение, прочитано, блокировки, жалобы."""
+"""Личные сообщения приложения: по объявлению — всем, иначе только друзьям; живое соединение, прочитано, блокировки, жалобы."""
 import asyncio
 import tempfile
 import unittest
@@ -94,8 +94,13 @@ class DmTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((await self.start(2, 11))[0], 409)      # автор не в приложении
         self.assertEqual((await self.start(2, 12))[0], 404)      # не опубликовано
         self.assertEqual((await self.start(1, 10))[0], 400)      # своё объявление
-        st, d = await self.start(4)                               # не друзья — писать нельзя
-        self.assertEqual((st, d["error"]), (403, social.NOT_FRIENDS))
+        st, d = await self.start(4)                               # по объявлению дружба не нужна
+        self.assertEqual(st, 200)
+        cid4 = d["id"]
+        self.assertEqual((await self.post(f"/api/app/dm/{cid4}", 4, {"text": "Ещё продаёте?"})).status, 200)
+        # а просто написать не-другу нельзя
+        r = await self.post("/api/app/dm/start", 4, {"user_id": 1})
+        self.assertEqual((r.status, (await r.json())["error"]), (403, social.NOT_FRIENDS))
         st, d = await self.start()
         self.assertEqual(st, 200)
         self.assertEqual((await self.start())[1]["id"], d["id"])  # тот же диалог

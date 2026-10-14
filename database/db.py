@@ -114,6 +114,7 @@ _COUNTRY_VALUES = "('Нидерланды', 'Германия', 'Бельгия'
 async def init_db() -> None:
     """Создаёт таблицы, добавляет недостающие колонки и засевает специалистов."""
     os.makedirs(os.path.dirname(config.DB_PATH), exist_ok=True)
+    await _import_sqlite_once()
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -121,6 +122,41 @@ async def init_db() -> None:
     await _migrate()
     await _seed_if_needed()
     await _repair_misclassified_specialists()
+
+
+SQLITE_IMPORTED_KEY = "sqlite_imported_at"
+
+
+async def _import_sqlite_once() -> None:
+    """Переезд на PostgreSQL без консоли: при SQLITE_IMPORT=1 бот при старте сам переносит
+    данные из data/bot.db в пустую базу PostgreSQL (scripts/sqlite_to_postgres.py) и ставит
+    отметку в meta — повторно не переносит. Ошибка переноса останавливает запуск (всё в одной
+    транзакции, база остаётся пустой), чтобы бот не заработал с половиной данных."""
+    if config.DB_URL.startswith("sqlite") or os.getenv("SQLITE_IMPORT", "").strip() != "1":
+        return
+    import logging
+    log = logging.getLogger(__name__)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    async with async_session() as session:
+        if await session.get(Meta, SQLITE_IMPORTED_KEY):
+            log.info("SQLite уже перенесён в PostgreSQL — SQLITE_IMPORT можно убрать")
+            return
+    if not os.path.exists(config.DB_PATH):
+        log.warning("SQLITE_IMPORT=1, но файла %s нет — переносить нечего", config.DB_PATH)
+        return
+    from scripts.sqlite_to_postgres import run
+    log.warning("Переношу данные из %s в PostgreSQL…", config.DB_PATH)
+    code = await run(config.DB_PATH, config.DB_URL, dry_run=False, force=False)
+    if code == 3:
+        log.warning("В PostgreSQL уже есть данные — перенос пропущен, ставлю отметку")
+    elif code != 0:
+        raise RuntimeError(f"Перенос SQLite → PostgreSQL не удался (код {code}), см. лог выше")
+    from datetime import datetime, timezone
+    async with async_session() as session:
+        await session.merge(Meta(key=SQLITE_IMPORTED_KEY, value=datetime.now(timezone.utc).isoformat()))
+        await session.commit()
+    log.warning("Перенос в PostgreSQL завершён")
 
 
 async def _repair_misclassified_specialists() -> None:
