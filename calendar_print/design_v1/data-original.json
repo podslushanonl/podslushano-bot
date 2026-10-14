@@ -1,0 +1,1175 @@
+{
+ "year": 2027,
+ "events": [
+  {
+   "m": 1,
+   "d": 1,
+   "label": "Nieuwjaarsdag",
+   "kind": "hol"
+  },
+  {
+   "m": 1,
+   "d": 1,
+   "label": "Podslushano.nl 3 года",
+   "kind": "bday"
+  },
+  {
+   "m": 1,
+   "d": 6,
+   "label": "Drie Koningen",
+   "kind": "oth"
+  },
+  {
+   "m": 1,
+   "d": 7,
+   "label": "Рождество",
+   "kind": "trad"
+  },
+  {
+   "m": 1,
+   "d": 14,
+   "label": "Старый Новый год",
+   "kind": "trad"
+  },
+  {
+   "m": 1,
+   "d": 16,
+   "label": "Tulpendag",
+   "kind": "trad"
+  },
+  {
+   "m": 1,
+   "d": 17,
+   "label": "Light Festival до 17.01",
+   "kind": "trad"
+  },
+  {
+   "m": 1,
+   "d": 31,
+   "label": "Verjaardag Beatrix",
+   "kind": "oth"
+  },
+  {
+   "m": 2,
+   "d": 1,
+   "label": "Zorgverzekering: срок",
+   "kind": "dead"
+  },
+  {
+   "m": 2,
+   "d": 6,
+   "label": "Carnaval",
+   "kind": "trad"
+  },
+  {
+   "m": 2,
+   "d": 6,
+   "label": "Chinees Nieuwjaar",
+   "kind": "oth"
+  },
+  {
+   "m": 2,
+   "d": 7,
+   "label": "Carnaval",
+   "kind": "trad"
+  },
+  {
+   "m": 2,
+   "d": 8,
+   "label": "Carnaval",
+   "kind": "trad"
+  },
+  {
+   "m": 2,
+   "d": 9,
+   "label": "Carnaval",
+   "kind": "trad"
+  },
+  {
+   "m": 2,
+   "d": 9,
+   "label": "Vastenavond",
+   "kind": "oth"
+  },
+  {
+   "m": 2,
+   "d": 10,
+   "label": "Aswoensdag",
+   "kind": "oth"
+  },
+  {
+   "m": 2,
+   "d": 14,
+   "label": "Valentijnsdag",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 1,
+   "label": "Aangifte открыта",
+   "kind": "dead"
+  },
+  {
+   "m": 3,
+   "d": 8,
+   "label": "Vrouwendag · 8 Марта",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 8,
+   "label": "Масленица",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 9,
+   "label": "Масленица",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 10,
+   "label": "Масленица",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 10,
+   "label": "Boekenweek",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 11,
+   "label": "Масленица",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 12,
+   "label": "Масленица",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 13,
+   "label": "Масленица",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 14,
+   "label": "Масленица",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 14,
+   "label": "CPC Loop Den Haag",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 17,
+   "label": "Выборы",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 18,
+   "label": "Keukenhof открыт",
+   "kind": "trad"
+  },
+  {
+   "m": 3,
+   "d": 18,
+   "label": "Arubadag",
+   "kind": "oth"
+  },
+  {
+   "m": 3,
+   "d": 21,
+   "label": "Palmzondag",
+   "kind": "oth"
+  },
+  {
+   "m": 3,
+   "d": 23,
+   "label": "Purim",
+   "kind": "oth"
+  },
+  {
+   "m": 3,
+   "d": 25,
+   "label": "Witte Donderdag",
+   "kind": "oth"
+  },
+  {
+   "m": 3,
+   "d": 26,
+   "label": "Goede Vrijdag",
+   "kind": "hol"
+  },
+  {
+   "m": 3,
+   "d": 28,
+   "label": "1e Paasdag",
+   "kind": "hol"
+  },
+  {
+   "m": 3,
+   "d": 28,
+   "label": "Летнее время",
+   "kind": "dst"
+  },
+  {
+   "m": 3,
+   "d": 29,
+   "label": "2e Paasdag",
+   "kind": "hol"
+  },
+  {
+   "m": 4,
+   "d": 1,
+   "label": "1 april",
+   "kind": "oth"
+  },
+  {
+   "m": 4,
+   "d": 10,
+   "label": "Verjaardag Ariane",
+   "kind": "oth"
+  },
+  {
+   "m": 4,
+   "d": 11,
+   "label": "Marathon Rotterdam",
+   "kind": "trad"
+  },
+  {
+   "m": 4,
+   "d": 15,
+   "label": "Secretaressedag",
+   "kind": "oth"
+  },
+  {
+   "m": 4,
+   "d": 17,
+   "label": "Bloemencorso",
+   "kind": "trad"
+  },
+  {
+   "m": 4,
+   "d": 21,
+   "label": "Pesach",
+   "kind": "oth"
+  },
+  {
+   "m": 4,
+   "d": 22,
+   "label": "Dag van de Aarde",
+   "kind": "oth"
+  },
+  {
+   "m": 4,
+   "d": 27,
+   "label": "Koningsdag",
+   "kind": "hol"
+  },
+  {
+   "m": 5,
+   "d": 1,
+   "label": "Aangifte: срок",
+   "kind": "dead"
+  },
+  {
+   "m": 5,
+   "d": 1,
+   "label": "Dag van de Arbeid",
+   "kind": "oth"
+  },
+  {
+   "m": 5,
+   "d": 2,
+   "label": "Пасха (правосл.)",
+   "kind": "trad"
+  },
+  {
+   "m": 5,
+   "d": 4,
+   "label": "Herdenking 20:00",
+   "kind": "trad"
+  },
+  {
+   "m": 5,
+   "d": 5,
+   "label": "Bevrijdingsdag",
+   "kind": "hol"
+  },
+  {
+   "m": 5,
+   "d": 5,
+   "label": "Cinco de Mayo",
+   "kind": "oth"
+  },
+  {
+   "m": 5,
+   "d": 6,
+   "label": "Hemelvaartsdag",
+   "kind": "hol"
+  },
+  {
+   "m": 5,
+   "d": 9,
+   "label": "Moederdag",
+   "kind": "trad"
+  },
+  {
+   "m": 5,
+   "d": 9,
+   "label": "Keukenhof закрыт",
+   "kind": "trad"
+  },
+  {
+   "m": 5,
+   "d": 9,
+   "label": "Europadag",
+   "kind": "oth"
+  },
+  {
+   "m": 5,
+   "d": 12,
+   "label": "Yom Ha'Atzmaut",
+   "kind": "oth"
+  },
+  {
+   "m": 5,
+   "d": 15,
+   "label": "Luilak",
+   "kind": "oth"
+  },
+  {
+   "m": 5,
+   "d": 16,
+   "label": "1e Pinksterdag",
+   "kind": "hol"
+  },
+  {
+   "m": 5,
+   "d": 17,
+   "label": "2e Pinksterdag",
+   "kind": "hol"
+  },
+  {
+   "m": 5,
+   "d": 17,
+   "label": "Verjaardag Máxima",
+   "kind": "oth"
+  },
+  {
+   "m": 5,
+   "d": 25,
+   "label": "Lag BaOmer",
+   "kind": "oth"
+  },
+  {
+   "m": 6,
+   "d": 11,
+   "label": "Shavuot",
+   "kind": "oth"
+  },
+  {
+   "m": 6,
+   "d": 20,
+   "label": "Vaderdag",
+   "kind": "trad"
+  },
+  {
+   "m": 6,
+   "d": 21,
+   "label": "Zomerzonnewende",
+   "kind": "oth"
+  },
+  {
+   "m": 6,
+   "d": 24,
+   "label": "Конец сезона спаржи",
+   "kind": "trad"
+  },
+  {
+   "m": 6,
+   "d": 26,
+   "label": "Veteranendag",
+   "kind": "trad"
+  },
+  {
+   "m": 6,
+   "d": 26,
+   "label": "Verjaardag Alexia",
+   "kind": "oth"
+  },
+  {
+   "m": 7,
+   "d": 1,
+   "label": "Keti Koti",
+   "kind": "trad"
+  },
+  {
+   "m": 7,
+   "d": 20,
+   "label": "Vierdaagse",
+   "kind": "trad"
+  },
+  {
+   "m": 7,
+   "d": 21,
+   "label": "Vierdaagse",
+   "kind": "trad"
+  },
+  {
+   "m": 7,
+   "d": 21,
+   "label": "Nationale feestdag België",
+   "kind": "oth"
+  },
+  {
+   "m": 7,
+   "d": 22,
+   "label": "Vierdaagse",
+   "kind": "trad"
+  },
+  {
+   "m": 7,
+   "d": 23,
+   "label": "Vierdaagse",
+   "kind": "trad"
+  },
+  {
+   "m": 8,
+   "d": 7,
+   "label": "Canal Parade",
+   "kind": "trad"
+  },
+  {
+   "m": 8,
+   "d": 12,
+   "label": "Tisha B'Av",
+   "kind": "oth"
+  },
+  {
+   "m": 8,
+   "d": 15,
+   "label": "Herdenking 15 augustus",
+   "kind": "trad"
+  },
+  {
+   "m": 9,
+   "d": 11,
+   "label": "Open Monumentendag",
+   "kind": "trad"
+  },
+  {
+   "m": 9,
+   "d": 12,
+   "label": "Open Monumentendag",
+   "kind": "trad"
+  },
+  {
+   "m": 9,
+   "d": 21,
+   "label": "Prinsjesdag",
+   "kind": "trad"
+  },
+  {
+   "m": 9,
+   "d": 23,
+   "label": "Herfstequinox",
+   "kind": "oth"
+  },
+  {
+   "m": 9,
+   "d": 25,
+   "label": "Burendag",
+   "kind": "trad"
+  },
+  {
+   "m": 10,
+   "d": 3,
+   "label": "Leidens Ontzet",
+   "kind": "trad"
+  },
+  {
+   "m": 10,
+   "d": 4,
+   "label": "Dierendag",
+   "kind": "trad"
+  },
+  {
+   "m": 10,
+   "d": 11,
+   "label": "Jom Kipoer",
+   "kind": "oth"
+  },
+  {
+   "m": 10,
+   "d": 15,
+   "label": "Soekot до 22.10",
+   "kind": "oth"
+  },
+  {
+   "m": 10,
+   "d": 24,
+   "label": "Dag van de VN",
+   "kind": "oth"
+  },
+  {
+   "m": 10,
+   "d": 31,
+   "label": "Зимнее время",
+   "kind": "dst"
+  },
+  {
+   "m": 10,
+   "d": 31,
+   "label": "Halloween",
+   "kind": "oth"
+  },
+  {
+   "m": 11,
+   "d": 1,
+   "label": "Allerheiligen",
+   "kind": "oth"
+  },
+  {
+   "m": 11,
+   "d": 6,
+   "label": "Museumnacht",
+   "kind": "trad"
+  },
+  {
+   "m": 11,
+   "d": 11,
+   "label": "Sint-Maarten",
+   "kind": "trad"
+  },
+  {
+   "m": 11,
+   "d": 12,
+   "label": "Новые цены страховок",
+   "kind": "trad"
+  },
+  {
+   "m": 12,
+   "d": 5,
+   "label": "Sinterklaas · Pakjesavond",
+   "kind": "trad"
+  },
+  {
+   "m": 12,
+   "d": 7,
+   "label": "Verjaardag Amalia",
+   "kind": "oth"
+  },
+  {
+   "m": 12,
+   "d": 15,
+   "label": "Koninkrijksdag",
+   "kind": "oth"
+  },
+  {
+   "m": 12,
+   "d": 24,
+   "label": "Kerstavond",
+   "kind": "trad"
+  },
+  {
+   "m": 12,
+   "d": 24,
+   "label": "Chanoeka до 31.12",
+   "kind": "oth"
+  },
+  {
+   "m": 12,
+   "d": 25,
+   "label": "1e Kerstdag",
+   "kind": "hol"
+  },
+  {
+   "m": 12,
+   "d": 26,
+   "label": "2e Kerstdag",
+   "kind": "hol"
+  },
+  {
+   "m": 12,
+   "d": 31,
+   "label": "Oudejaarsavond",
+   "kind": "trad"
+  },
+  {
+   "m": 12,
+   "d": 31,
+   "label": "Zorgverzekering: срок",
+   "kind": "dead"
+  }
+ ],
+ "vacations": [
+  {
+   "start": "2027-01-01",
+   "end": "2027-01-03",
+   "regions": "NMZ",
+   "name": "Kerstvakantie"
+  },
+  {
+   "start": "2027-02-20",
+   "end": "2027-02-28",
+   "regions": "NM",
+   "name": "Voorjaarsvakantie"
+  },
+  {
+   "start": "2027-02-13",
+   "end": "2027-02-21",
+   "regions": "Z",
+   "name": "Voorjaarsvakantie"
+  },
+  {
+   "start": "2027-04-24",
+   "end": "2027-05-02",
+   "regions": "NMZ",
+   "name": "Meivakantie"
+  },
+  {
+   "start": "2027-07-10",
+   "end": "2027-08-22",
+   "regions": "N",
+   "name": "Zomervakantie"
+  },
+  {
+   "start": "2027-07-17",
+   "end": "2027-08-29",
+   "regions": "M",
+   "name": "Zomervakantie"
+  },
+  {
+   "start": "2027-07-24",
+   "end": "2027-09-05",
+   "regions": "Z",
+   "name": "Zomervakantie"
+  },
+  {
+   "start": "2027-10-16",
+   "end": "2027-10-24",
+   "regions": "NM",
+   "name": "Herfstvakantie"
+  },
+  {
+   "start": "2027-10-23",
+   "end": "2027-10-31",
+   "regions": "Z",
+   "name": "Herfstvakantie"
+  },
+  {
+   "start": "2027-12-25",
+   "end": "2027-12-31",
+   "regions": "NMZ",
+   "name": "Kerstvakantie"
+  }
+ ],
+ "months": [
+  "Январь",
+  "Февраль",
+  "Март",
+  "Апрель",
+  "Май",
+  "Июнь",
+  "Июль",
+  "Август",
+  "Сентябрь",
+  "Октябрь",
+  "Ноябрь",
+  "Декабрь"
+ ],
+ "months_gen": [
+  "января",
+  "февраля",
+  "марта",
+  "апреля",
+  "мая",
+  "июня",
+  "июля",
+  "августа",
+  "сентября",
+  "октября",
+  "ноября",
+  "декабря"
+ ],
+ "weekdays": [
+  "Пн",
+  "Вт",
+  "Ср",
+  "Чт",
+  "Пт",
+  "Сб",
+  "Вс"
+ ],
+ "regions": {
+  "N": "Noord",
+  "M": "Midden",
+  "Z": "Zuid"
+ },
+ "info": {
+  "1": {
+   "season": "Устрицы из Zeeland — сезон «месяцев с буквой r»",
+   "go": "Amsterdam Light Festival — до 17 января",
+   "notes": [
+    "1 янв — Nieuwjaarsdag и день рождения Podslushano.nl: нам 3 года",
+    "1 янв — новые ставки налогов, toeslagen и minimumloon",
+    "16 янв — Nationale Tulpendag: бесплатные тюльпаны на Museumplein, 13:00–17:00",
+    "20–31 янв — Nationale Voorleesdagen",
+    "Kinderbijslag (SVB) — выплата в этом месяце, точная дата в Mijn SVB",
+    "7 янв — православное Рождество"
+   ],
+   "tip": [
+    "Сверь январскую зарплату",
+    "С 1 января меняются налоговые ставки и minimumloon — проверь нетто в первой loonstrook года."
+   ],
+   "tip_icon": "euro",
+   "season_icons": [
+    "shell",
+    "star"
+   ],
+   "place": "Amsterdam",
+   "pos": "55% 50%"
+  },
+  "2": {
+   "season": "Устрицы и первые подснежники",
+   "go": "Carnaval в Maastricht и Den Bosch, 6–9 февраля",
+   "notes": [
+    "1 фев — последний день оформить новую zorgverzekering задним числом с 1 января",
+    "Февраль–март — aanslag от gemeente: мусор, канализация, OZB",
+    "Waterschapsbelasting (вода) — часто на том же бланке"
+   ],
+   "tip": [
+    "Пришёл налог на мусор?",
+    "Aanslag от gemeente можно платить частями по automatische incasso. При низком доходе — просить kwijtschelding до срока оплаты."
+   ],
+   "tip_icon": "bin",
+   "season_icons": [
+    "shell",
+    "bike"
+   ],
+   "place": "Amsterdam",
+   "pos": "50% 50%"
+  },
+  "3": {
+   "season": "Нарциссы и крокусы, в конце месяца — сакура",
+   "go": "Keukenhof открывается 18 марта · Bloesempark в Amsterdamse Bos",
+   "notes": [
+    "1 мар — открывается aangifte за 2026 год (срок — до 1 мая)",
+    "10–21 мар — Boekenweek",
+    "17 мар — выборы в Provinciale Staten и waterschappen",
+    "28 мар — Pasen и переход на летнее время"
+   ],
+   "tip": [
+    "Подай aangifte до 1 апреля",
+    "Тогда Belastingdienst пришлёт решение до 1 июля. Последний срок подачи — 1 мая."
+   ],
+   "tip_icon": "euro",
+   "season_icons": [
+    "tulip",
+    "leaf"
+   ],
+   "place": "Amsterdamse Bos",
+   "pos": "50% 50%"
+  },
+  "4": {
+   "season": "Пик тюльпанов — обычно середина–конец апреля. Начинается спаржа",
+   "go": "Bloemencorso Bollenstreek, 17 апреля · тюльпановые поля в Lisse и Noordoostpolder",
+   "notes": [
+    "27 апр — Koningsdag; король празднует в Lelystad",
+    "11 апр — NN Marathon Rotterdam",
+    "Kinderbijslag (SVB) — выплата в этом месяце, точная дата в Mijn SVB",
+    "Nationale Museumweek — обычно в апреле, даты 2027 ещё не объявлены"
+   ],
+   "tip": [
+    "Поля — это чужая земля",
+    "Тюльпаны фотографируй с дороги или обочины: в поля без разрешения фермера не заходят."
+   ],
+   "tip_icon": "tulip",
+   "season_icons": [
+    "tulip",
+    "mill"
+   ],
+   "place": "Hillegom — Lisse",
+   "pos": "50% 50%"
+  },
+  "5": {
+   "season": "Спаржа из Limburg и Brabant",
+   "go": "Keukenhof — последние дни, до 9 мая · фестивали на Bevrijdingsdag",
+   "notes": [
+    "1 мая — дедлайн aangifte за 2026 год или запрос uitstel",
+    "4 мая, 20:00 — две минуты тишины",
+    "Vakantiegeld обычно приходит с зарплатой за май или июнь",
+    "2 мая — православная Пасха",
+    "Nationale Molendag — мельницы открыты бесплатно, обычно в середине мая"
+   ],
+   "tip": [
+    "Vakantiegeld — минимум 8%",
+    "Отпускные — не меньше 8% от годовой брутто-зарплаты. Обычно приходят в мае или июне."
+   ],
+   "tip_icon": "euro",
+   "season_icons": [
+    "aspar",
+    "mill"
+   ],
+   "place": "Zaanse Schans",
+   "pos": "58% 50%"
+  },
+  "6": {
+   "season": "Hollandse Nieuwe — новая сельдь. Клубника",
+   "go": "Scheveningen — праздник новой сельди",
+   "notes": [
+    "24 июня — конец сезона спаржи"
+   ],
+   "tip": [
+    "Сколько у тебя отпуска",
+    "По закону — минимум четыре рабочие недели в год: при 40 часах в неделю это 160 часов."
+   ],
+   "tip_icon": "sun",
+   "season_icons": [
+    "fish",
+    "berry"
+   ],
+   "place": "Scheveningen",
+   "pos": "40% 50%"
+  },
+  "7": {
+   "season": "Лаванда, вишня и черешня",
+   "go": "Vierdaagse в Nijmegen, 20–23 июля · пляжи",
+   "notes": [
+    "1 июля — Keti Koti и индексация minimumloon",
+    "Kinderbijslag (SVB) — выплата в этом месяце, точная дата в Mijn SVB"
+   ],
+   "tip": [
+    "Проверь июльскую зарплату",
+    "1 июля индексируется minimumloon — новая ставка должна быть в loonstrook."
+   ],
+   "tip_icon": "euro",
+   "season_icons": [
+    "cherry",
+    "sun"
+   ],
+   "place": "Marker Wadden",
+   "pos": "60% 50%"
+  },
+  "8": {
+   "season": "В конце месяца цветёт вереск (heide)",
+   "go": "Veluwe — лиловые поля heide",
+   "notes": [],
+   "tip": [
+    "Собаку — на поводок",
+    "На многих участках Veluwe и heide это обязательно. Правила — на табличке у входа."
+   ],
+   "tip_icon": "heide",
+   "season_icons": [
+    "heide",
+    "bike"
+   ],
+   "place": "Asselsche Heide, Veluwe",
+   "pos": "62% 50%"
+  },
+  "9": {
+   "season": "Возвращаются устрицы. Начинается сезон грибов",
+   "go": "Yerseke и Zeeland · Open Monumentendag, 11–12 сентября",
+   "notes": [
+    "21 сен — Prinsjesdag: как изменятся налоги и toeslagen в 2028",
+    "Собирать грибы можно не везде — правила на табличке у входа в лес"
+   ],
+   "tip": [
+    "Слушай Prinsjesdag",
+    "В третий вторник сентября объявляют бюджет: что изменится в налогах и toeslagen со следующего года."
+   ],
+   "tip_icon": "crown",
+   "season_icons": [
+    "shell",
+    "mush"
+   ],
+   "place": "Zeelandbrug, Oosterschelde",
+   "pos": "35% 50%"
+  },
+  "10": {
+   "season": "Грибы и осенние леса",
+   "go": "Leiden — Leidens Ontzet, 3 октября · Veluwe",
+   "notes": [
+    "31 окт — переход на зимнее время",
+    "30–31 окт — TCS Amsterdam Marathon",
+    "Kinderbijslag (SVB) — выплата в этом месяце, точная дата в Mijn SVB"
+   ],
+   "tip": [
+    "Доход изменился?",
+    "Обнови данные в Mijn toeslagen сразу — иначе переплаченные toeslagen придётся возвращать."
+   ],
+   "tip_icon": "home",
+   "season_icons": [
+    "mush",
+    "leaf"
+   ],
+   "place": "Rheden, Gelderland",
+   "pos": "62% 50%"
+  },
+  "11": {
+   "season": "Грибы, устрицы",
+   "go": "Приезд Sinterklaas — дата объявляется отдельно",
+   "notes": [
+    "До 12 ноя страховщики обязаны объявить цены zorgverzekering на 2028 год — время сравнить"
+   ],
+   "tip": [
+    "Время сравнить страховки",
+    "Цены на следующий год известны до 12 ноября, сменить zorgverzekering можно до 31 декабря."
+   ],
+   "tip_icon": "euro",
+   "season_icons": [
+    "mush",
+    "lantern"
+   ],
+   "place": "Oudegracht, Utrecht",
+   "pos": "50% 55%"
+  },
+  "12": {
+   "season": "Oliebollen и устрицы",
+   "go": "Рождественские рынки в Maastricht и Valkenburg · Amsterdam Light Festival",
+   "notes": [
+    "31 дек — последний день отменить zorgverzekering (новую можно выбрать до 1 февраля)",
+    "Toeslagen за 2026 год: срок подачи уточняйте на belastingdienst.nl"
+   ],
+   "tip": [
+    "Eigen risico обнуляется",
+    "1 января он начнётся заново. Если плановые траты на лечение всё равно будут — выгоднее успеть в этом году."
+   ],
+   "tip_icon": "euro",
+   "season_icons": [
+    "oliebol",
+    "tree"
+   ],
+   "place": "Vrijthof, Maastricht",
+   "pos": "30% 50%"
+  }
+ },
+ "cover": {
+  "place": "Amsterdam",
+  "pos": "50% 60%"
+ },
+ "credits": {
+  "cover": {
+   "artist": "Nan Palmero from San Antonio, TX, USA",
+   "lic": "CC BY 2.0"
+  },
+  "1": {
+   "artist": "Nan Palmero from San Antonio, TX, USA",
+   "lic": "CC BY 2.0"
+  },
+  "2": {
+   "artist": "Tobias Niepel",
+   "lic": "CC BY 2.0"
+  },
+  "3": {
+   "artist": "acediscovery",
+   "lic": "CC BY 4.0"
+  },
+  "4": {
+   "artist": "Roel Hemkes",
+   "lic": "CC BY 2.0"
+  },
+  "5": {
+   "artist": "DimiTalen",
+   "lic": "CC0"
+  },
+  "6": {
+   "artist": "Mykyta Nikiforov from Lviv, Ukraine",
+   "lic": "CC BY 2.0"
+  },
+  "7": {
+   "artist": "DimiTalen",
+   "lic": "CC0"
+  },
+  "8": {
+   "artist": "Gouwenaar",
+   "lic": "CC0"
+  },
+  "9": {
+   "artist": "Paulswagerman",
+   "lic": "CC BY 4.0"
+  },
+  "10": {
+   "artist": "Rob Dammers",
+   "lic": "CC BY 2.0"
+  },
+  "11": {
+   "artist": "Andy Li",
+   "lic": "CC0"
+  },
+  "12": {
+   "artist": "DimiTalen",
+   "lic": "CC0"
+  }
+ },
+ "icon_map": [
+  [
+   "Tulpendag",
+   "tulip"
+  ],
+  [
+   "Keukenhof",
+   "tulip"
+  ],
+  [
+   "Bloemencorso",
+   "tulip"
+  ],
+  [
+   "Koningsdag",
+   "crown"
+  ],
+  [
+   "Marathon",
+   "run"
+  ],
+  [
+   "CPC",
+   "run"
+  ],
+  [
+   "Vierdaagse",
+   "run"
+  ],
+  [
+   "Canal Parade",
+   "boat"
+  ],
+  [
+   "Sint-Maarten",
+   "lantern"
+  ],
+  [
+   "Pakjesavond",
+   "mitre"
+  ],
+  [
+   "Sinterklaas",
+   "mitre"
+  ],
+  [
+   "Kerstdag",
+   "tree"
+  ],
+  [
+   "Рождество",
+   "tree"
+  ],
+  [
+   "Oudejaars",
+   "star"
+  ],
+  [
+   "Nieuwjaars",
+   "star"
+  ],
+  [
+   "Light Festival",
+   "star"
+  ],
+  [
+   "Carnaval",
+   "star"
+  ],
+  [
+   "Valentijn",
+   "heart"
+  ],
+  [
+   "Herdenking",
+   "flag"
+  ],
+  [
+   "Bevrijding",
+   "flag"
+  ],
+  [
+   "Veteranen",
+   "flag"
+  ],
+  [
+   "Keti Koti",
+   "flag"
+  ],
+  [
+   "Leidens",
+   "flag"
+  ],
+  [
+   "Выборы",
+   "flag"
+  ],
+  [
+   "Museumnacht",
+   "book"
+  ],
+  [
+   "Boekenweek",
+   "book"
+  ],
+  [
+   "Monumentendag",
+   "house"
+  ],
+  [
+   "Burendag",
+   "house"
+  ],
+  [
+   "Prinsjesdag",
+   "crown"
+  ],
+  [
+   "Moederdag",
+   "heart"
+  ],
+  [
+   "Vaderdag",
+   "heart"
+  ],
+  [
+   "Aangifte",
+   "euro"
+  ],
+  [
+   "Дедлайн",
+   "euro"
+  ],
+  [
+   "Zorgverzekering",
+   "euro"
+  ],
+  [
+   "страховок",
+   "euro"
+  ],
+  [
+   "minimumloon",
+   "euro"
+  ],
+  [
+   "время",
+   "clock"
+  ],
+  [
+   "Pasen",
+   "sun"
+  ],
+  [
+   "Пасха",
+   "sun"
+  ]
+ ]
+}
