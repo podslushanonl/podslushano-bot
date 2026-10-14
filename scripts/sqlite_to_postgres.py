@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import json
 import os
 import sqlite3
 import sys
@@ -56,6 +57,9 @@ def _fix_row(table, row: dict, cut: dict) -> dict:
         if v is None:
             continue
         t = col.type
+        if isinstance(v, str) and "\x00" in v:   # PostgreSQL не принимает нулевой символ в тексте
+            v = row[col.name] = v.replace("\x00", "")
+            cut[f"{table.name}.{col.name} (\\x00)"] = cut.get(f"{table.name}.{col.name} (\\x00)", 0) + 1
         if isinstance(t, String) and not isinstance(t, Enum) and t.length and isinstance(v, str) and len(v) > t.length:
             row[col.name] = v[:t.length]
             cut[f"{table.name}.{col.name}"] = cut.get(f"{table.name}.{col.name}", 0) + 1
@@ -119,28 +123,59 @@ async def run(sqlite_path: str, target_url: str, dry_run: bool, force: bool) -> 
             tmp.cleanup()
         return 3
 
-    # 3. Копирование
+    # 3. Копирование. Строки читаем «как есть» и переводим в типы модели сами: строку, которую
+    # не удаётся прочитать или которую не принимает PostgreSQL, пропускаем и сохраняем в файл,
+    # а не роняем весь перенос (каждая пачка — в своей точке сохранения внутри общей транзакции).
     cut: dict[str, int] = {}
     report = []
+    skipped: list[dict] = []
+    sdialect = src.dialect
+
+    def _skip(table, row, err) -> None:
+        skipped.append({"table": table.name, "error": str(err)[:300],
+                        "row": {k: (v if isinstance(v, (int, float, str, type(None))) else str(v)) for k, v in row.items()}})
+
     async with src.connect() as s, (dst.connect() if dry_run else dst.begin()) as d:
         if filled and force and not dry_run:
             for table in reversed(Base.metadata.sorted_tables):
                 await d.execute(table.delete())
         for table in Base.metadata.sorted_tables:
             if table.name not in src_tables:
-                report.append((table.name, 0, 0))
+                report.append((table.name, 0, 0, 0))
                 continue
             src_cols = {c["name"] for c in await s.run_sync(lambda c, t=table.name: inspect(c).get_columns(t))}
             cols = [c for c in table.columns if c.name in src_cols]
-            total = 0
-            result = await s.stream(select(*cols))
+            procs = {c.name: c.type.dialect_impl(sdialect).result_processor(sdialect, None) for c in cols}
+            names = ", ".join(f'"{c.name}"' for c in cols)
+            total = lost = 0
+            result = await s.stream(text(f'SELECT {names} FROM "{table.name}"'))
             async for part in result.partitions(BATCH):
-                rows = [_fix_row(table, dict(r._mapping), cut) for r in part]
-                if not dry_run:
-                    await d.execute(table.insert(), rows)
-                total += len(rows)
-            copied = total if dry_run else await d.scalar(select(func.count()).select_from(table))
-            report.append((table.name, total, copied))
+                rows = []
+                for raw in part:
+                    row = dict(zip([c.name for c in cols], raw))
+                    try:
+                        row = {k: (procs[k](v) if procs[k] and v is not None else v) for k, v in row.items()}
+                    except Exception as e:  # noqa: BLE001 — битое значение в SQLite
+                        _skip(table, row, e)
+                        lost += 1
+                        continue
+                    rows.append(_fix_row(table, row, cut))
+                total += len(part)
+                if dry_run or not rows:
+                    continue
+                try:
+                    async with d.begin_nested():
+                        await d.execute(table.insert(), rows)
+                except Exception:  # noqa: BLE001 — ищем, какая строка мешает
+                    for row in rows:
+                        try:
+                            async with d.begin_nested():
+                                await d.execute(table.insert(), [row])
+                        except Exception as e:  # noqa: BLE001
+                            _skip(table, row, e)
+                            lost += 1
+            copied = total - lost if dry_run else await d.scalar(select(func.count()).select_from(table))
+            report.append((table.name, total, copied, lost))
         # 4. Счётчики id
         if not dry_run:
             for table in Base.metadata.sorted_tables:
@@ -151,14 +186,23 @@ async def run(sqlite_path: str, target_url: str, dry_run: bool, force: bool) -> 
                         await d.execute(text(f"SELECT setval('{seq}', COALESCE((SELECT MAX({pk[0].name}) FROM {table.name}), 1), "
                                              f"(SELECT MAX({pk[0].name}) FROM {table.name}) IS NOT NULL)"))
 
-    bad = [(n, a, b) for n, a, b in report if a != b]
-    for name, a, b in report:
+    bad = [(n, a, b) for n, a, b, lost in report if a - lost != b]
+    for name, a, b, lost in report:
         if a or b:
-            print(f"  {name:40} {a:>8} → {b:>8}")
+            print(f"  {name:40} {a:>8} → {b:>8}" + (f"   пропущено {lost}" if lost else ""))
+    if skipped:
+        where = Path(config.DB_PATH).resolve().parent / "pg_import_skipped.jsonl"
+        try:
+            with open(where, "w", encoding="utf-8") as f:
+                for x in skipped:
+                    f.write(json.dumps(x, ensure_ascii=False, default=str) + "\n")
+            print(f"Пропущено строк: {len(skipped)} — подробности в {where}")
+        except OSError as e:
+            print(f"Пропущено строк: {len(skipped)} (файл не записан: {e}):", skipped[:20])
     if cut:
         print("Подрезаны слишком длинные значения:", ", ".join(f"{k} ×{v}" for k, v in sorted(cut.items())))
     print(("Проверка без записи завершена." if dry_run else "Перенос завершён.")
-          + f" Таблиц: {sum(1 for _, a, _ in report if a)}, строк: {sum(a for _, a, _ in report)}.")
+          + f" Таблиц: {sum(1 for _, a, _, _ in report if a)}, строк: {sum(a for _, a, _, _ in report)}.")
     await src.dispose()
     await dst.dispose()
     if tmp:

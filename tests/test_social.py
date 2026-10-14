@@ -4,6 +4,7 @@
 дополнительно идут на PostgreSQL — так CI проверяет готовность к переезду базы.
 """
 import asyncio
+import json
 import os
 import tempfile
 import unittest
@@ -289,6 +290,66 @@ class MigrationScriptTests(unittest.IsolatedAsyncioTestCase):
         async with async_sessionmaker(dst)() as s:
             self.assertEqual(sorted((await s.execute(select(AppUser.id))).scalars()), [11, 12])
             self.assertTrue(await s.get(db.Meta, db.SQLITE_IMPORTED_KEY))
+        async with dst.begin() as c:
+            await c.run_sync(Base.metadata.drop_all)
+        await dst.dispose()
+        tmp.cleanup()
+
+
+    async def test_dirty_sqlite_rows(self):
+        """Нулевые символы вычищаются; строки с битыми значениями (например, датой) пропускаются
+        и пишутся в pg_import_skipped.jsonl, а не роняют перенос."""
+        from scripts import sqlite_to_postgres as mig
+        tmp = tempfile.TemporaryDirectory()
+        path = str(Path(tmp.name) / "bot.db")
+        src = create_async_engine(f"sqlite+aiosqlite:///{path}")
+        async with src.begin() as c:
+            await c.run_sync(Base.metadata.create_all)
+            for row in [(1, "Ан\x00на", "2026-01-01 10:00:00"), (2, "Битая дата", "вчера"), (3, "Олег", "2026-01-02 10:00:00")]:
+                await c.exec_driver_sql("INSERT INTO app_users (id, name, city, country, created_at) "
+                                        "VALUES (?, ?, '', 'Нидерланды', ?)", row)
+        await src.dispose()
+        dst = create_async_engine(PG_URL)
+        async with dst.begin() as c:
+            await c.run_sync(Base.metadata.drop_all)
+        with patch.object(mig.config, "DB_PATH", path):
+            self.assertEqual(await mig.run(path, PG_URL, dry_run=False, force=False), 0)
+        async with async_sessionmaker(dst)() as s:
+            users = {u.id: u.name for u in (await s.execute(select(AppUser))).scalars()}
+            self.assertEqual(users, {1: "Анна", 3: "Олег"})
+        log = (Path(tmp.name) / "pg_import_skipped.jsonl").read_text(encoding="utf-8").splitlines()
+        self.assertEqual([(json.loads(x)["table"], json.loads(x)["row"]["id"]) for x in log], [("app_users", 2)])
+        async with dst.begin() as c:
+            await c.run_sync(Base.metadata.drop_all)
+        await dst.dispose()
+        tmp.cleanup()
+
+    async def test_import_refuses_non_empty_postgres_unless_forced(self):
+        tmp = tempfile.TemporaryDirectory()
+        path = str(Path(tmp.name) / "bot.db")
+        src = create_async_engine(f"sqlite+aiosqlite:///{path}")
+        async with src.begin() as c:
+            await c.run_sync(Base.metadata.create_all)
+        async with async_sessionmaker(src)() as s:
+            s.add(AppUser(id=21, name="Из SQLite"))
+            await s.commit()
+        await src.dispose()
+        dst = create_async_engine(PG_URL)
+        async with dst.begin() as c:
+            await c.run_sync(Base.metadata.drop_all)
+            await c.run_sync(Base.metadata.create_all)
+        async with async_sessionmaker(dst)() as s:
+            s.add(AppUser(id=99, name="Успел появиться в пустой базе"))
+            await s.commit()
+        common = dict(DB_URL=PG_URL, DB_PATH=path)
+        with patch.multiple(db.config, **common), patch.object(db, "engine", dst), \
+                patch.object(db, "async_session", async_sessionmaker(dst, expire_on_commit=False)):
+            with patch.dict(os.environ, {"SQLITE_IMPORT": "1"}), self.assertRaises(RuntimeError):
+                await db._import_sqlite_once()       # молча работать на неполной базе нельзя
+            with patch.dict(os.environ, {"SQLITE_IMPORT": "force"}):
+                await db._import_sqlite_once()
+        async with async_sessionmaker(dst)() as s:
+            self.assertEqual(sorted((await s.execute(select(AppUser.id))).scalars()), [21])
         async with dst.begin() as c:
             await c.run_sync(Base.metadata.drop_all)
         await dst.dispose()

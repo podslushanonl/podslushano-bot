@@ -1056,12 +1056,16 @@ _log = _logging.getLogger(__name__)
 @_event.listens_for(Base, "before_update", propagate=True)
 def _fit_strings(mapper, _connection, target) -> None:
     for col in mapper.columns:
-        n = getattr(col.type, "length", None)
-        if not n or isinstance(col.type, Enum) or not isinstance(col.type, String):
+        if isinstance(col.type, Enum) or not isinstance(col.type, String):   # Text — тоже String
             continue
         key = mapper.get_property_by_column(col).key
         value = getattr(target, key, None)
-        if isinstance(value, str) and len(value) > n:
+        if isinstance(value, str) and "\x00" in value:
+            # Нулевой символ (бывает в тексте с сайтов) PostgreSQL не принимает вовсе
+            value = value.replace("\x00", "")
+            setattr(target, key, value)
+        n = getattr(col.type, "length", None)
+        if n and isinstance(value, str) and len(value) > n:
             _log.warning("%s.%s: %d символов > %d, подрезано", mapper.class_.__name__, key, len(value), n)
             setattr(target, key, value[:n])
 
