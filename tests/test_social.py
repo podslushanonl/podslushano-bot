@@ -357,6 +357,36 @@ class MigrationScriptTests(unittest.IsolatedAsyncioTestCase):
         tmp.cleanup()
 
 
+    async def test_repair_long_meta_keys(self):
+        """После первого переноса: meta.key расширяется до 255, длинные ключи дозагружаются из SQLite,
+        обрезки удаляются — один раз."""
+        import sqlite3
+        tmp = tempfile.TemporaryDirectory()
+        path = str(Path(tmp.name) / "bot.db")
+        long1, long2 = "seen:" + "x" * 60 + "a", "seen:" + "x" * 60 + "b"
+        with sqlite3.connect(path) as c:
+            c.execute("CREATE TABLE meta (key VARCHAR(50) PRIMARY KEY, value TEXT)")
+            c.executemany("INSERT INTO meta VALUES (?, ?)", [(long1, "1"), (long2, "2"), ("seed_version", "10")])
+        dst = create_async_engine(PG_URL)
+        async with dst.begin() as c:
+            await c.run_sync(Base.metadata.drop_all)
+            await c.exec_driver_sql("DROP TABLE IF EXISTS meta")
+            await c.exec_driver_sql("CREATE TABLE meta (key VARCHAR(50) PRIMARY KEY, value TEXT)")
+            await c.exec_driver_sql(f"INSERT INTO meta VALUES ('{db.SQLITE_IMPORTED_KEY}', 'x'), ('{long1[:50]}', '1')")
+        with patch.multiple(db.config, DB_URL=PG_URL, DB_PATH=path), patch.object(db, "engine", dst), \
+                patch.object(db, "async_session", async_sessionmaker(dst, expire_on_commit=False)):
+            await db._widen_meta_key()
+            await db._repair_long_meta_keys_once()
+            await db._repair_long_meta_keys_once()   # второй раз ничего не делает
+        async with dst.connect() as c:
+            keys = dict((await c.exec_driver_sql("SELECT key, value FROM meta")).all())
+        self.assertEqual(keys, {db.SQLITE_IMPORTED_KEY: "x", long1: "1", long2: "2", db.META_KEYS_REPAIRED: "2"})
+        async with dst.begin() as c:
+            await c.exec_driver_sql("DROP TABLE meta")
+        await dst.dispose()
+        tmp.cleanup()
+
+
 class LegacyMigrationTests(unittest.IsolatedAsyncioTestCase):
     """Старая база SQLite: колонки country нет, страны комнат кодом NL, блокировки в user_blocks."""
 

@@ -211,7 +211,7 @@ class Meta(Base):
 
     __tablename__ = "meta"
 
-    key: Mapped[str] = mapped_column(String(50), primary_key=True)
+    key: Mapped[str] = mapped_column(String(255), primary_key=True)   # бывают длинные ключи-отметки
     value: Mapped[str] = mapped_column(Text)   # бывают file_id Telegram и списки id — длиннее 100 символов
 
 
@@ -1065,7 +1065,9 @@ def _fit_strings(mapper, _connection, target) -> None:
             value = value.replace("\x00", "")
             setattr(target, key, value)
         n = getattr(col.type, "length", None)
-        if n and isinstance(value, str) and len(value) > n:
+        # Ключи (первичные и уникальные) не подрезаем: подрезанные ключи совпадут и перезапишут
+        # друг друга — пусть лучше база вернёт ошибку
+        if n and isinstance(value, str) and len(value) > n and not (col.primary_key or col.unique):
             _log.warning("%s.%s: %d символов > %d, подрезано", mapper.class_.__name__, key, len(value), n)
             setattr(target, key, value[:n])
 
