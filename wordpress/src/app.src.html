@@ -2192,6 +2192,12 @@ html.hw ::selection{background:#FF7A1A;color:#140D1E}
 .hw-intro .ttl.on{opacity:1;transform:none}
 .hw-intro .ttl b{display:block;font:700 clamp(34px,7vw,84px)/1 var(--f-head,var(--f-display));letter-spacing:-.03em;text-shadow:0 0 40px rgba(255,120,30,.75),0 0 2px rgba(255,200,150,.9)}
 .hw-intro .ttl span{display:block;margin-top:12px;font:500 clamp(15px,2vw,20px) var(--f-body);color:#FFD3A8;letter-spacing:.02em}
+.hw-intro .lite{position:absolute;inset:0;display:grid;place-items:center;background:radial-gradient(60% 50% at 50% 45%,#2A0E05,#000 70%);opacity:0;transition:opacity .6s}
+.hw-intro.lite-on .lite{opacity:1}
+.hw-intro .lite img{width:min(46vw,260px);margin-top:-22vh;filter:drop-shadow(0 0 60px rgba(255,110,20,.7));animation:hwLite 2.6s var(--ease) both,hwFlick 2.2s .8s infinite}
+.hw-intro.lite-on .ttl{margin-top:30vh}
+@keyframes hwLite{0%{transform:scale(.6);opacity:0;filter:brightness(.2) drop-shadow(0 0 0 rgba(255,110,20,0))}45%{opacity:1}100%{transform:none;filter:brightness(1) drop-shadow(0 0 60px rgba(255,110,20,.7))}}
+@media (prefers-reduced-motion:reduce){.hw-intro .lite img{animation:none}}
 .hw-intro .skip{position:absolute;right:max(16px,env(safe-area-inset-right));bottom:max(18px,env(safe-area-inset-bottom));color:#fff;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:9px 16px;font:600 14px var(--f-body);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
 
 /* Окно тыквы: письмо со страшилкой и антидотом */
@@ -4488,21 +4494,27 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-calsub]')){e.pr
     b.addEventListener('click',()=>{b.style.animationPlayState='paused';found(mp,b)});b.addEventListener('animationend',ev=>{if(ev.target===b)b.remove()});document.body.appendChild(b)};
   const startFx=()=>{FX.ambient(innerWidth<700?18:34);if(RM){roll();return}setTimeout(roll,9000);setInterval(roll,27000)};
 
-  /* Заставка — ваше видео, один раз за визит. Без автозапуска, при экономии трафика или «меньше движения» — сразу сайт */
+  /* Заставка — видео, один раз за визит (по ссылке ?halloween=1 — каждый раз).
+     Если браузер не дал запустить видео (режим энергосбережения iPhone и т. п.) или включено «меньше движения» —
+     короткая заставка без видео: горящая тыква и надпись. При экономии трафика заставки нет. */
   const HWV=`media/hw-intro`;
   const conn=navigator.connection||{};
-  if(ss.get('hwIntro')||RM||conn.saveData||/2g/.test(conn.effectiveType||'')){startFx();if(recvP)setTimeout(showRecv,500);return}
-  ss.set('hwIntro','1');
+  if((ss.get('hwIntro2')&&qp==null)||conn.saveData||/2g/.test(conn.effectiveType||'')){startFx();if(recvP)setTimeout(showRecv,500);return}
+  ss.set('hwIntro2','1');
   const o=document.createElement('div');o.className='hw-intro';o.setAttribute('role','presentation');
-  o.innerHTML=`<video muted playsinline autoplay preload="auto" poster="${IMG['hw-poster']}"><source src="${HWV}.webm" type="video/webm"><source src="${HWV}.mp4" type="video/mp4"></video><div class="ttl"><b>podslushano.nl</b><span>Сегодня Хэллоуин. Найдите 7 тыкв</span></div><button class="skip" type="button">Пропустить</button>`;
+  o.innerHTML=`${RM?'':`<video muted playsinline autoplay preload="auto" poster="${IMG['hw-poster']}"><source src="${HWV}.mp4" type="video/mp4"><source src="${HWV}.webm" type="video/webm"></video>`}<div class="lite">${pkImg()}</div><div class="ttl"><b>podslushano.nl</b><span>Сегодня Хэллоуин. Найдите 7 тыкв</span></div><button class="skip" type="button">Пропустить</button>`;
   document.body.appendChild(o);document.body.classList.add('lock');
-  const v=o.querySelector('video');let closed=false;
+  const v=o.querySelector('video');let closed=false,lite=false;
   const close=()=>{if(closed)return;closed=true;o.classList.add('off');document.body.classList.remove('lock');setTimeout(()=>o.remove(),900);startFx();if(recvP)setTimeout(showRecv,600)};
-  v.addEventListener('timeupdate',()=>{if(v.currentTime>4.1)o.querySelector('.ttl').classList.add('on')});
-  v.addEventListener('ended',()=>setTimeout(close,900));v.addEventListener('error',close);
+  const title=()=>o.querySelector('.ttl').classList.add('on');
+  const fallback=()=>{if(lite||closed)return;lite=true;if(v)v.remove();o.classList.add('lite-on');setTimeout(title,500);setTimeout(close,2900)};
   o.querySelector('.skip').addEventListener('click',close);
-  const pr=v.play();if(pr&&pr.catch)pr.catch(close);
-  setTimeout(()=>{if(v.currentTime<.05)close()},2500);setTimeout(close,9000);
+  if(!v){fallback()}else{
+    v.muted=true;v.defaultMuted=true;
+    v.addEventListener('timeupdate',()=>{if(v.currentTime>4.1)title()});
+    v.addEventListener('ended',()=>setTimeout(close,900));v.addEventListener('error',fallback);
+    const pr=v.play();if(pr&&pr.catch)pr.catch(fallback);
+    setTimeout(()=>{if(!closed&&v.currentTime<.05)fallback()},6000);setTimeout(close,14000)}
 })();
 
 /* ---------- boot ---------- */
