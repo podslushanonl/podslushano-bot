@@ -1479,7 +1479,7 @@ html.cur-on .cur-dot,html.cur-on .cur-ring{opacity:1}
 .prod .pb{padding:18px 20px 20px;display:grid;gap:8px;flex:1;align-content:start}
 .prod h3{font-size:19px}
 .prod .row4{margin-top:auto;padding-top:8px}
-.soon{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.soon{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
 .soon>div{padding:20px;border-radius:22px;border:1.5px dashed var(--line-2);display:grid;gap:8px}
 /* widget */
 .wgt{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,400px);gap:clamp(24px,4vw,56px);align-items:center}
@@ -1782,6 +1782,7 @@ html.iv-on,html.iv-on body{overflow:hidden}
 @font-face{font-family:"Mont";src:url({{FONT9:mont-light}}) format("woff2");font-weight:100 300;font-display:swap;unicode-range:{{MR:mont-light}}}
 @font-face{font-family:"Evolventa";src:url({{FONT9:evo-reg}}) format("woff2");font-weight:300 500;font-display:swap}
 @font-face{font-family:"Evolventa";src:url({{FONT9:evo-bold}}) format("woff2");font-weight:600 900;font-display:swap}
+@font-face{font-family:"DM Serif Display";src:url({{FONT9:dmserif}}) format("woff2");font-weight:400;font-display:swap}
 :root{--f-body:"Evolventa",system-ui,-apple-system,"Segoe UI",sans-serif;--f-display:"Evolventa",system-ui,sans-serif;--f-head:"Mont","Evolventa",system-ui,sans-serif;--f-mono:"Evolventa",system-ui,sans-serif}
 body{font-family:var(--f-body)}
 h1,h2,.hx h1,.amt,.bt-wx .t,.wx2 .t,.tmp,.pname,.na9 h1,.nlead9 h2,.pw-tx h3,.dn h2,.wdg h2,.awb-tx h2,.shop-feat h2,.aw-next h2,.iv-logo b{font-family:var(--f-head);font-weight:900;letter-spacing:-.035em}
@@ -2240,6 +2241,57 @@ html.hw .hw-bat{color:#05030A}
 .hw-roll.still{animation:none;left:16px}.hw-roll.still svg{animation:none}
 @media (max-width:900px){.hw-roll{bottom:calc(92px + env(safe-area-inset-bottom,0px))}html.hw .hw-sky .moon{top:64px;right:-22px;width:84px;opacity:.75}}
 @media (prefers-reduced-motion:reduce){.hw-b .pks svg,.hw-pk,.hw-spider svg,.hw-flame{animation:none}}
+
+/* ---------- Календарь эмигранта 2027: блок на главной, карточка в магазине ---------- */
+.calb{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:clamp(22px,4vw,56px);align-items:center;padding:clamp(24px,3.6vw,44px);border-radius:var(--r-xl);overflow:hidden}
+.calb h2{font-size:clamp(28px,3.6vw,46px);line-height:1.02;margin-top:12px}
+.calb h2 em{font-style:normal;color:var(--accent)}
+.calb p.lead2{color:var(--ink-2);margin-top:14px;max-width:46ch}
+.calb ul{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:9px}
+.calb li{display:flex;gap:10px;align-items:flex-start;font-size:15px;color:var(--ink-2)}
+.calb li .ico{width:18px;height:18px;color:var(--accent);margin-top:3px}
+.calb .acts{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:22px}
+.calb .pp{font:600 15px var(--f-mono);color:var(--muted)}
+.calmk{position:relative;aspect-ratio:1.42;perspective:1400px}
+.calmk .pg{position:absolute;inset:0;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 2px 4px rgba(16,24,40,.06),0 30px 60px -24px rgba(16,24,40,.35);transform-origin:50% 0;transition:transform .9s var(--spring)}
+.calmk .pg img{width:100%;height:100%;object-fit:cover;display:block}
+.calmk .pg.back{transform:translate(7%,9%) rotate(4deg) scale(.94)}
+.calmk .pg.front{transform:rotate(-2deg)}
+.calmk:hover .pg.front,.calmk.flip .pg.front{transform:rotateX(68deg) translateY(-6%);opacity:.0;transition:transform .9s var(--ease),opacity .5s .3s}
+.calmk:hover .pg.back,.calmk.flip .pg.back{transform:rotate(0) scale(1)}
+.calmk .rings{position:absolute;left:9%;right:9%;top:-9px;display:flex;justify-content:space-between;z-index:3;transform:rotate(-2deg)}
+.calmk .rings i{width:9px;height:22px;border-radius:6px;background:linear-gradient(90deg,#9AA3AE,#E9EDF2 45%,#7F8893);box-shadow:0 2px 3px rgba(0,0,0,.25)}
+.calmk .badge{position:absolute;right:-6px;bottom:-12px;z-index:4;background:var(--ink);color:#fff;border-radius:999px;padding:9px 16px;font:600 14px var(--f-display);box-shadow:var(--e2);transform:rotate(-4deg)}
+.cal-sub{display:grid;gap:10px;margin-top:14px}
+.cal-sub a{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;background:var(--surface-2);font-weight:600}
+.cal-sub a small{display:block;font-weight:400;color:var(--muted)}
+.cal-sub .ico{width:22px;height:22px}
+.pv-cal{position:absolute;inset:0;display:grid;place-items:center}
+.pv-cal .calmk{width:78%}
+.pv-cal .calmk .rings{top:-6px}.pv-cal .calmk .rings i{width:6px;height:14px}
+@media (max-width:900px){.calb{grid-template-columns:1fr}.calb .calmk{order:-1;margin:6px 4px 10px}}
+
+/* ---------- Подарочные карты allowalks: новый дизайн (иллюстрация + надпись allowalks + сумма с засечками) ---------- */
+.gc.nl .gface.fr,.gc.nl.fcard{display:flex;flex-direction:column;justify-content:space-between;padding:clamp(16px,5.5%,26px) clamp(18px,6%,28px);color:var(--gci)}
+.gc.nl .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:right center;pointer-events:none}
+.gc.nl .wm{position:relative;z-index:1;line-height:1}
+.gc.nl .wm b{display:block;font:900 clamp(22px,6.6cqw,32px)/1 "Mont","Evolventa",sans-serif;letter-spacing:-.025em}
+.gc.nl .wm small{display:block;margin-top:7px;font:600 clamp(7px,1.9cqw,10px)/1 "Evolventa",sans-serif;letter-spacing:.3em;text-transform:uppercase;opacity:.85}
+.gc.nl .wb{position:relative;z-index:1}
+.gc.nl .amt{font:400 clamp(44px,15cqw,78px)/.86 "DM Serif Display",Georgia,serif;letter-spacing:-.02em;text-shadow:none}
+.gc.nl .url{display:block;margin-top:8px;font:400 clamp(9px,2.6cqw,13px)/1 "DM Serif Display",Georgia,serif;opacity:.9}
+.gc.nl{container-type:inline-size}
+.gc.delft{--gci:#13306B}.gc.tulips{--gci:#5A0F2E}.gc.canals{--gci:#FBF6EC}.gc.molen{--gci:#2B1A10}.gc.oranje{--gci:#FFF4E2}.gc.noordzee{--gci:#0F3B4F}
+.gc.delft .gface.fr,.gc.delft.fcard{background:#F6F1E6}.gc.tulips .gface.fr,.gc.tulips.fcard{background:#F6D9D4}.gc.canals .gface.fr,.gc.canals.fcard{background:#14213D}.gc.molen .gface.fr,.gc.molen.fcard{background:#F9CE73}.gc.oranje .gface.fr,.gc.oranje.fcard{background:#F05A14}.gc.noordzee .gface.fr,.gc.noordzee.fcard{background:#DCE7EC}
+.gc.nl .bot,.gc.nl .bot *{text-shadow:none}
+.gc.tulips .bot,.gc.tulips .bot *,.gc.noordzee .bot,.gc.noordzee .bot *{color:inherit}
+.gc.nl.fcard .wm,.gc.nl.fcard .amt{text-shadow:none}
+.gcm.gc{width:auto;aspect-ratio:auto;animation:none;cursor:inherit;transform-style:flat;transform:translateX(var(--x)) rotate(var(--r)) scale(.78)}
+.gcm.gc .art{border-radius:inherit}
+.pc10:hover .gcm.gc{transform:translateX(calc(var(--x)*1.35)) rotate(calc(var(--r)*1.4)) scale(.8)}
+.gcm.gc .wm{position:absolute;left:8%;top:11%}.gcm.gc .wm b{font-size:clamp(12px,1.6vw,17px)}
+.gcm.gc b.amt{position:absolute;left:8%;bottom:10%;font:400 clamp(24px,3.2vw,36px)/1 "DM Serif Display",Georgia,serif;color:var(--gci);text-shadow:none}
+.gd .sw .art,.fsw button .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:right center}
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
 <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
@@ -2356,6 +2408,23 @@ html.hw .hw-bat{color:#05030A}
     <div class="sec">
       <div class="sh5 st"><div><h2>Новости</h2><p>Что случилось сегодня и как это касается вас.</p></div><a class="btn btn-soft btn-sm" href="#news">Все новости и статьи</a></div>
       <div id="homeNews"></div>
+    </div>
+    <div class="sec" id="homeCal">
+      <div class="card calb st">
+        <div>
+          <span class="eyebrow"><span class="dot"></span>Календарь эмигранта · 2027</span>
+          <h2>Весь год в Нидерландах<br><em>на одной стене</em></h2>
+          <p class="lead2">Настенный календарь A4: праздники, schoolvakanties, сроки налогов и страховки, события и куда поехать в каждом месяце. Печатаем для вас лично.</p>
+          <ul>
+            <li><svg class="ico"><use href="#i-check"/></svg><span>Ваша подпись на обложке, например «Календарь семьи Ивановых»</span></li>
+            <li><svg class="ico"><use href="#i-check"/></svg><span>Каникулы только вашего региона: Noord, Midden или Zuid</span></li>
+            <li><svg class="ico"><use href="#i-check"/></svg><span>До 15 личных дат прямо в сетке: дни рождения, годовщины</span></li>
+            <li><svg class="ico"><use href="#i-check"/></svg><span>QR на обложке: все даты попадут в телефон, а бот напомнит о сроках</span></li>
+          </ul>
+          <div class="acts"><a class="btn btn-acc" data-calorder href="#">Заказать календарь</a><button class="btn btn-soft" type="button" data-calsub>Даты в телефон бесплатно</button><span class="pp"><span data-calprice>€30</span> · доставка по Нидерландам включена</span></div>
+        </div>
+        <div class="calmk" role="img" aria-label="Календарь Nederland 2027: обложка и страница апреля"><span class="rings"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="pg back"><img loading="lazy" decoding="async" src="{{IMG:cal-april}}" alt=""></span><span class="pg front"><img loading="lazy" decoding="async" src="{{IMG:cal-cover}}" alt=""></span></div>
+      </div>
     </div>
     <div class="sec" id="homeSave">
       <div class="sh5 st"><div><h2>Сэкономить</h2><p>Разбираем, где в Нидерландах переплачивают, и как выбрать выгоднее.</p></div><a class="btn btn-soft btn-sm" href="#save">Все советы</a></div>
@@ -2518,7 +2587,7 @@ html.hw .hw-bat{color:#05030A}
 <section class="page" id="p-news" data-title="Новости"><div class="wrap"><div class="phead"><div><h1 class="st">Новости и статьи</h1><p class="st" style="--i:1">Что меняется в стране и как это касается вас. Без политики.</p></div></div><div id="newsBody"></div></div></section>
 <section class="page" id="p-art" data-title="Статья"><div class="wrap" id="artBody" style="padding-top:30px"></div></section>
 <section class="page" id="p-shop" data-title="Магазин"><div class="wrap"><div class="phead"><div><h1 class="st">Магазин</h1><p class="st" style="--i:1">Только то, что уже можно купить или получить.</p></div></div><div class="shop" id="shopGrid"></div>
-  <div class="sec"><div class="sh5"><div><h2 style="font-size:clamp(24px,3vw,34px)">Готовим</h2><p>Появятся, когда будут готовы к продаже.</p></div></div><div class="soon"><div><b>Мерч podslushano.nl</b><p class="muted" style="font-size:14px">Футболки, шопперы и значки с лосёнком.</p><button class="btn btn-soft btn-sm" data-notify="мерч">Сообщить, когда появится</button></div><div><b>Календарь 2027</b><p class="muted" style="font-size:14px">Праздники, сроки налогов и toeslagen, события года.</p><button class="btn btn-soft btn-sm" data-notify="календарь">Сообщить, когда появится</button></div></div></div></div></section>
+  <div class="sec"><div class="sh5"><div><h2 style="font-size:clamp(24px,3vw,34px)">Готовим</h2><p>Появятся, когда будут готовы к продаже.</p></div></div><div class="soon"><div><b>Мерч podslushano.nl</b><p class="muted" style="font-size:14px">Футболки, шопперы и значки с лосёнком.</p><button class="btn btn-soft btn-sm" data-notify="мерч">Сообщить, когда появится</button></div></div></div></div></section>
 
 
 <!-- ================= GUIDE ================= -->
@@ -3743,27 +3812,15 @@ const DONATE_HTML=`<div class="card dn st" id="dnBox">
    <p class="hint">Спасибо, что делаете podslushano.nl лучше</p></div></div>`;
 
 /* gift cards: Dutch designs */
-function gArt(k,mini){const v='viewBox="0 0 460 290" preserveAspectRatio="xMidYMid slice"';
-  if(k==='delft'){let t='';for(let x=0;x<=460;x+=92)for(let y=0;y<=290;y+=96)t+=`<g transform="translate(${x} ${y})" fill="#1F4E9C"><circle r="5"/><path d="M0-16Q4-6 0 0Q-4-6 0-16ZM0 16Q4 6 0 0Q-4 6 0 16ZM-16 0Q-6 4 0 0Q-6-4-16 0ZM16 0Q6 4 0 0Q6-4 16 0Z" opacity=".75"/></g>`;
-    return `<svg class="art" ${v}><rect width="460" height="290" fill="#F7F9FC"/><g stroke="#C9D6EE" stroke-width="1">${[92,184,276,368].map(x=>`<path d="M${x} 0V290"/>`).join('')}${[96,192].map(y=>`<path d="M0 ${y}H460"/>`).join('')}</g>${t}
-      <g transform="translate(352 150)" fill="none" stroke="#1F4E9C" stroke-width="3" stroke-linecap="round"><circle r="74" stroke-width="2"/><circle r="66" stroke-width="1" stroke-dasharray="3 5"/><path d="M-22 48L-12-14H12L22 48Z" fill="#1F4E9C" fill-opacity=".12"/><path d="M-16-14Q0-30 16-14"/><g class="sails" style="transform-origin:0 -22px"><path d="M0-22V-74M0-22V30M0-22H-52M0-22H52"/><path d="M0-74H10V-36M0 30H-10V-8M-52-22V-12H-14M52-22V-32H14" stroke-width="2"/></g><path d="M-60 48H60M-44 56H44" stroke-width="2"/></g></svg>`}
-  if(k==='tulips'){const C=['#E63946','#F49CBB','#FFD23F','#7B2CBF','#FF5A1F','#E63946','#FFD23F','#F49CBB'];let s='';for(let i=-4;i<12;i++){const x0=i*58-60,x1=x0+46,top=a=>230+(a-230)*.12;s+=`<path d="M${top(x0)} 150L${top(x1)} 150L${x1*1.9-200} 290L${x0*1.9-200} 290Z" fill="${C[(i+8)%C.length]}"/>`}
-    return `<svg class="art" ${v}><defs><linearGradient id="gtS${mini?'m':''}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9FD0FF"/><stop offset="1" stop-color="#FFF3D3"/></linearGradient></defs><rect width="460" height="160" fill="url(#gtS${mini?'m':''})"/><rect y="148" width="460" height="142" fill="#3E7C3A"/>${s}<g transform="translate(392 152)" fill="#2B1A10"><path d="M-8 0L-5-34H5L8 0Z"/><g class="sails" style="transform-origin:0 -34px"><path d="M0-34V-66M0-34V-2M0-34H-32M0-34H32" stroke="#2B1A10" stroke-width="3"/></g></g><circle cx="80" cy="60" r="26" fill="#FFF" opacity=".7"/></svg>`}
-  if(k==='canals'){let h='';let x=-6;const ws=[46,40,52,44,38,50,42,48,40,46,44];ws.forEach((w,i)=>{const H=[96,112,88,120,104,92,116,100,108,90,114][i],y=232-H;h+=`<path d="M${x} 232V${y}L${x+w/2} ${y-22}L${x+w} ${y}V232Z" fill="${['#0F1A30','#14213D','#101B33'][i%3]}"/>`;for(let r=0;r<3;r++)for(let c=0;c<2;c++)if((i+r+c)%3)h+=`<rect x="${x+8+c*(w/2-4)}" y="${y+12+r*26}" width="${w/2-16}" height="14" rx="2" fill="#FFD27A" opacity="${.55+((i*r+c)%3)*.15}"/>`;x+=w+2});
-    return `<svg class="art" ${v}><defs><linearGradient id="gcS${mini?'m':''}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B2A4A"/><stop offset=".65" stop-color="#6B4E7A"/><stop offset="1" stop-color="#F28C6B"/></linearGradient></defs><rect width="460" height="290" fill="url(#gcS${mini?'m':''})"/><circle cx="380" cy="64" r="16" fill="#FFE9B8"/>${h}<rect y="232" width="460" height="58" fill="#0E1830"/>${Array.from({length:14},(_,i)=>`<rect x="${10+i*33}" y="${244+(i%4)*10}" width="${12+(i*7)%16}" height="2.5" rx="1" fill="#FFD27A" opacity=".5"/>`).join('')}<path d="M0 232H460" stroke="#FFD27A" stroke-opacity=".35"/></svg>`}
-  if(k==='molen')return `<svg class="art" ${v}><defs><linearGradient id="gmS${mini?'m':''}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF8A2B"/><stop offset="1" stop-color="#FFE0B5"/></linearGradient></defs><rect width="460" height="290" fill="url(#gmS${mini?'m':''})"/><circle cx="300" cy="200" r="58" fill="#FFF1D6" opacity=".8"/><path d="M0 252Q120 240 230 250T460 246V290H0Z" fill="#5C4421"/><path d="M0 262H460" stroke="#3B2A14" stroke-width="2" opacity=".5"/><g fill="#2B1A10"><path d="M366 252L374 150H402L410 252Z"/><path d="M368 152Q388 124 408 152Z"/><g class="sails"><path d="M388 132V22M388 132V242M388 132H278M388 132H498" stroke="#2B1A10" stroke-width="5"/><path d="M388 22H402V110M388 242H374V154M278 132V118H366M498 132V146H410" fill="none" stroke="#2B1A10" stroke-width="2.5"/></g><circle cx="388" cy="132" r="7"/></g></svg>`;
-  if(k==='oranje'){let lat='';for(let i=-10;i<20;i++)lat+=`<path d="M${i*36} 0L${i*36+290} 290M${i*36} 290L${i*36+290} 0" />`;
-    return `<svg class="art" ${v}><rect width="460" height="290" fill="#FF6B00"/><g stroke="#fff" stroke-opacity=".08" stroke-width="10">${lat}</g><g fill="none" stroke="#fff" stroke-opacity=".9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" transform="translate(250 150) scale(.95)"><circle cx="40" cy="70" r="46"/><circle cx="170" cy="70" r="46"/><path d="M40 70L80 0H150L170 70M80 0L105 70H40M150 0L140-24H120M80 0L74-16H60M105 70L150 0"/></g></svg>`}
-  if(k==='noordzee')return `<svg class="art" ${v}><rect width="460" height="290" fill="#D9EEF8"/><rect y="140" width="460" height="50" fill="#6FA8C9"/><path d="M0 150Q60 146 120 152T240 150T360 152T460 150" stroke="#fff" stroke-opacity=".6" fill="none" stroke-width="2"/><path d="M0 186Q80 168 160 184T320 176T460 180V290H0Z" fill="#EAD9B5"/><path d="M0 220Q100 198 210 214T460 206V290H0Z" fill="#E2CC9C"/><g stroke="#7A8F4A" stroke-width="2" stroke-linecap="round">${Array.from({length:22},(_,i)=>`<path d="M${12+i*21} ${222-(i%3)*4}l${(i%2?4:-4)} -16"/>`).join('')}</g>${['#E63946','#FFD23F','#3B6EA5','#2F9E6B'].map((c,i)=>`<rect x="${150+i*30}" y="168" width="22" height="18" fill="${c}"/><path d="M${148+i*30} 168L${161+i*30} 158L${174+i*30} 168Z" fill="#fff"/>`).join('')}<g transform="translate(398 70)"><path d="M-12 112L-8 0H8L12 112Z" fill="#fff"/><path d="M-11 20H11L11.6 40H-11.6ZM-12.4 62H12.4L13 82H-13Z" fill="#D7263D"/><rect x="-10" y="-14" width="20" height="14" fill="#2B2D42"/><path d="M-14-14H14L0-28Z" fill="#D7263D"/><path d="M10-8L70-30V14Z" fill="#FFF3B0" opacity=".55"/></g></svg>`;
-  return ''}
-const GNL=[['delft','Делфтский фарфор','#1F4E9C'],['tulips','Тюльпаны','#E63946'],['canals','Каналы вечером','#1B2A4A'],['molen','Мельница','#FF8A2B'],['oranje','Оранжевый','#FF6B00'],['noordzee','Северное море','#6FA8C9']];
+/* Подарочные карты allowalks: иллюстрации из утверждённой коллекции, текст на карте живой (сумма меняется) */
+function gArt(k){return GNL.some(g=>g[0]===k)?`<img class="art" src="${IMG['gc-'+k]}" alt="" decoding="async">`:''}
+const GNL=[['delft','Делфт','#1F4E9C'],['tulips','Тюльпаны','#E63946'],['canals','Каналы вечером','#1B2A4A'],['molen','Мельница','#FF8A2B'],['oranje','Оранжевый','#FF6B00'],['noordzee','Северное море','#6FA8C9']];
 GDZ.splice(0,GDZ.length,...GNL);
 function giftCardHTML(st){return `<div class="gc nl ${st.dz}" id="gcard" role="button" tabindex="0" aria-label="Подарочная карта, нажмите, чтобы перевернуть">
   <div class="gface fr">${gArt(st.dz)}<span class="sheen"></span>
-   <div class="top"><span class="brand"><img loading="lazy" decoding="async" src="{{IMG:allo-orig}}" alt=""><span><b>allowalks</b><small>подарочная карта</small></span></span><span class="chipx"></span></div>
-   <div class="amt" id="cAmt">€${st.amt}</div>
-   <div class="bot"><span class="who" id="cTo">${st.self?'для себя':st.to?'кому: '+esc(st.to):'для вас'}</span><span class="ser">ALLO •••• ••••</span></div></div>
-  <div class="gface bk"><span class="stripe"></span><div class="msg" id="cMsg">${esc(st.msg||'Пусть будет больше дней вместе')}</div><div class="bot"><span class="who" style="opacity:.7">от: ${esc(st.from||'—')}</span><span class="ser" style="opacity:.6">код придёт письмом</span></div></div></div>`}
+   <div class="wm"><b>allowalks</b><small>подарочная карта</small></div>
+   <div class="wb"><div class="amt" id="cAmt">€${st.amt}</div><span class="url">podslushano.nl/allowalks</span></div></div>
+  <div class="gface bk"><span class="stripe"></span><span class="who" id="cTo" style="position:relative;display:block;margin-top:58px;opacity:.7">${st.self?'для себя':st.to?'для '+esc(st.to):'для вас'}</span><div class="msg" id="cMsg" style="margin-top:6px">${esc(st.msg||'Пусть будет больше дней вместе')}</div><div class="bot"><span class="who" style="opacity:.7">от: ${esc(st.from||'—')}</span><span class="ser" style="opacity:.6">код придёт письмом</span></div></div></div>`}
 function gSwatches(cur){return GNL.map(([k,n])=>`<button type="button" class="gd" data-dz="${k}" aria-pressed="${cur===k}"><span class="sw">${gArt(k,1)}</span>${n}</button>`).join('')}
 
 /* allowalks page */
@@ -3972,26 +4029,29 @@ document.addEventListener('keydown',e=>{if(e.target.id==='hxQ'&&e.key==='Escape'
     else{j--;el.textContent=w.slice(0,j);if(j===0){del=false;i=(i+1)%EX.length;setTimeout(tick,350);return}setTimeout(tick,22)}};
   setTimeout(tick,600)})();
 
+
 /* shop */
 const PRODUCTS10=[
+ {k:'cal',cat:'Подарки',t:'Календарь эмигранта 2027',d:'Настенный A4 с вашей подписью, каникулами вашего региона и личными датами. Бот напомнит о сроках.',p:'<span data-calprice>€30</span> · с доставкой',href:'#homeCal',cal:1,cta:'Заказать',bg:'linear-gradient(150deg,#FFF3E8,#FFD9B8)'},
  {k:'gift',cat:'Подарки',t:'Подарочная карта allowalks',d:'Прогулка в подарок в одном из шести голландских дизайнов. Письмо с кодом придёт в выбранный день.',p:'от €25',href:'#allo-gift',cta:'Выбрать дизайн',bg:'linear-gradient(150deg,#EAF1FF,#FFE9DA)'},
  {k:'kg',cat:'Для бизнеса',t:'Карточка в КонтактGuide',d:'Ваши услуги на сайте и в боте: все контакты, город, описание. Меняете сами в кабинете.',p:'от €9,99 в месяц',href:'#place',cta:'Разместить',bg:'linear-gradient(150deg,#E2F3E9,#B9EBD2)'},
  {k:'tax',cat:'Бесплатно',t:'Гайд «Налоги и субсидии 2026»',d:'Налоги, toeslagen, льготы, ZZP и изменения 2026 года простым языком.',p:'бесплатно',href:'https://t.me/podslushano_nl_bot?start=tax_guide_2026',cta:'Получить в боте',ext:1,bg:'linear-gradient(150deg,#E3EEFA,#B8D4FF)'},
  {k:'stick',cat:'Бесплатно',t:'Стикерпак с лосёнком',d:'Лосёнок на все погоды Нидерландов: дождь, ветер, солнце и морось.',p:'бесплатно',href:'https://t.me/addstickers/Podslushanonl',cta:'Добавить в Telegram',ext:1,bg:'linear-gradient(150deg,#FFF1E6,#FFC9A8)'},
  {k:'dn',cat:'Подарки',t:'Вклад в развитие',d:'Разово или каждый месяц. Идёт на новости, новые разделы и сервер.',p:'от €3',href:'#dnBox',cta:'Внести вклад',bg:'linear-gradient(150deg,#F1ECFF,#D9CCFF)'}];
 function prodVisual(k){
-  if(k==='gift')return `<div class="pv-gift">${['canals','delft','tulips'].map((d,i)=>`<span class="gcm" style="--r:${(i-1)*9}deg;--x:${(i-1)*34}%;--z:${i===1?3:1}">${gArt(d,1)}<img loading="lazy" decoding="async" src="{{IMG:allo-orig}}" alt=""><b>€50</b></span>`).join('')}</div>`;
+  if(k==='cal')return `<div class="pv-cal"><div class="calmk"><span class="rings">${'<i></i>'.repeat(10)}</span><span class="pg back"><img loading="lazy" decoding="async" src="{{IMG:cal-april}}" alt=""></span><span class="pg front"><img loading="lazy" decoding="async" src="{{IMG:cal-cover}}" alt=""></span></div></div>`;
+  if(k==='gift')return `<div class="pv-gift">${['canals','delft','tulips'].map((d,i)=>`<span class="gcm gc nl ${d}" style="--r:${(i-1)*9}deg;--x:${(i-1)*34}%;--z:${i===1?3:1}">${gArt(d)}<span class="wm"><b>allowalks</b></span><b class="amt">€50</b></span>`).join('')}</div>`;
   if(k==='kg')return `<div class="pv-kg"><div class="mk"><div class="r1"><span class="av">АК</span><div><b>Анна К.</b><small>юрист · Utrecht</small></div><span class="ok">${svg('check').replace('class="ico"','class="ico" style="width:12px;height:12px"')}</span></div><p>Аренда, трудовые договоры, IND. Консультации на русском.</p><div class="r2"><span class="brandi b-ig">${sl('instagram')}</span><span class="brandi b-tg">${sl('telegram')}</span><span class="brandi b-wa">${sl('whatsapp')}</span><span class="cta">Связаться</span></div></div><span class="lbl">Так выглядит ваша карточка</span></div>`;
   if(k==='tax')return `<div class="pv-book"><div class="bk"><span class="fl"><i></i><i></i><i></i></span><small>гайд podslushano.nl</small><b>Налоги<br>и субсидии</b><em>2026</em><span class="ft">toeslagen · ZZP · льготы</span></div></div>`;
   if(k==='stick')return `<div class="pv-st">${['m-rain','m-sun','m-wind','m-cold'].map((m,i)=>`<img loading="lazy" decoding="async" src="${IMG[m]}" alt="" style="--r:${[-14,8,-4,12][i]}deg;--d:${i*.4}s">`).join('')}</div>`;
   if(k==='dn')return `<div class="pv-dn">${[3,7,15].map((a,i)=>`<span style="--d:${i*.5}s" class="${a===7?'on':''}">€${a}</span>`).join('')}<i>${svg('heart')}</i></div>`;
   return ''}
-function prodCard(p){return `<a class="pc10" href="${p.href}" ${p.ext?'target="_blank" rel="noopener"':''} data-pcat="${p.cat}"><div class="pvis" style="background:${p.bg}">${prodVisual(p.k)}<span class="ptag">${p.cat}</span></div><div class="pbd"><h3>${p.t}</h3><p>${p.d}</p><div class="pft"><span class="pp">${p.p}</span><span class="pgo">${p.cta}${svg(p.ext?'ext':'arrow')}</span></div></div></a>`}
+function prodCard(p){return `<a class="pc10" href="${p.cal?CAL_ORDER:p.href}" ${p.cal||p.ext?'target="_blank" rel="noopener"':''} data-pcat="${p.cat}"><div class="pvis" style="background:${p.bg}">${prodVisual(p.k)}<span class="ptag">${p.cat}</span></div><div class="pbd"><h3>${p.t}</h3><p>${p.d}</p><div class="pft"><span class="pp">${p.p}</span><span class="pgo">${p.cta}${svg(p.ext?'ext':'arrow')}</span></div></div></a>`}
 let shopCat='Все';
-INIT.shop=()=>{const draw=()=>{$('#shopGrid').innerHTML=PRODUCTS10.filter(p=>shopCat==='Все'||p.cat===shopCat).map(prodCard).join('');$$('#shopTabs .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sc===shopCat))};
+INIT.shop=()=>{const draw=()=>{$('#shopGrid').innerHTML=PRODUCTS10.filter(p=>shopCat==='Все'||p.cat===shopCat).map(prodCard).join('');calApply();$$('#shopTabs .chip').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sc===shopCat))};
   $('#shopTabs').addEventListener('click',e=>{const b=e.target.closest('[data-sc]');if(!b)return;shopCat=b.dataset.sc;draw()});
   let fd=0;const D=['delft','tulips','canals','molen','oranje','noordzee'];const fc=$('#shopFeat');
-  const FCOL={delft:'#13306B',tulips:'#10203A',canals:'#fff',molen:'#2B1A10',oranje:'#fff',noordzee:'#0F2E47'};const fdraw=()=>{const fcd=fc.querySelector('.fcard');fcd.style.color=FCOL[D[fd]];fcd.classList.toggle('dark',FCOL[D[fd]]!=='#fff');fcd.innerHTML=`${gArt(D[fd])}<span class="sheen"></span><div class="top"><span class="brand"><img loading="lazy" decoding="async" src="{{IMG:allo-orig}}" alt=""><span><b>allowalks</b><small>подарочная карта</small></span></span></div><div class="amt">€50</div>`;fc.querySelectorAll('[data-fd]').forEach((b,i)=>b.setAttribute('aria-pressed',i===fd))};
+  const FCOL={delft:'#13306B',tulips:'#10203A',canals:'#fff',molen:'#2B1A10',oranje:'#fff',noordzee:'#0F2E47'};const fdraw=()=>{const fcd=fc.querySelector('.fcard');fcd.innerHTML=`${gArt(D[fd])}<span class="sheen"></span><div class="wm"><b>allowalks</b><small>подарочная карта</small></div><div class="wb"><div class="amt">€50</div><span class="url">podslushano.nl/allowalks</span></div>`;fcd.className='gc nl fcard '+D[fd];fc.querySelectorAll('[data-fd]').forEach((b,i)=>b.setAttribute('aria-pressed',i===fd))};
   fc.querySelector('.fsw').innerHTML=D.map((d,i)=>`<button type="button" data-fd="${i}" aria-label="${GNL[i][1]}">${gArt(d,1)}</button>`).join('');
   fc.addEventListener('click',e=>{const b=e.target.closest('[data-fd]');if(!b)return;fd=+b.dataset.fd;fdraw()});fdraw();if(!RM)setInterval(()=>{if(cur!=='shop')return;fd=(fd+1)%D.length;fdraw()},3500);
   draw()};
@@ -4394,6 +4454,21 @@ ENTER.cabinet=async()=>{const q=new URLSearchParams(location.search);const t=q.g
     const off=()=>{o.classList.add('off');setTimeout(()=>o.remove(),800)};o.addEventListener('click',off);document.body.appendChild(o);setTimeout(off,2600)}
 })();
 
+/* ---------- calendar 2027 ---------- */
+const CAL_ORDER=PN_BOT+'/calendar?utm_source=site';
+// цена и приём заказов берутся из настроек бота (CALENDAR_PRICE, CALENDAR_SALES_OPEN), как в форме оплаты
+const calInfo={text:'€30',open:true};
+const calApply=()=>{$$('[data-calprice]').forEach(e=>e.textContent=calInfo.text);if(!calInfo.open)$$('[data-calorder],[data-calorder2],#homeCal .pp,a.pc10[href^="'+PN_BOT+'/calendar"]').forEach(e=>e.style.display='none')};
+fetch(PN_BOT+'/calendar/info.json').then(r=>r.json()).then(j=>{const v=Number(j.price);if(v>0)calInfo.text='€'+(Number.isInteger(v)?v:v.toFixed(2).replace('.',','));calInfo.open=j.open!==false;calApply()}).catch(()=>{});
+const CAL_ICS=PN_BOT.replace(/^https?:/,'webcal:')+'/calendar/nederland-2027.ics';
+$$('[data-calorder]').forEach(a=>{a.href=CAL_ORDER;a.target='_blank';a.rel='noopener'});
+function calSub(){openSheet(`<h2 id="shTitle">Даты 2027 в телефон</h2><p class="muted" style="margin-top:6px">Праздники, schoolvakanties всех регионов, сроки налогов и страховки. Бесплатно, обновляется само. Личные даты и напоминания в боте есть в печатном календаре.</p>
+  <div class="cal-sub"><a href="${CAL_ICS}"><svg class="ico"><use href="#i-cal"/></svg><span>iPhone и Mac<small>Откроется Apple Calendar, нажмите «Подписаться»</small></span></a>
+  <a href="https://calendar.google.com/calendar/r?cid=${encodeURIComponent(CAL_ICS)}" target="_blank" rel="noopener"><svg class="ico"><use href="#i-cal"/></svg><span>Google Calendar<small>Android и компьютер</small></span></a>
+  <a href="${PN_BOT}/calendar/nederland-2027.ics" download><svg class="ico"><use href="#i-cal"/></svg><span>Скачать файл .ics<small>Для Outlook и других календарей</small></span></a></div>
+  <a class="btn btn-acc" style="width:100%;margin-top:16px" href="${CAL_ORDER}" target="_blank" rel="noopener" data-calorder2>Заказать печатный календарь · <span data-calprice>${calInfo.text}</span></a>`)}
+document.addEventListener('click',e=>{if(e.target.closest('[data-calsub]')){e.preventDefault();calSub()}});
+(()=>{const m=$('#homeCal .calmk');if(!m||RM||!('IntersectionObserver' in window))return;let t;new IntersectionObserver(es=>es.forEach(x=>{clearInterval(t);if(x.isIntersecting)t=setInterval(()=>m.classList.toggle('flip'),3200)})).observe(m)})();
 /* ---------- boot ---------- */
 syncFav();route();if(!consent&&!CMP())setTimeout(()=>cookieBar(false),900);
 })();
