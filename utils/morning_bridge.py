@@ -33,7 +33,7 @@ def db():
     return conn
 
 
-def validate(payload, now=None):
+def validate(payload, now=None, *, dry_run=False):
     now = now or datetime.now(TZ)
     if not isinstance(payload, dict):
         raise ValueError('JSON object required')
@@ -46,7 +46,7 @@ def validate(payload, now=None):
     age = (now - checked).total_seconds()
     if not -60 <= age <= 2700:
         raise ValueError('Research must be no older than 45 minutes')
-    if not time(5, 20) <= now.time().replace(tzinfo=None) < time(6, 45):
+    if not dry_run and not time(5, 20) <= now.time().replace(tzinfo=None) < time(6, 45):
         raise ValueError('Intake window is 05:20-06:45 Amsterdam')
     for key in ('intro', 'weather', 'transport', 'roads'):
         value = payload.get(key)
@@ -92,6 +92,12 @@ async def channel_status(bot):
     if chat.type != 'channel' or chat.username != 'podslushanovnl' or not allowed:
         raise RuntimeError('Configured channel or publishing permission mismatch')
     return {'id': chat.id, 'username': chat.username, 'title': chat.title, 'can_post': allowed}
+
+
+async def deliver(bot, text, *, silent=False):
+    """Shared Telegram delivery used by production slots and live verification."""
+    return await bot.send_message(config.ANNOUNCE_CHANNEL, text, parse_mode='HTML',
+                                  disable_web_page_preview=True, disable_notification=silent)
 
 
 async def status(request):
@@ -157,7 +163,7 @@ async def publish_due(bot, now=None):
         with db() as conn:
             conn.execute("UPDATE morning SET state='sending' WHERE day=? AND state='queued'", (day,))
         try:
-            message = await bot.send_message(config.ANNOUNCE_CHANNEL, render(payload), parse_mode='HTML', disable_web_page_preview=True)
+            message = await deliver(bot, render(payload))
         except Exception:
             with db() as conn:
                 conn.execute("UPDATE morning SET state='delivery_unknown', error='Check channel before retry' WHERE day=?", (day,))
