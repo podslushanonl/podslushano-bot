@@ -114,7 +114,9 @@ _COUNTRY_VALUES = "('Нидерланды', 'Германия', 'Бельгия'
 async def init_db() -> None:
     """Создаёт таблицы, добавляет недостающие колонки и засевает специалистов."""
     os.makedirs(os.path.dirname(config.DB_PATH), exist_ok=True)
+    await _widen_meta_key()
     await _import_sqlite_once()
+    await _repair_long_meta_keys_once()
 
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
@@ -125,6 +127,48 @@ async def init_db() -> None:
 
 
 SQLITE_IMPORTED_KEY = "sqlite_imported_at"
+META_KEYS_REPAIRED = "meta_long_keys_repaired"
+
+
+async def _widen_meta_key() -> None:
+    """meta.key был VARCHAR(50): в PostgreSQL длинные ключи-отметки не помещались. Расширяем до 255."""
+    if config.DB_URL.startswith("sqlite"):
+        return   # SQLite длину не проверяет
+    async with engine.begin() as conn:
+        cols = await conn.run_sync(lambda c: {x["name"]: x for x in inspect(c).get_columns("meta")}
+                                   if "meta" in inspect(c).get_table_names() else {})
+        length = getattr(cols.get("key", {}).get("type"), "length", None)
+        if length and length < 255:
+            await conn.exec_driver_sql("ALTER TABLE meta ALTER COLUMN key TYPE VARCHAR(255)")
+
+
+async def _repair_long_meta_keys_once() -> None:
+    """Первый перенос подрезал ключи meta до 50 символов (96 записей не вошли, 9 легли с обрезанным
+    ключом). Один раз дозагружаем такие записи из SQLite с полными ключами и убираем обрезки."""
+    if config.DB_URL.startswith("sqlite") or not os.path.exists(config.DB_PATH):
+        return
+    import logging
+    import sqlite3
+    log = logging.getLogger(__name__)
+    async with async_session() as session:
+        if not await session.get(Meta, SQLITE_IMPORTED_KEY) or await session.get(Meta, META_KEYS_REPAIRED):
+            return
+        with sqlite3.connect(f"file:{config.DB_PATH}?mode=ro", uri=True) as src:
+            rows = src.execute("SELECT key, value FROM meta WHERE length(key) > 50").fetchall()
+            short = {r[0] for r in src.execute("SELECT key FROM meta WHERE length(key) <= 50")}
+        restored = 0
+        for key, value in rows:
+            if not await session.get(Meta, key):
+                session.add(Meta(key=key, value=(value or "").replace("\x00", "")))
+                restored += 1
+            cut = key[:50]
+            if cut not in short:
+                junk = await session.get(Meta, cut)
+                if junk:
+                    await session.delete(junk)
+        session.add(Meta(key=META_KEYS_REPAIRED, value=str(restored)))
+        await session.commit()
+    log.warning("meta: восстановлено %s записей с длинными ключами", restored)
 
 
 async def _import_sqlite_once() -> None:

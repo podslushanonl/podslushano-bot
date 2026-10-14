@@ -17,6 +17,7 @@ import html
 import logging
 import re
 import time
+import weakref
 from datetime import datetime, timedelta, timezone
 
 from aiogram import F, Router
@@ -55,7 +56,7 @@ ROOMS = [
     ("be", "Вся Бельгия", "city", _BE), ("brussel", "Brussel", "city", _BE), ("antwerpen", "Antwerpen", "city", _BE),
     ("gent", "Gent", "city", _BE), ("liege", "Liège", "city", _BE), ("leuven", "Leuven", "city", _BE),
 ]
-_rooms_synced: set[int] = set()   # движки базы, где комнаты уже сверены
+_rooms_synced: "weakref.WeakSet" = weakref.WeakSet()   # движки базы, где комнаты уже сверены
 
 # Мат ищем только с начала слова: «хлеба», «требования», «застрахуйтесь» — обычные слова
 _W = r"(?<![а-яёa-z])"
@@ -120,7 +121,7 @@ def can_write(u: AppUser | None) -> tuple[str, int] | None:
 
 async def ensure_rooms(session) -> None:
     """Досоздаёт недостающие комнаты из ROOMS и проставляет страны (один раз за запуск процесса)."""
-    key = id(session.bind)
+    key = session.bind.sync_engine   # сам движок, а не id(): id переиспользуется после сборки мусора
     if key in _rooms_synced:
         return
     have = {r.slug: r for r in (await session.execute(select(ChatRoom))).scalars()}

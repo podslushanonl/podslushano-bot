@@ -60,7 +60,8 @@ def _fix_row(table, row: dict, cut: dict) -> dict:
         if isinstance(v, str) and "\x00" in v:   # PostgreSQL не принимает нулевой символ в тексте
             v = row[col.name] = v.replace("\x00", "")
             cut[f"{table.name}.{col.name} (\\x00)"] = cut.get(f"{table.name}.{col.name} (\\x00)", 0) + 1
-        if isinstance(t, String) and not isinstance(t, Enum) and t.length and isinstance(v, str) and len(v) > t.length:
+        if (isinstance(t, String) and not isinstance(t, Enum) and t.length and isinstance(v, str) and len(v) > t.length
+                and not (col.primary_key or col.unique)):   # ключи не подрезаем — совпадут
             row[col.name] = v[:t.length]
             cut[f"{table.name}.{col.name}"] = cut.get(f"{table.name}.{col.name}", 0) + 1
         elif isinstance(t, DateTime) and t.timezone and getattr(v, "tzinfo", 1) is None:
