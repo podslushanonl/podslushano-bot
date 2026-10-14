@@ -18,7 +18,7 @@ from sqlalchemy import func, inspect, select, text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from database import db
-from database.models import AppUser, Base, ChatRoom, Country, Friendship, FriendStatus
+from database.models import AdminChannel, AppUser, Base, ChatRoom, Country, Friendship, FriendStatus
 from utils import app_api, community, dm, realtime, social
 from utils.site_api import make_token
 
@@ -237,7 +237,8 @@ class MigrationScriptTests(unittest.IsolatedAsyncioTestCase):
         async with src.begin() as c:
             await c.run_sync(Base.metadata.create_all)
         async with async_sessionmaker(src)() as s:
-            s.add_all([AppUser(id=7, name="Анна", country="Бельгия"), AppUser(id=8, name="Борис")])
+            s.add_all([AppUser(id=7, name="Анна", country="Бельгия"), AppUser(id=8, name="Борис"),
+                       AdminChannel(chat_id=-1004454718646, title="Канал", added_by=1)])   # отрицательный id
             await s.flush()
             s.add(Friendship(user_id=7, friend_id=8, status=FriendStatus.ACCEPTED))
             await s.commit()

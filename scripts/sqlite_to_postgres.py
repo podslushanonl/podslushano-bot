@@ -183,8 +183,11 @@ async def run(sqlite_path: str, target_url: str, dry_run: bool, force: bool) -> 
                 if len(pk) == 1 and isinstance(pk[0].type, Integer) and pk[0].autoincrement in (True, "auto"):
                     seq = await d.scalar(text("SELECT pg_get_serial_sequence(:t, :c)"), {"t": table.name, "c": pk[0].name})
                     if seq:
-                        await d.execute(text(f"SELECT setval('{seq}', COALESCE((SELECT MAX({pk[0].name}) FROM {table.name}), 1), "
-                                             f"(SELECT MAX({pk[0].name}) FROM {table.name}) IS NOT NULL)"))
+                        # Счётчик — после самого большого id. Отрицательные id (каналы Telegram) счётчик
+                        # не двигают: он начинается с 1, а такие записи всегда создаются с явным id.
+                        top = f'(SELECT MAX("{pk[0].name}") FROM "{table.name}")'
+                        await d.execute(text(f"SELECT setval('{seq}', GREATEST(COALESCE({top}, 0), 1), "
+                                             f"COALESCE({top}, 0) >= 1)"))
 
     bad = [(n, a, b) for n, a, b, lost in report if a - lost != b]
     for name, a, b, lost in report:
