@@ -363,6 +363,8 @@ async def _migrate() -> None:
             for name, ddl in _APP_USER_LATER_COLUMNS.items():
                 if name not in au_cols:
                     await conn.exec_driver_sql(f"ALTER TABLE app_users ADD COLUMN {name} {ddl}")
+            # Индекс страны: таблица в PostgreSQL создана до него, create_all его уже не добавит
+            await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_app_users_country ON app_users (country)")
 
         tables = set(await conn.run_sync(lambda c: inspect(c).get_table_names()))
         # Комнаты чатов: раньше страна хранилась кодом NL — теперь русским названием (или пусто для общей)

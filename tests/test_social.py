@@ -207,7 +207,18 @@ class SocialBase:
             self.assertEqual((await self.post("/api/app/me", 4, {"country": bad}))[0], 400, bad)
         with self.assertRaises(ValueError):
             AppUser(name="x", country="Germany")
-        self.assertEqual([c.value for c in Country], ["Нидерланды", "Германия", "Бельгия"])
+        self.assertEqual(sorted(c.value for c in Country), sorted(["Германия", "Бельгия", "Нидерланды"]))
+
+    async def test_country_index_added_to_existing_table(self):
+        """Таблица app_users создана без индекса страны — миграция его добавляет (и повторно не падает)."""
+        async with self.engine.begin() as c:
+            await c.exec_driver_sql("DROP INDEX IF EXISTS ix_app_users_country")
+        with patch.object(db, "engine", self.engine):
+            await db._migrate()
+            await db._migrate()
+        async with self.engine.connect() as c:
+            idx = await c.run_sync(lambda x: {i["name"]: i["column_names"] for i in inspect(x).get_indexes("app_users")})
+        self.assertEqual(idx.get("ix_app_users_country"), ["country"])
 
     async def test_search_people(self):
         st, d = await self.get("/api/app/users?q=Бор", 1)

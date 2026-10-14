@@ -873,7 +873,8 @@ class AppUser(Base):
     name: Mapped[str] = mapped_column(String(80), default="")
     city: Mapped[str] = mapped_column(String(80), default="")
     country: Mapped[Country] = mapped_column(_enum(Country, "ck_app_user_country", 20), default=Country.NL,
-                                             server_default=Country.NL.value, nullable=False)
+                                             server_default=Country.NL.value, nullable=False,
+                                             index=True)   # частый фильтр: люди и лента по стране
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
     )
