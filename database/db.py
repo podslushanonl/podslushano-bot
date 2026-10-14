@@ -128,11 +128,12 @@ SQLITE_IMPORTED_KEY = "sqlite_imported_at"
 
 
 async def _import_sqlite_once() -> None:
-    """Переезд на PostgreSQL без консоли: при SQLITE_IMPORT=1 бот при старте сам переносит
+    """Переезд на PostgreSQL без консоли: при SQLITE_IMPORT=1 (или force) бот при старте сам переносит
     данные из data/bot.db в пустую базу PostgreSQL (scripts/sqlite_to_postgres.py) и ставит
     отметку в meta — повторно не переносит. Ошибка переноса останавливает запуск (всё в одной
     транзакции, база остаётся пустой), чтобы бот не заработал с половиной данных."""
-    if config.DB_URL.startswith("sqlite") or os.getenv("SQLITE_IMPORT", "").strip() != "1":
+    mode = os.getenv("SQLITE_IMPORT", "").strip().lower()
+    if config.DB_URL.startswith("sqlite") or mode not in ("1", "force"):
         return
     import logging
     log = logging.getLogger(__name__)
@@ -147,10 +148,13 @@ async def _import_sqlite_once() -> None:
         return
     from scripts.sqlite_to_postgres import run
     log.warning("Переношу данные из %s в PostgreSQL…", config.DB_PATH)
-    code = await run(config.DB_PATH, config.DB_URL, dry_run=False, force=False)
+    # force — PostgreSQL очищается перед переносом (например, после неудачной попытки,
+    # когда бот успел поработать на пустой базе)
+    code = await run(config.DB_PATH, config.DB_URL, dry_run=False, force=mode == "force")
     if code == 3:
-        log.warning("В PostgreSQL уже есть данные — перенос пропущен, ставлю отметку")
-    elif code != 0:
+        raise RuntimeError("В PostgreSQL уже есть данные, а переноса ещё не было. Чтобы перенести "
+                           "заново с очисткой PostgreSQL, задайте SQLITE_IMPORT=force")
+    if code != 0:
         raise RuntimeError(f"Перенос SQLite → PostgreSQL не удался (код {code}), см. лог выше")
     from datetime import datetime, timezone
     async with async_session() as session:
