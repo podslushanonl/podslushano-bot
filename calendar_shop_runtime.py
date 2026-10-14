@@ -325,12 +325,6 @@ async def ics_feed(request: web.Request) -> web.Response:
                         charset="utf-8", headers={"Cache-Control": "public, max-age=3600"})
 
 
-async def public_ics(request: web.Request) -> web.Response:
-    """Общий календарь без личных дат — для поста/сайта."""
-    return web.Response(body=core.build_ics({}).encode(), content_type="text/calendar", charset="utf-8",
-                        headers={"Cache-Control": "public, max-age=3600"})
-
-
 async def public_info(request: web.Request) -> web.Response:
     """Цена и открыт ли приём заказов — сайт показывает те же значения, что и форма оплаты."""
     return web.json_response({"price": calendar_price(), "open": calendar_sales_open()},
@@ -342,7 +336,6 @@ def install_routes(app: web.Application) -> None:
     app.router.add_get("/calendar/info.json", public_info)
     app.router.add_post("/calendar/order", create_order)
     app.router.add_get("/calendar/thanks", thanks_page)
-    app.router.add_get("/calendar/nederland-2027.ics", public_ics)
     app.router.add_get(r"/cal/{token:[A-Za-z0-9_\-]{16,64}}.ics", ics_feed)
     app.router.add_get(r"/cal/{token:[A-Za-z0-9_\-]{16,64}}", connect_page)
 
