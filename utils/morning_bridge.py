@@ -70,10 +70,11 @@ def validate(payload, now=None):
 def render(payload):
     esc = html.escape
     checked = datetime.fromisoformat(payload['checked_at']).astimezone(TZ)
-    blocks = [f"<i>{esc(payload['intro'])}</i>", '<b>🌦️ Погода</b>', esc(payload['weather']), '<b>🚇 Транспорт</b>', esc(payload['transport'])]
+    blocks = [esc(payload['intro']), '🌦️ Погода', esc(payload['weather']), '🚇 Транспорт', esc(payload['transport'])]
     if payload.get('important'):
-        blocks.append(f"<blockquote><i><b>Важно:</b> {esc(payload['important'])}</i></blockquote>")
-    blocks += ['<b>🚗 Дороги</b>', esc(payload['roads']), f'<blockquote><i>Информация актуальна на {checked:%H:%M}, {checked:%d.%m.%Y}. Следите за обновлениями в KNMI, NS, 9292 и Rijkswaterstaat.</i></blockquote>', f'<b>{CTA}</b>']
+        blocks.append(f"Важно: {esc(payload['important'])}")
+    month = ('января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря')[checked.month-1]
+    blocks += ['🚗 Дороги', esc(payload['roads']), f'Информация актуальна на {checked:%H:%M}, {checked.day} {month}. Оперативные изменения проверяйте в KNMI, NS, 9292 и Rijkswaterstaat.', CTA]
     return '\n\n'.join(blocks)
 
 
