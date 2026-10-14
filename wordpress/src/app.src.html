@@ -2287,6 +2287,7 @@ html.hw-lock,html.hw-lock body{overflow:hidden}
 </style>
 <script>/* Хэллоуин: заставка стартует первой строкой страницы, параллельно с загрузкой сайта. После взрыва тыквы искры собираются в podslushano.nl, буквы «o» — горящие тыквы. */
 (function(){try{
+if(!window.PN_HALLOWEEN)return; /* Хэллоуин выключен: тема и заставка не показываются. Включить: window.PN_HALLOWEEN=true */
 var q=new URLSearchParams(location.search).get('halloween'),S=sessionStorage,d;
 try{d=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Amsterdam',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){d=''}
 if(q==='0'||S.getItem('pod2:hw')==='0')return;
@@ -4350,6 +4351,7 @@ $$('[data-calorder]').forEach(a=>{a.href=CAL_ORDER;a.target='_blank';a.rel='noop
    искры, 7 настоящих тыкв с историями. Каждую историю можно отправить другу открыткой, за все 7 — даты 2027 в телефон.
    С 1 ноября всё исчезает. Предпросмотр: ?halloween=1, выключить: ?halloween=0. Открытка от друга: ?hw=<тыква>&to=&from= */
 (()=>{
+  if(!window.PN_HALLOWEEN)return; // выключено по решению редакции
   const ss={get(k){try{return sessionStorage.getItem('pod2:'+k)}catch(e){return null}},set(k,v){try{sessionStorage.setItem('pod2:'+k,v)}catch(e){}}};
   let today;try{today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Amsterdam',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){today=new Date().toISOString().slice(0,10)}
   const y=today.slice(0,4),md=today.slice(5);
