@@ -1,122 +1,73 @@
-import { router, useIsFocused } from 'expo-router';
+import { router } from 'expo-router';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, TextInput, View, ViewToken } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Modal, Platform, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/api/auth';
-import { removeOwn, report, routeForError } from '@/api/community';
-import { addClipComment, Clip, PULSE_KEY, uploadClip, useClipComments, usePulse } from '@/api/pulse';
+import { routeForError } from '@/api/community';
+import { PULSE_KEY, uploadClip, usePulse } from '@/api/pulse';
 import { queryClient } from '@/api/query';
-import { Composer } from '@/features/chat/ChatUI';
-import { timeLabel } from '@/features/feed/cards';
-import { ClipView } from '@/features/pulse/ClipView';
+import { ClipFeed } from '@/features/pulse/ClipFeed';
 import { pickMedia, PickedFile } from '@/lib/pickMedia';
 import { radius, type as T, useTheme } from '@/theme';
-import { ActionSheet, Avatar, Button, Empty, Glass, Icon, IconButton, Skeleton, TAB_SPACE, Txt, useToast, VerifiedBadge } from '@/ui';
+import { Button, Icon, IconButton, Tap, Txt, useToast } from '@/ui';
 
-/** Комментарии к видео — лист снизу поверх Pulse. */
-function CommentsSheet({ clip, onClose }: { clip: Clip | null; onClose: () => void }) {
-  const { c } = useTheme();
-  const insets = useSafeAreaInsets();
-  const { user } = useAuth();
-  const toast = useToast();
-  const q = useClipComments(clip?.id || 0);
-  const [text, setText] = useState('');
-  const [busy, setBusy] = useState(false);
-  const send = async () => {
-    if (!clip || !text.trim() || busy) return;
-    if (!user) { onClose(); router.push('/login'); return; }
-    setBusy(true);
-    try { await addClipComment(clip.id, text.trim()); setText(''); } catch (e: any) { if (!routeForError(e)) toast(e?.message || 'Не отправилось', 'error'); }
-    finally { setBusy(false); }
-  };
-  return (
-    <Modal visible={!!clip} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <Pressable style={{ flex: 1, backgroundColor: c.scrim }} onPress={onClose} accessibilityLabel="Закрыть" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ maxHeight: '72%', backgroundColor: c.bgElevated, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl }}>
-        <View style={{ alignItems: 'center', paddingTop: 8 }}><View style={{ width: 36, height: 5, borderRadius: 3, backgroundColor: c.lineStrong }} /></View>
-        <Txt v="headline" center style={{ paddingVertical: 10 }}>{clip?.comments ? `Комментарии · ${clip.comments}` : 'Комментарии'}</Txt>
-        <FlatList data={q.data || []} keyExtractor={(x) => String(x.id)} style={{ flexGrow: 0 }}
-          contentContainerStyle={{ paddingHorizontal: 16, gap: 14, paddingBottom: 8 }}
-          ListEmptyComponent={q.isLoading ? <Skeleton h={48} /> : <Txt v="callout" tone="muted" center style={{ paddingVertical: 24 }}>Пока тихо. Напишите первым!</Txt>}
-          renderItem={({ item: cm }) => (
-            <View style={{ flexDirection: 'row', gap: 10 }}>
-              <Avatar name={cm.author.name} id={cm.author.id} uri={cm.author.avatar} size={34} />
-              <View style={{ flex: 1, gap: 2 }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold' }}>{cm.author.name}</Txt>
-                  {cm.author.verified ? <VerifiedBadge size={13} /> : null}
-                  <Txt v="caption">{timeLabel(cm.at)}</Txt>
-                </View>
-                <Txt v="callout" tone="ink">{cm.text}</Txt>
-              </View>
-            </View>
-          )} />
-        <View style={{ paddingBottom: Math.max(insets.bottom - 10, 0) }}>
-          <Composer value={text} onChange={setText} onSend={send} busy={busy} placeholder={user ? 'Комментарий' : 'Войдите, чтобы комментировать'} />
-        </View>
-      </KeyboardAvoidingView>
-    </Modal>
-  );
-}
+const SHADOW = { textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 6 };
 
-/** Публикация видео в Pulse: превью выбранного файла и подпись. */
-function UploadSheet({ file, onClose }: { file: PickedFile | null; onClose: () => void }) {
+/** Публикация видео: превью во весь экран, подпись поверх и кнопка «Опубликовать» внизу — как в Reels. */
+function UploadScreen({ file, onClose }: { file: PickedFile; onClose: () => void }) {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const toast = useToast();
+  const player = useVideoPlayer(file.uri, (p) => { p.loop = true; p.muted = true; p.play(); });
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const publish = async () => {
-    if (!file || busy) return;
+    if (busy) return;
     setBusy(true);
-    try { await uploadClip(file, text.trim()); toast('Видео опубликовано'); setText(''); onClose(); }
+    try { await uploadClip(file, text.trim()); toast('Видео опубликовано'); onClose(); }
     catch (e: any) { if (!routeForError(e)) toast(e?.message || 'Не загрузилось', 'error'); }
     finally { setBusy(false); }
   };
   return (
-    <Modal visible={!!file} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <Pressable style={{ flex: 1, backgroundColor: c.scrim }} onPress={busy ? undefined : onClose} accessibilityLabel="Закрыть" />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ backgroundColor: c.bgElevated, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl, padding: 18, gap: 14,
-          paddingBottom: insets.bottom + 18 }}>
-        <Txt v="title3">Новое видео в Pulse</Txt>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, borderRadius: radius.m, backgroundColor: c.bgSunken }}>
-          <Icon name="pulse" size={22} color={c.accent} />
-          <Txt v="subhead" tone="ink" numberOfLines={1} style={{ flex: 1 }}>{file?.name}</Txt>
+    <Modal visible animationType="slide" onRequestClose={busy ? undefined : onClose} statusBarTranslucent>
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#000000' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <View style={{ flex: 1, marginTop: insets.top + 6, marginHorizontal: 6, borderRadius: radius.xl, overflow: 'hidden', backgroundColor: '#111111' }}>
+          <VideoView player={player} contentFit="cover" nativeControls={false} playsInline style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+          <View style={{ position: 'absolute', top: 10, left: 10 }}>
+            <IconButton icon="close" label="Отмена" kind="plain" color="#FFFFFF" onPress={onClose} />
+          </View>
+          <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, padding: 16, paddingTop: 60,
+            [Platform.OS === 'web' ? 'backgroundImage' : 'experimental_backgroundImage']: 'linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0))' } as any}>
+            <TextInput value={text} onChangeText={setText} placeholder="Добавьте подпись…" placeholderTextColor="rgba(255,255,255,0.7)" multiline
+              maxLength={500} accessibilityLabel="Подпись к видео"
+              style={[T.body, { color: '#FFFFFF', fontSize: 17, minHeight: 28, outlineStyle: 'none', ...SHADOW } as any]} />
+          </View>
         </View>
-        <TextInput value={text} onChangeText={setText} placeholder="Подпись к видео" placeholderTextColor={c.faint} multiline maxLength={500}
-          accessibilityLabel="Подпись к видео" style={[T.body, { color: c.ink, minHeight: 60, outlineStyle: 'none' } as any]} />
-        <Button title="Опубликовать" kind="accent" loading={busy} onPress={publish} />
-        <Txt v="footnote" tone="muted" center>Вертикальное видео до 60 секунд и 80 МБ. Без мата, политики и рекламы.</Txt>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingTop: 12, paddingBottom: insets.bottom + 12 }}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Icon name="pulseFill" size={20} color="#FFFFFF" />
+            <Txt v="subhead" color="#FFFFFF" style={{ fontFamily: 'Onest_600SemiBold' }}>В Pulse</Txt>
+          </View>
+          <Tap onPress={publish} disabled={busy} haptic="medium" scaleTo={0.92} accessibilityLabel="Опубликовать"
+            style={{ height: 48, paddingHorizontal: 22, borderRadius: 24, backgroundColor: c.accent, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            {busy ? <ActivityIndicator color={c.onAccent} /> : <Txt v="bodyStrong" color={c.onAccent}>Опубликовать</Txt>}
+            {!busy ? <Icon name="arrowRight" size={18} color={c.onAccent} /> : null}
+          </Tap>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );
 }
 
-/** Pulse — вертикальные видео во весь экран: листаются по одному, играет то, что на экране. */
+/** Pulse — вертикальные видео во весь экран, как в TikTok и Reels. */
 export default function Pulse() {
   const insets = useSafeAreaInsets();
   const { user } = useAuth();
   const toast = useToast();
   const q = usePulse();
-  // Ушли на другую вкладку — видео на паузе (экран вкладки остаётся загруженным)
-  const focused = useIsFocused();
   const clips = useMemo(() => q.data?.pages.flatMap((p) => p.clips) || [], [q.data]);
-  const [height, setHeight] = useState(0);
-  const [active, setActive] = useState(0);
-  // В браузере видео со звуком само не запускается: начинаем без звука, включаем по тапу
-  const [muted, setMuted] = useState(Platform.OS === 'web');
-  const [comments, setComments] = useState<Clip | null>(null);
-  const [menu, setMenu] = useState<Clip | null>(null);
   const [file, setFile] = useState<PickedFile | null>(null);
-  const [paused, setPaused] = useState(false);
-  // Пролистали к другому видео — оно играет, пауза сбрасывается
-  const onViewable = useCallback(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    const first = viewableItems.find((v) => v.isViewable);
-    if (first?.index != null) { setActive(first.index); setPaused(false); }
-  }, []);
-  const bottom = (Platform.OS === 'web' ? TAB_SPACE : 0) + 8;
 
   const add = useCallback(async () => {
     if (!user) { router.push('/login'); return; }
@@ -124,59 +75,36 @@ export default function Pulse() {
     if (f && f.kind !== 'video') { toast('Выберите видео', 'error'); return; }
     if (f) setFile(f);
   }, [user, toast]);
-  const fail = (e: any) => { if (!routeForError(e)) toast(e?.message || 'Ошибка', 'error'); };
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#000000' }} onLayout={(e) => setHeight(e.nativeEvent.layout.height)}>
-      {height ? (
-        q.isLoading ? <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><Skeleton w={60} h={60} r={30} /></View>
-        : clips.length ? (
-          <FlatList
-            data={clips}
-            keyExtractor={(c) => String(c.id)}
-            extraData={`${active}:${paused}:${muted}:${focused}`}
-            renderItem={({ item, index }) => (
-              <ClipView clip={item} active={focused && index === active} paused={paused} onTogglePause={() => setPaused(!paused)} height={height} bottom={bottom} muted={muted} onToggleMute={() => setMuted(!muted)}
-                signedIn={!!user} onNeedLogin={() => router.push('/login')} onComments={() => setComments(item)} onMenu={() => setMenu(item)} />
-            )}
-            pagingEnabled
-            snapToInterval={height}
-            snapToAlignment="start"
-            decelerationRate="fast"
-            showsVerticalScrollIndicator={false}
-            getItemLayout={(_, i) => ({ length: height, offset: height * i, index: i })}
-            onViewableItemsChanged={onViewable}
-            viewabilityConfig={{ itemVisiblePercentThreshold: 70 }}
-            windowSize={3}
-            initialNumToRender={2}
-            maxToRenderPerBatch={2}
-            removeClippedSubviews
-            onEndReachedThreshold={2}
-            onEndReached={() => { if (q.hasNextPage && !q.isFetchingNextPage) q.fetchNextPage(); }}
-            refreshing={q.isRefetching}
-            onRefresh={() => { queryClient.resetQueries({ queryKey: PULSE_KEY, exact: true }); setActive(0); }}
-          />
+    <>
+      <ClipFeed
+        clips={clips}
+        // В браузере нижняя панель лежит поверх видео — подпись и кнопки поднимаем над ней
+        bottom={Platform.OS === 'web' ? 54 + Math.max(insets.bottom, 6) : 0}
+        onEndReached={() => { if (q.hasNextPage && !q.isFetchingNextPage) q.fetchNextPage(); }}
+        refreshing={q.isRefetching}
+        onRefresh={() => queryClient.resetQueries({ queryKey: PULSE_KEY, exact: true })}
+        empty={q.isLoading ? (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color="#FFFFFF" /></View>
         ) : (
-          <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 20 }}>
-            <Glass radius={radius.xl} strong>
-              <Empty icon="pulse" title="Здесь будут вертикальные видео" text="Снимите, что происходит вокруг: город, события, находки. Первое видео — ваше?"
-                action={<Button title="Загрузить видео" kind="accent" icon="plus" onPress={add} />} />
-            </Glass>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, paddingHorizontal: 36 }}>
+            <Icon name="pulseFill" size={54} color="#FFFFFF" />
+            <Txt v="title2" color="#FFFFFF" center>Здесь будут вертикальные видео</Txt>
+            <Txt v="callout" color="rgba(255,255,255,0.7)" center>Снимите, что происходит вокруг: город, события, находки.</Txt>
+            <Button title="Загрузить первое видео" kind="accent" icon="plus" full={false} onPress={add} />
           </View>
-        )
-      ) : null}
-
-      <View pointerEvents="box-none" style={{ position: 'absolute', top: insets.top + 8, left: 16, right: 12, flexDirection: 'row', alignItems: 'center' }}>
-        <Txt v="title2" color="#FFFFFF" style={{ flex: 1, fontFamily: 'Unbounded_700Bold', textShadowColor: 'rgba(0,0,0,0.5)', textShadowRadius: 6 }}>Pulse</Txt>
-        <IconButton icon={muted ? 'volumeOff' : 'volumeOn'} label={muted ? 'Включить звук' : 'Выключить звук'} kind="plain" color="#FFFFFF" onPress={() => setMuted(!muted)} />
-        <IconButton icon="plus" label="Загрузить видео" kind="plain" color="#FFFFFF" onPress={add} />
-      </View>
-
-      <CommentsSheet clip={comments ? clips.find((c) => c.id === comments.id) || comments : null} onClose={() => setComments(null)} />
-      <UploadSheet file={file} onClose={() => setFile(null)} />
-      <ActionSheet visible={!!menu} onClose={() => setMenu(null)} actions={menu ? (menu.mine
-        ? [{ title: 'Удалить видео', icon: 'trash', danger: true, onPress: () => removeOwn('clip', menu.id).then(() => queryClient.invalidateQueries({ queryKey: PULSE_KEY, exact: true })).catch(fail) }]
-        : [{ title: 'Пожаловаться', icon: 'flag', danger: true, onPress: () => (user ? report('clip', menu.id).then(() => toast('Жалоба отправлена модераторам')).catch(fail) : router.push('/login')) }]) : []} />
-    </View>
+        )}
+        overlay={
+          <View pointerEvents="box-none" style={{ position: 'absolute', top: insets.top + 6, left: 0, right: 0, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+            <Txt v="headline" color="#FFFFFF" style={{ fontSize: 18, fontFamily: 'Onest_700Bold', ...SHADOW }}>Pulse</Txt>
+            <View style={{ position: 'absolute', right: 8 }}>
+              <IconButton icon="camera2" label="Загрузить видео" kind="plain" color="#FFFFFF" onPress={add} />
+            </View>
+          </View>
+        }
+      />
+      {file ? <UploadScreen file={file} onClose={() => setFile(null)} /> : null}
+    </>
   );
 }

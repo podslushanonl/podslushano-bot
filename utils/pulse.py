@@ -2,6 +2,7 @@
 
 GET  /api/app/pulse?before=            — лента (по 10, новые сверху), без авторов, скрытых от меня
 GET  /api/app/pulse/saved              — мои закладки
+GET  /api/app/user/{id}/pulse          — видео человека (для вкладки Pulse в профиле)
 POST /api/app/pulse                    — multipart: file (видео MP4/MOV/WebM до 80 МБ), text
 POST /api/app/pulse/{id}/like          — {on}
 POST /api/app/pulse/{id}/save          — {on} в закладки
@@ -189,7 +190,22 @@ async def comments(request: web.Request) -> web.Response:
     return _json(request, {"ok": True, "comment": item})
 
 
+async def by_user(request: web.Request) -> web.Response:
+    uid = int(request.match_info["id"])
+    async with get_session() as session:
+        me = await _user(request, session)
+        if uid in await _hidden_authors(session, me):   # блокировка или закрытый аккаунт не друга
+            await session.commit()
+            return _json(request, {"ok": True, "clips": []})
+        rows = list((await session.execute(_visible(select(PulseClip)).where(PulseClip.user_id == uid)
+                                           .order_by(PulseClip.id.desc()).limit(60))).scalars())
+        items = await _clips_json(session, rows, me)
+        await session.commit()
+    return _json(request, {"ok": True, "clips": items})
+
+
 def install_routes(app: web.Application) -> None:
+    app.router.add_get(r"/api/app/user/{id:\d+}/pulse", by_user)
     app.router.add_get("/api/app/pulse", feed)
     app.router.add_post("/api/app/pulse", feed)
     app.router.add_get("/api/app/pulse/saved", saved)

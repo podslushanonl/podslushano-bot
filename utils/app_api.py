@@ -61,7 +61,8 @@ def user_json(u: AppUser) -> dict:
     avatar = f"/api/app/user/{u.id}/avatar?v={u.avatar_v}" if u.avatar_v else ""
     return {"id": u.id, "name": u.name, "city": u.city, "country": u.country.value, "email": u.email or "",
             "phone": u.phone or "", "telegram": bool(u.tg_id), "bio": u.bio or "", "avatar": avatar,
-            "is_private": bool(u.is_private), "verified": bool(u.is_verified)}
+            "is_private": bool(u.is_private), "verified": bool(u.is_verified),
+            "cover": f"/api/app/user/{u.id}/cover?v={u.cover_v}" if u.cover_v else ""}
 
 
 def _device(request: web.Request) -> str:
@@ -485,7 +486,28 @@ async def logout(request: web.Request) -> web.Response:
     return _json(request, {"ok": True})
 
 
+async def set_cover(request: web.Request) -> web.Response:
+    """POST /api/app/me/cover {photo: data:...} — обложка профиля (баннер 3:1), {photo: ""} — убрать."""
+    from utils.market import _read_json, prepare_cover
+    data = await _read_json(request)
+    async with get_session() as session:
+        u = await _user(request, session)
+        if not u:
+            return _err(request, "Войдите заново.", 401)
+        raw = str(data.get("photo") or "")
+        if raw:
+            jpeg = prepare_cover(raw)
+            if not jpeg:
+                return _err(request, "Не получилось прочитать фото. Попробуйте другое.")
+            u.cover, u.cover_v = jpeg, (u.cover_v or 0) + 1
+        else:
+            u.cover, u.cover_v = None, 0
+        await session.commit()
+        return _json(request, {"ok": True, "user": user_json(u)})
+
+
 def install_routes(app: web.Application) -> None:
+    app.router.add_post("/api/app/me/cover", set_cover)
     app.router.add_get("/api/app/me/sessions", sessions)
     app.router.add_post("/api/app/me/sessions/revoke", revoke_session)
     app.router.add_post("/api/app/auth/logout", logout)

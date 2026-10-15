@@ -8,6 +8,8 @@ export type User = {
   is_private?: boolean;
   /** Синяя галочка подтверждённого аккаунта. */
   verified?: boolean;
+  /** Обложка профиля (баннер 3:1) или пусто. */
+  cover?: string;
 };
 /** Устройство, вошедшее в аккаунт (настройки → «Активные сессии»). */
 export type AppSession = { id: string; device: string; ip: string; created: string; last_seen: string; current: boolean };
@@ -90,6 +92,13 @@ export async function saveProfile(p: { name?: string; city?: string; country?: s
 /** Новое фото профиля (data:…) или '' — убрать. crop — рамка, выбранная человеком (доли картинки). */
 export async function saveAvatar(photo: string, crop?: { x: number; y: number; w: number; h: number }) {
   const d = await api<{ user: User }>('/api/app/me/avatar', crop ? { photo, crop } : { photo });
+  set({ user: d.user });
+  queryClient.invalidateQueries({ queryKey: ['me', 'user', d.user.id] });
+}
+
+/** Обложка профиля: картинка data:… или '' — убрать. */
+export async function saveCover(photo: string) {
+  const d = await api<{ user: User }>('/api/app/me/cover', { photo });
   set({ user: d.user });
   queryClient.invalidateQueries({ queryKey: ['me', 'user', d.user.id] });
 }

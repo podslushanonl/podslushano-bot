@@ -132,7 +132,8 @@ export default function NewPost() {
                 contentContainerStyle={{ gap: 8, paddingRight: 16 }}>
                 {photos.map((p) => (
                   <View key={p.key}>
-                    <Img source={p.preview} style={{ width: photos.length === 1 ? 240 : 168, height: photos.length === 1 ? 300 : 220, borderRadius: 14,
+                    {/* Превью строго 4:5 — как фото будет выглядеть в ленте */}
+                    <Img source={p.preview} contentFit="cover" style={{ width: photos.length === 1 ? 240 : 176, aspectRatio: 4 / 5, borderRadius: 14,
                       borderWidth: HAIRLINE, borderColor: c.line }} />
                     <Tap onPress={() => setPhotos((cur) => cur.filter((x) => x.key !== p.key))} scaleTo={0.88} accessibilityLabel="Убрать фото"
                       style={{ position: 'absolute', top: 8, right: 8, width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center',

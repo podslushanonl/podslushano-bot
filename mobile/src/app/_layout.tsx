@@ -55,6 +55,8 @@ export default function RootLayout() {
                   <Stack.Screen name="rules" options={{ presentation: 'modal' }} />
                   <Stack.Screen name="new-post" options={{ presentation: 'modal' }} />
                   <Stack.Screen name="stories/[uid]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
+                  <Stack.Screen name="story-new" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
+                  <Stack.Screen name="clips/[uid]" options={{ animation: 'fade' }} />
                   <Stack.Screen name="market/new" options={{ presentation: 'modal' }} />
                 </Stack>
               </ToastHost>

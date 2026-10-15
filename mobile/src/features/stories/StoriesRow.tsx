@@ -1,12 +1,9 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useAuth } from '@/api/auth';
-import { routeForError } from '@/api/community';
-import { addStory, useStories } from '@/api/stories';
-import { pickMedia } from '@/lib/pickMedia';
+import { useStories } from '@/api/stories';
 import { useTheme } from '@/theme';
-import { Avatar, Icon, Tap, Txt, useToast } from '@/ui';
+import { Avatar, Icon, Tap, Txt } from '@/ui';
 import { seenStories } from './seen';
 
 const SIZE = 64;
@@ -23,21 +20,13 @@ function Ring({ on, children }: { on: boolean; children: React.ReactNode }) {
 export function StoriesRow() {
   const { c } = useTheme();
   const { user } = useAuth();
-  const toast = useToast();
   const q = useStories(!!user);
-  const [busy, setBusy] = useState(false);
   if (!user) return null;
   const groups = q.data?.groups || [];
   const mine = groups.find((g) => g.mine);
   const others = groups.filter((g) => !g.mine);
 
-  const add = async () => {
-    const f = await pickMedia(['images', 'videos'], 30);
-    if (!f) return;
-    setBusy(true);
-    try { await addStory(f); toast('История опубликована на 24 часа'); } catch (e: any) { if (!routeForError(e)) toast(e?.message || 'Не загрузилось', 'error'); }
-    finally { setBusy(false); }
-  };
+  const add = () => router.push('/story-new');
   const open = (uid: number) => router.push({ pathname: '/stories/[uid]', params: { uid: String(uid) } });
 
   return (
@@ -52,7 +41,7 @@ export function StoriesRow() {
           <Tap onPress={add} scaleTo={0.85} accessibilityLabel="Добавить историю"
             style={{ position: 'absolute', right: 0, bottom: 0, width: 24, height: 24, borderRadius: 12, backgroundColor: c.accent,
               borderWidth: 2.5, borderColor: c.bg, alignItems: 'center', justifyContent: 'center' }}>
-            {busy ? <ActivityIndicator size="small" color={c.onAccent} /> : <Icon name="plus" size={13} color={c.onAccent} />}
+            <Icon name="plus" size={13} color={c.onAccent} />
           </Tap>
         </Tap>
         <Txt v="caption" tone="ink" numberOfLines={1} style={{ fontSize: 11 }}>Ваша история</Txt>

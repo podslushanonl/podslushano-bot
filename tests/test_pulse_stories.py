@@ -16,11 +16,11 @@ from PIL import Image
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from database.models import AppUser, Base, Friendship, FriendStatus, Story
-from utils import app_api, community, feed, media, pulse, realtime, social, stories
+from utils import app_api, app_market, community, feed, media, pulse, realtime, social, stories
 from utils.site_api import make_token
 
 PG_URL = os.getenv("TEST_DATABASE_URL", "")
-MODS = (app_api, community, feed, media, pulse, realtime, social, stories)
+MODS = (app_api, app_market, community, feed, media, pulse, realtime, social, stories)
 MP4 = b"\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00mp42isom" + b"\x00" * 2000
 
 
@@ -179,14 +179,62 @@ class Base6:
         self.assertEqual(names((await self.get("/api/app/stories", 1))[1]["groups"]), ["Вера"])  # другу видно
 
 
+class Extra:
+    """Репост поста в историю, подпись, обложка профиля, видео и товары человека."""
+
+    async def test_share_post_to_story(self):
+        import base64
+        st, d = await self.post("/api/app/posts", 2, {"text": "Ищу компанию на выходные", "photos": [
+            "data:image/jpeg;base64," + base64.b64encode(jpeg(1080, 1350)).decode()]})
+        pid = d["post"]["id"]
+        st, d = await self.post("/api/app/stories/share", 1, {"post_id": pid, "bg": "ocean", "caption": "Кто со мной?"})
+        self.assertEqual(st, 200, d)
+        it = d["story"]
+        self.assertEqual((it["kind"], it["bg"], it["caption"], it["post"]["id"], it["post"]["ratio"]), ("post", "ocean", "Кто со мной?", pid, 0.8))
+        self.assertTrue(it["post"]["photo"])
+        groups = (await self.get("/api/app/stories", 2))[1]["groups"]
+        self.assertEqual(groups[0]["items"][0]["post"]["author"]["name"], "Борис")   # у Бориса своих историй нет
+        self.assertEqual((await self.post("/api/app/stories/share", 1, {"post_id": pid, "bg": "rainbow"}))[0], 400)
+        self.assertEqual((await self.post("/api/app/stories/share", 1, {"post_id": 999}))[0], 404)
+        # пост закрытого аккаунта не-друг поделиться не может, а удалённый пост на наклейке пропадает
+        community._hits.clear()
+        vid = (await self.post("/api/app/posts", 3, {"text": "Для друзей"}))[1]["post"]["id"]
+        self.assertEqual((await self.post("/api/app/stories/share", 2, {"post_id": vid}))[0], 404)
+        await self.post("/api/app/delete", 2, {"kind": "post", "id": pid})
+        self.assertIsNone((await self.get("/api/app/stories", 1))[1]["groups"][0]["items"][0]["post"])
+        # удаление истории-репоста (без файла) не падает
+        self.assertEqual((await self.post(f"/api/app/stories/{it['id']}/delete", 1))[0], 200)
+
+    async def test_story_caption_on_upload(self):
+        st, d = await self.upload("/api/app/stories", 1, jpeg(), name="s.jpg", caption="  Закат  над каналом ")
+        self.assertEqual(d["story"]["caption"], "Закат над каналом")
+
+    async def test_cover_and_profile_tabs(self):
+        import base64
+        st, d = await self.post("/api/app/me/cover", 1, {"photo": base64.b64encode(jpeg(2000, 2000)).decode()})
+        self.assertEqual(st, 200)
+        url = d["user"]["cover"]
+        r = await self.c.get(url)
+        self.assertEqual(Image.open(io.BytesIO(await r.read())).size, (1500, 500))
+        self.assertEqual((await self.get("/api/app/user/1", 2))[1]["user"]["cover"], url)
+        self.assertEqual((await self.post("/api/app/me/cover", 1, {"photo": ""}))[1]["user"]["cover"], "")
+        await self.upload("/api/app/pulse", 2, MP4, text="Моё видео")
+        self.assertEqual([c["text"] for c in (await self.get("/api/app/user/2/pulse", 1))[1]["clips"]], ["Моё видео"])
+        await self.upload("/api/app/pulse", 3, MP4)                                   # закрытый аккаунт
+        self.assertEqual((await self.get("/api/app/user/3/pulse", 2))[1]["clips"], [])
+        await self.post("/api/app/market", 2, {"category": "tech", "title": "iPad", "description": "Почти новый, с чехлом", "price": "300", "city": "Amsterdam"})
+        self.assertEqual([x["title"] for x in (await self.get("/api/app/market?user=2"))[1]["items"]], ["iPad"])
+        self.assertEqual((await self.get("/api/app/market?user=1"))[1]["items"], [])
+
+
 async def _done():
     return None
 
 
-class SqliteTests(Base6, unittest.IsolatedAsyncioTestCase):
+class SqliteTests(Base6, Extra, unittest.IsolatedAsyncioTestCase):
     pass
 
 
 @unittest.skipUnless(PG_URL, "TEST_DATABASE_URL не задан")
-class PostgresTests(Base6, unittest.IsolatedAsyncioTestCase):
+class PostgresTests(Base6, Extra, unittest.IsolatedAsyncioTestCase):
     url = PG_URL

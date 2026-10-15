@@ -114,6 +114,8 @@ _APP_USER_LATER_COLUMNS = {
     "is_private": "BOOLEAN NOT NULL DEFAULT FALSE",
     "sessions_reset_at": "TIMESTAMP",
     "is_verified": "BOOLEAN NOT NULL DEFAULT FALSE",
+    "cover": "{BLOB}",
+    "cover_v": "INTEGER NOT NULL DEFAULT 0",
 }
 _USER_POST_LATER_COLUMNS = {
     "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
@@ -416,6 +418,12 @@ async def _migrate() -> None:
         if dm_cols is not None and "item_id" not in dm_cols:
             await conn.exec_driver_sql("ALTER TABLE dm_conversations ADD COLUMN item_id INTEGER")
             await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_dm_conversations_item_id ON dm_conversations (item_id)")
+        # Истории-репосты постов и подписи (таблица stories появилась раньше этих колонок)
+        st_cols = await conn.run_sync(lambda c: {x["name"] for x in inspect(c).get_columns("stories")}
+                                      if "stories" in inspect(c).get_table_names() else None)
+        for name, ddl in (("post_id", "INTEGER"), ("bg", "VARCHAR(20) NOT NULL DEFAULT ''"), ("caption", "VARCHAR(200) NOT NULL DEFAULT ''")):
+            if st_cols is not None and name not in st_cols:
+                await conn.exec_driver_sql(f"ALTER TABLE stories ADD COLUMN {name} {ddl}")
         # Статус «доставлено»: прочитанное раньше считаем доставленным
         for col in ("buyer_got", "seller_got"):
             if dm_cols is not None and col not in dm_cols:

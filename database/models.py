@@ -891,6 +891,9 @@ class AppUser(Base):
     sessions_reset_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     # Синяя галочка: платная верификация (3.99 €/мес) или аккаунт создателя (config.ADMIN_IDS / VERIFIED_EMAILS)
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+    # Обложка профиля (широкий баннер над аватаром): JPEG до 1500 px, версия — для кэша картинки
+    cover: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, deferred=True)
+    cover_v: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
     @validates("country")
     def _check_country(self, _key, value):
@@ -1235,14 +1238,18 @@ class MarketPhoto(Base):
 
 
 class Story(Base):
-    """История на 24 часа: фото или видео во весь экран (9:16). Файл лежит на диске сервера (utils.media)."""
+    """История на 24 часа во весь экран (9:16): фото или видео (файл на диске сервера, utils.media)
+    или репост поста — карточка-наклейка поверх цветного фона."""
 
     __tablename__ = "stories"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, index=True)
-    kind: Mapped[str] = mapped_column(String(10), default="photo")   # photo | video
-    file: Mapped[str] = mapped_column(String(120), index=True)        # имя файла в папке media/stories
+    kind: Mapped[str] = mapped_column(String(10), default="photo")   # photo | video | post
+    file: Mapped[str] = mapped_column(String(120), default="", index=True)   # имя файла в media/stories (у репоста пусто)
+    post_id: Mapped[int | None] = mapped_column(Integer, nullable=True)       # репост: какой пост на наклейке
+    bg: Mapped[str] = mapped_column(String(20), default="", server_default="")  # фон репоста: ключ градиента
+    caption: Mapped[str] = mapped_column(String(200), default="", server_default="")   # подпись поверх истории
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
     )
