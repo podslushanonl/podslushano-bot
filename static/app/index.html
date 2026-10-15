@@ -8,10 +8,11 @@
     <link rel="apple-touch-icon" href="/app/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="podslushano" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="theme-color" content="#121212" />
-    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#F5F5F5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <style>html,body{background:#121212;color-scheme:dark}</style>
+    <style>html,body{background:#F5F5F5}@media (prefers-color-scheme: dark){html,body{background:#121212}}</style>
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
       /* These styles make the body full-height */
@@ -39,6 +40,6 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script src="/app/_expo/static/js/web/entry-1d90c7e33c199622040f1a65b1b6a98c.js" defer></script>
+  <script src="/app/_expo/static/js/web/entry-ba1c9c21def424b4190681a56ad8696b.js" defer></script>
 </body>
 </html>

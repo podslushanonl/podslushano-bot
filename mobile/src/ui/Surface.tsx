@@ -10,8 +10,8 @@ import { Txt } from './Text';
 
 /** Карточка на «бумаге» приложения. С onPress — нажимается. */
 export function Card({ children, style, onPress, pad = 16 }: { children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; pad?: number }) {
-  const { c } = useTheme();
-  const box: ViewStyle = { backgroundColor: c.bgElevated, borderRadius: radius.xl, padding: pad, gap: 10, borderWidth: HAIRLINE, borderColor: c.line };
+  const { c, shadow } = useTheme();
+  const box: ViewStyle = { backgroundColor: c.bgElevated, borderRadius: radius.xl, padding: pad, gap: 10, borderWidth: HAIRLINE, borderColor: c.line, ...shadow };
   if (!onPress) return <View style={[box, style]}>{children}</View>;
   return <Tap onPress={onPress} scaleTo={0.985} style={[box, style]}>{children}</Tap>;
 }
@@ -57,11 +57,11 @@ export function Badge({ n }: { n: number }) {
 
 /** Сгруппированный список строк (как в «Настройках» iOS). */
 export function Group({ children, title, style }: { children: ReactNode; title?: string; style?: StyleProp<ViewStyle> }) {
-  const { c } = useTheme();
+  const { c, shadow } = useTheme();
   return (
     <View style={[{ gap: 8 }, style]}>
       {title ? <Txt v="overline" style={{ marginLeft: 6 }}>{title}</Txt> : null}
-      <View style={{ backgroundColor: c.bgElevated, borderRadius: radius.l, borderWidth: HAIRLINE, borderColor: c.line, overflow: 'hidden' }}>{children}</View>
+      <View style={{ backgroundColor: c.bgElevated, borderRadius: radius.l, borderWidth: HAIRLINE, borderColor: c.line, overflow: 'hidden', ...shadow }}>{children}</View>
     </View>
   );
 }

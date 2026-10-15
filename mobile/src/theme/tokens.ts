@@ -2,16 +2,17 @@
 // Liquid Glass: основная поверхность — светлое стекло поверх живого контента, акцент — фирменный оранжевый.
 
 export const palette = {
+  // Светлая тема: светло-серый фон, белые карточки с мягкой рамкой #E0E0E0, глубокий тёмный текст
   light: {
-    bg: '#F2F3F5',
+    bg: '#F5F5F5',
     bgElevated: '#FFFFFF',
-    bgSunken: '#E9EBEF',
-    ink: '#0B0D12',
-    text: '#2B313B',
-    muted: '#5F6672',
-    faint: '#9AA0AA',
-    line: 'rgba(11,13,18,0.08)',
-    lineStrong: 'rgba(11,13,18,0.14)',
+    bgSunken: '#EFEFEF',
+    ink: '#1A1A1A',
+    text: '#2B2B2B',
+    muted: '#666666',
+    faint: '#9A9A9A',
+    line: '#E0E0E0',
+    lineStrong: '#CFCFCF',
     accent: '#FF5A1F',
     accentSoft: '#FFE9DF',
     onAccent: '#0B0D12',
@@ -26,19 +27,19 @@ export const palette = {
     glassEdge: 'rgba(11,13,18,0.08)',
     glassShadow: 'rgba(17,24,39,0.16)',
     scrim: 'rgba(11,13,18,0.38)',
-    inverse: '#0B0D12',
+    inverse: '#1A1A1A',
     onInverse: '#FFFFFF',
-    onInverseMuted: '#C4C9D2',
-    placeholder: '#DCE0E6',
-    // тёмные «витринные» карточки (Сейчас, Сэкономить, ваш город) — тёмные в обеих темах
-    hero: '#0B0D12',
-    heroInner: '#1C2029',
-    heroInner2: '#2A2F3A',
-    onHero: '#FFFFFF',
-    onHeroMuted: '#C4C9D2',
-    segTrack: '#E6E8EC',
+    onInverseMuted: '#C4C4C4',
+    placeholder: '#E8E8E8',
+    // «витринные» карточки (Сейчас, Сэкономить, вход) — в светлой теме тоже светлые, без контрастных чёрных плашек
+    hero: '#FFFFFF',
+    heroInner: '#F5F5F5',
+    heroInner2: '#EBEBEB',
+    onHero: '#1A1A1A',
+    onHeroMuted: '#666666',
+    segTrack: '#EBEBEB',
     segOn: '#FFFFFF',
-    iconOff: '#8A9099',
+    iconOff: '#8E8E8E',   // неактивные вкладки нижнего меню
   },
   dark: {
     // Слои как в Threads: графитовый фон, карточки на тон светлее, тонкая рамка #2E2E2E — без «мёртвого» чёрного
