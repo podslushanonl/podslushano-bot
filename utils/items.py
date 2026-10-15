@@ -14,6 +14,7 @@ POST /api/app/items/{kind}/{key}/share             — {title, url, img, text} �
 from __future__ import annotations
 
 import re
+from urllib.parse import urlsplit
 
 from aiohttp import web
 from sqlalchemy import func, select
@@ -23,7 +24,7 @@ from database.db import get_session
 from database.models import ItemComment, ItemLike, UserPost
 from utils import feed
 from utils.app_api import _user
-from utils.community import POST_MAX, _rate, can_write, check_text
+from utils.community import OWN_HOSTS, POST_MAX, _rate, can_write, check_text
 from utils.market import _read_json
 from utils.site_api import _err, _json
 
@@ -37,9 +38,16 @@ def _target(request: web.Request) -> tuple[str, str] | None:
     return (kind, key) if kind in KINDS and _KEY.match(key) else None
 
 
-def _http_url(v) -> str:
+def _own_url(v) -> str:
+    """Ссылка и картинка превью — только с нашего сайта: клиент не может подложить фишинг или трекер."""
     v = str(v or "").strip()[:700]
-    return v if v.startswith(("https://", "http://")) else ""
+    try:
+        u = urlsplit(v)
+    except ValueError:
+        return ""
+    host = (u.hostname or "").lower()
+    ok = u.scheme == "https" and any(host == h or host.endswith("." + h) for h in OWN_HOSTS)
+    return v if ok else ""
 
 
 async def stats(request: web.Request) -> web.Response:
@@ -169,6 +177,9 @@ async def share(request: web.Request) -> web.Response:
         if await session.scalar(select(UserPost.id).where(
                 UserPost.user_id == me.id, UserPost.share_kind == kind, UserPost.share_key == key, UserPost.deleted.is_(False))):
             return _err(request, "Вы уже поделились этим.", 409)
+        reason = check_text(me, title, 300)
+        if reason:
+            return _err(request, reason)
         text = str(data.get("text") or "").strip()
         if text:
             reason = check_text(me, text, POST_MAX)
@@ -177,7 +188,8 @@ async def share(request: web.Request) -> web.Response:
         if _rate(f"repost:{me.id}", 20, 86400):
             return _err(request, "Слишком много репостов за день. Попробуйте завтра.", 429)
         p = UserPost(user_id=me.id, text=text, city=me.city or "", country=me.country, share_kind=kind, share_key=key,
-                     share_title=title, share_url=_http_url(data.get("url")), share_img=_http_url(data.get("img")))
+                     share_title=title, share_url=_own_url(data.get("url")) if kind == "news" else "",
+                     share_img=_own_url(data.get("img")))
         session.add(p)
         await session.commit()
         item = (await feed.posts_json(session, [p], me))[0]

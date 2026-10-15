@@ -268,10 +268,15 @@ class FeedBase:
         await self.post(base + "/like", 2)
         await self.post(base + "/like", 2)                                          # повтор не удваивает
         self.assertEqual((await self.post(base + "/comments", 2, {"text": "Полезная новость"}))[0], 200)
-        st, d = await self.post(base + "/share", 3, {"title": "Новые правила аренды", "url": "https://podslushano.nl/n42",
+        st, d = await self.post(base + "/share", 3, {"title": "Новые правила аренды", "url": "https://www.podslushano.nl/n42",
                                                      "img": "javascript:alert(1)", "text": "Важно!"})
-        self.assertEqual((st, d["post"]["share"]["title"], d["post"]["share"]["img"], d["post"]["text"]),
-                         (200, "Новые правила аренды", "", "Важно!"))       # не-http картинка отброшена
+        self.assertEqual((st, d["post"]["share"]["title"], d["post"]["share"]["url"], d["post"]["share"]["img"], d["post"]["text"]),
+                         (200, "Новые правила аренды", "https://www.podslushano.nl/n42", "", "Важно!"))  # не-http картинка отброшена
+        st, d = await self.post("/api/app/items/news/n-43/share", 3, {"title": "Новость", "url": "https://podslushano.nl.evil.com/x",
+                                                                      "img": "https://tracker.example/p.gif"})
+        self.assertEqual((st, d["post"]["share"]["url"], d["post"]["share"]["img"]), (200, "", ""))   # чужие ссылки — нет
+        self.assertEqual((await self.post("/api/app/items/event/ev9/share", 3, {"title": "Концерт", "url": "https://podslushano.nl/e"}))[1]
+                         ["post"]["share"]["url"], "")                                              # событие открывается в приложении
         self.assertEqual((await self.post(base + "/share", 3, {"title": "x"}))[0], 409)
         stats = (await self.get("/api/app/items/stats?keys=news:n-42,event:ev1,bad:x", 3))[1]["stats"]
         self.assertEqual(stats["news:n-42"], {"likes": 2, "liked": False, "comments": 1, "shares": 1, "shared": True})
@@ -283,7 +288,7 @@ class FeedBase:
         self.assertEqual((await self.get(base + "/comments"))[1]["comments"], [])   # 3 жалобы — скрыт
         self.assertEqual((await self.c.post("/api/app/items/video/x/like", headers=self.h(1))).status, 404)
         wall = (await self.get("/api/app/user/3/posts", 1))[1]["posts"]
-        self.assertEqual(wall[0]["share"]["kind"], "news")
+        self.assertEqual([p["share"]["key"] for p in wall], ["ev9", "n-43", "n-42"])
 
     async def test_old_posts_table_gets_new_columns(self):
         async with self.engine.begin() as c:

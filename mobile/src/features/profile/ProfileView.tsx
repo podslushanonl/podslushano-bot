@@ -141,9 +141,16 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
     </View>
   );
 
+  const more = wall.hasNextPage
+    ? <Button title="Показать ещё" kind="secondary" size="s" loading={wall.isFetchingNextPage} onPress={() => wall.fetchNextPage()} /> : null;
   const body = !me ? null : wall.isLoading ? (
     <View style={{ gap: 18, paddingTop: 16 }}>{[0, 1].map((i) => <View key={i} style={{ gap: 10 }}><Skeleton w="60%" /><Skeleton h={120} r={16} /></View>)}</View>
-  ) : tab === 'photos' ? <View style={{ paddingTop: 2 }}><PhotoGrid posts={posts} /></View> : posts.length ? (
+  ) : tab === 'photos' ? (
+    <View style={{ paddingTop: 2, gap: 12 }}>
+      <PhotoGrid posts={posts} />
+      {more}
+    </View>
+  ) : posts.length ? (
     <View>
       {posts.map((x, i) => (
         <View key={x.id}>
@@ -151,7 +158,7 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
           <FeedPost p={x} onMenu={() => openMenu(x)} />
         </View>
       ))}
-      {wall.hasNextPage ? <Button title="Показать ещё" kind="secondary" size="s" loading={wall.isFetchingNextPage} onPress={() => wall.fetchNextPage()} /> : null}
+      {more}
     </View>
   ) : (
     <Empty icon="text" title={own ? 'Здесь будут ваши публикации' : 'Пока нет публикаций'}

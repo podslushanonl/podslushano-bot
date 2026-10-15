@@ -42,15 +42,12 @@ export const usePost = (id: number) => useQuery({
   queryFn: () => api<{ post: Post; comments: Comment[] }>(`/api/app/posts/${id}`),
 });
 
-/** Пост изменился (лайк, комментарий): правим его во всех загруженных лентах, профилях и на экране поста. */
+/** Пост изменился (лайк, комментарий): правим его во всех загруженных лентах, на стенах (['feed','wall',…]) и на экране поста. */
 export function patchPost(id: number, fn: (p: Post) => Post) {
   queryClient.setQueriesData<InfiniteData<Page>>({ queryKey: ['feed'] }, (d) => d && {
     ...d, pages: d.pages.map((pg) => ({ ...pg, posts: pg.posts.map((p) => (p.id === id ? fn(p) : p)) })),
   });
   queryClient.setQueryData<{ post: Post; comments: Comment[] }>(['post', id], (d) => d && { ...d, post: fn(d.post) });
-  queryClient.setQueriesData<any>({ queryKey: ['me', 'user'] }, (d: any) => d?.posts && {
-    ...d, posts: d.posts.map((p: Post) => (p.id === id ? fn(p) : p)),
-  });
 }
 
 export const feedChanged = () => {
