@@ -67,8 +67,9 @@ function Dots({ n, at }: { n: number; at: number }) {
 }
 
 /** Ряд действий: слева сердце, комментарий, самолётик; справа закладка. */
-export function ActionRow({ liked, onLike, onComment, onShare, saved, onSave, dots }: {
-  liked: boolean; onLike: () => void; onComment: () => void; onShare?: () => void; saved?: boolean; onSave?: () => void; dots?: ReactNode;
+export function ActionRow({ liked, onLike, onComment, onShare, onRepost, reposted, saved, onSave, dots }: {
+  liked: boolean; onLike: () => void; onComment: () => void; onShare?: () => void; onRepost?: () => void; reposted?: boolean;
+  saved?: boolean; onSave?: () => void; dots?: ReactNode;
 }) {
   const { c } = useTheme();
   return (
@@ -76,6 +77,11 @@ export function ActionRow({ liked, onLike, onComment, onShare, saved, onSave, do
       {dots}
       <RowBtn label={liked ? 'Убрать лайк' : 'Нравится'} onPress={onLike} selected={liked}><Heart on={liked} /></RowBtn>
       <RowBtn label="Комментарии" onPress={onComment}><Icon name="bubble" size={25} color={c.ink} /></RowBtn>
+      {onRepost ? (
+        <RowBtn label={reposted ? 'Вы сделали репост' : 'Репост'} onPress={onRepost} selected={reposted}>
+          <Icon name="repost" size={25} color={reposted ? c.success : c.ink} />
+        </RowBtn>
+      ) : null}
       {onShare ? <RowBtn label="Поделиться" onPress={onShare}><Icon name="paperplane" size={24} color={c.ink} /></RowBtn> : null}
       <View style={{ flex: 1 }} />
       {onSave ? (
@@ -107,7 +113,7 @@ export function ActionBar({ likes, liked, comments, reposts, reposted, onLike, o
     reposts ? `${reposts} ${plural(reposts, ['репост', 'репоста', 'репостов'])}` : ''].filter(Boolean).join(' · ');
   return (
     <View style={{ marginHorizontal: -PAD, gap: 2 }}>
-      <ActionRow liked={liked} onLike={onLike} onComment={onComment} onShare={onShare || onRepost} saved={reposted} />
+      <ActionRow liked={liked} onLike={onLike} onComment={onComment} onShare={onShare} onRepost={onRepost} reposted={reposted} />
       <Likes n={likes} extra={extra} />
     </View>
   );
