@@ -150,7 +150,7 @@ def _item(m, users: dict[int, AppUser], me: AppUser | None, extra: dict | None =
     a = users.get(m.user_id)
     d = {"id": m.id, "text": m.text, "at": m.created_at.strftime("%Y-%m-%dT%H:%M:%SZ"),
          "author": {"id": m.user_id, "name": (a.name if a else "") or "Участник", "city": a.city if a else "",
-                    "verified": bool(a and a.is_verified)},
+                    "verified": bool(a and a.is_verified), "username": (a.username if a else "") or ""},
          "mine": bool(me and me.id == m.user_id)}
     return d | (extra or {})
 

@@ -6,30 +6,28 @@ import { removeOwn, report, routeForError } from '@/api/community';
 import { addComment, Comment, patchPost, usePost } from '@/api/feed';
 import { queryClient } from '@/api/query';
 import { Composer } from '@/features/chat/ChatUI';
-import { timeLabel } from '@/features/feed/cards';
+import { relTime } from '@/lib/format';
 import { FeedPost } from '@/features/feed/FeedItems';
 import { usePostMenu } from '@/features/feed/usePostMenu';
-import { radius, useTheme } from '@/theme';
-import { ActionSheet, Avatar, Empty, PageScreen, Skeleton, Tap, Txt, useToast, VerifiedBadge } from '@/ui';
+import { ActionSheet, Empty, handle, PageScreen, Skeleton, Tap, Txt, useToast, UserAvatar, VerifiedBadge } from '@/ui';
 
+/** Комментарий как в Instagram: аватар, @username с галочкой и время, ниже текст — без «пузыря». */
 function CommentRow({ c: cm, onLong }: { c: Comment; onLong: () => void }) {
-  const { c } = useTheme();
   return (
-    <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
+    <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start' }}>
       <Tap onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(cm.author.id) } })} scaleTo={0.92}
-        accessibilityLabel={`Профиль: ${cm.author.name}`}>
-        <Avatar name={cm.author.name} id={cm.author.id} uri={cm.author.avatar} size={34} />
+        accessibilityLabel={`Профиль: ${handle(cm.author)}`}>
+        <UserAvatar u={cm.author} size={34} />
       </Tap>
-      <Tap onLongPress={onLong} scaleTo={0.99} accessibilityHint="Удерживайте для действий"
-        style={{ flex: 1, backgroundColor: c.bgElevated, borderRadius: radius.l, borderTopLeftRadius: 6, padding: 12, gap: 3, borderWidth: 1, borderColor: c.line }}>
-        <View style={{ flexDirection: 'row', gap: 8, alignItems: 'baseline' }}>
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-            <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold', flexShrink: 1 }} numberOfLines={1}>{cm.author.name}</Txt>
-            {cm.author.verified ? <VerifiedBadge size={13} /> : null}
+      <Tap onLongPress={onLong} scaleTo={0.99} haptic={false} accessibilityHint="Удерживайте для действий" style={{ flex: 1, gap: 3 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 1 }}>
+            <Txt v="footnote" tone="ink" numberOfLines={1} style={{ fontFamily: 'Onest_700Bold', flexShrink: 1 }}>{handle(cm.author)}</Txt>
+            {cm.author.verified ? <VerifiedBadge size={12} /> : null}
           </View>
-          <Txt v="caption">{timeLabel(cm.at)}</Txt>
+          <Txt v="caption" tone="muted">{relTime(cm.at)}</Txt>
         </View>
-        <Txt v="callout" tone="ink" selectable>{cm.text}</Txt>
+        <Txt v="subhead" tone="ink" selectable style={{ lineHeight: 20 }}>{cm.text}</Txt>
       </Tap>
     </View>
   );
@@ -68,9 +66,9 @@ export default function PostScreen() {
           <Empty icon="bubble" title="Пост удалён или недоступен" />
         ) : (
           <>
-            <FeedPost p={q.data.post} full onMenu={() => openMenu(q.data!.post)} />
+            <View style={{ marginHorizontal: -20 }}><FeedPost p={q.data.post} full onMenu={() => openMenu(q.data!.post)} /></View>
             <Txt v="overline" style={{ marginLeft: 6 }}>{q.data.comments.length ? `Комментарии · ${q.data.comments.length}` : 'Комментариев пока нет'}</Txt>
-            <View style={{ gap: 10 }}>
+            <View style={{ gap: 18 }}>
               {q.data.comments.map((cm) => <CommentRow key={cm.id} c={cm} onLong={() => (user ? setSheet(cm) : router.push('/login'))} />)}
             </View>
           </>

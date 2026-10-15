@@ -72,7 +72,8 @@ async def _friend_ids(session, uid: int) -> set[int]:
 
 def _author(u: AppUser | None, uid: int) -> dict:
     return {"id": uid, "name": (u.name if u else "") or "Участник", "city": (u.city if u else "") or "",
-            "avatar": social.avatar_url(u) if u else "", "verified": bool(u and u.is_verified)}
+            "avatar": social.avatar_url(u) if u else "", "verified": bool(u and u.is_verified),
+            "username": (u.username if u else "") or ""}
 
 
 def _share(p: UserPost) -> dict | None:

@@ -155,11 +155,13 @@ export default function Home() {
               if (r.el === 'news') return <FeedNews key={r.k} n={r.data} stats={statsOf(stats.data, itemId('news', r.data.id))} />;
               if (r.el === 'post') return <FeedPost key={r.k} p={r.data} onMenu={() => openMenu(r.data)} />;
               if (r.el === 'event') return <FeedEvent key={r.k} e={r.data} stats={statsOf(stats.data, itemId('event', r.data.key))} />;
-              if (r.el === 'job') return <JobCard key={r.k} j={r.data} />;
-              return <SaveCard key={r.k} />;
+              if (r.el === 'job') return <View key={r.k} style={{ paddingHorizontal: 20, paddingVertical: 8 }}><JobCard j={r.data} /></View>;
+              return <View key={r.k} style={{ paddingHorizontal: 20, paddingVertical: 8 }}><SaveCard /></View>;
             })}
             {filter !== 'news' && posts.hasNextPage ? (
-              <Button title="Показать ещё" kind="secondary" loading={posts.isFetchingNextPage} onPress={() => posts.fetchNextPage()} />
+              <View style={{ paddingHorizontal: 20 }}>
+                <Button title="Показать ещё" kind="secondary" loading={posts.isFetchingNextPage} onPress={() => posts.fetchNextPage()} />
+              </View>
             ) : null}
           </FeedList>
         ) : (

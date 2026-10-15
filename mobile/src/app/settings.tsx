@@ -84,6 +84,7 @@ export default function Settings() {
               <Txt v="title3" numberOfLines={1} style={{ flexShrink: 1 }}>{user.name || 'Без имени'}</Txt>
               {user.verified ? <VerifiedBadge size={18} /> : null}
             </View>
+            {user.username ? <Txt v="subhead" tone="ink" numberOfLines={1}>@{user.username}</Txt> : null}
             <Txt v="footnote" tone="muted" numberOfLines={1}>{user.phone ? prettyPhone(user.phone) : user.email || 'Фото, имя, статус'}</Txt>
           </View>
           <Txt v="subhead" tone="accent" style={{ fontFamily: 'Onest_600SemiBold' }}>Изменить</Txt>
@@ -125,11 +126,13 @@ export default function Settings() {
       {user ? (
         <Group title="Мои разделы">
           <Row first title="Мои объявления" sub={active ? `Активных: ${active}` : 'Барахолка'} icon="market" onPress={() => router.push('/market/my')} />
-          {favorites.filter((f) => f.kind !== 'listing').slice(0, 6).map((f) => (
-            <Row key={f.kind + f.key} title={f.title || f.key} sub={f.kind === 'item' ? 'Избранное · Барахолка' : 'Избранное · Афиша'}
-              icon={f.kind === 'item' ? 'heart' : 'ticket'}
+          {favorites.filter((f) => f.kind !== 'listing').slice(0, 8).map((f) => (
+            <Row key={f.kind + f.key} title={f.title || f.key}
+              sub={f.kind === 'item' ? 'Избранное · Барахолка' : f.kind === 'post' ? 'Закладки · Публикация' : 'Избранное · Афиша'}
+              icon={f.kind === 'item' ? 'heart' : f.kind === 'post' ? 'bookmark' : 'ticket'}
               onPress={() => (f.kind === 'item'
                 ? router.push({ pathname: '/market/[id]', params: { id: f.key } })
+                : f.kind === 'post' ? router.push({ pathname: '/post/[id]', params: { id: f.key } })
                 : router.push({ pathname: '/event/[key]', params: { key: f.key } }))} />
           ))}
         </Group>

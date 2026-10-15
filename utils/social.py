@@ -118,7 +118,7 @@ def presence(u: AppUser | None) -> dict:
 
 def card(u: AppUser, rel: str | None = None) -> dict:
     d = {"id": u.id, "name": u.name or "Участник", "city": u.city or "", "country": u.country.value,
-         "avatar": avatar_url(u), "bio": u.bio or "", "verified": bool(u.is_verified),
+         "avatar": avatar_url(u), "bio": u.bio or "", "verified": bool(u.is_verified), "username": u.username or "",
          "cover": f"/api/app/user/{u.id}/cover?v={u.cover_v}" if u.cover_v else ""}
     return d | ({"relation": rel} if rel is not None else {})
 

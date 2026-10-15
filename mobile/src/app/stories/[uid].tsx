@@ -13,7 +13,7 @@ import { deleteStory, reactStory, StoryItem, storyGradient, useStories } from '@
 import { timeLabel } from '@/features/feed/cards';
 import { PostSticker } from '@/features/stories/PostSticker';
 import { seenStories } from '@/features/stories/seen';
-import { Avatar, IconButton, Img, Tap, Txt, useToast, VerifiedBadge } from '@/ui';
+import { handle, IconButton, Img, Tap, Txt, UserAvatar, useToast, VerifiedBadge } from '@/ui';
 
 const PHOTO_MS = 5000;
 
@@ -116,8 +116,8 @@ export default function StoryViewer() {
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Tap onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(group.user.id) } })} scaleTo={0.95}
-              style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }} accessibilityLabel={`Профиль: ${group.user.name}`}>
-              <Avatar name={group.user.name} id={group.user.id} uri={group.user.avatar} size={34} />
+              style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }} accessibilityLabel={`Профиль: ${handle(group.user)}`}>
+              <UserAvatar u={group.user} size={34} />
               <Txt v="subhead" color="#FFFFFF" style={{ fontFamily: 'Onest_700Bold', flexShrink: 1 }} numberOfLines={1}>{group.mine ? 'Ваша история' : group.user.name}</Txt>
               {group.user.verified ? <VerifiedBadge size={14} /> : null}
               <Txt v="caption" color="rgba(255,255,255,0.7)">{timeLabel(story.at)}</Txt>

@@ -5,7 +5,7 @@ import type { IconName } from '@/ui/Icon';
 import { queryClient } from './query';
 
 export type Category = { key: string; title: string; hint: string };
-export type Seller = { id: number; name: string; city: string; avatar: string; since: string; verified?: boolean };
+export type Seller = { id: number; name: string; city: string; avatar: string; since: string; verified?: boolean; username?: string };
 export type Listing = {
   id: number; cat: string; cat_title: string; title: string;
   /** Цена для показа: «€450», «Бесплатно», «Договорная»; price_value — число евро или null. */

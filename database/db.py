@@ -6,6 +6,7 @@ from sqlalchemy import func, inspect, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 import config
+from database import usernames
 from database.models import AppUser, Base, Meta, Specialist
 
 # Движок и фабрика сессий — создаются один раз на всё приложение
@@ -116,6 +117,7 @@ _APP_USER_LATER_COLUMNS = {
     "is_verified": "BOOLEAN NOT NULL DEFAULT FALSE",
     "cover": "{BLOB}",
     "cover_v": "INTEGER NOT NULL DEFAULT 0",
+    "username": "VARCHAR(30)",
 }
 _USER_POST_LATER_COLUMNS = {
     "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
@@ -390,6 +392,9 @@ async def _migrate() -> None:
             await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_app_users_country ON app_users (country)")
             # Вход по телефону: номер уникален (NULL у аккаунтов без телефона не мешает)
             await conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_app_users_phone ON app_users (phone)")
+            # @username уникален; всем аккаунтам без него — автоматический (имя латиницей, почта или user{id})
+            await conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_app_users_username ON app_users (username)")
+            await usernames.backfill(conn)
             # Синяя галочка создателю: аккаунт, привязанный к Telegram ID из ADMIN_IDS, или почта из VERIFIED_EMAILS
             ids = [int(x) for x in config.ADMIN_IDS]
             emails = [e.strip().lower() for e in os.getenv("VERIFIED_EMAILS", OWNER_EMAILS).split(",") if e.strip()]

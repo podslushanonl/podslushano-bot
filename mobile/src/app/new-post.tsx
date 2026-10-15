@@ -13,7 +13,7 @@ import { PostPhotos } from '@/features/feed/FeedItems';
 import { timeLabel } from '@/features/feed/cards';
 import { useCountry } from '@/lib/useCity';
 import { HAIRLINE, radius, type as T, useTheme } from '@/theme';
-import { Avatar, BAR_H, Icon, IconButton, Img, Tap, TopBar, Txt, useScrollY, useToast } from '@/ui';
+import { Avatar, BAR_H, handle, Icon, IconButton, Img, Tap, TopBar, Txt, UserAvatar, useScrollY, useToast } from '@/ui';
 
 type Photo = { key: string; preview: string; payload: string };
 const MAX_TEXT = 2000;
@@ -119,8 +119,8 @@ export default function NewPost() {
               shown ? (
                 <View style={{ borderRadius: 8, backgroundColor: c.bgSunken, padding: 12, gap: 8 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Avatar name={shown.author.name} id={shown.author.id} uri={shown.author.avatar} size={26} />
-                    <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold', flex: 1 }}>{shown.author.name}</Txt>
+                    <UserAvatar u={shown.author} size={26} />
+                    <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold', flex: 1 }}>{handle(shown.author)}</Txt>
                     <Txt v="caption">{timeLabel(shown.at)}</Txt>
                   </View>
                   {shown.text ? <Txt v="callout" tone="ink" numberOfLines={5}>{shown.text}</Txt> : null}

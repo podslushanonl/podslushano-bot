@@ -52,7 +52,7 @@ export function StoriesRow() {
           <Ring on={g.items.some((s) => !seenStories.has(s.id))}>
             <Avatar name={g.user.name} id={g.user.id} uri={g.user.avatar} size={SIZE} />
           </Ring>
-          <Txt v="caption" tone="ink" numberOfLines={1}>{g.user.name.split(' ')[0]}</Txt>
+          <Txt v="caption" tone="ink" numberOfLines={1}>{g.user.username || g.user.name.split(' ')[0]}</Txt>
         </Tap>
       ))}
     </ScrollView>

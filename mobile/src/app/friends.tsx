@@ -6,20 +6,20 @@ import { routeForError } from '@/api/community';
 import { acceptFriend, addFriend, Person, removeFriend, startChat, unblockPerson, useFriends, useSearchPeople } from '@/api/social';
 import { COUNTRIES } from '@/lib/countries';
 import { useTheme } from '@/theme';
-import { Avatar, Button, ChipRow, Empty, Field, Group, Icon, IconButton, PageScreen, Skeleton, Tap, Txt, useToast, VerifiedBadge } from '@/ui';
+import { Button, ChipRow, Empty, Field, Group, handle, Icon, IconButton, PageScreen, Skeleton, Tap, Txt, UserAvatar, useToast, VerifiedBadge } from '@/ui';
 
 function PersonRow({ p, first, right }: { p: Person; first: boolean; right?: React.ReactNode }) {
   const { c } = useTheme();
   return (
     <Tap onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(p.id) } })} scaleTo={0.99}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: first ? 0 : 1, borderTopColor: c.line }}>
-      <Avatar name={p.name} id={p.id} uri={p.avatar} size={46} />
+      <UserAvatar u={p} size={46} />
       <View style={{ flex: 1, gap: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-          <Txt v="headline" numberOfLines={1} style={{ flexShrink: 1 }}>{p.name}</Txt>
+          <Txt v="headline" numberOfLines={1} style={{ flexShrink: 1 }}>{handle(p)}</Txt>
           {p.verified ? <VerifiedBadge size={15} /> : null}
         </View>
-        <Txt v="footnote" numberOfLines={1}>{[p.city, p.country].filter(Boolean).join(', ')}</Txt>
+        <Txt v="footnote" numberOfLines={1}>{[p.username ? p.name : '', p.city].filter(Boolean).join(' · ') || p.country}</Txt>
       </View>
       {right}
     </Tap>
@@ -89,7 +89,7 @@ export default function Friends() {
           {d.friends.length ? (
             <Group title={`Друзья · ${d.friends.length}`}>
               {d.friends.map((p, i) => (
-                <PersonRow key={p.id} p={p} first={i === 0} right={<IconButton icon="bubble" label={`Написать: ${p.name}`} kind="plain" onPress={() => write(p.id)} />} />
+                <PersonRow key={p.id} p={p} first={i === 0} right={<IconButton icon="bubble" label={`Написать: ${handle(p)}`} kind="plain" onPress={() => write(p.id)} />} />
               ))}
             </Group>
           ) : (

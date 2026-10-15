@@ -9,7 +9,7 @@ import { timeLabel } from '@/features/feed/cards';
 import { useFriends } from '@/api/social';
 import { useCity, useCountry } from '@/lib/useCity';
 import { HAIRLINE, radius, useTheme } from '@/theme';
-import { Avatar, Badge, Button, Empty, Icon, IconButton, IconName, Img, Skeleton, TabScreen, Tap, Txt, VerifiedBadge } from '@/ui';
+import { Badge, Button, Empty, handle, Icon, IconButton, IconName, Img, Skeleton, TabScreen, Tap, Txt, UserAvatar, VerifiedBadge } from '@/ui';
 import { Ticks } from '@/features/chat/ChatUI';
 
 /** Строка диалога как в VK: аватар с точкой «в сети», имя с галочкой, время, последнее сообщение со статусом. */
@@ -18,10 +18,10 @@ function ConversationRow({ cv }: { cv: Conversation }) {
   const last = cv.last;
   return (
     <Tap onPress={() => router.push({ pathname: '/dm/[id]', params: { id: String(cv.id) } })} scaleTo={0.985}
-      accessibilityLabel={`${cv.peer.name}${cv.unread ? `, непрочитанных: ${cv.unread}` : ''}`}
+      accessibilityLabel={`${handle(cv.peer)}${cv.unread ? `, непрочитанных: ${cv.unread}` : ''}`}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9 }}>
       <View>
-        <Avatar name={cv.peer.name} id={cv.peer.id} uri={cv.peer.avatar} size={56} />
+        <UserAvatar u={cv.peer} size={56} />
         {cv.peer.online ? <View style={{ position: 'absolute', right: 1, bottom: 1, width: 15, height: 15, borderRadius: 8, backgroundColor: ONLINE,
           borderWidth: 2.5, borderColor: c.bg }} /> : null}
         {cv.listing?.photo ? <Img source={photoUrl(cv.listing)} style={{ position: 'absolute', left: -3, bottom: -3, width: 24, height: 24, borderRadius: 7, borderWidth: 2, borderColor: c.bg }} /> : null}
@@ -29,7 +29,7 @@ function ConversationRow({ cv }: { cv: Conversation }) {
       <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
           <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 }}>
-            <Txt v="headline" numberOfLines={1} style={{ flexShrink: 1 }}>{cv.peer.name}</Txt>
+            <Txt v="headline" numberOfLines={1} style={{ flexShrink: 1 }}>{handle(cv.peer)}</Txt>
             {cv.peer.verified ? <VerifiedBadge size={15} /> : null}
           </View>
           {last?.mine ? <Ticks status={last.status} color={c.faint} readColor={c.accent} size={13} /> : null}

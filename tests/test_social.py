@@ -421,6 +421,8 @@ class LegacyMigrationTests(unittest.IsolatedAsyncioTestCase):
         sessions = async_sessionmaker(engine, expire_on_commit=False)
         async with sessions() as s:
             self.assertEqual((await s.get(AppUser, 1)).country, Country.NL)
+            # Старым аккаунтам юзернейм выдан при запуске: имя латиницей
+            self.assertEqual([(await s.get(AppUser, i)).username for i in (1, 2)], ["anna", "boris"])
             self.assertEqual((await s.get(ChatRoom, 1)).country, Country.NL)
             rows = list((await s.execute(select(Friendship))).scalars())
             self.assertEqual([(r.user_id, r.friend_id, r.status) for r in rows], [(1, 2, FriendStatus.BLOCKED)])
