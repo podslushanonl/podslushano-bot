@@ -1,6 +1,6 @@
 import { Image, ImageProps } from 'expo-image';
 import { ReactNode, useEffect } from 'react';
-import { StyleProp, View, ViewStyle } from 'react-native';
+import { Platform, StyleProp, View, ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { BOT } from '@/api/client';
 import { radius, useTheme } from '@/theme';
@@ -22,18 +22,25 @@ export function Img({ style, ...p }: ImageProps) {
   return <Image transition={180} contentFit="cover" {...p} style={[{ backgroundColor: c.placeholder }, style]} />;
 }
 
-const AV = [['#FFE3D6', '#8A2E0A'], ['#DDE7F7', '#1E3A8A'], ['#E3F1E7', '#14532D'], ['#F5E6F0', '#831843'], ['#EDE7FB', '#4C1D95'], ['#FDF2D6', '#78350F']];
+// Аватар без фото: глубокий градиент (графит или фирменный оранжевый) и тонкий силуэт по центру.
+const AV: [string, string][] = [['#5A5A62', '#1E1E23'], ['#FF9A5C', '#E2470E'], ['#4B4038', '#1A1714']];
+const gradient = ([a, b]: [string, string]): ViewStyle => (Platform.OS === 'web'
+  ? { backgroundImage: `linear-gradient(145deg, ${a} 0%, ${b} 100%)` } as any
+  : { experimental_backgroundImage: `linear-gradient(145deg, ${a} 0%, ${b} 100%)`, backgroundColor: b });
 
-/** Аватар: фото профиля, если есть (uri — путь сервера или полный адрес), иначе первая буква имени. */
+/** Аватар: фото профиля, если есть (uri — путь сервера или полный адрес), иначе градиентная заглушка. */
 export function Avatar({ name, size = 44, id = 0, uri }: { name: string; size?: number; id?: number; uri?: string }) {
-  const [bg, fg] = AV[Math.abs(id || name.length) % AV.length];
+  const g = AV[Math.abs(id || name.length) % AV.length];
   if (uri) {
     return <Image source={uri.startsWith('/') ? BOT + uri : uri} transition={150} contentFit="cover"
-      style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg }} accessibilityLabel={name} />;
+      style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: g[1] }} accessibilityLabel={name} />;
   }
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
-      <Txt v="headline" color={fg} style={{ fontSize: size * 0.4, lineHeight: size * 0.5 }}>{(name || '·').trim().slice(0, 1).toUpperCase()}</Txt>
+    <View accessibilityLabel={name} style={[{ width: size, height: size, borderRadius: size / 2, alignItems: 'center', justifyContent: 'center',
+      overflow: 'hidden' }, gradient(g)]}>
+      <View style={{ marginTop: size * 0.12 }}>
+        <Icon name="user" filled size={Math.round(size * 0.56)} color="rgba(255,255,255,0.86)" />
+      </View>
     </View>
   );
 }

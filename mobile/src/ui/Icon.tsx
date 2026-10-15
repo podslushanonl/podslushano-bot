@@ -1,3 +1,5 @@
+import { MaterialSymbols_300Light } from '@expo-google-fonts/material-symbols/300Light';
+import { MaterialSymbols_300Light_Filled } from '@expo-google-fonts/material-symbols/300Light_Filled';
 import { SymbolView } from 'expo-symbols';
 import type { ColorValue } from 'react-native';
 import { useTheme } from '@/theme';
@@ -8,6 +10,7 @@ const I = {
   market: ['bag', 'shopping_bag'], marketFill: ['bag.fill', 'shopping_bag'],
   chat: ['bubble.left.and.bubble.right', 'forum'], chatFill: ['bubble.left.and.bubble.right.fill', 'forum'],
   bubble: ['bubble.left', 'chat_bubble'],
+  user: ['person.fill', 'person'],
   person: ['person.crop.circle', 'account_circle'], personFill: ['person.crop.circle.fill', 'account_circle'],
   search: ['magnifyingglass', 'search'],
   bell: ['bell', 'notifications'],
@@ -63,8 +66,16 @@ const I = {
 
 export type IconName = keyof typeof I;
 
-export function Icon({ name, size = 22, color }: { name: IconName; size?: number; color?: ColorValue }) {
+// Тонкое начертание (линия ~1.5): на iPhone — SF Symbols Light, на Android и в браузере — Material Symbols 300.
+const LIGHT = { name: 'MaterialSymbols_300Light', font: MaterialSymbols_300Light };
+const LIGHT_FILLED = { name: 'MaterialSymbols_300Light_Filled', font: MaterialSymbols_300Light_Filled };
+
+/** thin — тонкая линия; filled — залитый вариант (для Material, где у иконки нет отдельного «.fill»). */
+export function Icon({ name, size = 22, color, thin, filled }: {
+  name: IconName; size?: number; color?: ColorValue; thin?: boolean; filled?: boolean;
+}) {
   const { c } = useTheme();
   const [ios, md] = I[name];
-  return <SymbolView name={{ ios, android: md, web: md } as any} size={size} tintColor={color ?? c.ink} />;
+  const weight = thin || filled ? { ios: 'light' as const, android: filled ? LIGHT_FILLED : LIGHT } as any : undefined;
+  return <SymbolView name={{ ios, android: md, web: md } as any} size={size} tintColor={color ?? c.ink} weight={weight} />;
 }
