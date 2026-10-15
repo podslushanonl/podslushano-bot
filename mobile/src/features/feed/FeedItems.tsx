@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useState } from 'react';
 import { View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useAuth } from '@/api/auth';
 import { routeForError } from '@/api/community';
 import { EventItem, News } from '@/api/content';
@@ -34,17 +35,36 @@ export function FeedSheet({ children }: { children: ReactNode }) {
   );
 }
 
-function ActionBtn({ icon, n, active, color, label, onPress }: {
-  icon: IconName; n?: number; active?: boolean; color?: string; label: string; onPress: () => void;
+function ActionBtn({ icon, n, active, color, label, onPress, children }: {
+  icon?: IconName; n?: number; active?: boolean; color?: string; label: string; onPress: () => void; children?: ReactNode;
 }) {
   const { c } = useTheme();
   const tint = active ? color || c.accentText : c.muted;
   return (
-    <Tap onPress={onPress} haptic="light" scaleTo={0.86} accessibilityLabel={label} accessibilityState={{ selected: !!active }}
-      hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 58, paddingVertical: 6 }}>
-      <Icon name={icon} size={20} color={tint} />
-      <Txt v="subhead" color={tint} style={{ fontFamily: 'Onest_600SemiBold', fontVariant: ['tabular-nums'] }}>{n ? n : ''}</Txt>
+    <Tap onPress={onPress} haptic="light" scaleTo={0.9} accessibilityLabel={label} accessibilityState={{ selected: !!active }}
+      hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 60, paddingVertical: 6 }}>
+      {children ?? (icon ? <Icon name={icon} thin size={22} color={tint} /> : null)}
+      <Txt v="subhead" color={tint} style={{ fontFamily: 'Onest_500Medium', fontVariant: ['tabular-nums'] }}>{n ? n : ''}</Txt>
     </Tap>
+  );
+}
+
+/** Сердце: тонкий контур; при лайке плавно заливается фирменным цветом и чуть «подпрыгивает». */
+function Heart({ on, color }: { on: boolean; color: string }) {
+  const { c } = useTheme();
+  const p = useSharedValue(on ? 1 : 0);
+  const k = useSharedValue(1);
+  useEffect(() => {
+    p.value = withTiming(on ? 1 : 0, { duration: 220 });
+    if (on) k.value = withSequence(withTiming(1.22, { duration: 110 }), withSpring(1, { damping: 9, stiffness: 260 }));
+  }, [on, p, k]);
+  const outline = useAnimatedStyle(() => ({ opacity: 1 - p.value }));
+  const fill = useAnimatedStyle(() => ({ opacity: p.value, transform: [{ scale: k.value }] }));
+  return (
+    <View style={{ width: 22, height: 22 }}>
+      <Animated.View style={[{ position: 'absolute' }, outline]}><Icon name="heart" thin size={22} color={c.muted} /></Animated.View>
+      <Animated.View style={[{ position: 'absolute' }, fill]}><Icon name="heartFill" filled size={22} color={color} /></Animated.View>
+    </View>
   );
 }
 
@@ -55,8 +75,10 @@ export function ActionBar({ likes, liked, comments, reposts, reposted, onLike, o
 }) {
   const { c } = useTheme();
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 4 }}>
-      <ActionBtn icon={liked ? 'heartFill' : 'heart'} n={likes} active={liked} color="#E5383B" label={liked ? 'Убрать лайк' : 'Нравится'} onPress={onLike} />
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 22, marginTop: 6 }}>
+      <ActionBtn n={likes} active={liked} color={c.accent} label={liked ? 'Убрать лайк' : 'Нравится'} onPress={onLike}>
+        <Heart on={liked} color={c.accent} />
+      </ActionBtn>
       <ActionBtn icon="bubble" n={comments} label="Комментарии" onPress={onComment} />
       {onRepost ? <ActionBtn icon="repost" n={reposts} active={reposted} color={c.success} label={reposted ? 'Вы сделали репост' : 'Репост'} onPress={onRepost} /> : null}
     </View>

@@ -17,12 +17,16 @@ const plural = (n: number, [one, few, many]: [string, string, string]) =>
   n % 10 === 1 && n % 100 !== 11 ? one : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? few : many;
 
 function Stat({ n, label, onPress }: { n: number; label: string; onPress?: () => void }) {
-  return (
-    <Tap onPress={onPress} disabled={!onPress} scaleTo={0.95} style={{ alignItems: 'flex-start', gap: 1 }} accessibilityLabel={`${n} ${label}`}>
-      <Txt v="title3" style={{ fontVariant: ['tabular-nums'] }}>{n}</Txt>
-      <Txt v="footnote">{label}</Txt>
-    </Tap>
+  const box = { flex: 1, alignItems: 'center', gap: 2, paddingVertical: 6 } as const;
+  const body = (
+    <>
+      <Txt v="title2" style={{ fontFamily: 'Onest_700Bold', fontVariant: ['tabular-nums'], letterSpacing: -0.3 }}>{n}</Txt>
+      <Txt v="footnote" tone="muted">{label}</Txt>
+    </>
   );
+  // Без onPress — обычный блок: «выключенная» кнопка выглядела бы бледной.
+  if (!onPress) return <View style={box} accessibilityLabel={`${n} ${label}`}>{body}</View>;
+  return <Tap onPress={onPress} scaleTo={0.95} style={box} accessibilityLabel={`${n} ${label}`}>{body}</Tap>;
 }
 
 function Tabs({ value, onChange }: { value: 'posts' | 'photos'; onChange: (v: 'posts' | 'photos') => void }) {
@@ -120,8 +124,9 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
         <View style={{ padding: 3, borderRadius: 60, borderWidth: 2, borderColor: c.accent }}>
           <Avatar name={u?.name || '·'} id={userId} uri={u?.avatar} size={92} />
         </View>
-        <View style={{ flex: 1, flexDirection: 'row', justifyContent: 'space-around' }}>
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
           <Stat n={p?.posts ?? posts.length} label={plural(p?.posts ?? posts.length, ['публикация', 'публикации', 'публикаций'])} onPress={() => setTab('posts')} />
+          <View style={{ width: 1, height: 30, backgroundColor: c.line }} />
           <Stat n={p?.friends ?? 0} label={plural(p?.friends ?? 0, ['друг', 'друга', 'друзей'])} onPress={own ? () => router.push('/friends') : undefined} />
         </View>
       </View>

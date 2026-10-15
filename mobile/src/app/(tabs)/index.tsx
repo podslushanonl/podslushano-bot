@@ -103,13 +103,13 @@ export default function Home() {
           ))}
         </View>
 
-        <Tap onPress={() => router.push(user ? '/new-post' : '/login')} scaleTo={0.98}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: c.bgElevated, borderRadius: radius.pill, padding: 6, paddingRight: 8, borderWidth: 1, borderColor: c.line }}>
-          {user ? <Avatar name={user.name} id={user.id} size={40} /> : <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.bgSunken, alignItems: 'center', justifyContent: 'center' }}><Icon name="person" size={20} color={c.muted} /></View>}
-          <Txt v="callout" tone="muted" style={{ flex: 1 }}>{user ? `${user.name || 'Вы'}, что нового?` : 'Войдите, чтобы написать пост'}</Txt>
-          <View style={{ backgroundColor: c.inverse, borderRadius: radius.pill, paddingHorizontal: 14, paddingVertical: 9 }}>
-            <Txt v="subhead" color={c.onInverse} style={{ fontFamily: 'Onest_700Bold' }}>Написать</Txt>
-          </View>
+        <Tap onPress={() => router.push(user ? '/new-post' : '/login')} scaleTo={0.98} haptic="light"
+          accessibilityRole="button" accessibilityLabel={user ? 'Новая публикация' : 'Войти, чтобы написать пост'}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: c.bgSunken, borderRadius: radius.pill,
+            paddingVertical: 6, paddingLeft: 6, paddingRight: 16 }}>
+          {user ? <Avatar name={user.name} id={user.id} uri={user.avatar} size={38} /> : <Avatar name="" size={38} />}
+          <Txt v="callout" tone="muted" style={{ flex: 1 }} numberOfLines={1}>{user ? `${user.name || 'Вы'}, что нового?` : 'Войдите, чтобы написать пост'}</Txt>
+          <Icon name="camera" thin size={22} color={c.muted} />
         </Tap>
 
         <View style={{ gap: 14 }}>
