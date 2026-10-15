@@ -6,7 +6,7 @@ import { KeyboardAvoidingView, Linking, Modal, Platform, Pressable, TextInput, V
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { authMethods, CodeSent, pollTelegram, requestCode, startTelegram, useAuth, verifyCode } from '@/api/auth';
 import { OtpHandle, OtpInput } from '@/features/auth/OtpInput';
-import { COUNTRIES, formatPhone, phoneDigits, phoneReady, PhoneCountry, prettyPhone } from '@/features/auth/phone';
+import { COUNTRIES, formatPhone, parsePhone, phoneDigits, phoneReady, PhoneCountry, prettyPhone } from '@/features/auth/phone';
 import { radius, type as T, useTheme } from '@/theme';
 import { Button, Flag, Glass, Icon, Img, PageScreen, Segmented, Tap, Txt } from '@/ui';
 
@@ -131,7 +131,7 @@ export default function Login() {
                   </Tap>
                   <View style={{ width: 1, height: 26, backgroundColor: c.line }} />
                   <TextInput ref={field} value={formatPhone(digits, country)} placeholder={country.sample} placeholderTextColor={c.faint}
-                    onChangeText={(v) => { setDigits(phoneDigits(v, country)); setErr(''); }} keyboardType="phone-pad" inputMode="tel"
+                    onChangeText={(v) => { const p = parsePhone(v, country); setCountry(p.country); setDigits(p.digits); setErr(''); }} keyboardType="phone-pad" inputMode="tel"
                     autoComplete="tel-national" textContentType="telephoneNumber" returnKeyType="next" onSubmitEditing={send}
                     accessibilityLabel="Номер телефона" autoFocus style={inputStyle} />
                 </>

@@ -16,6 +16,16 @@ export function phoneDigits(raw: string, c: PhoneCountry) {
   return raw.replace(/\D/g, '').replace(/^0+/, '').slice(0, maxLen(c));
 }
 
+/** Ввод или вставка номера. Полный номер (+49…, 0049…, 31612345678) сам выбирает страну и теряет её код. */
+export function parsePhone(raw: string, current: PhoneCountry): { country: PhoneCountry; digits: string } {
+  const all = raw.replace(/\D/g, '');
+  const intl = raw.trim().startsWith('+') ? all : all.startsWith('00') ? all.slice(2) : '';
+  const byCode = (d: string) => COUNTRIES.find((x) => d.startsWith(x.cc));
+  const full = intl ? byCode(intl) : all.length > maxLen(current) && all.startsWith(current.cc) ? current : undefined;
+  if (full) return { country: full, digits: phoneDigits((intl || all).slice(full.cc.length), full) };
+  return { country: current, digits: phoneDigits(raw, current) };
+}
+
 /** 612345678 → «6 12 34 56 78» по группам страны. */
 export function formatPhone(digits: string, c: PhoneCountry) {
   const out: string[] = [];

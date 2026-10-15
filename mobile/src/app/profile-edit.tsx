@@ -10,6 +10,8 @@ import { asCountry, CITIES_BY_COUNTRY, COUNTRIES, Country } from '@/lib/countrie
 import { useTheme } from '@/theme';
 import { Avatar, Button, Chip, Field, Icon, PageScreen, Tap, Txt, useToast } from '@/ui';
 
+const MAX_UPLOAD = 9_000_000;   // символов base64: сервер принимает запрос до 10 МБ
+
 export default function ProfileEdit() {
   const { user } = useAuth();
   const toast = useToast();
@@ -36,10 +38,12 @@ export default function ProfileEdit() {
   // Фото выбираем без системной обрезки: рамку человек выставляет сам в нашем кадрировании
   const [pick, setPick] = useState<{ uri: string; data: string } | null>(null);
   const pickPhoto = async () => {
-    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.85, base64: true });
+    // Сжатие 0.5 — с запасом для аватара 512 px и не упирается в лимит запроса сервера даже на фото 48 Мп
+    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.5, base64: true });
     if (r.canceled || !r.assets?.length) return;
     const a = r.assets[0];
     const data = a.base64 ? `data:${a.mimeType || 'image/jpeg'};base64,${a.base64}` : await shrinkForWeb(a.uri);
+    if (data.length > MAX_UPLOAD) { toast('Фото слишком большое. Выберите другое.', 'error'); return; }
     setPick({ uri: Platform.OS === 'web' ? data : a.uri, data });
   };
   const upload = async (crop: Crop) => {
