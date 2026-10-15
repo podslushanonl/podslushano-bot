@@ -21,8 +21,8 @@ const NESTED_RADIUS = radius.xs;   // вложенные карточки чут
 
 /** Карточка элемента ленты. */
 function useCard() {
-  const { c } = useTheme();
-  return { backgroundColor: c.bgElevated, borderRadius: CARD_RADIUS, borderWidth: HAIRLINE, borderColor: c.line, padding: 16, gap: 12 } as const;
+  const { c, shadow } = useTheme();
+  return { backgroundColor: c.bgElevated, borderRadius: CARD_RADIUS, borderWidth: HAIRLINE, borderColor: c.line, padding: 16, gap: 12, ...shadow } as const;
 }
 
 /** Список карточек ленты с ровными промежутками. */

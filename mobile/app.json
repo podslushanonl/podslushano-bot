@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "podslushano",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "nl.podslushano.app"
@@ -33,7 +33,8 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#121212"
+          "backgroundColor": "#FFFFFF",
+          "dark": { "backgroundColor": "#121212" }
         }
       ],
       "expo-image",

@@ -37,21 +37,22 @@ function ConversationRow({ cv, first }: { cv: Conversation; first: boolean }) {
   );
 }
 
-const CALM = '#7CC497';   // «Тихо» — спокойный приглушённый зелёный: читается на тёмной плитке, но не спорит с активными чатами
+// «Тихо» — спокойный приглушённый зелёный: читается на плитке, но не спорит с активными чатами
+const CALM = { dark: '#7CC497', light: '#2F8F5B' };
 
 /** Плитка чата в сетке: иконка, название, активность за сутки. */
 function RoomTile({ r, icon, onPress }: { r: Room; icon: IconName; onPress: () => void }) {
-  const { c } = useTheme();
+  const { c, shadow, dark } = useTheme();
   return (
     <Tap onPress={onPress} scaleTo={0.96} accessibilityLabel={r.title}
       style={{ width: '48.5%', flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: c.bgElevated, borderRadius: radius.m,
-        borderWidth: HAIRLINE, borderColor: c.line, padding: 14 }}>
+        borderWidth: HAIRLINE, borderColor: c.line, padding: 14, ...shadow }}>
       <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: c.bgSunken, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name={icon} thin size={16} color={c.ink} />
       </View>
       <View style={{ flex: 1, gap: 1 }}>
         <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }} numberOfLines={1}>{r.title}</Txt>
-        <Txt v="caption" color={r.today ? c.accentText : CALM} numberOfLines={1}>{r.today ? `${r.today} за сутки` : 'Тихо'}</Txt>
+        <Txt v="caption" color={r.today ? c.accentText : dark ? CALM.dark : CALM.light} numberOfLines={1}>{r.today ? `${r.today} за сутки` : 'Тихо'}</Txt>
       </View>
     </Tap>
   );
@@ -67,7 +68,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 function RoomsList({ rooms: all }: { rooms: Room[] }) {
-  const { c } = useTheme();
+  const { c, shadow } = useTheme();
   const [city] = useCity();
   const country = useCountry();
   // Общие комнаты (для всех стран) и комнаты своей страны
@@ -82,7 +83,7 @@ function RoomsList({ rooms: all }: { rooms: Room[] }) {
       {common.map((r) => (
         <Tap key={r.slug} onPress={() => open(r)} scaleTo={0.98} accessibilityLabel={r.title}
           style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: c.bgElevated, borderRadius: radius.m,
-            borderWidth: HAIRLINE, borderColor: c.line, padding: 14 }}>
+            borderWidth: HAIRLINE, borderColor: c.line, padding: 14, ...shadow }}>
           <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.bgSunken, alignItems: 'center', justifyContent: 'center' }}>
             <Icon name="globe" thin size={20} color={c.ink} />
           </View>

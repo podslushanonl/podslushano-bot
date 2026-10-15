@@ -2,10 +2,11 @@ import { Onest_400Regular, Onest_500Medium, Onest_600SemiBold, Onest_700Bold } f
 import { Unbounded_600SemiBold, Unbounded_700Bold } from '@expo-google-fonts/unbounded';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useFonts } from 'expo-font';
-import { DarkTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { bootAuth, useAuth } from '@/api/auth';
@@ -27,6 +28,7 @@ function Realtime() {
 }
 
 export default function RootLayout() {
+  const scheme = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({
     Onest_400Regular, Onest_500Medium, Onest_600SemiBold, Onest_700Bold, Unbounded_600SemiBold, Unbounded_700Bold,
   });
@@ -34,9 +36,9 @@ export default function RootLayout() {
   useEffect(() => { if (fontsLoaded || fontError) SplashScreen.hideAsync().catch(() => {}); }, [fontsLoaded, fontError]);
   if (!fontsLoaded && !fontError) return null;
 
-  // Всегда тёмная тема — как в ThemeRoot
-  const p = palette.dark;
-  const nav = DarkTheme;
+  // Тема по системной настройке телефона — как в ThemeRoot
+  const p = scheme === 'dark' ? palette.dark : palette.light;
+  const nav = scheme === 'dark' ? DarkTheme : DefaultTheme;
   const navTheme = { ...nav, colors: { ...nav.colors, background: p.bg, card: p.bgElevated, text: p.ink, border: p.line, primary: p.accent } };
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -45,7 +47,7 @@ export default function RootLayout() {
           <ThemeRoot>
             <ThemeProvider value={navTheme}>
               <ToastHost>
-                <StatusBar style="light" />
+                <StatusBar style="auto" />
                 <Realtime />
                 <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: p.bg } }}>
                   <Stack.Screen name="(tabs)" />
