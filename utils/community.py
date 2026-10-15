@@ -27,7 +27,8 @@ from sqlalchemy import func, select
 
 import config
 from database.db import get_session
-from database.models import AppUser, ChatMessage, ChatRoom, ContentReport, Country, ItemComment, PostComment, UserPost
+from database.models import (AppUser, ChatMessage, ChatRoom, ContentReport, Country, ItemComment, MarketItem, PostComment,
+                             UserPost)
 from utils import realtime, social
 from utils.app_api import _user
 from utils.site_api import _body, _err, _json
@@ -334,7 +335,7 @@ def mod_kb(rid: int) -> InlineKeyboardMarkup:
 async def notify_moderators(bot, rid: int, kind: str, text: str, author: AppUser | None, reporter: AppUser,
                             hidden: bool) -> None:
     where = {"msg": "сообщение в чате", "post": "пост в ленте", "comment": "комментарий в ленте",
-             "icomment": "комментарий к новости или событию"}.get(kind, kind)
+             "icomment": "комментарий к новости или событию", "item": "объявление барахолки"}.get(kind, kind)
     body = (f"🛡 <b>Жалоба на {where}</b>{' · скрыто автоматически (3 жалобы)' if hidden else ''}\n\n"
             f"Автор: {html.escape((author.name if author else '') or '—')} (id {author.id if author else '—'})\n"
             f"Пожаловался: {html.escape(reporter.name or '—')}\n\n«{html.escape(text[:800])}»")
@@ -354,7 +355,22 @@ async def moderate(rid: int, action: str) -> str:
         obj = await session.get(Model, r.target_id) if Model else None
         reports = list((await session.execute(select(ContentReport).where(
             ContentReport.kind == r.kind, ContentReport.target_id == r.target_id))).scalars())
-        if action == "keep":
+        if r.kind == "item":   # объявление барахолки приложения: у него статус, а не hidden
+            it = await session.get(MarketItem, r.target_id)
+            if action == "keep":
+                if it and it.status == "hidden":
+                    it.status = "active"
+                res, msg = "kept", "Оставлено. Объявление снова видно."
+            else:
+                if it:
+                    it.status = "removed"
+                res, msg = "deleted", "Объявление удалено."
+                if action in ("ban1", "banx") and it:
+                    u = await session.get(AppUser, it.user_id)
+                    if u:
+                        u.banned_until = _now() + timedelta(hours=24) if action == "ban1" else FOREVER
+                    res, msg = "banned", "Удалено, автор заблокирован " + ("на 24 часа." if action == "ban1" else "навсегда.")
+        elif action == "keep":
             if obj:
                 obj.hidden = False  # удалённое самим автором так и остаётся удалённым
             res, msg = "kept", "Оставлено." + (" Автор сам удалил его раньше." if obj and obj.deleted else " Сообщение снова видно.")

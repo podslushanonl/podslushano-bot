@@ -32,7 +32,7 @@ from utils import realtime, social
 from utils.app_api import _user
 from utils.community import POST_MAX, _rate, can_write, check_text
 from utils.market import _read_json, prepare_photo
-from utils.site_api import _err, _json
+from utils.site_api import _err, _json, grant, read_token
 
 PAGE = 20
 MAX_PHOTOS = 4
@@ -80,8 +80,10 @@ def _share(p: UserPost) -> dict | None:
             "img": p.share_img or ""}
 
 
-def _photos(p: UserPost) -> list[str]:
-    return [f"/api/app/posts/{p.id}/photo/{i}" for i in range(p.photo_count or 0)]
+def _photos(p: UserPost, author: AppUser | None = None) -> list[str]:
+    # Фото закрытого аккаунта — по подписанной ссылке: её получает только тот, кому пост показали
+    k = f"?k={grant({'k': 'pph', 'p': p.id})}" if author and author.is_private else ""
+    return [f"/api/app/posts/{p.id}/photo/{i}{k}" for i in range(p.photo_count or 0)]
 
 
 async def _count(session, col, ids: set[int], *where) -> dict[int, int]:
@@ -109,14 +111,14 @@ async def posts_json(session, posts: list[UserPost], me: AppUser | None) -> list
     for p in posts:
         d = {"id": p.id, "text": p.text, "at": _at(p.created_at), "city": p.city or "", "country": p.country.value,
              "author": _author(users.get(p.user_id), p.user_id), "mine": bool(me and me.id == p.user_id),
-             "photos": _photos(p), "likes": likes.get(p.id, 0), "liked": p.id in liked,
+             "photos": _photos(p, users.get(p.user_id)), "likes": likes.get(p.id, 0), "liked": p.id in liked,
              "comments": comments.get(p.id, 0), "reposts": reposts.get(p.id, 0), "repost": None,
              # я уже сделал репост этого поста (для репоста — его оригинала)
              "reposted": (p.repost_of or p.id) in reposted, "share": _share(p)}
         if p.repost_of:
             o = originals.get(p.repost_of)
             d["repost"] = ({"id": o.id, "text": o.text, "at": _at(o.created_at), "city": o.city or "",
-                            "author": _author(users.get(o.user_id), o.user_id), "photos": _photos(o)}
+                            "author": _author(users.get(o.user_id), o.user_id), "photos": _photos(o, users.get(o.user_id))}
                            if o and not o.deleted and not o.hidden and o.user_id not in hidden
                            else {"id": p.repost_of, "deleted": True})
         out.append(d)
@@ -338,10 +340,17 @@ async def photo(request: web.Request) -> web.Response:
         p = await session.get(UserPost, _pid(request))
         if not p or p.deleted or p.hidden:
             raise web.HTTPNotFound()
+        author = await session.get(AppUser, p.user_id)
+        private = bool(author and author.is_private)
+        if private:
+            ok = read_token(request.query.get("k", ""), "pph")
+            if not ok or ok.get("p") != p.id:
+                raise web.HTTPNotFound()
         data = await session.scalar(select(PostPhoto.data).where(PostPhoto.post_id == p.id, PostPhoto.idx == idx))
     if not data:
         raise web.HTTPNotFound()
-    return web.Response(body=data, content_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
+    return web.Response(body=data, content_type="image/jpeg",
+                        headers={"Cache-Control": "private, max-age=86400" if private else "public, max-age=86400"})
 
 
 # ---------------------------------------------------------------- репост и стена

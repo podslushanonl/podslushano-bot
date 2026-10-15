@@ -11,7 +11,7 @@ export type Listing = {
   /** Цена для показа: «€450», «Бесплатно», «Договорная»; price_value — число евро или null. */
   price: string; price_value: number | null;
   city: string; photo: string; at: string; mine: boolean;
-  status: 'active' | 'closed' | 'hidden' | 'expired'; status_title: string;
+  status: 'active' | 'closed' | 'hidden' | 'removed' | 'expired'; status_title: string;
   description?: string; photos?: string[]; until?: string;
   /** Продавцу можно написать в приложении. */
   chat?: boolean; seller_id?: number; seller?: Seller;

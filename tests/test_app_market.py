@@ -222,6 +222,66 @@ class Base5:
         self.assertEqual((await self.get("/api/app/me", d["token"]))[0], 200)
 
 
+    # ------------------------------------------------------------ замечания ревью: фото, модерация, живое соединение
+
+    async def test_private_post_photos_need_grant(self):
+        st, d = await self.post("/api/app/posts", 1, {"text": "С фото", "photos": [jpeg_b64()]})
+        url = d["post"]["photos"][0]
+        self.assertEqual((await self.c.get(url)).status, 200)          # открытый аккаунт — ссылка без подписи
+        await self.post("/api/app/me", 1, {"is_private": True})
+        self.assertEqual((await self.c.get(url)).status, 404)          # старая ссылка больше не работает
+        signed = (await self.get("/api/app/posts?scope=all", 3))[1]["posts"][0]["photos"][0]   # друг
+        self.assertIn("?k=", signed)
+        r = await self.c.get(signed)
+        self.assertEqual((r.status, r.headers["Cache-Control"]), (200, "private, max-age=86400"))
+        other = signed.replace(f"/posts/{d['post']['id']}/", "/posts/999/")
+        self.assertEqual((await self.c.get(other)).status, 404)
+
+    async def test_closed_item_photos_need_grant(self):
+        iid = (await self.post("/api/app/market", 1, self.item(photos=[jpeg_b64()])))[1]["id"]
+        plain = f"/api/app/market/{iid}/photo/0"
+        self.assertEqual((await self.c.get(plain)).status, 200)
+        await self.post(f"/api/app/market/{iid}/close", 1)
+        self.assertEqual((await self.c.get(plain)).status, 404)
+        own = (await self.get(f"/api/app/market/{iid}", 1))[1]["item"]["photos"][0]
+        self.assertEqual((await self.c.get(own)).status, 200)
+
+    async def test_item_reports_go_to_moderation(self):
+        sent = []
+
+        class Bot:
+            async def send_message(self, chat_id, text, reply_markup=None, **kw):
+                sent.append((text, reply_markup))
+        self.c.server.app["bot"] = Bot()
+        iid = (await self.post("/api/app/market", 1, self.item()))[1]["id"]
+        with patch.object(community.config, "ADMIN_IDS", [999]):
+            for uid in (2, 3, 4):
+                await self.post(f"/api/app/market/{iid}/report", uid, {"reason": "scam"})
+        self.assertEqual(len(sent), 3)
+        self.assertIn("объявление барахолки", sent[-1][0])
+        self.assertIn("скрыто автоматически", sent[-1][0])
+        rid = int(sent[-1][1].inline_keyboard[0][1].callback_data.split(":")[2])
+        self.assertIn("снова видно", await community.moderate(rid, "keep"))
+        self.assertEqual((await self.get(f"/api/app/market/{iid}", 2))[0], 200)
+        await community.moderate(rid, "del")
+        self.assertEqual((await self.get(f"/api/app/market/{iid}", 1))[1]["item"]["status"], "removed")
+        st, d = await self.post("/api/app/market", 1, self.item(id=iid))
+        self.assertEqual(st, 409)
+
+    async def test_ws_refuses_and_closes_ended_session(self):
+        async with self.sessions() as s:
+            s.add_all([app_api.AppSession(id="a" * 32, user_id=1), app_api.AppSession(id="b" * 32, user_id=1)])
+            await s.commit()
+        phone = make_token({"k": "app", "u": 1, "s": "a" * 32}, 3600)
+        pc = make_token({"k": "app", "u": 1, "s": "b" * 32}, 3600)
+        ws = await self.c.ws_connect(f"/api/app/ws?token={pc}")
+        await self.post("/api/app/me/sessions/revoke", phone, {"id": "b" * 32})
+        msg = await ws.receive(timeout=3)
+        self.assertEqual(msg.type.name, "CLOSE")
+        r = await self.c.get(f"/api/app/ws?token={pc}")
+        self.assertEqual(r.status, 401)
+
+
 class SqliteTests(Base5, unittest.IsolatedAsyncioTestCase):
     pass
 

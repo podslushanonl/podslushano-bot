@@ -86,28 +86,38 @@ async def _start_session(session, request: web.Request, u: AppUser) -> dict:
 
 async def _user(request: web.Request, session) -> AppUser | None:
     auth = request.headers.get("Authorization", "")
-    data = read_token(auth[7:] if auth.startswith("Bearer ") else "", "app")
+    u, sid = await token_user(session, auth[7:] if auth.startswith("Bearer ") else "", _ip(request))
+    if u:
+        request["app_sid"] = sid
+        u.last_seen = _now()
+    return u
+
+
+async def token_user(session, token: str, ip: str = "") -> tuple[AppUser | None, str]:
+    """(аккаунт, id сеанса) по токену входа или (None, "") — токен подделан, истёк или сеанс завершён.
+    Общая проверка для HTTP-запросов и живого соединения (utils.realtime)."""
+    data = read_token(token, "app")
     if not data:
-        return None
+        return None, ""
     u = await session.get(AppUser, int(data.get("u") or 0))
     if not u:
-        return None
-    now = _now()
+        return None, ""
     sid = str(data.get("s") or "")
     if sid:
         s = await session.get(AppSession, sid)
         if not s or s.revoked or s.user_id != u.id:
-            return None   # сеанс завершён в настройках
+            return None, ""   # сеанс завершён в настройках
+        now = _now()
         if now - s.last_seen > timedelta(minutes=5):
-            s.last_seen, s.ip = now, _ip(request)[:64]
+            s.last_seen = now
+            if ip:
+                s.ip = ip[:64]
     else:
         # токен до появления сеансов: действует, пока не нажали «Завершить другие сеансы»
         issued = datetime.fromtimestamp(int(data.get("x", 0)) - TOKEN_DAYS * 86400, timezone.utc).replace(tzinfo=None)
         if u.sessions_reset_at and issued < u.sessions_reset_at:
-            return None
-    request["app_sid"] = sid
-    u.last_seen = now
-    return u
+            return None, ""
+    return u, sid
 
 
 # ---------------------------------------------------------------- вход по коду: телефон или почта
@@ -449,12 +459,16 @@ async def revoke_session(request: web.Request) -> web.Response:
             u.sessions_reset_at = _now()   # и старые токены без сеанса
             if not current:   # это устройство вошло до появления сеансов — выдаём ему новый токен
                 out = await _start_session(session, request, u)
+            closing = {"keep": current}
         else:
             sid = str(data.get("id") or "")
             if sid == current:
                 return _err(request, "Чтобы выйти на этом устройстве, нажмите «Выйти».")
             await session.execute(update(AppSession).where(AppSession.user_id == u.id, AppSession.id == sid).values(revoked=True))
+            closing = {"only": sid}
         await session.commit()
+    from utils import realtime
+    await realtime.close_sessions(u.id, **closing)   # открытые живые соединения завершённых сеансов
     return _json(request, out)
 
 
@@ -465,6 +479,9 @@ async def logout(request: web.Request) -> web.Response:
         if u and sid:
             await session.execute(update(AppSession).where(AppSession.id == sid).values(revoked=True))
         await session.commit()
+    if u and sid:
+        from utils import realtime
+        await realtime.close_sessions(u.id, only=sid)
     return _json(request, {"ok": True})
 
 

@@ -1,7 +1,8 @@
 """Барахолка приложения podslushano — независимая от Telegram-бота.
 
 Объявления и фото лежат в PostgreSQL (market_items, market_photos), всё работает через этот API.
-Публикация сразу, на 30 дней; три жалобы от разных людей скрывают объявление до решения модератора.
+Публикация сразу, на 30 дней. Жалобы уходят модераторам (utils.community: «Оставить» / «Удалить» / бан);
+три жалобы от разных людей скрывают объявление до их решения.
 Связь с продавцом — личным сообщением в приложении (POST /api/app/dm/start {item_id}).
 
 GET  /api/app/market?cat=&city=&q=&offset=   — лента (по 30), категории и города
@@ -26,7 +27,7 @@ from database.models import AppUser, ContentReport, MarketItem, MarketPhoto
 from utils.app_api import _user
 from utils.community import _rate, can_write, check_text
 from utils.market import _read_json, prepare_photo
-from utils.site_api import _err, _json
+from utils.site_api import _err, _json, grant, read_token
 
 PAGE = 30
 MAX_PHOTOS = 5
@@ -49,7 +50,8 @@ CATEGORIES = [
 CATEGORY_LABELS = {k: t for k, t, _ in CATEGORIES}
 FREE = "free"
 CITIES = ["Amsterdam", "Rotterdam", "Den Haag", "Eindhoven"]
-STATUS_LABELS = {"active": "Опубликовано", "closed": "Снято", "hidden": "Скрыто после жалоб", "expired": "Срок истёк"}
+STATUS_LABELS = {"active": "Опубликовано", "closed": "Снято", "hidden": "На проверке после жалоб", "removed": "Удалено модератором",
+                 "expired": "Срок истёк"}
 
 
 def _now() -> datetime:
@@ -79,8 +81,10 @@ def _live():
 
 
 def item_json(it: MarketItem, me: AppUser | None, seller: AppUser | None = None, full: bool = False) -> dict:
-    photos = [f"/api/app/market/{it.id}/photo/{i}" for i in range(it.photo_count or 0)]
     st = _status(it)
+    # Фото снятого или скрытого объявления — только по подписанной ссылке (её получает лишь автор)
+    k = f"?k={grant({'k': 'mph', 'i': it.id})}" if st != "active" else ""
+    photos = [f"/api/app/market/{it.id}/photo/{i}{k}" for i in range(it.photo_count or 0)]
     d = {"id": it.id, "cat": it.category, "cat_title": CATEGORY_LABELS.get(it.category, "Барахолка"),
          "title": it.title, "price": price_label(it.price), "price_value": it.price, "city": it.city,
          "photo": photos[0] if photos else "", "at": _at(it.created_at), "mine": bool(me and me.id == it.user_id),
@@ -156,8 +160,11 @@ async def photo(request: web.Request) -> web.Response:
         data = await session.scalar(select(MarketPhoto.data).where(MarketPhoto.item_id == iid, MarketPhoto.idx == idx)) if it else None
     if not data:
         raise web.HTTPNotFound()
-    # Фото снятого объявления видно только по прямой ссылке автору (кэш браузера не держим)
     public = _status(it) == "active"
+    if not public:
+        ok = read_token(request.query.get("k", ""), "mph")
+        if not ok or ok.get("i") != iid:
+            raise web.HTTPNotFound()
     return web.Response(body=data, content_type="image/jpeg",
                         headers={"Cache-Control": "public, max-age=604800, immutable" if public else "private, no-store"})
 
@@ -224,6 +231,8 @@ async def submit(request: web.Request) -> web.Response:
                 return _err(request, "Объявление не найдено.", 404)
             if it.status == "hidden":
                 return _err(request, "Объявление скрыто после жалоб — дождитесь решения модератора.", 409)
+            if it.status == "removed":
+                return _err(request, "Объявление удалено модератором за нарушение правил.", 409)
         else:
             active = await session.scalar(select(func.count()).select_from(MarketItem).where(MarketItem.user_id == me.id, _live())) or 0
             if active >= MAX_ACTIVE:
@@ -287,15 +296,24 @@ async def report(request: web.Request) -> web.Response:
         it = await session.get(MarketItem, iid)
         if not it or it.user_id == me.id:
             return _err(request, "Объявление не найдено.", 404)
-        if not await session.scalar(select(ContentReport.id).where(
+        if await session.scalar(select(ContentReport.id).where(
                 ContentReport.kind == "item", ContentReport.target_id == iid, ContentReport.reporter_id == me.id)):
-            session.add(ContentReport(kind="item", target_id=iid, reporter_id=me.id, reason=str(data.get("reason") or "")[:200]))
-            await session.flush()
-            n = await session.scalar(select(func.count(func.distinct(ContentReport.reporter_id))).where(
-                ContentReport.kind == "item", ContentReport.target_id == iid, ContentReport.resolved == "")) or 0
-            if n >= HIDE_AFTER and it.status == "active":
-                it.status = "hidden"
+            await session.commit()
+            return _json(request, {"ok": True})   # повторная жалоба того же человека не считается
+        r = ContentReport(kind="item", target_id=iid, reporter_id=me.id, reason=str(data.get("reason") or "")[:200])
+        session.add(r)
+        await session.flush()
+        n = await session.scalar(select(func.count(func.distinct(ContentReport.reporter_id))).where(
+            ContentReport.kind == "item", ContentReport.target_id == iid, ContentReport.resolved == "")) or 0
+        if n >= HIDE_AFTER and it.status == "active":
+            it.status = "hidden"
+        author = await session.get(AppUser, it.user_id)
+        rid, hidden, text = r.id, it.status == "hidden", f"{it.title} · {price_label(it.price)}\n\n{it.description}"
         await session.commit()
+    bot = request.app.get("bot")
+    if bot:   # решение модератора — кнопками в группе-инбоксе (utils.community.moderate)
+        from utils.community import notify_moderators
+        await notify_moderators(bot, rid, "item", text, author, me, hidden)
     return _json(request, {"ok": True})
 
 

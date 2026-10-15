@@ -9,7 +9,7 @@ export default function MyListings() {
   const { c } = useTheme();
   const { user } = useAuth();
   const q = useMyListings(!!user);
-  const color = (s?: string) => ({ active: c.success, hidden: c.danger }[s || ''] || c.muted);
+  const color = (s?: string) => ({ active: c.success, hidden: c.danger, removed: c.danger }[s || ''] || c.muted);
   return (
     <PageScreen title="Мои объявления" refreshing={q.isRefetching} onRefresh={() => q.refetch()}
       footer={<Button title="Подать объявление" icon="plus" kind="primary" onPress={() => router.push('/market/new')} />}>

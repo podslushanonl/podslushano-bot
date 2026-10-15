@@ -93,11 +93,12 @@ export default function ListingScreen() {
               <Txt v="callout" tone="ink">
                 {l.status === 'active' ? `Опубликовано до ${(l.until || '').split('-').reverse().join('.')}`
                   : l.status === 'hidden' ? 'Скрыто после жалоб — модератор посмотрит его в ближайшее время.'
+                  : l.status === 'removed' ? 'Удалено модератором за нарушение правил сообщества.'
                   : l.status === 'expired' ? 'Срок публикации истёк. Сохраните объявление снова, чтобы продлить его на 30 дней.'
                   : 'Объявление снято с публикации. Сохраните его снова, чтобы опубликовать.'}
               </Txt>
               <View style={{ flexDirection: 'row', gap: 8 }}>
-                {l.status !== 'hidden' ? <Button title={l.status === 'active' ? 'Изменить' : 'Опубликовать снова'} kind="secondary" size="s" icon="edit" style={{ flex: 1 }}
+                {l.status !== 'hidden' && l.status !== 'removed' ? <Button title={l.status === 'active' ? 'Изменить' : 'Опубликовать снова'} kind="secondary" size="s" icon="edit" style={{ flex: 1 }}
                   onPress={() => router.push({ pathname: '/market/new', params: { id: String(l.id) } })} /> : null}
                 {l.status === 'active' ? <Button title="Снять" kind="danger" size="s" icon="trash" style={{ flex: 1 }} loading={busy}
                   onPress={() => run(async () => { await closeListing(l.id); marketChanged(); router.back(); }, 'Объявление снято')} /> : null}
