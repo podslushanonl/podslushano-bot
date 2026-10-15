@@ -16,7 +16,7 @@ export default function Profile() {
         <View style={{ backgroundColor: c.hero, borderRadius: radius.xxl, padding: 22, gap: 12 }}>
           <Txt v="overline" color={c.accent}>Мой podslushano</Txt>
           <Txt v="title2" color={c.onHero}>Ваша страница, друзья, лента и сообщения</Txt>
-          <Txt v="callout" color={c.onHeroMuted}>Пароль не нужен: код на почту. Аккаунт создаётся сам.</Txt>
+          <Txt v="callout" color={c.onHeroMuted}>Пароль не нужен: код по SMS или на почту. Аккаунт создаётся сам.</Txt>
           <Button title="Войти или создать аккаунт" kind="accent" onPress={() => router.push('/login')} />
         </View>
       ) : null}

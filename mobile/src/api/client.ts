@@ -8,7 +8,8 @@ export const BOT = process.env.EXPO_PUBLIC_BOT_URL || 'https://worker-production
 export const TG_BOT = 'https://t.me/podslushano_nl_bot';
 
 export class ApiError extends Error {
-  constructor(msg: string, public status: number) { super(msg); }
+  /** data — весь ответ сервера (нужен, когда в ошибке есть подробности, например taken при привязке). */
+  constructor(msg: string, public status: number, public data?: any) { super(msg); }
 }
 
 // Токен входа: в защищённом хранилище телефона, в браузере — в localStorage
@@ -39,7 +40,7 @@ export async function api<T = any>(path: string, body?: object, method?: string)
   }
   const d = await r.json().catch(() => ({}));
   if (r.status === 401 && token) onUnauthorized?.();
-  if (!r.ok || d.ok === false) throw new ApiError(d.error || 'Что-то пошло не так. Попробуйте ещё раз.', r.status);
+  if (!r.ok || d.ok === false) throw new ApiError(d.error || 'Что-то пошло не так. Попробуйте ещё раз.', r.status, d);
   return d as T;
 }
 

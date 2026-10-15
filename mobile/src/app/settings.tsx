@@ -5,6 +5,7 @@ import { logout, useAuth } from '@/api/auth';
 import { SITE } from '@/api/client';
 import { useMyListings } from '@/api/market';
 import { useFriends } from '@/api/social';
+import { prettyPhone } from '@/features/auth/phone';
 import { CitySheet } from '@/features/common/CitySheet';
 import { openBot, openUrl } from '@/lib/open';
 import { useCity, useCountry } from '@/lib/useCity';
@@ -49,7 +50,7 @@ export default function Settings() {
         <View style={{ backgroundColor: c.hero, borderRadius: radius.xxl, padding: 22, gap: 12 }}>
           <Txt v="overline" color={c.accent}>Мой podslushano</Txt>
           <Txt v="title2" color={c.onHero}>Один аккаунт — объявления, сообщения и избранное</Txt>
-          <Txt v="callout" color={c.onHeroMuted}>Пароль не нужен: код на почту или вход через Telegram. Аккаунт создаётся сам.</Txt>
+          <Txt v="callout" color={c.onHeroMuted}>Пароль не нужен: код по SMS или на почту, или вход через Telegram. Аккаунт создаётся сам.</Txt>
           <Button title="Войти или создать аккаунт" kind="accent" onPress={() => router.push('/login')} />
         </View>
       )}
@@ -59,6 +60,10 @@ export default function Settings() {
         {user ? <Row title="Друзья" sub={friends.data?.incoming.length ? `Заявок в друзья: ${friends.data.incoming.length}` : 'Найти людей, заявки'}
           icon="people" onPress={() => router.push('/friends')} /> : null}
         {user ? <Row title="Редактировать профиль" sub="Фото, имя, статус, страна" icon="person" onPress={() => router.push('/profile-edit')} /> : null}
+        {user ? <Row title="Номер телефона" sub={user.phone ? prettyPhone(user.phone) : 'Привязать — вход по SMS'} icon="phone"
+          onPress={() => router.push({ pathname: '/link', params: { kind: 'phone' } })} /> : null}
+        {user ? <Row title="Почта" sub={user.email || 'Привязать — вход по коду из письма'} icon="mail"
+          onPress={() => router.push({ pathname: '/link', params: { kind: 'email' } })} /> : null}
         {user ? <Row title="Мои объявления" sub={(() => { const n = (mine.data?.items || []).filter((l) => ['approved', 'pending', 'awaiting_payment'].includes(l.status || '')).length; return n ? `Активных: ${n}` : undefined; })()} icon="market" onPress={() => router.push('/market/my')} /> : null}
         <Row title="Правила сообщества" icon="shield" onPress={() => router.push('/rules')} />
       </Group>

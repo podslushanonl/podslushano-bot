@@ -7,6 +7,7 @@ OTP_DEBUG=1 — без отправки, код пишется в лог сер�
 """
 from __future__ import annotations
 
+import base64
 import logging
 import os
 
@@ -44,7 +45,8 @@ async def send_code(phone: str, code: str, ttl_min: int) -> bool:
         return False
     try:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15)) as s:
-            async with s.post(API.format(sid=sid), auth=aiohttp.BasicAuth(sid, token),
+            basic = base64.b64encode(f"{sid}:{token}".encode()).decode()
+            async with s.post(API.format(sid=sid), headers={"Authorization": f"Basic {basic}"},
                               data={"To": phone, "From": sender, "Body": text(code)}) as r:
                 data = await r.json(content_type=None)
                 ok = r.status < 300

@@ -36,8 +36,11 @@ export async function bootAuth() {
 }
 
 async function signedIn(d: { token: string; user: User }) {
+  const prev = state.user?.id;
   await tokenStore.set(d.token);
   setToken(d.token);
+  // Вошли в другой аккаунт — данные прошлого (сообщения, друзья, профиль) не показываем даже на мгновение
+  if (prev && prev !== d.user.id) queryClient.removeQueries({ predicate: (q) => String(q.queryKey[0]).startsWith('me') });
   set({ user: d.user });
   await refreshMe().catch(() => {});
   queryClient.invalidateQueries();
@@ -60,6 +63,15 @@ export async function pollTelegram(nonce: string) {
   if (d.pending) return false;
   await signedIn(d);
   return true;
+}
+
+/** Привязка номера или почты к своему аккаунту: код на новый номер/почту. */
+export const linkStart = (t: LoginTarget) => api<CodeSent>('/api/app/me/link/start', t);
+/** move — перенести номер/почту с другого аккаунта (сервер отвечает 409 с taken, если они заняты). */
+export async function linkCheck(sent: CodeSent, code: string, move = false) {
+  const d = await api<{ user: User }>('/api/app/me/link/check', { [sent.kind]: sent.to, code, ...(move ? { move: true } : {}) });
+  set({ user: d.user });
+  return d.user;
 }
 
 export async function saveProfile(p: { name?: string; city?: string; country?: string; bio?: string }) {
