@@ -1,5 +1,5 @@
 import { ScrollView, View } from 'react-native';
-import { radius, useTheme } from '@/theme';
+import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Icon, IconName } from './Icon';
 import { Tap } from './Tap';
 import { Txt } from './Text';
@@ -9,9 +9,9 @@ export function Chip({ title, on, onPress, icon }: { title: string; on?: boolean
   return (
     <Tap onPress={onPress} scaleTo={0.94} accessibilityState={{ selected: !!on }}
       style={{ height: 38, paddingHorizontal: 15, borderRadius: radius.pill, flexDirection: 'row', alignItems: 'center', gap: 6,
-        backgroundColor: on ? c.inverse : c.bgElevated, borderWidth: on ? 0 : 1, borderColor: c.line }}>
-      {icon ? <Icon name={icon} size={15} color={on ? c.onInverse : c.ink} /> : null}
-      <Txt v="subhead" color={on ? c.onInverse : c.ink} style={{ fontFamily: 'Onest_600SemiBold' }}>{title}</Txt>
+        backgroundColor: on ? c.accentSoft : c.bgElevated, borderWidth: on ? 1 : HAIRLINE, borderColor: on ? c.accent : c.line }}>
+      {icon ? <Icon name={icon} size={15} color={on ? c.accentText : c.ink} /> : null}
+      <Txt v="subhead" color={on ? c.accentText : c.ink} style={{ fontFamily: 'Onest_600SemiBold' }}>{title}</Txt>
     </Tap>
   );
 }

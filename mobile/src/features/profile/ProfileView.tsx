@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
-import { ReactNode, useState } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { ReactNode, useRef, useState } from 'react';
+import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/api/auth';
 import { routeForError } from '@/api/community';
@@ -9,7 +9,7 @@ import { acceptFriend, addFriend, blockPerson, removeFriend, startChat, unblockP
 import { FeedList, FeedPost } from '@/features/feed/FeedItems';
 import { usePostMenu } from '@/features/feed/usePostMenu';
 import { useTheme } from '@/theme';
-import { ActionSheet, Avatar, BackButton, Button, Empty, Icon, IconButton, Img, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useScrollY, useToast } from '@/ui';
+import { ActionSheet, Avatar, BackButton, Button, Empty, Icon, IconButton, Img, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useRefresh, useScrollY, useToast } from '@/ui';
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const since = (d: string) => { const [y, m] = (d || '').split('-').map(Number); return y && m ? `с ${MONTHS[m - 1]} ${y}` : ''; };
@@ -67,10 +67,12 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { y, onScroll } = useScrollY();
+  const list = useRef<ScrollView>(null);
   const toast = useToast();
   const { user: me } = useAuth();
   const q = useProfile(userId, !!me);
   const wall = useWall(userId, !!me);
+  const refresh = useRefresh(list, () => Promise.all([q.refetch(), wall.refetch()]), () => y.get() < 4);
   const posts = feedPosts(wall.data);
   const [tab, setTab] = useState<'posts' | 'photos'>('posts');
   const [menu, setMenu] = useState(false);
@@ -169,9 +171,9 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: c.bgElevated }}>
-      <ScrollView onScroll={onScroll} scrollEventThrottle={16} contentInsetAdjustmentBehavior="never"
-        refreshControl={<RefreshControl refreshing={q.isRefetching || wall.isRefetching} onRefresh={() => { q.refetch(); wall.refetch(); }} tintColor={c.accent} />}
+    <View style={{ flex: 1, backgroundColor: c.bg }}>
+      <ScrollView ref={list} onScroll={onScroll} scrollEventThrottle={16} contentInsetAdjustmentBehavior="never"
+        refreshControl={refresh.control}
         contentContainerStyle={{ paddingTop: insets.top + 64, paddingHorizontal: 20, paddingBottom: (own ? TAB_SPACE : 40) + insets.bottom, gap: 20 }}>
         {!me ? (
           <Empty icon="person" title="Профили видны участникам" text="Войдите, чтобы смотреть профили, добавлять в друзья и писать."
@@ -191,6 +193,7 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
       <TopBar y={y} title={u?.name} left={own ? undefined : <BackButton />}
         right={own ? <IconButton icon="settings" label="Настройки" onPress={() => router.push('/settings')} />
           : p && !['blocked'].includes(p.relation) ? <IconButton icon="more" label="Действия" onPress={() => setMenu(true)} /> : null} />
+      {refresh.indicator}
       {sheet}
       {p && !own ? (
         <ActionSheet visible={menu} onClose={() => setMenu(false)} actions={[

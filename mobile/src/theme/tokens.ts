@@ -38,16 +38,17 @@ export const palette = {
     onHeroMuted: '#C4C9D2',
     segTrack: '#E6E8EC',
     segOn: '#FFFFFF',
+    iconOff: '#8A9099',
   },
   dark: {
     // Слои как в Threads: графитовый фон, карточки на тон светлее, тонкая рамка #2E2E2E — без «мёртвого» чёрного
     bg: '#121212',
     bgElevated: '#1E1E1E',
     bgSunken: '#262626',
-    ink: '#F4F5F7',
-    text: '#D3D7DE',
-    muted: '#9A9FA8',
-    faint: '#666B74',
+    ink: '#FFFFFF',
+    text: '#E6E6E6',
+    muted: '#A0A0A0',
+    faint: '#6E6E6E',
     line: '#2E2E2E',
     lineStrong: '#3A3A3A',
     accent: '#FF6A33',
@@ -63,9 +64,10 @@ export const palette = {
     glassEdge: 'rgba(255,255,255,0.08)',
     glassShadow: 'rgba(0,0,0,0.45)',
     scrim: 'rgba(0,0,0,0.55)',
-    inverse: '#F4F5F7',
-    onInverse: '#0B0D12',
-    onInverseMuted: '#4B5260',
+    // «Сильная» поверхность в тёмной теме — графит, а не белый: без контрастных белых плашек
+    inverse: '#2E2E2E',
+    onInverse: '#FFFFFF',
+    onInverseMuted: '#A0A0A0',
     placeholder: '#262626',
     hero: '#1E1E1E',
     heroInner: '#272727',
@@ -74,6 +76,7 @@ export const palette = {
     onHeroMuted: '#AEB4BF',
     segTrack: '#1E1E1E',
     segOn: '#2E2E2E',
+    iconOff: '#666666',   // неактивные вкладки нижнего меню
   },
 } as const;
 

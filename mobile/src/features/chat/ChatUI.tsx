@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'reac
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { timeLabel } from '@/features/feed/cards';
-import { radius, type as T, useTheme } from '@/theme';
+import { HAIRLINE, radius, type as T, useTheme } from '@/theme';
 import { Glass, Icon, IconButton, Tap, Txt } from '@/ui';
 
 /** Пузырь сообщения: свои — тёмные справа, чужие — светлые слева. */
@@ -14,13 +14,13 @@ export function Bubble({ text, at, mine, name, read, onLongPress, fresh }: {
   const body = (
     <Pressable onLongPress={onLongPress} delayLongPress={280} accessibilityHint={onLongPress ? 'Удерживайте для действий' : undefined}
       style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 9, gap: 2,
-        backgroundColor: mine ? c.inverse : c.bgElevated, borderWidth: mine ? 0 : 1, borderColor: c.line,
+        backgroundColor: mine ? c.accent : c.bgElevated, borderWidth: mine ? 0 : HAIRLINE, borderColor: c.line,
         borderRadius: 22, borderBottomRightRadius: mine ? 7 : 22, borderBottomLeftRadius: mine ? 22 : 7 }}>
       {name ? <Txt v="caption" tone="accent" style={{ fontFamily: 'Onest_700Bold' }}>{name}</Txt> : null}
-      <Txt v="body" color={mine ? c.onInverse : c.ink} selectable>{text}</Txt>
+      <Txt v="body" color={mine ? c.onAccent : c.ink} selectable>{text}</Txt>
       <View style={{ flexDirection: 'row', alignSelf: 'flex-end', alignItems: 'center', gap: 4 }}>
-        <Txt v="caption" color={mine ? c.onInverseMuted : c.faint} style={{ fontSize: 11 }}>{timeLabel(at)}</Txt>
-        {mine && read !== undefined ? <Icon name="check" size={11} color={read ? c.accent : c.onInverseMuted} /> : null}
+        <Txt v="caption" color={mine ? 'rgba(11,13,18,0.62)' : c.faint} style={{ fontSize: 11 }}>{timeLabel(at)}</Txt>
+        {mine && read !== undefined ? <Icon name="check" size={11} color={read ? c.onAccent : 'rgba(11,13,18,0.45)'} /> : null}
       </View>
     </Pressable>
   );

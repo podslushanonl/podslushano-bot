@@ -37,19 +37,21 @@ function ConversationRow({ cv, first }: { cv: Conversation; first: boolean }) {
   );
 }
 
+const CALM = '#7CC497';   // «Тихо» — спокойный приглушённый зелёный: читается на тёмной плитке, но не спорит с активными чатами
+
 /** Плитка чата в сетке: иконка, название, активность за сутки. */
 function RoomTile({ r, icon, onPress }: { r: Room; icon: IconName; onPress: () => void }) {
   const { c } = useTheme();
   return (
     <Tap onPress={onPress} scaleTo={0.96} accessibilityLabel={r.title}
       style={{ width: '48.5%', flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: c.bgElevated, borderRadius: radius.m,
-        borderWidth: HAIRLINE, borderColor: c.line, paddingVertical: 12, paddingHorizontal: 12 }}>
+        borderWidth: HAIRLINE, borderColor: c.line, padding: 14 }}>
       <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: c.bgSunken, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name={icon} thin size={16} color={c.ink} />
       </View>
       <View style={{ flex: 1, gap: 1 }}>
         <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }} numberOfLines={1}>{r.title}</Txt>
-        <Txt v="caption" tone={r.today ? 'accent' : 'muted'} numberOfLines={1}>{r.today ? `${r.today} за сутки` : 'Тихо'}</Txt>
+        <Txt v="caption" color={r.today ? c.accentText : CALM} numberOfLines={1}>{r.today ? `${r.today} за сутки` : 'Тихо'}</Txt>
       </View>
     </Tap>
   );
@@ -123,8 +125,8 @@ export default function Messages() {
   const friends = useFriends(!!user);
   const requests = friends.data?.incoming.length || 0;
   return (
-    <TabScreen title="Сообщения" refreshing={rooms.isRefetching || dms.isRefetching}
-      onRefresh={() => { rooms.refetch(); if (user) { dms.refetch(); friends.refetch(); } }}>
+    <TabScreen title="Сообщения"
+      onRefresh={() => Promise.all([rooms.refetch(), ...(user ? [dms.refetch(), friends.refetch()] : [])])}>
       <Segmented value={tab} onChange={setTab} items={[
         { key: 'dm', title: dms.data?.unread ? `Личные · ${dms.data.unread}` : 'Личные' },
         { key: 'rooms', title: 'Общие чаты' },
