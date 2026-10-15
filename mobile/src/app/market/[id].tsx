@@ -1,6 +1,5 @@
 import { Image } from 'expo-image';
 import { router, useLocalSearchParams } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
 import { NativeScrollEvent, NativeSyntheticEvent, Platform, ScrollView, Share, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,17 +7,10 @@ import { toggleFavorite, useAuth } from '@/api/auth';
 import { BOT } from '@/api/client';
 import { routeForError } from '@/api/community';
 import { startDialog } from '@/api/dm';
-import { absUrl, CAT_ICON, closeListing, marketChanged, payListing, REPORT_REASONS, reportListing, useListing } from '@/api/market';
-import { openUrl } from '@/lib/open';
+import { absUrl, CAT_ICON, closeListing, marketChanged, REPORT_REASONS, reportListing, useListing } from '@/api/market';
+import { ago } from '@/lib/format';
 import { radius, useTheme } from '@/theme';
-import { ActionSheet, BackButton, Button, Empty, Glass, Icon, IconButton, IconName, Img, Skeleton, Tap, Txt, useToast } from '@/ui';
-
-const SOCIAL: Record<string, any> = {
-  telegram: require('@assets/images/social/telegram.png'),
-  instagram: require('@assets/images/social/instagram.png'),
-  whatsapp: require('@assets/images/social/whatsapp.png'),
-};
-const SYS: Record<string, IconName> = { phone: 'phone', email: 'mail', website: 'globe' };
+import { ActionSheet, Avatar, BackButton, Button, Empty, Glass, Icon, IconButton, Skeleton, Tap, Txt, useToast } from '@/ui';
 
 /** Фото объявления: листаются пальцем, счётчик на стекле. */
 function Gallery({ urls, cat }: { urls: string[]; cat: string }) {
@@ -28,8 +20,8 @@ function Gallery({ urls, cat }: { urls: string[]; cat: string }) {
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => setI(Math.round(e.nativeEvent.contentOffset.x / Math.max(1, width)));
   if (!urls.length) {
     return (
-      <View style={{ height: 380, alignItems: 'center', justifyContent: 'center', backgroundColor: c.accentSoft }}>
-        <Icon name={CAT_ICON[cat] || 'box'} size={64} color={c.accentText} />
+      <View style={{ height: 380, alignItems: 'center', justifyContent: 'center', backgroundColor: c.bgSunken }}>
+        <Icon name={CAT_ICON[cat] || 'box'} thin size={64} color={c.faint} />
       </View>
     );
   }
@@ -56,7 +48,7 @@ export default function ListingScreen() {
   const toast = useToast();
   const { user, favorites } = useAuth();
   const q = useListing(Number(id));
-  const fav = favorites.some((f) => f.kind === 'listing' && f.key === String(id));
+  const fav = favorites.some((f) => f.kind === 'item' && f.key === String(id));
   const l = q.data;
   const [reportOpen, setReportOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -89,8 +81,6 @@ export default function ListingScreen() {
     setBusy(true);
     try { await fn(); if (ok) toast(ok); } catch (e: any) { if (!routeForError(e)) toast(e?.message || 'Не получилось', 'error'); } finally { setBusy(false); }
   };
-  const contacts = l.contacts || [];
-  const main = contacts[0];
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bgElevated }}>
@@ -101,54 +91,53 @@ export default function ListingScreen() {
             <View style={{ backgroundColor: c.accentSoft, borderRadius: radius.l, padding: 16, gap: 10 }}>
               <Txt v="overline" tone="accent">Моё объявление · {l.status_title}</Txt>
               <Txt v="callout" tone="ink">
-                {l.status === 'pending' ? 'Модератор проверит его в ближайшее время — обычно в течение дня.'
-                  : l.status === 'rejected' ? 'Не прошло проверку. Исправьте и отправьте снова.'
-                  : l.status === 'awaiting_payment' ? 'Размещение жилья платное. После оплаты объявление уйдёт на проверку.'
-                  : l.until ? `Опубликовано до ${l.until.split('-').reverse().join('.')}` : 'Объявление снято с публикации.'}
+                {l.status === 'active' ? `Опубликовано до ${(l.until || '').split('-').reverse().join('.')}`
+                  : l.status === 'hidden' ? 'Скрыто после жалоб — модератор посмотрит его в ближайшее время.'
+                  : l.status === 'expired' ? 'Срок публикации истёк. Сохраните объявление снова, чтобы продлить его на 30 дней.'
+                  : 'Объявление снято с публикации. Сохраните его снова, чтобы опубликовать.'}
               </Txt>
-              {l.status === 'awaiting_payment' ? <Button title="Оплатить размещение" kind="accent" loading={busy}
-                onPress={() => run(async () => { const d = await payListing(l.id); await WebBrowser.openBrowserAsync(d.pay_url); q.refetch(); })} /> : null}
               <View style={{ flexDirection: 'row', gap: 8 }}>
-                <Button title="Изменить" kind="secondary" size="s" icon="edit" style={{ flex: 1 }}
-                  onPress={() => router.push({ pathname: '/market/new', params: { id: String(l.id) } })} />
-                {l.status !== 'closed' ? <Button title="Снять" kind="danger" size="s" icon="trash" style={{ flex: 1 }} loading={busy}
+                {l.status !== 'hidden' ? <Button title={l.status === 'active' ? 'Изменить' : 'Опубликовать снова'} kind="secondary" size="s" icon="edit" style={{ flex: 1 }}
+                  onPress={() => router.push({ pathname: '/market/new', params: { id: String(l.id) } })} /> : null}
+                {l.status === 'active' ? <Button title="Снять" kind="danger" size="s" icon="trash" style={{ flex: 1 }} loading={busy}
                   onPress={() => run(async () => { await closeListing(l.id); marketChanged(); router.back(); }, 'Объявление снято')} /> : null}
               </View>
             </View>
           ) : null}
 
           <View style={{ gap: 8 }}>
-            <Txt v="overline">{[l.cat_title, l.intent_title].filter(Boolean).join(' · ')}</Txt>
-            {l.price ? <Txt v="display" style={{ fontSize: 30, lineHeight: 35 }}>{l.price}</Txt> : null}
+            <Txt v="overline">{l.cat_title}</Txt>
+            <Txt v="display" color={l.price_value === 0 ? c.accent : c.ink} style={{ fontSize: 30, lineHeight: 35 }}>{l.price}</Txt>
             <Txt v="title3">{l.title}</Txt>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
               <Icon name="location" size={15} color={c.muted} />
-              <Txt v="subhead" tone="muted">{l.city || 'Нидерланды'}</Txt>
+              <Txt v="subhead" tone="muted">{[l.city, ago(l.at.slice(0, 10))].filter(Boolean).join(' · ')}</Txt>
             </View>
           </View>
 
           {l.description ? <Txt v="body" tone="text" style={{ lineHeight: 25 }}>{l.description}</Txt> : null}
 
-          {l.cat === 'housing' ? (
-            <View style={{ flexDirection: 'row', gap: 12, backgroundColor: c.bgSunken, borderRadius: radius.l, padding: 14 }}>
-              <Icon name="shield" size={20} color={c.success} />
-              <Txt v="callout" tone="ink" style={{ flex: 1 }}>Не переводите предоплату, пока не увидели жильё и договор.</Txt>
-            </View>
+          {l.seller && !l.mine ? (
+            <Tap onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(l.seller!.id) } })} scaleTo={0.98}
+              accessibilityLabel={`Продавец: ${l.seller.name}`}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.l, backgroundColor: c.bgSunken }}>
+              <Avatar name={l.seller.name} id={l.seller.id} uri={l.seller.avatar} size={46} />
+              <View style={{ flex: 1, gap: 2 }}>
+                <Txt v="bodyStrong" numberOfLines={1}>{l.seller.name}</Txt>
+                <Txt v="footnote" tone="muted" numberOfLines={1}>
+                  {[l.seller.city, l.seller.since ? `в podslushano с ${l.seller.since.slice(0, 4)}` : ''].filter(Boolean).join(' · ')}
+                </Txt>
+              </View>
+              <Icon name="chevron" size={14} color={c.faint} />
+            </Tap>
           ) : null}
 
-          {!l.mine && contacts.length > 1 ? (
-            <View style={{ gap: 10 }}>
-              <Txt v="overline">Все способы связи</Txt>
-              {contacts.map((ct) => (
-                <Tap key={ct.type + ct.url} onPress={() => openUrl(ct.url)} scaleTo={0.98}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, borderRadius: radius.l, borderWidth: 1, borderColor: c.line }}>
-                  {SOCIAL[ct.type] ? <Img source={SOCIAL[ct.type]} style={{ width: 32, height: 32, backgroundColor: 'transparent' }} />
-                    : <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: c.inverse, alignItems: 'center', justifyContent: 'center' }}>
-                        <Icon name={SYS[ct.type] || 'globe'} size={15} color={c.onInverse} /></View>}
-                  <Txt v="bodyStrong" style={{ flex: 1 }}>{ct.title}</Txt>
-                  <Icon name="chevron" size={14} color={c.faint} />
-                </Tap>
-              ))}
+          {l.cat === 'housing' || l.cat === 'tickets' ? (
+            <View style={{ flexDirection: 'row', gap: 12, backgroundColor: c.bgSunken, borderRadius: radius.l, padding: 14 }}>
+              <Icon name="shield" size={20} color={c.success} />
+              <Txt v="callout" tone="ink" style={{ flex: 1 }}>
+                {l.cat === 'housing' ? 'Не переводите предоплату, пока не увидели жильё и договор.' : 'Не платите за билеты заранее незнакомым людям — встречайтесь лично или проверяйте билет через организатора.'}
+              </Txt>
             </View>
           ) : null}
 
@@ -166,30 +155,18 @@ export default function ListingScreen() {
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <IconButton icon="share" label="Поделиться" onPress={share} />
           {!l.mine ? <IconButton icon={fav ? 'heartFill' : 'heart'} label={fav ? 'Убрать из избранного' : 'В избранное'} color={fav ? c.accent : undefined}
-            onPress={() => (user ? toggleFavorite(String(l.id), l.title, !fav, 'listing').then(() => toast(fav ? 'Убрано из избранного' : 'Добавлено в избранное')).catch(() => {}) : router.push('/login'))} /> : null}
+            onPress={() => (user ? toggleFavorite(String(l.id), l.title, !fav, 'item').then(() => toast(fav ? 'Убрано из избранного' : 'Добавлено в избранное')).catch(() => {}) : router.push('/login'))} /> : null}
         </View>
       </View>
 
-      {!l.mine && (l.chat || main) ? (
+      {!l.mine && l.chat ? (
         <View style={{ position: 'absolute', left: 12, right: 12, bottom: insets.bottom + 12 }}>
-          <Glass radius={radius.xxl} strong style={{ padding: 8, flexDirection: 'row', gap: 8 }}>
-            {l.chat ? (
-              <Button title="Написать продавцу" kind="primary" icon="bubble" style={{ flex: 1 }} loading={busy}
-                onPress={() => (user ? run(async () => {
-                  const d = await startDialog(l.id);
-                  router.push({ pathname: '/dm/[id]', params: { id: String(d.id) } });
-                }) : router.push('/login'))} />
-            ) : (
-              <Button title={main!.type === 'phone' ? 'Позвонить' : main!.type === 'email' ? 'Написать на почту' : `Написать в ${main!.title}`}
-                kind="primary" icon={main!.type === 'phone' ? 'phone' : 'bubble'} style={{ flex: 1 }} onPress={() => openUrl(main!.url)} />
-            )}
-            {l.chat && main ? (
-              <Tap onPress={() => openUrl(main.url)} scaleTo={0.9} accessibilityLabel={main.title}
-                style={{ width: 54, height: 54, borderRadius: 27, backgroundColor: c.bgElevated, borderWidth: 1, borderColor: c.line, alignItems: 'center', justifyContent: 'center' }}>
-                {SOCIAL[main.type] ? <Img source={SOCIAL[main.type]} style={{ width: 30, height: 30, backgroundColor: 'transparent' }} />
-                  : <Icon name={SYS[main.type] || 'globe'} size={21} />}
-              </Tap>
-            ) : null}
+          <Glass radius={radius.xxl} strong style={{ padding: 8 }}>
+            <Button title="Написать продавцу" kind="accent" icon="bubble" loading={busy}
+              onPress={() => (user ? run(async () => {
+                const d = await startDialog(l.id);
+                router.push({ pathname: '/dm/[id]', params: { id: String(d.id) } });
+              }) : router.push('/login'))} />
           </Glass>
         </View>
       ) : null}

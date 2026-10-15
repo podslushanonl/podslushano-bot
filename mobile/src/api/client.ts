@@ -20,6 +20,9 @@ export const tokenStore = {
   del: () => (Platform.OS === 'web' ? AsyncStorage.removeItem(KEY) : SecureStore.deleteItemAsync(KEY)),
 };
 
+// Имя устройства для списка «Активные сессии»; браузер сервер узнаёт по User-Agent
+const CLIENT: Record<string, string> = Platform.OS === 'web' ? {} : { 'X-Client': `${Platform.OS === 'ios' ? 'iPhone' : 'Android'} · приложение` };
+
 let token: string | null = null;
 let onUnauthorized: (() => void) | null = null;
 export const setToken = (t: string | null) => { token = t; };
@@ -32,7 +35,7 @@ export async function api<T = any>(path: string, body?: object, method?: string)
   try {
     r = await fetch(BOT + path, {
       method: method || (body ? 'POST' : 'GET'),
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json', ...CLIENT, ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch {

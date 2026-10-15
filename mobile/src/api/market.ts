@@ -1,34 +1,46 @@
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query';
 import { Platform } from 'react-native';
 import { api, BOT } from './client';
+import type { IconName } from '@/ui/Icon';
 import { queryClient } from './query';
 
-export type Intent = { key: string; title: string };
-export type Category = { key: string; title: string; intents: Intent[] };
-export type Contact = { type: string; title: string; url: string };
-export type ContactForm = Partial<Record<'telegram' | 'whatsapp' | 'phone' | 'email' | 'instagram', string>>;
+export type Category = { key: string; title: string; hint: string };
+export type Seller = { id: number; name: string; city: string; avatar: string; since: string };
 export type Listing = {
-  id: number; cat: string; cat_title: string; intent: string; intent_title: string;
-  title: string; price: string; city: string; photo: string; at: string; mine: boolean;
-  status?: string; status_title?: string;
-  /** Продавцу можно написать в приложении (он сам подавал объявление через приложение). */
-  chat?: boolean;
-  /** Аккаунт продавца в приложении: личка открывается, когда вы друзья. */
-  seller_id?: number;
-  description?: string; contacts?: Contact[]; until?: string; photos?: string[];
-  form?: { city: string; nationwide: boolean; contacts: ContactForm };
+  id: number; cat: string; cat_title: string; title: string;
+  /** Цена для показа: «€450», «Бесплатно», «Договорная»; price_value — число евро или null. */
+  price: string; price_value: number | null;
+  city: string; photo: string; at: string; mine: boolean;
+  status: 'active' | 'closed' | 'hidden' | 'expired'; status_title: string;
+  description?: string; photos?: string[]; until?: string;
+  /** Продавцу можно написать в приложении. */
+  chat?: boolean; seller_id?: number; seller?: Seller;
 };
 export type Page = { items: Listing[]; more: boolean; categories: Category[]; cities: string[] };
 export type NewListing = {
-  id?: number; category: string; intent: string; title: string; description: string; price: string;
-  city: string; nationwide: boolean; contacts: ContactForm;
+  id?: number; category: string; title: string; description: string; price: string; city: string;
   /** Фото по порядку: "keep:<номер>" — оставить уже загруженное, иначе картинка data:... */
   photos: string[];
 };
 
 export const photoUrl = (l: Pick<Listing, 'photo'>) => (l.photo ? BOT + l.photo : '');
 export const absUrl = (path: string) => (path ? BOT + path : '');
-export const MAX_PHOTOS = 8;
+export const MAX_PHOTOS = 5;
+
+/** Категории барахолки (те же ключи на сервере — utils/app_market.py). Иконки — системные, тонкие. */
+export const CATEGORIES: (Category & { icon: IconName })[] = [
+  { key: 'wardrobe', title: 'Гардероб', hint: 'Одежда, обувь, аксессуары', icon: 'shirt' },
+  { key: 'home', title: 'Дом и Уют', hint: 'Мебель, декор, растения, посуда', icon: 'sofa' },
+  { key: 'tech', title: 'Техно', hint: 'Гаджеты, Apple, приставки, электроника', icon: 'devices' },
+  { key: 'sport', title: 'Спорт и Байки', hint: 'Велосипеды, самокаты, экипировка', icon: 'bike' },
+  { key: 'tickets', title: 'Билеты', hint: 'Концерты, фестивали, события', icon: 'ticket' },
+  { key: 'housing', title: 'Жилье', hint: 'Аренда комнат, квартир, субаренда', icon: 'house' },
+  { key: 'services', title: 'Услуги', hint: 'Локальные мастера, хелперы, репетиторы', icon: 'wrench' },
+  { key: 'free', title: 'Даром', hint: 'Вещи за самовывоз, бесплатно', icon: 'gift' },
+];
+export const CAT_ICON: Record<string, IconName> = Object.fromEntries(CATEGORIES.map((c) => [c.key, c.icon]));
+/** Города в форме подачи; остальные — через «Другой город». */
+export const MARKET_CITIES = ['Amsterdam', 'Rotterdam', 'Den Haag', 'Eindhoven'];
 
 export type MarketFilter = { cat: string; city: string; q: string };
 
@@ -49,17 +61,10 @@ export function useMarket(f: MarketFilter) {
   });
 }
 
-/** Категории и города для фильтров и формы (берутся из первой страницы барахолки). */
-export const useMarketMeta = () => useQuery({
-  queryKey: ['market-meta'], staleTime: 3600_000,
-  queryFn: () => api<Page>('/api/app/market?offset=0').then((d) => ({ categories: d.categories, cities: d.cities })),
-});
 export const useListing = (id: number) => useQuery({ queryKey: ['listing', id], enabled: id > 0, queryFn: () => api<{ item: Listing }>(`/api/app/market/${id}`).then((d) => d.item) });
 export const useMyListings = (enabled: boolean) => useQuery({ queryKey: ['me', 'listings'], enabled, queryFn: () => api<{ items: Listing[]; max: number }>('/api/app/market/my') });
 
-export const submitListing = (l: NewListing) =>
-  api<{ id: number; status: string; pay_url?: string; price?: string; pay_error?: string }>('/api/app/market', l);
-export const payListing = (id: number) => api<{ pay_url: string }>(`/api/app/market/${id}/pay`, {});
+export const submitListing = (l: NewListing) => api<{ id: number; status: string }>('/api/app/market', l);
 export const closeListing = (id: number) => api(`/api/app/market/${id}/close`, {});
 export const reportListing = (id: number, reason: string) => api(`/api/app/market/${id}/report`, { reason });
 
@@ -73,10 +78,6 @@ export const REPORT_REASONS: [string, string][] = [
   ['scam', 'Похоже на мошенничество'], ['outdated', 'Уже не актуально'], ['duplicate', 'Дубликат'],
   ['prohibited', 'Запрещённый контент'], ['other', 'Другая причина'],
 ];
-
-export const CAT_ICON: Record<string, 'house' | 'market' | 'gift' | 'briefcase' | 'car' | 'box'> = {
-  housing: 'house', goods: 'market', free: 'gift', jobs: 'briefcase', rides: 'car', other: 'box',
-};
 
 /** В браузере фото с телефона бывает 10+ МБ: уменьшаем до 1600 px перед отправкой. */
 export async function shrinkForWeb(uri: string): Promise<string> {

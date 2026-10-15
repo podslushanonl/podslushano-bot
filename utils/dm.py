@@ -32,7 +32,6 @@ from sqlalchemy import func, or_, select
 import config
 from database.db import get_session
 from database.models import AppUser, DmConversation, DmMessage, Listing, MarketItem
-from handlers import board
 from utils import realtime, social
 from utils.app_api import _user
 from utils.community import FOREVER, _rate, can_write, check_text
@@ -86,12 +85,9 @@ async def _listing_json(session, cv: DmConversation) -> dict | None:
         from utils.app_market import price_label
         photo = f"/api/app/market/{it.id}/photo/0" if it.photo_count and it.status == "active" else ""
         return {"id": it.id, "title": it.title, "price": price_label(it.price), "photo": photo}
-    lid = cv.listing_id   # старые диалоги по объявлениям из бота
-    l = await session.get(Listing, lid) if lid else None
-    if not l:
-        return None
-    photo = f"/api/app/market/{l.id}/photo" if l.photo_file_id and board._status(l) == "approved" else ""
-    return {"id": l.id, "title": l.title, "price": l.price or "", "photo": photo}
+    # Старые диалоги по объявлениям из бота: только название (карточки в приложении у них нет)
+    l = await session.get(Listing, cv.listing_id) if cv.listing_id else None
+    return {"id": 0, "title": l.title, "price": l.price or "", "photo": ""} if l else None
 
 
 async def _may_write(session, cv: DmConversation, me: int) -> bool:

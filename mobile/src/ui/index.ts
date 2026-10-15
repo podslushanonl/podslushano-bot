@@ -11,3 +11,4 @@ export * from './Text';
 export * from './Flag';
 export * from './PhotoViewer';
 export * from './Refresh';
+export * from './Toggle';

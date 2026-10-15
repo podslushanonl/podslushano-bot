@@ -148,7 +148,7 @@ async def profile(request: web.Request) -> web.Response:
         friends = await session.scalar(select(func.count()).select_from(Friendship).where(
             or_(Friendship.user_id == u.id, Friendship.friend_id == u.id), Friendship.status == ACCEPTED)) or 0
         locked = bool(u.is_private) and me.id != u.id and rel != "friends"
-        hidden = rel in ("blocked", "unavailable") or locked
+        hidden = rel in ("blocked", "unavailable")   # у закрытого аккаунта число публикаций видно, сами они — нет
         posts_total = 0 if hidden else await session.scalar(select(func.count()).select_from(UserPost).where(
             UserPost.user_id == u.id, UserPost.deleted.is_(False), UserPost.hidden.is_(False))) or 0
         await session.commit()

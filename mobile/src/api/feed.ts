@@ -55,7 +55,7 @@ export const feedChanged = () => {
   queryClient.invalidateQueries({ queryKey: ['me', 'user'] });
 };
 
-export const createPost = (body: { text: string; photos?: string[]; repost_of?: number }) =>
+export const createPost = (body: { text: string; photos?: string[]; repost_of?: number; city?: string }) =>
   api<{ post: Post }>('/api/app/posts', body).then((d) => d.post);
 
 export async function toggleLike(p: Post) {

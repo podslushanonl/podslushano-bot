@@ -163,7 +163,7 @@ class Base5:
         pid = (await self.get("/api/app/posts?scope=all", 1))[1]["posts"][0]["id"]
         # не друг (Борис): профиль с заглушкой, стена пустая, поста нет в ленте и по ссылке
         st, d = await self.get("/api/app/user/1", 2)
-        self.assertEqual((d["private"], d["locked"], d["posts"]), (True, True, 0))
+        self.assertEqual((d["private"], d["locked"], d["posts"]), (True, True, 1))
         st, d = await self.get("/api/app/user/1/posts", 2)
         self.assertEqual((d["posts"], d["locked"]), ([], True))
         self.assertEqual((await self.get("/api/app/posts?scope=all", 2))[1]["posts"], [])

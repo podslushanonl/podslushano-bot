@@ -3,7 +3,7 @@ import { useEffect } from 'react';
 import { api, ApiError, BOT, getToken } from './client';
 import { queryClient } from './query';
 
-export type Peer = { id: number; name: string };
+export type Peer = { id: number; name: string; avatar?: string };
 export type DmListing = { id: number; title: string; price: string; photo: string } | null;
 export type DmMessage = { id: number; text: string; at: string; mine: boolean; read: boolean };
 export type Conversation = {
@@ -21,7 +21,8 @@ export const useDialog = (id: number) => useQuery({
   queryKey: ['me', 'dm', id], enabled: id > 0, staleTime: 5_000,
   queryFn: () => api<{ conversation: Conversation; messages: DmMessage[] }>(`/api/app/dm/${id}`),
 });
-export const startDialog = (listingId: number) => api<{ id: number }>('/api/app/dm/start', { listing_id: listingId });
+/** Диалог с продавцом по объявлению барахолки. */
+export const startDialog = (itemId: number) => api<{ id: number }>('/api/app/dm/start', { item_id: itemId });
 export const sendDm = (id: number, text: string) => api<{ message: DmMessage }>(`/api/app/dm/${id}`, { text }).then((d) => d.message);
 export const markRead = (id: number) => api(`/api/app/dm/${id}/read`, {});
 export const reportDialog = (id: number) => api(`/api/app/dm/${id}/report`, {});

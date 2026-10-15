@@ -17,7 +17,7 @@ function ConversationRow({ cv, first }: { cv: Conversation; first: boolean }) {
     <Tap onPress={() => router.push({ pathname: '/dm/[id]', params: { id: String(cv.id) } })} scaleTo={0.99}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: first ? 0 : 1, borderTopColor: c.line }}>
       <View>
-        <Avatar name={cv.peer.name} id={cv.peer.id} size={52} />
+        <Avatar name={cv.peer.name} id={cv.peer.id} uri={cv.peer.avatar} size={52} />
         {cv.listing?.photo ? <Img source={photoUrl(cv.listing)} style={{ position: 'absolute', right: -4, bottom: -4, width: 26, height: 26, borderRadius: 8, borderWidth: 2, borderColor: c.bgElevated }} /> : null}
       </View>
       <View style={{ flex: 1, gap: 2 }}>
