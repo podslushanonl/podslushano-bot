@@ -111,6 +111,8 @@ _APP_USER_LATER_COLUMNS = {
     "avatar": "{BLOB}",
     "avatar_v": "INTEGER NOT NULL DEFAULT 0",
     "phone": "VARCHAR(20)",
+    "is_private": "BOOLEAN NOT NULL DEFAULT FALSE",
+    "sessions_reset_at": "TIMESTAMP",
 }
 _USER_POST_LATER_COLUMNS = {
     "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
@@ -397,6 +399,13 @@ async def _migrate() -> None:
                     "WHERE EXISTS (SELECT 1 FROM app_users u WHERE u.id = user_posts.user_id)")
             await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_user_posts_country ON user_posts (country)")
             await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_user_posts_repost_of ON user_posts (repost_of)")
+
+        # Личные диалоги по объявлениям барахолки приложения (market_items)
+        dm_cols = await conn.run_sync(lambda c: {x["name"] for x in inspect(c).get_columns("dm_conversations")}
+                                      if "dm_conversations" in inspect(c).get_table_names() else None)
+        if dm_cols is not None and "item_id" not in dm_cols:
+            await conn.exec_driver_sql("ALTER TABLE dm_conversations ADD COLUMN item_id INTEGER")
+            await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_dm_conversations_item_id ON dm_conversations (item_id)")
 
         tables = set(await conn.run_sync(lambda c: inspect(c).get_table_names()))
         # Комнаты чатов: раньше страна хранилась кодом NL — теперь русским названием (или пусто для общей)

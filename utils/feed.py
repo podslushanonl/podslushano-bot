@@ -47,11 +47,18 @@ def _visible(q):
     return q.where(UserPost.deleted.is_(False), UserPost.hidden.is_(False))
 
 
-async def _hidden_authors(session, me: AppUser | None) -> set[int]:
-    """Кого не показывать: я заблокировал или он заблокировал меня."""
-    if not me:
-        return set()
-    return await social.blocked_by(session, me.id) | await social.blockers_of(session, me.id)
+async def _hidden_authors(session, me: AppUser | None, private: bool = True) -> set[int]:
+    """Чьи публикации не показывать: я заблокировал или он меня, а также закрытые аккаунты, где мы не друзья
+    (private=False — только блокировка: так фильтруются комментарии)."""
+    out = await social.blocked_by(session, me.id) | await social.blockers_of(session, me.id) if me else set()
+    if private:
+        closed = set((await session.execute(select(AppUser.id).where(AppUser.is_private.is_(True)))).scalars())
+        if me:
+            closed.discard(me.id)
+            if closed:
+                closed -= await _friend_ids(session, me.id)
+        out |= closed
+    return out
 
 
 async def _friend_ids(session, uid: int) -> set[int]:
@@ -211,7 +218,9 @@ async def create(request: web.Request) -> web.Response:
                 return _err(request, "Слишком много репостов за день. Попробуйте завтра.", 429)
         elif _rate(f"p60:{me.id}", 1, 60) or _rate(f"pday:{me.id}", 10, 86400):
             return _err(request, "Можно публиковать до 10 постов в день и не чаще раза в минуту.", 429)
-        p = UserPost(user_id=me.id, text=text, city=me.city or "", country=me.country,
+        # Место поста: город, выбранный в редакторе (значок геопозиции), иначе — город профиля
+        city = " ".join(str(data.get("city") or "").split())[:80] or me.city or ""
+        p = UserPost(user_id=me.id, text=text, city=city, country=me.country,
                      repost_of=orig.id if orig else None, photo_count=len(jpegs))
         session.add(p)
         await session.flush()
@@ -235,7 +244,7 @@ def _comment(c: PostComment, users: dict[int, AppUser], me: AppUser | None) -> d
 
 async def _comments(session, pid: int, me: AppUser | None) -> list[dict]:
     q = select(PostComment).where(PostComment.post_id == pid, PostComment.deleted.is_(False), PostComment.hidden.is_(False))
-    hidden = await _hidden_authors(session, me)
+    hidden = await _hidden_authors(session, me, private=False)
     if hidden:
         q = q.where(PostComment.user_id.notin_(hidden))
     rows = list((await session.execute(q.order_by(PostComment.id).limit(300))).scalars())
@@ -393,7 +402,11 @@ async def wall(request: web.Request) -> web.Response:
         if not me:
             return _err(request, "Войдите, чтобы смотреть профили.", 401)
         if uid in await _hidden_authors(session, me):
-            return _json(request, {"ok": True, "posts": [], "more": False})
+            # заблокирован или закрытый аккаунт не друга: публикаций не видно
+            author = await session.get(AppUser, uid)
+            locked = bool(author and author.is_private and not await social.blocked_between(session, me.id, uid))
+            await session.commit()
+            return _json(request, {"ok": True, "posts": [], "more": False, "locked": locked})
         q = _visible(select(UserPost)).where(UserPost.user_id == uid)
         before = request.query.get("before", "")
         if before.isdigit():

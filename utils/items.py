@@ -134,7 +134,7 @@ async def comments(request: web.Request) -> web.Response:
         if request.method == "GET":
             q = select(ItemComment).where(ItemComment.kind == kind, ItemComment.key == key,
                                           ItemComment.deleted.is_(False), ItemComment.hidden.is_(False))
-            hidden = await feed._hidden_authors(session, me)
+            hidden = await feed._hidden_authors(session, me, private=False)
             if hidden:
                 q = q.where(ItemComment.user_id.notin_(hidden))
             rows = list((await session.execute(q.order_by(ItemComment.id).limit(300))).scalars())

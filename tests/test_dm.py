@@ -11,7 +11,7 @@ from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from database.models import AppUser, Base, Friendship, FriendStatus, Listing
+from database.models import AppUser, Base, Friendship, FriendStatus, MarketItem
 from utils import app_api, community, dm, realtime, social
 from utils.site_api import make_token
 
@@ -47,11 +47,10 @@ class DmTests(unittest.IsolatedAsyncioTestCase):
                 AppUser(id=2, email="b@x.nl", name="Борис", created_at=old, rules_at=old),
                 AppUser(id=3, email="n@x.nl", name="Нина", created_at=old),
                 AppUser(id=4, email="o@x.nl", name="Олег", created_at=old, rules_at=old),
-                Listing(id=10, category="goods", title="Коляска Bugaboo", description="d", contact="Telegram: @s_nl",
-                        status="approved", expires_at=later, app_user_id=1, submitter_user_id=555),
-                Listing(id=11, category="goods", title="Из бота", description="d", contact="Telegram: @x_nl",
-                        status="approved", expires_at=later, submitter_user_id=777),
-                Listing(id=12, category="goods", title="На проверке", description="d", status="pending", app_user_id=1),
+                MarketItem(id=10, user_id=1, category="home", title="Коляска Bugaboo", description="почти новая", city="Amsterdam",
+                           price=120, expires_at=later),
+                MarketItem(id=12, user_id=1, category="home", title="Снятое", description="уже продано", city="Amsterdam",
+                           status="closed", expires_at=later),
                 # Сергей и Борис — друзья; Олег (4) с Сергеем не дружит
                 Friendship(user_id=2, friend_id=1, status=FriendStatus.ACCEPTED),
             ])
@@ -85,14 +84,13 @@ class DmTests(unittest.IsolatedAsyncioTestCase):
         return await self.c.get(path, headers=self.h(uid))
 
     async def start(self, uid=2, listing=10):
-        r = await self.post("/api/app/dm/start", uid, {"listing_id": listing})
+        r = await self.post("/api/app/dm/start", uid, {"item_id": listing})
         return r.status, await r.json()
 
     async def test_start_rules(self):
         self.assertEqual((await self.start(None))[0], 401)
         self.assertEqual((await self.start(3))[0], 428)          # правила не приняты
-        self.assertEqual((await self.start(2, 11))[0], 409)      # автор не в приложении
-        self.assertEqual((await self.start(2, 12))[0], 404)      # не опубликовано
+        self.assertEqual((await self.start(2, 12))[0], 404)      # снято с публикации
         self.assertEqual((await self.start(1, 10))[0], 400)      # своё объявление
         st, d = await self.start(4)                               # по объявлению дружба не нужна
         self.assertEqual(st, 200)
