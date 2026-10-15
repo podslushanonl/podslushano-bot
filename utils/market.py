@@ -236,8 +236,23 @@ def prepare_photo(raw: str) -> bytes | None:
     return out.getvalue()
 
 
-def prepare_avatar(raw: str, side: int = 512) -> bytes | None:
-    """base64 → квадратный JPEG side×side по центру, без EXIF. None — не картинка."""
+def _crop_box(crop, w: int, h: int) -> tuple[int, int, int, int] | None:
+    """Рамка из приложения {x, y, w, h} в долях картинки → квадрат в пикселях; None — рамки нет или она негодная."""
+    try:
+        x, y, cw, ch = (float(crop[k]) for k in ("x", "y", "w", "h"))
+    except (TypeError, KeyError, ValueError):
+        return None
+    if not all(0 <= v <= 1 for v in (x, y)) or not (0.02 <= cw <= 1 and 0.02 <= ch <= 1):
+        return None
+    side = max(1, round(min(cw * w, ch * h, w, h)))
+    left = min(max(0, round(x * w)), w - side)
+    top = min(max(0, round(y * h)), h - side)
+    return left, top, left + side, top + side
+
+
+def prepare_avatar(raw: str, side: int = 512, crop: dict | None = None) -> bytes | None:
+    """base64 → квадратный JPEG side×side без EXIF: по рамке, которую человек выбрал сам, иначе по центру.
+    None — не картинка."""
     from PIL import Image, ImageOps
     if "," in raw[:100]:
         raw = raw.split(",", 1)[1]
@@ -246,7 +261,8 @@ def prepare_avatar(raw: str, side: int = 512) -> bytes | None:
         img = ImageOps.exif_transpose(img).convert("RGB")
     except (binascii.Error, ValueError, OSError):
         return None
-    img = ImageOps.fit(img, (side, side))
+    box = _crop_box(crop, *img.size) if crop else None
+    img = img.crop(box).resize((side, side), Image.LANCZOS) if box else ImageOps.fit(img, (side, side))
     out = io.BytesIO()
     img.save(out, "JPEG", quality=88, optimize=True)
     return out.getvalue()

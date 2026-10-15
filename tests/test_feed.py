@@ -256,6 +256,19 @@ class FeedBase:
         prof = (await self.get("/api/app/user/1", 2))[1]["user"]
         self.assertEqual((prof["bio"], prof["avatar"]), ("Люблю велосипеды и Utrecht", url))
         self.assertEqual((await self.post("/api/app/me", 1, {"bio": "ну ты и сука"}))[0], 400)
+        # Рамка, выбранная в приложении: слева красное, справа синее — берём правую половину
+        img = Image.new("RGB", (400, 200), (220, 20, 20))
+        img.paste((20, 40, 220), (200, 0, 400, 200))
+        buf = io.BytesIO()
+        img.save(buf, "PNG")
+        photo = "data:image/png;base64," + base64.b64encode(buf.getvalue()).decode()
+        st, d = await self.post("/api/app/me/avatar", 1, {"photo": photo, "crop": {"x": 0.5, "y": 0, "w": 0.5, "h": 1}})
+        av = Image.open(io.BytesIO(await (await self.c.get(d["user"]["avatar"])).read())).convert("RGB")
+        self.assertEqual(av.size, (512, 512))
+        self.assertGreater(av.getpixel((10, 256))[2], 150)           # синее до самого левого края
+        st, d = await self.post("/api/app/me/avatar", 1, {"photo": photo, "crop": {"x": "bad"}})   # негодная рамка — по центру
+        av = Image.open(io.BytesIO(await (await self.c.get(d["user"]["avatar"])).read())).convert("RGB")
+        self.assertGreater(av.getpixel((10, 256))[0], 150)
         await self.post("/api/app/me/avatar", 1, {"photo": ""})
         self.assertEqual((await self.get("/api/app/user/1", 2))[1]["user"]["avatar"], "")
         self.assertEqual((await self.c.get("/api/app/user/1/avatar?v=1")).status, 404)
@@ -298,14 +311,17 @@ class FeedBase:
             await c.exec_driver_sql("INSERT INTO user_posts VALUES (1, 1, 'старый пост', 'Utrecht', "
                                     "'2026-10-01 10:00:00', FALSE, FALSE), (2, 2, 'старый из Berlin', 'Berlin', "
                                     "'2026-10-01 11:00:00', FALSE, FALSE)")
-            for col in ("bio", "avatar", "avatar_v"):   # app_users из прошлой версии — без новых колонок
+            await c.exec_driver_sql("DROP INDEX IF EXISTS ix_app_users_phone")
+            for col in ("bio", "avatar", "avatar_v", "phone"):   # app_users из прошлой версии — без новых колонок
                 await c.exec_driver_sql(f"ALTER TABLE app_users DROP COLUMN {col}")
         with patch.object(db, "engine", self.engine):
             await db._migrate()
             await db._migrate()
         async with self.engine.connect() as c:
             ucols = await c.run_sync(lambda x: {i["name"] for i in inspect(x).get_columns("app_users")})
-            self.assertTrue({"bio", "avatar", "avatar_v"} <= ucols)
+            self.assertTrue({"bio", "avatar", "avatar_v", "phone"} <= ucols)
+            uidx = await c.run_sync(lambda x: {i["name"]: i["unique"] for i in inspect(x).get_indexes("app_users")})
+            self.assertTrue(uidx.get("ix_app_users_phone"))
             cols = await c.run_sync(lambda x: {i["name"] for i in inspect(x).get_columns("user_posts")})
             idx = await c.run_sync(lambda x: {i["name"] for i in inspect(x).get_indexes("user_posts")})
         self.assertTrue({"country", "repost_of", "photo_count", "share_kind", "share_key", "share_title"} <= cols)
