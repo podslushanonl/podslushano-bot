@@ -87,57 +87,137 @@ async def auth_methods(request: web.Request) -> web.Response:
     return _json(request, {"ok": True, "phone": sms.available(), "email": True, "telegram": True})
 
 
-async def _send(request: web.Request, kind: str, key: str) -> web.Response:
+async def _send(request: web.Request, kind: str, to: str, store: str = "") -> web.Response:
+    """Код на номер или почту `to`. store — служебный вид записи (для привязки: «link-p:<id>»), иначе kind."""
     if kind == "phone" and not sms.available():
         return _err(request, "Вход по номеру временно недоступен. Войдите по почте.", 503)
-    if _limited(f"app-ip:{_ip(request)}", 20) or _limited(f"app-{kind[0]}:{key}", 5):
+    if _limited(f"app-ip:{_ip(request)}", 20) or _limited(f"app-{kind[0]}:{to}", 5):
         return _err(request, "Слишком много попыток. Попробуйте через час.", 429)
+    store_kind, store_key = _store(kind, to, store)
     code = f"{secrets.randbelow(1_000_000):06d}"
     async with get_session() as session:
-        await session.execute(delete(AppLogin).where(AppLogin.kind == kind, AppLogin.key == key))
-        session.add(AppLogin(kind=kind, key=key, code_hash=_hash(key, code),
+        await session.execute(delete(AppLogin).where(AppLogin.kind == store_kind, AppLogin.key == store_key))
+        session.add(AppLogin(kind=store_kind, key=store_key, code_hash=_hash(store_key, code),
                              expires_at=_now() + timedelta(minutes=CODE_MIN)))
         await session.commit()
     if kind == "phone":
-        if not await sms.send_code(key, code, CODE_MIN):
+        if not await sms.send_code(to, code, CODE_MIN):
             return _err(request, "Не удалось отправить SMS. Проверьте номер или войдите по почте.", 502)
     else:
-        ok, _ = await send_email_message(key, *app_login_code(code=code))
+        ok, _ = await send_email_message(to, *app_login_code(code=code))
         if not ok:
             return _err(request, "Не удалось отправить письмо. Попробуйте позже.", 502)
-    return _json(request, {"ok": True, "kind": kind, "to": key, "ttl": CODE_MIN * 60})
+    return _json(request, {"ok": True, "kind": kind, "to": to, "ttl": CODE_MIN * 60})
+
+
+def _store(kind: str, to: str, link_user: int | str = "") -> tuple[str, str]:
+    """Где лежит код: вход — (phone|email, номер/почта); привязка — (link-p|link-e, «<id аккаунта>:<номер/почта>»)."""
+    return (f"link-{kind[0]}", f"{link_user}:{to}") if link_user else (kind, to)
+
+
+async def _verify(request: web.Request, session, store_kind: str, store_key: str, raw_code) -> web.Response | AppLogin:
+    """Проверка кода с лимитом попыток. AppLogin — код верный (ещё не погашен), иначе ответ с ошибкой."""
+    code = "".join(ch for ch in str(raw_code or "") if ch.isdigit())[:6]
+    row = (await session.execute(select(AppLogin).where(
+        AppLogin.kind == store_kind, AppLogin.key == store_key, AppLogin.used.is_(False)))).scalar_one_or_none()
+    if not row or row.expires_at < _now():
+        return _err(request, "Код устарел. Запросите новый.")
+    # Попытку списываем атомарно ДО проверки: параллельные запросы не обойдут лимит
+    took = await session.execute(update(AppLogin).where(
+        AppLogin.id == row.id, AppLogin.attempts < MAX_ATTEMPTS, AppLogin.used.is_(False))
+        .values(attempts=AppLogin.attempts + 1))
+    await session.commit()
+    if took.rowcount != 1:
+        return _err(request, "Слишком много попыток. Запросите новый код.", 429)
+    if not secrets.compare_digest(row.code_hash, _hash(store_key, code)):
+        return _err(request, "Неверный код.")
+    return row
+
+
+async def _claim(request: web.Request, session, row: AppLogin) -> web.Response | None:
+    """Код одноразовый: только один запрос может его «погасить»."""
+    claimed = await session.execute(update(AppLogin).where(AppLogin.id == row.id, AppLogin.used.is_(False))
+                                    .values(used=True))
+    if claimed.rowcount != 1:
+        await session.rollback()
+        return _err(request, "Код уже использован. Запросите новый.")
+    return None
 
 
 async def _check(request: web.Request, kind: str, key: str, raw_code) -> web.Response:
-    code = "".join(ch for ch in str(raw_code or "") if ch.isdigit())[:6]
     async with get_session() as session:
-        row = (await session.execute(select(AppLogin).where(
-            AppLogin.kind == kind, AppLogin.key == key, AppLogin.used.is_(False)))).scalar_one_or_none()
-        if not row or row.expires_at < _now():
-            return _err(request, "Код устарел. Запросите новый.")
-        # Попытку списываем атомарно ДО проверки: параллельные запросы не обойдут лимит
-        took = await session.execute(update(AppLogin).where(
-            AppLogin.id == row.id, AppLogin.attempts < MAX_ATTEMPTS, AppLogin.used.is_(False))
-            .values(attempts=AppLogin.attempts + 1))
-        await session.commit()
-        if took.rowcount != 1:
-            return _err(request, "Слишком много попыток. Запросите новый код.", 429)
-        if not secrets.compare_digest(row.code_hash, _hash(key, code)):
-            return _err(request, "Неверный код.")
-        # Код одноразовый: только один запрос может его «погасить»
-        claimed = await session.execute(update(AppLogin).where(AppLogin.id == row.id, AppLogin.used.is_(False))
-                                        .values(used=True))
-        if claimed.rowcount != 1:
-            await session.rollback()
-            return _err(request, "Код уже использован. Запросите новый.")
+        row = await _verify(request, session, kind, key, raw_code)
+        if not isinstance(row, AppLogin):
+            return row
+        if (fail := await _claim(request, session, row)):
+            return fail
+        # 1) номер/почта уже есть у аккаунта — входим в него;
+        # 2) нет, но человек уже вошёл (например, по почте) — записываем проверенный номер в его аккаунт, а не плодим второй;
+        # 3) иначе — новый аккаунт
         col = AppUser.phone if kind == "phone" else AppUser.email
         u = (await session.execute(select(AppUser).where(col == key))).scalar_one_or_none()
+        if not u:
+            u = await _user(request, session)
+            if u:
+                setattr(u, kind, key)
+                log.info("Вход: %s привязан(а) к уже открытому аккаунту %s", kind, u.id)
         if not u:
             u = AppUser(phone=key) if kind == "phone" else AppUser(email=key)
             session.add(u)
         u.last_seen = _now()
         await session.commit()
         return _json(request, _session(u))
+
+
+# ---------------------------------------------------------------- привязка номера или почты к своему аккаунту
+
+async def link_start(request: web.Request) -> web.Response:
+    """POST /api/app/me/link/start {phone, cc} | {email} — код на новый номер или почту для привязки."""
+    data = await _body(request)
+    kind, to = _target(data)
+    if not kind:
+        return _err(request, to)
+    async with get_session() as session:
+        me = await _user(request, session)
+        if not me:
+            return _err(request, "Войдите заново.", 401)
+        if (me.phone if kind == "phone" else me.email) == to:
+            return _err(request, "Уже привязан к вашему аккаунту.")
+        await session.commit()
+    return await _send(request, kind, to, me.id)
+
+
+async def link_check(request: web.Request) -> web.Response:
+    """POST /api/app/me/link/check {phone|email, code, move?}. Если номер или почта уже у другого аккаунта —
+    после верного кода 409 {taken: {name}}; повтор с move=true переносит их сюда (тот аккаунт теряет этот способ входа)."""
+    data = await _body(request)
+    kind, to = _target(data)
+    if not kind:
+        return _err(request, to)
+    async with get_session() as session:
+        me = await _user(request, session)
+        if not me:
+            return _err(request, "Войдите заново.", 401)
+        row = await _verify(request, session, *_store(kind, to, me.id), data.get("code"))
+        if not isinstance(row, AppLogin):
+            return row
+        col = AppUser.phone if kind == "phone" else AppUser.email
+        other = (await session.execute(select(AppUser).where(col == to, AppUser.id != me.id))).scalar_one_or_none()
+        if other and data.get("move") is not True:
+            # Код верный, но не гасим: человек подтвердит перенос и отправит его ещё раз
+            await session.commit()
+            what = "Этот номер" if kind == "phone" else "Эта почта"
+            return _json(request, {"ok": False, "error": f"{what} уже привязан(а) к другому аккаунту.",
+                                   "taken": {"name": other.name or ""}}, 409)
+        if (fail := await _claim(request, session, row)):
+            return fail
+        if other:
+            setattr(other, kind, None)
+            await session.flush()      # освобождаем уникальное значение до записи в свой аккаунт
+            log.info("Привязка: %s перенесён(а) с аккаунта %s на %s", kind, other.id, me.id)
+        setattr(me, kind, to)
+        await session.commit()
+        return _json(request, {"ok": True, "user": user_json(me)})
 
 
 async def auth_start(request: web.Request) -> web.Response:
@@ -288,6 +368,8 @@ async def set_avatar(request: web.Request) -> web.Response:
 
 def install_routes(app: web.Application) -> None:
     app.router.add_post("/api/app/me/avatar", set_avatar)
+    app.router.add_post("/api/app/me/link/start", link_start)
+    app.router.add_post("/api/app/me/link/check", link_check)
     app.router.add_get("/api/app/auth/methods", auth_methods)
     app.router.add_post("/api/app/auth/start", auth_start)
     app.router.add_post("/api/app/auth/check", auth_check)

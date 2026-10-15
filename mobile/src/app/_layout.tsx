@@ -23,7 +23,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
 /** Живое соединение для сообщений — пока пользователь вошёл. */
 function Realtime() {
   const { user } = useAuth();
-  useRealtime(!!user);
+  useRealtime(user?.id ?? 0);
   return null;
 }
 

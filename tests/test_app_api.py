@@ -157,6 +157,84 @@ class AppApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual((form["To"], form["From"]), ("+31612345678", "podslushano"))
         self.assertIn("123456", form["Body"])
 
+    async def test_link_phone_and_email(self):
+        sent = {}
+
+        async def fake_send(to, code, ttl):
+            sent[to] = code
+            return True
+
+        async def login(email):
+            await self.client.post("/api/app/auth/start", json={"email": email})
+            code = re.search(r"\d{6}", self.mail.await_args.args[1]).group(0)
+            d = await (await self.client.post("/api/app/auth/check", json={"email": email, "code": code})).json()
+            return d["user"]["id"], {"Authorization": "Bearer " + d["token"]}
+
+        with patch.dict("os.environ", {"OTP_DEBUG": "1"}), patch.object(sms, "send_code", fake_send):
+            # Вера вошла по номеру (новый аккаунт), потом по старой почте
+            await self.client.post("/api/app/auth/start", json={"phone": "+31612345678"})
+            phone_acc = (await (await self.client.post("/api/app/auth/check", json={"phone": "+31612345678",
+                                                                                     "code": sent["+31612345678"]})).json())["user"]["id"]
+            vera, h = await login("vera@example.com")
+            self.assertNotEqual(vera, phone_acc)
+            self.assertEqual((await self.client.post("/api/app/me/link/start", json={"phone": "+31612345678"})).status, 401)
+            # Привязка номера к аккаунту по почте: номер занят другим аккаунтом — сначала вопрос
+            await self.client.post("/api/app/me/link/start", json={"phone": "06 12345678", "cc": "31"}, headers=h)
+            code = sent["+31612345678"]
+            wrong = await self.client.post("/api/app/me/link/check", json={"phone": "+31612345678", "code": "1"}, headers=h)
+            self.assertEqual(wrong.status, 400)
+            r = await self.client.post("/api/app/me/link/check", json={"phone": "+31612345678", "code": code}, headers=h)
+            self.assertEqual(r.status, 409)
+            self.assertIn("taken", await r.json())
+            # Код со входа не подходит для привязки и наоборот
+            self.assertEqual((await self.client.post("/api/app/auth/check", json={"phone": "+31612345678", "code": code})).status, 400)
+            ok = await (await self.client.post("/api/app/me/link/check", json={"phone": "+31612345678", "code": code, "move": True},
+                                               headers=h)).json()
+            self.assertEqual((ok["user"]["id"], ok["user"]["phone"], ok["user"]["email"]), (vera, "+31612345678", "vera@example.com"))
+            again = await self.client.post("/api/app/me/link/check", json={"phone": "+31612345678", "code": code, "move": True}, headers=h)
+            self.assertEqual(again.status, 400)                                   # код одноразовый
+            self.assertEqual((await self.client.post("/api/app/me/link/start", json={"phone": "+31612345678"}, headers=h)).status, 400)
+            # Теперь вход по номеру ведёт в аккаунт Веры
+            await self.client.post("/api/app/auth/start", json={"phone": "+31612345678"})
+            d = await (await self.client.post("/api/app/auth/check", json={"phone": "+31612345678", "code": sent["+31612345678"]})).json()
+            self.assertEqual(d["user"]["id"], vera)
+            # Свободная почта привязывается сразу
+            newbie, h2 = await login("boris@example.com")
+            await self.client.post("/api/app/me/link/start", json={"email": "boris.new@example.com"}, headers=h2)
+            code = re.search(r"\d{6}", self.mail.await_args.args[1]).group(0)
+            d = await (await self.client.post("/api/app/me/link/check", json={"email": "boris.new@example.com", "code": code},
+                                              headers=h2)).json()
+            self.assertEqual(d["user"]["email"], "boris.new@example.com")
+
+    async def test_login_while_signed_in_attaches_to_current_account(self):
+        sent = {}
+
+        async def fake_send(to, code, ttl):
+            sent[to] = code
+            return True
+
+        await self.client.post("/api/app/auth/start", json={"email": "anna@example.com"})
+        code = re.search(r"\d{6}", self.mail.await_args.args[1]).group(0)
+        anna = await (await self.client.post("/api/app/auth/check", json={"email": "anna@example.com", "code": code})).json()
+        h = {"Authorization": "Bearer " + anna["token"]}
+        with patch.dict("os.environ", {"OTP_DEBUG": "1"}), patch.object(sms, "send_code", fake_send):
+            # Анна вошла по почте и подтверждает телефон — он записывается в её аккаунт, второго не появляется
+            await self.client.post("/api/app/auth/start", json={"phone": "+31612345678"}, headers=h)
+            d = await (await self.client.post("/api/app/auth/check", json={"phone": "+31612345678", "code": sent["+31612345678"]},
+                                              headers=h)).json()
+            self.assertEqual((d["user"]["id"], d["user"]["email"], d["user"]["phone"]), (anna["user"]["id"], "anna@example.com", "+31612345678"))
+            me = await (await self.client.get("/api/app/me", headers={"Authorization": "Bearer " + d["token"]})).json()
+            self.assertEqual(me["user"]["id"], anna["user"]["id"])                 # новый токен — тот же аккаунт
+            # Без входа тот же номер ведёт в аккаунт Анны
+            await self.client.post("/api/app/auth/start", json={"phone": "+31612345678"})
+            d = await (await self.client.post("/api/app/auth/check", json={"phone": "+31612345678", "code": sent["+31612345678"]})).json()
+            self.assertEqual(d["user"]["id"], anna["user"]["id"])
+            # Чужой номер без входа — новый аккаунт
+            await self.client.post("/api/app/auth/start", json={"phone": "+31687654321"})
+            d = await (await self.client.post("/api/app/auth/check", json={"phone": "+31687654321", "code": sent["+31687654321"]})).json()
+            self.assertNotEqual(d["user"]["id"], anna["user"]["id"])
+            self.assertEqual(d["user"]["email"], "")
+
     def test_phone_normalize(self):
         n = phone.normalize
         self.assertEqual(n("06-12345678", "31"), "+31612345678")

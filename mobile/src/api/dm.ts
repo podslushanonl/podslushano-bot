@@ -69,6 +69,7 @@ function connect() {
     listeners.forEach((l) => l(e));
   };
   sock.onclose = () => {
+    if (ws !== sock) return;            // закрыли старое соединение при смене аккаунта — новое уже открыто
     ws = null;
     if (!wanted) return;
     retry = Math.min(retry + 1, 6);
@@ -77,13 +78,13 @@ function connect() {
   sock.onerror = () => { try { sock.close(); } catch { /* уже закрыт */ } };
 }
 
-/** Держит соединение, пока пользователь вошёл. */
-export function useRealtime(signedIn: boolean) {
+/** Держит соединение, пока пользователь вошёл. Сменился аккаунт — переподключаемся с новым токеном. */
+export function useRealtime(userId: number) {
   useEffect(() => {
-    wanted = signedIn;
-    if (signedIn) connect();
-    else if (ws) { ws.close(); ws = null; }
-  }, [signedIn]);
+    wanted = userId > 0;
+    if (ws) { const old = ws; ws = null; old.close(); }
+    if (wanted) connect();
+  }, [userId]);
 }
 
 export function onRealtime(fn: (e: Ev) => void) { listeners.add(fn); return () => { listeners.delete(fn); }; }
