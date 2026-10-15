@@ -2,7 +2,7 @@
 import enum
 from datetime import datetime, timezone
 
-from sqlalchemy import (BigInteger, Boolean, CheckConstraint, DateTime, Enum, ForeignKey, Index, Integer, LargeBinary,
+from sqlalchemy import (BigInteger, Boolean, CheckConstraint, DateTime, Enum, Float, ForeignKey, Index, Integer, LargeBinary,
                         String, Text, UniqueConstraint, func)
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, validates
 
@@ -889,6 +889,8 @@ class AppUser(Base):
     is_private: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
     # «Завершить другие сеансы»: токены, выданные раньше этого момента без записи сеанса, не принимаются
     sessions_reset_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Синяя галочка: платная верификация (3.99 €/мес) или аккаунт создателя (config.ADMIN_IDS / VERIFIED_EMAILS)
+    is_verified: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
 
     @validates("country")
     def _check_country(self, _key, value):
@@ -1014,6 +1016,9 @@ class UserPost(Base):
                                              server_default=Country.NL.value, nullable=False, index=True)
     repost_of: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     photo_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # Формат первого фото (ширина/высота), приведённый к стандарту: 1.0 — квадрат 1:1,
+    # 0.8 — вертикальный 4:5 (1080×1350), 1.7778 — горизонтальный 16:9. Пусто — пост без фото или старый.
+    photo_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
     # «Поделиться в профиле» новостью или событием: ссылка-превью на стене
     share_kind: Mapped[str | None] = mapped_column(String(10), nullable=True)       # news | event
     share_key: Mapped[str | None] = mapped_column(String(120), nullable=True)
@@ -1135,6 +1140,9 @@ class DmConversation(Base):
     # До какого сообщения каждый участник прочитал (id последнего прочитанного)
     buyer_read: Mapped[int] = mapped_column(Integer, default=0)
     seller_read: Mapped[int] = mapped_column(Integer, default=0)
+    # До какого сообщения каждому участнику доставлено (он был в сети или открыл список) — вторая галочка
+    buyer_got: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    seller_got: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     # Когда продавцу последний раз уходило напоминание в Telegram (не чаще раза в 10 минут)
     nudged_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 

@@ -6,7 +6,7 @@ import { routeForError } from '@/api/community';
 import { acceptFriend, addFriend, Person, removeFriend, startChat, unblockPerson, useFriends, useSearchPeople } from '@/api/social';
 import { COUNTRIES } from '@/lib/countries';
 import { useTheme } from '@/theme';
-import { Avatar, Button, ChipRow, Empty, Field, Group, Icon, IconButton, PageScreen, Skeleton, Tap, Txt, useToast } from '@/ui';
+import { Avatar, Button, ChipRow, Empty, Field, Group, Icon, IconButton, PageScreen, Skeleton, Tap, Txt, useToast, VerifiedBadge } from '@/ui';
 
 function PersonRow({ p, first, right }: { p: Person; first: boolean; right?: React.ReactNode }) {
   const { c } = useTheme();
@@ -15,7 +15,10 @@ function PersonRow({ p, first, right }: { p: Person; first: boolean; right?: Rea
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: first ? 0 : 1, borderTopColor: c.line }}>
       <Avatar name={p.name} id={p.id} uri={p.avatar} size={46} />
       <View style={{ flex: 1, gap: 2 }}>
-        <Txt v="headline" numberOfLines={1}>{p.name}</Txt>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Txt v="headline" numberOfLines={1} style={{ flexShrink: 1 }}>{p.name}</Txt>
+          {p.verified ? <VerifiedBadge size={15} /> : null}
+        </View>
         <Txt v="footnote" numberOfLines={1}>{[p.city, p.country].filter(Boolean).join(', ')}</Txt>
       </View>
       {right}

@@ -106,7 +106,7 @@ export default function RoomScreen() {
             const showName = !m.mine && (!prev || prev.author.id !== m.author.id);
             return (
               <View style={{ marginTop: prev && prev.author.id !== m.author.id ? 8 : 0 }}>
-                <Bubble text={m.text} at={m.at} mine={m.mine} fresh={fresh.current.has(m.id)}
+                <Bubble text={m.text} at={m.at} mine={m.mine} fresh={fresh.current.has(m.id)} verified={m.author.verified}
                   name={showName ? `${m.author.name}${m.author.city ? ` · ${m.author.city}` : ''}` : undefined}
                   onLongPress={() => (user ? setSheet(m) : router.push('/login'))} />
               </View>

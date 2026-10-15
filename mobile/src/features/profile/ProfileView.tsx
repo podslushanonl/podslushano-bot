@@ -9,7 +9,8 @@ import { acceptFriend, addFriend, blockPerson, removeFriend, startChat, unblockP
 import { FeedList, FeedPost } from '@/features/feed/FeedItems';
 import { usePostMenu } from '@/features/feed/usePostMenu';
 import { useTheme } from '@/theme';
-import { ActionSheet, Avatar, BackButton, Button, Empty, Icon, IconButton, Img, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useRefresh, useScrollY, useToast } from '@/ui';
+import { ActionSheet, Avatar, BackButton, Button, Empty, Icon, IconButton, Img, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useRefresh, useScrollY, useToast, VerifiedBadge } from '@/ui';
+import { presenceLabel } from '@/lib/presence';
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const since = (d: string) => { const [y, m] = (d || '').split('-').map(Number); return y && m ? `с ${MONTHS[m - 1]} ${y}` : ''; };
@@ -149,6 +150,7 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
       <View style={{ gap: 4 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
           <Txt v="title2" style={{ flexShrink: 1 }}>{u?.name || (own ? 'Без имени' : '')}</Txt>
+          {(own ? me?.verified : u?.verified) ? <VerifiedBadge size={20} /> : null}
           {(own ? me?.is_private : p?.private) ? <Icon name="lock" size={16} color={c.muted} /> : null}
         </View>
         {u?.city || u?.country ? (
@@ -159,6 +161,9 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
         ) : null}
         {u?.bio ? <Txt v="callout" tone="ink" style={{ marginTop: 4 }}>{u.bio}</Txt>
           : own ? <Tap onPress={() => router.push('/profile-edit')}><Txt v="callout" tone="accent">Добавить статус</Txt></Tap> : null}
+        {!own && presenceLabel(p?.presence) ? (
+          <Txt v="footnote" color={p?.presence?.online ? c.accentText : c.faint}>{presenceLabel(p?.presence)}</Txt>
+        ) : null}
         {since(u?.since || '') ? <Txt v="footnote" color={c.faint} style={{ marginTop: 2 }}>В podslushano {since(u?.since || '')}</Txt> : null}
       </View>
       {actions}

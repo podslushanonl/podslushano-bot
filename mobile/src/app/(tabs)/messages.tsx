@@ -9,31 +9,65 @@ import { timeLabel } from '@/features/feed/cards';
 import { useFriends } from '@/api/social';
 import { useCity, useCountry } from '@/lib/useCity';
 import { HAIRLINE, radius, useTheme } from '@/theme';
-import { Avatar, Badge, Button, Empty, Group, Icon, IconName, Img, Row, Segmented, Skeleton, TabScreen, Tap, Txt } from '@/ui';
+import { Avatar, Badge, Button, Empty, Icon, IconButton, IconName, Img, Skeleton, TabScreen, Tap, Txt, VerifiedBadge } from '@/ui';
+import { Ticks } from '@/features/chat/ChatUI';
 
-function ConversationRow({ cv, first }: { cv: Conversation; first: boolean }) {
+/** Строка диалога как в VK: аватар с точкой «в сети», имя с галочкой, время, последнее сообщение со статусом. */
+function ConversationRow({ cv }: { cv: Conversation }) {
   const { c } = useTheme();
+  const last = cv.last;
   return (
-    <Tap onPress={() => router.push({ pathname: '/dm/[id]', params: { id: String(cv.id) } })} scaleTo={0.99}
-      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, borderTopWidth: first ? 0 : 1, borderTopColor: c.line }}>
+    <Tap onPress={() => router.push({ pathname: '/dm/[id]', params: { id: String(cv.id) } })} scaleTo={0.985}
+      accessibilityLabel={`${cv.peer.name}${cv.unread ? `, непрочитанных: ${cv.unread}` : ''}`}
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 9 }}>
       <View>
-        <Avatar name={cv.peer.name} id={cv.peer.id} uri={cv.peer.avatar} size={52} />
-        {cv.listing?.photo ? <Img source={photoUrl(cv.listing)} style={{ position: 'absolute', right: -4, bottom: -4, width: 26, height: 26, borderRadius: 8, borderWidth: 2, borderColor: c.bgElevated }} /> : null}
+        <Avatar name={cv.peer.name} id={cv.peer.id} uri={cv.peer.avatar} size={56} />
+        {cv.peer.online ? <View style={{ position: 'absolute', right: 1, bottom: 1, width: 15, height: 15, borderRadius: 8, backgroundColor: ONLINE,
+          borderWidth: 2.5, borderColor: c.bg }} /> : null}
+        {cv.listing?.photo ? <Img source={photoUrl(cv.listing)} style={{ position: 'absolute', left: -3, bottom: -3, width: 24, height: 24, borderRadius: 7, borderWidth: 2, borderColor: c.bg }} /> : null}
       </View>
-      <View style={{ flex: 1, gap: 2 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-          <Txt v="headline" style={{ flex: 1 }} numberOfLines={1}>{cv.peer.name}</Txt>
-          {cv.last ? <Txt v="caption" tone={cv.unread ? 'ink' : 'muted'}>{timeLabel(cv.last.at)}</Txt> : null}
+      <View style={{ flex: 1, gap: 3, minWidth: 0 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', minWidth: 0 }}>
+            <Txt v="headline" numberOfLines={1} style={{ flexShrink: 1 }}>{cv.peer.name}</Txt>
+            {cv.peer.verified ? <VerifiedBadge size={15} /> : null}
+          </View>
+          {last?.mine ? <Ticks status={last.status} color={c.faint} readColor={c.accent} size={13} /> : null}
+          {last ? <Txt v="caption" color={cv.unread ? c.accentText : c.faint}>{timeLabel(last.at)}</Txt> : null}
         </View>
-        {cv.listing ? <Txt v="caption" numberOfLines={1}>{cv.listing.title}{cv.listing.price ? ` · ${cv.listing.price}` : ''}</Txt> : null}
+        {cv.listing ? <Txt v="caption" tone="accent" numberOfLines={1}>{cv.listing.title}{cv.listing.price ? ` · ${cv.listing.price}` : ''}</Txt> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Txt v="subhead" tone={cv.unread ? 'ink' : 'muted'} numberOfLines={1} style={{ flex: 1, fontFamily: cv.unread ? 'Onest_600SemiBold' : 'Onest_500Medium' }}>
-            {cv.last ? `${cv.last.mine ? 'Вы: ' : ''}${cv.last.text}` : 'Новый диалог'}
+          <Txt v="subhead" color={cv.unread ? c.ink : c.muted} numberOfLines={1} style={{ flex: 1, fontFamily: cv.unread ? 'Onest_600SemiBold' : 'Onest_400Regular' }}>
+            {last ? `${last.mine ? 'Вы: ' : ''}${last.text}` : 'Новый диалог'}
           </Txt>
           <Badge n={cv.unread} />
         </View>
       </View>
     </Tap>
+  );
+}
+
+const ONLINE = '#34C759';
+
+/** Вкладки вверху экрана с подчёркиванием (как в VK и Instagram). */
+function TopTabs<T extends string>({ items, value, onChange }: { items: { key: T; title: string; badge?: number }[]; value: T; onChange: (k: T) => void }) {
+  const { c } = useTheme();
+  return (
+    <View style={{ flexDirection: 'row', borderBottomWidth: HAIRLINE, borderBottomColor: c.line, marginHorizontal: -20, paddingHorizontal: 12 }}
+      accessibilityRole="tablist">
+      {items.map((t) => {
+        const on = t.key === value;
+        return (
+          <Tap key={t.key} onPress={() => onChange(t.key)} scaleTo={0.97} haptic="select" accessibilityRole="tab" accessibilityState={{ selected: on }}
+            style={{ flex: 1, alignItems: 'center', paddingTop: 6, paddingBottom: 11, borderBottomWidth: 2, borderBottomColor: on ? c.accent : 'transparent', marginBottom: -HAIRLINE }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Txt v="bodyStrong" color={on ? c.ink : c.muted}>{t.title}</Txt>
+              {t.badge ? <Badge n={t.badge} /> : null}
+            </View>
+          </Tap>
+        );
+      })}
+    </View>
   );
 }
 
@@ -119,17 +153,26 @@ function RoomsList({ rooms: all }: { rooms: Room[] }) {
 }
 
 export default function Messages() {
+  const { c } = useTheme();
   const { user } = useAuth();
-  const [tab, setTab] = useState<'dm' | 'rooms'>(user ? 'dm' : 'rooms');
+  // Пока вход не восстановлен, user ещё пуст: вкладку по умолчанию выбираем, когда он известен
+  const [picked, setTab] = useState<'dm' | 'rooms' | null>(null);
+  const tab = picked ?? (user ? 'dm' : 'rooms');
   const rooms = useRooms();
   const dms = useConversations(!!user);
   const friends = useFriends(!!user);
   const requests = friends.data?.incoming.length || 0;
   return (
     <TabScreen title="Сообщения"
+      right={user ? (
+        <View>
+          <IconButton icon="people" label={requests ? `Друзья, новых заявок: ${requests}` : 'Друзья'} onPress={() => router.push('/friends')} />
+          {requests ? <View pointerEvents="none" style={{ position: 'absolute', top: -2, right: -2 }}><Badge n={requests} /></View> : null}
+        </View>
+      ) : undefined}
       onRefresh={() => Promise.all([rooms.refetch(), ...(user ? [dms.refetch(), friends.refetch()] : [])])}>
-      <Segmented value={tab} onChange={setTab} items={[
-        { key: 'dm', title: dms.data?.unread ? `Личные · ${dms.data.unread}` : 'Личные' },
+      <TopTabs value={tab} onChange={setTab} items={[
+        { key: 'dm', title: 'Личные', badge: dms.data?.unread },
         { key: 'rooms', title: 'Общие чаты' },
       ]} />
       {tab === 'rooms' ? (
@@ -137,21 +180,18 @@ export default function Messages() {
       ) : !user ? (
         <Empty icon="bubble" title="Личные сообщения" text="Переписывайтесь с друзьями прямо в приложении — без обмена телефонами."
           action={<Button title="Войти" kind="primary" onPress={() => router.push('/login')} />} />
+      ) : dms.isLoading ? (
+        <View style={{ gap: 14 }}>{[0, 1, 2, 3].map((i) => (
+          <View key={i} style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}><Skeleton w={56} h={56} r={28} /><View style={{ flex: 1, gap: 8 }}><Skeleton w="45%" /><Skeleton w="75%" h={12} /></View></View>
+        ))}</View>
+      ) : dms.data?.items.length ? (
+        <View style={{ marginTop: -6 }}>
+          {dms.data.items.map((cv) => <ConversationRow key={cv.id} cv={cv} />)}
+          <Txt v="footnote" color={c.faint} center style={{ marginTop: 14 }}>Личные сообщения — для друзей и по объявлениям Барахолки</Txt>
+        </View>
       ) : (
-        <>
-          <Group>
-            <Row first title="Друзья" sub={requests ? `Новые заявки в друзья: ${requests}` : 'Личные сообщения — для друзей'}
-              icon="people" right={<Badge n={requests} />} onPress={() => router.push('/friends')} />
-          </Group>
-          {dms.isLoading ? (
-            <View style={{ gap: 10 }}>{[0, 1, 2].map((i) => <Skeleton key={i} h={74} r={22} />)}</View>
-          ) : dms.data?.items.length ? (
-            <Group>{dms.data.items.map((cv, i) => <ConversationRow key={cv.id} cv={cv} first={i === 0} />)}</Group>
-          ) : (
-            <Empty icon="bubble" title="Пока нет диалогов" text="Добавьте человека в друзья — и пишите друг другу. Найти людей можно по имени или в общих чатах."
-              action={<Button title="Найти друзей" kind="secondary" onPress={() => router.push('/friends')} />} />
-          )}
-        </>
+        <Empty icon="bubble" title="Пока нет диалогов" text="Добавьте человека в друзья — и пишите друг другу. Найти людей можно по имени или в общих чатах."
+          action={<Button title="Найти друзей" kind="secondary" onPress={() => router.push('/friends')} />} />
       )}
     </TabScreen>
   );

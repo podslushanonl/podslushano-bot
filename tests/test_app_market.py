@@ -282,6 +282,71 @@ class Base5:
         self.assertEqual(r.status, 401)
 
 
+    # ------------------------------------------------------------ премиум 6: статусы сообщений, «в сети», галочка, пропорции
+
+    async def test_dm_status_sent_delivered_read(self):
+        cid = (await self.post("/api/app/dm/start", 1, {"user_id": 3}))[1]["id"]   # Анна и Вера — друзья
+        st, d = await self.post(f"/api/app/dm/{cid}", 1, {"text": "Привет!"})
+        self.assertEqual((st, d["message"]["status"]), (200, "sent"))             # Вера не в сети
+        self.assertEqual((await self.get(f"/api/app/dm/{cid}", 1))[1]["messages"][0]["status"], "sent")
+        lst = (await self.get("/api/app/dm", 3))[1]                                # Вера открыла список — доставлено
+        self.assertEqual(lst["items"][0]["last"]["status"], "")                   # чужое сообщение — без галочек
+        self.assertEqual((await self.get(f"/api/app/dm/{cid}", 1))[1]["messages"][0]["status"], "delivered")
+        self.assertEqual((await self.get("/api/app/dm", 1))[1]["items"][0]["last"]["status"], "delivered")
+        await self.post(f"/api/app/dm/{cid}/read", 3)
+        self.assertEqual((await self.get(f"/api/app/dm/{cid}", 1))[1]["messages"][0]["status"], "read")
+        # собеседник в сети — сразу доставлено
+        with patch.object(dm.realtime, "online", return_value=True):
+            st, d = await self.post(f"/api/app/dm/{cid}", 1, {"text": "Ты тут?"})
+        self.assertEqual(d["message"]["status"], "delivered")
+
+    async def test_presence_and_verified(self):
+        async with self.sessions() as s:
+            u = await s.get(AppUser, 3)
+            u.last_seen = datetime.utcnow() - timedelta(hours=2)
+            u.is_verified = True
+            await s.commit()
+        st, d = await self.get("/api/app/user/3", 1)
+        self.assertEqual((d["presence"]["online"], bool(d["presence"]["last_seen"]), d["user"]["verified"]), (False, True, True))
+        cid = (await self.post("/api/app/dm/start", 1, {"user_id": 3}))[1]["id"]
+        peer = (await self.get(f"/api/app/dm/{cid}", 1))[1]["conversation"]["peer"]
+        self.assertEqual((peer["online"], peer["verified"]), (False, True))
+        await self.get("/api/app/me", 3)                                            # Вера зашла — «в сети»
+        self.assertTrue((await self.get("/api/app/user/3", 1))[1]["presence"]["online"])
+        st, d = await self.post("/api/app/posts", 3, {"text": "Пост с галочкой"})
+        self.assertTrue(d["post"]["author"]["verified"])
+        self.assertTrue((await self.get("/api/app/me", 3))[1]["user"]["verified"])
+
+    async def test_owner_verified_on_migrate(self):
+        from database import db
+        async with self.sessions() as s:
+            (await s.get(AppUser, 2)).tg_id = 777
+            (await s.get(AppUser, 4)).email = "Owner@Example.nl"
+            await s.commit()
+        with patch.object(db, "engine", self.engine), patch.object(db.config, "ADMIN_IDS", [777]), \
+                patch.dict(os.environ, {"VERIFIED_EMAILS": "owner@example.nl"}):
+            await db._migrate()
+        async with self.sessions() as s:
+            flags = {u: (await s.get(AppUser, u)).is_verified for u in (1, 2, 3, 4)}
+        self.assertEqual(flags, {1: False, 2: True, 3: False, 4: True})
+
+    async def test_post_photo_ratio(self):
+        from PIL import Image
+        import base64
+        import io
+
+        def jpg(w, h):
+            b = io.BytesIO()
+            Image.new("RGB", (w, h), (90, 90, 90)).save(b, "JPEG")
+            return "data:image/jpeg;base64," + base64.b64encode(b.getvalue()).decode()
+        for (w, h), want in (((1080, 1350), 0.8), ((1600, 900), 1.7778), ((1000, 1000), 1.0), ((900, 1600), 0.8)):
+            community._hits.clear()
+            st, d = await self.post("/api/app/posts", 1, {"text": "фото", "photos": [jpg(w, h)]})
+            self.assertEqual((st, d["post"]["ratio"]), (200, want), (w, h))
+        community._hits.clear()
+        self.assertEqual((await self.post("/api/app/posts", 1, {"text": "без фото"}))[1]["post"]["ratio"], 1.0)
+
+
 class SqliteTests(Base5, unittest.IsolatedAsyncioTestCase):
     pass
 

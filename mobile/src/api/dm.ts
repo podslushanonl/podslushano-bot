@@ -1,24 +1,27 @@
 import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { api, ApiError, BOT, getToken } from './client';
+import type { Presence } from '@/lib/presence';
 import { queryClient } from './query';
 
-export type Peer = { id: number; name: string; avatar?: string };
+export type Peer = { id: number; name: string; avatar?: string; verified?: boolean } & Presence;
 export type DmListing = { id: number; title: string; price: string; photo: string } | null;
-export type DmMessage = { id: number; text: string; at: string; mine: boolean; read: boolean };
+/** status своих сообщений: sent — на сервере (одна галочка), delivered — дошло (две), read — прочитано (две яркие). */
+export type MsgStatus = 'sent' | 'delivered' | 'read' | '';
+export type DmMessage = { id: number; text: string; at: string; mine: boolean; read: boolean; status?: MsgStatus };
 export type Conversation = {
   id: number; peer: Peer; listing: DmListing; unread: number;
   /** Можно ли писать (только друзьям); приходит при открытии диалога. */
   can_write?: boolean;
-  last: { text: string; at: string; mine: boolean } | null;
+  last: DmMessage | null;
 };
 
 export const useConversations = (enabled: boolean) => useQuery({
-  queryKey: ['me', 'dm'], enabled, staleTime: 15_000,
+  queryKey: ['me', 'dm'], enabled, staleTime: 15_000, refetchInterval: 60_000,
   queryFn: () => api<{ items: Conversation[]; unread: number }>('/api/app/dm'),
 });
 export const useDialog = (id: number) => useQuery({
-  queryKey: ['me', 'dm', id], enabled: id > 0, staleTime: 5_000,
+  queryKey: ['me', 'dm', id], enabled: id > 0, staleTime: 5_000, refetchInterval: 60_000,   // «в сети» обновляется раз в минуту
   queryFn: () => api<{ conversation: Conversation; messages: DmMessage[] }>(`/api/app/dm/${id}`),
 });
 /** Диалог с продавцом по объявлению барахолки. */
@@ -30,8 +33,9 @@ export const reportDialog = (id: number) => api(`/api/app/dm/${id}/report`, {});
 // ---- Реальное время: одно WebSocket-соединение на приложение.
 // Новые сообщения, «печатает…» и «прочитано» приходят сразу, без опроса сервера.
 
-export type RoomMsg = { id: number; text: string; at: string; author: { id: number; name: string; city: string }; mine: boolean };
-type Ev = { type: 'dm'; conv: number; message: DmMessage } | { type: 'typing'; conv: number } | { type: 'read'; conv: number; upto: number }
+export type RoomMsg = { id: number; text: string; at: string; author: { id: number; name: string; city: string; verified?: boolean }; mine: boolean };
+type Ev = { type: 'dm'; conv: number; message: DmMessage } | { type: 'typing'; conv: number }
+  | { type: 'read' | 'delivered'; conv: number; upto: number }
   | { type: 'room'; slug: string; message: RoomMsg }
   | { type: 'friend'; event: 'request' | 'accepted'; user: { id: number; name: string } }
   | { type: 'post'; event: 'like' | 'comment' | 'repost'; post: number; user: { id: number; name: string } }
@@ -63,9 +67,14 @@ function connect() {
     }
     if (e.type === 'post') queryClient.invalidateQueries({ queryKey: ['post', e.post] });
     if (e.type === 'said') { waiting.get(e.ref)?.(e); waiting.delete(e.ref); return; }
-    if (e.type === 'read') {
+    if (e.type === 'read' || e.type === 'delivered') {
+      // Галочки: «прочитано» сильнее «доставлено», статус не откатывается назад
+      const up = (x: DmMessage): DmMessage => (!x.mine || x.id > e.upto || x.status === 'read' ? x
+        : e.type === 'read' ? { ...x, read: true, status: 'read' } : { ...x, status: 'delivered' });
       queryClient.setQueryData<{ conversation: Conversation; messages: DmMessage[] }>(['me', 'dm', e.conv], (cur) =>
-        cur ? { ...cur, messages: cur.messages.map((x) => (x.mine && x.id <= e.upto ? { ...x, read: true } : x)) } : cur);
+        cur ? { ...cur, messages: cur.messages.map(up) } : cur);
+      queryClient.setQueryData<{ items: Conversation[]; unread: number }>(['me', 'dm'], (cur) =>
+        cur ? { ...cur, items: cur.items.map((cv) => (cv.id === e.conv && cv.last ? { ...cv, last: up(cv.last) } : cv)) } : cur);
     }
     listeners.forEach((l) => l(e));
   };

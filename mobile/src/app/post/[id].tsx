@@ -10,7 +10,7 @@ import { timeLabel } from '@/features/feed/cards';
 import { FeedPost } from '@/features/feed/FeedItems';
 import { usePostMenu } from '@/features/feed/usePostMenu';
 import { radius, useTheme } from '@/theme';
-import { ActionSheet, Avatar, Empty, PageScreen, Skeleton, Tap, Txt, useToast } from '@/ui';
+import { ActionSheet, Avatar, Empty, PageScreen, Skeleton, Tap, Txt, useToast, VerifiedBadge } from '@/ui';
 
 function CommentRow({ c: cm, onLong }: { c: Comment; onLong: () => void }) {
   const { c } = useTheme();
@@ -23,7 +23,10 @@ function CommentRow({ c: cm, onLong }: { c: Comment; onLong: () => void }) {
       <Tap onLongPress={onLong} scaleTo={0.99} accessibilityHint="Удерживайте для действий"
         style={{ flex: 1, backgroundColor: c.bgElevated, borderRadius: radius.l, borderTopLeftRadius: 6, padding: 12, gap: 3, borderWidth: 1, borderColor: c.line }}>
         <View style={{ flexDirection: 'row', gap: 8, alignItems: 'baseline' }}>
-          <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold', flex: 1 }} numberOfLines={1}>{cm.author.name}</Txt>
+          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+            <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold', flexShrink: 1 }} numberOfLines={1}>{cm.author.name}</Txt>
+            {cm.author.verified ? <VerifiedBadge size={13} /> : null}
+          </View>
           <Txt v="caption">{timeLabel(cm.at)}</Txt>
         </View>
         <Txt v="callout" tone="ink" selectable>{cm.text}</Txt>

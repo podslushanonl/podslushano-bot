@@ -22,8 +22,10 @@ GET  /api/app/user/{id}/posts?before=              — стена пользов
 """
 from __future__ import annotations
 
+import io
+
 from aiohttp import web
-from sqlalchemy import and_, func, or_, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 
 from database.db import get_session
@@ -70,7 +72,7 @@ async def _friend_ids(session, uid: int) -> set[int]:
 
 def _author(u: AppUser | None, uid: int) -> dict:
     return {"id": uid, "name": (u.name if u else "") or "Участник", "city": (u.city if u else "") or "",
-            "avatar": social.avatar_url(u) if u else ""}
+            "avatar": social.avatar_url(u) if u else "", "verified": bool(u and u.is_verified)}
 
 
 def _share(p: UserPost) -> dict | None:
@@ -78,6 +80,17 @@ def _share(p: UserPost) -> dict | None:
         return None
     return {"kind": p.share_kind, "key": p.share_key or "", "title": p.share_title or "", "url": p.share_url or "",
             "img": p.share_img or ""}
+
+
+RATIOS = (1.0, 0.8, 16 / 9)   # квадрат 1:1, вертикаль 4:5, горизонталь 16:9
+
+
+def photo_ratio(jpeg: bytes) -> float:
+    """Ближайший стандартный формат картинки (ширина/высота): в ленте фото показывается в нём без искажений."""
+    from PIL import Image
+    w, h = Image.open(io.BytesIO(jpeg)).size
+    r = w / max(1, h)
+    return round(min(RATIOS, key=lambda x: abs(x - r)), 4)
 
 
 def _photos(p: UserPost, author: AppUser | None = None) -> list[str]:
@@ -111,14 +124,15 @@ async def posts_json(session, posts: list[UserPost], me: AppUser | None) -> list
     for p in posts:
         d = {"id": p.id, "text": p.text, "at": _at(p.created_at), "city": p.city or "", "country": p.country.value,
              "author": _author(users.get(p.user_id), p.user_id), "mine": bool(me and me.id == p.user_id),
-             "photos": _photos(p, users.get(p.user_id)), "likes": likes.get(p.id, 0), "liked": p.id in liked,
+             "photos": _photos(p, users.get(p.user_id)), "ratio": p.photo_ratio or 1.0, "likes": likes.get(p.id, 0), "liked": p.id in liked,
              "comments": comments.get(p.id, 0), "reposts": reposts.get(p.id, 0), "repost": None,
              # я уже сделал репост этого поста (для репоста — его оригинала)
              "reposted": (p.repost_of or p.id) in reposted, "share": _share(p)}
         if p.repost_of:
             o = originals.get(p.repost_of)
             d["repost"] = ({"id": o.id, "text": o.text, "at": _at(o.created_at), "city": o.city or "",
-                            "author": _author(users.get(o.user_id), o.user_id), "photos": _photos(o, users.get(o.user_id))}
+                            "author": _author(users.get(o.user_id), o.user_id), "photos": _photos(o, users.get(o.user_id)),
+                            "ratio": o.photo_ratio or 1.0}
                            if o and not o.deleted and not o.hidden and o.user_id not in hidden
                            else {"id": p.repost_of, "deleted": True})
         out.append(d)
@@ -223,7 +237,8 @@ async def create(request: web.Request) -> web.Response:
         # Место поста: город, выбранный в редакторе (значок геопозиции), иначе — город профиля
         city = " ".join(str(data.get("city") or "").split())[:80] or me.city or ""
         p = UserPost(user_id=me.id, text=text, city=city, country=me.country,
-                     repost_of=orig.id if orig else None, photo_count=len(jpegs))
+                     repost_of=orig.id if orig else None, photo_count=len(jpegs),
+                     photo_ratio=photo_ratio(jpegs[0]) if jpegs else None)
         session.add(p)
         await session.flush()
         for i, jpeg in enumerate(jpegs):

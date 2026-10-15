@@ -95,7 +95,7 @@ def item_json(it: MarketItem, me: AppUser | None, seller: AppUser | None = None,
         if seller:
             d["seller"] = {"id": seller.id, "name": seller.name or "Участник", "city": seller.city or "",
                            "avatar": f"/api/app/user/{seller.id}/avatar?v={seller.avatar_v}" if seller.avatar_v else "",
-                           "since": _at(seller.created_at)[:10]}
+                           "since": _at(seller.created_at)[:10], "verified": bool(seller.is_verified)}
     return d
 
 

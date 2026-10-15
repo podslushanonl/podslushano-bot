@@ -12,7 +12,7 @@ import { openBot, openUrl } from '@/lib/open';
 import { RULE_SECTIONS } from '@/lib/rules';
 import { useCity, useCountry } from '@/lib/useCity';
 import { HAIRLINE, radius, useTheme } from '@/theme';
-import { Avatar, Button, Group, Icon, Img, PageScreen, Row, Tap, Toggle, Txt, useToast } from '@/ui';
+import { Avatar, Button, Group, Icon, Img, PageScreen, Row, Tap, Toggle, Txt, useToast, VerifiedBadge } from '@/ui';
 
 const SOCIAL: [any, string, string][] = [
   [require('@assets/images/social/instagram.png'), 'Instagram', 'https://www.instagram.com/podslushano.nl'],
@@ -80,7 +80,10 @@ export default function Settings() {
             borderWidth: HAIRLINE, borderColor: c.line }}>
           <Avatar name={user.name} id={user.id} uri={user.avatar} size={58} />
           <View style={{ flex: 1, gap: 2 }}>
-            <Txt v="title3" numberOfLines={1}>{user.name || 'Без имени'}</Txt>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Txt v="title3" numberOfLines={1} style={{ flexShrink: 1 }}>{user.name || 'Без имени'}</Txt>
+              {user.verified ? <VerifiedBadge size={18} /> : null}
+            </View>
             <Txt v="footnote" tone="muted" numberOfLines={1}>{user.phone ? prettyPhone(user.phone) : user.email || 'Фото, имя, статус'}</Txt>
           </View>
           <Txt v="subhead" tone="accent" style={{ fontFamily: 'Onest_600SemiBold' }}>Изменить</Txt>

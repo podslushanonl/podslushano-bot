@@ -6,6 +6,8 @@ export type User = {
   id: number; name: string; city: string; country: string; email: string; phone: string; telegram: boolean; bio: string; avatar: string;
   /** Закрытый аккаунт: публикации видят только друзья. */
   is_private?: boolean;
+  /** Синяя галочка подтверждённого аккаунта. */
+  verified?: boolean;
 };
 /** Устройство, вошедшее в аккаунт (настройки → «Активные сессии»). */
 export type AppSession = { id: string; device: string; ip: string; created: string; last_seen: string; current: boolean };

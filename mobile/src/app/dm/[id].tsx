@@ -8,6 +8,7 @@ import { photoUrl } from '@/api/market';
 import { blockPerson } from '@/api/social';
 import { queryClient } from '@/api/query';
 import { Bubble, CHAT_HEADER_SPACE, ChatHeader, ChatShell, Composer } from '@/features/chat/ChatUI';
+import { presenceLabel } from '@/lib/presence';
 import { radius, useTheme } from '@/theme';
 import { ActionSheet, Avatar, Button, Empty, IconButton, Img, Skeleton, Tap, Txt, useToast } from '@/ui';
 
@@ -76,7 +77,8 @@ export default function Dialog() {
   return (
     <ChatShell
       header={
-        <ChatHeader title={cv?.peer.name || 'Диалог'} sub={typing ? 'печатает…' : cv?.listing ? 'по объявлению' : undefined} onBack={back}
+        <ChatHeader title={cv?.peer.name || 'Диалог'} verified={cv?.peer.verified} onBack={back}
+          sub={typing ? 'печатает…' : presenceLabel(cv?.peer) || (cv?.listing ? 'по объявлению' : undefined)} subAccent={typing || !!cv?.peer.online}
           left={cv ? <Tap onPress={openPeer} scaleTo={0.92} accessibilityLabel={`Профиль: ${cv.peer.name}`}><Avatar name={cv.peer.name} id={cv.peer.id} uri={cv.peer.avatar} size={40} /></Tap> : null}
           right={cv ? <IconButton icon="more" label="Действия" kind="plain" onPress={() => setMenu(true)} /> : null}
           below={cv?.listing ? (
@@ -110,7 +112,7 @@ export default function Dialog() {
           contentContainerStyle={{ paddingHorizontal: 12, paddingTop: 8, paddingBottom: CHAT_HEADER_SPACE(insets.top, cv.listing ? 70 : 8), gap: 6, flexGrow: 1 }}
           ListEmptyComponent={<View style={{ transform: [{ scaleY: -1 }], flex: 1, justifyContent: 'center' }}>
             <Empty icon="bubble" title="Начните разговор" text={cv.listing ? 'Например: «Здравствуйте! Ещё актуально?»' : undefined} /></View>}
-          renderItem={({ item: m }) => <Bubble text={m.text} at={m.at} mine={m.mine} read={m.mine ? m.read : undefined} fresh={fresh.current.has(m.id)} />}
+          renderItem={({ item: m }) => <Bubble text={m.text} at={m.at} mine={m.mine} status={m.mine ? m.status || (m.read ? 'read' : 'sent') : undefined} fresh={fresh.current.has(m.id)} />}
           style={{ backgroundColor: c.bg }}
         />
       )}

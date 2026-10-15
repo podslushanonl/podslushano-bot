@@ -61,7 +61,7 @@ def user_json(u: AppUser) -> dict:
     avatar = f"/api/app/user/{u.id}/avatar?v={u.avatar_v}" if u.avatar_v else ""
     return {"id": u.id, "name": u.name, "city": u.city, "country": u.country.value, "email": u.email or "",
             "phone": u.phone or "", "telegram": bool(u.tg_id), "bio": u.bio or "", "avatar": avatar,
-            "is_private": bool(u.is_private)}
+            "is_private": bool(u.is_private), "verified": bool(u.is_verified)}
 
 
 def _device(request: web.Request) -> str:
