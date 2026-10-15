@@ -16,7 +16,7 @@ from aiohttp import web
 from sqlalchemy import or_, select
 
 from database.db import get_session
-from database.models import AppUser, Story, StoryReaction
+from database.models import AppUser, Story, StoryReaction, UserPost
 from utils import media, realtime, social
 from utils.app_api import _user
 from utils.community import _rate, can_write, check_text
@@ -46,17 +46,24 @@ def _item(s: Story, mine: dict[int, str], posts: dict[int, dict] | None = None) 
     return d
 
 
-async def _post_cards(session, rows: list[Story], me: AppUser) -> dict[int, dict]:
-    """Короткие карточки постов для историй-репостов (с учётом удаления, блокировок и закрытых аккаунтов)."""
+async def _post_cards(session, rows: list[Story], me: AppUser, hidden: set[int] | None = None) -> dict[int, dict]:
+    """Короткие карточки постов для историй-репостов (с учётом удаления, блокировок и закрытых аккаунтов).
+    Посты и их авторы выбираются двумя запросами на всю ленту, а не по одному на каждую историю."""
+    pids = {s.post_id for s in rows if s.kind == "post" and s.post_id}
+    if not pids:
+        return {}
+    if hidden is None:
+        hidden = await _hidden_authors(session, me)
+    q = select(UserPost).where(UserPost.id.in_(pids), UserPost.deleted.is_(False), UserPost.hidden.is_(False))
+    if hidden:
+        q = q.where(UserPost.user_id.notin_(hidden))
+    found = list((await session.execute(q)).scalars())
+    users = await _users(session, {p.user_id for p in found})
     out: dict[int, dict] = {}
-    for pid in {s.post_id for s in rows if s.kind == "post" and s.post_id}:
-        p = await _post(session, pid, me)
-        if not p:
-            continue
-        users = await _users(session, {p.user_id})
+    for p in found:
         photos = _photos(p, users.get(p.user_id))
-        out[pid] = {"id": p.id, "text": (p.text or "")[:280], "author": _author(users.get(p.user_id), p.user_id),
-                    "photo": photos[0] if photos else "", "ratio": p.photo_ratio or 1.0, "at": _at(p.created_at)}
+        out[p.id] = {"id": p.id, "text": (p.text or "")[:280], "author": _author(users.get(p.user_id), p.user_id),
+                     "photo": photos[0] if photos else "", "ratio": p.photo_ratio or 1.0, "at": _at(p.created_at)}
     return out
 
 
@@ -78,14 +85,14 @@ async def stories(request: web.Request) -> web.Response:
         rows = list((await session.execute(q.order_by(Story.id))).scalars())
         mine = dict((await session.execute(select(StoryReaction.story_id, StoryReaction.emoji).where(
             StoryReaction.user_id == me.id, StoryReaction.story_id.in_({s.id for s in rows})))).all()) if rows else {}
-        users = {u.id: u for u in (await session.execute(select(AppUser).where(AppUser.id.in_({s.user_id for s in rows})))).scalars()}
-        posts = await _post_cards(session, rows, me)
+        by: dict[int, list[Story]] = {}
+        for s in rows:
+            by.setdefault(s.user_id, []).append(s)
+        # Сначала мои, потом друзья, потом остальные; внутри — у кого история свежее
+        order = sorted(by, key=lambda uid: (uid != me.id, uid not in friends, -by[uid][-1].id))[:AUTHORS]
+        users = {u.id: u for u in (await session.execute(select(AppUser).where(AppUser.id.in_(order)))).scalars()}
+        posts = await _post_cards(session, [s for uid in order for s in by[uid]], me, hidden)
         await session.commit()
-    by: dict[int, list[Story]] = {}
-    for s in rows:
-        by.setdefault(s.user_id, []).append(s)
-    # Сначала мои, потом друзья, потом остальные; внутри — у кого история свежее
-    order = sorted(by, key=lambda uid: (uid != me.id, uid not in friends, -by[uid][-1].id))[:AUTHORS]
     groups = [{"user": social.card(users[uid]) if uid in users else {"id": uid, "name": "Участник"},
                "items": [_item(s, mine, posts) for s in by[uid]], "mine": uid == me.id} for uid in order]
     return _json(request, {"ok": True, "groups": groups, "reactions": list(REACTIONS)})

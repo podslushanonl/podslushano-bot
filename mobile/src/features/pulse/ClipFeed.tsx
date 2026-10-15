@@ -5,8 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/api/auth';
 import { BOT } from '@/api/client';
 import { removeOwn, report, routeForError } from '@/api/community';
-import { addClipComment, Clip, PULSE_KEY, useClipComments } from '@/api/pulse';
-import { queryClient } from '@/api/query';
+import { addClipComment, Clip, refreshClips, useClipComments } from '@/api/pulse';
 import { Composer } from '@/features/chat/ChatUI';
 import { timeLabel } from '@/features/feed/cards';
 import { radius, useTheme } from '@/theme';
@@ -134,7 +133,7 @@ export function ClipFeed({ clips, bottom, initialIndex = 0, onEndReached, refres
         { title: 'Поделиться ссылкой', icon: 'share', onPress: () => share(menu) },
         ...(menu.mine
           ? [{ title: 'Удалить видео', icon: 'trash' as const, danger: true, onPress: () => removeOwn('clip', menu.id)
-              .then(() => queryClient.invalidateQueries({ queryKey: PULSE_KEY })).catch(fail) }]
+              .then(() => refreshClips()).catch(fail) }]
           : [{ title: 'Пожаловаться', icon: 'flag' as const, danger: true, onPress: () => (user
               ? report('clip', menu.id).then(() => toast('Жалоба отправлена модераторам')).catch(fail) : router.push('/login')) }]),
       ] : []} />

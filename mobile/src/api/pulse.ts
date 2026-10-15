@@ -29,10 +29,19 @@ export const useClipComments = (id: number) => useQuery({
   queryFn: () => api<{ comments: Comment[] }>(`/api/app/pulse/${id}/comments`).then((d) => d.comments),
 });
 
-/** Меняет видео в кэше ленты (лайк, закладка, число комментариев) — экран обновляется сразу. */
+/** Меняет видео во всех кэшах — общая лента, видео в профилях, закладки (лайк, закладка, число комментариев):
+ *  экран обновляется сразу, где бы ни было открыто видео. */
 export function patchClip(id: number, fn: (c: Clip) => Clip) {
+  const map = (list: Clip[]) => list.map((c) => (c.id === id ? fn(c) : c));
   queryClient.setQueryData<{ pages: Page[]; pageParams: unknown[] }>(PULSE_KEY, (d) =>
-    d && { ...d, pages: d.pages.map((p) => ({ ...p, clips: p.clips.map((c) => (c.id === id ? fn(c) : c)) })) });
+    d && { ...d, pages: d.pages.map((p) => ({ ...p, clips: map(p.clips) })) });
+  queryClient.setQueriesData<Clip[]>({ queryKey: ['me', 'pulse-user'] }, (d) => d && map(d));
+  queryClient.setQueriesData<Clip[]>({ queryKey: ['me', 'pulse-saved'] }, (d) => d && map(d));
+}
+
+/** После удаления или жалобы видео перечитываем везде, где оно могло быть. */
+export function refreshClips() {
+  for (const k of [PULSE_KEY, ['me', 'pulse-user'], ['me', 'pulse-saved']]) queryClient.invalidateQueries({ queryKey: k });
 }
 
 export async function toggleClip(c: Clip, what: 'like' | 'save') {

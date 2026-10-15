@@ -1,7 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { useVideoPlayer, VideoView } from 'expo-video';
-import { ReactNode, useRef, useState } from 'react';
+import { createElement, ReactNode, useRef, useState } from 'react';
 import { Platform, ScrollView, Share, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { saveCover, useAuth } from '@/api/auth';
@@ -61,11 +60,20 @@ function Tabs({ value, onChange }: { value: Tab; onChange: (v: Tab) => void }) {
 }
 
 /** Плитка видео в сетке профиля 9:16: первый кадр, значок и число лайков. */
+/** Плитка видео без плеера: в браузере — первый кадр (грузятся только метаданные, по мере прокрутки),
+ *  в приложении — тёмная карточка с подписью. Плеер создаётся лишь когда видео открыли. */
 function ClipTile({ clip, onPress, width }: { clip: Clip; onPress: () => void; width: number }) {
-  const player = useVideoPlayer(mediaUrl(clip.url), (p) => { p.muted = true; });
   return (
-    <Tap onPress={onPress} scaleTo={0.97} accessibilityLabel={clip.text || 'Видео'} style={{ width, aspectRatio: 9 / 16, backgroundColor: '#111111' }}>
-      <VideoView player={player} contentFit="cover" nativeControls={false} playsInline style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+    <Tap onPress={onPress} scaleTo={0.97} accessibilityLabel={clip.text || 'Видео'} style={{ width, aspectRatio: 9 / 16, backgroundColor: '#1C1C1E', overflow: 'hidden' }}>
+      {Platform.OS === 'web' ? createElement('video', {
+        src: `${mediaUrl(clip.url)}#t=0.1`, preload: 'metadata', muted: true, playsInline: true, loading: 'lazy',
+        style: { position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' },
+      }) : (
+        <View style={{ flex: 1, padding: 8, justifyContent: 'center', alignItems: 'center' }}>
+          <Icon name="play" size={26} color="rgba(255,255,255,0.85)" />
+          {clip.text ? <Txt v="caption" color="rgba(255,255,255,0.75)" numberOfLines={3} center style={{ marginTop: 6 }}>{clip.text}</Txt> : null}
+        </View>
+      )}
       <View pointerEvents="none" style={{ position: 'absolute', left: 6, bottom: 6, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
         <Icon name="heartFill" filled size={13} color="#FFFFFF" />
         <Txt v="caption" color="#FFFFFF" style={{ fontFamily: 'Onest_700Bold', textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 3 }}>{clip.likes}</Txt>
