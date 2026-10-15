@@ -875,6 +875,9 @@ class AppUser(Base):
     country: Mapped[Country] = mapped_column(_enum(Country, "ck_app_user_country", 20), default=Country.NL,
                                              server_default=Country.NL.value, nullable=False,
                                              index=True)   # частый фильтр: люди и лента по стране
+    bio: Mapped[str] = mapped_column(String(160), default="", server_default="")   # статус / «о себе»
+    avatar: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, deferred=True)   # JPEG 512 px
+    avatar_v: Mapped[int] = mapped_column(Integer, default=0, server_default="0")   # версия — для кэша картинки
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
     )
@@ -987,6 +990,12 @@ class UserPost(Base):
                                              server_default=Country.NL.value, nullable=False, index=True)
     repost_of: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     photo_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # «Поделиться в профиле» новостью или событием: ссылка-превью на стене
+    share_kind: Mapped[str | None] = mapped_column(String(10), nullable=True)       # news | event
+    share_key: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    share_title: Mapped[str] = mapped_column(String(300), default="", server_default="")
+    share_url: Mapped[str] = mapped_column(String(700), default="", server_default="")
+    share_img: Mapped[str] = mapped_column(String(700), default="", server_default="")
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
     )
@@ -1020,6 +1029,36 @@ class PostLike(Base):
     post_id: Mapped[int] = mapped_column(Integer, index=True)
     user_id: Mapped[int] = mapped_column(Integer, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
+class ItemLike(Base):
+    """Лайк новости или события ленты (kind + key), один на человека."""
+
+    __tablename__ = "item_likes"
+    __table_args__ = (UniqueConstraint("kind", "key", "user_id", name="uq_item_like"),
+                      Index("ix_item_like_target", "kind", "key"))
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    kind: Mapped[str] = mapped_column(String(10))
+    key: Mapped[str] = mapped_column(String(120))
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
+
+
+class ItemComment(Base):
+    """Комментарий к новости или событию ленты. Правила и модерация — как у комментариев к постам."""
+
+    __tablename__ = "item_comments"
+    __table_args__ = (Index("ix_item_comment_target", "kind", "key"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    kind: Mapped[str] = mapped_column(String(10))
+    key: Mapped[str] = mapped_column(String(120))
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    text: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow, index=True)
+    deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class PostComment(Base):

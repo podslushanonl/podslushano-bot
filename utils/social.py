@@ -96,8 +96,14 @@ async def _relations(session, me: int, ids: set[int]) -> dict[int, str]:
     return {i: _relation(me, i, by.get(i, [])) for i in ids}
 
 
+def avatar_url(u: AppUser) -> str:
+    """Ссылка на фото профиля (версия в адресе — чтобы новое фото не застревало в кэше) или пусто."""
+    return f"/api/app/user/{u.id}/avatar?v={u.avatar_v}" if u.avatar_v else ""
+
+
 def card(u: AppUser, rel: str | None = None) -> dict:
-    d = {"id": u.id, "name": u.name or "Участник", "city": u.city or "", "country": u.country.value}
+    d = {"id": u.id, "name": u.name or "Участник", "city": u.city or "", "country": u.country.value,
+         "avatar": avatar_url(u), "bio": u.bio or ""}
     return d | ({"relation": rel} if rel is not None else {})
 
 
@@ -140,17 +146,26 @@ async def profile(request: web.Request) -> web.Response:
         rel = await relation(session, me.id, u.id)
         friends = await session.scalar(select(func.count()).select_from(Friendship).where(
             or_(Friendship.user_id == u.id, Friendship.friend_id == u.id), Friendship.status == ACCEPTED)) or 0
-        posts = [] if rel in ("blocked", "unavailable") else list((await session.execute(select(UserPost).where(
-            UserPost.user_id == u.id, UserPost.deleted.is_(False), UserPost.hidden.is_(False))
-            .order_by(UserPost.id.desc()).limit(20))).scalars())
-        from utils.feed import posts_json   # лента импортирует этот модуль
-        posts = await posts_json(session, posts, me)
+        hidden = rel in ("blocked", "unavailable")
+        posts_total = 0 if hidden else await session.scalar(select(func.count()).select_from(UserPost).where(
+            UserPost.user_id == u.id, UserPost.deleted.is_(False), UserPost.hidden.is_(False))) or 0
         await session.commit()
     return _json(request, {
         "ok": True, "user": card(u) | {"since": (u.created_at.strftime("%Y-%m-%d") if u.created_at else "")},
-        "relation": rel, "friends": friends, "can_message": rel == "friends",
-        "posts": posts,
+        "relation": rel, "friends": friends, "posts": posts_total, "can_message": rel == "friends",
     })
+
+
+async def avatar(request: web.Request) -> web.Response:
+    try:
+        uid = int(request.match_info["id"])
+    except ValueError:
+        raise web.HTTPNotFound()
+    async with get_session() as session:
+        data = await session.scalar(select(AppUser.avatar).where(AppUser.id == uid))
+    if not data:
+        raise web.HTTPNotFound()
+    return web.Response(body=data, content_type="image/jpeg", headers={"Cache-Control": "public, max-age=31536000, immutable"})
 
 
 async def search(request: web.Request) -> web.Response:
@@ -294,6 +309,7 @@ async def unblock(request: web.Request) -> web.Response:
 
 def install_routes(app: web.Application) -> None:
     app.router.add_get(r"/api/app/user/{id:\d+}", profile)
+    app.router.add_get(r"/api/app/user/{id:\d+}/avatar", avatar)
     app.router.add_get("/api/app/users", search)
     app.router.add_get("/api/app/friends", friends)
     app.router.add_post("/api/app/friends/request", request_friend)

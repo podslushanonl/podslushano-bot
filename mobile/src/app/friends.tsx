@@ -13,7 +13,7 @@ function PersonRow({ p, first, right }: { p: Person; first: boolean; right?: Rea
   return (
     <Tap onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(p.id) } })} scaleTo={0.99}
       style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: first ? 0 : 1, borderTopColor: c.line }}>
-      <Avatar name={p.name} id={p.id} size={46} />
+      <Avatar name={p.name} id={p.id} uri={p.avatar} size={46} />
       <View style={{ flex: 1, gap: 2 }}>
         <Txt v="headline" numberOfLines={1}>{p.name}</Txt>
         <Txt v="footnote" numberOfLines={1}>{[p.city, p.country].filter(Boolean).join(', ')}</Txt>

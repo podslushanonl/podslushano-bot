@@ -6,7 +6,9 @@ import { feedPosts, Scope, useFeed } from '@/api/feed';
 import { useContent } from '@/api/content';
 import { queryClient } from '@/api/query';
 import { CitySheet } from '@/features/common/CitySheet';
-import { EventCard, JobCard, NewsCard, PostCard, SaveCard } from '@/features/feed/cards';
+import { itemId, statsOf, useItemStats } from '@/api/items';
+import { JobCard, SaveCard } from '@/features/feed/cards';
+import { FeedDivider, FeedEvent, FeedNews, FeedPost, FeedSheet } from '@/features/feed/FeedItems';
 import { usePostMenu } from '@/features/feed/usePostMenu';
 import { NowCard } from '@/features/home/NowCard';
 import { useCity, useCountry } from '@/lib/useCity';
@@ -64,15 +66,18 @@ export default function Home() {
     });
     return out;
   }, [content.data, posts.data, filter]);
+  // Счётчики лайков, комментариев и репостов для новостей и событий в ленте — одним запросом
+  const itemIds = useMemo(() => rows.filter((r) => r.el === 'news' || r.el === 'event')
+    .map((r) => itemId(r.el === 'news' ? 'news' : 'event', r.el === 'news' ? r.data.id : r.data.key)).slice(0, 60), [rows]);
+  const stats = useItemStats(itemIds);
 
-  let newsIdx = 0;
 
   return (
     <>
       <TabScreen
         title={greeting(user?.name)}
         refreshing={content.isRefetching || posts.isRefetching}
-        onRefresh={() => { content.refetch(); posts.refetch(); queryClient.invalidateQueries({ queryKey: ['weather'] }); queryClient.invalidateQueries({ queryKey: ['ns'] }); }}
+        onRefresh={() => { content.refetch(); posts.refetch(); stats.refetch(); queryClient.invalidateQueries({ queryKey: ['weather'] }); queryClient.invalidateQueries({ queryKey: ['ns'] }); }}
         above={
           <Tap onPress={() => setPicker(true)} scaleTo={0.95} style={{ alignSelf: 'flex-start', marginBottom: 6 }} accessibilityLabel={`Город: ${city}. Изменить`}>
             <Glass radius={radius.pill} interactive style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, height: 38 }}>
@@ -131,18 +136,19 @@ export default function Home() {
         ) : (filter === 'all' || filter === 'news') && !content.data && content.isLoading ? (
           <View style={{ gap: 14 }}>{[0, 1].map((i) => <View key={i} style={{ gap: 10 }}><Skeleton h={190} r={28} /><Skeleton w="70%" /><Skeleton w="45%" h={12} /></View>)}</View>
         ) : rows.length ? (
-          <View style={{ gap: 14 }}>
-            {rows.map((r) => {
-              if (r.el === 'news') return <NewsCard key={r.k} n={r.data} big={newsIdx++ % 4 === 0} />;
-              if (r.el === 'post') return <PostCard key={r.k} p={r.data} onMenu={() => openMenu(r.data)} />;
-              if (r.el === 'event') return <EventCard key={r.k} e={r.data} />;
-              if (r.el === 'job') return <JobCard key={r.k} j={r.data} />;
-              return <SaveCard key={r.k} />;
+          <FeedSheet>
+            {rows.map((r, i) => {
+              const sep = i ? <FeedDivider /> : null;
+              if (r.el === 'news') return <View key={r.k}>{sep}<FeedNews n={r.data} stats={statsOf(stats.data, itemId('news', r.data.id))} /></View>;
+              if (r.el === 'post') return <View key={r.k}>{sep}<FeedPost p={r.data} onMenu={() => openMenu(r.data)} /></View>;
+              if (r.el === 'event') return <View key={r.k}>{sep}<FeedEvent e={r.data} stats={statsOf(stats.data, itemId('event', r.data.key))} /></View>;
+              if (r.el === 'job') return <View key={r.k} style={{ paddingVertical: 16 }}><JobCard j={r.data} /></View>;
+              return <View key={r.k} style={{ paddingVertical: 16 }}><SaveCard /></View>;
             })}
             {filter !== 'news' && posts.hasNextPage ? (
-              <Button title="Показать ещё" kind="secondary" loading={posts.isFetchingNextPage} onPress={() => posts.fetchNextPage()} />
+              <View style={{ paddingVertical: 16 }}><Button title="Показать ещё" kind="secondary" loading={posts.isFetchingNextPage} onPress={() => posts.fetchNextPage()} /></View>
             ) : null}
-          </View>
+          </FeedSheet>
         ) : (
           <Txt v="callout" tone="muted" center>{content.isError ? 'Не получилось загрузить ленту. Потяните вниз, чтобы обновить.' : 'Пока пусто.'}</Txt>
         )}

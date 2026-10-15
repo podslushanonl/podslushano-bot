@@ -55,6 +55,10 @@ const I = {
   arrowRight: ['arrow.right', 'arrow_forward'],
   people: ['person.2', 'group'],
   lock: ['lock', 'lock'],
+  repost: ['arrow.2.squarepath', 'repeat'],
+  grid: ['square.grid.3x3', 'grid_view'],
+  text: ['text.alignleft', 'notes'],
+  link: ['link', 'link'],
 } as const;
 
 export type IconName = keyof typeof I;

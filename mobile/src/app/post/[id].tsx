@@ -6,7 +6,8 @@ import { removeOwn, report, routeForError } from '@/api/community';
 import { addComment, Comment, patchPost, usePost } from '@/api/feed';
 import { queryClient } from '@/api/query';
 import { Composer } from '@/features/chat/ChatUI';
-import { PostCard, timeLabel } from '@/features/feed/cards';
+import { timeLabel } from '@/features/feed/cards';
+import { FeedPost } from '@/features/feed/FeedItems';
 import { usePostMenu } from '@/features/feed/usePostMenu';
 import { radius, useTheme } from '@/theme';
 import { ActionSheet, Avatar, Empty, PageScreen, Skeleton, Tap, Txt, useToast } from '@/ui';
@@ -64,7 +65,7 @@ export default function PostScreen() {
           <Empty icon="bubble" title="Пост удалён или недоступен" />
         ) : (
           <>
-            <PostCard p={q.data.post} full onMenu={() => openMenu(q.data!.post)} />
+            <FeedPost p={q.data.post} full onMenu={() => openMenu(q.data!.post)} />
             <Txt v="overline" style={{ marginLeft: 6 }}>{q.data.comments.length ? `Комментарии · ${q.data.comments.length}` : 'Комментариев пока нет'}</Txt>
             <View style={{ gap: 10 }}>
               {q.data.comments.map((cm) => <CommentRow key={cm.id} c={cm} onLong={() => (user ? setSheet(cm) : router.push('/login'))} />)}

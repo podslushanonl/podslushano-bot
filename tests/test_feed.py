@@ -19,7 +19,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from database import db
 from database.models import AppUser, Base, Friendship, FriendStatus
-from utils import app_api, community, feed, realtime, social
+from utils import app_api, community, feed, items, realtime, social
 from utils.site_api import make_token
 
 PG_URL = os.getenv("TEST_DATABASE_URL", "")
@@ -41,7 +41,7 @@ class FeedBase:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
-        self.patches = [patch.object(m, "get_session", self.sessions) for m in (app_api, community, feed, realtime, social)]
+        self.patches = [patch.object(m, "get_session", self.sessions) for m in (app_api, community, feed, items, realtime, social)]
         for p in self.patches:
             p.start()
         community._hits.clear()
@@ -57,7 +57,7 @@ class FeedBase:
             s.add(Friendship(user_id=1, friend_id=3, status=FriendStatus.ACCEPTED))
             await s.commit()
         app = web.Application()
-        for m in (app_api, community, feed, realtime, social):
+        for m in (app_api, community, feed, items, realtime, social):
             m.install_routes(app)
         self.c = TestClient(TestServer(app))
         await self.c.start_server()
@@ -215,7 +215,75 @@ class FeedBase:
         p = await self.publish(1, "Привет")
         await self.post(f"/api/app/posts/{p['id']}/like", 2, {"on": True})
         prof = (await self.get("/api/app/user/1", 2))[1]
-        self.assertEqual((prof["posts"][0]["likes"], prof["posts"][0]["liked"]), (1, True))
+        self.assertEqual(prof["posts"], 1)                                   # счётчик публикаций
+        wall = (await self.get("/api/app/user/1/posts", 2))[1]["posts"]       # стена — отдельным запросом
+        self.assertEqual((wall[0]["likes"], wall[0]["liked"]), (1, True))
+
+    # ------------------------------------------------------------ стена, репост в один тап
+
+    async def test_wall_and_one_tap_repost(self):
+        p = await self.publish(1, "Ищу соседей по квартире")
+        self.assertEqual((await self.get("/api/app/user/1/posts"))[0], 401)
+        st, d = await self.post(f"/api/app/posts/{p['id']}/repost", 2)
+        self.assertEqual((st, d["reposts"], d["reposted"], d["post"]["repost"]["id"]), (200, 1, True, p["id"]))
+        self.assertEqual((await self.post(f"/api/app/posts/{p['id']}/repost", 2))[0], 409)          # повтор
+        self.assertEqual((await self.post(f"/api/app/posts/{p['id']}/repost", 1))[0], 400)          # свой
+        wall2 = (await self.get("/api/app/user/2/posts", 3))[1]["posts"]
+        self.assertEqual([(x["repost"]["id"], x["author"]["name"]) for x in wall2], [(p["id"], "Борис")])
+        self.assertTrue((await self.get("/api/app/posts", 2))[1]["posts"][0]["reposted"])
+        self.assertEqual((await self.get("/api/app/user/2", 3))[1]["posts"], 1)
+        st, d = await self.post(f"/api/app/posts/{p['id']}/repost", 2, {"on": False})               # убрать
+        self.assertEqual((st, d["reposts"], d["reposted"]), (200, 0, False))
+        self.assertEqual((await self.get("/api/app/user/2/posts", 3))[1]["posts"], [])
+        # блокировка: стену заблокировавшего не видно
+        await self.post("/api/app/friends/block", 1, {"user_id": 4})
+        self.assertEqual((await self.get("/api/app/user/1/posts", 4))[1]["posts"], [])
+
+    # ------------------------------------------------------------ аватар и статус
+
+    async def test_avatar_and_bio(self):
+        st, d = await self.post("/api/app/me/avatar", 1, {"photo": jpeg_b64()})
+        self.assertEqual(st, 200)
+        url = d["user"]["avatar"]
+        self.assertTrue(url.startswith("/api/app/user/1/avatar?v=1"))
+        r = await self.c.get(url)
+        self.assertEqual(Image.open(io.BytesIO(await r.read())).size, (512, 512))
+        p = await self.publish(1, "С новой аватаркой")
+        self.assertEqual(p["author"]["avatar"], url)
+        self.assertEqual((await self.post("/api/app/me/avatar", 1, {"photo": "data:image/jpeg;base64,eHh4"}))[0], 400)
+        st, d = await self.post("/api/app/me", 1, {"bio": "  Люблю   велосипеды  и Utrecht  "})
+        self.assertEqual(d["user"]["bio"], "Люблю велосипеды и Utrecht")
+        prof = (await self.get("/api/app/user/1", 2))[1]["user"]
+        self.assertEqual((prof["bio"], prof["avatar"]), ("Люблю велосипеды и Utrecht", url))
+        self.assertEqual((await self.post("/api/app/me", 1, {"bio": "ну ты и сука"}))[0], 400)
+        await self.post("/api/app/me/avatar", 1, {"photo": ""})
+        self.assertEqual((await self.get("/api/app/user/1", 2))[1]["user"]["avatar"], "")
+        self.assertEqual((await self.c.get("/api/app/user/1/avatar?v=1")).status, 404)
+
+    # ------------------------------------------------------------ новости и события: лайк, комментарии, поделиться
+
+    async def test_items(self):
+        base = "/api/app/items/news/n-42"
+        self.assertEqual((await self.post(base + "/like", 1))[1], {"ok": True, "likes": 1, "liked": True})
+        await self.post(base + "/like", 2)
+        await self.post(base + "/like", 2)                                          # повтор не удваивает
+        self.assertEqual((await self.post(base + "/comments", 2, {"text": "Полезная новость"}))[0], 200)
+        st, d = await self.post(base + "/share", 3, {"title": "Новые правила аренды", "url": "https://podslushano.nl/n42",
+                                                     "img": "javascript:alert(1)", "text": "Важно!"})
+        self.assertEqual((st, d["post"]["share"]["title"], d["post"]["share"]["img"], d["post"]["text"]),
+                         (200, "Новые правила аренды", "", "Важно!"))       # не-http картинка отброшена
+        self.assertEqual((await self.post(base + "/share", 3, {"title": "x"}))[0], 409)
+        stats = (await self.get("/api/app/items/stats?keys=news:n-42,event:ev1,bad:x", 3))[1]["stats"]
+        self.assertEqual(stats["news:n-42"], {"likes": 2, "liked": False, "comments": 1, "shares": 1, "shared": True})
+        self.assertEqual(stats["event:ev1"]["likes"], 0)
+        self.assertNotIn("bad:x", stats)
+        cid = (await self.get(base + "/comments"))[1]["comments"][0]["id"]
+        for uid in (1, 3, 4):
+            await self.post("/api/app/report", uid, {"kind": "icomment", "id": cid})
+        self.assertEqual((await self.get(base + "/comments"))[1]["comments"], [])   # 3 жалобы — скрыт
+        self.assertEqual((await self.c.post("/api/app/items/video/x/like", headers=self.h(1))).status, 404)
+        wall = (await self.get("/api/app/user/3/posts", 1))[1]["posts"]
+        self.assertEqual(wall[0]["share"]["kind"], "news")
 
     async def test_old_posts_table_gets_new_columns(self):
         async with self.engine.begin() as c:
@@ -225,13 +293,17 @@ class FeedBase:
             await c.exec_driver_sql("INSERT INTO user_posts VALUES (1, 1, 'старый пост', 'Utrecht', "
                                     "'2026-10-01 10:00:00', FALSE, FALSE), (2, 2, 'старый из Berlin', 'Berlin', "
                                     "'2026-10-01 11:00:00', FALSE, FALSE)")
+            for col in ("bio", "avatar", "avatar_v"):   # app_users из прошлой версии — без новых колонок
+                await c.exec_driver_sql(f"ALTER TABLE app_users DROP COLUMN {col}")
         with patch.object(db, "engine", self.engine):
             await db._migrate()
             await db._migrate()
         async with self.engine.connect() as c:
+            ucols = await c.run_sync(lambda x: {i["name"] for i in inspect(x).get_columns("app_users")})
+            self.assertTrue({"bio", "avatar", "avatar_v"} <= ucols)
             cols = await c.run_sync(lambda x: {i["name"] for i in inspect(x).get_columns("user_posts")})
             idx = await c.run_sync(lambda x: {i["name"] for i in inspect(x).get_indexes("user_posts")})
-        self.assertTrue({"country", "repost_of", "photo_count"} <= cols)
+        self.assertTrue({"country", "repost_of", "photo_count", "share_kind", "share_key", "share_title"} <= cols)
         self.assertTrue({"ix_user_posts_country", "ix_user_posts_repost_of"} <= idx)
         old = (await self.get("/api/app/posts?scope=near&country=Нидерланды"))[1]["posts"]
         self.assertEqual([(x["text"], x["country"], x["photos"], x["likes"]) for x in old], [("старый пост", "Нидерланды", [], 0)])
