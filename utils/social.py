@@ -118,7 +118,8 @@ def presence(u: AppUser | None) -> dict:
 
 def card(u: AppUser, rel: str | None = None) -> dict:
     d = {"id": u.id, "name": u.name or "Участник", "city": u.city or "", "country": u.country.value,
-         "avatar": avatar_url(u), "bio": u.bio or "", "verified": bool(u.is_verified)}
+         "avatar": avatar_url(u), "bio": u.bio or "", "verified": bool(u.is_verified),
+         "cover": f"/api/app/user/{u.id}/cover?v={u.cover_v}" if u.cover_v else ""}
     return d | ({"relation": rel} if rel is not None else {})
 
 
@@ -182,6 +183,18 @@ async def avatar(request: web.Request) -> web.Response:
         raise web.HTTPNotFound()
     async with get_session() as session:
         data = await session.scalar(select(AppUser.avatar).where(AppUser.id == uid))
+    if not data:
+        raise web.HTTPNotFound()
+    return web.Response(body=data, content_type="image/jpeg", headers={"Cache-Control": "public, max-age=31536000, immutable"})
+
+
+async def cover(request: web.Request) -> web.Response:
+    try:
+        uid = int(request.match_info["id"])
+    except ValueError:
+        raise web.HTTPNotFound()
+    async with get_session() as session:
+        data = await session.scalar(select(AppUser.cover).where(AppUser.id == uid))
     if not data:
         raise web.HTTPNotFound()
     return web.Response(body=data, content_type="image/jpeg", headers={"Cache-Control": "public, max-age=31536000, immutable"})
@@ -329,6 +342,7 @@ async def unblock(request: web.Request) -> web.Response:
 def install_routes(app: web.Application) -> None:
     app.router.add_get(r"/api/app/user/{id:\d+}", profile)
     app.router.add_get(r"/api/app/user/{id:\d+}/avatar", avatar)
+    app.router.add_get(r"/api/app/user/{id:\d+}/cover", cover)
     app.router.add_get("/api/app/users", search)
     app.router.add_get("/api/app/friends", friends)
     app.router.add_post("/api/app/friends/request", request_friend)

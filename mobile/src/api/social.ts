@@ -5,7 +5,7 @@ import { queryClient } from './query';
 
 /** Отношение ко мне: self — это я; incoming — он позвал меня; blocked — я заблокировал; unavailable — меня заблокировали. */
 export type Relation = 'self' | 'none' | 'outgoing' | 'incoming' | 'friends' | 'blocked' | 'unavailable';
-export type Person = { id: number; name: string; city: string; country: string; avatar: string; bio: string; relation?: Relation; verified?: boolean };
+export type Person = { id: number; name: string; city: string; country: string; avatar: string; bio: string; relation?: Relation; verified?: boolean; cover?: string };
 export type Profile = {
   user: Person & { since: string }; relation: Relation; friends: number; posts: number; can_message: boolean;
   /** private — аккаунт закрыт; locked — мне его публикации не видны (мы не друзья). */

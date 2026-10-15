@@ -5,7 +5,7 @@
 три жалобы от разных людей скрывают объявление до их решения.
 Связь с продавцом — личным сообщением в приложении (POST /api/app/dm/start {item_id}).
 
-GET  /api/app/market?cat=&city=&q=&offset=   — лента (по 30), категории и города
+GET  /api/app/market?cat=&city=&q=&user=&offset=   — лента (по 30), категории и города; user — товары одного продавца
 GET  /api/app/market/my                       — мои объявления
 GET  /api/app/market/{id}                     — карточка
 GET  /api/app/market/{id}/photo/{n}           — фото n (JPEG)
@@ -118,6 +118,9 @@ async def listings(request: web.Request) -> web.Response:
         q = q.where(MarketItem.category == cat)
     if city:
         q = q.where(MarketItem.city == city)
+    seller = request.query.get("user", "")
+    if seller.isdigit():
+        q = q.where(MarketItem.user_id == int(seller))
     if text:
         like = f"%{text}%"
         q = q.where(or_(MarketItem.title.ilike(like), MarketItem.description.ilike(like)))

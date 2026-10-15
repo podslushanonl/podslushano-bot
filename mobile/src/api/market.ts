@@ -61,6 +61,11 @@ export function useMarket(f: MarketFilter) {
   });
 }
 
+/** Активные объявления одного продавца — вкладка «Барахолка» в профиле. */
+export const useUserListings = (userId: number, enabled = true) => useQuery({
+  queryKey: ['market', 'user', userId], enabled: enabled && userId > 0, staleTime: 30_000,
+  queryFn: () => api<Page>(`/api/app/market?user=${userId}`).then((d) => d.items),
+});
 export const useListing = (id: number) => useQuery({ queryKey: ['listing', id], enabled: id > 0, queryFn: () => api<{ item: Listing }>(`/api/app/market/${id}`).then((d) => d.item) });
 export const useMyListings = (enabled: boolean) => useQuery({ queryKey: ['me', 'listings'], enabled, queryFn: () => api<{ items: Listing[]; max: number }>('/api/app/market/my') });
 

@@ -1,10 +1,11 @@
 import { router } from 'expo-router';
 import { ReactNode, useEffect, useState } from 'react';
-import { DimensionValue, View } from 'react-native';
+import { DimensionValue, Platform, Share as RNShare, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useAuth } from '@/api/auth';
 import { routeForError } from '@/api/community';
 import { EventItem, News } from '@/api/content';
+import { BOT } from '@/api/client';
 import { Post, postPhoto, RepostOf, setRepost, Share, toggleLike } from '@/api/feed';
 import { ItemKind, ItemRef, ItemStats, shareItem, toggleItemLike } from '@/api/items';
 import { ago, dayMonth, weekday } from '@/lib/format';
@@ -64,9 +65,9 @@ function Heart({ on, color }: { on: boolean; color: string }) {
 }
 
 /** Ряд действий под элементом ленты. */
-export function ActionBar({ likes, liked, comments, reposts, reposted, onLike, onComment, onRepost }: {
+export function ActionBar({ likes, liked, comments, reposts, reposted, onLike, onComment, onRepost, onShare }: {
   likes: number; liked: boolean; comments: number; reposts: number; reposted: boolean;
-  onLike: () => void; onComment: () => void; onRepost?: () => void;
+  onLike: () => void; onComment: () => void; onRepost?: () => void; onShare?: () => void;
 }) {
   const { c } = useTheme();
   return (
@@ -76,8 +77,21 @@ export function ActionBar({ likes, liked, comments, reposts, reposted, onLike, o
       </ActionBtn>
       <ActionBtn icon="bubble" n={comments} label="Комментарии" onPress={onComment} />
       {onRepost ? <ActionBtn icon="repost" n={reposts} active={reposted} color={c.success} label={reposted ? 'Вы сделали репост' : 'Репост'} onPress={onRepost} /> : null}
+      {onShare ? <ActionBtn icon="paperplane" n={0} label="Поделиться" onPress={onShare} /> : null}
     </View>
   );
+}
+
+/** Ссылка на пост: системное «Поделиться» или копия в буфер (в браузере). true — ссылка скопирована. */
+async function sharePostLink(id: number): Promise<boolean> {
+  const url = `${BOT}/app/post/${id}`;
+  try {
+    if (Platform.OS !== 'web') { await RNShare.share({ message: url }); return false; }
+    const nav = (globalThis as any).navigator;
+    if (nav?.share) { await nav.share({ title: 'podslushano.nl', url }); return false; }
+    await nav?.clipboard?.writeText(url);
+    return true;
+  } catch { return false; }
 }
 
 function useFail() {
@@ -85,7 +99,6 @@ function useFail() {
   return (e: any) => { if (!routeForError(e)) toast(e?.message || 'Не получилось', 'error'); };
 }
 
-/** Фото поста: одно — во всю ширину, два — рядом, три-четыре — сеткой. Тап — на весь экран с зумом. */
 /** Стандартные пропорции медиа (ширина/высота): квадрат, вертикаль 4:5 (1080×1350), горизонталь 16:9. */
 export const MEDIA_RATIOS = { square: 1, portrait: 4 / 5, landscape: 16 / 9 } as const;
 const snapRatio = (r?: number) => {
@@ -104,7 +117,7 @@ export function PostPhotos({ paths, ratio }: { paths: string[]; ratio?: number }
   const tile = (u: string, i: number, aspectRatio: number, width: DimensionValue = '100%') => (
     <Tap key={u} onPress={() => setOpen(i)} scaleTo={0.985} haptic={false} accessibilityLabel={`Открыть фото ${i + 1} из ${urls.length}`}
       style={{ width, aspectRatio }}>
-      <Img source={u} style={{ width: '100%', height: '100%' }} />
+      <Img source={u} contentFit="cover" style={{ width: '100%', height: '100%' }} />
     </Tap>
   );
   const half = `${(100 - 1) / 2}%` as DimensionValue;
@@ -203,6 +216,7 @@ export function FeedPost({ p, onMenu, full }: { p: Post; onMenu: () => void; ful
   const toast = useToast();
   const fail = useFail();
   const [sheet, setSheet] = useState(false);
+  const [shareSheet, setShareSheet] = useState(false);
   const open = (id: number) => router.push({ pathname: '/post/[id]', params: { id: String(id) } });
   const needLogin = () => { router.push('/login'); };
   const like = () => (user ? toggleLike(p).catch(fail) : needLogin());
@@ -215,6 +229,12 @@ export function FeedPost({ p, onMenu, full }: { p: Post; onMenu: () => void; ful
         { title: 'Репост с комментарием', icon: 'edit', onPress: () => router.push({ pathname: '/new-post', params: { repost: String(original ? original.id : p.id) } }) },
       ];
   const sub = [p.repost ? 'репост' : p.share ? 'поделился' : '', p.city || p.author.city, timeLabel(p.at)].filter(Boolean).join(' · ');
+  // «Поделиться»: в свою историю (пост — наклейкой) или ссылкой
+  const target = original ? original.id : p.id;
+  const shareActions: SheetAction[] = [
+    { title: 'Добавить в мою историю', icon: 'plus', onPress: () => (user ? router.push({ pathname: '/story-new', params: { post: String(target) } }) : needLogin()) },
+    { title: 'Поделиться ссылкой', icon: 'share', onPress: () => sharePostLink(target).then((copied) => { if (copied) toast('Ссылка скопирована'); }) },
+  ];
   return (
     <View style={card}>
       <Head avatar={<Avatar name={p.author.name} id={p.author.id} uri={p.author.avatar} size={44} />} title={p.author.name} sub={sub} verified={p.author.verified}
@@ -229,9 +249,11 @@ export function FeedPost({ p, onMenu, full }: { p: Post; onMenu: () => void; ful
         {p.repost ? <RepostBox r={p.repost} onOpen={open} /> : null}
         {p.share ? <SharePreview s={p.share} /> : null}
         <ActionBar likes={p.likes} liked={p.liked} comments={p.comments} reposts={original ? 0 : p.reposts} reposted={p.reposted}
-          onLike={like} onComment={() => open(p.id)} onRepost={canRepost ? () => (user ? setSheet(true) : needLogin()) : undefined} />
+          onLike={like} onComment={() => open(p.id)} onRepost={canRepost ? () => (user ? setSheet(true) : needLogin()) : undefined}
+          onShare={() => setShareSheet(true)} />
       </View>
       <ActionSheet visible={sheet} onClose={() => setSheet(false)} actions={repostActions} />
+      <ActionSheet visible={shareSheet} title="Поделиться" onClose={() => setShareSheet(false)} actions={shareActions} />
     </View>
   );
 }

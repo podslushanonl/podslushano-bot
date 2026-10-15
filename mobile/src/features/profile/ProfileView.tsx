@@ -1,65 +1,76 @@
+import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { ReactNode, useRef, useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Platform, ScrollView, Share, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '@/api/auth';
+import { saveCover, useAuth } from '@/api/auth';
+import { BOT, mediaUrl } from '@/api/client';
 import { routeForError } from '@/api/community';
-import { feedPosts, Post, postPhoto, useWall } from '@/api/feed';
+import { feedPosts, useWall } from '@/api/feed';
+import { shrinkForWeb, useUserListings } from '@/api/market';
+import { Clip, useUserClips } from '@/api/pulse';
 import { acceptFriend, addFriend, blockPerson, removeFriend, startChat, unblockPerson, useProfile } from '@/api/social';
 import { FeedList, FeedPost } from '@/features/feed/FeedItems';
 import { usePostMenu } from '@/features/feed/usePostMenu';
-import { useTheme } from '@/theme';
-import { ActionSheet, Avatar, BackButton, Button, Empty, Icon, IconButton, Img, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useRefresh, useScrollY, useToast, VerifiedBadge } from '@/ui';
+import { Tile } from '@/features/market/Tile';
 import { presenceLabel } from '@/lib/presence';
+import { HAIRLINE, useTheme } from '@/theme';
+import { ActionSheet, Avatar, BackButton, Button, Empty, Icon, IconButton, IconName, Img, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useRefresh,
+  useScrollY, useToast, VerifiedBadge } from '@/ui';
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const since = (d: string) => { const [y, m] = (d || '').split('-').map(Number); return y && m ? `с ${MONTHS[m - 1]} ${y}` : ''; };
 const plural = (n: number, [one, few, many]: [string, string, string]) =>
   n % 10 === 1 && n % 100 !== 11 ? one : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? few : many;
+type Tab = 'posts' | 'pulse' | 'market';
+const AVATAR = 104;
 
 function Stat({ n, label, onPress }: { n: number; label: string; onPress?: () => void }) {
-  const box = { flex: 1, alignItems: 'center', gap: 2, paddingVertical: 6 } as const;
   const body = (
     <>
-      <Txt v="title2" style={{ fontFamily: 'Onest_700Bold', fontVariant: ['tabular-nums'], letterSpacing: -0.3 }}>{n}</Txt>
+      <Txt v="title3" style={{ fontFamily: 'Onest_700Bold', fontVariant: ['tabular-nums'] }}>{n}</Txt>
       <Txt v="footnote" tone="muted">{label}</Txt>
     </>
   );
-  // Без onPress — обычный блок: «выключенная» кнопка выглядела бы бледной.
+  const box = { alignItems: 'center', gap: 1, minWidth: 76 } as const;
   if (!onPress) return <View style={box} accessibilityLabel={`${n} ${label}`}>{body}</View>;
   return <Tap onPress={onPress} scaleTo={0.95} style={box} accessibilityLabel={`${n} ${label}`}>{body}</Tap>;
 }
 
-function Tabs({ value, onChange }: { value: 'posts' | 'photos'; onChange: (v: 'posts' | 'photos') => void }) {
+/** Вкладки профиля с иконками и подчёркиванием (как в VK и Instagram). */
+function Tabs({ value, onChange }: { value: Tab; onChange: (v: Tab) => void }) {
   const { c } = useTheme();
-  const tab = (k: 'posts' | 'photos', icon: 'text' | 'grid', title: string) => (
-    <Tap key={k} onPress={() => onChange(k)} scaleTo={0.97} accessibilityRole="tab" accessibilityState={{ selected: value === k }}
-      style={{ flex: 1, alignItems: 'center', paddingVertical: 12, gap: 6, borderBottomWidth: 2, borderBottomColor: value === k ? c.ink : 'transparent' }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <Icon name={icon} size={17} color={value === k ? c.ink : c.faint} />
-        <Txt v="subhead" color={value === k ? c.ink : c.faint} style={{ fontFamily: 'Onest_700Bold' }}>{title}</Txt>
-      </View>
-    </Tap>
-  );
+  const items: [Tab, IconName, string][] = [['posts', 'grid', 'Публикации'], ['pulse', 'pulse', 'Pulse'], ['market', 'market', 'Барахолка']];
   return (
-    <View style={{ flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: c.line, marginHorizontal: -20, paddingHorizontal: 20 }}>
-      {tab('posts', 'text', 'Публикации')}{tab('photos', 'grid', 'Фото')}
+    <View accessibilityRole="tablist" style={{ flexDirection: 'row', borderBottomWidth: HAIRLINE, borderBottomColor: c.line, marginHorizontal: -16 }}>
+      {items.map(([k, icon, title]) => {
+        const on = value === k;
+        return (
+          <Tap key={k} onPress={() => onChange(k)} scaleTo={0.97} haptic="select" accessibilityRole="tab" accessibilityLabel={title} accessibilityState={{ selected: on }}
+            style={{ flex: 1, alignItems: 'center', paddingVertical: 12, borderBottomWidth: 2, borderBottomColor: on ? c.ink : 'transparent', marginBottom: -HAIRLINE }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Icon name={icon} size={17} color={on ? c.ink : c.faint} />
+              <Txt v="subhead" color={on ? c.ink : c.faint} style={{ fontFamily: 'Onest_700Bold' }}>{title}</Txt>
+            </View>
+          </Tap>
+        );
+      })}
     </View>
   );
 }
 
-/** Сетка фото из публикаций человека — как вкладка «Фото» в соцсетях. */
-function PhotoGrid({ posts }: { posts: Post[] }) {
-  const items = posts.flatMap((p) => p.photos.map((ph) => ({ p, ph })));
-  if (!items.length) return <Empty icon="photo" title="Пока без фото" text="Фото из публикаций появятся здесь." />;
+/** Плитка видео в сетке профиля 9:16: первый кадр, значок и число лайков. */
+function ClipTile({ clip, onPress, width }: { clip: Clip; onPress: () => void; width: number }) {
+  const player = useVideoPlayer(mediaUrl(clip.url), (p) => { p.muted = true; });
   return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, marginHorizontal: -20 }}>
-      {items.map(({ p, ph }) => (
-        <Tap key={ph} onPress={() => router.push({ pathname: '/post/[id]', params: { id: String(p.id) } })} scaleTo={0.97} style={{ width: '33.1%', aspectRatio: 1 }}>
-          <Img source={postPhoto(ph)} style={{ width: '100%', height: '100%' }} />
-        </Tap>
-      ))}
-    </View>
+    <Tap onPress={onPress} scaleTo={0.97} accessibilityLabel={clip.text || 'Видео'} style={{ width, aspectRatio: 9 / 16, backgroundColor: '#111111' }}>
+      <VideoView player={player} contentFit="cover" nativeControls={false} playsInline style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+      <View pointerEvents="none" style={{ position: 'absolute', left: 6, bottom: 6, flexDirection: 'row', alignItems: 'center', gap: 3 }}>
+        <Icon name="heartFill" filled size={13} color="#FFFFFF" />
+        <Txt v="caption" color="#FFFFFF" style={{ fontFamily: 'Onest_700Bold', textShadowColor: 'rgba(0,0,0,0.6)', textShadowRadius: 3 }}>{clip.likes}</Txt>
+      </View>
+    </Tap>
   );
 }
 
@@ -67,7 +78,7 @@ function PhotoGrid({ posts }: { posts: Post[] }) {
 function Locked() {
   const { c } = useTheme();
   return (
-    <View style={{ alignItems: 'center', gap: 12, paddingVertical: 40, paddingHorizontal: 24, borderTopWidth: 1, borderTopColor: c.line, marginHorizontal: -20 }}>
+    <View style={{ alignItems: 'center', gap: 12, paddingVertical: 40, paddingHorizontal: 24 }}>
       <View style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 1.5, borderColor: c.ink, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name="lock" thin size={32} color={c.ink} />
       </View>
@@ -77,24 +88,30 @@ function Locked() {
   );
 }
 
-/** Страница человека в стиле соцсети: шапка с фото и счётчиками, действия, вкладки «Публикации / Фото». */
+/** Профиль в стиле VK / Instagram: обложка во всю ширину, круглый аватар поверх, имя с галочкой, вкладки
+ *  «Публикации / Pulse / Барахолка». Одинаков для моего профиля и чужого (у чужого — дружба и сообщения). */
 export function ProfileView({ userId, own }: { userId: number; own?: boolean }) {
-  const { c } = useTheme();
+  const { c, dark } = useTheme();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
   const { y, onScroll } = useScrollY();
   const list = useRef<ScrollView>(null);
   const toast = useToast();
   const { user: me } = useAuth();
   const q = useProfile(userId, !!me);
-  const wall = useWall(userId, !!me && !q.data?.locked);
-  const refresh = useRefresh(list, () => Promise.all([q.refetch(), wall.refetch()]), () => y.get() < 4);
+  const locked = !!q.data?.locked;
+  const [tab, setTab] = useState<Tab>('posts');
+  const wall = useWall(userId, !!me && !locked);
+  const clips = useUserClips(userId, !!me && !locked && tab === 'pulse');
+  const items = useUserListings(userId, !!me && tab === 'market');
+  const refresh = useRefresh(list, () => Promise.all([q.refetch(), wall.refetch(), clips.refetch(), items.refetch()]), () => y.get() < 4);
   const posts = feedPosts(wall.data);
-  const [tab, setTab] = useState<'posts' | 'photos'>('posts');
   const [menu, setMenu] = useState(false);
   const [busy, setBusy] = useState(false);
   const { openMenu, sheet } = usePostMenu();
   const p = q.data;
   const u = own && me ? { ...p?.user, ...me, id: me.id, since: p?.user.since || '' } : p?.user;
+  const coverH = Math.round(Math.min(width, 640) / 2.6) + insets.top;
   const run = async (fn: () => Promise<unknown>, ok?: string) => {
     setBusy(true);
     try { await fn(); if (ok) toast(ok); } catch (e: any) { if (!routeForError(e)) toast(e?.message || 'Не получилось', 'error'); } finally { setBusy(false); }
@@ -103,24 +120,30 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
     const d = await startChat(userId);
     router.push({ pathname: '/dm/[id]', params: { id: String(d.id) } });
   });
+  const changeCover = async () => {
+    const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ['images'], quality: 0.8, base64: true });
+    const a = r.canceled ? null : r.assets?.[0];
+    if (!a) return;
+    run(async () => saveCover(a.base64 ? `data:image/jpeg;base64,${a.base64}` : await shrinkForWeb(a.uri)), 'Обложка обновлена');
+  };
 
   let actions: ReactNode = null;
   if (own) {
     actions = (
-      <View style={{ flexDirection: 'row', gap: 10 }}>
+      <View style={{ flexDirection: 'row', gap: 8 }}>
         <Button title="Редактировать" kind="secondary" size="s" icon="edit" style={{ flex: 1 }} onPress={() => router.push('/profile-edit')} />
-        <Button title="Новый пост" kind="primary" size="s" icon="plus" style={{ flex: 1 }} onPress={() => router.push('/new-post')} />
+        <Button title="Опубликовать" kind="accent" size="s" icon="plus" style={{ flex: 1 }} onPress={() => router.push('/new-post')} />
       </View>
     );
   } else if (p) {
     const rel = p.relation;
     actions = rel === 'friends' ? (
-      <View style={{ flexDirection: 'row', gap: 10 }}>
-        <Button title="Написать" kind="primary" size="s" icon="bubble" loading={busy} style={{ flex: 1 }} onPress={write} />
+      <View style={{ flexDirection: 'row', gap: 8 }}>
+        <Button title="Написать" kind="accent" size="s" icon="bubble" loading={busy} style={{ flex: 1 }} onPress={write} />
         <Button title="В друзьях" kind="secondary" size="s" icon="check" style={{ flex: 1 }} onPress={() => setMenu(true)} />
       </View>
     ) : rel === 'incoming' ? (
-      <View style={{ flexDirection: 'row', gap: 10 }}>
+      <View style={{ flexDirection: 'row', gap: 8 }}>
         <Button title="Принять заявку" kind="accent" size="s" icon="check" loading={busy} style={{ flex: 1 }} onPress={() => run(() => acceptFriend(userId), 'Теперь вы друзья')} />
         <Button title="Отклонить" kind="secondary" size="s" style={{ flex: 1 }} onPress={() => run(() => removeFriend(userId))} />
       </View>
@@ -129,100 +152,144 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
     ) : rel === 'blocked' ? (
       <Button title="Разблокировать" kind="secondary" size="s" loading={busy} onPress={() => run(() => unblockPerson(userId), 'Пользователь разблокирован')} />
     ) : rel === 'unavailable' ? (
-      <Txt v="callout" tone="muted">Пользователь ограничил общение с вами.</Txt>
+      <Txt v="callout" tone="muted" center>Пользователь ограничил общение с вами.</Txt>
     ) : (
       <Button title="Добавить в друзья" kind="accent" size="s" icon="plus" loading={busy} onPress={() => run(() => addFriend(userId), 'Заявка отправлена')} />
     );
   }
 
-  const header = (
-    <View style={{ gap: 16 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 18 }}>
-        <View style={{ padding: 3, borderRadius: 60, borderWidth: 2, borderColor: c.accent }}>
-          <Avatar name={u?.name || '·'} id={userId} uri={u?.avatar} size={92} />
-        </View>
-        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-          <Stat n={p?.posts ?? posts.length} label={plural(p?.posts ?? posts.length, ['публикация', 'публикации', 'публикаций'])} onPress={() => setTab('posts')} />
-          <View style={{ width: 1, height: 30, backgroundColor: c.line }} />
-          <Stat n={p?.friends ?? 0} label={plural(p?.friends ?? 0, ['друг', 'друга', 'друзей'])} onPress={own ? () => router.push('/friends') : undefined} />
-        </View>
+  const presence = !own ? presenceLabel(p?.presence) : '';
+  const place = [u?.city, u?.country].filter(Boolean).join(', ');
+  const header = u ? (
+    <View>
+      {/* Обложка во всю ширину; без своей — фирменный градиент */}
+      <View style={{ height: coverH, marginHorizontal: -16, backgroundColor: c.bgSunken, overflow: 'hidden' }}>
+        {u.cover ? <Img source={mediaUrl(u.cover)} contentFit="cover" style={{ width: '100%', height: '100%' }} />
+          : <View style={{ flex: 1, [Platform.OS === 'web' ? 'backgroundImage' : 'experimental_backgroundImage']:
+              dark ? 'linear-gradient(135deg, #2A1408 0%, #6B2A0B 55%, #FF6A1A 100%)' : 'linear-gradient(135deg, #FFE1CC 0%, #FFB27A 50%, #FF6A1A 100%)' } as any} />}
+        {own ? (
+          <Tap onPress={changeCover} scaleTo={0.9} accessibilityLabel={u.cover ? 'Сменить обложку' : 'Добавить обложку'}
+            style={{ position: 'absolute', right: 14, bottom: 26, flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 12, height: 32,
+              borderRadius: 16, backgroundColor: 'rgba(0,0,0,0.45)' }}>
+            <Icon name="camera2" size={15} color="#FFFFFF" />
+            <Txt v="caption" color="#FFFFFF" style={{ fontFamily: 'Onest_600SemiBold' }}>{u.cover ? 'Обложка' : 'Добавить обложку'}</Txt>
+          </Tap>
+        ) : null}
       </View>
-      <View style={{ gap: 4 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
-          <Txt v="title2" style={{ flexShrink: 1 }}>{u?.name || (own ? 'Без имени' : '')}</Txt>
-          {(own ? me?.verified : u?.verified) ? <VerifiedBadge size={20} /> : null}
+
+      {/* Карточка поверх обложки с аватаром по центру */}
+      <View style={{ marginTop: -20, marginHorizontal: -16, paddingHorizontal: 16, paddingBottom: 4, backgroundColor: c.bg,
+        borderTopLeftRadius: 24, borderTopRightRadius: 24, alignItems: 'center', gap: 4 }}>
+        <View style={{ marginTop: -AVATAR / 2 - 4, padding: 4, borderRadius: AVATAR, backgroundColor: c.bg }}>
+          <Avatar name={u.name || '·'} id={userId} uri={u.avatar} size={AVATAR} />
+          {!own && p?.presence?.online ? (
+            <View style={{ position: 'absolute', right: 10, bottom: 10, width: 18, height: 18, borderRadius: 9, backgroundColor: '#34C759', borderWidth: 3, borderColor: c.bg }} />
+          ) : null}
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, maxWidth: '92%' }}>
+          <Txt v="title2" numberOfLines={1} style={{ flexShrink: 1 }}>{u.name || (own ? 'Без имени' : '')}</Txt>
+          {u.verified ? <VerifiedBadge size={21} /> : null}
           {(own ? me?.is_private : p?.private) ? <Icon name="lock" size={16} color={c.muted} /> : null}
         </View>
-        {u?.city || u?.country ? (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
-            <Icon name="location" size={14} color={c.muted} />
-            <Txt v="subhead" tone="muted">{[u?.city, u?.country].filter(Boolean).join(', ')}</Txt>
-          </View>
-        ) : null}
-        {u?.bio ? <Txt v="callout" tone="ink" style={{ marginTop: 4 }}>{u.bio}</Txt>
+        {u.bio ? <Txt v="callout" tone="ink" center style={{ paddingHorizontal: 12 }}>{u.bio}</Txt>
           : own ? <Tap onPress={() => router.push('/profile-edit')}><Txt v="callout" tone="accent">Добавить статус</Txt></Tap> : null}
-        {!own && presenceLabel(p?.presence) ? (
-          <Txt v="footnote" color={p?.presence?.online ? c.accentText : c.faint}>{presenceLabel(p?.presence)}</Txt>
-        ) : null}
-        {since(u?.since || '') ? <Txt v="footnote" color={c.faint} style={{ marginTop: 2 }}>В podslushano {since(u?.since || '')}</Txt> : null}
-      </View>
-      {actions}
-    </View>
-  );
+        <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center', gap: 10, marginTop: 2 }}>
+          {place ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Icon name="location" size={13} color={c.muted} />
+              <Txt v="footnote" tone="muted">{place}</Txt>
+            </View>
+          ) : null}
+          {presence ? <Txt v="footnote" color={p?.presence?.online ? c.accentText : c.faint}>{presence}</Txt> : null}
+        </View>
+        {since(u.since || '') ? <Txt v="caption" color={c.faint}>В podslushano {since(u.since || '')}</Txt> : null}
 
-  const more = wall.hasNextPage
-    ? <Button title="Показать ещё" kind="secondary" size="s" loading={wall.isFetchingNextPage} onPress={() => wall.fetchNextPage()} /> : null;
-  const body = !me ? null : wall.isLoading ? (
-    <View style={{ gap: 18, paddingTop: 16 }}>{[0, 1].map((i) => <View key={i} style={{ gap: 10 }}><Skeleton w="60%" /><Skeleton h={120} r={16} /></View>)}</View>
-  ) : tab === 'photos' ? (
-    <View style={{ paddingTop: 2, gap: 12 }}>
-      <PhotoGrid posts={posts} />
-      {more}
+        <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 4, marginTop: 10, marginBottom: 12 }}>
+          <Stat n={p?.posts ?? posts.length} label={plural(p?.posts ?? posts.length, ['публикация', 'публикации', 'публикаций'])} onPress={() => setTab('posts')} />
+          <View style={{ width: 1, backgroundColor: c.line, marginVertical: 6 }} />
+          <Stat n={p?.friends ?? 0} label={plural(p?.friends ?? 0, ['друг', 'друга', 'друзей'])} onPress={own ? () => router.push('/friends') : undefined} />
+        </View>
+        <View style={{ alignSelf: 'stretch' }}>{actions}</View>
+      </View>
     </View>
-  ) : posts.length ? (
-    <View style={{ paddingTop: 12 }}>
-      <FeedList>
-        {posts.map((x) => <FeedPost key={x.id} p={x} onMenu={() => openMenu(x)} />)}
-        {more}
-      </FeedList>
-    </View>
-  ) : (
-    <Empty icon="text" title={own ? 'Здесь будут ваши публикации' : 'Пока нет публикаций'}
-      text={own ? 'Расскажите, что нового, поделитесь фото или сделайте репост интересного из ленты.' : undefined}
-      action={own ? <Button title="Написать первый пост" kind="primary" onPress={() => router.push('/new-post')} /> : undefined} />
-  );
+  ) : null;
+
+  const tileW = Math.floor((Math.min(width, 640) - 4) / 3);
+  let body: ReactNode = null;
+  if (locked) body = <Locked />;
+  else if (tab === 'posts') {
+    body = wall.isLoading ? (
+      <View style={{ gap: 18, paddingTop: 16 }}>{[0, 1].map((i) => <View key={i} style={{ gap: 10 }}><Skeleton w="60%" /><Skeleton h={160} r={16} /></View>)}</View>
+    ) : posts.length ? (
+      <View style={{ paddingTop: 12 }}>
+        <FeedList>
+          {posts.map((x) => <FeedPost key={x.id} p={x} onMenu={() => openMenu(x)} />)}
+          {wall.hasNextPage ? <Button title="Показать ещё" kind="secondary" size="s" loading={wall.isFetchingNextPage} onPress={() => wall.fetchNextPage()} /> : null}
+        </FeedList>
+      </View>
+    ) : (
+      <Empty icon="text" title={own ? 'Здесь будут ваши публикации' : 'Пока нет публикаций'}
+        text={own ? 'Расскажите, что нового, поделитесь фото или сделайте репост интересного из ленты.' : undefined}
+        action={own ? <Button title="Написать первый пост" kind="primary" onPress={() => router.push('/new-post')} /> : undefined} />
+    );
+  } else if (tab === 'pulse') {
+    const list_ = clips.data || [];
+    body = clips.isLoading ? <Skeleton h={220} r={0} /> : list_.length ? (
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, marginHorizontal: -16, paddingTop: 2 }}>
+        {list_.map((cl) => <ClipTile key={cl.id} clip={cl} width={tileW}
+          onPress={() => router.push({ pathname: '/clips/[uid]', params: { uid: String(userId), start: String(cl.id) } })} />)}
+      </View>
+    ) : (
+      <Empty icon="pulse" title={own ? 'Ваши видео появятся здесь' : 'Пока нет видео'}
+        action={own ? <Button title="Загрузить в Pulse" kind="secondary" icon="plus" onPress={() => router.push('/pulse')} /> : undefined} />
+    );
+  } else {
+    const list_ = items.data || [];
+    body = items.isLoading ? <Skeleton h={200} r={16} /> : list_.length ? (
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingTop: 12 }}>
+        {list_.map((l) => <View key={l.id} style={{ width: '48.4%' }}><Tile l={l} /></View>)}
+      </View>
+    ) : (
+      <Empty icon="market" title={own ? 'У вас нет объявлений' : 'Нет объявлений'}
+        action={own ? <Button title="Подать объявление" kind="secondary" icon="plus" onPress={() => router.push('/market/new')} /> : undefined} />
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <ScrollView ref={list} onScroll={onScroll} scrollEventThrottle={16} contentInsetAdjustmentBehavior="never"
         refreshControl={refresh.control}
-        contentContainerStyle={{ paddingTop: insets.top + 64, paddingHorizontal: 20, paddingBottom: (own ? TAB_SPACE : 40) + insets.bottom, gap: 20 }}>
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: (own ? TAB_SPACE : 40) + insets.bottom, gap: 14 }}>
         {!me ? (
-          <Empty icon="person" title="Профили видны участникам" text="Войдите, чтобы смотреть профили, добавлять в друзья и писать."
-            action={<Button title="Войти" kind="primary" onPress={() => router.push('/login')} />} />
+          <View style={{ paddingTop: insets.top + 64 }}>
+            <Empty icon="person" title="Профили видны участникам" text="Войдите, чтобы смотреть профили, добавлять в друзья и писать."
+              action={<Button title="Войти" kind="primary" onPress={() => router.push('/login')} />} />
+          </View>
         ) : q.isLoading && !u ? (
-          <View style={{ gap: 14 }}><Skeleton w={98} h={98} r={49} /><Skeleton w="50%" h={24} /><Skeleton h={40} r={20} /></View>
+          <View style={{ gap: 14, marginHorizontal: -16 }}><Skeleton h={coverH} r={0} /><View style={{ alignItems: 'center', gap: 12 }}><Skeleton w={104} h={104} r={52} /><Skeleton w="50%" h={24} /></View></View>
         ) : !u ? (
-          <Empty icon="person" title="Профиль не найден" text={(q.error as any)?.message} />
+          <View style={{ paddingTop: insets.top + 64 }}><Empty icon="person" title="Профиль не найден" text={(q.error as any)?.message} /></View>
         ) : (
           <>
             {header}
-            {p?.locked ? <Locked /> : (
-              <>
-                <Tabs value={tab} onChange={setTab} />
-                {body}
-              </>
-            )}
+            {!locked ? <Tabs value={tab} onChange={setTab} /> : null}
+            {body}
           </>
         )}
       </ScrollView>
       <TopBar y={y} title={u?.name} left={own ? undefined : <BackButton />}
         right={own ? <IconButton icon="settings" label="Настройки" onPress={() => router.push('/settings')} />
-          : p && !['blocked'].includes(p.relation) ? <IconButton icon="more" label="Действия" onPress={() => setMenu(true)} /> : null} />
+          : p && p.relation !== 'blocked' ? <IconButton icon="more" label="Действия" onPress={() => setMenu(true)} /> : null} />
       {refresh.indicator}
       {sheet}
       {p && !own ? (
         <ActionSheet visible={menu} onClose={() => setMenu(false)} actions={[
+          { title: 'Поделиться профилем', icon: 'share' as const, onPress: () => {
+            const url = `${BOT}/app/user/${userId}`;
+            const nav = (globalThis as any).navigator;
+            if (Platform.OS !== 'web') Share.share({ message: url }).catch(() => {});
+            else if (nav?.clipboard) nav.clipboard.writeText(url).then(() => toast('Ссылка скопирована')).catch(() => {});
+          } },
           ...(p.relation === 'friends' ? [{ title: 'Удалить из друзей', icon: 'people' as const, onPress: () => run(() => removeFriend(userId), 'Удалён из друзей') }] : []),
           { title: `Заблокировать: ${p.user.name}`, icon: 'block' as const, danger: true, onPress: () => run(() => blockPerson(userId), 'Пользователь заблокирован') },
         ]} />

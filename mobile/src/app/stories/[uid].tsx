@@ -2,15 +2,16 @@ import { useEventListener } from 'expo';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useVideoPlayer, VideoView } from 'expo-video';
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, useWindowDimensions, View } from 'react-native';
+import { Platform, Pressable, useWindowDimensions, View } from 'react-native';
 import Animated, { cancelAnimation, Easing, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { scheduleOnRN } from 'react-native-worklets';
 import { useAuth } from '@/api/auth';
 import { mediaUrl } from '@/api/client';
 import { routeForError } from '@/api/community';
-import { deleteStory, reactStory, StoryItem, useStories } from '@/api/stories';
+import { deleteStory, reactStory, StoryItem, storyGradient, useStories } from '@/api/stories';
 import { timeLabel } from '@/features/feed/cards';
+import { PostSticker } from '@/features/stories/PostSticker';
 import { seenStories } from '@/features/stories/seen';
 import { Avatar, IconButton, Img, Tap, Txt, useToast, VerifiedBadge } from '@/ui';
 
@@ -22,7 +23,7 @@ function StoryVideo({ url, onEnd, onProgress, paused }: { url: string; onEnd: ()
   useEventListener(player, 'playToEnd', onEnd);
   useEventListener(player, 'timeUpdate', ({ currentTime }) => { if (player.duration) onProgress(currentTime / player.duration); });
   useEffect(() => { if (paused) player.pause(); else player.play(); }, [paused, player]);
-  return <VideoView player={player} contentFit="cover" nativeControls={false} style={{ width: '100%', height: '100%' }} />;
+  return <VideoView player={player} contentFit="cover" nativeControls={false} playsInline style={{ width: '100%', height: '100%' }} />;
 }
 
 /** Просмотр историй во весь экран (9:16): полоски прогресса, тап слева/справа — назад/вперёд, внизу — быстрые реакции. */
@@ -61,7 +62,7 @@ export default function StoryViewer() {
     if (!story) return;
     seenStories.add(story.id);
     progress.set(0);
-    if (story.kind !== 'photo' || held) return;
+    if (story.kind === 'video' || held) return;   // фото и репост — по таймеру, видео — по своему времени
     progress.set(withTiming(1, { duration: PHOTO_MS, easing: Easing.linear }, (done) => { if (done) scheduleOnRN(next); }));
     return () => cancelAnimation(progress);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -80,13 +81,30 @@ export default function StoryViewer() {
       <View style={{ width: frameW, aspectRatio: 9 / 16, maxHeight: '100%', borderRadius: 14, overflow: 'hidden', backgroundColor: '#111111' }}>
         {story.kind === 'video'
           ? <StoryVideo key={story.id} url={story.url} paused={held} onEnd={next} onProgress={(p) => progress.set(p)} />
-          : <Img source={mediaUrl(story.url)} style={{ width: '100%', height: '100%', backgroundColor: '#111111' }} />}
+          : story.kind === 'post'
+            ? <View style={[{ width: '100%', height: '100%' }, { [Platform.OS === 'web' ? 'backgroundImage' : 'experimental_backgroundImage']: storyGradient(story.bg) } as any]} />
+            : <Img source={mediaUrl(story.url)} contentFit="cover" style={{ width: '100%', height: '100%', backgroundColor: '#111111' }} />}
 
         {/* Тап слева — назад, справа — вперёд; удержание — пауза */}
         <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, flexDirection: 'row' }}>
           <Pressable style={{ flex: 1 }} onPress={prev} onLongPress={() => setHeld(true)} onPressOut={() => setHeld(false)} accessibilityLabel="Предыдущая история" />
           <Pressable style={{ flex: 2 }} onPress={next} onLongPress={() => setHeld(true)} onPressOut={() => setHeld(false)} accessibilityLabel="Следующая история" />
         </View>
+
+        {story.kind === 'post' ? (
+          <View pointerEvents="box-none" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, alignItems: 'center', justifyContent: 'center' }}>
+            <Tap onPress={() => story.post && router.push({ pathname: '/post/[id]', params: { id: String(story.post.id) } })} scaleTo={0.97}
+              accessibilityLabel="Открыть публикацию">
+              <PostSticker post={story.post ?? null} width={frameW * 0.74} />
+            </Tap>
+          </View>
+        ) : null}
+        {story.caption ? (
+          <View pointerEvents="none" style={{ position: 'absolute', left: 20, right: 20, bottom: 34, alignItems: 'center' }}>
+            <Txt v="bodyStrong" color="#FFFFFF" center style={{ fontSize: 19, lineHeight: 25, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 12,
+              backgroundColor: 'rgba(0,0,0,0.35)', overflow: 'hidden' }}>{story.caption}</Txt>
+          </View>
+        ) : null}
 
         <View pointerEvents="box-none" style={{ position: 'absolute', top: 8, left: 8, right: 8, gap: 10 }}>
           <View style={{ flexDirection: 'row', gap: 4 }}>

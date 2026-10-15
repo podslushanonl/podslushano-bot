@@ -65,6 +65,8 @@ def url(folder: str, name: str) -> str:
 
 
 def remove(folder: str, name: str) -> None:
+    if not name:   # у историй-репостов файла нет
+        return
     try:
         path(folder, name).unlink(missing_ok=True)
     except OSError as e:

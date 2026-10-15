@@ -2,7 +2,8 @@
 
 GET  /api/app/stories                 — лента историй: мои, друзей и открытых аккаунтов моей страны
                                         [{user, items: [{id, url, kind, at, my_reaction}]}]
-POST /api/app/stories                 — multipart: file (фото или видео)
+POST /api/app/stories                 — multipart: file (фото или видео), caption
+POST /api/app/stories/share           — {post_id, bg, caption} репост поста в историю: карточка-наклейка на фоне bg
 POST /api/app/stories/{id}/react      — {emoji} из REACTIONS (автор получает уведомление в реальном времени)
 GET  /api/app/stories/{id}/reactions  — кто как отреагировал (только автору)
 POST /api/app/stories/{id}/delete     — удалить свою
@@ -18,12 +19,14 @@ from database.db import get_session
 from database.models import AppUser, Story, StoryReaction
 from utils import media, realtime, social
 from utils.app_api import _user
-from utils.community import _rate, can_write
-from utils.feed import _at, _friend_ids, _hidden_authors
+from utils.community import _rate, can_write, check_text
+from utils.feed import _at, _author, _friend_ids, _hidden_authors, _photos, _post, _users
 from utils.site_api import _body, _err, _json
 
 TTL = timedelta(hours=24)
 REACTIONS = ("❤️", "🔥", "😂", "😮", "😢", "👏")
+BACKGROUNDS = ("sunset", "ocean", "forest", "night", "peach", "grape")   # градиенты задаёт приложение
+CAPTION_MAX = 200
 AUTHORS = 30
 
 
@@ -35,9 +38,26 @@ def _live():
     return (Story.deleted.is_(False)) & (Story.expires_at > _now())
 
 
-def _item(s: Story, mine: dict[int, str]) -> dict:
-    return {"id": s.id, "url": media.url("stories", s.file), "kind": s.kind, "at": _at(s.created_at),
-            "my_reaction": mine.get(s.id, "")}
+def _item(s: Story, mine: dict[int, str], posts: dict[int, dict] | None = None) -> dict:
+    d = {"id": s.id, "url": media.url("stories", s.file) if s.file else "", "kind": s.kind, "at": _at(s.created_at),
+         "my_reaction": mine.get(s.id, ""), "caption": s.caption or "", "bg": s.bg or ""}
+    if s.kind == "post":   # наклейка: пост, если он ещё доступен этому зрителю; иначе — «публикация недоступна»
+        d["post"] = (posts or {}).get(s.post_id or 0)
+    return d
+
+
+async def _post_cards(session, rows: list[Story], me: AppUser) -> dict[int, dict]:
+    """Короткие карточки постов для историй-репостов (с учётом удаления, блокировок и закрытых аккаунтов)."""
+    out: dict[int, dict] = {}
+    for pid in {s.post_id for s in rows if s.kind == "post" and s.post_id}:
+        p = await _post(session, pid, me)
+        if not p:
+            continue
+        users = await _users(session, {p.user_id})
+        photos = _photos(p, users.get(p.user_id))
+        out[pid] = {"id": p.id, "text": (p.text or "")[:280], "author": _author(users.get(p.user_id), p.user_id),
+                    "photo": photos[0] if photos else "", "ratio": p.photo_ratio or 1.0, "at": _at(p.created_at)}
+    return out
 
 
 async def stories(request: web.Request) -> web.Response:
@@ -59,6 +79,7 @@ async def stories(request: web.Request) -> web.Response:
         mine = dict((await session.execute(select(StoryReaction.story_id, StoryReaction.emoji).where(
             StoryReaction.user_id == me.id, StoryReaction.story_id.in_({s.id for s in rows})))).all()) if rows else {}
         users = {u.id: u for u in (await session.execute(select(AppUser).where(AppUser.id.in_({s.user_id for s in rows})))).scalars()}
+        posts = await _post_cards(session, rows, me)
         await session.commit()
     by: dict[int, list[Story]] = {}
     for s in rows:
@@ -66,7 +87,7 @@ async def stories(request: web.Request) -> web.Response:
     # Сначала мои, потом друзья, потом остальные; внутри — у кого история свежее
     order = sorted(by, key=lambda uid: (uid != me.id, uid not in friends, -by[uid][-1].id))[:AUTHORS]
     groups = [{"user": social.card(users[uid]) if uid in users else {"id": uid, "name": "Участник"},
-               "items": [_item(s, mine) for s in by[uid]], "mine": uid == me.id} for uid in order]
+               "items": [_item(s, mine, posts) for s in by[uid]], "mine": uid == me.id} for uid in order]
     return _json(request, {"ok": True, "groups": groups, "reactions": list(REACTIONS)})
 
 
@@ -80,14 +101,49 @@ async def upload(request: web.Request) -> web.Response:
     if _rate(f"story:{me.id}", 20, 86400):
         return _err(request, "Можно добавить до 20 историй в день.", 429)
     try:
-        _, kind, name = await media.read_upload(request, "stories", ("photo", "video"))
+        fields, kind, name = await media.read_upload(request, "stories", ("photo", "video"))
     except media.UploadError as e:
         return _err(request, str(e))
+    caption = " ".join(str(fields.get("caption") or "").split())[:CAPTION_MAX]
+    if caption and (reason := check_text(me, caption, CAPTION_MAX)):
+        media.remove("stories", name)
+        return _err(request, reason)
     async with get_session() as session:
-        s = Story(user_id=me.id, kind=kind, file=name, expires_at=_now() + TTL)
+        s = Story(user_id=me.id, kind=kind, file=name, caption=caption, expires_at=_now() + TTL)
         session.add(s)
         await session.flush()
         item = _item(s, {})
+        await session.commit()
+    return _json(request, {"ok": True, "story": item})
+
+
+async def share(request: web.Request) -> web.Response:
+    """Репост поста в свою историю: пост становится наклейкой поверх градиента."""
+    data = await _body(request)
+    bg = str(data.get("bg") or BACKGROUNDS[0])
+    caption = " ".join(str(data.get("caption") or "").split())[:CAPTION_MAX]
+    async with get_session() as session:
+        me = await _user(request, session)
+        denied = can_write(me)
+        if denied:
+            await session.commit()
+            return _err(request, *denied)
+        try:
+            p = await _post(session, int(data.get("post_id") or 0), me)
+        except (TypeError, ValueError):
+            p = None
+        if not p:
+            return _err(request, "Пост удалён или недоступен.", 404)
+        if bg not in BACKGROUNDS:
+            return _err(request, "Такого фона нет.")
+        if caption and (reason := check_text(me, caption, CAPTION_MAX)):
+            return _err(request, reason)
+        if _rate(f"story:{me.id}", 20, 86400):
+            return _err(request, "Можно добавить до 20 историй в день.", 429)
+        s = Story(user_id=me.id, kind="post", post_id=p.id, bg=bg, caption=caption, expires_at=_now() + TTL)
+        session.add(s)
+        await session.flush()
+        item = _item(s, {}, await _post_cards(session, [s], me))
         await session.commit()
     return _json(request, {"ok": True, "story": item})
 
@@ -156,6 +212,7 @@ async def remove(request: web.Request) -> web.Response:
 def install_routes(app: web.Application) -> None:
     app.router.add_get("/api/app/stories", stories)
     app.router.add_post("/api/app/stories", stories)
+    app.router.add_post("/api/app/stories/share", share)
     app.router.add_post(r"/api/app/stories/{id:\d+}/react", react)
     app.router.add_get(r"/api/app/stories/{id:\d+}/reactions", reactions)
     app.router.add_post(r"/api/app/stories/{id:\d+}/delete", remove)

@@ -16,6 +16,11 @@ export const usePulse = () => useInfiniteQuery({
   queryFn: ({ pageParam }) => api<Page>(`/api/app/pulse${pageParam ? `?before=${pageParam}` : ''}`),
   getNextPageParam: (last) => (last.more && last.clips.length ? last.clips[last.clips.length - 1].id : undefined),
 });
+/** Видео одного человека — вкладка Pulse в профиле. */
+export const useUserClips = (userId: number, enabled = true) => useQuery({
+  queryKey: ['me', 'pulse-user', userId], enabled: enabled && userId > 0, staleTime: 30_000,
+  queryFn: () => api<{ clips: Clip[] }>(`/api/app/user/${userId}/pulse`).then((d) => d.clips),
+});
 export const useSavedClips = (enabled: boolean) => useQuery({
   queryKey: ['me', 'pulse-saved'], enabled, queryFn: () => api<{ clips: Clip[] }>('/api/app/pulse/saved').then((d) => d.clips),
 });
