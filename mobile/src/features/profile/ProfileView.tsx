@@ -6,7 +6,7 @@ import { useAuth } from '@/api/auth';
 import { routeForError } from '@/api/community';
 import { feedPosts, Post, postPhoto, useWall } from '@/api/feed';
 import { acceptFriend, addFriend, blockPerson, removeFriend, startChat, unblockPerson, useProfile } from '@/api/social';
-import { FeedDivider, FeedPost } from '@/features/feed/FeedItems';
+import { FeedList, FeedPost } from '@/features/feed/FeedItems';
 import { usePostMenu } from '@/features/feed/usePostMenu';
 import { useTheme } from '@/theme';
 import { ActionSheet, Avatar, BackButton, Button, Empty, Icon, IconButton, Img, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useScrollY, useToast } from '@/ui';
@@ -156,14 +156,11 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
       {more}
     </View>
   ) : posts.length ? (
-    <View>
-      {posts.map((x, i) => (
-        <View key={x.id}>
-          {i ? <FeedDivider /> : null}
-          <FeedPost p={x} onMenu={() => openMenu(x)} />
-        </View>
-      ))}
-      {more}
+    <View style={{ paddingTop: 12 }}>
+      <FeedList>
+        {posts.map((x) => <FeedPost key={x.id} p={x} onMenu={() => openMenu(x)} />)}
+        {more}
+      </FeedList>
     </View>
   ) : (
     <Empty icon="text" title={own ? 'Здесь будут ваши публикации' : 'Пока нет публикаций'}

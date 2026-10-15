@@ -1,9 +1,9 @@
 import { router } from 'expo-router';
-import { ReactNode } from 'react';
+import { ReactNode, useRef, useState } from 'react';
 import { NativeScrollEvent, NativeSyntheticEvent, Platform, RefreshControl, ScrollView, StyleProp, View, ViewStyle } from 'react-native';
-import Animated, { interpolate, SharedValue, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
+import Animated, { interpolate, SharedValue, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useTheme } from '@/theme';
+import { HAIRLINE, useTheme } from '@/theme';
 import { IconButton } from './Button';
 import { Glass } from './Glass';
 import { Txt } from './Text';
@@ -17,23 +17,35 @@ export function useScrollY() {
   return { y, onScroll };
 }
 
-/** Тонкая стеклянная панель сверху, появляется при прокрутке (как в iOS). */
-export function TopBar({ y, title, left, right, always }: { y: SharedValue<number>; title?: string; left?: ReactNode; right?: ReactNode; always?: boolean }) {
+export const BAR_H = 56;
+
+/** Тонкая стеклянная панель сверху, появляется при прокрутке (как в iOS).
+ *  hidden (0…1) — панель уезжает вверх, над статус-баром остаётся только стекло. */
+export function TopBar({ y, title, left, right, always, hidden }: {
+  y: SharedValue<number>; title?: string; left?: ReactNode; right?: ReactNode; always?: boolean; hidden?: SharedValue<number>;
+}) {
   const insets = useSafeAreaInsets();
   const bg = useAnimatedStyle(() => ({ opacity: always ? 1 : interpolate(y.value, [10, 60], [0, 1], 'clamp') }));
   const ttl = useAnimatedStyle(() => ({ opacity: always ? 1 : interpolate(y.value, [40, 80], [0, 1], 'clamp') }));
+  const slide = useAnimatedStyle(() => {
+    const h = hidden ? hidden.value : 0;
+    return { transform: [{ translateY: -BAR_H * h }], opacity: 1 - h * 0.999 };
+  });
+  const slideBg = useAnimatedStyle(() => ({ transform: [{ translateY: -BAR_H * (hidden ? hidden.value : 0) }] }));
   return (
     <View pointerEvents="box-none" style={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10 }}>
-      <Animated.View pointerEvents="none" style={[{ position: 'absolute', top: 0, left: 0, right: 0, height: insets.top + 56 }, bg]}>
-        <Glass radius={0} strong style={{ flex: 1, borderWidth: 0 }} />
+      <Animated.View pointerEvents="none" style={[{ position: 'absolute', top: 0, left: 0, right: 0 }, slideBg]}>
+        <Animated.View pointerEvents="none" style={[{ height: insets.top + BAR_H }, bg]}>
+          <Glass radius={0} strong style={{ flex: 1, borderWidth: 0 }} />
+        </Animated.View>
       </Animated.View>
-      <View pointerEvents="box-none" style={{ paddingTop: insets.top + 6, paddingHorizontal: 12, height: insets.top + 56, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+      <Animated.View pointerEvents="box-none" style={[{ paddingTop: insets.top + 6, paddingHorizontal: 12, height: insets.top + BAR_H, flexDirection: 'row', alignItems: 'center', gap: 8 }, slide]}>
         <View style={{ minWidth: 44 }}>{left}</View>
         <Animated.View pointerEvents="none" style={[{ flex: 1, alignItems: 'center' }, ttl]}>
           {title ? <Txt v="headline" numberOfLines={1}>{title}</Txt> : null}
         </Animated.View>
         <View style={{ minWidth: 44, flexDirection: 'row', gap: 8, justifyContent: 'flex-end' }}>{right}</View>
-      </View>
+      </Animated.View>
     </View>
   );
 }
@@ -54,24 +66,53 @@ export function LargeTitle({ title, sub, right, above }: { title: string; sub?: 
   );
 }
 
-/** Корневой экран вкладки: крупный заголовок, стеклянная панель при прокрутке, «потянуть, чтобы обновить». */
-export function TabScreen({ title, sub, right, above, children, refreshing, onRefresh, contentStyle }: {
+/** Корневой экран вкладки: крупный заголовок, стеклянная панель при прокрутке, «потянуть, чтобы обновить».
+ *  collapsing — панель уезжает, когда листаете вниз, и возвращается при движении вверх (как в Threads);
+ *  pinned/pinAt — полоса (например, вкладки ленты), которая прилипает к верху, когда её место в списке ушло под панель. */
+export function TabScreen({ title, sub, right, above, children, refreshing, onRefresh, contentStyle, collapsing, pinned, pinAt }: {
   title: string; sub?: string; right?: ReactNode; above?: ReactNode; children: ReactNode;
   refreshing?: boolean; onRefresh?: () => void; contentStyle?: StyleProp<ViewStyle>;
+  collapsing?: boolean; pinned?: ReactNode; pinAt?: number;
 }) {
   const { c } = useTheme();
   const insets = useSafeAreaInsets();
   const { y, onScroll } = useScrollY();
+  const hidden = useSharedValue(0);
+  const last = useRef(0);
+  const hiddenNow = useRef(false);
+  const [pinnedOn, setPinnedOn] = useState(false);
+  const scroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    onScroll(e);
+    const top = e.nativeEvent.contentOffset.y;
+    const dy = top - last.current;
+    last.current = top;
+    if (collapsing) {
+      // Вниз по ленте — прячем, назад — сразу показываем; у самого верха панель всегда видна
+      const hide = top > 120 && (dy > 6 || (hiddenNow.current && dy >= -6));
+      if (hide !== hiddenNow.current) { hiddenNow.current = hide; hidden.set(withTiming(hide ? 1 : 0, { duration: 220 })); }
+    }
+    if (pinned && pinAt !== undefined) {
+      const on = top >= pinAt;
+      if (on !== pinnedOn) setPinnedOn(on);
+    }
+  };
+  const pinStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -BAR_H * hidden.value }] }));
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <ScrollView onScroll={onScroll} scrollEventThrottle={16} keyboardShouldPersistTaps="handled"
+      <ScrollView onScroll={scroll} scrollEventThrottle={16} keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="never"
         refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={c.accent} /> : undefined}
         contentContainerStyle={[{ paddingTop: insets.top + 64, paddingHorizontal: 20, paddingBottom: TAB_SPACE + insets.bottom, gap: 22 }, contentStyle]}>
         <LargeTitle title={title} sub={sub} above={above} />
         {children}
       </ScrollView>
-      <TopBar y={y} title={title} right={right} />
+      {pinned && pinnedOn ? (
+        <Animated.View style={[{ position: 'absolute', top: insets.top + BAR_H, left: 0, right: 0, zIndex: 9, backgroundColor: c.bg,
+          paddingHorizontal: 20, paddingTop: 8, paddingBottom: 10, borderBottomWidth: HAIRLINE, borderBottomColor: c.line }, pinStyle]}>
+          {pinned}
+        </Animated.View>
+      ) : null}
+      <TopBar y={y} title={title} right={right} hidden={collapsing ? hidden : undefined} />
     </View>
   );
 }

@@ -3,7 +3,7 @@ import { ReactNode, useEffect } from 'react';
 import { Platform, StyleProp, View, ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
 import { BOT } from '@/api/client';
-import { radius, useTheme } from '@/theme';
+import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Icon, IconName } from './Icon';
 import { Tap } from './Tap';
 import { Txt } from './Text';
@@ -11,7 +11,7 @@ import { Txt } from './Text';
 /** Карточка на «бумаге» приложения. С onPress — нажимается. */
 export function Card({ children, style, onPress, pad = 16 }: { children: ReactNode; style?: StyleProp<ViewStyle>; onPress?: () => void; pad?: number }) {
   const { c } = useTheme();
-  const box: ViewStyle = { backgroundColor: c.bgElevated, borderRadius: radius.xl, padding: pad, gap: 10, borderWidth: 1, borderColor: c.line };
+  const box: ViewStyle = { backgroundColor: c.bgElevated, borderRadius: radius.xl, padding: pad, gap: 10, borderWidth: HAIRLINE, borderColor: c.line };
   if (!onPress) return <View style={[box, style]}>{children}</View>;
   return <Tap onPress={onPress} scaleTo={0.985} style={[box, style]}>{children}</Tap>;
 }
@@ -61,7 +61,7 @@ export function Group({ children, title, style }: { children: ReactNode; title?:
   return (
     <View style={[{ gap: 8 }, style]}>
       {title ? <Txt v="overline" style={{ marginLeft: 6 }}>{title}</Txt> : null}
-      <View style={{ backgroundColor: c.bgElevated, borderRadius: radius.l, borderWidth: 1, borderColor: c.line, overflow: 'hidden' }}>{children}</View>
+      <View style={{ backgroundColor: c.bgElevated, borderRadius: radius.l, borderWidth: HAIRLINE, borderColor: c.line, overflow: 'hidden' }}>{children}</View>
     </View>
   );
 }

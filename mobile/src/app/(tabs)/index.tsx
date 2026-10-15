@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/api/auth';
 import { feedPosts, Scope, useFeed } from '@/api/feed';
 import { useContent } from '@/api/content';
@@ -8,12 +9,12 @@ import { queryClient } from '@/api/query';
 import { CitySheet } from '@/features/common/CitySheet';
 import { itemId, statsOf, useItemStats } from '@/api/items';
 import { JobCard, SaveCard } from '@/features/feed/cards';
-import { FeedDivider, FeedEvent, FeedNews, FeedPost, FeedSheet } from '@/features/feed/FeedItems';
+import { FeedEvent, FeedList, FeedNews, FeedPost } from '@/features/feed/FeedItems';
 import { usePostMenu } from '@/features/feed/usePostMenu';
 import { NowCard } from '@/features/home/NowCard';
 import { useCity, useCountry } from '@/lib/useCity';
-import { radius, useTheme } from '@/theme';
-import { Avatar, Button, Chip, Empty, Glass, Icon, IconButton, IconName, Segmented, Skeleton, TabScreen, Tap, Txt } from '@/ui';
+import { HAIRLINE, radius, useTheme } from '@/theme';
+import { Avatar, BAR_H, Button, Chip, Empty, Glass, Icon, IconButton, IconName, Segmented, Skeleton, TabScreen, Tap, Txt } from '@/ui';
 
 const SERVICES: { title: string; icon: IconName; href: '/afisha' | '/trains' | '/jobs' | '/save'; accent?: boolean }[] = [
   { title: 'Афиша', icon: 'ticket', href: '/afisha' },
@@ -23,6 +24,7 @@ const SERVICES: { title: string; icon: IconName; href: '/afisha' | '/trains' | '
 ];
 
 const SAVE_UNTIL = '2026-12-31';
+const FEED_TITLE_H = 25 + 14;   // заголовок «Лента» и отступ под ним: вкладки начинаются ниже
 
 function greeting(name?: string) {
   const h = Number(new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Europe/Amsterdam' }));
@@ -70,12 +72,28 @@ export default function Home() {
   const itemIds = useMemo(() => rows.filter((r) => r.el === 'news' || r.el === 'event')
     .map((r) => itemId(r.el === 'news' ? 'news' : 'event', r.el === 'news' ? r.data.id : r.data.key)).slice(0, 60), [rows]);
   const stats = useItemStats(itemIds);
+  // Вкладки ленты: в списке под заголовком «Лента» и прилипшие к верху, когда виджеты ушли за экран
+  const insets = useSafeAreaInsets();
+  const [pinAt, setPinAt] = useState<number | undefined>();
+  const filterBar = (
+    <View style={{ gap: 10 }}>
+      <Segmented value={filter} onChange={setFilter}
+        items={[{ key: 'all', title: 'Всё' }, { key: 'friends', title: 'Друзья' }, { key: 'near', title: 'Рядом' }, { key: 'news', title: 'Новости' }]} />
+      {filter === 'near' ? (
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          <Chip title={country} icon="globe" on={!onlyCity} onPress={() => setOnlyCity(false)} />
+          <Chip title={city} icon="location" on={onlyCity} onPress={() => setOnlyCity(true)} />
+        </View>
+      ) : null}
+    </View>
+  );
 
 
   return (
     <>
       <TabScreen
         title={greeting(user?.name)}
+        collapsing pinned={filterBar} pinAt={pinAt}
         refreshing={content.isRefetching || posts.isRefetching}
         onRefresh={() => { content.refetch(); posts.refetch(); stats.refetch(); queryClient.invalidateQueries({ queryKey: ['weather'] }); queryClient.invalidateQueries({ queryKey: ['ns'] }); }}
         above={
@@ -95,7 +113,7 @@ export default function Home() {
           {SERVICES.map((s) => (
             <Tap key={s.href} onPress={() => router.push(s.href)} scaleTo={0.92} style={{ alignItems: 'center', gap: 8, width: '23%' }} accessibilityLabel={s.title}>
               <View style={{ width: 64, height: 64, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
-                backgroundColor: s.accent ? c.accent : c.bgElevated, borderWidth: s.accent ? 0 : 1, borderColor: c.line }}>
+                backgroundColor: s.accent ? c.accent : c.bgElevated, borderWidth: s.accent ? 0 : HAIRLINE, borderColor: c.line }}>
                 <Icon name={s.icon} size={26} color={s.accent ? c.onAccent : c.ink} />
               </View>
               <Txt v="footnote" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }}>{s.title}</Txt>
@@ -112,16 +130,9 @@ export default function Home() {
           <Icon name="camera" thin size={22} color={c.muted} />
         </Tap>
 
-        <View style={{ gap: 14 }}>
+        <View style={{ gap: 14 }} onLayout={(e) => setPinAt(e.nativeEvent.layout.y + FEED_TITLE_H - insets.top - BAR_H)}>
           <Txt v="title2">Лента</Txt>
-          <Segmented value={filter} onChange={setFilter}
-            items={[{ key: 'all', title: 'Всё' }, { key: 'friends', title: 'Друзья' }, { key: 'near', title: 'Рядом' }, { key: 'news', title: 'Новости' }]} />
-          {filter === 'near' ? (
-            <View style={{ flexDirection: 'row', gap: 8 }}>
-              <Chip title={country} icon="globe" on={!onlyCity} onPress={() => setOnlyCity(false)} />
-              <Chip title={city} icon="location" on={onlyCity} onPress={() => setOnlyCity(true)} />
-            </View>
-          ) : null}
+          {filterBar}
         </View>
 
         {filter === 'friends' && !user ? (
@@ -136,19 +147,18 @@ export default function Home() {
         ) : (filter === 'all' || filter === 'news') && !content.data && content.isLoading ? (
           <View style={{ gap: 14 }}>{[0, 1].map((i) => <View key={i} style={{ gap: 10 }}><Skeleton h={190} r={28} /><Skeleton w="70%" /><Skeleton w="45%" h={12} /></View>)}</View>
         ) : rows.length ? (
-          <FeedSheet>
-            {rows.map((r, i) => {
-              const sep = i ? <FeedDivider /> : null;
-              if (r.el === 'news') return <View key={r.k}>{sep}<FeedNews n={r.data} stats={statsOf(stats.data, itemId('news', r.data.id))} /></View>;
-              if (r.el === 'post') return <View key={r.k}>{sep}<FeedPost p={r.data} onMenu={() => openMenu(r.data)} /></View>;
-              if (r.el === 'event') return <View key={r.k}>{sep}<FeedEvent e={r.data} stats={statsOf(stats.data, itemId('event', r.data.key))} /></View>;
-              if (r.el === 'job') return <View key={r.k} style={{ paddingVertical: 16 }}><JobCard j={r.data} /></View>;
-              return <View key={r.k} style={{ paddingVertical: 16 }}><SaveCard /></View>;
+          <FeedList>
+            {rows.map((r) => {
+              if (r.el === 'news') return <FeedNews key={r.k} n={r.data} stats={statsOf(stats.data, itemId('news', r.data.id))} />;
+              if (r.el === 'post') return <FeedPost key={r.k} p={r.data} onMenu={() => openMenu(r.data)} />;
+              if (r.el === 'event') return <FeedEvent key={r.k} e={r.data} stats={statsOf(stats.data, itemId('event', r.data.key))} />;
+              if (r.el === 'job') return <JobCard key={r.k} j={r.data} />;
+              return <SaveCard key={r.k} />;
             })}
             {filter !== 'news' && posts.hasNextPage ? (
-              <View style={{ paddingVertical: 16 }}><Button title="Показать ещё" kind="secondary" loading={posts.isFetchingNextPage} onPress={() => posts.fetchNextPage()} /></View>
+              <Button title="Показать ещё" kind="secondary" loading={posts.isFetchingNextPage} onPress={() => posts.fetchNextPage()} />
             ) : null}
-          </FeedSheet>
+          </FeedList>
         ) : (
           <Txt v="callout" tone="muted" center>{content.isError ? 'Не получилось загрузить ленту. Потяните вниз, чтобы обновить.' : 'Пока пусто.'}</Txt>
         )}
