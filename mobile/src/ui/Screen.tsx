@@ -82,6 +82,7 @@ export function TabScreen({ title, sub, right, above, children, refreshing, onRe
   const last = useRef(0);
   const hiddenNow = useRef(false);
   const [pinnedOn, setPinnedOn] = useState(false);
+  const pinnedRef = useRef(false);
   const scroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     onScroll(e);
     const top = e.nativeEvent.contentOffset.y;
@@ -93,9 +94,12 @@ export function TabScreen({ title, sub, right, above, children, refreshing, onRe
       if (hide !== hiddenNow.current) { hiddenNow.current = hide; hidden.set(withTiming(hide ? 1 : 0, { duration: 220 })); }
     }
     if (pinned && pinAt !== undefined) {
-      // Прилипаем ровно тогда, когда полоса в списке доходит до низа панели — с учётом того, спрятана ли панель
-      const on = top >= pinAt - insets.top - (hiddenNow.current ? 0 : BAR_H);
-      if (on !== pinnedOn) setPinnedOn(on);
+      // Прилипаем, когда полоса в списке доходит до низа панели (с учётом того, спрятана ли панель).
+      // Отлипаем только ниже — когда оригинал точно виден под раскрытой панелью: смена направления
+      // во время анимации панели не прячет вкладки ни на мгновение.
+      const unpinAt = pinAt - insets.top - BAR_H;
+      const on = pinnedRef.current ? top >= unpinAt : top >= pinAt - insets.top - (hiddenNow.current ? 0 : BAR_H);
+      if (on !== pinnedRef.current) { pinnedRef.current = on; setPinnedOn(on); }
     }
   };
   const pinStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -BAR_H * hidden.value }] }));
