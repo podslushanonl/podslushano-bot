@@ -6,10 +6,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HAIRLINE, useTheme } from '@/theme';
 import { IconButton } from './Button';
 import { Glass } from './Glass';
+import { useRefresh } from './Refresh';
 import { Txt } from './Text';
 
 /** Место под нижнюю панель вкладок: в браузере она плавает поверх контента. */
-export const TAB_SPACE = Platform.OS === 'web' ? 118 : Platform.OS === 'android' ? 24 : 40;
+export const TAB_SPACE = Platform.OS === 'web' ? 80 : Platform.OS === 'android' ? 24 : 40;
 
 export function useScrollY() {
   const y = useSharedValue(0);
@@ -72,7 +73,8 @@ export function LargeTitle({ title, sub, right, above }: { title: string; sub?: 
  *  pinAt — где эта полоса лежит в прокручиваемом содержимом (y от начала списка). */
 export function TabScreen({ title, sub, right, above, children, refreshing, onRefresh, contentStyle, collapsing, pinned, pinAt }: {
   title: string; sub?: string; right?: ReactNode; above?: ReactNode; children: ReactNode;
-  refreshing?: boolean; onRefresh?: () => void; contentStyle?: StyleProp<ViewStyle>;
+  /** onRefresh — запрос к серверу (промис): «потянуть вниз» и повторное нажатие на вкладку наверху. */
+  refreshing?: boolean; onRefresh?: () => unknown; contentStyle?: StyleProp<ViewStyle>;
   collapsing?: boolean; pinned?: ReactNode; pinAt?: number;
 }) {
   const { c } = useTheme();
@@ -103,11 +105,12 @@ export function TabScreen({ title, sub, right, above, children, refreshing, onRe
     }
   };
   const pinStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -BAR_H * hidden.value }] }));
+  const list = useRef<ScrollView>(null);
+  const refresh = useRefresh(list, onRefresh, () => last.current < 4);
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <ScrollView onScroll={scroll} scrollEventThrottle={16} keyboardShouldPersistTaps="handled"
-        contentInsetAdjustmentBehavior="never"
-        refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={c.accent} /> : undefined}
+      <ScrollView ref={list} onScroll={scroll} scrollEventThrottle={16} keyboardShouldPersistTaps="handled"
+        contentInsetAdjustmentBehavior="never" refreshControl={refresh.control}
         contentContainerStyle={[{ paddingTop: insets.top + 64, paddingHorizontal: 20, paddingBottom: TAB_SPACE + insets.bottom, gap: 22 }, contentStyle]}>
         <LargeTitle title={title} sub={sub} above={above} />
         {children}
@@ -119,6 +122,7 @@ export function TabScreen({ title, sub, right, above, children, refreshing, onRe
         </Animated.View>
       ) : null}
       <TopBar y={y} title={title} right={right} hidden={collapsing ? hidden : undefined} />
+      {refresh.indicator}
     </View>
   );
 }

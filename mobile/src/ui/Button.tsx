@@ -1,5 +1,5 @@
 import { ActivityIndicator, StyleProp, View, ViewStyle } from 'react-native';
-import { radius, useTheme } from '@/theme';
+import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Glass } from './Glass';
 import { Icon, IconName } from './Icon';
 import { Tap } from './Tap';
@@ -31,7 +31,8 @@ export function Button({ title, onPress, kind = 'primary', icon, size = 'm', loa
       style={[{ borderRadius: radius.pill, alignSelf: full ? 'stretch' : 'flex-start' }, style]}>
       {kind === 'glass' ? <Glass radius={radius.pill} interactive>{inner}</Glass> : (
         <View style={{ borderRadius: radius.pill, backgroundColor: bg, overflow: 'hidden',
-          borderWidth: kind === 'secondary' || kind === 'danger' ? 1 : 0, borderColor: c.line }}>{inner}</View>
+          borderWidth: kind === 'secondary' || kind === 'danger' || kind === 'primary' ? HAIRLINE : 0,
+          borderColor: kind === 'primary' ? c.lineStrong : c.line }}>{inner}</View>
       )}
     </Tap>
   );

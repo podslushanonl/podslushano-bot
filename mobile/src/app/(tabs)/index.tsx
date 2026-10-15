@@ -93,8 +93,8 @@ export default function Home() {
       <TabScreen
         title={greeting(user?.name)}
         collapsing pinned={filterBar} pinAt={pinAt}
-        refreshing={content.isRefetching || posts.isRefetching}
-        onRefresh={() => { content.refetch(); posts.refetch(); stats.refetch(); queryClient.invalidateQueries({ queryKey: ['weather'] }); queryClient.invalidateQueries({ queryKey: ['ns'] }); }}
+        onRefresh={() => Promise.all([content.refetch(), posts.refetch(), stats.refetch(),
+          queryClient.invalidateQueries({ queryKey: ['weather'] }), queryClient.invalidateQueries({ queryKey: ['ns'] })])}
         above={
           <Tap onPress={() => setPicker(true)} scaleTo={0.95} style={{ alignSelf: 'flex-start', marginBottom: 6 }} accessibilityLabel={`Город: ${city}. Изменить`}>
             <Glass radius={radius.pill} interactive style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, height: 38 }}>
