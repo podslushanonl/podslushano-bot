@@ -67,6 +67,10 @@ const I = {
   wrench: ['wrench.and.screwdriver', 'handyman'],
   apps: ['square.grid.2x2', 'apps'],
   verified: ['checkmark.seal.fill', 'verified'],
+  bookmark: ['bookmark', 'bookmark'], bookmarkFill: ['bookmark.fill', 'bookmark'],
+  play: ['play.fill', 'play_arrow'],
+  volumeOff: ['speaker.slash.fill', 'volume_off'], volumeOn: ['speaker.wave.2.fill', 'volume_up'],
+  pulse: ['play.rectangle.on.rectangle', 'smart_display'], pulseFill: ['play.rectangle.on.rectangle.fill', 'smart_display'],
   sofa: ['sofa', 'chair'],
   bike: ['bicycle', 'pedal_bike'],
 } as const;

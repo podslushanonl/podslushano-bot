@@ -1232,3 +1232,87 @@ class MarketPhoto(Base):
     item_id: Mapped[int] = mapped_column(Integer, index=True)
     idx: Mapped[int] = mapped_column(Integer, default=0)
     data: Mapped[bytes] = mapped_column(LargeBinary)
+
+
+class Story(Base):
+    """История на 24 часа: фото или видео во весь экран (9:16). Файл лежит на диске сервера (utils.media)."""
+
+    __tablename__ = "stories"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    kind: Mapped[str] = mapped_column(String(10), default="photo")   # photo | video
+    file: Mapped[str] = mapped_column(String(120))                    # имя файла в папке media/stories
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+    )
+    expires_at: Mapped[datetime] = mapped_column(DateTime, index=True)
+    deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class StoryReaction(Base):
+    """Быстрая реакция-эмодзи на историю (одна от человека, можно сменить)."""
+
+    __tablename__ = "story_reactions"
+    __table_args__ = (UniqueConstraint("story_id", "user_id", name="uq_story_reaction"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    story_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(Integer)
+    emoji: Mapped[str] = mapped_column(String(16))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+
+
+class PulseClip(Base):
+    """Вертикальное видео ленты Pulse. Файл — на диске сервера (utils.media), в базе — описание и счётчики."""
+
+    __tablename__ = "pulse_clips"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    text: Mapped[str] = mapped_column(String(500), default="")
+    file: Mapped[str] = mapped_column(String(120))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+    )
+    deleted: Mapped[bool] = mapped_column(Boolean, default=False)   # удалил сам автор
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False)    # скрыто модерацией / жалобами
+
+
+class PulseLike(Base):
+    __tablename__ = "pulse_likes"
+    __table_args__ = (UniqueConstraint("clip_id", "user_id", name="uq_pulse_like"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    clip_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+
+
+class PulseSave(Base):
+    """Закладка: видео Pulse, сохранённое себе."""
+
+    __tablename__ = "pulse_saves"
+    __table_args__ = (UniqueConstraint("clip_id", "user_id", name="uq_pulse_save"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    clip_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+
+
+class PulseComment(Base):
+    __tablename__ = "pulse_comments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    clip_id: Mapped[int] = mapped_column(Integer, index=True)
+    user_id: Mapped[int] = mapped_column(Integer)
+    text: Mapped[str] = mapped_column(String(1000))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+    deleted: Mapped[bool] = mapped_column(Boolean, default=False)
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False)

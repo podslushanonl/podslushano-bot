@@ -28,7 +28,7 @@ from sqlalchemy import func, select
 import config
 from database.db import get_session
 from database.models import (AppUser, ChatMessage, ChatRoom, ContentReport, Country, ItemComment, MarketItem, PostComment,
-                             UserPost)
+                             PulseClip, PulseComment, UserPost)
 from utils import realtime, social
 from utils.app_api import _user
 from utils.site_api import _body, _err, _json
@@ -259,7 +259,8 @@ realtime.say_handler = ws_say
 # ---------------------------------------------------------------- удалить своё, пожаловаться, скрыть автора
 
 def _model(kind: str):
-    return {"msg": ChatMessage, "post": UserPost, "comment": PostComment, "icomment": ItemComment}.get(kind)
+    return {"msg": ChatMessage, "post": UserPost, "comment": PostComment, "icomment": ItemComment,
+            "clip": PulseClip, "pcomment": PulseComment}.get(kind)
 
 
 async def delete_own(request: web.Request) -> web.Response:
@@ -336,7 +337,8 @@ def mod_kb(rid: int) -> InlineKeyboardMarkup:
 async def notify_moderators(bot, rid: int, kind: str, text: str, author: AppUser | None, reporter: AppUser,
                             hidden: bool) -> None:
     where = {"msg": "сообщение в чате", "post": "пост в ленте", "comment": "комментарий в ленте",
-             "icomment": "комментарий к новости или событию", "item": "объявление барахолки"}.get(kind, kind)
+             "icomment": "комментарий к новости или событию", "item": "объявление барахолки",
+             "clip": "видео в Pulse", "pcomment": "комментарий к видео Pulse"}.get(kind, kind)
     body = (f"🛡 <b>Жалоба на {where}</b>{' · скрыто автоматически (3 жалобы)' if hidden else ''}\n\n"
             f"Автор: {html.escape((author.name if author else '') or '—')} (id {author.id if author else '—'})\n"
             f"Пожаловался: {html.escape(reporter.name or '—')}\n\n«{html.escape(text[:800])}»")
