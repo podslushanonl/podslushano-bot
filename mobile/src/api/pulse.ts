@@ -9,8 +9,10 @@ export type Clip = {
 };
 type Page = { clips: Clip[]; more: boolean };
 
+// Ключ начинается с 'me': при выходе или смене аккаунта лента сбрасывается (лайки, закладки и видео закрытых друзей — личные)
+export const PULSE_KEY = ['me', 'pulse'] as const;
 export const usePulse = () => useInfiniteQuery({
-  queryKey: ['pulse'], initialPageParam: 0, staleTime: 60_000,
+  queryKey: PULSE_KEY, initialPageParam: 0, staleTime: 60_000,
   queryFn: ({ pageParam }) => api<Page>(`/api/app/pulse${pageParam ? `?before=${pageParam}` : ''}`),
   getNextPageParam: (last) => (last.more && last.clips.length ? last.clips[last.clips.length - 1].id : undefined),
 });
@@ -24,7 +26,7 @@ export const useClipComments = (id: number) => useQuery({
 
 /** Меняет видео в кэше ленты (лайк, закладка, число комментариев) — экран обновляется сразу. */
 export function patchClip(id: number, fn: (c: Clip) => Clip) {
-  queryClient.setQueryData<{ pages: Page[]; pageParams: unknown[] }>(['pulse'], (d) =>
+  queryClient.setQueryData<{ pages: Page[]; pageParams: unknown[] }>(PULSE_KEY, (d) =>
     d && { ...d, pages: d.pages.map((p) => ({ ...p, clips: p.clips.map((c) => (c.id === id ? fn(c) : c)) })) });
 }
 
@@ -48,6 +50,6 @@ export async function addClipComment(id: number, text: string) {
 
 export async function uploadClip(file: { uri: string; name: string; type: string }, text: string) {
   const d = await upload<{ clip: Clip }>('/api/app/pulse', file, { text });
-  queryClient.invalidateQueries({ queryKey: ['pulse'] });
+  queryClient.invalidateQueries({ queryKey: PULSE_KEY, exact: true });
   return d.clip;
 }

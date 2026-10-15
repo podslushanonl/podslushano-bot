@@ -11,11 +11,16 @@ import logging
 import os
 import re
 import secrets
+import time
 from pathlib import Path
 
+from datetime import datetime, timezone
+
 from aiohttp import web
+from sqlalchemy import or_, select
 
 import config
+from database.db import get_session
 
 log = logging.getLogger(__name__)
 
@@ -45,6 +50,10 @@ def _kind(head: bytes) -> str | None:
     if head[:4] == b"\x1a\x45\xdf\xa3":
         return "webm"
     return None
+
+
+def _now() -> datetime:
+    return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
 def path(folder: str, name: str) -> Path:
@@ -135,12 +144,49 @@ def _jpeg(raw: bytes) -> bytes:
     return out.getvalue()
 
 
+async def _alive(folder: str, name: str) -> bool:
+    """Файл отдаётся, только пока жива его запись: история не истекла и не удалена, видео не удалено и не скрыто."""
+    from database.models import PulseClip, Story
+    async with get_session() as session:
+        if folder == "stories":
+            return bool(await session.scalar(select(Story.id).where(
+                Story.file == name, Story.deleted.is_(False), Story.expires_at > _now())))
+        return bool(await session.scalar(select(PulseClip.id).where(
+            PulseClip.file == name, PulseClip.deleted.is_(False), PulseClip.hidden.is_(False))))
+
+
+_last_cleanup = 0.0
+
+
+async def cleanup(force: bool = False) -> int:
+    """Удаляет с диска файлы истёкших и удалённых историй и удалённых авторами видео (не чаще раза в час).
+    Скрытые модерацией видео не трогаем: модератор может их вернуть. Возвращает число удалённых файлов."""
+    global _last_cleanup
+    if not force and time.monotonic() - _last_cleanup < 3600:
+        return 0
+    _last_cleanup = time.monotonic()
+    from database.models import PulseClip, Story
+    async with get_session() as session:
+        gone = list((await session.execute(select(Story).where(
+            or_(Story.expires_at <= _now(), Story.deleted.is_(True)), Story.file != ""))).scalars())
+        clips = list((await session.execute(select(PulseClip).where(PulseClip.deleted.is_(True), PulseClip.file != ""))).scalars())
+        for s in gone:
+            remove("stories", s.file)
+            s.deleted, s.file = True, ""
+        for c in clips:
+            remove("pulse", c.file)
+            c.file = ""
+        await session.commit()
+    return len(gone) + len(clips)
+
+
 async def serve(request: web.Request) -> web.StreamResponse:
     folder, name = request.match_info["folder"], request.match_info["name"]
     p = path(folder, name)
-    if folder not in FOLDERS or not _NAME.match(name) or not p.is_file():
+    if folder not in FOLDERS or not _NAME.match(name) or not p.is_file() or not await _alive(folder, name):
         raise web.HTTPNotFound()
-    return web.FileResponse(p, headers={"Cache-Control": "public, max-age=604800, immutable"})
+    # Кэш короткий: удалённое или истёкшее не должно жить у зрителей неделями
+    return web.FileResponse(p, headers={"Cache-Control": "private, max-age=3600"})
 
 
 def install_routes(app: web.Application) -> None:

@@ -20,7 +20,7 @@ from utils import app_api, community, feed, media, pulse, realtime, social, stor
 from utils.site_api import make_token
 
 PG_URL = os.getenv("TEST_DATABASE_URL", "")
-MODS = (app_api, community, feed, pulse, realtime, social, stories)
+MODS = (app_api, community, feed, media, pulse, realtime, social, stories)
 MP4 = b"\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00mp42isom" + b"\x00" * 2000
 
 
@@ -57,7 +57,7 @@ class Base6:
             s.add(Friendship(user_id=1, friend_id=3, status=FriendStatus.ACCEPTED))
             await s.commit()
         app = web.Application()
-        for m in MODS + (media,):
+        for m in MODS:
             m.install_routes(app)
         self.c = TestClient(TestServer(app))
         await self.c.start_server()
@@ -112,6 +112,9 @@ class Base6:
         self.assertEqual((await self.post("/api/app/report", 2, {"kind": "clip", "id": clip["id"]}))[0], 200)
         self.assertEqual((await self.post("/api/app/delete", 1, {"kind": "clip", "id": clip["id"]}))[0], 200)
         self.assertEqual((await self.get("/api/app/pulse", 2))[1]["clips"], [])
+        self.assertEqual((await self.c.get(clip["url"])).status, 404)            # удалённое видео больше не отдаётся
+        self.assertEqual(await media.cleanup(force=True), 1)                      # и файл убран с диска
+        self.assertEqual(list((Path(self.tmp.name) / "media" / "pulse").glob("*")), [])
 
     async def test_pulse_rejects_bad_files(self):
         st, d = await self.upload("/api/app/pulse", 1, b"not a video at all", name="x.txt")
@@ -154,6 +157,17 @@ class Base6:
         self.assertEqual((await self.get(f"/api/app/stories/{sid}/reactions", 1))[0], 404)   # чужие реакции не видно
         self.assertEqual((await self.post(f"/api/app/stories/{sid}/delete", 2))[0], 200)
         self.assertEqual(len((await self.get("/api/app/stories", 1))[1]["groups"]), 1)
+
+    async def test_expired_story_file_not_served_and_cleaned(self):
+        st, d = await self.upload("/api/app/stories", 2, jpeg(), name="s.jpg")
+        url = d["story"]["url"]
+        self.assertEqual((await self.c.get(url)).status, 200)
+        async with self.sessions() as s:
+            (await s.get(Story, d["story"]["id"])).expires_at = datetime.utcnow() - timedelta(minutes=1)
+            await s.commit()
+        self.assertEqual((await self.c.get(url)).status, 404)
+        self.assertEqual(await media.cleanup(force=True), 1)
+        self.assertFalse(media.path("stories", url.rsplit("/", 1)[1]).exists())
 
     async def test_stories_expire_and_privacy(self):
         async with self.sessions() as s:

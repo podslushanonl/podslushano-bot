@@ -1242,7 +1242,7 @@ class Story(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, index=True)
     kind: Mapped[str] = mapped_column(String(10), default="photo")   # photo | video
-    file: Mapped[str] = mapped_column(String(120))                    # имя файла в папке media/stories
+    file: Mapped[str] = mapped_column(String(120), index=True)        # имя файла в папке media/stories
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
     )
@@ -1273,7 +1273,7 @@ class PulseClip(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     user_id: Mapped[int] = mapped_column(Integer, index=True)
     text: Mapped[str] = mapped_column(String(500), default="")
-    file: Mapped[str] = mapped_column(String(120))
+    file: Mapped[str] = mapped_column(String(120), index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
     )

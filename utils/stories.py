@@ -43,6 +43,7 @@ def _item(s: Story, mine: dict[int, str]) -> dict:
 async def stories(request: web.Request) -> web.Response:
     if request.method == "POST":
         return await upload(request)
+    await media.cleanup()   # файлы истёкших историй и удалённых видео — с диска (не чаще раза в час)
     async with get_session() as session:
         me = await _user(request, session)
         if not me:

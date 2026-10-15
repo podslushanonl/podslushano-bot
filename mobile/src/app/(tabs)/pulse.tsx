@@ -1,10 +1,10 @@
-import { router } from 'expo-router';
+import { router, useIsFocused } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, TextInput, View, ViewToken } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/api/auth';
 import { removeOwn, report, routeForError } from '@/api/community';
-import { addClipComment, Clip, uploadClip, useClipComments, usePulse } from '@/api/pulse';
+import { addClipComment, Clip, PULSE_KEY, uploadClip, useClipComments, usePulse } from '@/api/pulse';
 import { queryClient } from '@/api/query';
 import { Composer } from '@/features/chat/ChatUI';
 import { timeLabel } from '@/features/feed/cards';
@@ -100,6 +100,8 @@ export default function Pulse() {
   const { user } = useAuth();
   const toast = useToast();
   const q = usePulse();
+  // Ушли на другую вкладку — видео на паузе (экран вкладки остаётся загруженным)
+  const focused = useIsFocused();
   const clips = useMemo(() => q.data?.pages.flatMap((p) => p.clips) || [], [q.data]);
   const [height, setHeight] = useState(0);
   const [active, setActive] = useState(0);
@@ -132,9 +134,9 @@ export default function Pulse() {
           <FlatList
             data={clips}
             keyExtractor={(c) => String(c.id)}
-            extraData={`${active}:${paused}:${muted}`}
+            extraData={`${active}:${paused}:${muted}:${focused}`}
             renderItem={({ item, index }) => (
-              <ClipView clip={item} active={index === active} paused={paused} onTogglePause={() => setPaused(!paused)} height={height} bottom={bottom} muted={muted} onToggleMute={() => setMuted(!muted)}
+              <ClipView clip={item} active={focused && index === active} paused={paused} onTogglePause={() => setPaused(!paused)} height={height} bottom={bottom} muted={muted} onToggleMute={() => setMuted(!muted)}
                 signedIn={!!user} onNeedLogin={() => router.push('/login')} onComments={() => setComments(item)} onMenu={() => setMenu(item)} />
             )}
             pagingEnabled
@@ -152,7 +154,7 @@ export default function Pulse() {
             onEndReachedThreshold={2}
             onEndReached={() => { if (q.hasNextPage && !q.isFetchingNextPage) q.fetchNextPage(); }}
             refreshing={q.isRefetching}
-            onRefresh={() => { queryClient.resetQueries({ queryKey: ['pulse'] }); setActive(0); }}
+            onRefresh={() => { queryClient.resetQueries({ queryKey: PULSE_KEY, exact: true }); setActive(0); }}
           />
         ) : (
           <View style={{ flex: 1, justifyContent: 'center', paddingHorizontal: 20 }}>
@@ -173,7 +175,7 @@ export default function Pulse() {
       <CommentsSheet clip={comments ? clips.find((c) => c.id === comments.id) || comments : null} onClose={() => setComments(null)} />
       <UploadSheet file={file} onClose={() => setFile(null)} />
       <ActionSheet visible={!!menu} onClose={() => setMenu(null)} actions={menu ? (menu.mine
-        ? [{ title: 'Удалить видео', icon: 'trash', danger: true, onPress: () => removeOwn('clip', menu.id).then(() => queryClient.invalidateQueries({ queryKey: ['pulse'] })).catch(fail) }]
+        ? [{ title: 'Удалить видео', icon: 'trash', danger: true, onPress: () => removeOwn('clip', menu.id).then(() => queryClient.invalidateQueries({ queryKey: PULSE_KEY, exact: true })).catch(fail) }]
         : [{ title: 'Пожаловаться', icon: 'flag', danger: true, onPress: () => (user ? report('clip', menu.id).then(() => toast('Жалоба отправлена модераторам')).catch(fail) : router.push('/login')) }]) : []} />
     </View>
   );

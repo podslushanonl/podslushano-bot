@@ -35,7 +35,9 @@ export default function StoryViewer() {
   const q = useStories(!!user);
   const groups = useMemo(() => q.data?.groups || [], [q.data]);
   const reactions = q.data?.reactions || [];
-  const [g, setG] = useState(() => Math.max(0, groups.findIndex((x) => String(x.user.id) === uid)));
+  // Группа выбирается, когда истории загружены (экран мог открыться по ссылке, до загрузки)
+  const [picked, setG] = useState<number | null>(null);
+  const g = picked ?? Math.max(0, groups.findIndex((x) => String(x.user.id) === uid));
   const [i, setI] = useState(0);
   const [held, setHeld] = useState(false);
   const progress = useSharedValue(0);
