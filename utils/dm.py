@@ -114,6 +114,14 @@ async def _may_write(session, cv: DmConversation, me: int) -> bool:
     return bool(cv.listing_id or cv.item_id) or await social.are_friends(session, me, peer)
 
 
+async def _presence(session, peer: AppUser | None, me: int) -> dict:
+    """«В сети» собеседника — как в профиле: не видно при блокировке и у закрытого аккаунта, если мы не друзья."""
+    if not peer or await social.blocked_between(session, me, peer.id) or (
+            peer.is_private and not await social.are_friends(session, me, peer.id)):
+        return {"online": False, "last_seen": ""}
+    return social.presence(peer)
+
+
 async def _conv_json(session, cv: DmConversation, me: int, last: DmMessage | None = None, unread: int = 0,
                      with_access: bool = False) -> dict:
     peer = await session.get(AppUser, _peer_id(cv, me))
@@ -121,7 +129,7 @@ async def _conv_json(session, cv: DmConversation, me: int, last: DmMessage | Non
     return extra | {
         "id": cv.id, "peer": {"id": _peer_id(cv, me), "name": (peer.name if peer else "") or "Участник",
                  "avatar": f"/api/app/user/{peer.id}/avatar?v={peer.avatar_v}" if peer and peer.avatar_v else "",
-                 "verified": bool(peer and peer.is_verified)} | social.presence(peer),
+                 "verified": bool(peer and peer.is_verified)} | await _presence(session, peer, me),
         "listing": await _listing_json(session, cv), "unread": unread,
         "last": msg_json(last, me, _their_read(cv, me), _their_got(cv, me)) if last else None,
     }

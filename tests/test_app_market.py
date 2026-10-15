@@ -316,6 +316,18 @@ class Base5:
         st, d = await self.post("/api/app/posts", 3, {"text": "Пост с галочкой"})
         self.assertTrue(d["post"]["author"]["verified"])
         self.assertTrue((await self.get("/api/app/me", 3))[1]["user"]["verified"])
+        # закрытый аккаунт: по объявлению не-друг «в сети» не видит
+        await self.post("/api/app/me", 1, {"is_private": True})
+        iid = (await self.post("/api/app/market", 1, self.item()))[1]["id"]
+        cid4 = (await self.post("/api/app/dm/start", 4, {"item_id": iid}))[1]["id"]
+        p4 = (await self.get(f"/api/app/dm/{cid4}", 4))[1]["conversation"]["peer"]
+        self.assertEqual((p4["online"], p4["last_seen"]), (False, ""))
+        p3 = (await self.get(f"/api/app/dm/{cid}", 3))[1]["conversation"]["peer"]       # друг Вера — видит
+        self.assertTrue(p3["online"])
+        # блокировка: заблокированный собеседник «в сети» не видит
+        await self.post("/api/app/friends/block", 3, {"user_id": 1})
+        p1 = (await self.get(f"/api/app/dm/{cid}", 1))[1]["conversation"]["peer"]
+        self.assertEqual((p1["online"], p1["last_seen"]), (False, ""))
 
     async def test_owner_verified_on_migrate(self):
         from database import db
