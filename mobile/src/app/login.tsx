@@ -71,7 +71,7 @@ export default function Login() {
   };
   const onCode = (v: string) => { setCode(v); setErr(''); if (v.length === 6) check(v); };
 
-  // Вход через Telegram-бота — для тех, у кого аккаунт создан через Telegram
+  // Ещё один способ: вход через Telegram-бота
   const stopPolling = () => { if (timer.current) clearInterval(timer.current); timer.current = null; setTgWait(false); AsyncStorage.removeItem(PENDING).catch(() => {}); };
   const poll = (nonce: string, started: number) => {
     if (timer.current) clearInterval(timer.current);
@@ -111,7 +111,7 @@ export default function Login() {
             <View style={{ gap: 10, marginTop: 12 }}>
               <Txt v="display">Вход</Txt>
               <Txt v="callout" tone="muted">
-                {usePhone ? 'Введите номер телефона — пришлём код подтверждения в Telegram.' : 'Введите почту — пришлём код подтверждения.'}
+                {usePhone ? 'Введите номер телефона — пришлём SMS с кодом подтверждения.' : 'Введите почту — пришлём код подтверждения.'}
                 {' '}Пароль не нужен, аккаунт создастся сам.
               </Txt>
             </View>
@@ -159,7 +159,7 @@ export default function Login() {
                 <Tap onPress={telegram} scaleTo={0.97} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 }}
                   accessibilityLabel="Войти через Telegram">
                   <Img source={require('@assets/images/social/telegram.png')} style={{ width: 20, height: 20, backgroundColor: 'transparent' }} />
-                  <Txt v="subhead" tone="muted">Аккаунт создан через Telegram? <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }}>Войти</Txt></Txt>
+                  <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }}>Войти через Telegram</Txt>
                 </Tap>
               )}
             </View>
@@ -169,7 +169,7 @@ export default function Login() {
             <View style={{ gap: 10, marginTop: 12 }}>
               <Txt v="display">Введите код</Txt>
               <View style={{ gap: 2 }}>
-                <Txt v="callout" tone="muted">{sent.kind === 'phone' ? 'Отправили его в Telegram на номер' : 'Отправили его письмом на почту'}</Txt>
+                <Txt v="callout" tone="muted">{sent.kind === 'phone' ? 'Отправили его в SMS на номер' : 'Отправили его письмом на почту'}</Txt>
                 <Txt v="bodyStrong" style={{ fontVariant: ['tabular-nums'] }}>{sent.kind === 'phone' ? prettyPhone(sent.to) : sent.to}</Txt>
               </View>
             </View>

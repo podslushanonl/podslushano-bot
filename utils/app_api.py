@@ -1,8 +1,8 @@
 """API аккаунтов приложения podslushano.
 
 Вход без пароля, аккаунт создаётся при первом входе:
-- по коду: POST /api/app/auth/start {phone, cc} или {email} → 6-значный код в Telegram по номеру
-  (Telegram Gateway) или письмом; {kind, to}. POST /api/app/auth/check {phone|email, code} → {token, user}.
+- по коду: POST /api/app/auth/start {phone, cc} или {email} → 6-значный код SMS на номер
+  (utils/sms.py) или письмом; {kind, to}. POST /api/app/auth/check {phone|email, code} → {token, user}.
   GET /api/app/auth/methods → {phone}: доступен ли сейчас вход по номеру.
   Старые адреса /auth/email и /auth/verify (только почта) оставлены для уже установленных версий;
 - через Telegram: POST /api/app/auth/tg → {nonce, url}; человек открывает бота
@@ -100,7 +100,7 @@ async def _send(request: web.Request, kind: str, key: str) -> web.Response:
         await session.commit()
     if kind == "phone":
         if not await sms.send_code(key, code, CODE_MIN):
-            return _err(request, "Не удалось отправить код. Проверьте, что на этом номере есть Telegram, или войдите по почте.", 502)
+            return _err(request, "Не удалось отправить SMS. Проверьте номер или войдите по почте.", 502)
     else:
         ok, _ = await send_email_message(key, *app_login_code(code=code))
         if not ok:

@@ -1,4 +1,4 @@
-"""Аккаунты приложения: вход по коду из письма, через Telegram, профиль и избранное."""
+"""Аккаунты приложения: вход по коду в SMS или письме, через Telegram, профиль и избранное."""
 import re
 import tempfile
 import unittest
@@ -107,7 +107,7 @@ class AppApiTests(unittest.IsolatedAsyncioTestCase):
             return True
 
         # Без канала доставки вход по номеру выключен
-        with patch.dict("os.environ", {"TELEGRAM_GATEWAY_TOKEN": "", "OTP_DEBUG": ""}):
+        with patch.dict("os.environ", {"TWILIO_ACCOUNT_SID": "", "TWILIO_AUTH_TOKEN": "", "TWILIO_FROM": "", "OTP_DEBUG": ""}):
             self.assertFalse((await (await self.client.get("/api/app/auth/methods")).json())["phone"])
             r = await self.client.post("/api/app/auth/start", json={"phone": "612345678", "cc": "31"})
             self.assertEqual(r.status, 503)
@@ -134,14 +134,36 @@ class AppApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(mail["user"]["email"], "vera@example.com")
         self.assertNotEqual(mail["user"]["id"], ok["user"]["id"])
 
+    async def test_sms_via_twilio(self):
+        got = []
+
+        async def messages(request):
+            got.append((request.headers.get("Authorization", ""), dict(await request.post())))
+            return web.json_response({"sid": "SM1"}, status=201)
+
+        app = web.Application()
+        app.router.add_post("/Accounts/{sid}/Messages.json", messages)
+        srv = TestClient(TestServer(app))
+        await srv.start_server()
+        env = {"TWILIO_ACCOUNT_SID": "AC1", "TWILIO_AUTH_TOKEN": "secret", "TWILIO_FROM": "podslushano", "OTP_DEBUG": ""}
+        try:
+            with patch.dict("os.environ", env), patch.object(sms, "API", str(srv.make_url("/")) + "Accounts/{sid}/Messages.json"):
+                self.assertTrue(sms.available())
+                self.assertTrue(await sms.send_code("+31612345678", "123456", 15))
+        finally:
+            await srv.close()
+        auth, form = got[0]
+        self.assertTrue(auth.startswith("Basic "))
+        self.assertEqual((form["To"], form["From"]), ("+31612345678", "podslushano"))
+        self.assertIn("123456", form["Body"])
+
     def test_phone_normalize(self):
         n = phone.normalize
         self.assertEqual(n("06-12345678", "31"), "+31612345678")
         self.assertEqual(n("+49 151 23456789"), "+4915123456789")
         self.assertEqual(n("0470 12 34 56", "32"), "+32470123456")
-        self.assertEqual(n("+380 67 123 45 67"), "+380671234567")
-        self.assertEqual(n("067 123 45 67", "380"), "+380671234567")
-        for bad in [("030 1234567", "49"), ("612345678", "1"), ("61234567", "31"), ("+7 912 345 67 89", ""), ("", "31")]:
+        for bad in [("030 1234567", "49"), ("612345678", "1"), ("61234567", "31"), ("+7 912 345 67 89", ""), ("", "31"),
+                    ("+380 67 123 45 67", "")]:
             self.assertIsNone(n(*bad), bad)
 
 

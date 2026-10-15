@@ -7,7 +7,6 @@ export const COUNTRIES: PhoneCountry[] = [
   { flag: 'NL', name: 'Нидерланды', cc: '31', groups: [1, 2, 2, 2, 2], min: 9, sample: '6 12 34 56 78' },
   { flag: 'DE', name: 'Германия', cc: '49', groups: [3, 4, 4], min: 10, sample: '151 2345 6789' },
   { flag: 'BE', name: 'Бельгия', cc: '32', groups: [3, 2, 2, 2], min: 9, sample: '470 12 34 56' },
-  { flag: 'UA', name: 'Украина', cc: '380', groups: [2, 3, 2, 2], min: 9, sample: '67 123 45 67' },
 ];
 
 const maxLen = (c: PhoneCountry) => c.groups.reduce((a, b) => a + b, 0);

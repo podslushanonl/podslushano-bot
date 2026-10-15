@@ -5,7 +5,6 @@ const FLAGS = {
   NL: { dir: 'column', bands: ['#AE1C28', '#FFFFFF', '#21468B'] },
   DE: { dir: 'column', bands: ['#000000', '#DD0000', '#FFCE00'] },
   BE: { dir: 'row', bands: ['#000000', '#FDDA24', '#EF3340'] },
-  UA: { dir: 'column', bands: ['#0057B7', '#FFD700'] },
 } as const;
 
 export type FlagCode = keyof typeof FLAGS;
