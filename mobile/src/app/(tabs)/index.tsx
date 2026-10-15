@@ -1,7 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/api/auth';
 import { feedPosts, Scope, useFeed } from '@/api/feed';
 import { useContent } from '@/api/content';
@@ -14,7 +13,7 @@ import { usePostMenu } from '@/features/feed/usePostMenu';
 import { NowCard } from '@/features/home/NowCard';
 import { useCity, useCountry } from '@/lib/useCity';
 import { HAIRLINE, radius, useTheme } from '@/theme';
-import { Avatar, BAR_H, Button, Chip, Empty, Glass, Icon, IconButton, IconName, Segmented, Skeleton, TabScreen, Tap, Txt } from '@/ui';
+import { Avatar, Button, Chip, Empty, Glass, Icon, IconButton, IconName, Segmented, Skeleton, TabScreen, Tap, Txt } from '@/ui';
 
 const SERVICES: { title: string; icon: IconName; href: '/afisha' | '/trains' | '/jobs' | '/save'; accent?: boolean }[] = [
   { title: 'Афиша', icon: 'ticket', href: '/afisha' },
@@ -24,7 +23,6 @@ const SERVICES: { title: string; icon: IconName; href: '/afisha' | '/trains' | '
 ];
 
 const SAVE_UNTIL = '2026-12-31';
-const FEED_TITLE_H = 25 + 14;   // заголовок «Лента» и отступ под ним: вкладки начинаются ниже
 
 function greeting(name?: string) {
   const h = Number(new Date().toLocaleString('en-GB', { hour: '2-digit', hour12: false, timeZone: 'Europe/Amsterdam' }));
@@ -73,8 +71,9 @@ export default function Home() {
     .map((r) => itemId(r.el === 'news' ? 'news' : 'event', r.el === 'news' ? r.data.id : r.data.key)).slice(0, 60), [rows]);
   const stats = useItemStats(itemIds);
   // Вкладки ленты: в списке под заголовком «Лента» и прилипшие к верху, когда виджеты ушли за экран
-  const insets = useSafeAreaInsets();
-  const [pinAt, setPinAt] = useState<number | undefined>();
+  const [feedY, setFeedY] = useState<number | undefined>();
+  const [tabsY, setTabsY] = useState<number | undefined>();
+  const pinAt = feedY !== undefined && tabsY !== undefined ? feedY + tabsY : undefined;
   const filterBar = (
     <View style={{ gap: 10 }}>
       <Segmented value={filter} onChange={setFilter}
@@ -130,9 +129,10 @@ export default function Home() {
           <Icon name="camera" thin size={22} color={c.muted} />
         </Tap>
 
-        <View style={{ gap: 14 }} onLayout={(e) => setPinAt(e.nativeEvent.layout.y + FEED_TITLE_H - insets.top - BAR_H)}>
+        <View style={{ gap: 14 }} onLayout={(e) => setFeedY(e.nativeEvent.layout.y)}>
           <Txt v="title2">Лента</Txt>
-          {filterBar}
+          {/* Положение вкладок меряем по факту: заголовок выше при крупном системном шрифте */}
+          <View onLayout={(e) => setTabsY(e.nativeEvent.layout.y)}>{filterBar}</View>
         </View>
 
         {filter === 'friends' && !user ? (

@@ -68,7 +68,8 @@ export function LargeTitle({ title, sub, right, above }: { title: string; sub?: 
 
 /** Корневой экран вкладки: крупный заголовок, стеклянная панель при прокрутке, «потянуть, чтобы обновить».
  *  collapsing — панель уезжает, когда листаете вниз, и возвращается при движении вверх (как в Threads);
- *  pinned/pinAt — полоса (например, вкладки ленты), которая прилипает к верху, когда её место в списке ушло под панель. */
+ *  pinned/pinAt — полоса (например, вкладки ленты), которая прилипает к верху, когда её место в списке ушло под панель;
+ *  pinAt — где эта полоса лежит в прокручиваемом содержимом (y от начала списка). */
 export function TabScreen({ title, sub, right, above, children, refreshing, onRefresh, contentStyle, collapsing, pinned, pinAt }: {
   title: string; sub?: string; right?: ReactNode; above?: ReactNode; children: ReactNode;
   refreshing?: boolean; onRefresh?: () => void; contentStyle?: StyleProp<ViewStyle>;
@@ -92,7 +93,8 @@ export function TabScreen({ title, sub, right, above, children, refreshing, onRe
       if (hide !== hiddenNow.current) { hiddenNow.current = hide; hidden.set(withTiming(hide ? 1 : 0, { duration: 220 })); }
     }
     if (pinned && pinAt !== undefined) {
-      const on = top >= pinAt;
+      // Прилипаем ровно тогда, когда полоса в списке доходит до низа панели — с учётом того, спрятана ли панель
+      const on = top >= pinAt - insets.top - (hiddenNow.current ? 0 : BAR_H);
       if (on !== pinnedOn) setPinnedOn(on);
     }
   };
