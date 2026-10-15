@@ -110,6 +110,7 @@ _APP_USER_LATER_COLUMNS = {
     "bio": "VARCHAR(160) NOT NULL DEFAULT ''",
     "avatar": "{BLOB}",
     "avatar_v": "INTEGER NOT NULL DEFAULT 0",
+    "phone": "VARCHAR(20)",
 }
 _USER_POST_LATER_COLUMNS = {
     "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
@@ -379,6 +380,8 @@ async def _migrate() -> None:
                     await conn.exec_driver_sql(f"ALTER TABLE app_users ADD COLUMN {name} {ddl.replace('{BLOB}', blob)}")
             # Индекс страны: таблица в PostgreSQL создана до него, create_all его уже не добавит
             await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_app_users_country ON app_users (country)")
+            # Вход по телефону: номер уникален (NULL у аккаунтов без телефона не мешает)
+            await conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_app_users_phone ON app_users (phone)")
 
         # Посты: страна (лента «Рядом»), репосты, число фото — появились в этапе 2
         up_cols = await conn.run_sync(lambda c: {x["name"] for x in inspect(c).get_columns("user_posts")}

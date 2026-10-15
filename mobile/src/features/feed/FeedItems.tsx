@@ -10,18 +10,16 @@ import { ItemKind, ItemRef, ItemStats, shareItem, toggleItemLike } from '@/api/i
 import { ago, dayMonth, weekday } from '@/lib/format';
 import { openUrl } from '@/lib/open';
 import { radius, useTheme } from '@/theme';
-import { ActionSheet, Avatar, Icon, IconButton, IconName, Img, SheetAction, Tap, Txt, useToast } from '@/ui';
+import { ActionSheet, Avatar, Icon, IconButton, IconName, Img, PhotoViewer, SheetAction, Tap, Txt, useToast } from '@/ui';
 import { timeLabel } from './cards';
 
-// Лента в стиле соцсети: элементы без «коробок», разделены тонкой линией; контент выровнен под именем,
-// внизу у каждого — один и тот же ряд действий: нравится, комментарии, репост.
-
-const GUTTER = 56;   // аватар 44 + отступ 12: текст и фото начинаются под именем
+// Лента в стиле соцсети: элементы без «коробок», разделены тонкой линией; текст, фото и действия
+// идут от левого края, как во VK; внизу у каждого — одна компактная панель: нравится, комментарии, репост.
 
 /** Тонкая линия между элементами ленты. */
 export function FeedDivider() {
   const { c } = useTheme();
-  return <View style={{ height: 1, backgroundColor: c.line, marginLeft: GUTTER }} />;
+  return <View style={{ height: 1, backgroundColor: c.line }} />;
 }
 
 /** Подложка ленты: белый лист на всю ширину экрана. */
@@ -42,7 +40,7 @@ function ActionBtn({ icon, n, active, color, label, onPress, children }: {
   const tint = active ? color || c.accentText : c.muted;
   return (
     <Tap onPress={onPress} haptic="light" scaleTo={0.9} accessibilityLabel={label} accessibilityState={{ selected: !!active }}
-      hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 60, paddingVertical: 6 }}>
+      hitSlop={6} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 6, paddingHorizontal: 8, minWidth: 52 }}>
       {children ?? (icon ? <Icon name={icon} thin size={22} color={tint} /> : null)}
       <Txt v="subhead" color={tint} style={{ fontFamily: 'Onest_500Medium', fontVariant: ['tabular-nums'] }}>{n ? n : ''}</Txt>
     </Tap>
@@ -75,7 +73,7 @@ export function ActionBar({ likes, liked, comments, reposts, reposted, onLike, o
 }) {
   const { c } = useTheme();
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 22, marginTop: 6 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -8, marginTop: -4, marginBottom: -6 }}>
       <ActionBtn n={likes} active={liked} color={c.accent} label={liked ? 'Убрать лайк' : 'Нравится'} onPress={onLike}>
         <Heart on={liked} color={c.accent} />
       </ActionBtn>
@@ -90,19 +88,25 @@ function useFail() {
   return (e: any) => { if (!routeForError(e)) toast(e?.message || 'Не получилось', 'error'); };
 }
 
-/** Фото поста: одно — во всю ширину, два — рядом, три-четыре — сеткой. */
-export function PostPhotos({ paths, onPress }: { paths: string[]; onPress?: () => void }) {
+/** Фото поста: одно — во всю ширину, два — рядом, три-четыре — сеткой. Тап — на весь экран с зумом. */
+export function PostPhotos({ paths }: { paths: string[] }) {
+  const [open, setOpen] = useState<number | null>(null);
   if (!paths.length) return null;
   const urls = paths.map(postPhoto);
-  const tile = (u: string, style: object) => <Img key={u} source={u} style={[{ borderRadius: 14 }, style]} />;
+  const tile = (u: string, i: number, style: object) => (
+    <Tap key={u} onPress={() => setOpen(i)} scaleTo={0.985} haptic={false} accessibilityLabel={`Открыть фото ${i + 1} из ${urls.length}`} style={style}>
+      <Img source={u} style={{ width: '100%', height: '100%', borderRadius: 14 }} />
+    </Tap>
+  );
   return (
-    <Tap onPress={onPress} disabled={!onPress} scaleTo={0.99} accessibilityLabel={`Фото: ${urls.length}`}>
-      {urls.length === 1 ? tile(urls[0], { width: '100%', aspectRatio: 4 / 3 }) : (
+    <>
+      {urls.length === 1 ? tile(urls[0], 0, { width: '100%', aspectRatio: 4 / 3 }) : (
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-          {urls.map((u) => tile(u, { width: '49.3%', aspectRatio: urls.length === 2 ? 3 / 4 : 1 }))}
+          {urls.map((u, i) => tile(u, i, { width: '49.3%', aspectRatio: urls.length === 2 ? 3 / 4 : 1 }))}
         </View>
       )}
-    </Tap>
+      <PhotoViewer urls={urls} index={open} onClose={() => setOpen(null)} />
+    </>
   );
 }
 
@@ -186,13 +190,13 @@ export function FeedPost({ p, onMenu, full }: { p: Post; onMenu: () => void; ful
     <View style={{ paddingVertical: 16, gap: 10 }}>
       <Head avatar={<Avatar name={p.author.name} id={p.author.id} uri={p.author.avatar} size={44} />} title={p.author.name} sub={sub}
         onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(p.author.id) } })} onMenu={onMenu} />
-      <View style={{ marginLeft: GUTTER, gap: 10 }}>
-        {p.text ? (
-          <Tap onPress={() => open(p.id)} disabled={full} scaleTo={0.995}>
-            <Txt v="body" tone="ink" numberOfLines={full ? undefined : 12} selectable={full}>{p.text}</Txt>
+      <View style={{ gap: 10 }}>
+        {p.text ? (full ? <Txt v="body" tone="ink" selectable>{p.text}</Txt> : (
+          <Tap onPress={() => open(p.id)} scaleTo={0.995}>
+            <Txt v="body" tone="ink" numberOfLines={12}>{p.text}</Txt>
           </Tap>
-        ) : null}
-        <PostPhotos paths={p.photos} onPress={full ? undefined : () => open(p.id)} />
+        )) : null}
+        <PostPhotos paths={p.photos} />
         {p.repost ? <RepostBox r={p.repost} onOpen={open} /> : null}
         {p.share ? <SharePreview s={p.share} /> : null}
         <ActionBar likes={p.likes} liked={p.liked} comments={p.comments} reposts={original ? 0 : p.reposts} reposted={p.reposted}
@@ -241,7 +245,7 @@ export function FeedNews({ n, stats }: { n: News; stats: ItemStats }) {
   return (
     <View style={{ paddingVertical: 16, gap: 10 }}>
       <Head avatar={<Badge icon="newspaper" />} title="podslushano.nl" sub={`${n.cat || 'Новости'} · ${ago(n.date, n.time)}`} />
-      <View style={{ marginLeft: GUTTER, gap: 10 }}>
+      <View style={{ gap: 10 }}>
         <Tap onPress={() => openUrl(n.link)} scaleTo={0.995} style={{ gap: 10 }} accessibilityRole="link">
           <Txt v="headline" style={{ fontSize: 18, lineHeight: 24 }}>{n.h}</Txt>
           {n.lead ? <Txt v="callout" tone="muted" numberOfLines={3}>{n.lead}</Txt> : null}
@@ -260,7 +264,7 @@ export function FeedEvent({ e, stats }: { e: EventItem; stats: ItemStats }) {
   return (
     <View style={{ paddingVertical: 16, gap: 10 }}>
       <Head avatar={<Badge icon="ticket" />} title="Афиша" sub={`${weekday(e.date)}, ${dayMonth(e.date)}${e.time ? ` · ${e.time}` : ''}`} />
-      <View style={{ marginLeft: GUTTER, gap: 10 }}>
+      <View style={{ gap: 10 }}>
         <Tap onPress={() => router.push({ pathname: '/event/[key]', params: { key: e.key } })} scaleTo={0.995} style={{ gap: 8 }}>
           <Txt v="headline" style={{ fontSize: 18, lineHeight: 24 }}>{e.h}</Txt>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>

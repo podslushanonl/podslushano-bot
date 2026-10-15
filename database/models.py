@@ -863,13 +863,14 @@ class LinkClick(Base):
 
 
 class AppUser(Base):
-    """Аккаунт в приложении podslushano: вход по коду из письма и/или через Telegram."""
+    """Аккаунт в приложении podslushano: вход по коду на телефон или почту и/или через Telegram."""
 
     __tablename__ = "app_users"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     email: Mapped[str | None] = mapped_column(String(200), unique=True, nullable=True, index=True)
     tg_id: Mapped[int | None] = mapped_column(BigInteger, unique=True, nullable=True, index=True)
+    phone: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True, index=True)   # +31612345678
     name: Mapped[str] = mapped_column(String(80), default="")
     city: Mapped[str] = mapped_column(String(80), default="")
     country: Mapped[Country] = mapped_column(_enum(Country, "ck_app_user_country", 20), default=Country.NL,
@@ -915,13 +916,13 @@ class Friendship(Base):
 
 
 class AppLogin(Base):
-    """Ожидающий вход: код из письма (email) или подтверждение в Telegram (nonce)."""
+    """Ожидающий вход: код на почту (email) или телефон (phone), или подтверждение в Telegram (nonce)."""
 
     __tablename__ = "app_logins"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    kind: Mapped[str] = mapped_column(String(10))            # email | tg
-    key: Mapped[str] = mapped_column(String(200), index=True)  # почта или nonce
+    kind: Mapped[str] = mapped_column(String(10))            # email | phone | tg
+    key: Mapped[str] = mapped_column(String(200), index=True)  # почта, номер или nonce
     code_hash: Mapped[str] = mapped_column(String(64), default="")
     tg_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True)
     tg_name: Mapped[str] = mapped_column(String(80), default="")

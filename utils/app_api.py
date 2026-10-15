@@ -1,8 +1,10 @@
 """API аккаунтов приложения podslushano.
 
 Вход без пароля, аккаунт создаётся при первом входе:
-- по почте: POST /api/app/auth/email {email} → письмо с 6-значным кодом;
-  POST /api/app/auth/verify {email, code} → {token, user};
+- по коду: POST /api/app/auth/start {phone, cc} или {email} → 6-значный код SMS на номер
+  (utils/sms.py) или письмом; {kind, to}. POST /api/app/auth/check {phone|email, code} → {token, user}.
+  GET /api/app/auth/methods → {phone}: доступен ли сейчас вход по номеру.
+  Старые адреса /auth/email и /auth/verify (только почта) оставлены для уже установленных версий;
 - через Telegram: POST /api/app/auth/tg → {nonce, url}; человек открывает бота
   (t.me/<бот>?start=applogin_<nonce>), бот подтверждает; приложение опрашивает
   GET /api/app/auth/tg?nonce= → {token, user}, когда вход подтверждён.
@@ -24,6 +26,7 @@ from database.db import get_session
 from database.models import AppFavorite, AppLogin, AppUser, Country
 from utils.email_templates import app_login_code
 from utils.invoices import send_email_message
+from utils import phone as phones, sms
 from utils.newsletter import _limited
 from utils.site_api import EMAIL_RE, _body, _err, _json, make_token, read_token
 
@@ -51,7 +54,7 @@ def _ip(request: web.Request) -> str:
 def user_json(u: AppUser) -> dict:
     avatar = f"/api/app/user/{u.id}/avatar?v={u.avatar_v}" if u.avatar_v else ""
     return {"id": u.id, "name": u.name, "city": u.city, "country": u.country.value, "email": u.email or "",
-            "telegram": bool(u.tg_id), "bio": u.bio or "", "avatar": avatar}
+            "phone": u.phone or "", "telegram": bool(u.tg_id), "bio": u.bio or "", "avatar": avatar}
 
 
 def _session(u: AppUser) -> dict:
@@ -69,34 +72,47 @@ async def _user(request: web.Request, session) -> AppUser | None:
     return u
 
 
-# ---------------------------------------------------------------- вход по почте
+# ---------------------------------------------------------------- вход по коду: телефон или почта
 
-async def auth_email(request: web.Request) -> web.Response:
-    data = await _body(request)
+def _target(data: dict) -> tuple[str, str] | tuple[None, str]:
+    """(kind, key) — куда слать код, или (None, текст ошибки)."""
+    if data.get("phone"):
+        p = phones.normalize(str(data.get("phone"))[:40], str(data.get("cc") or "")[:4])
+        return ("phone", p) if p else (None, "Проверьте номер: нужен мобильный.")
     email = str(data.get("email") or "").strip().lower()[:200]
-    if not EMAIL_RE.match(email):
-        return _err(request, "Проверьте почту.")
-    if _limited(f"app-ip:{_ip(request)}", 20) or _limited(f"app-e:{email}", 5):
+    return ("email", email) if EMAIL_RE.match(email) else (None, "Проверьте почту.")
+
+
+async def auth_methods(request: web.Request) -> web.Response:
+    return _json(request, {"ok": True, "phone": sms.available(), "email": True, "telegram": True})
+
+
+async def _send(request: web.Request, kind: str, key: str) -> web.Response:
+    if kind == "phone" and not sms.available():
+        return _err(request, "Вход по номеру временно недоступен. Войдите по почте.", 503)
+    if _limited(f"app-ip:{_ip(request)}", 20) or _limited(f"app-{kind[0]}:{key}", 5):
         return _err(request, "Слишком много попыток. Попробуйте через час.", 429)
     code = f"{secrets.randbelow(1_000_000):06d}"
     async with get_session() as session:
-        await session.execute(delete(AppLogin).where(AppLogin.kind == "email", AppLogin.key == email))
-        session.add(AppLogin(kind="email", key=email, code_hash=_hash(email, code),
+        await session.execute(delete(AppLogin).where(AppLogin.kind == kind, AppLogin.key == key))
+        session.add(AppLogin(kind=kind, key=key, code_hash=_hash(key, code),
                              expires_at=_now() + timedelta(minutes=CODE_MIN)))
         await session.commit()
-    ok, _ = await send_email_message(email, *app_login_code(code=code))
-    if not ok:
-        return _err(request, "Не удалось отправить письмо. Попробуйте позже.", 502)
-    return _json(request, {"ok": True})
+    if kind == "phone":
+        if not await sms.send_code(key, code, CODE_MIN):
+            return _err(request, "Не удалось отправить SMS. Проверьте номер или войдите по почте.", 502)
+    else:
+        ok, _ = await send_email_message(key, *app_login_code(code=code))
+        if not ok:
+            return _err(request, "Не удалось отправить письмо. Попробуйте позже.", 502)
+    return _json(request, {"ok": True, "kind": kind, "to": key, "ttl": CODE_MIN * 60})
 
 
-async def auth_verify(request: web.Request) -> web.Response:
-    data = await _body(request)
-    email = str(data.get("email") or "").strip().lower()[:200]
-    code = "".join(ch for ch in str(data.get("code") or "") if ch.isdigit())[:6]
+async def _check(request: web.Request, kind: str, key: str, raw_code) -> web.Response:
+    code = "".join(ch for ch in str(raw_code or "") if ch.isdigit())[:6]
     async with get_session() as session:
         row = (await session.execute(select(AppLogin).where(
-            AppLogin.kind == "email", AppLogin.key == email, AppLogin.used.is_(False)))).scalar_one_or_none()
+            AppLogin.kind == kind, AppLogin.key == key, AppLogin.used.is_(False)))).scalar_one_or_none()
         if not row or row.expires_at < _now():
             return _err(request, "Код устарел. Запросите новый.")
         # Попытку списываем атомарно ДО проверки: параллельные запросы не обойдут лимит
@@ -106,7 +122,7 @@ async def auth_verify(request: web.Request) -> web.Response:
         await session.commit()
         if took.rowcount != 1:
             return _err(request, "Слишком много попыток. Запросите новый код.", 429)
-        if not secrets.compare_digest(row.code_hash, _hash(email, code)):
+        if not secrets.compare_digest(row.code_hash, _hash(key, code)):
             return _err(request, "Неверный код.")
         # Код одноразовый: только один запрос может его «погасить»
         claimed = await session.execute(update(AppLogin).where(AppLogin.id == row.id, AppLogin.used.is_(False))
@@ -114,13 +130,38 @@ async def auth_verify(request: web.Request) -> web.Response:
         if claimed.rowcount != 1:
             await session.rollback()
             return _err(request, "Код уже использован. Запросите новый.")
-        u = (await session.execute(select(AppUser).where(AppUser.email == email))).scalar_one_or_none()
+        col = AppUser.phone if kind == "phone" else AppUser.email
+        u = (await session.execute(select(AppUser).where(col == key))).scalar_one_or_none()
         if not u:
-            u = AppUser(email=email)
+            u = AppUser(phone=key) if kind == "phone" else AppUser(email=key)
             session.add(u)
         u.last_seen = _now()
         await session.commit()
         return _json(request, _session(u))
+
+
+async def auth_start(request: web.Request) -> web.Response:
+    kind, key = _target(await _body(request))
+    return await _send(request, kind, key) if kind else _err(request, key)
+
+
+async def auth_check(request: web.Request) -> web.Response:
+    data = await _body(request)
+    kind, key = _target(data)
+    return await _check(request, kind, key, data.get("code")) if kind else _err(request, key)
+
+
+async def auth_email(request: web.Request) -> web.Response:
+    """Старый адрес: только почта."""
+    data = await _body(request)
+    kind, key = _target({"email": data.get("email")})
+    return await _send(request, kind, key) if kind else _err(request, key)
+
+
+async def auth_verify(request: web.Request) -> web.Response:
+    data = await _body(request)
+    kind, key = _target({"email": data.get("email")})
+    return await _check(request, kind, key, data.get("code")) if kind else _err(request, key)
 
 
 # ---------------------------------------------------------------- вход через Telegram
@@ -224,7 +265,8 @@ async def favorite(request: web.Request) -> web.Response:
 
 
 async def set_avatar(request: web.Request) -> web.Response:
-    """POST /api/app/me/avatar {photo: data:...} — новое фото профиля (квадрат 512 px), {photo: ""} — убрать."""
+    """POST /api/app/me/avatar {photo: data:..., crop?: {x, y, w, h} в долях} — новое фото профиля (квадрат 512 px
+    по выбранной рамке), {photo: ""} — убрать."""
     from utils.market import _read_json, prepare_avatar
     data = await _read_json(request)
     async with get_session() as session:
@@ -233,7 +275,8 @@ async def set_avatar(request: web.Request) -> web.Response:
             return _err(request, "Войдите заново.", 401)
         raw = str(data.get("photo") or "")
         if raw:
-            jpeg = prepare_avatar(raw)
+            crop = data.get("crop")
+            jpeg = prepare_avatar(raw, crop=crop if isinstance(crop, dict) else None)
             if not jpeg:
                 return _err(request, "Не получилось прочитать фото. Попробуйте другое.")
             u.avatar, u.avatar_v = jpeg, (u.avatar_v or 0) + 1
@@ -245,6 +288,9 @@ async def set_avatar(request: web.Request) -> web.Response:
 
 def install_routes(app: web.Application) -> None:
     app.router.add_post("/api/app/me/avatar", set_avatar)
+    app.router.add_get("/api/app/auth/methods", auth_methods)
+    app.router.add_post("/api/app/auth/start", auth_start)
+    app.router.add_post("/api/app/auth/check", auth_check)
     app.router.add_post("/api/app/auth/email", auth_email)
     app.router.add_post("/api/app/auth/verify", auth_verify)
     app.router.add_post("/api/app/auth/tg", auth_tg_start)

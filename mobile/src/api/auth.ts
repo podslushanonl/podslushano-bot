@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { api, ApiError, setToken, setUnauthorizedHandler, tokenStore } from './client';
 import { queryClient } from './query';
 
-export type User = { id: number; name: string; city: string; country: string; email: string; telegram: boolean; bio: string; avatar: string };
+export type User = { id: number; name: string; city: string; country: string; email: string; phone: string; telegram: boolean; bio: string; avatar: string };
 export type Favorite = { kind: string; key: string; title: string };
 type State = { ready: boolean; user: User | null; favorites: Favorite[] };
 
@@ -43,8 +43,16 @@ async function signedIn(d: { token: string; user: User }) {
   queryClient.invalidateQueries();
 }
 
-export const requestCode = (email: string) => api('/api/app/auth/email', { email });
-export const verifyCode = async (email: string, code: string) => signedIn(await api('/api/app/auth/verify', { email, code }));
+/** Куда слать код: номер (cc — код страны из флага) или почта. */
+export type LoginTarget = { phone: string; cc: string } | { email: string };
+export type CodeSent = { kind: 'phone' | 'email'; to: string; ttl: number };
+
+/** Какими способами сейчас можно войти (вход по номеру включается на сервере). */
+export const authMethods = () => api<{ phone: boolean; email: boolean; telegram: boolean }>('/api/app/auth/methods');
+export const requestCode = (t: LoginTarget) => api<CodeSent>('/api/app/auth/start', t);
+/** to — номер или почта из ответа requestCode (уже приведённые сервером к одному виду). */
+export const verifyCode = async (sent: CodeSent, code: string) =>
+  signedIn(await api('/api/app/auth/check', { [sent.kind]: sent.to, code }));
 export const startTelegram = () => api<{ nonce: string; url: string }>('/api/app/auth/tg', {});
 /** true — вход подтверждён в боте, false — ещё ждём. */
 export async function pollTelegram(nonce: string) {
@@ -59,9 +67,9 @@ export async function saveProfile(p: { name?: string; city?: string; country?: s
   set({ user: d.user, favorites: d.favorites });
 }
 
-/** Новое фото профиля (data:…) или '' — убрать. */
-export async function saveAvatar(photo: string) {
-  const d = await api<{ user: User }>('/api/app/me/avatar', { photo });
+/** Новое фото профиля (data:…) или '' — убрать. crop — рамка, выбранная человеком (доли картинки). */
+export async function saveAvatar(photo: string, crop?: { x: number; y: number; w: number; h: number }) {
+  const d = await api<{ user: User }>('/api/app/me/avatar', crop ? { photo, crop } : { photo });
   set({ user: d.user });
   queryClient.invalidateQueries({ queryKey: ['me', 'user', d.user.id] });
 }

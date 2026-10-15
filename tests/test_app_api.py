@@ -1,4 +1,4 @@
-"""Аккаунты приложения: вход по коду из письма, через Telegram, профиль и избранное."""
+"""Аккаунты приложения: вход по коду в SMS или письме, через Telegram, профиль и избранное."""
 import re
 import tempfile
 import unittest
@@ -10,7 +10,7 @@ from aiohttp.test_utils import TestClient, TestServer
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from database.models import Base
-from utils import app_api, newsletter
+from utils import app_api, newsletter, phone, sms
 
 
 class AppApiTests(unittest.IsolatedAsyncioTestCase):
@@ -98,6 +98,73 @@ class AppApiTests(unittest.IsolatedAsyncioTestCase):
         await self.client.post("/api/app/favorites", json={"key": "sorokin", "on": False}, headers=h)
         me = await (await self.client.get("/api/app/me", headers=h)).json()
         self.assertEqual(me["favorites"], [])
+
+    async def test_phone_login(self):
+        sent = {}
+
+        async def fake_send(to, code, ttl):
+            sent[to] = code
+            return True
+
+        # Без канала доставки вход по номеру выключен
+        with patch.dict("os.environ", {"TWILIO_ACCOUNT_SID": "", "TWILIO_AUTH_TOKEN": "", "TWILIO_FROM": "", "OTP_DEBUG": ""}):
+            self.assertFalse((await (await self.client.get("/api/app/auth/methods")).json())["phone"])
+            r = await self.client.post("/api/app/auth/start", json={"phone": "612345678", "cc": "31"})
+            self.assertEqual(r.status, 503)
+        with patch.dict("os.environ", {"OTP_DEBUG": "1"}), patch.object(sms, "send_code", fake_send):
+            self.assertTrue((await (await self.client.get("/api/app/auth/methods")).json())["phone"])
+            bad = await self.client.post("/api/app/auth/start", json={"phone": "201234567", "cc": "31"})   # стационарный
+            self.assertEqual(bad.status, 400)
+            d = await (await self.client.post("/api/app/auth/start", json={"phone": "06 12 34 56 78", "cc": "31"})).json()
+            self.assertEqual((d["kind"], d["to"]), ("phone", "+31612345678"))
+            wrong = await self.client.post("/api/app/auth/check", json={"phone": "+31612345678", "code": "1"})
+            self.assertEqual(wrong.status, 400)
+            ok = await (await self.client.post("/api/app/auth/check", json={"phone": "+31612345678",
+                                                                            "code": sent["+31612345678"]})).json()
+            self.assertEqual(ok["user"]["phone"], "+31612345678")
+            # Тот же номер в другом виде — тот же аккаунт
+            await self.client.post("/api/app/auth/start", json={"phone": "0031 6 1234 5678"})
+            again = await (await self.client.post("/api/app/auth/check", json={"phone": "612345678", "cc": "31",
+                                                                               "code": sent["+31612345678"]})).json()
+            self.assertEqual(again["user"]["id"], ok["user"]["id"])
+        # Новый адрес работает и для почты
+        await self.client.post("/api/app/auth/start", json={"email": "Vera@Example.com"})
+        code = re.search(r"\d{6}", self.mail.await_args.args[1]).group(0)
+        mail = await (await self.client.post("/api/app/auth/check", json={"email": "vera@example.com", "code": code})).json()
+        self.assertEqual(mail["user"]["email"], "vera@example.com")
+        self.assertNotEqual(mail["user"]["id"], ok["user"]["id"])
+
+    async def test_sms_via_twilio(self):
+        got = []
+
+        async def messages(request):
+            got.append((request.headers.get("Authorization", ""), dict(await request.post())))
+            return web.json_response({"sid": "SM1"}, status=201)
+
+        app = web.Application()
+        app.router.add_post("/Accounts/{sid}/Messages.json", messages)
+        srv = TestClient(TestServer(app))
+        await srv.start_server()
+        env = {"TWILIO_ACCOUNT_SID": "AC1", "TWILIO_AUTH_TOKEN": "secret", "TWILIO_FROM": "podslushano", "OTP_DEBUG": ""}
+        try:
+            with patch.dict("os.environ", env), patch.object(sms, "API", str(srv.make_url("/")) + "Accounts/{sid}/Messages.json"):
+                self.assertTrue(sms.available())
+                self.assertTrue(await sms.send_code("+31612345678", "123456", 15))
+        finally:
+            await srv.close()
+        auth, form = got[0]
+        self.assertTrue(auth.startswith("Basic "))
+        self.assertEqual((form["To"], form["From"]), ("+31612345678", "podslushano"))
+        self.assertIn("123456", form["Body"])
+
+    def test_phone_normalize(self):
+        n = phone.normalize
+        self.assertEqual(n("06-12345678", "31"), "+31612345678")
+        self.assertEqual(n("+49 151 23456789"), "+4915123456789")
+        self.assertEqual(n("0470 12 34 56", "32"), "+32470123456")
+        for bad in [("030 1234567", "49"), ("612345678", "1"), ("61234567", "31"), ("+7 912 345 67 89", ""), ("", "31"),
+                    ("+380 67 123 45 67", "")]:
+            self.assertIsNone(n(*bad), bad)
 
 
 if __name__ == "__main__":

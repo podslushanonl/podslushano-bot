@@ -8,3 +8,5 @@ export * from './Sheet';
 export * from './Surface';
 export * from './Tap';
 export * from './Text';
+export * from './Flag';
+export * from './PhotoViewer';
