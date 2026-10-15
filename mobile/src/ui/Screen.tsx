@@ -68,7 +68,8 @@ export function LargeTitle({ title, sub, right, above }: { title: string; sub?: 
 
 /** Корневой экран вкладки: крупный заголовок, стеклянная панель при прокрутке, «потянуть, чтобы обновить».
  *  collapsing — панель уезжает, когда листаете вниз, и возвращается при движении вверх (как в Threads);
- *  pinned/pinAt — полоса (например, вкладки ленты), которая прилипает к верху, когда её место в списке ушло под панель. */
+ *  pinned/pinAt — полоса (например, вкладки ленты), которая прилипает к верху, когда её место в списке ушло под панель;
+ *  pinAt — где эта полоса лежит в прокручиваемом содержимом (y от начала списка). */
 export function TabScreen({ title, sub, right, above, children, refreshing, onRefresh, contentStyle, collapsing, pinned, pinAt }: {
   title: string; sub?: string; right?: ReactNode; above?: ReactNode; children: ReactNode;
   refreshing?: boolean; onRefresh?: () => void; contentStyle?: StyleProp<ViewStyle>;
@@ -81,6 +82,7 @@ export function TabScreen({ title, sub, right, above, children, refreshing, onRe
   const last = useRef(0);
   const hiddenNow = useRef(false);
   const [pinnedOn, setPinnedOn] = useState(false);
+  const pinnedRef = useRef(false);
   const scroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     onScroll(e);
     const top = e.nativeEvent.contentOffset.y;
@@ -92,8 +94,12 @@ export function TabScreen({ title, sub, right, above, children, refreshing, onRe
       if (hide !== hiddenNow.current) { hiddenNow.current = hide; hidden.set(withTiming(hide ? 1 : 0, { duration: 220 })); }
     }
     if (pinned && pinAt !== undefined) {
-      const on = top >= pinAt;
-      if (on !== pinnedOn) setPinnedOn(on);
+      // Прилипаем, когда полоса в списке доходит до низа панели (с учётом того, спрятана ли панель).
+      // Отлипаем только ниже — когда оригинал точно виден под раскрытой панелью: смена направления
+      // во время анимации панели не прячет вкладки ни на мгновение.
+      const unpinAt = pinAt - insets.top - BAR_H;
+      const on = pinnedRef.current ? top >= unpinAt : top >= pinAt - insets.top - (hiddenNow.current ? 0 : BAR_H);
+      if (on !== pinnedRef.current) { pinnedRef.current = on; setPinnedOn(on); }
     }
   };
   const pinStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -BAR_H * hidden.value }] }));
