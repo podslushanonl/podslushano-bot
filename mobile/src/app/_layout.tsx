@@ -12,6 +12,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { bootAuth, useAuth } from '@/api/auth';
 import { useRealtime } from '@/api/dm';
 import { persister, queryClient } from '@/api/query';
+import { SwipeBack, WEB } from '@/features/nav/SwipeBack';
 import { palette, ThemeRoot } from '@/theme';
 import { ToastHost } from '@/ui';
 
@@ -49,14 +50,28 @@ export default function RootLayout() {
               <ToastHost>
                 <StatusBar style="auto" />
                 <Realtime />
-                <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: p.bg } }}>
-                  <Stack.Screen name="(tabs)" />
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    // iOS: свайп от левого края назад — на всей ширине экрана, со стандартным сдвигом справа
+                    gestureEnabled: true, fullScreenGestureEnabled: true, animation: 'default',
+                    // В браузере предыдущий экран остаётся под текущим — свайп назад его открывает (см. SwipeBack)
+                    ...(WEB ? { presentation: 'containedTransparentModal' as const, contentStyle: { backgroundColor: 'transparent' } }
+                      : { contentStyle: { backgroundColor: p.bg } }),
+                  }}
+                  screenLayout={({ children, navigation, options, route }) => (WEB ? (
+                    <SwipeBack bg={p.bg} onBack={() => navigation.goBack()}
+                      enabled={route.name !== '(tabs)' && navigation.canGoBack() && (!options.presentation || options.presentation === 'containedTransparentModal')}>
+                      {children}
+                    </SwipeBack>
+                  ) : children)}>
+                  <Stack.Screen name="(tabs)" options={WEB ? { presentation: 'card' } : undefined} />
                   <Stack.Screen name="login" options={{ presentation: 'modal' }} />
                   <Stack.Screen name="rules" options={{ presentation: 'modal' }} />
                   <Stack.Screen name="new-post" options={{ presentation: 'modal' }} />
                   <Stack.Screen name="stories/[uid]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
                   <Stack.Screen name="story-new" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
-                  <Stack.Screen name="clips/[uid]" options={{ animation: 'fade' }} />
+                  <Stack.Screen name="clips/[uid]" />
                   <Stack.Screen name="market/new" options={{ presentation: 'modal' }} />
                 </Stack>
               </ToastHost>

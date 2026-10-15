@@ -29,7 +29,7 @@ function Tool({ icon, label, onPress, active }: { icon: IconName; label: string;
 
 function VideoPreview({ uri }: { uri: string }) {
   const player = useVideoPlayer(uri, (p) => { p.loop = true; p.play(); });
-  return <VideoView player={player} contentFit="cover" nativeControls={false} playsInline style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />;
+  return <VideoView player={player} contentFit="cover" nativeControls={false} playsInline style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />;
 }
 
 /** Создание истории как в Instagram: выбор фото/видео во весь экран или пост-наклейка на градиенте,

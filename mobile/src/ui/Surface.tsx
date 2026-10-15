@@ -65,6 +65,20 @@ export function BrandAvatar({ size = 44 }: { size?: number }) {
   );
 }
 
+/** Кто показан: id, имя, аватар и @username (как приходят с сервера у автора, собеседника, продавца). */
+export type Who = { id: number; name: string; avatar?: string; username?: string; verified?: boolean };
+
+/** Подпись человека в ленте, комментариях и чатах — @username; имя — только заголовок в профиле. */
+export const handle = (u?: Pick<Who, 'name' | 'username'> | null) => (u?.username ? `@${u.username}` : u?.name || 'Участник');
+
+/** Аккаунт сообщества (podslushano…, с галочкой) — всегда с официальной аватаркой бренда. */
+export const isOfficial = (u?: Pick<Who, 'username' | 'verified'> | null) => !!u?.verified && !!u.username?.startsWith('podslushano');
+
+/** Аватар человека: у аккаунта сообщества — логотип podslushano.nl, у остальных — фото или заглушка. */
+export function UserAvatar({ u, size = 44 }: { u: Who; size?: number }) {
+  return isOfficial(u) ? <BrandAvatar size={size} /> : <Avatar name={u.name} id={u.id} uri={u.avatar} size={size} />;
+}
+
 export function Badge({ n }: { n: number }) {
   const { c } = useTheme();
   if (!n) return null;

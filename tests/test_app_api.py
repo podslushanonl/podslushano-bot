@@ -99,6 +99,32 @@ class AppApiTests(unittest.IsolatedAsyncioTestCase):
         me = await (await self.client.get("/api/app/me", headers=h)).json()
         self.assertEqual(me["favorites"], [])
 
+    async def test_usernames(self):
+        from database import usernames
+        self.assertEqual(usernames.base_for("Алексей Жуков", None, 1), "aleksej_zhukov")
+        self.assertEqual(usernames.base_for("", "Anna.B@x.nl", 5), "anna_b")
+        self.assertEqual(usernames.base_for("", "", 9), "user9")
+        self.assertEqual(usernames.pick("anna", {"anna"}, 12), "anna_12")
+        self.assertIsNotNone(usernames.check("podslushano"))
+        self.assertIsNone(usernames.check("podslushano.nl", verified=True))
+        self.assertIsNotNone(usernames.check("a..b"))
+        self.assertIsNotNone(usernames.check("_ab"))
+
+        async def login(email):
+            r = await self.client.post("/api/app/auth/verify", json={"email": email, "code": await self._code(email)})
+            d = await r.json()
+            return d["user"], {"Authorization": "Bearer " + d["token"]}
+        u1, h1 = await login("maria@example.com")
+        self.assertEqual(u1["username"], "maria")
+        u2, h2 = await login("maria@example.org")
+        self.assertEqual(u2["username"], f"maria_{u2['id']}")
+        # Своё имя: регистр приводится к нижнему, «@» отбрасывается; занятое и неверное — отказ
+        r = await self.client.post("/api/app/me", json={"username": "@Maria.NL"}, headers=h2)
+        self.assertEqual((await r.json())["user"]["username"], "maria.nl")
+        self.assertEqual((await self.client.post("/api/app/me", json={"username": "maria.nl"}, headers=h1)).status, 409)
+        self.assertEqual((await self.client.post("/api/app/me", json={"username": "мария"}, headers=h1)).status, 400)
+        self.assertEqual((await self.client.post("/api/app/me", json={"username": "podslushano_x"}, headers=h1)).status, 400)
+
     async def test_phone_login(self):
         sent = {}
 

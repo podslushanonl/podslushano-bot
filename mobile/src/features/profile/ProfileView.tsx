@@ -1,28 +1,31 @@
+import { FlashList, FlashListRef } from '@shopify/flash-list';
 import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { createElement, ReactNode, useRef, useState } from 'react';
-import { Platform, ScrollView, Share, useWindowDimensions, View } from 'react-native';
+import { Platform, Share, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { saveCover, useAuth } from '@/api/auth';
 import { BOT, mediaUrl } from '@/api/client';
 import { routeForError } from '@/api/community';
-import { feedPosts, useWall } from '@/api/feed';
-import { shrinkForWeb, useUserListings } from '@/api/market';
+import { feedPosts, Post, useWall } from '@/api/feed';
+import { Listing, shrinkForWeb, useUserListings } from '@/api/market';
 import { Clip, useUserClips } from '@/api/pulse';
 import { acceptFriend, addFriend, blockPerson, removeFriend, startChat, unblockPerson, useProfile } from '@/api/social';
-import { FeedList, FeedPost } from '@/features/feed/FeedItems';
+import { FeedPost } from '@/features/feed/FeedItems';
 import { usePostMenu } from '@/features/feed/usePostMenu';
 import { Tile } from '@/features/market/Tile';
+import { plural } from '@/lib/format';
 import { presenceLabel } from '@/lib/presence';
 import { HAIRLINE, useTheme } from '@/theme';
-import { ActionSheet, Avatar, BackButton, Button, Empty, Icon, IconButton, IconName, Img, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useRefresh,
-  useScrollY, useToast, VerifiedBadge } from '@/ui';
+import { ActionSheet, BackButton, Button, Empty, handle, Icon, IconButton, IconName, Img, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useRefresh,
+  useScrollY, useToast, UserAvatar, VerifiedBadge } from '@/ui';
 
 const MONTHS = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 const since = (d: string) => { const [y, m] = (d || '').split('-').map(Number); return y && m ? `с ${MONTHS[m - 1]} ${y}` : ''; };
-const plural = (n: number, [one, few, many]: [string, string, string]) =>
-  n % 10 === 1 && n % 100 !== 11 ? one : [2, 3, 4].includes(n % 10) && ![12, 13, 14].includes(n % 100) ? few : many;
 type Tab = 'posts' | 'pulse' | 'market';
+// Строки списка: пост целиком, ряд из трёх видео или ряд из двух объявлений — всё в одном FlashList
+type Row = { k: 'post'; id: string; p: Post } | { k: 'clips'; id: string; items: Clip[] } | { k: 'items'; id: string; items: Listing[] };
+const rows = <T,>(list: T[], n: number) => Array.from({ length: Math.ceil(list.length / n) }, (_, i) => list.slice(i * n, i * n + n));
 const AVATAR = 104;
 
 function Stat({ n, label, onPress }: { n: number; label: string; onPress?: () => void }) {
@@ -42,7 +45,7 @@ function Tabs({ value, onChange }: { value: Tab; onChange: (v: Tab) => void }) {
   const { c } = useTheme();
   const items: [Tab, IconName, string][] = [['posts', 'grid', 'Публикации'], ['pulse', 'pulse', 'Pulse'], ['market', 'market', 'Барахолка']];
   return (
-    <View accessibilityRole="tablist" style={{ flexDirection: 'row', borderBottomWidth: HAIRLINE, borderBottomColor: c.line, marginHorizontal: -16 }}>
+    <View accessibilityRole="tablist" style={{ flexDirection: 'row', borderBottomWidth: HAIRLINE, borderBottomColor: c.line, backgroundColor: c.bg }}>
       {items.map(([k, icon, title]) => {
         const on = value === k;
         return (
@@ -59,7 +62,6 @@ function Tabs({ value, onChange }: { value: Tab; onChange: (v: Tab) => void }) {
   );
 }
 
-/** Плитка видео в сетке профиля 9:16: первый кадр, значок и число лайков. */
 /** Плитка видео без плеера: в браузере — первый кадр (грузятся только метаданные, по мере прокрутки),
  *  в приложении — тёмная карточка с подписью. Плеер создаётся лишь когда видео открыли. */
 function ClipTile({ clip, onPress, width }: { clip: Clip; onPress: () => void; width: number }) {
@@ -103,7 +105,7 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const { y, onScroll } = useScrollY();
-  const list = useRef<ScrollView>(null);
+  const list = useRef<FlashListRef<Row>>(null);
   const toast = useToast();
   const { user: me } = useAuth();
   const q = useProfile(userId, !!me);
@@ -171,7 +173,7 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
   const header = u ? (
     <View>
       {/* Обложка во всю ширину; без своей — фирменный градиент */}
-      <View style={{ height: coverH, marginHorizontal: -16, backgroundColor: c.bgSunken, overflow: 'hidden' }}>
+      <View style={{ height: coverH, backgroundColor: c.bgSunken, overflow: 'hidden' }}>
         {u.cover ? <Img source={mediaUrl(u.cover)} contentFit="cover" style={{ width: '100%', height: '100%' }} />
           : <View style={{ flex: 1, [Platform.OS === 'web' ? 'backgroundImage' : 'experimental_backgroundImage']:
               dark ? 'linear-gradient(135deg, #2A1408 0%, #6B2A0B 55%, #FF6A1A 100%)' : 'linear-gradient(135deg, #FFE1CC 0%, #FFB27A 50%, #FF6A1A 100%)' } as any} />}
@@ -186,19 +188,22 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
       </View>
 
       {/* Карточка поверх обложки с аватаром по центру */}
-      <View style={{ marginTop: -20, marginHorizontal: -16, paddingHorizontal: 16, paddingBottom: 4, backgroundColor: c.bg,
+      <View style={{ marginTop: -20, paddingHorizontal: 16, paddingBottom: 16, backgroundColor: c.bg,
         borderTopLeftRadius: 24, borderTopRightRadius: 24, alignItems: 'center', gap: 4 }}>
-        <View style={{ marginTop: -AVATAR / 2 - 4, padding: 4, borderRadius: AVATAR, backgroundColor: c.bg }}>
-          <Avatar name={u.name || '·'} id={userId} uri={u.avatar} size={AVATAR} />
+        {/* Тонкая рамка цвета фона отделяет аватар от обложки (в тёмной теме — тёмная, в светлой — белая) */}
+        <View style={{ marginTop: -AVATAR / 2 - 3, borderWidth: 3, borderColor: c.bg, borderRadius: AVATAR, backgroundColor: c.bg }}>
+          <UserAvatar u={{ ...u, id: userId, name: u.name || '·' }} size={AVATAR} />
           {!own && p?.presence?.online ? (
-            <View style={{ position: 'absolute', right: 10, bottom: 10, width: 18, height: 18, borderRadius: 9, backgroundColor: '#34C759', borderWidth: 3, borderColor: c.bg }} />
+            <View style={{ position: 'absolute', right: 6, bottom: 6, width: 18, height: 18, borderRadius: 9, backgroundColor: '#34C759', borderWidth: 3, borderColor: c.bg }} />
           ) : null}
         </View>
+        {/* Настоящее имя — заголовок только здесь, в профиле; везде остальное — @username */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6, maxWidth: '92%' }}>
-          <Txt v="title2" numberOfLines={1} style={{ flexShrink: 1 }}>{u.name || (own ? 'Без имени' : '')}</Txt>
+          <Txt v="title2" numberOfLines={1} style={{ flexShrink: 1, fontFamily: 'Onest_700Bold' }}>{u.name || (own ? 'Без имени' : '')}</Txt>
           {u.verified ? <VerifiedBadge size={21} /> : null}
           {(own ? me?.is_private : p?.private) ? <Icon name="lock" size={16} color={c.muted} /> : null}
         </View>
+        {u.username ? <Txt v="subhead" tone="muted" selectable>@{u.username}</Txt> : null}
         {u.bio ? <Txt v="callout" tone="ink" center style={{ paddingHorizontal: 12 }}>{u.bio}</Txt>
           : own ? <Tap onPress={() => router.push('/profile-edit')}><Txt v="callout" tone="accent">Добавить статус</Txt></Tap> : null}
         <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center', gap: 10, marginTop: 2 }}>
@@ -223,69 +228,94 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
   ) : null;
 
   const tileW = Math.floor((Math.min(width, 640) - 4) / 3);
-  let body: ReactNode = null;
-  if (locked) body = <Locked />;
-  else if (tab === 'posts') {
-    body = wall.isLoading ? (
-      <View style={{ gap: 18, paddingTop: 16 }}>{[0, 1].map((i) => <View key={i} style={{ gap: 10 }}><Skeleton w="60%" /><Skeleton h={160} r={16} /></View>)}</View>
-    ) : posts.length ? (
-      <View style={{ paddingTop: 12 }}>
-        <FeedList>
-          {posts.map((x) => <FeedPost key={x.id} p={x} onMenu={() => openMenu(x)} />)}
-          {wall.hasNextPage ? <Button title="Показать ещё" kind="secondary" size="s" loading={wall.isFetchingNextPage} onPress={() => wall.fetchNextPage()} /> : null}
-        </FeedList>
+  const clipList = clips.data || [];
+  const itemList = items.data || [];
+  const data: Row[] = !u || locked ? []
+    : tab === 'posts' ? posts.map((x) => ({ k: 'post' as const, id: `p${x.id}`, p: x }))
+    : tab === 'pulse' ? rows(clipList, 3).map((r) => ({ k: 'clips' as const, id: `c${r[0].id}`, items: r }))
+    : rows(itemList, 2).map((r) => ({ k: 'items' as const, id: `i${r[0].id}`, items: r }));
+  const loading = tab === 'posts' ? wall.isLoading : tab === 'pulse' ? clips.isLoading : items.isLoading;
+  let empty: ReactNode = null;
+  if (!me) {
+    empty = (
+      <View style={{ paddingTop: insets.top + 64, paddingHorizontal: 16 }}>
+        <Empty icon="person" title="Профили видны участникам" text="Войдите, чтобы смотреть профили, добавлять в друзья и писать."
+          action={<Button title="Войти" kind="primary" onPress={() => router.push('/login')} />} />
       </View>
-    ) : (
+    );
+  } else if (!u) {
+    empty = q.isLoading ? (
+      <View style={{ gap: 14 }}><Skeleton h={coverH} r={0} /><View style={{ alignItems: 'center', gap: 12 }}><Skeleton w={104} h={104} r={52} /><Skeleton w="50%" h={24} /></View></View>
+    ) : <View style={{ paddingTop: insets.top + 64, paddingHorizontal: 16 }}><Empty icon="person" title="Профиль не найден" text={(q.error as any)?.message} /></View>;
+  } else if (locked) empty = <Locked />;
+  else if (loading) {
+    empty = tab === 'posts'
+      ? <View style={{ gap: 18, padding: 16 }}>{[0, 1].map((i) => <View key={i} style={{ gap: 10 }}><Skeleton w="60%" /><Skeleton h={300} r={0} /></View>)}</View>
+      : <View style={{ padding: tab === 'pulse' ? 0 : 16 }}><Skeleton h={220} r={tab === 'pulse' ? 0 : 16} /></View>;
+  } else if (tab === 'posts') {
+    empty = (
       <Empty icon="text" title={own ? 'Здесь будут ваши публикации' : 'Пока нет публикаций'}
         text={own ? 'Расскажите, что нового, поделитесь фото или сделайте репост интересного из ленты.' : undefined}
         action={own ? <Button title="Написать первый пост" kind="primary" onPress={() => router.push('/new-post')} /> : undefined} />
     );
   } else if (tab === 'pulse') {
-    const list_ = clips.data || [];
-    body = clips.isLoading ? <Skeleton h={220} r={0} /> : list_.length ? (
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 2, marginHorizontal: -16, paddingTop: 2 }}>
-        {list_.map((cl) => <ClipTile key={cl.id} clip={cl} width={tileW}
-          onPress={() => router.push({ pathname: '/clips/[uid]', params: { uid: String(userId), start: String(cl.id) } })} />)}
-      </View>
-    ) : (
+    empty = (
       <Empty icon="pulse" title={own ? 'Ваши видео появятся здесь' : 'Пока нет видео'}
         action={own ? <Button title="Загрузить в Pulse" kind="secondary" icon="plus" onPress={() => router.push('/pulse')} /> : undefined} />
     );
   } else {
-    const list_ = items.data || [];
-    body = items.isLoading ? <Skeleton h={200} r={16} /> : list_.length ? (
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, paddingTop: 12 }}>
-        {list_.map((l) => <View key={l.id} style={{ width: '48.4%' }}><Tile l={l} /></View>)}
-      </View>
-    ) : (
+    empty = (
       <Empty icon="market" title={own ? 'У вас нет объявлений' : 'Нет объявлений'}
         action={own ? <Button title="Подать объявление" kind="secondary" icon="plus" onPress={() => router.push('/market/new')} /> : undefined} />
     );
   }
+  const renderRow = ({ item }: { item: Row }) => {
+    if (item.k === 'post') return <FeedPost p={item.p} onMenu={() => openMenu(item.p)} />;
+    if (item.k === 'clips') {
+      return (
+        <View style={{ flexDirection: 'row', gap: 2, paddingBottom: 2 }}>
+          {item.items.map((cl) => <ClipTile key={cl.id} clip={cl} width={tileW}
+            onPress={() => router.push({ pathname: '/clips/[uid]', params: { uid: String(userId), start: String(cl.id) } })} />)}
+        </View>
+      );
+    }
+    return (
+      <View style={{ flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingBottom: 14 }}>
+        {item.items.map((l) => <View key={l.id} style={{ flex: 1 }}><Tile l={l} /></View>)}
+        {item.items.length === 1 ? <View style={{ flex: 1 }} /> : null}
+      </View>
+    );
+  };
+  const more = () => {
+    if (tab === 'posts' && wall.hasNextPage && !wall.isFetchingNextPage) wall.fetchNextPage();
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <ScrollView ref={list} onScroll={onScroll} scrollEventThrottle={16} contentInsetAdjustmentBehavior="never"
+      <FlashList
+        ref={list}
+        data={data}
+        extraData={tab}
+        keyExtractor={(r) => r.id}
+        getItemType={(r) => r.k}
+        renderItem={renderRow}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        contentInsetAdjustmentBehavior="never"
         refreshControl={refresh.control}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: (own ? TAB_SPACE : 40) + insets.bottom, gap: 14 }}>
-        {!me ? (
-          <View style={{ paddingTop: insets.top + 64 }}>
-            <Empty icon="person" title="Профили видны участникам" text="Войдите, чтобы смотреть профили, добавлять в друзья и писать."
-              action={<Button title="Войти" kind="primary" onPress={() => router.push('/login')} />} />
-          </View>
-        ) : q.isLoading && !u ? (
-          <View style={{ gap: 14, marginHorizontal: -16 }}><Skeleton h={coverH} r={0} /><View style={{ alignItems: 'center', gap: 12 }}><Skeleton w={104} h={104} r={52} /><Skeleton w="50%" h={24} /></View></View>
-        ) : !u ? (
-          <View style={{ paddingTop: insets.top + 64 }}><Empty icon="person" title="Профиль не найден" text={(q.error as any)?.message} /></View>
-        ) : (
-          <>
+        contentContainerStyle={{ paddingBottom: (own ? TAB_SPACE : 40) + insets.bottom }}
+        ListHeaderComponent={u && me ? (
+          <View>
             {header}
             {!locked ? <Tabs value={tab} onChange={setTab} /> : null}
-            {body}
-          </>
-        )}
-      </ScrollView>
-      <TopBar y={y} title={u?.name} left={own ? undefined : <BackButton />}
+            {tab === 'pulse' && !locked ? <View style={{ height: 2 }} /> : <View style={{ height: tab === 'market' ? 14 : 4 }} />}
+          </View>
+        ) : null}
+        ListEmptyComponent={empty}
+        onEndReachedThreshold={0.6}
+        onEndReached={more}
+      />
+      <TopBar y={y} title={u?.username ? `@${u.username}` : u?.name} left={own ? undefined : <BackButton />}
         right={own ? <IconButton icon="settings" label="Настройки" onPress={() => router.push('/settings')} />
           : p && p.relation !== 'blocked' ? <IconButton icon="more" label="Действия" onPress={() => setMenu(true)} /> : null} />
       {refresh.indicator}
@@ -299,7 +329,7 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
             else if (nav?.clipboard) nav.clipboard.writeText(url).then(() => toast('Ссылка скопирована')).catch(() => {});
           } },
           ...(p.relation === 'friends' ? [{ title: 'Удалить из друзей', icon: 'people' as const, onPress: () => run(() => removeFriend(userId), 'Удалён из друзей') }] : []),
-          { title: `Заблокировать: ${p.user.name}`, icon: 'block' as const, danger: true, onPress: () => run(() => blockPerson(userId), 'Пользователь заблокирован') },
+          { title: `Заблокировать: ${handle(p.user)}`, icon: 'block' as const, danger: true, onPress: () => run(() => blockPerson(userId), 'Пользователь заблокирован') },
         ]} />
       ) : null}
     </View>

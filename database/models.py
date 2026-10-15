@@ -894,6 +894,8 @@ class AppUser(Base):
     # Обложка профиля (широкий баннер над аватаром): JPEG до 1500 px, версия — для кэша картинки
     cover: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True, deferred=True)
     cover_v: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    # @username: строго lowercase, уникальный; выдаётся автоматически, человек может сменить в профиле
+    username: Mapped[str | None] = mapped_column(String(30), unique=True, nullable=True, index=True)
 
     @validates("country")
     def _check_country(self, _key, value):

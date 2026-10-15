@@ -28,6 +28,7 @@ from datetime import datetime, timedelta, timezone
 from aiohttp import web
 from sqlalchemy import delete, select, update
 
+from database import usernames
 from database.db import get_session
 from database.models import AppFavorite, AppLogin, AppSession, AppUser, Country
 from utils.email_templates import app_login_code
@@ -61,7 +62,7 @@ def user_json(u: AppUser) -> dict:
     avatar = f"/api/app/user/{u.id}/avatar?v={u.avatar_v}" if u.avatar_v else ""
     return {"id": u.id, "name": u.name, "city": u.city, "country": u.country.value, "email": u.email or "",
             "phone": u.phone or "", "telegram": bool(u.tg_id), "bio": u.bio or "", "avatar": avatar,
-            "is_private": bool(u.is_private), "verified": bool(u.is_verified),
+            "is_private": bool(u.is_private), "verified": bool(u.is_verified), "username": u.username or "",
             "cover": f"/api/app/user/{u.id}/cover?v={u.cover_v}" if u.cover_v else ""}
 
 
@@ -218,6 +219,7 @@ async def _check(request: web.Request, kind: str, key: str, raw_code) -> web.Res
             session.add(u)
         u.last_seen = _now()
         await session.flush()
+        await usernames.assign(session, u)
         out = await _start_session(session, request, u)
         await session.commit()
         return _json(request, out)
@@ -343,6 +345,7 @@ async def auth_tg_poll(request: web.Request) -> web.Response:
             session.add(u)
         u.last_seen = _now()
         await session.flush()
+        await usernames.assign(session, u)
         out = await _start_session(session, request, u)
         await session.commit()
         return _json(request, out)
@@ -372,6 +375,17 @@ async def me(request: web.Request) -> web.Response:
                 u.bio = bio
             if "name" in data:
                 u.name = str(data.get("name") or "").strip()[:80]
+                if usernames.is_auto(u.username, u.id):   # юзернейм ещё не выбран — собираем по новому имени
+                    await usernames.assign(session, u, force=True)
+            if "username" in data:
+                un = usernames.normalize(data.get("username"))
+                if un != (u.username or ""):
+                    if (reason := usernames.check(un, bool(u.is_verified))):
+                        return _err(request, reason)
+                    busy = (await session.execute(select(AppUser.id).where(AppUser.username == un, AppUser.id != u.id))).first()
+                    if busy:
+                        return _err(request, "Этот юзернейм уже занят.", 409)
+                    u.username = un
             if "city" in data:
                 u.city = str(data.get("city") or "").strip()[:80]
             if "is_private" in data:

@@ -10,7 +10,7 @@ import { queryClient } from '@/api/query';
 import { Bubble, CHAT_HEADER_SPACE, ChatHeader, ChatShell, Composer } from '@/features/chat/ChatUI';
 import { presenceLabel } from '@/lib/presence';
 import { radius, useTheme } from '@/theme';
-import { ActionSheet, Avatar, Button, Empty, IconButton, Img, Skeleton, Tap, Txt, useToast } from '@/ui';
+import { ActionSheet, Button, Empty, handle, IconButton, Img, Skeleton, Tap, Txt, UserAvatar, useToast } from '@/ui';
 
 export default function Dialog() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -79,7 +79,7 @@ export default function Dialog() {
       header={
         <ChatHeader title={cv?.peer.name || 'Диалог'} verified={cv?.peer.verified} onBack={back}
           sub={typing ? 'печатает…' : presenceLabel(cv?.peer) || (cv?.listing ? 'по объявлению' : undefined)} subAccent={typing || !!cv?.peer.online}
-          left={cv ? <Tap onPress={openPeer} scaleTo={0.92} accessibilityLabel={`Профиль: ${cv.peer.name}`}><Avatar name={cv.peer.name} id={cv.peer.id} uri={cv.peer.avatar} size={40} /></Tap> : null}
+          left={cv ? <Tap onPress={openPeer} scaleTo={0.92} accessibilityLabel={`Профиль: ${handle(cv.peer)}`}><UserAvatar u={cv.peer} size={40} /></Tap> : null}
           right={cv ? <IconButton icon="more" label="Действия" kind="plain" onPress={() => setMenu(true)} /> : null}
           below={cv?.listing ? (
             <Tap onPress={() => { if (cv.listing!.id) router.push({ pathname: '/market/[id]', params: { id: String(cv.listing!.id) } }); }} scaleTo={0.98}
@@ -95,7 +95,7 @@ export default function Dialog() {
       composer={locked ? (
         <View style={{ paddingHorizontal: 14, paddingTop: 10, paddingBottom: Math.max(insets.bottom, 12), gap: 8, alignItems: 'center' }}>
           <Txt v="footnote" center>Писать в личные сообщения можно только друзьям.</Txt>
-          <Button title={`Открыть профиль: ${cv!.peer.name}`} kind="secondary" size="s" full={false} icon="person" onPress={openPeer} />
+          <Button title={`Открыть профиль: ${handle(cv!.peer)}`} kind="secondary" size="s" full={false} icon="person" onPress={openPeer} />
         </View>
       ) : <Composer value={text} onChange={change} onSend={send} busy={busy} />}>
       {q.isLoading ? (
@@ -118,8 +118,8 @@ export default function Dialog() {
       )}
       <ActionSheet visible={menu} onClose={() => setMenu(false)} actions={cv ? [
         { title: 'Пожаловаться', icon: 'flag', danger: true, onPress: () => reportDialog(conv).then(() => toast('Жалоба отправлена модераторам')).catch((e) => toast(e?.message || 'Ошибка', 'error')) },
-        { title: `Профиль: ${cv.peer.name}`, icon: 'person', onPress: openPeer },
-        { title: `Заблокировать: ${cv.peer.name}`, icon: 'block', onPress: () => blockPerson(cv.peer.id).then(() => { toast('Пользователь заблокирован'); back(); }).catch((e) => toast(e?.message || 'Ошибка', 'error')) },
+        { title: `Профиль: ${handle(cv.peer)}`, icon: 'person', onPress: openPeer },
+        { title: `Заблокировать: ${handle(cv.peer)}`, icon: 'block', onPress: () => blockPerson(cv.peer.id).then(() => { toast('Пользователь заблокирован'); back(); }).catch((e) => toast(e?.message || 'Ошибка', 'error')) },
       ] : []} />
     </ChatShell>
   );

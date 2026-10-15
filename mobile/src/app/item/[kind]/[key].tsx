@@ -11,7 +11,7 @@ import { timeLabel } from '@/features/feed/cards';
 import { ActionBar } from '@/features/feed/FeedItems';
 import { openUrl } from '@/lib/open';
 import { radius, useTheme } from '@/theme';
-import { ActionSheet, Avatar, Empty, Img, PageScreen, Skeleton, Tap, Txt, useToast } from '@/ui';
+import { ActionSheet, Empty, handle, Img, PageScreen, Skeleton, Tap, Txt, UserAvatar, useToast } from '@/ui';
 
 /** Обсуждение новости или события из ленты: превью, лайк, «поделиться в профиле», комментарии. */
 export default function ItemScreen() {
@@ -64,9 +64,9 @@ export default function ItemScreen() {
             {q.data.map((cm) => (
               <Tap key={cm.id} onLongPress={() => (user ? setSheet(cm) : undefined)} scaleTo={0.99} style={{ flexDirection: 'row', gap: 12 }}
                 accessibilityHint="Удерживайте для действий">
-                <Avatar name={cm.author.name} id={cm.author.id} uri={cm.author.avatar} size={34} />
+                <UserAvatar u={cm.author} size={34} />
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold' }}>{cm.author.name} <Txt v="caption">{timeLabel(cm.at)}</Txt></Txt>
+                  <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold' }}>{handle(cm.author)} <Txt v="caption">{timeLabel(cm.at)}</Txt></Txt>
                   <Txt v="callout" tone="ink" selectable>{cm.text}</Txt>
                 </View>
               </Tap>

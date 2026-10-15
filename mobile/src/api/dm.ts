@@ -4,7 +4,7 @@ import { api, ApiError, BOT, getToken } from './client';
 import type { Presence } from '@/lib/presence';
 import { queryClient } from './query';
 
-export type Peer = { id: number; name: string; avatar?: string; verified?: boolean } & Presence;
+export type Peer = { id: number; name: string; avatar?: string; verified?: boolean; username?: string } & Presence;
 export type DmListing = { id: number; title: string; price: string; photo: string } | null;
 /** status своих сообщений: sent — на сервере (одна галочка), delivered — дошло (две), read — прочитано (две яркие). */
 export type MsgStatus = 'sent' | 'delivered' | 'read' | '';
@@ -33,7 +33,7 @@ export const reportDialog = (id: number) => api(`/api/app/dm/${id}/report`, {});
 // ---- Реальное время: одно WebSocket-соединение на приложение.
 // Новые сообщения, «печатает…» и «прочитано» приходят сразу, без опроса сервера.
 
-export type RoomMsg = { id: number; text: string; at: string; author: { id: number; name: string; city: string; verified?: boolean }; mine: boolean };
+export type RoomMsg = { id: number; text: string; at: string; author: { id: number; name: string; city: string; verified?: boolean; username?: string }; mine: boolean };
 type Ev = { type: 'dm'; conv: number; message: DmMessage } | { type: 'typing'; conv: number }
   | { type: 'read' | 'delivered'; conv: number; upto: number }
   | { type: 'room'; slug: string; message: RoomMsg }

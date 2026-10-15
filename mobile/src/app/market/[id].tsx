@@ -10,7 +10,7 @@ import { startDialog } from '@/api/dm';
 import { absUrl, CAT_ICON, closeListing, marketChanged, REPORT_REASONS, reportListing, useListing } from '@/api/market';
 import { ago } from '@/lib/format';
 import { radius, useTheme } from '@/theme';
-import { ActionSheet, Avatar, BackButton, Button, Empty, Glass, Icon, IconButton, Skeleton, Tap, Txt, useToast, VerifiedBadge } from '@/ui';
+import { ActionSheet, BackButton, Button, Empty, Glass, handle, Icon, IconButton, Skeleton, Tap, Txt, UserAvatar, useToast, VerifiedBadge } from '@/ui';
 
 /** Фото объявления: листаются пальцем, счётчик на стекле. */
 function Gallery({ urls, cat }: { urls: string[]; cat: string }) {
@@ -120,12 +120,12 @@ export default function ListingScreen() {
 
           {l.seller && !l.mine ? (
             <Tap onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(l.seller!.id) } })} scaleTo={0.98}
-              accessibilityLabel={`Продавец: ${l.seller.name}`}
+              accessibilityLabel={`Продавец: ${handle(l.seller)}`}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: radius.l, backgroundColor: c.bgSunken }}>
-              <Avatar name={l.seller.name} id={l.seller.id} uri={l.seller.avatar} size={46} />
+              <UserAvatar u={l.seller} size={46} />
               <View style={{ flex: 1, gap: 2 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Txt v="bodyStrong" numberOfLines={1} style={{ flexShrink: 1 }}>{l.seller.name}</Txt>
+                  <Txt v="bodyStrong" numberOfLines={1} style={{ flexShrink: 1 }}>{handle(l.seller)}</Txt>
                   {l.seller.verified ? <VerifiedBadge size={15} /> : null}
                 </View>
                 <Txt v="footnote" tone="muted" numberOfLines={1}>

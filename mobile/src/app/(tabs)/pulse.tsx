@@ -33,7 +33,7 @@ function UploadScreen({ file, onClose }: { file: PickedFile; onClose: () => void
     <Modal visible animationType="slide" onRequestClose={busy ? undefined : onClose} statusBarTranslucent>
       <KeyboardAvoidingView style={{ flex: 1, backgroundColor: '#000000' }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={{ flex: 1, marginTop: insets.top + 6, marginHorizontal: 6, borderRadius: radius.xl, overflow: 'hidden', backgroundColor: '#111111' }}>
-          <VideoView player={player} contentFit="cover" nativeControls={false} playsInline style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+          <VideoView player={player} contentFit="cover" nativeControls={false} playsInline style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} />
           <View style={{ position: 'absolute', top: 10, left: 10 }}>
             <IconButton icon="close" label="Отмена" kind="plain" color="#FFFFFF" onPress={onClose} />
           </View>

@@ -9,7 +9,7 @@ import { addClipComment, Clip, refreshClips, useClipComments } from '@/api/pulse
 import { Composer } from '@/features/chat/ChatUI';
 import { timeLabel } from '@/features/feed/cards';
 import { radius, useTheme } from '@/theme';
-import { ActionSheet, Avatar, Skeleton, Txt, useToast, VerifiedBadge } from '@/ui';
+import { ActionSheet, handle, Skeleton, Txt, UserAvatar, useToast, VerifiedBadge } from '@/ui';
 import { ClipView } from './ClipView';
 
 /** Комментарии к видео — лист снизу поверх ленты. */
@@ -40,10 +40,10 @@ function CommentsSheet({ clip, onClose }: { clip: Clip | null; onClose: () => vo
           ListEmptyComponent={q.isLoading ? <Skeleton h={48} /> : <Txt v="callout" tone="muted" center style={{ paddingVertical: 24 }}>Пока тихо. Напишите первым!</Txt>}
           renderItem={({ item: cm }) => (
             <View style={{ flexDirection: 'row', gap: 10 }}>
-              <Avatar name={cm.author.name} id={cm.author.id} uri={cm.author.avatar} size={34} />
+              <UserAvatar u={cm.author} size={34} />
               <View style={{ flex: 1, gap: 2 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                  <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold' }}>{cm.author.name}</Txt>
+                  <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold' }}>{handle(cm.author)}</Txt>
                   {cm.author.verified ? <VerifiedBadge size={13} /> : null}
                   <Txt v="caption">{timeLabel(cm.at)}</Txt>
                 </View>

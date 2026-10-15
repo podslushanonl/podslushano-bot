@@ -18,6 +18,7 @@ export default function ProfileEdit() {
   const { c } = useTheme();
   const [name, setName] = useState(user?.name || '');
   const [bio, setBio] = useState(user?.bio || '');
+  const [username, setUsername] = useState(user?.username || '');
   const [photoBusy, setPhotoBusy] = useState(false);
   const [country, setCountry] = useState<Country>(asCountry(user?.country));
   const [city, setCity] = useState(user?.city || '');
@@ -29,7 +30,7 @@ export default function ProfileEdit() {
   useEffect(() => {
     if (!user || filled.current) return;
     filled.current = true;
-    setName(user.name || ''); setCountry(asCountry(user.country)); setCity(user.city || ''); setBio(user.bio || '');
+    setName(user.name || ''); setUsername(user.username || ''); setCountry(asCountry(user.country)); setCity(user.city || ''); setBio(user.bio || '');
   }, [user]);
   const pickCountry = (c: Country) => {
     setCountry(c);
@@ -59,7 +60,8 @@ export default function ProfileEdit() {
   const save = async () => {
     setBusy(true); setErr('');
     try {
-      await saveProfile({ name: name.trim(), country, city, bio: bio.trim() });
+      const un = username.trim();
+      await saveProfile({ name: name.trim(), country, city, bio: bio.trim(), ...(un && un !== user?.username ? { username: un } : {}) });
       toast('Сохранено');
       if (router.canGoBack()) router.back(); else router.replace('/profile');
     } catch (e: any) { setErr(e?.message || 'Не сохранилось'); } finally { setBusy(false); }
@@ -80,9 +82,13 @@ export default function ProfileEdit() {
         </View>
         <View style={{ gap: 6 }}>
           <Txt v="title1">{user?.name ? 'Профиль' : 'Как вас зовут?'}</Txt>
-          <Txt v="callout" tone="muted">Профиль видят все участники приложения: имя, страна и город. Можно только имя, без фамилии.</Txt>
+          <Txt v="callout" tone="muted">Имя — заголовок вашего профиля, а в ленте и чатах участники видят @юзернейм. Можно только имя, без фамилии.</Txt>
         </View>
         <Field label="Имя" value={name} onChangeText={setName} maxLength={80} placeholder="Анна" autoComplete="given-name" />
+        <Field label="Юзернейм" value={username} maxLength={24} autoCapitalize="none" autoCorrect={false} autoComplete="username"
+          onChangeText={(t) => setUsername(t.toLowerCase().replace(/[^a-z0-9._]/g, ''))} placeholder="alex_nl"
+          left={<Txt v="body" tone="muted">@</Txt>}
+          hint="Так вас видят в ленте, комментариях и чатах. Латиница, цифры, «_» и «.», от 3 до 24 символов." />
         <Field label="Статус" value={bio} onChangeText={setBio} maxLength={160} multiline multilineHeight={80}
           placeholder="Пара слов о себе: чем занимаетесь, что ищете" hint={`${bio.length}/160`} />
         <View style={{ gap: 8 }}>

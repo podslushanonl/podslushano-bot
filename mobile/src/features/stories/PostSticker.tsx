@@ -1,7 +1,7 @@
 import { View } from 'react-native';
 import { postPhoto } from '@/api/feed';
 import type { StoryPost } from '@/api/stories';
-import { Avatar, Icon, Img, Txt, VerifiedBadge } from '@/ui';
+import { handle, Icon, Img, Txt, UserAvatar, VerifiedBadge } from '@/ui';
 
 /** Пост как наклейка в истории (как «поделиться публикацией» в Instagram): белая карточка с автором, фото и текстом. */
 export function PostSticker({ post, width }: { post: StoryPost; width: number }) {
@@ -17,8 +17,8 @@ export function PostSticker({ post, width }: { post: StoryPost; width: number })
     <View style={{ width, borderRadius: 18, backgroundColor: '#FFFFFF', overflow: 'hidden',
       boxShadow: '0 12px 32px rgba(0,0,0,0.28)' } as any}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 12, paddingVertical: 10 }}>
-        <Avatar name={post.author.name} id={post.author.id} uri={post.author.avatar} size={30} />
-        <Txt v="subhead" color="#1A1A1A" numberOfLines={1} style={{ fontFamily: 'Onest_700Bold', flexShrink: 1 }}>{post.author.name}</Txt>
+        <UserAvatar u={post.author} size={30} />
+        <Txt v="subhead" color="#1A1A1A" numberOfLines={1} style={{ fontFamily: 'Onest_700Bold', flexShrink: 1 }}>{handle(post.author)}</Txt>
         {post.author.verified ? <VerifiedBadge size={14} /> : null}
       </View>
       {post.photo ? (

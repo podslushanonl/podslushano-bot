@@ -7,7 +7,7 @@ export type User = {
   /** Закрытый аккаунт: публикации видят только друзья. */
   is_private?: boolean;
   /** Синяя галочка подтверждённого аккаунта. */
-  verified?: boolean;
+  verified?: boolean; username?: string;
   /** Обложка профиля (баннер 3:1) или пусто. */
   cover?: string;
 };
@@ -84,7 +84,7 @@ export async function linkCheck(sent: CodeSent, code: string, move = false) {
   return d.user;
 }
 
-export async function saveProfile(p: { name?: string; city?: string; country?: string; bio?: string; is_private?: boolean }) {
+export async function saveProfile(p: { name?: string; username?: string; city?: string; country?: string; bio?: string; is_private?: boolean }) {
   const d = await api<{ user: User; favorites: Favorite[] }>('/api/app/me', p);
   set({ user: d.user, favorites: d.favorites });
 }

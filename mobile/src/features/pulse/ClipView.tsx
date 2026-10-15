@@ -6,11 +6,24 @@ import { Platform, Pressable, View, ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { mediaUrl } from '@/api/client';
 import { Clip, toggleClip } from '@/api/pulse';
-import { Avatar, Icon, IconName, Tap, Txt, VerifiedBadge } from '@/ui';
+import { handle, Icon, IconName, Tap, Txt, UserAvatar, VerifiedBadge } from '@/ui';
 
 // Звук и частоту событий меняем у самого плеера (объект expo-video), а не через состояние React
 const setMuted = (p: VideoPlayer, v: boolean) => { p.muted = v; };
 const setupPlayer = (p: VideoPlayer, muted: boolean) => { p.loop = true; p.muted = muted; p.timeUpdateEventInterval = 0.25; };
+/** Пропорции ролика (ширина/высота): в приложении — из видеодорожки, в браузере — из самого <video>. */
+function videoAspect(p: VideoPlayer): number {
+  if (Platform.OS === 'web') {
+    const v = [...(((p as any)._mountedVideos as Set<HTMLVideoElement>) || [])][0];
+    return v?.videoWidth && v.videoHeight ? v.videoWidth / v.videoHeight : 0;
+  }
+  const size = p.videoTrack?.size;
+  return size?.width && size.height ? size.width / size.height : 0;
+}
+/** Во весь экран с обрезкой (cover) — только если ролик почти совпадает по форме с экраном (до 8%):
+ *  иначе 9:16 на высоком iPhone или горизонтальное видео вписываются целиком (contain), без зума и «пикселей». */
+const fitFor = (aspect: number, width: number, height: number) =>
+  aspect && Math.abs(aspect - width / height) / (width / height) <= 0.08 ? 'cover' as const : 'contain' as const;
 
 const fmt = (n: number) => (n >= 1000 ? `${(n / 1000).toFixed(n >= 10000 ? 0 : 1).replace('.', ',')}K` : String(n));
 // Тень у белых иконок и текста поверх любого видео (как в TikTok и Reels)
@@ -45,7 +58,12 @@ export function ClipView({ clip, active, paused, onTogglePause, height, width, b
   const single = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [more, setMore] = useState(false);
 
-  useEventListener(player, 'timeUpdate', ({ currentTime }) => { if (player.duration) progress.set(currentTime / player.duration); });
+  const [aspect, setAspect] = useState(0);
+  const readAspect = () => { if (!aspect) { const a = videoAspect(player); if (a) setAspect(a); } };
+  useEventListener(player, 'timeUpdate', ({ currentTime }) => { if (player.duration) progress.set(currentTime / player.duration); readAspect(); });
+  useEventListener(player, 'statusChange', readAspect);
+  useEventListener(player, 'videoTrackChange', readAspect);
+  const fit = fitFor(aspect, width, height);
   useEffect(() => { setMuted(player, muted); }, [player, muted]);
   useEffect(() => {
     if (active && !paused) player.play(); else player.pause();
@@ -78,7 +96,10 @@ export function ClipView({ clip, active, paused, onTogglePause, height, width, b
   return (
     <View style={{ width, height, backgroundColor: '#000000', overflow: 'hidden' }}>
       {/* playsInline: в Safari на iPhone видео играет прямо в ленте, а не открывается отдельным плеером */}
-      <VideoView player={player} contentFit="cover" nativeControls={false} playsInline allowsPictureInPicture={false} style={FILL} />
+      {/* Явные ширина и высота: в браузере <video> без них берёт исходный размер ролика (540×960) и обрезается.
+          Вписанное видео центрируем в видимой части — над нижней панелью вкладок в браузере */}
+      <VideoView player={player} contentFit={fit} nativeControls={false} playsInline allowsPictureInPicture={false}
+        style={{ position: 'absolute', top: 0, left: 0, width, height: fit === 'contain' ? height - bottom : height }} />
       <Pressable onPress={tap} accessibilityLabel={paused ? 'Продолжить' : 'Пауза. Двойной тап — нравится'} style={FILL} />
 
       {paused || (active && !isPlaying && !muted) ? (
@@ -105,11 +126,11 @@ export function ClipView({ clip, active, paused, onTogglePause, height, width, b
 
       <View pointerEvents="box-none" style={{ position: 'absolute', left: 14, right: 80, bottom: bottom + 18, gap: 8 }}>
         <Tap onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(clip.author.id) } })} scaleTo={0.96}
-          accessibilityLabel={`Профиль: ${clip.author.name}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 9, alignSelf: 'flex-start' }}>
+          accessibilityLabel={`Профиль: ${handle(clip.author)}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 9, alignSelf: 'flex-start' }}>
           <View style={{ borderWidth: 1.5, borderColor: '#FFFFFF', borderRadius: 18 }}>
-            <Avatar name={clip.author.name} id={clip.author.id} uri={clip.author.avatar} size={32} />
+            <UserAvatar u={clip.author} size={32} />
           </View>
-          <Txt v="bodyStrong" color="#FFFFFF" numberOfLines={1} style={{ flexShrink: 1, ...TEXT_SHADOW }}>{clip.author.name}</Txt>
+          <Txt v="bodyStrong" color="#FFFFFF" numberOfLines={1} style={{ flexShrink: 1, ...TEXT_SHADOW }}>{handle(clip.author)}</Txt>
           {clip.author.verified ? <VerifiedBadge size={15} /> : null}
           {clip.author.city ? <Txt v="footnote" color="rgba(255,255,255,0.8)" style={TEXT_SHADOW}>· {clip.author.city}</Txt> : null}
         </Tap>

@@ -7,7 +7,7 @@ import { block, fetchMessages, Msg, removeOwn, report, routeForError, sendMessag
 import { joinRoom, onRealtime, realtimeConnected } from '@/api/dm';
 import { Bubble, CHAT_HEADER_SPACE, ChatHeader, ChatShell, Composer } from '@/features/chat/ChatUI';
 import { useTheme } from '@/theme';
-import { ActionSheet, Empty, SheetAction, Skeleton, useToast } from '@/ui';
+import { ActionSheet, Empty, handle, SheetAction, Skeleton, useToast } from '@/ui';
 
 const PAGE = 50; // столько последних сообщений сервер отдаёт без after
 
@@ -78,9 +78,9 @@ export default function RoomScreen() {
   const actions = (m: Msg): SheetAction[] => m.mine
     ? [{ title: 'Удалить сообщение', icon: 'trash', danger: true, onPress: () => removeOwn('msg', m.id).then(() => setList((x) => (x || []).filter((y) => y.id !== m.id))).catch(fail) }]
     : [
-        { title: `Профиль: ${m.author.name}`, icon: 'person', onPress: () => router.push({ pathname: '/user/[id]', params: { id: String(m.author.id) } }) },
+        { title: `Профиль: ${handle(m.author)}`, icon: 'person', onPress: () => router.push({ pathname: '/user/[id]', params: { id: String(m.author.id) } }) },
         { title: 'Пожаловаться', icon: 'flag', danger: true, onPress: () => report('msg', m.id).then(() => toast('Жалоба отправлена модераторам')).catch(fail) },
-        { title: `Скрыть сообщения: ${m.author.name}`, icon: 'block', onPress: () => block(m.author.id).then(() => setList((x) => (x || []).filter((y) => y.author.id !== m.author.id))).catch(fail) },
+        { title: `Скрыть сообщения: ${handle(m.author)}`, icon: 'block', onPress: () => block(m.author.id).then(() => setList((x) => (x || []).filter((y) => y.author.id !== m.author.id))).catch(fail) },
       ];
   const data = useMemo(() => [...(list || [])].reverse(), [list]);
 
@@ -107,7 +107,7 @@ export default function RoomScreen() {
             return (
               <View style={{ marginTop: prev && prev.author.id !== m.author.id ? 8 : 0 }}>
                 <Bubble text={m.text} at={m.at} mine={m.mine} fresh={fresh.current.has(m.id)} verified={m.author.verified}
-                  name={showName ? `${m.author.name}${m.author.city ? ` · ${m.author.city}` : ''}` : undefined}
+                  name={showName ? `${handle(m.author)}${m.author.city ? ` · ${m.author.city}` : ''}` : undefined}
                   onLongPress={() => (user ? setSheet(m) : router.push('/login'))} />
               </View>
             );
