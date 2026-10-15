@@ -54,6 +54,7 @@ export default function RootLayout() {
                   <Stack.Screen name="login" options={{ presentation: 'modal' }} />
                   <Stack.Screen name="rules" options={{ presentation: 'modal' }} />
                   <Stack.Screen name="new-post" options={{ presentation: 'modal' }} />
+                  <Stack.Screen name="stories/[uid]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
                   <Stack.Screen name="market/new" options={{ presentation: 'modal' }} />
                 </Stack>
               </ToastHost>

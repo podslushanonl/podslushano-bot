@@ -11,6 +11,7 @@ import { JobCard, SaveCard } from '@/features/feed/cards';
 import { FeedEvent, FeedList, FeedNews, FeedPost } from '@/features/feed/FeedItems';
 import { usePostMenu } from '@/features/feed/usePostMenu';
 import { NowCard } from '@/features/home/NowCard';
+import { StoriesRow } from '@/features/stories/StoriesRow';
 import { useCity, useCountry } from '@/lib/useCity';
 import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Avatar, Button, Chip, Empty, Glass, Icon, IconButton, IconName, Segmented, Skeleton, TabScreen, Tap, Txt } from '@/ui';
@@ -105,6 +106,8 @@ export default function Home() {
           </Tap>
         }
         right={<IconButton icon="edit" label="Написать пост" onPress={() => router.push(user ? '/new-post' : '/login')} />}>
+
+        <StoriesRow />
 
         <NowCard city={city} />
 

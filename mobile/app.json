@@ -2,7 +2,7 @@
   "expo": {
     "name": "podslushano",
     "slug": "podslushanonl",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "podslushano",
@@ -34,7 +34,9 @@
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
           "backgroundColor": "#FFFFFF",
-          "dark": { "backgroundColor": "#121212" }
+          "dark": {
+            "backgroundColor": "#121212"
+          }
         }
       ],
       "expo-image",
@@ -47,7 +49,8 @@
           "microphonePermission": false
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-video"
     ],
     "experiments": {
       "typedRoutes": true,

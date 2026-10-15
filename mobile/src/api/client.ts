@@ -54,3 +54,25 @@ export async function getJson<T>(url: string): Promise<T> {
 }
 
 export const goUrl = (key: string) => `${BOT}/go/${key}?s=app`;
+
+/** Загрузка файла (фото или видео) формой multipart: видео не кодируем в base64, чтобы не раздувать запрос. */
+export async function upload<T = any>(path: string, file: { uri: string; name: string; type: string }, fields: Record<string, string> = {}): Promise<T> {
+  const form = new FormData();
+  Object.entries(fields).forEach(([k, v]) => form.append(k, v));
+  if (Platform.OS === 'web') form.append('file', await (await fetch(file.uri)).blob(), file.name);
+  else form.append('file', file as any);
+  let r: Response;
+  try {
+    r = await fetch(BOT + path, { method: 'POST', body: form,
+      headers: { Accept: 'application/json', ...CLIENT, ...(token ? { Authorization: `Bearer ${token}` } : {}) } });
+  } catch {
+    throw new ApiError('Нет соединения. Проверьте интернет.', 0);
+  }
+  const d = await r.json().catch(() => ({}));
+  if (r.status === 401 && token) onUnauthorized?.();
+  if (!r.ok || d.ok === false) throw new ApiError(d.error || 'Не загрузилось. Попробуйте ещё раз.', r.status, d);
+  return d as T;
+}
+
+/** Полный адрес файла с сервера (/media/…). */
+export const mediaUrl = (path: string) => (path.startsWith('/') ? BOT + path : path);

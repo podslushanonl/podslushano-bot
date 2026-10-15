@@ -7,10 +7,12 @@ import { useConversations } from '@/api/dm';
 import { HAIRLINE, useTheme } from '@/theme';
 import { Badge, emitTabReselect, Icon, IconName, Txt } from '@/ui';
 
-const TABS: { name: string; href: '/' | '/market' | '/messages' | '/profile'; title: string; icon: IconName; iconOn: IconName }[] = [
+// Пять вкладок, как в VK и Instagram: Главная — Pulse — Сообщения — Барахолка — Профиль
+const TABS: { name: string; href: '/' | '/pulse' | '/market' | '/messages' | '/profile'; title: string; icon: IconName; iconOn: IconName }[] = [
   { name: 'index', href: '/', title: 'Главная', icon: 'home', iconOn: 'homeFill' },
-  { name: 'market', href: '/market', title: 'Барахолка', icon: 'market', iconOn: 'marketFill' },
+  { name: 'pulse', href: '/pulse', title: 'Pulse', icon: 'pulse', iconOn: 'pulseFill' },
   { name: 'messages', href: '/messages', title: 'Сообщения', icon: 'chat', iconOn: 'chatFill' },
+  { name: 'market', href: '/market', title: 'Барахолка', icon: 'market', iconOn: 'marketFill' },
   { name: 'profile', href: '/profile', title: 'Профиль', icon: 'person', iconOn: 'personFill' },
 ];
 
