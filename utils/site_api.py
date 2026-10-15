@@ -78,6 +78,13 @@ def make_token(payload: dict, ttl: int) -> str:
     return f"{raw}.{sig}"
 
 
+def grant(payload: dict, days: int = 7) -> str:
+    """Подпись для ссылки на закрытую картинку. Срок округлён до суток, чтобы ссылка весь день была одной
+    и картинка бралась из кэша."""
+    now = int(time.time())
+    return make_token(payload, (now // 86400 + days + 1) * 86400 - now)
+
+
 def read_token(token: str, kind: str) -> dict | None:
     try:
         raw, sig = (token or "").split(".", 1)

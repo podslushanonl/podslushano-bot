@@ -19,14 +19,21 @@ from collections import defaultdict
 from aiohttp import WSMsgType, web
 
 from database.db import get_session
-from database.models import AppUser
-from utils.site_api import read_token
 
 log = logging.getLogger(__name__)
 
 _users: dict[int, set[web.WebSocketResponse]] = defaultdict(set)
 _rooms: dict[str, set[web.WebSocketResponse]] = defaultdict(set)
 _who: dict[web.WebSocketResponse, int] = {}
+_sid: dict[web.WebSocketResponse, str] = {}   # сеанс входа соединения (пусто — токен до появления сеансов)
+
+
+async def close_sessions(uid: int, only: str | None = None, keep: str | None = None) -> None:
+    """Закрыть живые соединения завершённых сеансов: only — один сеанс, keep — все, кроме этого."""
+    for ws in list(_users.get(uid, ())):
+        s = _sid.get(ws, "")
+        if (only is not None and s == only) or (keep is not None and s != keep):
+            await ws.close(code=4001, message=b"session ended")
 # Обработчик «печатает…»: (кто, диалог) -> кому переслать; задаётся модулем личных сообщений
 typing_handler = None
 # Отправка в комнату по WebSocket: (кто, комната, текст) -> ответ; задаётся модулем сообщества
@@ -56,18 +63,18 @@ async def push_room(slug: str, data: dict, skip_users: set[int] | None = None) -
 
 
 async def ws_handler(request: web.Request) -> web.StreamResponse:
-    data = read_token(request.query.get("token", ""), "app")
-    uid = int((data or {}).get("u") or 0)
-    if uid:
-        async with get_session() as session:
-            if not await session.get(AppUser, uid):
-                uid = 0
+    from utils.app_api import token_user   # здесь, чтобы не было циклического импорта
+    async with get_session() as session:
+        u, sid = await token_user(session, request.query.get("token", ""))
+        uid = u.id if u else 0
+        await session.commit()
     if not uid:
         raise web.HTTPUnauthorized()
     ws = web.WebSocketResponse(heartbeat=25, max_msg_size=8192)
     await ws.prepare(request)
     _users[uid].add(ws)
     _who[ws] = uid
+    _sid[ws] = sid
     joined: set[str] = set()
     try:
         async for msg in ws:
@@ -110,6 +117,7 @@ async def ws_handler(request: web.Request) -> web.StreamResponse:
             if not _rooms[slug]:
                 _rooms.pop(slug, None)
         _who.pop(ws, None)
+        _sid.pop(ws, None)
     return ws
 
 

@@ -1,7 +1,8 @@
 """Люди в приложении podslushano: профили, друзья, поиск, блокировка.
 
 Правила:
-- профиль любого пользователя открыт всем вошедшим (GET /api/app/user/{id}), флагов приватности нет;
+- профиль любого пользователя открыт всем вошедшим (GET /api/app/user/{id}), но у закрытого аккаунта
+  (is_private) публикации видят только друзья: остальным приходит locked=true и заглушка в приложении;
 - личные сообщения — только между друзьями (статус accepted), проверка в utils.dm;
 - общие чаты по городам и темам открыты всем, дружба там не нужна.
 
@@ -146,13 +147,15 @@ async def profile(request: web.Request) -> web.Response:
         rel = await relation(session, me.id, u.id)
         friends = await session.scalar(select(func.count()).select_from(Friendship).where(
             or_(Friendship.user_id == u.id, Friendship.friend_id == u.id), Friendship.status == ACCEPTED)) or 0
-        hidden = rel in ("blocked", "unavailable")
+        locked = bool(u.is_private) and me.id != u.id and rel != "friends"
+        hidden = rel in ("blocked", "unavailable")   # у закрытого аккаунта число публикаций видно, сами они — нет
         posts_total = 0 if hidden else await session.scalar(select(func.count()).select_from(UserPost).where(
             UserPost.user_id == u.id, UserPost.deleted.is_(False), UserPost.hidden.is_(False))) or 0
         await session.commit()
     return _json(request, {
         "ok": True, "user": card(u) | {"since": (u.created_at.strftime("%Y-%m-%d") if u.created_at else "")},
         "relation": rel, "friends": friends, "posts": posts_total, "can_message": rel == "friends",
+        "private": bool(u.is_private), "locked": locked,
     })
 
 

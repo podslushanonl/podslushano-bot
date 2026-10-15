@@ -62,6 +62,20 @@ function PhotoGrid({ posts }: { posts: Post[] }) {
   );
 }
 
+/** Закрытый аккаунт, мы не друзья: вместо публикаций — заглушка. */
+function Locked() {
+  const { c } = useTheme();
+  return (
+    <View style={{ alignItems: 'center', gap: 12, paddingVertical: 40, paddingHorizontal: 24, borderTopWidth: 1, borderTopColor: c.line, marginHorizontal: -20 }}>
+      <View style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 1.5, borderColor: c.ink, alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name="lock" thin size={32} color={c.ink} />
+      </View>
+      <Txt v="title3" center>Это закрытый аккаунт</Txt>
+      <Txt v="callout" tone="muted" center>Добавьтесь в друзья, чтобы увидеть публикации</Txt>
+    </View>
+  );
+}
+
 /** Страница человека в стиле соцсети: шапка с фото и счётчиками, действия, вкладки «Публикации / Фото». */
 export function ProfileView({ userId, own }: { userId: number; own?: boolean }) {
   const { c } = useTheme();
@@ -71,7 +85,7 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
   const toast = useToast();
   const { user: me } = useAuth();
   const q = useProfile(userId, !!me);
-  const wall = useWall(userId, !!me);
+  const wall = useWall(userId, !!me && !q.data?.locked);
   const refresh = useRefresh(list, () => Promise.all([q.refetch(), wall.refetch()]), () => y.get() < 4);
   const posts = feedPosts(wall.data);
   const [tab, setTab] = useState<'posts' | 'photos'>('posts');
@@ -133,7 +147,10 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
         </View>
       </View>
       <View style={{ gap: 4 }}>
-        <Txt v="title2">{u?.name || (own ? 'Без имени' : '')}</Txt>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }}>
+          <Txt v="title2" style={{ flexShrink: 1 }}>{u?.name || (own ? 'Без имени' : '')}</Txt>
+          {(own ? me?.is_private : p?.private) ? <Icon name="lock" size={16} color={c.muted} /> : null}
+        </View>
         {u?.city || u?.country ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
             <Icon name="location" size={14} color={c.muted} />
@@ -185,8 +202,12 @@ export function ProfileView({ userId, own }: { userId: number; own?: boolean }) 
         ) : (
           <>
             {header}
-            <Tabs value={tab} onChange={setTab} />
-            {body}
+            {p?.locked ? <Locked /> : (
+              <>
+                <Tabs value={tab} onChange={setTab} />
+                {body}
+              </>
+            )}
           </>
         )}
       </ScrollView>

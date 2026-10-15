@@ -32,7 +32,7 @@ from utils import realtime, social
 from utils.app_api import _user
 from utils.community import POST_MAX, _rate, can_write, check_text
 from utils.market import _read_json, prepare_photo
-from utils.site_api import _err, _json
+from utils.site_api import _err, _json, grant, read_token
 
 PAGE = 20
 MAX_PHOTOS = 4
@@ -47,11 +47,18 @@ def _visible(q):
     return q.where(UserPost.deleted.is_(False), UserPost.hidden.is_(False))
 
 
-async def _hidden_authors(session, me: AppUser | None) -> set[int]:
-    """Кого не показывать: я заблокировал или он заблокировал меня."""
-    if not me:
-        return set()
-    return await social.blocked_by(session, me.id) | await social.blockers_of(session, me.id)
+async def _hidden_authors(session, me: AppUser | None, private: bool = True) -> set[int]:
+    """Чьи публикации не показывать: я заблокировал или он меня, а также закрытые аккаунты, где мы не друзья
+    (private=False — только блокировка: так фильтруются комментарии)."""
+    out = await social.blocked_by(session, me.id) | await social.blockers_of(session, me.id) if me else set()
+    if private:
+        closed = set((await session.execute(select(AppUser.id).where(AppUser.is_private.is_(True)))).scalars())
+        if me:
+            closed.discard(me.id)
+            if closed:
+                closed -= await _friend_ids(session, me.id)
+        out |= closed
+    return out
 
 
 async def _friend_ids(session, uid: int) -> set[int]:
@@ -73,8 +80,10 @@ def _share(p: UserPost) -> dict | None:
             "img": p.share_img or ""}
 
 
-def _photos(p: UserPost) -> list[str]:
-    return [f"/api/app/posts/{p.id}/photo/{i}" for i in range(p.photo_count or 0)]
+def _photos(p: UserPost, author: AppUser | None = None) -> list[str]:
+    # Фото закрытого аккаунта — по подписанной ссылке: её получает только тот, кому пост показали
+    k = f"?k={grant({'k': 'pph', 'p': p.id})}" if author and author.is_private else ""
+    return [f"/api/app/posts/{p.id}/photo/{i}{k}" for i in range(p.photo_count or 0)]
 
 
 async def _count(session, col, ids: set[int], *where) -> dict[int, int]:
@@ -102,14 +111,14 @@ async def posts_json(session, posts: list[UserPost], me: AppUser | None) -> list
     for p in posts:
         d = {"id": p.id, "text": p.text, "at": _at(p.created_at), "city": p.city or "", "country": p.country.value,
              "author": _author(users.get(p.user_id), p.user_id), "mine": bool(me and me.id == p.user_id),
-             "photos": _photos(p), "likes": likes.get(p.id, 0), "liked": p.id in liked,
+             "photos": _photos(p, users.get(p.user_id)), "likes": likes.get(p.id, 0), "liked": p.id in liked,
              "comments": comments.get(p.id, 0), "reposts": reposts.get(p.id, 0), "repost": None,
              # я уже сделал репост этого поста (для репоста — его оригинала)
              "reposted": (p.repost_of or p.id) in reposted, "share": _share(p)}
         if p.repost_of:
             o = originals.get(p.repost_of)
             d["repost"] = ({"id": o.id, "text": o.text, "at": _at(o.created_at), "city": o.city or "",
-                            "author": _author(users.get(o.user_id), o.user_id), "photos": _photos(o)}
+                            "author": _author(users.get(o.user_id), o.user_id), "photos": _photos(o, users.get(o.user_id))}
                            if o and not o.deleted and not o.hidden and o.user_id not in hidden
                            else {"id": p.repost_of, "deleted": True})
         out.append(d)
@@ -211,7 +220,9 @@ async def create(request: web.Request) -> web.Response:
                 return _err(request, "Слишком много репостов за день. Попробуйте завтра.", 429)
         elif _rate(f"p60:{me.id}", 1, 60) or _rate(f"pday:{me.id}", 10, 86400):
             return _err(request, "Можно публиковать до 10 постов в день и не чаще раза в минуту.", 429)
-        p = UserPost(user_id=me.id, text=text, city=me.city or "", country=me.country,
+        # Место поста: город, выбранный в редакторе (значок геопозиции), иначе — город профиля
+        city = " ".join(str(data.get("city") or "").split())[:80] or me.city or ""
+        p = UserPost(user_id=me.id, text=text, city=city, country=me.country,
                      repost_of=orig.id if orig else None, photo_count=len(jpegs))
         session.add(p)
         await session.flush()
@@ -235,7 +246,7 @@ def _comment(c: PostComment, users: dict[int, AppUser], me: AppUser | None) -> d
 
 async def _comments(session, pid: int, me: AppUser | None) -> list[dict]:
     q = select(PostComment).where(PostComment.post_id == pid, PostComment.deleted.is_(False), PostComment.hidden.is_(False))
-    hidden = await _hidden_authors(session, me)
+    hidden = await _hidden_authors(session, me, private=False)
     if hidden:
         q = q.where(PostComment.user_id.notin_(hidden))
     rows = list((await session.execute(q.order_by(PostComment.id).limit(300))).scalars())
@@ -329,10 +340,17 @@ async def photo(request: web.Request) -> web.Response:
         p = await session.get(UserPost, _pid(request))
         if not p or p.deleted or p.hidden:
             raise web.HTTPNotFound()
+        author = await session.get(AppUser, p.user_id)
+        private = bool(author and author.is_private)
+        if private:
+            ok = read_token(request.query.get("k", ""), "pph")
+            if not ok or ok.get("p") != p.id:
+                raise web.HTTPNotFound()
         data = await session.scalar(select(PostPhoto.data).where(PostPhoto.post_id == p.id, PostPhoto.idx == idx))
     if not data:
         raise web.HTTPNotFound()
-    return web.Response(body=data, content_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
+    return web.Response(body=data, content_type="image/jpeg",
+                        headers={"Cache-Control": "private, max-age=86400" if private else "public, max-age=86400"})
 
 
 # ---------------------------------------------------------------- репост и стена
@@ -393,7 +411,11 @@ async def wall(request: web.Request) -> web.Response:
         if not me:
             return _err(request, "Войдите, чтобы смотреть профили.", 401)
         if uid in await _hidden_authors(session, me):
-            return _json(request, {"ok": True, "posts": [], "more": False})
+            # заблокирован или закрытый аккаунт не друга: публикаций не видно
+            author = await session.get(AppUser, uid)
+            locked = bool(author and author.is_private and not await social.blocked_between(session, me.id, uid))
+            await session.commit()
+            return _json(request, {"ok": True, "posts": [], "more": False, "locked": locked})
         q = _visible(select(UserPost)).where(UserPost.user_id == uid)
         before = request.query.get("before", "")
         if before.isdigit():

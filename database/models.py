@@ -885,10 +885,33 @@ class AppUser(Base):
     last_seen: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     rules_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)      # принял правила сообщества
     banned_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)  # бан в чатах и постах
+    # Закрытый аккаунт: публикации, друзей и личные сообщения видят только друзья (статус accepted)
+    is_private: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+    # «Завершить другие сеансы»: токены, выданные раньше этого момента без записи сеанса, не принимаются
+    sessions_reset_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     @validates("country")
     def _check_country(self, _key, value):
         return Country.parse(value)
+
+
+class AppSession(Base):
+    """Устройство, вошедшее в аккаунт приложения (раздел «Активные сессии» в настройках).
+    id — случайная строка, она же лежит в токене входа: удалённый или завершённый сеанс токен больше не пускает."""
+
+    __tablename__ = "app_sessions"
+
+    id: Mapped[str] = mapped_column(String(32), primary_key=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    device: Mapped[str] = mapped_column(String(120), default="")   # «iPhone · Safari», «Android · приложение»
+    ip: Mapped[str] = mapped_column(String(64), default="")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+    last_seen: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+    revoked: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
 
 
 class Friendship(Base):
@@ -1099,7 +1122,8 @@ class DmConversation(Base):
     __table_args__ = (UniqueConstraint("listing_id", "buyer_id", "seller_id", name="uq_dm_pair"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    listing_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    listing_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)   # старые объявления из бота
+    item_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)      # объявление барахолки приложения
     buyer_id: Mapped[int] = mapped_column(Integer, index=True)    # кто начал диалог
     seller_id: Mapped[int] = mapped_column(Integer, index=True)   # автор объявления
     created_at: Mapped[datetime] = mapped_column(
@@ -1165,3 +1189,38 @@ def _fit_strings(mapper, _connection, target) -> None:
 def _friendship_pair_key(_mapper, _connection, row: Friendship) -> None:
     a, b = sorted((row.user_id, row.friend_id))
     row.pair_key = None if row.status == FriendStatus.BLOCKED else f"{a}:{b}"
+
+
+class MarketItem(Base):
+    """Объявление барахолки приложения. Живёт только в приложении (API + PostgreSQL), фото — в market_photos.
+    Публикуется сразу; жалобы скрывают его (status=hidden) до решения модератора."""
+
+    __tablename__ = "market_items"
+    __table_args__ = (Index("ix_market_items_feed", "status", "created_at"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    # wardrobe | home | tech | sport | tickets | housing | services | free (utils/app_market.CATEGORIES)
+    category: Mapped[str] = mapped_column(String(20), index=True)
+    title: Mapped[str] = mapped_column(String(100))
+    description: Mapped[str] = mapped_column(Text, default="")
+    price: Mapped[int | None] = mapped_column(Integer, nullable=True)   # в евро; 0 — бесплатно, пусто — договорная
+    city: Mapped[str] = mapped_column(String(80), default="", index=True)
+    status: Mapped[str] = mapped_column(String(12), default="active", index=True)   # active | closed | hidden
+    photo_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+    expires_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class MarketPhoto(Base):
+    """Фото объявления барахолки: JPEG в базе, до 5 на объявление."""
+
+    __tablename__ = "market_photos"
+    __table_args__ = (UniqueConstraint("item_id", "idx", name="uq_market_photo"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    item_id: Mapped[int] = mapped_column(Integer, index=True)
+    idx: Mapped[int] = mapped_column(Integer, default=0)
+    data: Mapped[bytes] = mapped_column(LargeBinary)

@@ -62,6 +62,12 @@ const I = {
   grid: ['square.grid.3x3', 'grid_view'],
   text: ['text.alignleft', 'notes'],
   link: ['link', 'link'],
+  shirt: ['tshirt', 'apparel'],
+  devices: ['laptopcomputer.and.iphone', 'devices'],
+  wrench: ['wrench.and.screwdriver', 'handyman'],
+  apps: ['square.grid.2x2', 'apps'],
+  sofa: ['sofa', 'chair'],
+  bike: ['bicycle', 'pedal_bike'],
 } as const;
 
 export type IconName = keyof typeof I;

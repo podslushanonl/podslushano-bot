@@ -12,7 +12,7 @@
 Жалоба на диалог уходит модераторам (тема «Модерация») с последними сообщениями и кнопками бана.
 
 GET  /api/app/dm                 — мои диалоги и общее число непрочитанных
-POST /api/app/dm/start           — {user_id} или {listing_id} → {id} (создать или открыть диалог)
+POST /api/app/dm/start           — {user_id} или {item_id} (объявление барахолки) → {id} (создать или открыть диалог)
 GET  /api/app/dm/{id}            — диалог и последние сообщения
 POST /api/app/dm/{id}            — {text} → сообщение
 POST /api/app/dm/{id}/read       — прочитано
@@ -31,8 +31,7 @@ from sqlalchemy import func, or_, select
 
 import config
 from database.db import get_session
-from database.models import AppUser, DmConversation, DmMessage, Listing
-from handlers import board
+from database.models import AppUser, DmConversation, DmMessage, Listing, MarketItem
 from utils import realtime, social
 from utils.app_api import _user
 from utils.community import FOREVER, _rate, can_write, check_text
@@ -78,12 +77,17 @@ def msg_json(m: DmMessage, me: int, their_read: int) -> dict:
     return {"id": m.id, "text": m.text, "at": _at(m.created_at), "mine": mine, "read": mine and m.id <= their_read}
 
 
-async def _listing_json(session, lid: int | None) -> dict | None:
-    l = await session.get(Listing, lid) if lid else None
-    if not l:
-        return None
-    photo = f"/api/app/market/{l.id}/photo" if l.photo_file_id and board._status(l) == "approved" else ""
-    return {"id": l.id, "title": l.title, "price": l.price or "", "photo": photo}
+async def _listing_json(session, cv: DmConversation) -> dict | None:
+    if cv.item_id:   # объявление барахолки приложения
+        it = await session.get(MarketItem, cv.item_id)
+        if not it:
+            return None
+        from utils.app_market import price_label
+        photo = f"/api/app/market/{it.id}/photo/0" if it.photo_count and it.status == "active" else ""
+        return {"id": it.id, "title": it.title, "price": price_label(it.price), "photo": photo}
+    # Старые диалоги по объявлениям из бота: только название (карточки в приложении у них нет)
+    l = await session.get(Listing, cv.listing_id) if cv.listing_id else None
+    return {"id": 0, "title": l.title, "price": l.price or "", "photo": ""} if l else None
 
 
 async def _may_write(session, cv: DmConversation, me: int) -> bool:
@@ -91,7 +95,7 @@ async def _may_write(session, cv: DmConversation, me: int) -> bool:
     peer = _peer_id(cv, me)
     if await social.blocked_between(session, me, peer):
         return False
-    return bool(cv.listing_id) or await social.are_friends(session, me, peer)
+    return bool(cv.listing_id or cv.item_id) or await social.are_friends(session, me, peer)
 
 
 async def _conv_json(session, cv: DmConversation, me: int, last: DmMessage | None = None, unread: int = 0,
@@ -99,8 +103,9 @@ async def _conv_json(session, cv: DmConversation, me: int, last: DmMessage | Non
     peer = await session.get(AppUser, _peer_id(cv, me))
     extra = {"can_write": await _may_write(session, cv, me)} if with_access else {}
     return extra | {
-        "id": cv.id, "peer": {"id": _peer_id(cv, me), "name": (peer.name if peer else "") or "Участник"},
-        "listing": await _listing_json(session, cv.listing_id), "unread": unread,
+        "id": cv.id, "peer": {"id": _peer_id(cv, me), "name": (peer.name if peer else "") or "Участник",
+                 "avatar": f"/api/app/user/{peer.id}/avatar?v={peer.avatar_v}" if peer and peer.avatar_v else ""},
+        "listing": await _listing_json(session, cv), "unread": unread,
         "last": {"text": last.text, "at": _at(last.created_at), "mine": last.sender_id == me} if last else None,
     }
 
@@ -145,16 +150,14 @@ async def start(request: web.Request) -> web.Response:
         if denied:
             await session.commit()
             return _err(request, *denied)
-        listing_id, peer = None, 0
-        if data.get("listing_id"):
-            l = await session.get(Listing, _int(data.get("listing_id")))
-            if not l or board._status(l) != "approved":
-                return _err(request, "Объявление снято или ещё не опубликовано.", 404)
-            if not l.app_user_id:
-                return _err(request, "Автор этого объявления пока не в приложении — свяжитесь по контактам.", 409)
-            if l.app_user_id == me.id:
+        item_id, peer = None, 0
+        if data.get("item_id"):
+            it = await session.get(MarketItem, _int(data.get("item_id")))
+            if not it or it.status != "active":
+                return _err(request, "Объявление снято с публикации.", 404)
+            if it.user_id == me.id:
                 return _err(request, "Это ваше объявление.", 400)
-            listing_id, peer = l.id, l.app_user_id
+            item_id, peer = it.id, it.user_id
         else:
             peer = _int(data.get("user_id"))
             if peer == me.id:
@@ -163,22 +166,23 @@ async def start(request: web.Request) -> web.Response:
                 return _err(request, "Пользователь не найден.", 404)
         if await social.blocked_between(session, me.id, peer):
             return _err(request, "Переписка с этим пользователем недоступна.", 403)
-        if not listing_id and not await social.are_friends(session, me.id, peer):
+        # Вопрос по объявлению — любому продавцу; обычная переписка — только друзьям
+        if not item_id and not await social.are_friends(session, me.id, peer):
             return _err(request, social.NOT_FRIENDS, 403)
-        if listing_id:
+        if item_id:
             cv = (await session.execute(select(DmConversation).where(
-                DmConversation.listing_id == listing_id, DmConversation.buyer_id == me.id,
+                DmConversation.item_id == item_id, DmConversation.buyer_id == me.id,
                 DmConversation.seller_id == peer))).scalar_one_or_none()
         else:  # личный диалог без объявления — один на пару, кто бы его ни начал
             cv = (await session.execute(select(DmConversation).where(
-                DmConversation.listing_id.is_(None), or_(
+                DmConversation.listing_id.is_(None), DmConversation.item_id.is_(None), or_(
                     (DmConversation.buyer_id == me.id) & (DmConversation.seller_id == peer),
                     (DmConversation.buyer_id == peer) & (DmConversation.seller_id == me.id)))
                 .order_by(DmConversation.id).limit(1))).scalar_one_or_none()
         if not cv:
             if _rate(f"dmstart:{me.id}", 15, 3600):
                 return _err(request, "Слишком много новых диалогов. Попробуйте через час.", 429)
-            cv = DmConversation(listing_id=listing_id, buyer_id=me.id, seller_id=peer)
+            cv = DmConversation(item_id=item_id, buyer_id=me.id, seller_id=peer)
             session.add(cv)
         await session.commit()
         return _json(request, {"ok": True, "id": cv.id})
@@ -216,7 +220,7 @@ async def _send(request: web.Request, session, me: AppUser, cv: DmConversation) 
     peer = _peer_id(cv, me.id)
     if await social.blocked_between(session, me.id, peer):
         return _err(request, "Переписка с этим пользователем недоступна.", 403)
-    if not cv.listing_id and not await social.are_friends(session, me.id, peer):
+    if not cv.listing_id and not cv.item_id and not await social.are_friends(session, me.id, peer):
         return _err(request, social.NOT_FRIENDS, 403)
     if _rate(f"dm3:{me.id}", 3, 3) or _rate(f"dm60:{me.id}", 30, 60):
         return _err(request, "Не так быстро: подождите немного.", 429)
@@ -232,7 +236,8 @@ async def _send(request: web.Request, session, me: AppUser, cv: DmConversation) 
     if nudge:
         cv.nudged_at = _now()
     peer_user = await session.get(AppUser, peer)
-    listing = await session.get(Listing, cv.listing_id) if cv.listing_id else None
+    listing = (await session.get(MarketItem, cv.item_id) if cv.item_id
+               else await session.get(Listing, cv.listing_id) if cv.listing_id else None)
     await session.commit()
     mine = msg_json(m, me.id, _their_read(cv, me.id))
     theirs = mine | {"mine": False, "read": False}
@@ -243,7 +248,7 @@ async def _send(request: web.Request, session, me: AppUser, cv: DmConversation) 
     return _json(request, {"ok": True, "message": mine})
 
 
-async def _nudge(bot, tg_id: int, who: str, listing: Listing | None, text: str, cid: int) -> None:
+async def _nudge(bot, tg_id: int, who: str, listing: Listing | MarketItem | None, text: str, cid: int) -> None:
     """Напоминание в Telegram, если собеседника нет в приложении."""
     if not bot:
         return

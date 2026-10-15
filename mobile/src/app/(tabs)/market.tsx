@@ -1,15 +1,31 @@
 import { FlashList } from '@shopify/flash-list';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { TextInput, View } from 'react-native';
+import { ScrollView, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/api/auth';
-import { Listing, useMarket, useMarketMeta } from '@/api/market';
+import { CATEGORIES, Listing, useMarket } from '@/api/market';
 import { CitySheet } from '@/features/common/CitySheet';
 import { Tile } from '@/features/market/Tile';
 import { useCity, useCountry } from '@/lib/useCity';
 import { HAIRLINE, radius, type as T, useTheme } from '@/theme';
-import { Button, ChipRow, Empty, Glass, Icon, IconButton, LargeTitle, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useRefresh, useScrollY } from '@/ui';
+import { Button, Empty, Glass, Icon, IconButton, IconName, LargeTitle, Skeleton, TAB_SPACE, Tap, TopBar, Txt, useRefresh, useScrollY } from '@/ui';
+
+/** Одна категория в карусели: иконка в мягкой плашке и подпись. */
+function CatTile({ title, icon, on, onPress }: { title: string; icon: IconName; on: boolean; onPress: () => void }) {
+  const { c, shadow } = useTheme();
+  return (
+    <Tap onPress={onPress} scaleTo={0.94} haptic="select" accessibilityLabel={title} accessibilityState={{ selected: on }}
+      style={{ width: 76, alignItems: 'center', gap: 8 }}>
+      <View style={[{ width: 64, height: 64, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
+        backgroundColor: on ? c.accentSoft : c.bgElevated, borderWidth: on ? 1 : HAIRLINE, borderColor: on ? c.accent : c.line }, on ? null : shadow]}>
+        <Icon name={icon} thin size={27} color={on ? c.accent : c.ink} />
+      </View>
+      <Txt v="caption" center numberOfLines={2} color={on ? c.accentText : c.text}
+        style={{ fontFamily: on ? 'Onest_700Bold' : 'Onest_500Medium', lineHeight: 15 }}>{title}</Txt>
+    </Tap>
+  );
+}
 
 export default function Market() {
   const { c } = useTheme();
@@ -26,11 +42,10 @@ export default function Market() {
   const list = useRef<any>(null);
   useEffect(() => { const t = setTimeout(() => setDebounced(q.trim()), 350); return () => clearTimeout(t); }, [q]);
 
-  const meta = useMarketMeta();
   const market = useMarket({ cat, city, q: debounced });
   const refresh = useRefresh(list, () => market.refetch(), () => y.get() < 4);
   const items = useMemo<Listing[]>(() => market.data?.pages.flatMap((p) => p.items) || [], [market.data]);
-  const cats = [{ key: '', title: 'Все' }, ...(meta.data?.categories || []).map((x) => ({ key: x.key, title: x.title }))];
+  const current = CATEGORIES.find((x) => x.key === cat);
   const add = () => router.push(user ? '/market/new' : '/login');
 
   const header = (
@@ -51,7 +66,12 @@ export default function Market() {
           <Txt v="subhead" color={city ? c.accentText : c.ink} style={{ fontFamily: 'Onest_600SemiBold' }}>{city || 'Все'}</Txt>
         </Tap>
       </View>
-      <ChipRow items={cats} value={cat} onChange={setCat} />
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }}
+        contentContainerStyle={{ paddingHorizontal: 14, gap: 4, paddingTop: 4, paddingBottom: 2 }}>
+        <CatTile title="Все" icon="apps" on={!cat} onPress={() => setCat('')} />
+        {CATEGORIES.map((x) => <CatTile key={x.key} title={x.title} icon={x.icon} on={cat === x.key} onPress={() => setCat(cat === x.key ? '' : x.key)} />)}
+      </ScrollView>
+      {current ? <Txt v="footnote" tone="muted">{current.hint}</Txt> : null}
     </View>
   );
 
@@ -67,7 +87,7 @@ export default function Market() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingTop: insets.top + 64, paddingHorizontal: 14, paddingBottom: TAB_SPACE + insets.bottom + 70 }}
         ListHeaderComponent={<View style={{ paddingHorizontal: 6 }}>{header}</View>}
-        renderItem={({ item }) => <View style={{ paddingHorizontal: 6, paddingBottom: 18 }}><Tile l={item} /></View>}
+        renderItem={({ item }) => <View style={{ paddingHorizontal: 6, paddingBottom: 14 }}><Tile l={item} /></View>}
         ListEmptyComponent={market.isLoading ? (
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: 6 }}>
             {[0, 1, 2, 3].map((i) => <View key={i} style={{ width: '47.5%', gap: 8 }}><Skeleton h={200} r={28} /><Skeleton w="80%" /><Skeleton w="50%" h={12} /></View>)}

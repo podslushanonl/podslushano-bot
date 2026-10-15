@@ -2,7 +2,13 @@ import { useSyncExternalStore } from 'react';
 import { api, ApiError, setToken, setUnauthorizedHandler, tokenStore } from './client';
 import { queryClient } from './query';
 
-export type User = { id: number; name: string; city: string; country: string; email: string; phone: string; telegram: boolean; bio: string; avatar: string };
+export type User = {
+  id: number; name: string; city: string; country: string; email: string; phone: string; telegram: boolean; bio: string; avatar: string;
+  /** Закрытый аккаунт: публикации видят только друзья. */
+  is_private?: boolean;
+};
+/** Устройство, вошедшее в аккаунт (настройки → «Активные сессии»). */
+export type AppSession = { id: string; device: string; ip: string; created: string; last_seen: string; current: boolean };
 export type Favorite = { kind: string; key: string; title: string };
 type State = { ready: boolean; user: User | null; favorites: Favorite[] };
 
@@ -25,12 +31,12 @@ let started = false;
 export async function bootAuth() {
   if (started) return;
   started = true;
-  setUnauthorizedHandler(() => { logout(); });
+  setUnauthorizedHandler(() => { logout(false); });
   try {
     const t = await tokenStore.get();
     if (t) {
       setToken(t);
-      await refreshMe().catch((e) => { if (e instanceof ApiError && e.status === 401) return logout(); });
+      await refreshMe().catch((e) => { if (e instanceof ApiError && e.status === 401) return logout(false); });
     }
   } finally { set({ ready: true }); }
 }
@@ -74,7 +80,7 @@ export async function linkCheck(sent: CodeSent, code: string, move = false) {
   return d.user;
 }
 
-export async function saveProfile(p: { name?: string; city?: string; country?: string; bio?: string }) {
+export async function saveProfile(p: { name?: string; city?: string; country?: string; bio?: string; is_private?: boolean }) {
   const d = await api<{ user: User; favorites: Favorite[] }>('/api/app/me', p);
   set({ user: d.user, favorites: d.favorites });
 }
@@ -92,7 +98,16 @@ export async function toggleFavorite(key: string, title: string, on: boolean, ki
   try { await api('/api/app/favorites', { kind, key, title, on }); } catch (e) { set({ favorites: before }); throw e; }
 }
 
-export async function logout() {
+export const listSessions = () => api<{ items: AppSession[]; legacy: boolean }>('/api/app/me/sessions');
+/** Завершить сеанс на другом устройстве или все, кроме этого (тогда сервер может выдать этому устройству новый токен). */
+export async function endSessions(p: { id: string } | { others: true }) {
+  const d = await api<{ token?: string }>('/api/app/me/sessions/revoke', p);
+  if (d.token) { await tokenStore.set(d.token); setToken(d.token); }
+}
+
+/** Выход. remote — завершить сеанс и на сервере (не нужно, когда сервер уже не принимает токен). */
+export async function logout(remote = true) {
+  if (remote) await api('/api/app/auth/logout', {}).catch(() => {});
   await tokenStore.del().catch(() => {});
   setToken(null);
   set({ user: null, favorites: [] });

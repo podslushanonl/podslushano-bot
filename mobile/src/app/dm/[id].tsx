@@ -77,10 +77,10 @@ export default function Dialog() {
     <ChatShell
       header={
         <ChatHeader title={cv?.peer.name || 'Диалог'} sub={typing ? 'печатает…' : cv?.listing ? 'по объявлению' : undefined} onBack={back}
-          left={cv ? <Tap onPress={openPeer} scaleTo={0.92} accessibilityLabel={`Профиль: ${cv.peer.name}`}><Avatar name={cv.peer.name} id={cv.peer.id} size={40} /></Tap> : null}
+          left={cv ? <Tap onPress={openPeer} scaleTo={0.92} accessibilityLabel={`Профиль: ${cv.peer.name}`}><Avatar name={cv.peer.name} id={cv.peer.id} uri={cv.peer.avatar} size={40} /></Tap> : null}
           right={cv ? <IconButton icon="more" label="Действия" kind="plain" onPress={() => setMenu(true)} /> : null}
           below={cv?.listing ? (
-            <Tap onPress={() => router.push({ pathname: '/market/[id]', params: { id: String(cv.listing!.id) } })} scaleTo={0.98}
+            <Tap onPress={() => { if (cv.listing!.id) router.push({ pathname: '/market/[id]', params: { id: String(cv.listing!.id) } }); }} scaleTo={0.98}
               style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 8, borderRadius: radius.m, backgroundColor: c.bgSunken }}>
               {cv.listing.photo ? <Img source={photoUrl(cv.listing)} style={{ width: 40, height: 40, borderRadius: 10 }} /> : null}
               <View style={{ flex: 1 }}>

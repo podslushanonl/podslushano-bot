@@ -18,7 +18,7 @@ function CommentRow({ c: cm, onLong }: { c: Comment; onLong: () => void }) {
     <View style={{ flexDirection: 'row', gap: 10, alignItems: 'flex-start' }}>
       <Tap onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(cm.author.id) } })} scaleTo={0.92}
         accessibilityLabel={`Профиль: ${cm.author.name}`}>
-        <Avatar name={cm.author.name} id={cm.author.id} size={34} />
+        <Avatar name={cm.author.name} id={cm.author.id} uri={cm.author.avatar} size={34} />
       </Tap>
       <Tap onLongPress={onLong} scaleTo={0.99} accessibilityHint="Удерживайте для действий"
         style={{ flex: 1, backgroundColor: c.bgElevated, borderRadius: radius.l, borderTopLeftRadius: 6, padding: 12, gap: 3, borderWidth: 1, borderColor: c.line }}>
