@@ -2,11 +2,11 @@
 import os
 from collections import defaultdict
 
-from sqlalchemy import inspect, select
+from sqlalchemy import func, inspect, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 import config
-from database.models import Base, Meta, Specialist
+from database.models import AppUser, Base, Meta, Specialist
 
 # Движок и фабрика сессий — создаются один раз на всё приложение
 # SQLite (файл data/bot.db) по умолчанию; PostgreSQL — если задан DATABASE_URL (см. config.DB_URL)
@@ -113,6 +113,7 @@ _APP_USER_LATER_COLUMNS = {
     "phone": "VARCHAR(20)",
     "is_private": "BOOLEAN NOT NULL DEFAULT FALSE",
     "sessions_reset_at": "TIMESTAMP",
+    "is_verified": "BOOLEAN NOT NULL DEFAULT FALSE",
 }
 _USER_POST_LATER_COLUMNS = {
     "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
@@ -123,7 +124,10 @@ _USER_POST_LATER_COLUMNS = {
     "share_title": "VARCHAR(300) NOT NULL DEFAULT ''",
     "share_url": "VARCHAR(700) NOT NULL DEFAULT ''",
     "share_img": "VARCHAR(700) NOT NULL DEFAULT ''",
+    "photo_ratio": "FLOAT",
 }
+# Почта аккаунта создателя в приложении (галочка ставится при запуске); переопределяется переменной VERIFIED_EMAILS
+OWNER_EMAILS = "podslushano.nl@gmail.com"
 _COUNTRY_VALUES = "('Нидерланды', 'Германия', 'Бельгия')"
 
 
@@ -384,6 +388,12 @@ async def _migrate() -> None:
             await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_app_users_country ON app_users (country)")
             # Вход по телефону: номер уникален (NULL у аккаунтов без телефона не мешает)
             await conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_app_users_phone ON app_users (phone)")
+            # Синяя галочка создателю: аккаунт, привязанный к Telegram ID из ADMIN_IDS, или почта из VERIFIED_EMAILS
+            ids = [int(x) for x in config.ADMIN_IDS]
+            emails = [e.strip().lower() for e in os.getenv("VERIFIED_EMAILS", OWNER_EMAILS).split(",") if e.strip()]
+            conds = ([AppUser.tg_id.in_(ids)] if ids else []) + ([func.lower(AppUser.email).in_(emails)] if emails else [])
+            if conds:
+                await conn.execute(update(AppUser).where(AppUser.is_verified.is_(False), or_(*conds)).values(is_verified=True))
 
         # Посты: страна (лента «Рядом»), репосты, число фото — появились в этапе 2
         up_cols = await conn.run_sync(lambda c: {x["name"] for x in inspect(c).get_columns("user_posts")}
@@ -406,6 +416,11 @@ async def _migrate() -> None:
         if dm_cols is not None and "item_id" not in dm_cols:
             await conn.exec_driver_sql("ALTER TABLE dm_conversations ADD COLUMN item_id INTEGER")
             await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_dm_conversations_item_id ON dm_conversations (item_id)")
+        # Статус «доставлено»: прочитанное раньше считаем доставленным
+        for col in ("buyer_got", "seller_got"):
+            if dm_cols is not None and col not in dm_cols:
+                await conn.exec_driver_sql(f"ALTER TABLE dm_conversations ADD COLUMN {col} INTEGER NOT NULL DEFAULT 0")
+                await conn.exec_driver_sql(f"UPDATE dm_conversations SET {col} = {col.replace('got', 'read')}")
 
         tables = set(await conn.run_sync(lambda c: inspect(c).get_table_names()))
         # Комнаты чатов: раньше страна хранилась кодом NL — теперь русским названием (или пусто для общей)

@@ -124,7 +124,7 @@ export default function NewPost() {
                     <Txt v="caption">{timeLabel(shown.at)}</Txt>
                   </View>
                   {shown.text ? <Txt v="callout" tone="ink" numberOfLines={5}>{shown.text}</Txt> : null}
-                  <PostPhotos paths={shown.photos} />
+                  <PostPhotos paths={shown.photos} ratio={shown.ratio} />
                 </View>
               ) : <Txt v="callout" tone="muted">{orig.isLoading ? 'Загружаем пост…' : 'Пост недоступен'}</Txt>
             ) : photos.length ? (

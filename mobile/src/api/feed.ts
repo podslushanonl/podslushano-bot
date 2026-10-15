@@ -2,11 +2,13 @@ import { InfiniteData, useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { api, BOT } from './client';
 import { queryClient } from './query';
 
-export type PostAuthor = { id: number; name: string; city: string; avatar?: string };
+export type PostAuthor = { id: number; name: string; city: string; avatar?: string; verified?: boolean };
 export type Share = { kind: 'news' | 'event'; key: string; title: string; url: string; img: string };
-export type RepostOf = { id: number; deleted: true } | { id: number; deleted?: false; text: string; at: string; city: string; author: PostAuthor; photos: string[] };
+export type RepostOf = { id: number; deleted: true } | { id: number; deleted?: false; text: string; at: string; city: string; author: PostAuthor; photos: string[]; ratio?: number };
 export type Post = {
   id: number; text: string; at: string; city: string; country: string; author: PostAuthor; mine: boolean;
+  /** Формат первого фото: 1 — квадрат, 0.8 — 4:5, 1.78 — 16:9. */
+  ratio?: number;
   photos: string[]; likes: number; liked: boolean; comments: number; reposts: number; repost: RepostOf | null;
   /** Я уже сделал репост (для репоста — его оригинала). */
   reposted: boolean; share: Share | null;

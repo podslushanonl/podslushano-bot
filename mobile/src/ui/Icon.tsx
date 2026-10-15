@@ -66,6 +66,7 @@ const I = {
   devices: ['laptopcomputer.and.iphone', 'devices'],
   wrench: ['wrench.and.screwdriver', 'handyman'],
   apps: ['square.grid.2x2', 'apps'],
+  verified: ['checkmark.seal.fill', 'verified'],
   sofa: ['sofa', 'chair'],
   bike: ['bicycle', 'pedal_bike'],
 } as const;

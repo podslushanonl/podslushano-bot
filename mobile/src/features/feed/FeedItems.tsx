@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { ReactNode, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { DimensionValue, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
 import { useAuth } from '@/api/auth';
 import { routeForError } from '@/api/community';
@@ -10,7 +10,7 @@ import { ItemKind, ItemRef, ItemStats, shareItem, toggleItemLike } from '@/api/i
 import { ago, dayMonth, weekday } from '@/lib/format';
 import { openUrl } from '@/lib/open';
 import { HAIRLINE, radius, useTheme } from '@/theme';
-import { ActionSheet, Avatar, Icon, IconButton, IconName, Img, PhotoViewer, SheetAction, Tap, Txt, useToast } from '@/ui';
+import { ActionSheet, Avatar, BrandAvatar, Icon, IconButton, IconName, Img, PhotoViewer, SheetAction, Tap, Txt, useToast, VerifiedBadge } from '@/ui';
 import { timeLabel } from './cards';
 
 // Лента слоями, как в Threads: каждый пост, новость и событие — карточка на тон светлее фона с тонкой рамкой;
@@ -86,22 +86,42 @@ function useFail() {
 }
 
 /** Фото поста: одно — во всю ширину, два — рядом, три-четыре — сеткой. Тап — на весь экран с зумом. */
-export function PostPhotos({ paths }: { paths: string[] }) {
+/** Стандартные пропорции медиа (ширина/высота): квадрат, вертикаль 4:5 (1080×1350), горизонталь 16:9. */
+export const MEDIA_RATIOS = { square: 1, portrait: 4 / 5, landscape: 16 / 9 } as const;
+const snapRatio = (r?: number) => {
+  const all = Object.values(MEDIA_RATIOS);
+  return all.reduce((best, x) => (Math.abs(x - (r || 1)) < Math.abs(best - (r || 1)) ? x : best), all[0]);
+};
+
+/** Фото поста строго в стандартных пропорциях (картинка обрезается по краям, но не растягивается):
+ *  одно — в своём формате (ratio с сервера), два — вертикальные 4:5 рядом, три — первое во всю ширину и два квадрата,
+ *  четыре — сетка квадратов 2×2. */
+export function PostPhotos({ paths, ratio }: { paths: string[]; ratio?: number }) {
   const [open, setOpen] = useState<number | null>(null);
   if (!paths.length) return null;
   const urls = paths.map(postPhoto);
-  const tile = (u: string, i: number, style: object) => (
-    <Tap key={u} onPress={() => setOpen(i)} scaleTo={0.985} haptic={false} accessibilityLabel={`Открыть фото ${i + 1} из ${urls.length}`} style={style}>
-      <Img source={u} style={{ width: '100%', height: '100%', borderRadius: 10 }} />
+  const GAP = 3;
+  const tile = (u: string, i: number, aspectRatio: number, width: DimensionValue = '100%') => (
+    <Tap key={u} onPress={() => setOpen(i)} scaleTo={0.985} haptic={false} accessibilityLabel={`Открыть фото ${i + 1} из ${urls.length}`}
+      style={{ width, aspectRatio }}>
+      <Img source={u} style={{ width: '100%', height: '100%' }} />
     </Tap>
   );
+  const half = `${(100 - 1) / 2}%` as DimensionValue;
+  let body: ReactNode;
+  if (urls.length === 1) body = tile(urls[0], 0, snapRatio(ratio));
+  else if (urls.length === 2) body = <View style={{ flexDirection: 'row', gap: GAP }}>{urls.map((u, i) => tile(u, i, MEDIA_RATIOS.portrait, half))}</View>;
+  else if (urls.length === 3) {
+    body = (
+      <View style={{ gap: GAP }}>
+        {tile(urls[0], 0, snapRatio(ratio) === MEDIA_RATIOS.portrait ? MEDIA_RATIOS.square : snapRatio(ratio))}
+        <View style={{ flexDirection: 'row', gap: GAP }}>{urls.slice(1).map((u, i) => tile(u, i + 1, MEDIA_RATIOS.square, half))}</View>
+      </View>
+    );
+  } else body = <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GAP }}>{urls.map((u, i) => tile(u, i, MEDIA_RATIOS.square, half))}</View>;
   return (
     <>
-      {urls.length === 1 ? tile(urls[0], 0, { width: '100%', aspectRatio: 4 / 3 }) : (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-          {urls.map((u, i) => tile(u, i, { width: '49.3%', aspectRatio: urls.length === 2 ? 3 / 4 : 1 }))}
-        </View>
-      )}
+      <View style={{ borderRadius: 12, overflow: 'hidden' }}>{body}</View>
       <PhotoViewer urls={urls} index={open} onClose={() => setOpen(null)} />
     </>
   );
@@ -145,23 +165,29 @@ function RepostBox({ r, onOpen }: { r: RepostOf; onOpen: (id: number) => void })
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Avatar name={r.author.name} id={r.author.id} uri={r.author.avatar} size={24} />
         <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold', flexShrink: 1 }} numberOfLines={1}>{r.author.name}</Txt>
+        {r.author.verified ? <VerifiedBadge size={13} /> : null}
         <Txt v="caption">{timeLabel(r.at)}</Txt>
       </View>
       {r.text ? <Txt v="callout" tone="ink" numberOfLines={8}>{r.text}</Txt> : null}
-      <PostPhotos paths={r.photos} />
+      <PostPhotos paths={r.photos} ratio={r.ratio} />
     </Tap>
   );
 }
 
 /** Шапка элемента ленты: аватар, имя, подпись, «⋯». */
-function Head({ avatar, title, sub, onPress, onMenu }: { avatar: ReactNode; title: string; sub: string; onPress?: () => void; onMenu?: () => void }) {
+function Head({ avatar, title, sub, verified, onPress, onMenu }: {
+  avatar: ReactNode; title: string; sub: string; verified?: boolean; onPress?: () => void; onMenu?: () => void;
+}) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
       <Tap onPress={onPress} disabled={!onPress} scaleTo={0.97} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}
         accessibilityLabel={title}>
         {avatar}
         <View style={{ flex: 1 }}>
-          <Txt v="bodyStrong" numberOfLines={1}>{title}</Txt>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Txt v="bodyStrong" numberOfLines={1} style={{ flexShrink: 1 }}>{title}</Txt>
+            {verified ? <VerifiedBadge size={15} /> : null}
+          </View>
           <Txt v="footnote" numberOfLines={1}>{sub}</Txt>
         </View>
       </Tap>
@@ -191,7 +217,7 @@ export function FeedPost({ p, onMenu, full }: { p: Post; onMenu: () => void; ful
   const sub = [p.repost ? 'репост' : p.share ? 'поделился' : '', p.city || p.author.city, timeLabel(p.at)].filter(Boolean).join(' · ');
   return (
     <View style={card}>
-      <Head avatar={<Avatar name={p.author.name} id={p.author.id} uri={p.author.avatar} size={44} />} title={p.author.name} sub={sub}
+      <Head avatar={<Avatar name={p.author.name} id={p.author.id} uri={p.author.avatar} size={44} />} title={p.author.name} sub={sub} verified={p.author.verified}
         onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(p.author.id) } })} onMenu={onMenu} />
       <View style={{ gap: 10 }}>
         {p.text ? (full ? <Txt v="body" tone="ink" selectable>{p.text}</Txt> : (
@@ -199,7 +225,7 @@ export function FeedPost({ p, onMenu, full }: { p: Post; onMenu: () => void; ful
             <Txt v="body" tone="ink" numberOfLines={12}>{p.text}</Txt>
           </Tap>
         )) : null}
-        <PostPhotos paths={p.photos} />
+        <PostPhotos paths={p.photos} ratio={p.ratio} />
         {p.repost ? <RepostBox r={p.repost} onOpen={open} /> : null}
         {p.share ? <SharePreview s={p.share} /> : null}
         <ActionBar likes={p.likes} liked={p.liked} comments={p.comments} reposts={original ? 0 : p.reposts} reposted={p.reposted}
@@ -248,7 +274,7 @@ export function FeedNews({ n, stats }: { n: News; stats: ItemStats }) {
   const { bar, sheet } = useItemActions(newsRef(n), stats);
   return (
     <View style={card}>
-      <Head avatar={<Badge icon="newspaper" />} title="podslushano.nl" sub={`${n.cat || 'Новости'} · ${ago(n.date, n.time)}`} />
+      <Head avatar={<BrandAvatar size={44} />} verified title="podslushano.nl" sub={`${n.cat || 'Новости'} · ${ago(n.date, n.time)}`} />
       <View style={{ gap: 10 }}>
         <Tap onPress={() => openUrl(n.link)} scaleTo={0.995} style={{ gap: 10 }} accessibilityRole="link">
           <Txt v="headline" style={{ fontSize: 18, lineHeight: 24 }}>{n.h}</Txt>

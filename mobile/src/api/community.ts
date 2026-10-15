@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api, ApiError } from './client';
 import { sayInRoom } from './dm';
 
-export type Author = { id: number; name: string; city: string };
+export type Author = { id: number; name: string; city: string; verified?: boolean };
 export type Msg = { id: number; text: string; at: string; author: Author; mine: boolean; city?: string };
 export type Room = { slug: string; title: string; kind: 'city' | 'topic'; country: string; today: number };
 

@@ -20,6 +20,8 @@ POST /api/app/friends/unblock     — {user_id} разблокировать
 """
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+
 from aiohttp import web
 from sqlalchemy import and_, delete, func, or_, select
 from sqlalchemy.exc import IntegrityError
@@ -102,9 +104,21 @@ def avatar_url(u: AppUser) -> str:
     return f"/api/app/user/{u.id}/avatar?v={u.avatar_v}" if u.avatar_v else ""
 
 
+ONLINE_WINDOW = timedelta(minutes=3)
+
+
+def presence(u: AppUser | None) -> dict:
+    """«В сети» — открыто живое соединение или был запрос к серверу за последние минуты; иначе время last_seen."""
+    if not u:
+        return {"online": False, "last_seen": ""}
+    seen = u.last_seen
+    online = realtime.online(u.id) or bool(seen and datetime.now(timezone.utc).replace(tzinfo=None) - seen < ONLINE_WINDOW)
+    return {"online": online, "last_seen": seen.strftime("%Y-%m-%dT%H:%M:%SZ") if seen else ""}
+
+
 def card(u: AppUser, rel: str | None = None) -> dict:
     d = {"id": u.id, "name": u.name or "Участник", "city": u.city or "", "country": u.country.value,
-         "avatar": avatar_url(u), "bio": u.bio or ""}
+         "avatar": avatar_url(u), "bio": u.bio or "", "verified": bool(u.is_verified)}
     return d | ({"relation": rel} if rel is not None else {})
 
 
@@ -156,6 +170,8 @@ async def profile(request: web.Request) -> web.Response:
         "ok": True, "user": card(u) | {"since": (u.created_at.strftime("%Y-%m-%d") if u.created_at else "")},
         "relation": rel, "friends": friends, "posts": posts_total, "can_message": rel == "friends",
         "private": bool(u.is_private), "locked": locked,
+        # «В сети» видят все, кроме заблокированных; у закрытого аккаунта — только друзья
+        "presence": presence(u) if not hidden and not locked else {"online": False, "last_seen": ""},
     })
 
 

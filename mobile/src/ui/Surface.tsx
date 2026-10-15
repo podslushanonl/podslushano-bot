@@ -45,6 +45,26 @@ export function Avatar({ name, size = 44, id = 0, uri }: { name: string; size?: 
   );
 }
 
+/** Синяя премиум-галочка подтверждённого аккаунта — рядом с именем везде, где оно показано. */
+export const VERIFIED_BLUE = '#1D9BF0';
+export function VerifiedBadge({ size = 16 }: { size?: number }) {
+  return (
+    <View accessibilityLabel="Подтверждённый аккаунт" style={{ marginLeft: 3 }}>
+      <Icon name="verified" filled size={size} color={VERIFIED_BLUE} />
+    </View>
+  );
+}
+
+/** Официальная аватарка платформы podslushano.nl: логотип целиком (не обрезается) на белом круге. */
+export function BrandAvatar({ size = 44 }: { size?: number }) {
+  return (
+    <View accessibilityLabel="podslushano.nl" style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: '#FFFFFF', overflow: 'hidden',
+      alignItems: 'center', justifyContent: 'center', borderWidth: HAIRLINE, borderColor: 'rgba(0,0,0,0.08)' }}>
+      <Image source={require('@assets/images/icon.png')} contentFit="contain" style={{ width: size * 1.25, height: size * 1.25 }} />
+    </View>
+  );
+}
+
 export function Badge({ n }: { n: number }) {
   const { c } = useTheme();
   if (!n) return null;

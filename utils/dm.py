@@ -72,9 +72,25 @@ def _their_read(cv: DmConversation, me: int) -> int:
     return cv.seller_read if cv.buyer_id == me else cv.buyer_read
 
 
-def msg_json(m: DmMessage, me: int, their_read: int) -> dict:
+def _their_got(cv: DmConversation, me: int) -> int:
+    return max(cv.seller_got if cv.buyer_id == me else cv.buyer_got, _their_read(cv, me))
+
+
+def _got(cv: DmConversation, uid: int, upto: int) -> bool:
+    """Отметить, что участнику uid доставлено всё до upto. True — отметка сдвинулась."""
+    field = "buyer_got" if cv.buyer_id == uid else "seller_got"
+    if upto > (getattr(cv, field) or 0):
+        setattr(cv, field, upto)
+        return True
+    return False
+
+
+def msg_json(m: DmMessage, me: int, their_read: int, their_got: int = 0) -> dict:
+    """status моих сообщений: sent — ушло на сервер, delivered — дошло до собеседника, read — прочитано."""
     mine = m.sender_id == me
-    return {"id": m.id, "text": m.text, "at": _at(m.created_at), "mine": mine, "read": mine and m.id <= their_read}
+    status = "" if not mine else "read" if m.id <= their_read else "delivered" if m.id <= their_got else "sent"
+    return {"id": m.id, "text": m.text, "at": _at(m.created_at), "mine": mine, "read": mine and m.id <= their_read,
+            "status": status}
 
 
 async def _listing_json(session, cv: DmConversation) -> dict | None:
@@ -98,15 +114,24 @@ async def _may_write(session, cv: DmConversation, me: int) -> bool:
     return bool(cv.listing_id or cv.item_id) or await social.are_friends(session, me, peer)
 
 
+async def _presence(session, peer: AppUser | None, me: int) -> dict:
+    """«В сети» собеседника — как в профиле: не видно при блокировке и у закрытого аккаунта, если мы не друзья."""
+    if not peer or await social.blocked_between(session, me, peer.id) or (
+            peer.is_private and not await social.are_friends(session, me, peer.id)):
+        return {"online": False, "last_seen": ""}
+    return social.presence(peer)
+
+
 async def _conv_json(session, cv: DmConversation, me: int, last: DmMessage | None = None, unread: int = 0,
                      with_access: bool = False) -> dict:
     peer = await session.get(AppUser, _peer_id(cv, me))
     extra = {"can_write": await _may_write(session, cv, me)} if with_access else {}
     return extra | {
         "id": cv.id, "peer": {"id": _peer_id(cv, me), "name": (peer.name if peer else "") or "Участник",
-                 "avatar": f"/api/app/user/{peer.id}/avatar?v={peer.avatar_v}" if peer and peer.avatar_v else ""},
+                 "avatar": f"/api/app/user/{peer.id}/avatar?v={peer.avatar_v}" if peer and peer.avatar_v else "",
+                 "verified": bool(peer and peer.is_verified)} | await _presence(session, peer, me),
         "listing": await _listing_json(session, cv), "unread": unread,
-        "last": {"text": last.text, "at": _at(last.created_at), "mine": last.sender_id == me} if last else None,
+        "last": msg_json(last, me, _their_read(cv, me), _their_got(cv, me)) if last else None,
     }
 
 
@@ -128,17 +153,21 @@ async def conversations(request: web.Request) -> web.Response:
         convs = list((await session.execute(select(DmConversation).where(
             or_(DmConversation.buyer_id == me.id, DmConversation.seller_id == me.id))
             .order_by(DmConversation.last_at.desc()).limit(100))).scalars())
-        items, total = [], 0
+        items, total, delivered = [], 0, []
         for cv in convs:
             last = (await session.execute(select(DmMessage).where(DmMessage.conv_id == cv.id)
                                           .order_by(DmMessage.id.desc()).limit(1))).scalar_one_or_none()
             if not last:
                 continue  # пустые диалоги (открыли, но не написали) не показываем
+            if _got(cv, me.id, last.id):   # открыл список — всё в нём доставлено
+                delivered.append((_peer_id(cv, me.id), cv.id, last.id))
             unread = await session.scalar(select(func.count()).select_from(DmMessage).where(
                 DmMessage.conv_id == cv.id, DmMessage.sender_id != me.id, DmMessage.id > _my_read(cv, me.id))) or 0
             total += unread
             items.append(await _conv_json(session, cv, me.id, last, unread))
         await session.commit()
+    for peer, cid, upto in delivered:
+        await realtime.push_user(peer, {"type": "delivered", "conv": cid, "upto": upto})
     return _json(request, {"ok": True, "items": items, "unread": total})
 
 
@@ -202,10 +231,13 @@ async def dialog(request: web.Request) -> web.Response:
                                            .order_by(DmMessage.id.desc()).limit(PAGE))).scalars())
         rows.reverse()
         unread = sum(1 for m in rows if m.sender_id != me.id and m.id > _my_read(cv, me.id))
+        moved = bool(rows) and _got(cv, me.id, rows[-1].id)
         conv = await _conv_json(session, cv, me.id, rows[-1] if rows else None, unread, with_access=True)
-        their = _their_read(cv, me.id)
+        their, got = _their_read(cv, me.id), _their_got(cv, me.id)
         await session.commit()
-    return _json(request, {"ok": True, "conversation": conv, "messages": [msg_json(m, me.id, their) for m in rows]})
+    if moved:
+        await realtime.push_user(_peer_id(cv, me.id), {"type": "delivered", "conv": cv.id, "upto": rows[-1].id})
+    return _json(request, {"ok": True, "conversation": conv, "messages": [msg_json(m, me.id, their, got) for m in rows]})
 
 
 async def _send(request: web.Request, session, me: AppUser, cv: DmConversation) -> web.Response:
@@ -232,15 +264,18 @@ async def _send(request: web.Request, session, me: AppUser, cv: DmConversation) 
         cv.buyer_read = m.id
     else:
         cv.seller_read = m.id
-    nudge = not realtime.online(peer) and (not cv.nudged_at or _now() - cv.nudged_at > NUDGE_EVERY)
+    online = realtime.online(peer)
+    if online:   # собеседник в приложении — сообщение придёт ему сразу
+        _got(cv, peer, m.id)
+    nudge = not online and (not cv.nudged_at or _now() - cv.nudged_at > NUDGE_EVERY)
     if nudge:
         cv.nudged_at = _now()
     peer_user = await session.get(AppUser, peer)
     listing = (await session.get(MarketItem, cv.item_id) if cv.item_id
                else await session.get(Listing, cv.listing_id) if cv.listing_id else None)
     await session.commit()
-    mine = msg_json(m, me.id, _their_read(cv, me.id))
-    theirs = mine | {"mine": False, "read": False}
+    mine = msg_json(m, me.id, _their_read(cv, me.id), _their_got(cv, me.id))
+    theirs = mine | {"mine": False, "read": False, "status": ""}
     await realtime.push_user(peer, {"type": "dm", "conv": cv.id, "message": theirs})
     await realtime.push_user(me.id, {"type": "dm", "conv": cv.id, "message": mine})  # другие устройства автора
     if nudge and peer_user and peer_user.tg_id:
@@ -272,6 +307,7 @@ async def read(request: web.Request) -> web.Response:
             cv.buyer_read = max(cv.buyer_read, top)
         else:
             cv.seller_read = max(cv.seller_read, top)
+        _got(cv, me.id, top)   # прочитанное — и доставленное
         peer = _peer_id(cv, me.id)
         await session.commit()
     await realtime.push_user(peer, {"type": "read", "conv": cid, "upto": top})

@@ -2,13 +2,27 @@ import { ReactNode } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { MsgStatus } from '@/api/dm';
 import { timeLabel } from '@/features/feed/cards';
 import { HAIRLINE, radius, type as T, useTheme } from '@/theme';
-import { Glass, Icon, IconButton, Tap, Txt } from '@/ui';
+import { Glass, Icon, IconButton, Tap, Txt, VerifiedBadge } from '@/ui';
 
-/** Пузырь сообщения: свои — тёмные справа, чужие — светлые слева. */
-export function Bubble({ text, at, mine, name, read, onLongPress, fresh }: {
-  text: string; at: string; mine: boolean; name?: string; read?: boolean; onLongPress?: () => void; fresh?: boolean;
+/** Галочки статуса своего сообщения: одна — отправлено, две — доставлено, две яркие — прочитано. */
+export function Ticks({ status, color, readColor, size = 12 }: { status?: MsgStatus; color: string; readColor: string; size?: number }) {
+  if (!status) return null;
+  const tint = status === 'read' ? readColor : color;
+  const label = status === 'read' ? 'Прочитано' : status === 'delivered' ? 'Доставлено' : 'Отправлено';
+  return (
+    <View accessibilityLabel={label} style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <Icon name="check" size={size} color={tint} />
+      {status !== 'sent' ? <View style={{ marginLeft: -size * 0.55 }}><Icon name="check" size={size} color={tint} /></View> : null}
+    </View>
+  );
+}
+
+/** Пузырь сообщения: свои — оранжевые справа, чужие — светлые слева; у своих — время и галочки статуса. */
+export function Bubble({ text, at, mine, name, verified, status, onLongPress, fresh }: {
+  text: string; at: string; mine: boolean; name?: string; verified?: boolean; status?: MsgStatus; onLongPress?: () => void; fresh?: boolean;
 }) {
   const { c } = useTheme();
   const body = (
@@ -16,11 +30,16 @@ export function Bubble({ text, at, mine, name, read, onLongPress, fresh }: {
       style={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: '82%', paddingHorizontal: 14, paddingVertical: 9, gap: 2,
         backgroundColor: mine ? c.accent : c.bgElevated, borderWidth: mine ? 0 : HAIRLINE, borderColor: c.line,
         borderRadius: 22, borderBottomRightRadius: mine ? 7 : 22, borderBottomLeftRadius: mine ? 22 : 7 }}>
-      {name ? <Txt v="caption" tone="accent" style={{ fontFamily: 'Onest_700Bold' }}>{name}</Txt> : null}
+      {name ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Txt v="caption" tone="accent" style={{ fontFamily: 'Onest_700Bold', flexShrink: 1 }} numberOfLines={1}>{name}</Txt>
+          {verified ? <VerifiedBadge size={12} /> : null}
+        </View>
+      ) : null}
       <Txt v="body" color={mine ? c.onAccent : c.ink} selectable>{text}</Txt>
       <View style={{ flexDirection: 'row', alignSelf: 'flex-end', alignItems: 'center', gap: 4 }}>
         <Txt v="caption" color={mine ? 'rgba(11,13,18,0.62)' : c.faint} style={{ fontSize: 11 }}>{timeLabel(at)}</Txt>
-        {mine && read !== undefined ? <Icon name="check" size={11} color={read ? c.onAccent : 'rgba(11,13,18,0.45)'} /> : null}
+        {mine ? <Ticks status={status} color="rgba(11,13,18,0.45)" readColor={c.onAccent} size={12} /> : null}
       </View>
     </Pressable>
   );
@@ -62,8 +81,11 @@ export function ChatShell({ header, children, composer }: { header: ReactNode; c
 }
 
 /** Шапка переписки: «назад», аватар/название, действия. */
-export function ChatHeader({ title, sub, left, right, below, onBack }: { title: string; sub?: string; left?: ReactNode; right?: ReactNode; below?: ReactNode; onBack: () => void }) {
+export function ChatHeader({ title, sub, subAccent, verified, left, right, below, onBack }: {
+  title: string; sub?: string; subAccent?: boolean; verified?: boolean; left?: ReactNode; right?: ReactNode; below?: ReactNode; onBack: () => void;
+}) {
   const insets = useSafeAreaInsets();
+  const { c } = useTheme();
   return (
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0 }}>
       <Glass radius={0} strong style={{ paddingTop: insets.top + 4, paddingBottom: 10, paddingHorizontal: 10, gap: 10, borderWidth: 0, borderBottomWidth: 1 }}>
@@ -71,8 +93,11 @@ export function ChatHeader({ title, sub, left, right, below, onBack }: { title: 
           <IconButton icon="back" label="Назад" kind="plain" onPress={onBack} />
           {left}
           <View style={{ flex: 1 }}>
-            <Txt v="headline" numberOfLines={1}>{title}</Txt>
-            {sub ? <Txt v="caption" numberOfLines={1}>{sub}</Txt> : null}
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Txt v="headline" numberOfLines={1} style={{ flexShrink: 1 }}>{title}</Txt>
+              {verified ? <VerifiedBadge size={15} /> : null}
+            </View>
+            {sub ? <Txt v="caption" numberOfLines={1} color={subAccent ? c.accentText : undefined}>{sub}</Txt> : null}
           </View>
           {right}
         </View>
