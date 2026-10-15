@@ -5,16 +5,20 @@ import { KeyboardAvoidingView, Platform, View } from 'react-native';
 import { useAuth } from '@/api/auth';
 import { routeForError } from '@/api/community';
 import { createPost, feedChanged, MAX_POST_PHOTOS, usePost } from '@/api/feed';
+import { ItemRef, shareItem } from '@/api/items';
 import { shrinkForWeb } from '@/api/market';
-import { PostPhotos, timeLabel } from '@/features/feed/cards';
+import { PostPhotos } from '@/features/feed/FeedItems';
+import { timeLabel } from '@/features/feed/cards';
 import { radius, useTheme } from '@/theme';
 import { Avatar, Button, Field, Icon, IconButton, Img, PageScreen, Tap, Txt, useToast } from '@/ui';
 
 type Photo = { key: string; preview: string; payload: string };
 
 export default function NewPost() {
-  const { repost } = useLocalSearchParams<{ repost?: string }>();
+  const { repost, share } = useLocalSearchParams<{ repost?: string; share?: string }>();
   const repostId = Number(repost || 0);
+  // «Поделиться с комментарием» новостью или событием: их данные приходят параметром
+  const item = (() => { try { return share ? (JSON.parse(share) as ItemRef) : null; } catch { return null; } })();
   const { c } = useTheme();
   const { user } = useAuth();
   const toast = useToast();
@@ -36,14 +40,15 @@ export default function NewPost() {
     setPhotos((cur) => [...cur, ...added].slice(0, MAX_POST_PHOTOS));
   };
 
-  const ready = !!text.trim() || photos.length > 0 || repostId > 0;
+  const ready = !!text.trim() || photos.length > 0 || repostId > 0 || !!item;
   const publish = async () => {
     if (busy || !ready) return;
     setBusy(true);
     try {
-      await createPost({ text: text.trim(), photos: photos.map((p) => p.payload), repost_of: repostId || undefined });
+      if (item) await shareItem(item, text.trim());
+      else await createPost({ text: text.trim(), photos: photos.map((p) => p.payload), repost_of: repostId || undefined });
       feedChanged();
-      toast(repostId ? 'Репост опубликован' : 'Пост опубликован');
+      toast(repostId || item ? 'Теперь это в вашем профиле' : 'Пост опубликован');
       if (router.canGoBack()) router.back(); else router.replace('/');
     } catch (e: any) { if (!routeForError(e)) toast(e?.message || 'Не опубликовалось', 'error'); }
     finally { setBusy(false); }
@@ -53,8 +58,8 @@ export default function NewPost() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <PageScreen title={repostId ? 'Поделиться' : 'Новый пост'}
-        footer={<Button title={repostId ? 'Поделиться в ленте' : 'Опубликовать'} kind="primary" loading={busy} disabled={!ready} onPress={publish} />}>
+      <PageScreen title={repostId || item ? 'Поделиться' : 'Новый пост'}
+        footer={<Button title={repostId || item ? 'Поделиться в профиле' : 'Опубликовать'} kind="primary" loading={busy} disabled={!ready} onPress={publish} />}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           {user ? <Avatar name={user.name} id={user.id} size={46} /> : null}
           <View style={{ flex: 1 }}>
@@ -62,9 +67,17 @@ export default function NewPost() {
             <Txt v="footnote">Увидят все в ленте{user?.city ? ` · ${user.city}` : ''}</Txt>
           </View>
         </View>
-        <Field value={text} onChangeText={setText} multiline multilineHeight={repostId ? 110 : 180} maxLength={2000} autoFocus
-          placeholder={repostId ? 'Добавьте пару слов (необязательно)' : 'Вопрос, совет, находка или история'} hint={`${text.length}/2000`} />
-        {repostId ? (
+        <Field value={text} onChangeText={setText} multiline multilineHeight={repostId || item ? 110 : 180} maxLength={2000} autoFocus
+          placeholder={repostId || item ? 'Добавьте пару слов (необязательно)' : 'Вопрос, совет, находка или история'} hint={`${text.length}/2000`} />
+        {item ? (
+          <View style={{ flexDirection: 'row', gap: 12, alignItems: 'center', borderRadius: radius.l, borderWidth: 1, borderColor: c.line, padding: 10 }}>
+            {item.img ? <Img source={item.img} style={{ width: 64, height: 64, borderRadius: 12 }} /> : null}
+            <View style={{ flex: 1, gap: 3 }}>
+              <Txt v="caption" tone="accent" style={{ fontFamily: 'Onest_700Bold' }}>{item.kind === 'event' ? 'Событие' : 'Новость'}</Txt>
+              <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }} numberOfLines={3}>{item.title}</Txt>
+            </View>
+          </View>
+        ) : repostId ? (
           shown ? (
             <View style={{ borderRadius: radius.l, borderWidth: 1, borderColor: c.line, padding: 12, gap: 8 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

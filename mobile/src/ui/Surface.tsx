@@ -2,6 +2,7 @@ import { Image, ImageProps } from 'expo-image';
 import { ReactNode, useEffect } from 'react';
 import { StyleProp, View, ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming } from 'react-native-reanimated';
+import { BOT } from '@/api/client';
 import { radius, useTheme } from '@/theme';
 import { Icon, IconName } from './Icon';
 import { Tap } from './Tap';
@@ -23,8 +24,13 @@ export function Img({ style, ...p }: ImageProps) {
 
 const AV = [['#FFE3D6', '#8A2E0A'], ['#DDE7F7', '#1E3A8A'], ['#E3F1E7', '#14532D'], ['#F5E6F0', '#831843'], ['#EDE7FB', '#4C1D95'], ['#FDF2D6', '#78350F']];
 
-export function Avatar({ name, size = 44, id = 0 }: { name: string; size?: number; id?: number }) {
+/** Аватар: фото профиля, если есть (uri — путь сервера или полный адрес), иначе первая буква имени. */
+export function Avatar({ name, size = 44, id = 0, uri }: { name: string; size?: number; id?: number; uri?: string }) {
   const [bg, fg] = AV[Math.abs(id || name.length) % AV.length];
+  if (uri) {
+    return <Image source={uri.startsWith('/') ? BOT + uri : uri} transition={150} contentFit="cover"
+      style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg }} accessibilityLabel={name} />;
+  }
   return (
     <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
       <Txt v="headline" color={fg} style={{ fontSize: size * 0.4, lineHeight: size * 0.5 }}>{(name || '·').trim().slice(0, 1).toUpperCase()}</Txt>

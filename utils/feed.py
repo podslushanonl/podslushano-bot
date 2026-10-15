@@ -13,6 +13,8 @@ POST /api/app/posts/{id}/like                      — {on} → {likes, liked}
 GET  /api/app/posts/{id}/comments                  — комментарии
 POST /api/app/posts/{id}/comments                  — {text}
 GET  /api/app/posts/{id}/photo/{i}                 — JPEG
+POST /api/app/posts/{id}/repost                    — {on, text} репост на свою стену (on=false — убрать свой репост)
+GET  /api/app/user/{id}/posts?before=              — стена пользователя: его посты и репосты
 
 Фото хранятся прямо в базе (post_photos). Автор поста получает событие по живому соединению:
 {"type":"post","event":"like"|"comment"|"repost","post":id,"user":{...}}.
@@ -60,7 +62,15 @@ async def _friend_ids(session, uid: int) -> set[int]:
 
 
 def _author(u: AppUser | None, uid: int) -> dict:
-    return {"id": uid, "name": (u.name if u else "") or "Участник", "city": (u.city if u else "") or ""}
+    return {"id": uid, "name": (u.name if u else "") or "Участник", "city": (u.city if u else "") or "",
+            "avatar": social.avatar_url(u) if u else ""}
+
+
+def _share(p: UserPost) -> dict | None:
+    if not p.share_kind:
+        return None
+    return {"kind": p.share_kind, "key": p.share_key or "", "title": p.share_title or "", "url": p.share_url or "",
+            "img": p.share_img or ""}
 
 
 def _photos(p: UserPost) -> list[str]:
@@ -85,12 +95,17 @@ async def posts_json(session, posts: list[UserPost], me: AppUser | None) -> list
     liked = set((await session.execute(select(PostLike.post_id).where(
         PostLike.user_id == me.id, PostLike.post_id.in_(ids)))).scalars()) if me and ids else set()
     hidden = await _hidden_authors(session, me) if orig_ids else set()   # блокировка действует и на репосты
+    reposted = set((await session.execute(select(UserPost.repost_of).where(
+        UserPost.user_id == me.id, UserPost.repost_of.in_(ids | orig_ids), UserPost.deleted.is_(False)))).scalars()) \
+        if me and ids else set()
     out = []
     for p in posts:
         d = {"id": p.id, "text": p.text, "at": _at(p.created_at), "city": p.city or "", "country": p.country.value,
              "author": _author(users.get(p.user_id), p.user_id), "mine": bool(me and me.id == p.user_id),
              "photos": _photos(p), "likes": likes.get(p.id, 0), "liked": p.id in liked,
-             "comments": comments.get(p.id, 0), "reposts": reposts.get(p.id, 0), "repost": None}
+             "comments": comments.get(p.id, 0), "reposts": reposts.get(p.id, 0), "repost": None,
+             # я уже сделал репост этого поста (для репоста — его оригинала)
+             "reposted": (p.repost_of or p.id) in reposted, "share": _share(p)}
         if p.repost_of:
             o = originals.get(p.repost_of)
             d["repost"] = ({"id": o.id, "text": o.text, "at": _at(o.created_at), "city": o.city or "",
@@ -320,7 +335,78 @@ async def photo(request: web.Request) -> web.Response:
     return web.Response(body=data, content_type="image/jpeg", headers={"Cache-Control": "public, max-age=86400"})
 
 
+# ---------------------------------------------------------------- репост и стена
+
+async def repost(request: web.Request) -> web.Response:
+    """Репост в один тап: копия-ссылка на оригинал на моей стене. on=false убирает мой репост."""
+    data = await _read_json(request)
+    async with get_session() as session:
+        me = await _user(request, session)
+        denied = can_write(me)
+        if denied:
+            await session.commit()
+            return _err(request, *denied)
+        orig = await _post(session, _pid(request), me)
+        if orig and orig.repost_of:   # репост репоста — это репост оригинала
+            orig = await _post(session, orig.repost_of, me)
+        if not orig:
+            return _err(request, "Пост удалён или недоступен.", 404)
+        if orig.user_id == me.id:
+            return _err(request, "Это ваш пост.", 400)
+        mine = (await session.execute(select(UserPost).where(
+            UserPost.user_id == me.id, UserPost.repost_of == orig.id, UserPost.deleted.is_(False)))).scalars().first()
+        if data.get("on", True) is False:
+            if mine:
+                mine.deleted = True
+            await session.commit()
+            item = None
+        else:
+            if mine:
+                return _err(request, "Вы уже поделились этим постом.", 409)
+            text = str(data.get("text") or "").strip()
+            if text:
+                reason = check_text(me, text, POST_MAX)
+                if reason:
+                    return _err(request, reason)
+            if _rate(f"repost:{me.id}", 20, 86400):
+                return _err(request, "Слишком много репостов за день. Попробуйте завтра.", 429)
+            mine = UserPost(user_id=me.id, text=text, city=me.city or "", country=me.country, repost_of=orig.id)
+            session.add(mine)
+            await session.commit()
+            item = (await posts_json(session, [mine], me))[0]
+        count = await session.scalar(select(func.count()).select_from(UserPost).where(
+            UserPost.repost_of == orig.id, UserPost.deleted.is_(False), UserPost.hidden.is_(False))) or 0
+        author, oid, me_card = orig.user_id, orig.id, {"id": me.id, "name": me.name or "Участник"}
+        await session.commit()
+    if item:
+        await realtime.push_user(author, {"type": "post", "event": "repost", "post": oid, "user": me_card})
+    return _json(request, {"ok": True, "post": item, "original": oid, "reposts": count, "reposted": item is not None})
+
+
+async def wall(request: web.Request) -> web.Response:
+    try:
+        uid = int(request.match_info["id"])
+    except (KeyError, ValueError):
+        return _err(request, "Пользователь не найден.", 404)
+    async with get_session() as session:
+        me = await _user(request, session)
+        if not me:
+            return _err(request, "Войдите, чтобы смотреть профили.", 401)
+        if uid in await _hidden_authors(session, me):
+            return _json(request, {"ok": True, "posts": [], "more": False})
+        q = _visible(select(UserPost)).where(UserPost.user_id == uid)
+        before = request.query.get("before", "")
+        if before.isdigit():
+            q = q.where(UserPost.id < int(before))
+        rows = list((await session.execute(q.order_by(UserPost.id.desc()).limit(PAGE))).scalars())
+        items = await posts_json(session, rows, me)
+        await session.commit()
+    return _json(request, {"ok": True, "posts": items, "more": len(rows) == PAGE})
+
+
 def install_routes(app: web.Application) -> None:
+    app.router.add_post(r"/api/app/posts/{id:\d+}/repost", repost)
+    app.router.add_get(r"/api/app/user/{id:\d+}/posts", wall)
     app.router.add_get("/api/app/posts", posts)
     app.router.add_post("/api/app/posts", posts)
     app.router.add_get(r"/api/app/posts/{id:\d+}", post_detail)

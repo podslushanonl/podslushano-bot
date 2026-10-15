@@ -49,8 +49,9 @@ def _ip(request: web.Request) -> str:
 
 
 def user_json(u: AppUser) -> dict:
+    avatar = f"/api/app/user/{u.id}/avatar?v={u.avatar_v}" if u.avatar_v else ""
     return {"id": u.id, "name": u.name, "city": u.city, "country": u.country.value, "email": u.email or "",
-            "telegram": bool(u.tg_id)}
+            "telegram": bool(u.tg_id), "bio": u.bio or "", "avatar": avatar}
 
 
 def _session(u: AppUser) -> dict:
@@ -183,6 +184,14 @@ async def me(request: web.Request) -> web.Response:
                     u.country = Country.parse(data.get("country"))
                 except ValueError:
                     return _err(request, "Страна: Нидерланды, Германия или Бельгия.")
+            if "bio" in data:
+                bio = " ".join(str(data.get("bio") or "").split())[:160]
+                if bio:
+                    from utils.community import check_text
+                    reason = check_text(u, bio, 160)
+                    if reason:
+                        return _err(request, reason)
+                u.bio = bio
             if "name" in data:
                 u.name = str(data.get("name") or "").strip()[:80]
             if "city" in data:
@@ -214,7 +223,28 @@ async def favorite(request: web.Request) -> web.Response:
     return _json(request, {"ok": True})
 
 
+async def set_avatar(request: web.Request) -> web.Response:
+    """POST /api/app/me/avatar {photo: data:...} — новое фото профиля (квадрат 512 px), {photo: ""} — убрать."""
+    from utils.market import _read_json, prepare_avatar
+    data = await _read_json(request)
+    async with get_session() as session:
+        u = await _user(request, session)
+        if not u:
+            return _err(request, "Войдите заново.", 401)
+        raw = str(data.get("photo") or "")
+        if raw:
+            jpeg = prepare_avatar(raw)
+            if not jpeg:
+                return _err(request, "Не получилось прочитать фото. Попробуйте другое.")
+            u.avatar, u.avatar_v = jpeg, (u.avatar_v or 0) + 1
+        else:
+            u.avatar, u.avatar_v = None, 0
+        await session.commit()
+        return _json(request, {"ok": True, "user": user_json(u)})
+
+
 def install_routes(app: web.Application) -> None:
+    app.router.add_post("/api/app/me/avatar", set_avatar)
     app.router.add_post("/api/app/auth/email", auth_email)
     app.router.add_post("/api/app/auth/verify", auth_verify)
     app.router.add_post("/api/app/auth/tg", auth_tg_start)

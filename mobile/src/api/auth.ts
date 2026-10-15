@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react';
 import { api, ApiError, setToken, setUnauthorizedHandler, tokenStore } from './client';
 import { queryClient } from './query';
 
-export type User = { id: number; name: string; city: string; country: string; email: string; telegram: boolean };
+export type User = { id: number; name: string; city: string; country: string; email: string; telegram: boolean; bio: string; avatar: string };
 export type Favorite = { kind: string; key: string; title: string };
 type State = { ready: boolean; user: User | null; favorites: Favorite[] };
 
@@ -54,9 +54,16 @@ export async function pollTelegram(nonce: string) {
   return true;
 }
 
-export async function saveProfile(p: { name?: string; city?: string; country?: string }) {
+export async function saveProfile(p: { name?: string; city?: string; country?: string; bio?: string }) {
   const d = await api<{ user: User; favorites: Favorite[] }>('/api/app/me', p);
   set({ user: d.user, favorites: d.favorites });
+}
+
+/** Новое фото профиля (data:…) или '' — убрать. */
+export async function saveAvatar(photo: string) {
+  const d = await api<{ user: User }>('/api/app/me/avatar', { photo });
+  set({ user: d.user });
+  queryClient.invalidateQueries({ queryKey: ['me', 'user', d.user.id] });
 }
 
 export async function toggleFavorite(key: string, title: string, on: boolean, kind = 'event') {

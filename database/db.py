@@ -107,11 +107,19 @@ _APP_USER_LATER_COLUMNS = {
     "rules_at": "TIMESTAMP",
     "banned_until": "TIMESTAMP",
     "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
+    "bio": "VARCHAR(160) NOT NULL DEFAULT ''",
+    "avatar": "{BLOB}",
+    "avatar_v": "INTEGER NOT NULL DEFAULT 0",
 }
 _USER_POST_LATER_COLUMNS = {
     "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
     "repost_of": "INTEGER",
     "photo_count": "INTEGER NOT NULL DEFAULT 0",
+    "share_kind": "VARCHAR(10)",
+    "share_key": "VARCHAR(120)",
+    "share_title": "VARCHAR(300) NOT NULL DEFAULT ''",
+    "share_url": "VARCHAR(700) NOT NULL DEFAULT ''",
+    "share_img": "VARCHAR(700) NOT NULL DEFAULT ''",
 }
 _COUNTRY_VALUES = "('Нидерланды', 'Германия', 'Бельгия')"
 
@@ -365,9 +373,10 @@ async def _migrate() -> None:
 
         au_cols = await conn.run_sync(app_user_cols)
         if au_cols is not None:
+            blob = "BYTEA" if conn.dialect.name == "postgresql" else "BLOB"
             for name, ddl in _APP_USER_LATER_COLUMNS.items():
                 if name not in au_cols:
-                    await conn.exec_driver_sql(f"ALTER TABLE app_users ADD COLUMN {name} {ddl}")
+                    await conn.exec_driver_sql(f"ALTER TABLE app_users ADD COLUMN {name} {ddl.replace('{BLOB}', blob)}")
             # Индекс страны: таблица в PostgreSQL создана до него, create_all его уже не добавит
             await conn.exec_driver_sql("CREATE INDEX IF NOT EXISTS ix_app_users_country ON app_users (country)")
 

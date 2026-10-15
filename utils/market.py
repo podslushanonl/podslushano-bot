@@ -236,6 +236,22 @@ def prepare_photo(raw: str) -> bytes | None:
     return out.getvalue()
 
 
+def prepare_avatar(raw: str, side: int = 512) -> bytes | None:
+    """base64 → квадратный JPEG side×side по центру, без EXIF. None — не картинка."""
+    from PIL import Image, ImageOps
+    if "," in raw[:100]:
+        raw = raw.split(",", 1)[1]
+    try:
+        img = Image.open(io.BytesIO(base64.b64decode(raw, validate=False)))
+        img = ImageOps.exif_transpose(img).convert("RGB")
+    except (binascii.Error, ValueError, OSError):
+        return None
+    img = ImageOps.fit(img, (side, side))
+    out = io.BytesIO()
+    img.save(out, "JPEG", quality=88, optimize=True)
+    return out.getvalue()
+
+
 async def _upload_photo(bot, jpeg: bytes, lid: int) -> str | None:
     """Загружает фото в Telegram и сразу убирает служебное сообщение. Возвращает file_id."""
     if not config.ADMIN_IDS:

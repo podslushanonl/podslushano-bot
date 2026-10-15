@@ -14,9 +14,9 @@ export const fetchMessages = (slug: string, after?: number) =>
 export const sendMessage = async (slug: string, text: string): Promise<Msg> =>
   (await sayInRoom(slug, text)) ?? api<{ message: Msg }>(`/api/app/rooms/${slug}/messages`, { text }).then((d) => d.message);
 export const acceptRules = () => api('/api/app/rules', {});
-export const report = (kind: 'msg' | 'post' | 'comment', id: number) => api('/api/app/report', { kind, id });
+export const report = (kind: 'msg' | 'post' | 'comment' | 'icomment', id: number) => api('/api/app/report', { kind, id });
 export const block = (userId: number) => api('/api/app/block', { user_id: userId });
-export const removeOwn = (kind: 'msg' | 'post' | 'comment', id: number) => api('/api/app/delete', { kind, id });
+export const removeOwn = (kind: 'msg' | 'post' | 'comment' | 'icomment', id: number) => api('/api/app/delete', { kind, id });
 
 /** Ошибка доступа → куда отправить человека: войти, указать имя, принять правила. true — обработано. */
 export function routeForError(e: unknown): boolean {
