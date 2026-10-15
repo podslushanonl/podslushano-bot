@@ -152,13 +152,16 @@ async def _check(request: web.Request, kind: str, key: str, raw_code) -> web.Res
         if (fail := await _claim(request, session, row)):
             return fail
         # 1) номер/почта уже есть у аккаунта — входим в него;
-        # 2) нет, но человек уже вошёл (например, по почте) — записываем проверенный номер в его аккаунт, а не плодим второй;
+        # 2) нет, но человек уже вошёл (например, по почте) и номера у него ещё нет — записываем проверенный номер
+        #    в его аккаунт, а не плодим второй;
         # 3) иначе — новый аккаунт
         col = AppUser.phone if kind == "phone" else AppUser.email
         u = (await session.execute(select(AppUser).where(col == key))).scalar_one_or_none()
         if not u:
-            u = await _user(request, session)
-            if u:
+            # Дописываем только пустое поле: уже привязанный номер/почту вход никогда не перезаписывает
+            current = await _user(request, session)
+            if current and not getattr(current, kind):
+                u = current
                 setattr(u, kind, key)
                 log.info("Вход: %s привязан(а) к уже открытому аккаунту %s", kind, u.id)
         if not u:
@@ -204,7 +207,8 @@ async def link_check(request: web.Request) -> web.Response:
         col = AppUser.phone if kind == "phone" else AppUser.email
         other = (await session.execute(select(AppUser).where(col == to, AppUser.id != me.id))).scalar_one_or_none()
         if other and data.get("move") is not True:
-            # Код верный, но не гасим: человек подтвердит перенос и отправит его ещё раз
+            # Код верный, но не гасим и попытку возвращаем: человек подтвердит перенос и отправит его ещё раз
+            await session.execute(update(AppLogin).where(AppLogin.id == row.id).values(attempts=AppLogin.attempts - 1))
             await session.commit()
             what = "Этот номер" if kind == "phone" else "Эта почта"
             return _json(request, {"ok": False, "error": f"{what} уже привязан(а) к другому аккаунту.",

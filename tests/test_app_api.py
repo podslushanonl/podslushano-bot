@@ -181,11 +181,13 @@ class AppApiTests(unittest.IsolatedAsyncioTestCase):
             # Привязка номера к аккаунту по почте: номер занят другим аккаунтом — сначала вопрос
             await self.client.post("/api/app/me/link/start", json={"phone": "06 12345678", "cc": "31"}, headers=h)
             code = sent["+31612345678"]
-            wrong = await self.client.post("/api/app/me/link/check", json={"phone": "+31612345678", "code": "1"}, headers=h)
-            self.assertEqual(wrong.status, 400)
+            for _ in range(4):                                                     # 4 ошибки из 5 попыток
+                wrong = await self.client.post("/api/app/me/link/check", json={"phone": "+31612345678", "code": "1"}, headers=h)
+                self.assertEqual(wrong.status, 400)
             r = await self.client.post("/api/app/me/link/check", json={"phone": "+31612345678", "code": code}, headers=h)
             self.assertEqual(r.status, 409)
             self.assertIn("taken", await r.json())
+            # Вопрос о переносе не съедает попытку: подтверждение после 4 ошибок проходит (проверяется ниже)
             # Код со входа не подходит для привязки и наоборот
             self.assertEqual((await self.client.post("/api/app/auth/check", json={"phone": "+31612345678", "code": code})).status, 400)
             ok = await (await self.client.post("/api/app/me/link/check", json={"phone": "+31612345678", "code": code, "move": True},
@@ -234,6 +236,13 @@ class AppApiTests(unittest.IsolatedAsyncioTestCase):
             d = await (await self.client.post("/api/app/auth/check", json={"phone": "+31687654321", "code": sent["+31687654321"]})).json()
             self.assertNotEqual(d["user"]["id"], anna["user"]["id"])
             self.assertEqual(d["user"]["email"], "")
+            # Анна (номер уже есть) с токеном входит по другому номеру — её номер не перезаписывается, это другой аккаунт
+            await self.client.post("/api/app/auth/start", json={"phone": "+31611111111"}, headers=h)
+            d = await (await self.client.post("/api/app/auth/check", json={"phone": "+31611111111", "code": sent["+31611111111"]},
+                                              headers=h)).json()
+            self.assertNotEqual(d["user"]["id"], anna["user"]["id"])
+            me = await (await self.client.get("/api/app/me", headers=h)).json()
+            self.assertEqual(me["user"]["phone"], "+31612345678")
 
     def test_phone_normalize(self):
         n = phone.normalize
