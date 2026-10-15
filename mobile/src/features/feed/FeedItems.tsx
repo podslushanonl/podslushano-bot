@@ -9,28 +9,25 @@ import { Post, postPhoto, RepostOf, setRepost, Share, toggleLike } from '@/api/f
 import { ItemKind, ItemRef, ItemStats, shareItem, toggleItemLike } from '@/api/items';
 import { ago, dayMonth, weekday } from '@/lib/format';
 import { openUrl } from '@/lib/open';
-import { radius, useTheme } from '@/theme';
+import { HAIRLINE, radius, useTheme } from '@/theme';
 import { ActionSheet, Avatar, Icon, IconButton, IconName, Img, PhotoViewer, SheetAction, Tap, Txt, useToast } from '@/ui';
 import { timeLabel } from './cards';
 
-// Лента в стиле соцсети: элементы без «коробок», разделены тонкой линией; текст, фото и действия
-// идут от левого края, как во VK; внизу у каждого — одна компактная панель: нравится, комментарии, репост.
+// Лента слоями, как в Threads: каждый пост, новость и событие — карточка на тон светлее фона с тонкой рамкой;
+// внутри — вложения (репост, ссылка) ещё одним слоем; внизу одна и та же панель: нравится, комментарии, репост.
 
-/** Тонкая линия между элементами ленты. */
-export function FeedDivider() {
+const CARD_RADIUS = radius.l;
+const NESTED_RADIUS = radius.xs;   // вложенные карточки чуть мягче основной
+
+/** Карточка элемента ленты. */
+function useCard() {
   const { c } = useTheme();
-  return <View style={{ height: 1, backgroundColor: c.line }} />;
+  return { backgroundColor: c.bgElevated, borderRadius: CARD_RADIUS, borderWidth: HAIRLINE, borderColor: c.line, padding: 16, gap: 12 } as const;
 }
 
-/** Подложка ленты: белый лист на всю ширину экрана. */
-export function FeedSheet({ children }: { children: ReactNode }) {
-  const { c } = useTheme();
-  return (
-    <View style={{ marginHorizontal: -20, backgroundColor: c.bgElevated, borderTopLeftRadius: radius.xl, borderTopRightRadius: radius.xl,
-      borderTopWidth: 1, borderColor: c.line, paddingHorizontal: 20, paddingTop: 6 }}>
-      {children}
-    </View>
-  );
+/** Список карточек ленты с ровными промежутками. */
+export function FeedList({ children }: { children: ReactNode }) {
+  return <View style={{ gap: 12 }}>{children}</View>;
 }
 
 function ActionBtn({ icon, n, active, color, label, onPress, children }: {
@@ -40,9 +37,9 @@ function ActionBtn({ icon, n, active, color, label, onPress, children }: {
   const tint = active ? color || c.accentText : c.muted;
   return (
     <Tap onPress={onPress} haptic="light" scaleTo={0.9} accessibilityLabel={label} accessibilityState={{ selected: !!active }}
-      hitSlop={6} style={{ flexDirection: 'row', alignItems: 'center', gap: 5, paddingVertical: 6, paddingHorizontal: 8, minWidth: 52 }}>
+      hitSlop={10} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 4, marginRight: 24 }}>
       {children ?? (icon ? <Icon name={icon} thin size={22} color={tint} /> : null)}
-      <Txt v="subhead" color={tint} style={{ fontFamily: 'Onest_500Medium', fontVariant: ['tabular-nums'] }}>{n ? n : ''}</Txt>
+      {n ? <Txt v="subhead" color={tint} style={{ fontFamily: 'Onest_500Medium', fontVariant: ['tabular-nums'], lineHeight: 22 }}>{n}</Txt> : null}
     </Tap>
   );
 }
@@ -73,7 +70,7 @@ export function ActionBar({ likes, liked, comments, reposts, reposted, onLike, o
 }) {
   const { c } = useTheme();
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginLeft: -8, marginTop: -4, marginBottom: -6 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
       <ActionBtn n={likes} active={liked} color={c.accent} label={liked ? 'Убрать лайк' : 'Нравится'} onPress={onLike}>
         <Heart on={liked} color={c.accent} />
       </ActionBtn>
@@ -95,7 +92,7 @@ export function PostPhotos({ paths }: { paths: string[] }) {
   const urls = paths.map(postPhoto);
   const tile = (u: string, i: number, style: object) => (
     <Tap key={u} onPress={() => setOpen(i)} scaleTo={0.985} haptic={false} accessibilityLabel={`Открыть фото ${i + 1} из ${urls.length}`} style={style}>
-      <Img source={u} style={{ width: '100%', height: '100%', borderRadius: 14 }} />
+      <Img source={u} style={{ width: '100%', height: '100%', borderRadius: 10 }} />
     </Tap>
   );
   return (
@@ -118,16 +115,16 @@ const openShare = (s: Share) => (s.kind === 'event'
 function SharePreview({ s }: { s: Share }) {
   const { c } = useTheme();
   return (
-    <Tap onPress={() => openShare(s)} scaleTo={0.99} style={{ flexDirection: 'row', gap: 12, alignItems: 'center', borderRadius: radius.l,
-      borderWidth: 1, borderColor: c.line, padding: 10 }}>
-      {s.img ? <Img source={s.img} style={{ width: 64, height: 64, borderRadius: 12 }} /> : (
-        <View style={{ width: 64, height: 64, borderRadius: 12, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+    <Tap onPress={() => openShare(s)} scaleTo={0.99} style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-start', borderRadius: NESTED_RADIUS,
+      borderWidth: HAIRLINE, borderColor: c.line, backgroundColor: c.bgSunken, padding: 12 }}>
+      {s.img ? <Img source={s.img} style={{ width: 64, height: 64, borderRadius: 6 }} /> : (
+        <View style={{ width: 64, height: 64, borderRadius: 6, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name={s.kind === 'event' ? 'ticket' : 'newspaper'} color={c.accentText} />
         </View>
       )}
       <View style={{ flex: 1, gap: 3 }}>
         <Txt v="caption" tone="accent" style={{ fontFamily: 'Onest_700Bold' }}>{s.kind === 'event' ? 'Событие' : 'Новость'}</Txt>
-        <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }} numberOfLines={3}>{s.title}</Txt>
+        <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }}>{s.title}</Txt>
       </View>
     </Tap>
   );
@@ -136,10 +133,15 @@ function SharePreview({ s }: { s: Share }) {
 function RepostBox({ r, onOpen }: { r: RepostOf; onOpen: (id: number) => void }) {
   const { c } = useTheme();
   if (r.deleted) {
-    return <View style={{ borderRadius: radius.l, borderWidth: 1, borderColor: c.line, padding: 14 }}><Txt v="callout" tone="muted">Пост удалён или недоступен</Txt></View>;
+    return (
+      <View style={{ borderRadius: NESTED_RADIUS, borderWidth: HAIRLINE, borderColor: c.line, backgroundColor: c.bgSunken, padding: 12 }}>
+        <Txt v="callout" tone="muted">Пост удалён или недоступен</Txt>
+      </View>
+    );
   }
   return (
-    <Tap onPress={() => onOpen(r.id)} scaleTo={0.99} style={{ borderRadius: radius.l, borderWidth: 1, borderColor: c.line, padding: 12, gap: 8 }}>
+    <Tap onPress={() => onOpen(r.id)} scaleTo={0.99} style={{ borderRadius: NESTED_RADIUS, borderWidth: HAIRLINE, borderColor: c.line,
+      backgroundColor: c.bgSunken, padding: 12, gap: 8 }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <Avatar name={r.author.name} id={r.author.id} uri={r.author.avatar} size={24} />
         <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold', flexShrink: 1 }} numberOfLines={1}>{r.author.name}</Txt>
@@ -170,6 +172,7 @@ function Head({ avatar, title, sub, onPress, onMenu }: { avatar: ReactNode; titl
 
 /** Пост пользователя в ленте, на стене и на экране поста. */
 export function FeedPost({ p, onMenu, full }: { p: Post; onMenu: () => void; full?: boolean }) {
+  const card = useCard();
   const { user } = useAuth();
   const toast = useToast();
   const fail = useFail();
@@ -187,7 +190,7 @@ export function FeedPost({ p, onMenu, full }: { p: Post; onMenu: () => void; ful
       ];
   const sub = [p.repost ? 'репост' : p.share ? 'поделился' : '', p.city || p.author.city, timeLabel(p.at)].filter(Boolean).join(' · ');
   return (
-    <View style={{ paddingVertical: 16, gap: 10 }}>
+    <View style={card}>
       <Head avatar={<Avatar name={p.author.name} id={p.author.id} uri={p.author.avatar} size={44} />} title={p.author.name} sub={sub}
         onPress={() => router.push({ pathname: '/user/[id]', params: { id: String(p.author.id) } })} onMenu={onMenu} />
       <View style={{ gap: 10 }}>
@@ -241,15 +244,16 @@ export const newsRef = (n: News): ItemRef => ({ kind: 'news', key: n.id, title: 
 export const eventRef = (e: EventItem): ItemRef => ({ kind: 'event', key: e.key, title: e.h, url: e.url || '', img: e.img || '' });
 
 export function FeedNews({ n, stats }: { n: News; stats: ItemStats }) {
+  const card = useCard();
   const { bar, sheet } = useItemActions(newsRef(n), stats);
   return (
-    <View style={{ paddingVertical: 16, gap: 10 }}>
+    <View style={card}>
       <Head avatar={<Badge icon="newspaper" />} title="podslushano.nl" sub={`${n.cat || 'Новости'} · ${ago(n.date, n.time)}`} />
       <View style={{ gap: 10 }}>
         <Tap onPress={() => openUrl(n.link)} scaleTo={0.995} style={{ gap: 10 }} accessibilityRole="link">
           <Txt v="headline" style={{ fontSize: 18, lineHeight: 24 }}>{n.h}</Txt>
           {n.lead ? <Txt v="callout" tone="muted" numberOfLines={3}>{n.lead}</Txt> : null}
-          {n.img ? <Img source={n.img} style={{ width: '100%', aspectRatio: 16 / 10, borderRadius: 14 }} /> : null}
+          {n.img ? <Img source={n.img} style={{ width: '100%', aspectRatio: 16 / 10, borderRadius: 10 }} /> : null}
         </Tap>
         {bar}
       </View>
@@ -259,10 +263,11 @@ export function FeedNews({ n, stats }: { n: News; stats: ItemStats }) {
 }
 
 export function FeedEvent({ e, stats }: { e: EventItem; stats: ItemStats }) {
+  const card = useCard();
   const { c } = useTheme();
   const { bar, sheet } = useItemActions(eventRef(e), stats);
   return (
-    <View style={{ paddingVertical: 16, gap: 10 }}>
+    <View style={card}>
       <Head avatar={<Badge icon="ticket" />} title="Афиша" sub={`${weekday(e.date)}, ${dayMonth(e.date)}${e.time ? ` · ${e.time}` : ''}`} />
       <View style={{ gap: 10 }}>
         <Tap onPress={() => router.push({ pathname: '/event/[key]', params: { key: e.key } })} scaleTo={0.995} style={{ gap: 8 }}>
@@ -271,7 +276,7 @@ export function FeedEvent({ e, stats }: { e: EventItem; stats: ItemStats }) {
             <Icon name="location" size={14} color={c.muted} />
             <Txt v="footnote" numberOfLines={1} style={{ flex: 1 }}>{[e.venue, e.city].filter(Boolean).join(', ') || 'Нидерланды'}{e.price ? ` · ${e.price}` : ''}</Txt>
           </View>
-          {e.img ? <Img source={e.img} style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: 14 }} /> : null}
+          {e.img ? <Img source={e.img} style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: 10 }} /> : null}
         </Tap>
         {bar}
       </View>

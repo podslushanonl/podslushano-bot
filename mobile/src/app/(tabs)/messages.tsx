@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { ReactNode, useState } from 'react';
 import { View } from 'react-native';
 import { useAuth } from '@/api/auth';
 import { Room, useRooms } from '@/api/community';
@@ -8,8 +8,8 @@ import { photoUrl } from '@/api/market';
 import { timeLabel } from '@/features/feed/cards';
 import { useFriends } from '@/api/social';
 import { useCity, useCountry } from '@/lib/useCity';
-import { radius, useTheme } from '@/theme';
-import { Avatar, Badge, Button, Empty, Group, Icon, Img, Row, Segmented, Skeleton, TabScreen, Tap, Txt } from '@/ui';
+import { HAIRLINE, radius, useTheme } from '@/theme';
+import { Avatar, Badge, Button, Empty, Group, Icon, IconName, Img, Row, Segmented, Skeleton, TabScreen, Tap, Txt } from '@/ui';
 
 function ConversationRow({ cv, first }: { cv: Conversation; first: boolean }) {
   const { c } = useTheme();
@@ -37,6 +37,33 @@ function ConversationRow({ cv, first }: { cv: Conversation; first: boolean }) {
   );
 }
 
+/** Плитка чата в сетке: иконка, название, активность за сутки. */
+function RoomTile({ r, icon, onPress }: { r: Room; icon: IconName; onPress: () => void }) {
+  const { c } = useTheme();
+  return (
+    <Tap onPress={onPress} scaleTo={0.96} accessibilityLabel={r.title}
+      style={{ width: '48.5%', flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: c.bgElevated, borderRadius: radius.m,
+        borderWidth: HAIRLINE, borderColor: c.line, paddingVertical: 12, paddingHorizontal: 12 }}>
+      <View style={{ width: 32, height: 32, borderRadius: 16, backgroundColor: c.bgSunken, alignItems: 'center', justifyContent: 'center' }}>
+        <Icon name={icon} thin size={16} color={c.ink} />
+      </View>
+      <View style={{ flex: 1, gap: 1 }}>
+        <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }} numberOfLines={1}>{r.title}</Txt>
+        <Txt v="caption" tone={r.today ? 'accent' : 'muted'} numberOfLines={1}>{r.today ? `${r.today} за сутки` : 'Тихо'}</Txt>
+      </View>
+    </Tap>
+  );
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <View style={{ gap: 10 }}>
+      <Txt v="headline">{title}</Txt>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 }}>{children}</View>
+    </View>
+  );
+}
+
 function RoomsList({ rooms: all }: { rooms: Room[] }) {
   const { c } = useTheme();
   const [city] = useCity();
@@ -46,42 +73,44 @@ function RoomsList({ rooms: all }: { rooms: Room[] }) {
   const rooms = all.filter((r) => r.country === country);
   const mine = rooms.find((r) => r.kind === 'city' && r.title === city);
   const open = (r: Room) => router.push({ pathname: '/room/[slug]', params: { slug: r.slug, title: r.title } });
+  const cities = rooms.filter((r) => r.kind === 'city' && r !== mine);
+  const topics = rooms.filter((r) => r.kind === 'topic');
   return (
-    <View style={{ gap: 18 }}>
-      {common.length ? (
-        <Group title="Для всех · Нидерланды, Германия, Бельгия">
-          {common.map((r, i) => (
-            <Row key={r.slug} first={i === 0} title={r.title} sub={r.today ? `${r.today} сообщ. за сутки` : 'Общайтесь со всеми — дружба не нужна'}
-              icon="globe" onPress={() => open(r)} />
-          ))}
-        </Group>
-      ) : null}
-      {mine ? (
-        <Tap onPress={() => open(mine)} scaleTo={0.98} style={{ backgroundColor: c.hero, borderRadius: radius.xxl, padding: 18, gap: 12 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <View style={{ width: 44, height: 44, borderRadius: 15, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="location" size={20} color={c.onAccent} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Txt v="overline" color={c.accent}>Ваш город</Txt>
-              <Txt v="title2" color={c.onHero}>{mine.title}</Txt>
-            </View>
-            <Icon name="chevron" size={14} color={c.onHeroMuted} />
+    <View style={{ gap: 22 }}>
+      {common.map((r) => (
+        <Tap key={r.slug} onPress={() => open(r)} scaleTo={0.98} accessibilityLabel={r.title}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: c.bgElevated, borderRadius: radius.m,
+            borderWidth: HAIRLINE, borderColor: c.line, padding: 14 }}>
+          <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: c.bgSunken, alignItems: 'center', justifyContent: 'center' }}>
+            <Icon name="globe" thin size={20} color={c.ink} />
           </View>
-          <Txt v="callout" color={c.onHeroMuted}>{mine.today ? `${mine.today} сообщений за сутки — присоединяйтесь` : 'Начните разговор с соседями'}</Txt>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Txt v="bodyStrong" numberOfLines={1}>{r.title}</Txt>
+            <Txt v="footnote" tone="muted" numberOfLines={1}>{r.today ? `${r.today} сообщ. за сутки` : 'Нидерланды, Германия и Бельгия'}</Txt>
+          </View>
+          <Icon name="chevron" size={13} color={c.faint} />
+        </Tap>
+      ))}
+      {mine ? (
+        <Tap onPress={() => open(mine)} scaleTo={0.98} accessibilityLabel={`Ваш город: ${mine.title}`}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 9, paddingHorizontal: 12,
+            borderRadius: radius.pill, borderWidth: 1, borderColor: c.accent }}>
+          <Icon name="location" size={16} color={c.accentText} />
+          <Txt v="subhead" tone="ink" style={{ flex: 1 }} numberOfLines={1}>
+            <Txt v="subhead" tone="accent">Ваш город · </Txt>
+            <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold' }}>{mine.title}</Txt>
+          </Txt>
+          <Txt v="caption" tone="muted">{mine.today ? `${mine.today} за сутки` : 'Открыть'}</Txt>
+          <Icon name="chevron" size={12} color={c.muted} />
         </Tap>
       ) : null}
-      <Group title="Города">
-        {rooms.filter((r) => r.kind === 'city' && r !== mine).map((r, i) => (
-          <Row key={r.slug} first={i === 0} title={r.title} sub={r.today ? `${r.today} сообщ. за сутки` : 'Тихо — начните разговор'} icon="location" onPress={() => open(r)} />
-        ))}
-      </Group>
-      <Group title="Темы">
-        {rooms.filter((r) => r.kind === 'topic').map((r, i) => (
-          <Row key={r.slug} first={i === 0} title={r.title} sub={r.today ? `${r.today} сообщ. за сутки` : country} icon="people" onPress={() => open(r)} />
-        ))}
-      </Group>
-      <Txt v="footnote" center>Будьте вежливы: у нас есть модерация. Правила — в профиле.</Txt>
+      {cities.length ? (
+        <Section title="Города">{cities.map((r) => <RoomTile key={r.slug} r={r} icon="location" onPress={() => open(r)} />)}</Section>
+      ) : null}
+      {topics.length ? (
+        <Section title="Темы">{topics.map((r) => <RoomTile key={r.slug} r={r} icon="people" onPress={() => open(r)} />)}</Section>
+      ) : null}
+      <Txt v="footnote" tone="muted" center>Будьте вежливы: у нас есть модерация. Правила — в профиле.</Txt>
     </View>
   );
 }

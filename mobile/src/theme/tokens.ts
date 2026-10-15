@@ -40,15 +40,16 @@ export const palette = {
     segOn: '#FFFFFF',
   },
   dark: {
-    bg: '#0A0B0E',
-    bgElevated: '#16181D',
-    bgSunken: '#1E2128',
+    // Слои как в Threads: графитовый фон, карточки на тон светлее, тонкая рамка #2E2E2E — без «мёртвого» чёрного
+    bg: '#121212',
+    bgElevated: '#1E1E1E',
+    bgSunken: '#262626',
     ink: '#F4F5F7',
     text: '#D3D7DE',
-    muted: '#979DA8',
-    faint: '#646A75',
-    line: 'rgba(255,255,255,0.08)',
-    lineStrong: 'rgba(255,255,255,0.16)',
+    muted: '#9A9FA8',
+    faint: '#666B74',
+    line: '#2E2E2E',
+    lineStrong: '#3A3A3A',
     accent: '#FF6A33',
     accentSoft: '#3A1D10',
     onAccent: '#0B0D12',
@@ -56,29 +57,31 @@ export const palette = {
     success: '#4ADE80',
     danger: '#F87171',
     info: '#60A5FA',
-    glassFill: 'rgba(28,30,36,0.58)',
-    glassFillStrong: 'rgba(28,30,36,0.80)',
-    glassStroke: 'rgba(255,255,255,0.16)',
-    glassEdge: 'rgba(255,255,255,0.10)',
+    glassFill: 'rgba(30,30,30,0.62)',
+    glassFillStrong: 'rgba(30,30,30,0.84)',
+    glassStroke: 'rgba(255,255,255,0.12)',
+    glassEdge: 'rgba(255,255,255,0.08)',
     glassShadow: 'rgba(0,0,0,0.45)',
     scrim: 'rgba(0,0,0,0.55)',
     inverse: '#F4F5F7',
     onInverse: '#0B0D12',
     onInverseMuted: '#4B5260',
-    placeholder: '#23262D',
-    hero: '#1B1E25',
-    heroInner: '#262A33',
-    heroInner2: '#323743',
+    placeholder: '#262626',
+    hero: '#1E1E1E',
+    heroInner: '#272727',
+    heroInner2: '#323232',
     onHero: '#FFFFFF',
     onHeroMuted: '#AEB4BF',
-    segTrack: '#16181D',
-    segOn: '#2C3039',
+    segTrack: '#1E1E1E',
+    segOn: '#2E2E2E',
   },
 } as const;
 
 export type Colors = { [K in keyof (typeof palette)['light']]: string };
 
 export const radius = { xs: 8, s: 12, m: 16, l: 22, xl: 28, xxl: 34, pill: 999 } as const;
+/** Тонкая рамка карточек: даёт объём слоям, не перегружая. */
+export const HAIRLINE = 0.5;
 export const space = { xs: 4, s: 8, m: 12, l: 16, xl: 20, xxl: 28, xxxl: 40 } as const;
 
 export const fonts = {

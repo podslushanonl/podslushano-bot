@@ -9,7 +9,7 @@ import { prettyPhone } from '@/features/auth/phone';
 import { CitySheet } from '@/features/common/CitySheet';
 import { openBot, openUrl } from '@/lib/open';
 import { useCity, useCountry } from '@/lib/useCity';
-import { radius, useTheme } from '@/theme';
+import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Button, Group, Icon, Img, PageScreen, Row, Tap, Txt, useToast } from '@/ui';
 
 const SOCIAL: [any, string, string][] = [
@@ -47,7 +47,7 @@ export default function Settings() {
           ) : null}
         </>
       ) : (
-        <View style={{ backgroundColor: c.hero, borderRadius: radius.xxl, padding: 22, gap: 12 }}>
+        <View style={{ backgroundColor: c.hero, borderRadius: radius.xxl, borderWidth: HAIRLINE, borderColor: c.line, padding: 22, gap: 12 }}>
           <Txt v="overline" color={c.accent}>Мой podslushano</Txt>
           <Txt v="title2" color={c.onHero}>Один аккаунт — объявления, сообщения и избранное</Txt>
           <Txt v="callout" color={c.onHeroMuted}>Пароль не нужен: код по SMS или на почту, или вход через Telegram. Аккаунт создаётся сам.</Txt>

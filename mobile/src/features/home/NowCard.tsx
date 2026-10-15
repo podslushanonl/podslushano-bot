@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
 import { useDisruptions, useWeather, weatherIcon, weatherText } from '@/api/content';
-import { radius, useTheme } from '@/theme';
+import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Icon, Skeleton, Tap, Txt } from '@/ui';
 
 /** «Сейчас в городе»: погода, дождь в ближайшие часы и сбои поездов — главное за секунду. */
@@ -14,7 +14,7 @@ export function NowCard({ city }: { city: string }) {
   const nsTitle = mine ? mine.title : now.length ? `Сбоев на железной дороге: ${now.length}` : 'Поезда идут по расписанию';
   const nsSub = mine ? (mine.expected || mine.end_ru || mine.type_ru) : now.length ? 'В вашем городе всё спокойно' : 'По данным NS';
   return (
-    <View style={{ backgroundColor: c.hero, borderRadius: radius.xxl, padding: 18, gap: 16 }}>
+    <View style={{ backgroundColor: c.hero, borderRadius: radius.xxl, borderWidth: HAIRLINE, borderColor: c.line, padding: 18, gap: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <View style={{ gap: 2 }}>
           <Txt v="overline" color={c.accent}>Сейчас в {city}</Txt>

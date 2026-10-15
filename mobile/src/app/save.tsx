@@ -1,13 +1,13 @@
 import { View } from 'react-native';
 import { goUrl, SITE } from '@/api/client';
 import { openBot, openUrl } from '@/lib/open';
-import { radius, useTheme } from '@/theme';
+import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Button, Icon, IconName, PageScreen, Txt } from '@/ui';
 
 function Offer({ icon, over, title, text, children, dark }: { icon: IconName; over: string; title: string; text: string; children: React.ReactNode; dark?: boolean }) {
   const { c } = useTheme();
   return (
-    <View style={{ backgroundColor: dark ? c.hero : c.bgElevated, borderRadius: radius.xxl, padding: 20, gap: 10, borderWidth: dark ? 0 : 1, borderColor: c.line }}>
+    <View style={{ backgroundColor: dark ? c.hero : c.bgElevated, borderRadius: radius.xxl, padding: 20, gap: 10, borderWidth: HAIRLINE, borderColor: c.line }}>
       <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name={icon} size={23} color={c.onAccent} />
       </View>

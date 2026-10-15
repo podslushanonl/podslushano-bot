@@ -4,7 +4,7 @@ import { EventItem, Job, News } from '@/api/content';
 import { goUrl } from '@/api/client';
 import { ago, dayMonth, weekday } from '@/lib/format';
 import { openBot, openUrl } from '@/lib/open';
-import { radius, useTheme } from '@/theme';
+import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Button, Card, Icon, Img, Tap, Txt } from '@/ui';
 
 export function timeLabel(iso: string) {
@@ -61,7 +61,7 @@ export function EventCard({ e }: { e: EventItem }) {
 export function JobCard({ j }: { j: Job }) {
   const { c } = useTheme();
   return (
-    <Card onPress={() => j.url && openUrl(j.url)}>
+    <Card onPress={() => j.url && openUrl(j.url)} style={{ borderRadius: radius.l }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: c.bgSunken, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name="briefcase" size={16} />
@@ -78,7 +78,7 @@ export function JobCard({ j }: { j: Job }) {
 export function SaveCard() {
   const { c } = useTheme();
   return (
-    <View style={{ backgroundColor: c.hero, borderRadius: radius.xxl, padding: 20, gap: 10 }}>
+    <View style={{ backgroundColor: c.hero, borderRadius: radius.l, borderWidth: HAIRLINE, borderColor: c.line, padding: 20, gap: 10 }}>
       <Txt v="overline" color={c.accent}>Сэкономить · до 31 декабря</Txt>
       <Txt v="title2" color={c.onHero}>Не переплачивайте за медстраховку в 2027</Txt>
       <Txt v="callout" color={c.onHeroMuted}>Базовый пакет у всех страховщиков одинаковый, разница — только в цене. 6 вопросов — и вы знаете, на что смотреть.</Txt>

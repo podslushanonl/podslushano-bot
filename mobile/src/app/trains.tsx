@@ -4,7 +4,7 @@ import { FlatList, Modal, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDepartures, useDisruptions, useStations } from '@/api/content';
 import { openBot } from '@/lib/open';
-import { radius, type as T, useTheme } from '@/theme';
+import { HAIRLINE, radius, type as T, useTheme } from '@/theme';
 import { Button, Glass, Icon, IconButton, PageScreen, Skeleton, Tap, Txt } from '@/ui';
 
 const KEY = 'ns_station';
@@ -23,7 +23,7 @@ export default function Trains() {
   return (
     <PageScreen title="Поезда NS" refreshing={deps.isRefetching} onRefresh={() => { deps.refetch(); dis.refetch(); }}>
       <Tap onPress={() => setPicker(true)} scaleTo={0.98} accessibilityLabel={`Станция ${st[1]}. Сменить`}
-        style={{ backgroundColor: c.hero, borderRadius: radius.xxl, padding: 20, gap: 4 }}>
+        style={{ backgroundColor: c.hero, borderRadius: radius.xxl, borderWidth: HAIRLINE, borderColor: c.line, padding: 20, gap: 4 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Icon name="train" size={16} color={c.accent} />
           <Txt v="overline" color={c.accent}>Ваша станция</Txt>
