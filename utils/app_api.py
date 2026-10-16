@@ -89,7 +89,7 @@ async def _start_session(session, request: web.Request, u: AppUser) -> dict:
     return {"ok": True, "token": make_token({"k": "app", "u": u.id, "s": sid}, TOKEN_DAYS * 86400), "user": user_json(u)}
 
 
-_expired_at = 0.0
+_expired_at: float | None = None   # время последней проверки сроков (None — ещё не проверяли)
 
 
 async def expire_paid(session, force: bool = False) -> int:
@@ -97,7 +97,7 @@ async def expire_paid(session, force: bool = False) -> int:
     вызывается при каждом запросе вошедшего участника, так что лента, профили, чаты и барахолка не показывают
     галочку после окончания подписки, даже если человек больше не открывает экран оплаты."""
     global _expired_at
-    if not force and time.monotonic() - _expired_at < 300:
+    if not force and _expired_at is not None and time.monotonic() - _expired_at < 300:
         return 0
     _expired_at = time.monotonic()
     r = await session.execute(update(AppUser).where(

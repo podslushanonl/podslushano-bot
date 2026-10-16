@@ -150,7 +150,7 @@ class GeoBase(FeedHarness):
                 (await s.get(AppUser, 1)).verified_until = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=1)
                 await s.commit()
             # Экран оплаты не открывают — галочку снимает любой запрос вошедшего (лента, профиль), не реже раза в 5 минут
-            app_api._expired_at = 0.0
+            app_api._expired_at = None
             self.assertFalse((await self.get("/api/app/me", 1))[1]["user"]["verified"])
             self.assertFalse((await self.get("/api/app/billing/verify", 1))[1]["verified"])
 
