@@ -33,7 +33,7 @@ from sqlalchemy import select, update
 import config
 from database.db import get_session
 from database.models import AppPayment, AppUser
-from utils.app_api import _user, user_json
+from utils.app_api import _user, expire_paid, user_json
 from utils.community import _rate
 from utils.site_api import _err, _json
 
@@ -84,14 +84,6 @@ async def grant(session, user_id: int, payment: AppPayment | None = None) -> App
     return u
 
 
-async def expire_paid(session) -> int:
-    """Снимает платные галочки с истёкшим сроком. Вызывается при запросе статуса и в начале ленты не нужен."""
-    r = await session.execute(update(AppUser).where(
-        AppUser.is_verified.is_(True), AppUser.verified_until.is_not(None), AppUser.verified_until < _now())
-        .values(is_verified=False))
-    return r.rowcount or 0
-
-
 async def _stripe(path: str, form: dict) -> dict:
     async with aiohttp.ClientSession() as s:
         async with s.post(f"{STRIPE_API}/{path}", data=form, auth=aiohttp.BasicAuth(_env("STRIPE_SECRET_KEY"), ""),
@@ -108,7 +100,7 @@ async def verify(request: web.Request) -> web.Response:
         if not me:
             await session.commit()
             return _err(request, "Войдите заново.", 401)
-        if await expire_paid(session):
+        if await expire_paid(session, force=True):
             await session.refresh(me)
         if request.method == "GET":
             out = _status(me)
@@ -197,11 +189,15 @@ async def stripe_webhook(request: web.Request) -> web.Response:
                 pay.external_id = obj.get("subscription") or pay.external_id
                 await grant(session, pay.user_id, pay)
                 log.info("Верификация оплачена: пользователь %s", pay.user_id)
-        elif kind == "invoice.paid" and obj.get("billing_reason") == "subscription_cycle":
-            # Продление: тот же платёж (по id подписки) — срок ещё на месяц
+        elif kind == "invoice.paid" and obj.get("billing_reason") == "subscription_cycle" and obj.get("id"):
+            # Продление: срок ещё на месяц. Stripe может прислать одно событие несколько раз — каждый счёт
+            # записываем отдельным платежом (external_id = id счёта) и продлеваем только по новому
             pay = (await session.execute(select(AppPayment).where(
                 AppPayment.external_id == obj.get("subscription")))).scalars().first()
-            if pay:
+            seen = (await session.execute(select(AppPayment.id).where(AppPayment.external_id == obj["id"]))).first()
+            if pay and not seen:
+                session.add(AppPayment(user_id=pay.user_id, kind="verify", provider="stripe", amount_cents=PRICE_CENTS,
+                                       currency=CURRENCY, status="paid", external_id=obj["id"], paid_at=_now()))
                 await grant(session, pay.user_id)
         elif kind == "customer.subscription.deleted":
             # Отменили: галочка остаётся до конца оплаченного срока, потом снимется сама

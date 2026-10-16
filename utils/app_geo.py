@@ -121,8 +121,11 @@ async def reverse(lat: float, lng: float) -> dict | None:
 
 async def search(q: str, country: Country | None = None) -> list[dict]:
     """Населённые пункты по названию (до 8), только в трёх странах."""
-    comps = f"country:{CODES[country]}" if country else "country:NL|country:DE|country:BE"
-    results = await _geocode({"address": q, "components": comps, "language": "nl" if country != Country.DE else "de"})
+    # Фильтр Google по стране принимает одну страну (несколько country: — это «И», а не «ИЛИ»):
+    # без выбранной страны — три отдельных запроса
+    results: list[dict] = []
+    for cc in ([CODES[country]] if country else ["NL", "DE", "BE"]):
+        results += await _geocode({"address": q, "components": f"country:{cc}", "language": "de" if cc == "DE" else "nl"})
     out, seen = [], set()
     for r in results:
         if not set(r.get("types", [])) & set(_PLACE_TYPES + ("political",)):

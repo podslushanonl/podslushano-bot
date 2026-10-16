@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import secrets
+import time
 from datetime import datetime, timedelta, timezone
 
 from aiohttp import web
@@ -88,7 +89,25 @@ async def _start_session(session, request: web.Request, u: AppUser) -> dict:
     return {"ok": True, "token": make_token({"k": "app", "u": u.id, "s": sid}, TOKEN_DAYS * 86400), "user": user_json(u)}
 
 
+_expired_at = 0.0
+
+
+async def expire_paid(session, force: bool = False) -> int:
+    """Снимает платные галочки с истёкшим сроком (verified_until в прошлом). Без force — не чаще раза в 5 минут:
+    вызывается при каждом запросе вошедшего участника, так что лента, профили, чаты и барахолка не показывают
+    галочку после окончания подписки, даже если человек больше не открывает экран оплаты."""
+    global _expired_at
+    if not force and time.monotonic() - _expired_at < 300:
+        return 0
+    _expired_at = time.monotonic()
+    r = await session.execute(update(AppUser).where(
+        AppUser.is_verified.is_(True), AppUser.verified_until.is_not(None), AppUser.verified_until < _now())
+        .values(is_verified=False))
+    return r.rowcount or 0
+
+
 async def _user(request: web.Request, session) -> AppUser | None:
+    await expire_paid(session)
     auth = request.headers.get("Authorization", "")
     u, sid = await token_user(session, auth[7:] if auth.startswith("Bearer ") else "", _ip(request))
     if u:

@@ -209,7 +209,8 @@ async def posts(request: web.Request) -> web.Response:
             since = datetime.now(timezone.utc).replace(tzinfo=None) - BOOST_AGE
             boosted = list((await session.execute(
                 q.where(UserPost.created_at >= since, UserPost.repost_of.is_(None),
-                        UserPost.user_id.in_(select(AppUser.id).where(AppUser.is_verified.is_(True))))
+                        UserPost.user_id.in_(select(AppUser.id).where(AppUser.is_verified.is_(True), or_(
+                            AppUser.verified_until.is_(None), AppUser.verified_until > datetime.now(timezone.utc).replace(tzinfo=None)))))
                 .order_by(UserPost.id.desc()).limit(BOOST))).scalars())
             ids = {p.id for p in boosted}
             rows = boosted + [p for p in rows if p.id not in ids]

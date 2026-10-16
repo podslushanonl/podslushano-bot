@@ -16,7 +16,7 @@ from sqlalchemy import select
 
 from database.models import AppPayment, AppUser
 from tests.test_feed import PG_URL, FeedHarness
-from utils import app_geo, billing, feed
+from utils import app_api, app_geo, billing, feed
 
 # Ответы Google Geocoding: деревня в Utrecht (Bunnik), Брюссель и Париж (вне трёх стран)
 def _result(name, code, lat, lng, kind="locality"):
@@ -129,6 +129,9 @@ class GeoBase(FeedHarness):
             async with self.sessions() as s:   # срок истёк — галочка снимается при следующей проверке
                 (await s.get(AppUser, 1)).verified_until = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=1)
                 await s.commit()
+            # Экран оплаты не открывают — галочку снимает любой запрос вошедшего (лента, профиль), не реже раза в 5 минут
+            app_api._expired_at = 0.0
+            self.assertFalse((await self.get("/api/app/me", 1))[1]["user"]["verified"])
             self.assertFalse((await self.get("/api/app/billing/verify", 1))[1]["verified"])
 
     async def test_admin_badge_is_lifetime(self):
@@ -169,8 +172,12 @@ class GeoBase(FeedHarness):
             self.assertTrue((await self.get("/api/app/me", 2))[1]["user"]["verified"])
             async with self.sessions() as s:
                 until1 = (await s.get(AppUser, 2)).verified_until
-            renew = json.dumps({"type": "invoice.paid", "data": {"object": {"billing_reason": "subscription_cycle",
+            renew = json.dumps({"type": "invoice.paid", "data": {"object": {"id": "in_2", "billing_reason": "subscription_cycle",
                                                                               "subscription": "sub_1"}}}).encode()
+            await self.c.post("/api/app/billing/stripe/webhook", data=renew, headers={"Stripe-Signature": sig(renew)})
+            async with self.sessions() as s:
+                self.assertEqual((await s.get(AppUser, 2)).verified_until - until1, billing.PERIOD)
+            # Stripe прислал то же продление ещё раз — срок не растёт
             await self.c.post("/api/app/billing/stripe/webhook", data=renew, headers={"Stripe-Signature": sig(renew)})
             async with self.sessions() as s:
                 self.assertEqual((await s.get(AppUser, 2)).verified_until - until1, billing.PERIOD)
