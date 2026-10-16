@@ -19,8 +19,8 @@ from tests.test_feed import PG_URL, FeedHarness
 from utils import app_api, app_geo, billing, feed
 
 # Ответы Google Geocoding: деревня в Utrecht (Bunnik), Брюссель и Париж (вне трёх стран)
-def _result(name, code, lat, lng, kind="locality"):
-    return {"types": [kind, "political"], "geometry": {"location": {"lat": lat, "lng": lng}},
+def _result(name, code, lat, lng, kind="locality", partial=False):
+    return {"types": [kind, "political"], **({"partial_match": True} if partial else {}), "geometry": {"location": {"lat": lat, "lng": lng}},
             "address_components": [{"long_name": name, "short_name": name, "types": [kind, "political"]},
                                    {"long_name": "X", "short_name": code, "types": ["country", "political"]}]}
 
@@ -39,10 +39,14 @@ async def fake_geocode(params):
         return [_result("Bunnik", "NL", 52.067, 5.198)]
     if params.get("address", "") == "Liège":
         if cc == "DE":
-            return [_result("Thiendorf", "DE", 51.29, 13.74)]   # «похожее» место, которое Google добавляет к запросу
+            return [_result("Thiendorf", "DE", 51.29, 13.74, partial=True)]   # «похожее» место, которое Google добавляет к запросу
         if cc == "BE":
             fr = params.get("language") == "fr"
-            return [_result("Liège" if fr else "Luik", "BE", 50.63, 5.57), _result("Gent" if not fr else "Gand", "BE", 51.05, 3.72)]
+            return [_result("Liège" if fr else "Luik", "BE", 50.63, 5.57), _result("Gent" if not fr else "Gand", "BE", 51.05, 3.72, partial=True)]
+    if params.get("address", "") == "Ghent" and cc == "BE":   # название на другом языке — точное совпадение
+        return [_result("Gent" if params.get("language") == "nl" else "Gand", "BE", 51.05, 3.72)]
+    if params.get("address", "") == "Eupen" and cc == "BE":
+        return [_result("Eupen", "BE", 50.63, 6.03)]
     return []
 
 
@@ -87,6 +91,10 @@ class GeoBase(FeedHarness):
         # Бельгия: название на языке региона (Liège — по-французски, Gent — по-нидерландски), «похожее» Thiendorf отброшено
         st, d = await self.get("/api/app/geo/search?q=Liège")
         self.assertEqual([(p["name"], p["country"]) for p in d["places"]], [("Liège", "Бельгия")])
+        self.assertEqual([p["name"] for p in (await self.get("/api/app/geo/search?q=Ghent"))[1]["places"]], ["Gent"])
+        self.assertEqual([p["name"] for p in (await self.get("/api/app/geo/search?q=Eupen"))[1]["places"]], ["Eupen"])
+        self.assertEqual(app_geo._language("BE", 50.63, 6.03), "de")    # Eupen — немецкоязычная община
+        self.assertEqual(app_geo._language("BE", 50.43, 6.03), "fr")    # Malmedy рядом — франкоязычный
         self.assertTrue(app_geo._similar("Den Haag", "the hague"))
         self.assertTrue(app_geo._similar("Amsterdam", "Амстердам"))   # запрос кириллицей не фильтруем
 

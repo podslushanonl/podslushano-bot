@@ -47,12 +47,17 @@ def enabled() -> bool:
     return bool(config.GOOGLE_MAPS_API_KEY)
 
 
-def _language(code: str, lat: float) -> str:
-    """Язык названия — язык самой местности: nl для Нидерландов и Фландрии, fr для Валлонии, de для Германии."""
+def _language(code: str, lat: float, lng: float = 0.0) -> str:
+    """Язык названия — язык самой местности: nl для Нидерландов и Фландрии, fr для Валлонии, de для Германии
+    и немецкоязычной общины Бельгии (Eupen, Kelmis, Raeren, Lontzen — на севере; Sankt Vith, Amel, Büllingen,
+    Bütgenbach, Burg-Reuland — на юге; франкоязычные Malmedy и Waimes рядом с ними остаются fr)."""
     if code == "DE":
         return "de"
-    if code == "BE" and lat < 50.75 and not 50.78 < lat < 50.92:   # Брюссель (около 50.85) — нидерландское «Brussel»
-        return "fr"
+    if code == "BE":
+        if (50.6 < lat < 50.78 and 5.95 < lng < 6.25) or (50.15 < lat < 50.5 and 6.12 < lng < 6.42):
+            return "de"
+        if lat < 50.75 and not 50.78 < lat < 50.92:   # Брюссель (около 50.85) — нидерландское «Brussel»
+            return "fr"
     return "nl"
 
 
@@ -99,7 +104,7 @@ def _place(result: dict) -> dict | None:
         return None
     loc = (result.get("geometry") or {}).get("location") or {}
     return {"name": name[:80], "country": COUNTRIES[code].value, "code": code,
-            "lat": loc.get("lat"), "lng": loc.get("lng")}
+            "lat": loc.get("lat"), "lng": loc.get("lng"), "partial": bool(result.get("partial_match"))}
 
 
 async def reverse(lat: float, lng: float) -> dict | None:
@@ -114,7 +119,7 @@ async def reverse(lat: float, lng: float) -> dict | None:
     base = next((p for p in map(_place, first) if p), None)
     if not base:
         return None
-    lang = _language(base["code"], lat)
+    lang = _language(base["code"], lat, lng)
     local = await _geocode({"latlng": f"{lat},{lng}", "result_type": "|".join(_PLACE_TYPES[:4]), "language": lang})
     named = next((p for p in map(_place, local) if p), None)
     return (named or base) | {"lat": lat, "lng": lng}
@@ -125,8 +130,8 @@ def _fold(t: str) -> str:
 
 
 def _similar(name: str, q: str) -> bool:
-    """Google по названию добавляет «похожие» места (на «Liège» — немецкий Thiendorf). Для запроса латиницей
-    оставляем только места, где хоть одно слово начинается с тех же двух букв, что и слово запроса."""
+    """Похоже ли название на запрос: хоть одно слово начинается с тех же двух букв, что и слово запроса.
+    Нужно только для неточных совпадений Google (partial_match) — см. search."""
     words = _fold(q).replace("-", " ").split()
     if not words or not all(w.isascii() for w in words):
         return True   # запрос кириллицей («Гаага») — Google сам переводит название, сравнивать не с чем
@@ -141,14 +146,19 @@ async def search(q: str, country: Country | None = None) -> list[dict]:
     # название на языке его региона (Gent, Brussel — но Liège, Namur), как при определении по GPS
     out, seen = [], set()
     for cc in ([CODES[country]] if country else ["NL", "DE", "BE"]):
-        for lang in (("nl", "fr") if cc == "BE" else ("de",) if cc == "DE" else ("nl",)):
+        for lang in (("nl", "fr", "de") if cc == "BE" else ("de",) if cc == "DE" else ("nl",)):
             for r in await _geocode({"address": q, "components": f"country:{cc}", "language": lang}):
                 if not set(r.get("types", [])) & set(_PLACE_TYPES + ("political",)):
                     continue
                 p = _place(r)
-                if not p or p["lat"] is None or (cc == "BE" and _language("BE", p["lat"]) != lang):
+                if not p or p["lat"] is None or (cc == "BE" and _language("BE", p["lat"], p["lng"] or 0) != lang):
                     continue
-                if (p["name"], p["code"]) not in seen and _similar(p["name"], q):
+                # Точное совпадение Google — всегда (в том числе по названию на другом языке: Ghent → Gent,
+                # Cologne → Köln). Неточное (partial_match) — только если похоже на запрос: так отсеиваются «похожие»
+                # места вроде Thiendorf на «Liège», но остаются подсказки по началу названия (Bun → Bunnik)
+                if p["partial"] and not _similar(p["name"], q):
+                    continue
+                if (p["name"], p["code"]) not in seen:
                     seen.add((p["name"], p["code"]))
                     out.append(p)
     return out[:8]
