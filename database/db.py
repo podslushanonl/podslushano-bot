@@ -408,7 +408,8 @@ async def _migrate() -> None:
             env = lambda name, default="": [x.strip() for x in os.getenv(name, default).split(",") if x.strip()]  # noqa: E731
             emails = [e.lower() for e in env("VERIFIED_EMAILS", OWNER_EMAILS)]
             names = usernames.owners()
-            phones = ["+" + "".join(ch for ch in p if ch.isdigit()) for p in env("VERIFIED_PHONES")]
+            from utils.phone import normalize as normalize_phone   # тот же вид, что при входе по SMS (+316…)
+            phones = [n for n in (normalize_phone(p) for p in env("VERIFIED_PHONES")) if n]
             conds = (([AppUser.tg_id.in_(ids)] if ids else []) + ([func.lower(AppUser.email).in_(emails)] if emails else [])
                      + ([AppUser.username.in_(names)] if names else []) + ([AppUser.phone.in_(phones)] if phones else []))
             if conds:

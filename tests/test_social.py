@@ -426,7 +426,7 @@ class LegacyMigrationTests(unittest.IsolatedAsyncioTestCase):
         # Галочка создателя по @username и по номеру телефона из переменных Railway
         async with engine.begin() as c:
             await c.exec_driver_sql("UPDATE app_users SET phone = '+31612345678' WHERE id = 2")
-        with patch.object(db, "engine", engine), patch.dict(os.environ, {"VERIFIED_USERNAMES": "@Anna", "VERIFIED_PHONES": "+31 6 1234 5678"}):
+        with patch.object(db, "engine", engine), patch.dict(os.environ, {"VERIFIED_USERNAMES": "@Anna", "VERIFIED_PHONES": "0031 (0)6 1234 5678"}):
             await db._migrate()
         async with sessions() as s:
             self.assertEqual([(await s.get(AppUser, i)).is_verified for i in (1, 2)], [True, True])

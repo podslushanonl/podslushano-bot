@@ -14,7 +14,8 @@ from utils import app_api, app_geo, billing, feed
 
 # Ответы Google Geocoding: деревня в Utrecht (Bunnik), Брюссель и Париж (вне трёх стран)
 def _result(name, code, lat, lng, kind="locality", partial=False):
-    return {"types": [kind, "political"], **({"partial_match": True} if partial else {}), "geometry": {"location": {"lat": lat, "lng": lng}},
+    # place_id — по координатам: одно место на разных языках — один id, как у Google
+    return {"types": [kind, "political"], "place_id": f"{lat},{lng}", **({"partial_match": True} if partial else {}), "geometry": {"location": {"lat": lat, "lng": lng}},
             "address_components": [{"long_name": name, "short_name": name, "types": [kind, "political"]},
                                    {"long_name": "X", "short_name": code, "types": ["country", "political"]}]}
 
@@ -29,6 +30,10 @@ async def fake_geocode(params):
             return [_result(name, "BE", 50.85, 4.35)]
         return [_result("Paris", "FR", 48.85, 2.35)]
     cc = params.get("components", "")[-2:]
+    if not cc:   # без фильтра по стране — лучший ответ Google («что имели в виду»)
+        best = {"Liège": ("Liège", "BE", 50.63, 5.57), "Ghent": ("Gent", "BE", 51.05, 3.72), "Eupen": ("Eupen", "BE", 50.63, 6.03)}
+        hit = best.get(params.get("address", ""))
+        return [_result(*hit)] if hit else []
     if params.get("address", "").lower().startswith("bunn") and cc == "NL":
         return [_result("Bunnik", "NL", 52.067, 5.198)]
     if params.get("address", "") == "Liège":
@@ -39,6 +44,8 @@ async def fake_geocode(params):
             return [_result("Liège" if fr else "Luik", "BE", 50.63, 5.57), _result("Gent" if not fr else "Gand", "BE", 51.05, 3.72, partial=True)]
     if params.get("address", "") == "Ghent" and cc == "BE":   # название на другом языке — точное совпадение
         return [_result("Gent" if params.get("language") == "nl" else "Gand", "BE", 51.05, 3.72)]
+    if params.get("address", "") == "Ghent" and cc == "NL":   # случайное «похожее» место в другой стране
+        return [_result("Ghaststraat", "NL", 52.0, 5.0, kind="sublocality")]
     if params.get("address", "") == "Eupen" and cc == "BE":
         return [_result("Eupen", "BE", 50.63, 6.03)]
     return []
@@ -85,7 +92,8 @@ class GeoBase(FeedHarness):
         # Бельгия: название на языке региона (Liège — по-французски, Gent — по-нидерландски), «похожее» Thiendorf отброшено
         st, d = await self.get("/api/app/geo/search?q=Liège")
         self.assertEqual([(p["name"], p["country"]) for p in d["places"]], [("Liège", "Бельгия")])
-        self.assertEqual([p["name"] for p in (await self.get("/api/app/geo/search?q=Ghent"))[1]["places"]], ["Gent"])
+        # Ghent → Gent: не теряется, даже если в другой стране есть случайное «похожее» место, и идёт первым
+        self.assertEqual([p["name"] for p in (await self.get("/api/app/geo/search?q=Ghent"))[1]["places"]], ["Gent", "Ghaststraat"])
         self.assertEqual([p["name"] for p in (await self.get("/api/app/geo/search?q=Eupen"))[1]["places"]], ["Eupen"])
         self.assertEqual(app_geo._language("BE", 50.63, 6.03), "de")    # Eupen — немецкоязычная община
         self.assertEqual(app_geo._language("BE", 50.43, 6.03), "fr")    # Malmedy рядом — франкоязычный

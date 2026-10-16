@@ -104,7 +104,7 @@ def _place(result: dict) -> dict | None:
         return None
     loc = (result.get("geometry") or {}).get("location") or {}
     return {"name": name[:80], "country": COUNTRIES[code].value, "code": code,
-            "lat": loc.get("lat"), "lng": loc.get("lng"), "partial": bool(result.get("partial_match"))}
+            "lat": loc.get("lat"), "lng": loc.get("lng"), "place_id": result.get("place_id") or ""}
 
 
 async def reverse(lat: float, lng: float) -> dict | None:
@@ -130,8 +130,7 @@ def _fold(t: str) -> str:
 
 
 def _similar(name: str, q: str) -> bool:
-    """Похоже ли название на запрос: хоть одно слово начинается с тех же двух букв, что и слово запроса.
-    Нужно только для неточных совпадений Google (partial_match) — см. search."""
+    """Похоже ли название на запрос: хоть одно слово начинается с тех же двух букв, что и слово запроса (см. search)."""
     words = _fold(q).replace("-", " ").split()
     if not words or not all(w.isascii() for w in words):
         return True   # запрос кириллицей («Гаага») — Google сам переводит название, сравнивать не с чем
@@ -141,9 +140,12 @@ def _similar(name: str, q: str) -> bool:
 
 async def search(q: str, country: Country | None = None) -> list[dict]:
     """Населённые пункты по названию (до 8), только в трёх странах."""
-    # Фильтр Google по стране принимает одну страну (несколько country: — это «И», а не «ИЛИ»):
-    # без выбранной страны — отдельные запросы. Бельгия — на нидерландском и французском: каждому месту
-    # название на языке его региона (Gent, Brussel — но Liège, Namur), как при определении по GPS
+    # Лучший ответ Google без фильтра по стране — «что человек имел в виду»: Ghent → Gent, Cologne → Köln, Liège → Liège.
+    # С фильтром по стране Google, не найдя места в ней, отвечает чужим «точным» местом (на «Liège» в Германии —
+    # Thiendorf). Поэтому оставляем места, похожие на запрос, и места, совпадающие с этим лучшим ответом.
+    best = {r.get("place_id") for r in (await _geocode({"address": q}))[:2] if r.get("place_id")}
+    # Фильтр Google по стране принимает одну страну (несколько country: — это «И», а не «ИЛИ»): отдельные запросы.
+    # Бельгия — на трёх языках: каждому месту название на языке его региона, как при определении по GPS
     out, seen = [], set()
     for cc in ([CODES[country]] if country else ["NL", "DE", "BE"]):
         for lang in (("nl", "fr", "de") if cc == "BE" else ("de",) if cc == "DE" else ("nl",)):
@@ -153,17 +155,13 @@ async def search(q: str, country: Country | None = None) -> list[dict]:
                 p = _place(r)
                 if not p or p["lat"] is None or (cc == "BE" and _language("BE", p["lat"], p["lng"] or 0) != lang):
                     continue
-                # Неточное совпадение (partial_match) — только если похоже на запрос (Bun → Bunnik)
-                if p["partial"] and not _similar(p["name"], q):
+                if not (_similar(p["name"], q) or (p["place_id"] and p["place_id"] in best)):
                     continue
                 if (p["name"], p["code"]) not in seen:
                     seen.add((p["name"], p["code"]))
                     out.append(p)
-    # Google с фильтром по стране, не найдя места в ней, отвечает чем-то «точным», но чужим (на «Liège» в Германии —
-    # Thiendorf). Если среди ответов есть похожие на запрос — оставляем только их; если похожих нет (запрос на другом
-    # языке: Ghent → Gent, Cologne → Köln) — оставляем всё как есть
-    alike = [p for p in out if _similar(p["name"], q)]
-    return (alike or out)[:8]
+    out.sort(key=lambda p: p["place_id"] not in best)   # «что имели в виду» — первым
+    return out[:8]
 
 
 def near_clause(lat_col, lng_col, lat: float, lng: float, km: float = NEAR_KM):
