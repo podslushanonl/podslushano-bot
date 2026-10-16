@@ -1,4 +1,5 @@
 """Подключение к базе и создание таблиц."""
+import logging
 import os
 from collections import defaultdict
 
@@ -401,12 +402,21 @@ async def _migrate() -> None:
             # @username уникален; всем аккаунтам без него — автоматический (имя латиницей, почта или user{id})
             await conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_app_users_username ON app_users (username)")
             await usernames.backfill(conn)
-            # Синяя галочка создателю: аккаунт, привязанный к Telegram ID из ADMIN_IDS, или почта из VERIFIED_EMAILS
+            # Синяя галочка создателю — бесплатно и бессрочно: аккаунт с Telegram ID из ADMIN_IDS, почтой из
+            # VERIFIED_EMAILS, @username создателя (usernames.OWNERS или VERIFIED_USERNAMES) или номером из VERIFIED_PHONES
             ids = [int(x) for x in config.ADMIN_IDS]
-            emails = [e.strip().lower() for e in os.getenv("VERIFIED_EMAILS", OWNER_EMAILS).split(",") if e.strip()]
-            conds = ([AppUser.tg_id.in_(ids)] if ids else []) + ([func.lower(AppUser.email).in_(emails)] if emails else [])
+            env = lambda name, default="": [x.strip() for x in os.getenv(name, default).split(",") if x.strip()]  # noqa: E731
+            emails = [e.lower() for e in env("VERIFIED_EMAILS", OWNER_EMAILS)]
+            names = usernames.owners()
+            from utils.phone import normalize as normalize_phone   # тот же вид, что при входе по SMS (+316…)
+            phones = [n for n in (normalize_phone(p) for p in env("VERIFIED_PHONES")) if n]
+            conds = (([AppUser.tg_id.in_(ids)] if ids else []) + ([func.lower(AppUser.email).in_(emails)] if emails else [])
+                     + ([AppUser.username.in_(names)] if names else []) + ([AppUser.phone.in_(phones)] if phones else []))
             if conds:
-                await conn.execute(update(AppUser).where(AppUser.is_verified.is_(False), or_(*conds)).values(is_verified=True))
+                r = await conn.execute(update(AppUser).where(or_(*conds), or_(
+                    AppUser.is_verified.is_(False), AppUser.verified_until.is_not(None))).values(is_verified=True, verified_until=None))
+                if r.rowcount:
+                    logging.getLogger(__name__).info("Галочка создателя выдана аккаунтам: %s", r.rowcount)
 
         # Посты: страна (лента «Рядом»), репосты, число фото — появились в этапе 2
         up_cols = await conn.run_sync(lambda c: {x["name"] for x in inspect(c).get_columns("user_posts")}

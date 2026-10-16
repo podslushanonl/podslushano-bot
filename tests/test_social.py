@@ -423,6 +423,13 @@ class LegacyMigrationTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual((await s.get(AppUser, 1)).country, Country.NL)
             # Старым аккаунтам юзернейм выдан при запуске: имя латиницей
             self.assertEqual([(await s.get(AppUser, i)).username for i in (1, 2)], ["anna", "boris"])
+        # Галочка создателя по @username и по номеру телефона из переменных Railway
+        async with engine.begin() as c:
+            await c.exec_driver_sql("UPDATE app_users SET phone = '+31612345678' WHERE id = 2")
+        with patch.object(db, "engine", engine), patch.dict(os.environ, {"VERIFIED_USERNAMES": "@Anna", "VERIFIED_PHONES": "0031 (0)6 1234 5678"}):
+            await db._migrate()
+        async with sessions() as s:
+            self.assertEqual([(await s.get(AppUser, i)).is_verified for i in (1, 2)], [True, True])
             self.assertEqual((await s.get(ChatRoom, 1)).country, Country.NL)
             rows = list((await s.execute(select(Friendship))).scalars())
             self.assertEqual([(r.user_id, r.friend_id, r.status) for r in rows], [(1, 2, FriendStatus.BLOCKED)])

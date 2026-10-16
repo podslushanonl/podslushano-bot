@@ -109,6 +109,8 @@ class AppApiTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(usernames.check("podslushano.nl", verified=True))
         self.assertIsNotNone(usernames.check("a..b"))
         self.assertIsNotNone(usernames.check("_ab"))
+        self.assertIsNotNone(usernames.check("alexmair"))                # юзернейм создателя — только с галочкой
+        self.assertIsNone(usernames.check("alexmair", verified=True))
 
         async def login(email):
             r = await self.client.post("/api/app/auth/verify", json={"email": email, "code": await self._code(email)})

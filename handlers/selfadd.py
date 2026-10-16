@@ -1068,6 +1068,10 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         from utils.site_api import on_donation_payment
         await on_donation_payment(payment_id, payment)
         return
+    if kind in ("app_verify", "app_verify_sub"):   # «Премиум верификация» в приложении
+        from utils.billing import on_mollie_payment
+        await on_mollie_payment(payment_id, payment)
+        return
     if kind == "donation_sub":
         log.info("Monthly donation payment %s: %s", payment_id, payment.get("status"))
         return

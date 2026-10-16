@@ -2,12 +2,12 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
 import { refreshMe, useAuth } from '@/api/auth';
-import { startVerify, useVerifyStatus } from '@/api/billing';
+import { cancelVerify, startVerify, useVerifyStatus } from '@/api/billing';
 import { routeForError } from '@/api/community';
 import { dayMonth } from '@/lib/format';
 import { openUrl } from '@/lib/open';
 import { HAIRLINE, radius, useTheme } from '@/theme';
-import { Button, handle, Icon, IconName, PageScreen, Txt, useToast, UserAvatar, VERIFIED_BLUE, VerifiedBadge } from '@/ui';
+import { ActionSheet, Button, handle, Icon, IconName, PageScreen, Txt, useToast, UserAvatar, VERIFIED_BLUE, VerifiedBadge } from '@/ui';
 
 const BENEFITS: [IconName, string, string, string][] = [
   ['verified', VERIFIED_BLUE, 'Синяя галочка', 'Рядом с вашим @username в ленте, комментариях, чатах, историях и в профиле'],
@@ -30,8 +30,8 @@ function Benefit({ icon, bg, title, text }: { icon: IconName; bg: string; title:
   );
 }
 
-/** «Премиум верификация»: синяя галочка за 3,99 € в месяц. Оплата — Stripe Checkout (страница оплаты),
- *  после оплаты галочка появляется везде сама (сервер получает подтверждение от Stripe). */
+/** «Премиум верификация»: синяя галочка за 3,99 € в месяц. Оплата — Mollie (iDEAL, Bancontact, карта, Apple Pay),
+ *  дальше Mollie списывает раз в месяц; после оплаты галочка появляется везде сама (сервер получает вебхук). */
 export default function Premium() {
   const { c } = useTheme();
   const toast = useToast();
@@ -39,8 +39,9 @@ export default function Premium() {
   const { paid, canceled } = useLocalSearchParams<{ paid?: string; canceled?: string }>();
   const st = useVerifyStatus(!!user);
   const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState(false);
   const s = st.data;
-  // Вернулись со страницы оплаты Stripe: подтверждение приходит на сервер — обновляем статус и профиль
+  // Вернулись со страницы оплаты Mollie: подтверждение приходит на сервер — обновляем статус и профиль
   const { refetch } = st;
   useEffect(() => {
     if (!paid) return;
@@ -94,9 +95,12 @@ export default function Premium() {
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, borderRadius: radius.l, backgroundColor: c.accentSoft }}>
           <Icon name="verified" filled size={26} color={VERIFIED_BLUE} />
           <Txt v="bodyStrong" style={{ flex: 1 }}>
-            {s?.lifetime ? 'У вас бессрочная галочка' : `Галочка активна до ${dayMonth(s?.until || '')}`}
+            {s?.lifetime ? 'У вас бессрочная галочка' : s?.subscribed ? `Галочка активна, следующее списание — до ${dayMonth(s?.until || '')}`
+              : `Галочка активна до ${dayMonth(s?.until || '')}`}
           </Txt>
         </View>
+      ) : paid && s && !s.verified ? (
+        <Txt v="callout" tone="muted" center>Платёж обрабатывается — галочка появится через минуту. Если оплата не прошла, попробуйте ещё раз.</Txt>
       ) : (
         <View style={{ alignItems: 'center', gap: 2 }}>
           <Txt v="title1" style={{ fontSize: 40, lineHeight: 46 }}>{price}</Txt>
@@ -109,10 +113,17 @@ export default function Premium() {
       </View>
 
       {canceled ? <Txt v="callout" tone="muted" center>Оплата отменена — ничего не списано.</Txt> : null}
+      {s?.subscribed ? (
+        <Button title="Отменить подписку" kind="plain" onPress={() => setConfirm(true)} />
+      ) : null}
+      <ActionSheet visible={confirm} title="Списаний больше не будет. Галочка останется до конца оплаченного месяца."
+        onClose={() => setConfirm(false)}
+        actions={[{ title: 'Отменить подписку', icon: 'close', danger: true, onPress: () => cancelVerify()
+          .then(() => toast('Подписка отменена')).catch((e) => toast(e?.message || 'Не получилось', 'error')) }]} />
       {s && !s.available && !active ? (
         <Txt v="footnote" tone="muted" center>Подключение откроется совсем скоро — мы сообщим в приложении.</Txt>
       ) : (
-        <Txt v="footnote" tone="muted" center>Оплата картой, Apple Pay или Google Pay через Stripe. Платёж защищён, данные карты мы не видим.</Txt>
+        <Txt v="footnote" tone="muted" center>Оплата через Mollie: iDEAL, Bancontact, карта или Apple Pay. Платёж защищён, данные карты мы не видим.</Txt>
       )}
     </PageScreen>
   );
