@@ -63,6 +63,8 @@ def user_json(u: AppUser) -> dict:
     return {"id": u.id, "name": u.name, "city": u.city, "country": u.country.value, "email": u.email or "",
             "phone": u.phone or "", "telegram": bool(u.tg_id), "bio": u.bio or "", "avatar": avatar,
             "is_private": bool(u.is_private), "verified": bool(u.is_verified), "username": u.username or "",
+            "located": u.lat is not None,   # координаты — только самому человеку (погода и «Рядом»), другим не отдаются
+            "geo": [round(u.lat, 2), round(u.lng, 2)] if u.lat is not None and u.lng is not None else None,
             "cover": f"/api/app/user/{u.id}/cover?v={u.cover_v}" if u.cover_v else ""}
 
 
@@ -362,9 +364,12 @@ async def me(request: web.Request) -> web.Response:
             data = await _body(request)
             if "country" in data:
                 try:
-                    u.country = Country.parse(data.get("country"))
+                    country = Country.parse(data.get("country"))
                 except ValueError:
                     return _err(request, "Страна: Нидерланды, Германия или Бельгия.")
+                if country != u.country:
+                    u.lat = u.lng = None
+                u.country = country
             if "bio" in data:
                 bio = " ".join(str(data.get("bio") or "").split())[:160]
                 if bio:
@@ -387,7 +392,10 @@ async def me(request: web.Request) -> web.Response:
                         return _err(request, "Этот юзернейм уже занят.", 409)
                     u.username = un
             if "city" in data:
-                u.city = str(data.get("city") or "").strip()[:80]
+                city = str(data.get("city") or "").strip()[:80]
+                if city != (u.city or ""):   # город выбран вручную — координаты прежнего места больше не верны
+                    u.lat = u.lng = None
+                u.city = city
             if "is_private" in data:
                 u.is_private = bool(data.get("is_private"))
         favs = (await session.execute(select(AppFavorite).where(AppFavorite.user_id == u.id)

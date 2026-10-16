@@ -2,11 +2,11 @@ import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, View } from 'react-native';
-import { saveAvatar, saveProfile, useAuth } from '@/api/auth';
+import { authState, saveAvatar, saveProfile, useAuth } from '@/api/auth';
 import { shrinkForWeb } from '@/api/market';
 import { CitySheet } from '@/features/common/CitySheet';
 import { AvatarCropper, Crop } from '@/features/profile/AvatarCropper';
-import { asCountry, CITIES_BY_COUNTRY, COUNTRIES, Country } from '@/lib/countries';
+import { asCountry, COUNTRIES, Country } from '@/lib/countries';
 import { useTheme } from '@/theme';
 import { Avatar, Button, Chip, Field, Icon, PageScreen, Tap, Txt, useToast } from '@/ui';
 
@@ -34,7 +34,7 @@ export default function ProfileEdit() {
   }, [user]);
   const pickCountry = (c: Country) => {
     setCountry(c);
-    if (city && !CITIES_BY_COUNTRY[c].includes(city)) setCity('');   // город из другой страны сбрасываем
+    if (c !== country) setCity('');   // город другой страны сбрасываем
   };
   // Фото выбираем без системной обрезки: рамку человек выставляет сам в нашем кадрировании
   const [pick, setPick] = useState<{ uri: string; data: string } | null>(null);
@@ -105,7 +105,9 @@ export default function ProfileEdit() {
         </View>
         {err ? <Txt v="callout" tone="danger">{err}</Txt> : null}
       </PageScreen>
-      <CitySheet visible={picker} value={city} country={country} onPick={setCity} onClose={() => setPicker(false)} />
+      {/* GPS или поиск: место сохраняется сразу вместе с координатами — подтягиваем и страну из профиля */}
+      <CitySheet visible={picker} value={city} country={country} mine onClose={() => setPicker(false)}
+        onPick={(c) => { setCity(c); const u = authState().user; if (u?.city === c) setCountry(asCountry(u.country)); }} />
       <AvatarCropper uri={pick?.uri ?? null} onDone={upload} onCancel={() => setPick(null)} />
     </KeyboardAvoidingView>
   );

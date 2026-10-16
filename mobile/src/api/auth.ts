@@ -10,6 +10,10 @@ export type User = {
   verified?: boolean; username?: string;
   /** Обложка профиля (баннер 3:1) или пусто. */
   cover?: string;
+  /** Место определено по GPS: лента «Рядом» — в радиусе 50 км. */
+  located?: boolean;
+  /** Округлённые координаты места (только у себя): погода для любой деревни. */
+  geo?: [number, number] | null;
 };
 /** Устройство, вошедшее в аккаунт (настройки → «Активные сессии»). */
 export type AppSession = { id: string; device: string; ip: string; created: string; last_seen: string; current: boolean };
@@ -25,7 +29,7 @@ export function useAuth() {
 }
 export const authState = () => state;
 
-async function refreshMe() {
+export async function refreshMe() {
   const d = await api<{ user: User; favorites: Favorite[] }>('/api/app/me');
   set({ user: d.user, favorites: d.favorites });
 }
@@ -82,6 +86,12 @@ export async function linkCheck(sent: CodeSent, code: string, move = false) {
   const d = await api<{ user: User }>('/api/app/me/link/check', { [sent.kind]: sent.to, code, ...(move ? { move: true } : {}) });
   set({ user: d.user });
   return d.user;
+}
+
+/** Обновить пользователя после запроса, который вернул его заново (место, оплата галочки). */
+export function setUser(user: User) {
+  set({ user });
+  queryClient.invalidateQueries({ queryKey: ['feed'] });
 }
 
 export async function saveProfile(p: { name?: string; username?: string; city?: string; country?: string; bio?: string; is_private?: boolean }) {

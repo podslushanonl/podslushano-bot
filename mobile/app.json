@@ -2,7 +2,7 @@
   "expo": {
     "name": "podslushano",
     "slug": "podslushanonl",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "podslushano",
@@ -44,13 +44,19 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "podslushano открывает фото, чтобы вы могли добавить снимок к объявлению.",
-          "cameraPermission": false,
-          "microphonePermission": false
+          "photosPermission": "podslushano открывает фото, чтобы вы могли добавить снимок к посту, истории или объявлению.",
+          "cameraPermission": "podslushano использует камеру, чтобы вы могли снять фото или видео для поста, истории или Pulse.",
+          "microphonePermission": "podslushano использует микрофон, чтобы записать звук к вашему видео."
         }
       ],
       "expo-font",
-      "expo-video"
+      "expo-video",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "podslushano определяет ваш город или деревню, чтобы показывать посты соседей в радиусе 50 км в ленте «Рядом»."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

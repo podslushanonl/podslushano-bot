@@ -31,8 +31,10 @@ def jpeg_b64(color=(200, 80, 40)) -> str:
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
-class FeedBase:
+class FeedHarness:
+    """Тестовый сервер приложения с четырьмя участниками и помощниками запросов (без самих тестов)."""
     url = ""
+    mods = (app_api, community, feed, items, realtime, social)
 
     async def asyncSetUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -41,7 +43,7 @@ class FeedBase:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
-        self.patches = [patch.object(m, "get_session", self.sessions) for m in (app_api, community, feed, items, realtime, social)]
+        self.patches = [patch.object(m, "get_session", self.sessions) for m in self.mods]
         for p in self.patches:
             p.start()
         community._hits.clear()
@@ -57,7 +59,7 @@ class FeedBase:
             s.add(Friendship(user_id=1, friend_id=3, status=FriendStatus.ACCEPTED))
             await s.commit()
         app = web.Application()
-        for m in (app_api, community, feed, items, realtime, social):
+        for m in self.mods:
             m.install_routes(app)
         self.c = TestClient(TestServer(app))
         await self.c.start_server()
@@ -89,6 +91,9 @@ class FeedBase:
         self.assertEqual(st, 200, d)
         return d["post"]
 
+
+
+class FeedBase(FeedHarness):
     # ------------------------------------------------------------ фото
 
     async def test_post_with_photos(self):
@@ -191,7 +196,8 @@ class FeedBase:
         self.assertEqual(ids((await self.get("/api/app/posts?scope=all", 1))[1]), [g["id"], v["id"], b["id"], a["id"]])
         self.assertEqual(ids((await self.get("/api/app/posts?scope=friends", 1))[1]), [v["id"], a["id"]])
         self.assertEqual((await self.get("/api/app/posts?scope=friends"))[0], 401)
-        self.assertEqual(ids((await self.get("/api/app/posts?scope=near", 1))[1]), [g["id"], v["id"], a["id"]])
+        # «Рядом» без координат — мой город (Анна и Гена в Utrecht), Вера из Amsterdam не попадает
+        self.assertEqual(ids((await self.get("/api/app/posts?scope=near", 1))[1]), [g["id"], a["id"]])
         self.assertEqual(ids((await self.get("/api/app/posts?scope=near", 2))[1]), [b["id"]])
         self.assertEqual(ids((await self.get("/api/app/posts?scope=near&city=Utrecht", 1))[1]), [g["id"], a["id"]])
         self.assertEqual(ids((await self.get("/api/app/posts?scope=near&country=Германия"))[1]), [b["id"]])
