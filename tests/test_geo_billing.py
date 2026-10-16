@@ -34,8 +34,15 @@ async def fake_geocode(params):
             name = "Brussel" if params.get("language") == "nl" else "Bruxelles"
             return [_result(name, "BE", 50.85, 4.35)]
         return [_result("Paris", "FR", 48.85, 2.35)]
-    if params.get("address", "").lower().startswith("bunn"):
+    cc = params.get("components", "")[-2:]
+    if params.get("address", "").lower().startswith("bunn") and cc == "NL":
         return [_result("Bunnik", "NL", 52.067, 5.198)]
+    if params.get("address", "") == "Liège":
+        if cc == "DE":
+            return [_result("Thiendorf", "DE", 51.29, 13.74)]   # «похожее» место, которое Google добавляет к запросу
+        if cc == "BE":
+            fr = params.get("language") == "fr"
+            return [_result("Liège" if fr else "Luik", "BE", 50.63, 5.57), _result("Gent" if not fr else "Gand", "BE", 51.05, 3.72)]
     return []
 
 
@@ -77,6 +84,11 @@ class GeoBase(FeedHarness):
         st, d = await self.get("/api/app/geo/search?q=Bunn&country=Нидерланды")
         self.assertEqual([p["name"] for p in d["places"]], ["Bunnik"])
         self.assertEqual((await self.get("/api/app/geo/search?q=Bunn&country=France"))[0], 400)
+        # Бельгия: название на языке региона (Liège — по-французски, Gent — по-нидерландски), «похожее» Thiendorf отброшено
+        st, d = await self.get("/api/app/geo/search?q=Liège")
+        self.assertEqual([(p["name"], p["country"]) for p in d["places"]], [("Liège", "Бельгия")])
+        self.assertTrue(app_geo._similar("Den Haag", "the hague"))
+        self.assertTrue(app_geo._similar("Amsterdam", "Амстердам"))   # запрос кириллицей не фильтруем
 
     async def test_near_by_radius(self):
         # Анна в Bunnik (рядом с Utrecht), Гена — в Utrecht (8 км), Вера — в Amsterdam (≈40 км), Борис — в Berlin

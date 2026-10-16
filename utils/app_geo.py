@@ -14,6 +14,7 @@ from __future__ import annotations
 import logging
 import math
 import time
+import unicodedata
 from datetime import datetime, timezone
 
 import aiohttp
@@ -119,21 +120,37 @@ async def reverse(lat: float, lng: float) -> dict | None:
     return (named or base) | {"lat": lat, "lng": lng}
 
 
+def _fold(t: str) -> str:
+    return "".join(ch for ch in unicodedata.normalize("NFKD", t.lower()) if not unicodedata.combining(ch))
+
+
+def _similar(name: str, q: str) -> bool:
+    """Google по названию добавляет «похожие» места (на «Liège» — немецкий Thiendorf). Для запроса латиницей
+    оставляем только места, где хоть одно слово начинается с тех же двух букв, что и слово запроса."""
+    words = _fold(q).replace("-", " ").split()
+    if not words or not all(w.isascii() for w in words):
+        return True   # запрос кириллицей («Гаага») — Google сам переводит название, сравнивать не с чем
+    heads = {w[:2] for w in words}
+    return any(w[:2] in heads for w in _fold(name).replace("-", " ").split())
+
+
 async def search(q: str, country: Country | None = None) -> list[dict]:
     """Населённые пункты по названию (до 8), только в трёх странах."""
     # Фильтр Google по стране принимает одну страну (несколько country: — это «И», а не «ИЛИ»):
-    # без выбранной страны — три отдельных запроса
-    results: list[dict] = []
-    for cc in ([CODES[country]] if country else ["NL", "DE", "BE"]):
-        results += await _geocode({"address": q, "components": f"country:{cc}", "language": "de" if cc == "DE" else "nl"})
+    # без выбранной страны — отдельные запросы. Бельгия — на нидерландском и французском: каждому месту
+    # название на языке его региона (Gent, Brussel — но Liège, Namur), как при определении по GPS
     out, seen = [], set()
-    for r in results:
-        if not set(r.get("types", [])) & set(_PLACE_TYPES + ("political",)):
-            continue
-        p = _place(r)
-        if p and (p["name"], p["code"]) not in seen:
-            seen.add((p["name"], p["code"]))
-            out.append(p)
+    for cc in ([CODES[country]] if country else ["NL", "DE", "BE"]):
+        for lang in (("nl", "fr") if cc == "BE" else ("de",) if cc == "DE" else ("nl",)):
+            for r in await _geocode({"address": q, "components": f"country:{cc}", "language": lang}):
+                if not set(r.get("types", [])) & set(_PLACE_TYPES + ("political",)):
+                    continue
+                p = _place(r)
+                if not p or p["lat"] is None or (cc == "BE" and _language("BE", p["lat"]) != lang):
+                    continue
+                if (p["name"], p["code"]) not in seen and _similar(p["name"], q):
+                    seen.add((p["name"], p["code"]))
+                    out.append(p)
     return out[:8]
 
 
