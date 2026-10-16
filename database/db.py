@@ -118,6 +118,10 @@ _APP_USER_LATER_COLUMNS = {
     "cover": "{BLOB}",
     "cover_v": "INTEGER NOT NULL DEFAULT 0",
     "username": "VARCHAR(30)",
+    "lat": "FLOAT",
+    "lng": "FLOAT",
+    "geo_at": "TIMESTAMP",
+    "verified_until": "TIMESTAMP",
 }
 _USER_POST_LATER_COLUMNS = {
     "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
@@ -129,6 +133,8 @@ _USER_POST_LATER_COLUMNS = {
     "share_url": "VARCHAR(700) NOT NULL DEFAULT ''",
     "share_img": "VARCHAR(700) NOT NULL DEFAULT ''",
     "photo_ratio": "FLOAT",
+    "lat": "FLOAT",
+    "lng": "FLOAT",
 }
 # Почта аккаунта создателя в приложении (галочка ставится при запуске); переопределяется переменной VERIFIED_EMAILS
 OWNER_EMAILS = "podslushano.nl@gmail.com"

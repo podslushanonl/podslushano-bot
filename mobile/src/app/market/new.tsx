@@ -5,7 +5,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, useWindowDimensions, View }
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuth } from '@/api/auth';
 import { routeForError } from '@/api/community';
-import { absUrl, CATEGORIES, Listing, MARKET_CITIES, MAX_PHOTOS, marketChanged, shrinkForWeb, submitListing, useListing } from '@/api/market';
+import { absUrl, CATEGORIES, Listing, MAX_PHOTOS, marketChanged, shrinkForWeb, submitListing, useListing } from '@/api/market';
 import { CitySheet } from '@/features/common/CitySheet';
 import { PickSheet } from '@/features/market/PickSheet';
 import { useCountry } from '@/lib/useCity';
@@ -14,7 +14,6 @@ import { BackButton, BAR_H, Button, Field, Icon, IconButton, IconName, Img, Skel
 
 type Photo = { key: string; preview: string; payload: string };
 const STEPS = ['Фото', 'Категория и город', 'Описание'];
-const OTHER_CITY = '__other';
 
 export default function NewListing() {
   const { id } = useLocalSearchParams<{ id?: string }>();
@@ -71,7 +70,7 @@ function ListingForm({ editId, initial: l }: { editId: number; initial?: Listing
   const [title, setTitle] = useState(l?.title || '');
   const [description, setDescription] = useState(l?.description || '');
   const [price, setPrice] = useState(l?.price_value != null ? String(l.price_value) : '');
-  const [city, setCity] = useState(l?.city || (MARKET_CITIES.includes(user?.city || '') ? user!.city : ''));
+  const [city, setCity] = useState(l?.city || user?.city || '');
   // Фото по порядку: payload — "keep:<номер>" для уже загруженных или картинка для новых; первое — обложка
   const [photos, setPhotos] = useState<Photo[]>((l?.photos || []).map((u, i) => ({ key: `old${i}`, preview: absUrl(u), payload: `keep:${i}` })));
   const [sheet, setSheet] = useState<'cat' | 'city' | 'other' | null>(null);
@@ -204,11 +203,8 @@ function ListingForm({ editId, initial: l }: { editId: number; initial?: Listing
 
       <PickSheet visible={sheet === 'cat'} title="Категория" value={category} onClose={() => setSheet(null)} onPick={setCategory}
         options={CATEGORIES.map((x) => ({ key: x.key, title: x.title, hint: x.hint, icon: x.icon }))} />
-      <PickSheet visible={sheet === 'city'} title="Город" value={MARKET_CITIES.includes(city) ? city : city ? OTHER_CITY : ''} onClose={() => setSheet(null)}
-        onPick={(k) => { if (k === OTHER_CITY) setTimeout(() => setSheet('other'), 250); else setCity(k); }}
-        options={[...MARKET_CITIES.map((x) => ({ key: x, title: x, icon: 'location' as IconName })),
-          { key: OTHER_CITY, title: !city || MARKET_CITIES.includes(city) ? 'Другой город' : city, hint: 'Выбрать из списка', icon: 'search' }]} />
-      <CitySheet visible={sheet === 'other'} value={city} country={country} onPick={setCity} onClose={() => setSheet(null)} />
+      {/* Город объявления — любой населённый пункт; профиль при этом не меняется */}
+      <CitySheet visible={sheet === 'city'} value={city} country={country} mine={false} extra={[user?.city || '']} onPick={setCity} onClose={() => setSheet(null)} />
     </KeyboardAvoidingView>
   );
 }

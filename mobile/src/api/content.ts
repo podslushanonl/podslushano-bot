@@ -52,8 +52,8 @@ const WMO: [number[], string][] = [
 export const weatherText = (code: number) => WMO.find(([c]) => c.includes(code))?.[1] || '';
 export const weatherIcon = (code: number) => (code === 0 || code === 1 ? 'sun' : code >= 51 ? 'rain' : 'cloud') as 'sun' | 'rain' | 'cloud';
 
-async function loadWeather(city: string): Promise<Weather> {
-  const [lat, lon] = CITY_COORDS[city] || CITY_COORDS.Utrecht;
+async function loadWeather(city: string, at?: [number, number] | null): Promise<Weather> {
+  const [lat, lon] = at || CITY_COORDS[city] || CITY_COORDS.Utrecht;
   const d = await getJson<any>(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
     '&current=temperature_2m,weather_code,wind_speed_10m&hourly=precipitation_probability&forecast_hours=12&timezone=Europe%2FAmsterdam');
   const probs: number[] = d.hourly?.precipitation_probability || [];
@@ -65,7 +65,10 @@ async function loadWeather(city: string): Promise<Weather> {
   };
 }
 
-export const useWeather = (city: string) => useQuery({ queryKey: ['weather', city], queryFn: () => loadWeather(city), staleTime: 15 * 60_000 });
+/** Погода: по координатам места (любая деревня, определённая по GPS), иначе — по известному крупному городу. */
+export const useWeather = (city: string, at?: [number, number] | null) => useQuery({
+  queryKey: ['weather', city, at?.join(',') || ''], queryFn: () => loadWeather(city, at), staleTime: 15 * 60_000,
+});
 
 // ---------------------------------------------------------------- поезда NS
 

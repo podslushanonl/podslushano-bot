@@ -1,5 +1,6 @@
 import { router } from 'expo-router';
 import { View } from 'react-native';
+import { useAuth } from '@/api/auth';
 import { useDisruptions, useWeather, weatherIcon, weatherText } from '@/api/content';
 import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Icon, Skeleton, Tap, Txt } from '@/ui';
@@ -7,7 +8,8 @@ import { Icon, Skeleton, Tap, Txt } from '@/ui';
 /** «Сейчас в городе»: погода, дождь в ближайшие часы и сбои поездов — главное за секунду. */
 export function NowCard({ city }: { city: string }) {
   const { c } = useTheme();
-  const w = useWeather(city);
+  const { user } = useAuth();
+  const w = useWeather(city, user?.city === city ? user.geo : null);
   const ns = useDisruptions();
   const now = ns.data?.now || [];
   const mine = now.find((d) => `${d.title} ${d.text || ''} ${(d.stations || []).join(' ')}`.includes(city));
@@ -17,7 +19,7 @@ export function NowCard({ city }: { city: string }) {
     <View style={{ backgroundColor: c.hero, borderRadius: radius.xxl, borderWidth: HAIRLINE, borderColor: c.line, padding: 18, gap: 16 }}>
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
         <View style={{ gap: 2 }}>
-          <Txt v="overline" color={c.accent}>Сейчас в {city}</Txt>
+          <Txt v="overline" color={c.accent}>Сейчас в {city || 'Нидерландах'}</Txt>
           {w.data ? (
             <>
               <Txt v="display" color={c.onHero} style={{ fontSize: 44, lineHeight: 50 }}>{w.data.temp}°</Txt>

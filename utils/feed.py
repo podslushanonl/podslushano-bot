@@ -1,9 +1,11 @@
 """Лента приложения podslushano: посты, фото, лайки, комментарии, репосты.
 
 Лента бывает трёх видов (scope):
-- all     — все посты;
+- all     — все посты из трёх стран по дате; на первой странице сверху — свежие посты подтверждённых аккаунтов
+            (приоритет «Премиум верификации»);
 - friends — посты друзей и мои (нужен вход);
-- near    — посты моей страны (без входа — ?country=), можно сузить до города ?city=.
+- near    — «Рядом»: посты в радиусе 50 км от моих координат (GPS), а посты без координат — из моего города;
+            без координат у меня — только мой город; без входа — страна ?country= и город ?city=.
 Посты тех, кого я заблокировал и кто заблокировал меня, не показываются.
 
 GET  /api/app/posts?scope=&city=&country=&before=  — лента (по 20)
@@ -25,18 +27,23 @@ from __future__ import annotations
 import io
 
 from aiohttp import web
-from sqlalchemy import func, or_, select
+from datetime import datetime, timedelta, timezone
+
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.exc import IntegrityError
 
 from database.db import get_session
 from database.models import AppUser, Country, Friendship, FriendStatus, PostComment, PostLike, PostPhoto, UserPost
 from utils import realtime, social
 from utils.app_api import _user
+from utils.app_geo import near_clause
 from utils.community import POST_MAX, _rate, can_write, check_text
 from utils.market import _read_json, prepare_photo
 from utils.site_api import _err, _json, grant, read_token
 
 PAGE = 20
+BOOST = 3                      # сколько свежих постов с галочкой поднимать наверх ленты «Все»
+BOOST_AGE = timedelta(hours=48)
 MAX_PHOTOS = 4
 COMMENT_MAX = 1000
 
@@ -174,13 +181,21 @@ async def posts(request: web.Request) -> web.Response:
                 return _err(request, "Войдите, чтобы видеть ленту друзей.", 401)
             q = q.where(UserPost.user_id.in_(await _friend_ids(session, me.id) | {me.id}))
         elif scope == "near":
-            raw = request.query.get("country") or (me.country.value if me else Country.NL.value)
-            try:
-                q = q.where(UserPost.country == Country.parse(raw))
-            except ValueError:
-                return _err(request, "Страна: Нидерланды, Германия или Бельгия.")
-            if request.query.get("city"):
-                q = q.where(UserPost.city == request.query["city"][:80])
+            city = request.query.get("city", "")[:80]
+            if me and me.lat is not None and me.lng is not None and not city:
+                # Радиус 50 км по координатам; посты без координат (старые, с другим городом) — по моему городу
+                q = q.where(or_(and_(UserPost.lat.is_not(None), UserPost.lng.is_not(None),
+                                     near_clause(UserPost.lat, UserPost.lng, me.lat, me.lng)),
+                                and_(UserPost.lat.is_(None), UserPost.city == me.city, UserPost.country == me.country)))
+            else:
+                raw = request.query.get("country") or (me.country.value if me else Country.NL.value)
+                try:
+                    q = q.where(UserPost.country == Country.parse(raw))
+                except ValueError:
+                    return _err(request, "Страна: Нидерланды, Германия или Бельгия.")
+                city = city or (me.city if me else "") or ""
+                if city:
+                    q = q.where(UserPost.city == city)
         hidden = await _hidden_authors(session, me)
         if hidden:
             q = q.where(UserPost.user_id.notin_(hidden))
@@ -188,9 +203,20 @@ async def posts(request: web.Request) -> web.Response:
         if before.isdigit():
             q = q.where(UserPost.id < int(before))
         rows = list((await session.execute(q.order_by(UserPost.id.desc()).limit(PAGE))).scalars())
+        more = len(rows) == PAGE
+        if scope == "all" and not before.isdigit():
+            # Приоритет подтверждённых аккаунтов: их свежие посты — первыми на первой странице
+            since = datetime.now(timezone.utc).replace(tzinfo=None) - BOOST_AGE
+            boosted = list((await session.execute(
+                q.where(UserPost.created_at >= since, UserPost.repost_of.is_(None),
+                        UserPost.user_id.in_(select(AppUser.id).where(AppUser.is_verified.is_(True), or_(
+                            AppUser.verified_until.is_(None), AppUser.verified_until > datetime.now(timezone.utc).replace(tzinfo=None)))))
+                .order_by(UserPost.id.desc()).limit(BOOST))).scalars())
+            ids = {p.id for p in boosted}
+            rows = boosted + [p for p in rows if p.id not in ids]
         items = await posts_json(session, rows, me)
         await session.commit()
-    return _json(request, {"ok": True, "posts": items, "more": len(rows) == PAGE})
+    return _json(request, {"ok": True, "posts": items, "more": more})
 
 
 async def create(request: web.Request) -> web.Response:
@@ -237,7 +263,10 @@ async def create(request: web.Request) -> web.Response:
             return _err(request, "Можно публиковать до 10 постов в день и не чаще раза в минуту.", 429)
         # Место поста: город, выбранный в редакторе (значок геопозиции), иначе — город профиля
         city = " ".join(str(data.get("city") or "").split())[:80] or me.city or ""
+        # Координаты — только если пост из «моего» места (в редакторе можно выбрать другой город)
+        here = city == (me.city or "")
         p = UserPost(user_id=me.id, text=text, city=city, country=me.country,
+                     lat=me.lat if here else None, lng=me.lng if here else None,
                      repost_of=orig.id if orig else None, photo_count=len(jpegs),
                      photo_ratio=photo_ratio(jpegs[0]) if jpegs else None)
         session.add(p)
@@ -404,7 +433,8 @@ async def repost(request: web.Request) -> web.Response:
                     return _err(request, reason)
             if _rate(f"repost:{me.id}", 20, 86400):
                 return _err(request, "Слишком много репостов за день. Попробуйте завтра.", 429)
-            mine = UserPost(user_id=me.id, text=text, city=me.city or "", country=me.country, repost_of=orig.id)
+            mine = UserPost(user_id=me.id, text=text, city=me.city or "", country=me.country, repost_of=orig.id,
+                            lat=me.lat, lng=me.lng)
             session.add(mine)
             await session.commit()
             item = (await posts_json(session, [mine], me))[0]

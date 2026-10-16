@@ -23,6 +23,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import secrets
+import time
 from datetime import datetime, timedelta, timezone
 
 from aiohttp import web
@@ -63,6 +64,8 @@ def user_json(u: AppUser) -> dict:
     return {"id": u.id, "name": u.name, "city": u.city, "country": u.country.value, "email": u.email or "",
             "phone": u.phone or "", "telegram": bool(u.tg_id), "bio": u.bio or "", "avatar": avatar,
             "is_private": bool(u.is_private), "verified": bool(u.is_verified), "username": u.username or "",
+            "located": u.lat is not None,   # координаты — только самому человеку (погода и «Рядом»), другим не отдаются
+            "geo": [round(u.lat, 2), round(u.lng, 2)] if u.lat is not None and u.lng is not None else None,
             "cover": f"/api/app/user/{u.id}/cover?v={u.cover_v}" if u.cover_v else ""}
 
 
@@ -86,7 +89,25 @@ async def _start_session(session, request: web.Request, u: AppUser) -> dict:
     return {"ok": True, "token": make_token({"k": "app", "u": u.id, "s": sid}, TOKEN_DAYS * 86400), "user": user_json(u)}
 
 
+_expired_at = 0.0
+
+
+async def expire_paid(session, force: bool = False) -> int:
+    """Снимает платные галочки с истёкшим сроком (verified_until в прошлом). Без force — не чаще раза в 5 минут:
+    вызывается при каждом запросе вошедшего участника, так что лента, профили, чаты и барахолка не показывают
+    галочку после окончания подписки, даже если человек больше не открывает экран оплаты."""
+    global _expired_at
+    if not force and time.monotonic() - _expired_at < 300:
+        return 0
+    _expired_at = time.monotonic()
+    r = await session.execute(update(AppUser).where(
+        AppUser.is_verified.is_(True), AppUser.verified_until.is_not(None), AppUser.verified_until < _now())
+        .values(is_verified=False))
+    return r.rowcount or 0
+
+
 async def _user(request: web.Request, session) -> AppUser | None:
+    await expire_paid(session)
     auth = request.headers.get("Authorization", "")
     u, sid = await token_user(session, auth[7:] if auth.startswith("Bearer ") else "", _ip(request))
     if u:
@@ -362,9 +383,12 @@ async def me(request: web.Request) -> web.Response:
             data = await _body(request)
             if "country" in data:
                 try:
-                    u.country = Country.parse(data.get("country"))
+                    country = Country.parse(data.get("country"))
                 except ValueError:
                     return _err(request, "Страна: Нидерланды, Германия или Бельгия.")
+                if country != u.country:
+                    u.lat = u.lng = None
+                u.country = country
             if "bio" in data:
                 bio = " ".join(str(data.get("bio") or "").split())[:160]
                 if bio:
@@ -387,7 +411,10 @@ async def me(request: web.Request) -> web.Response:
                         return _err(request, "Этот юзернейм уже занят.", 409)
                     u.username = un
             if "city" in data:
-                u.city = str(data.get("city") or "").strip()[:80]
+                city = str(data.get("city") or "").strip()[:80]
+                if city != (u.city or ""):   # город выбран вручную — координаты прежнего места больше не верны
+                    u.lat = u.lng = None
+                u.city = city
             if "is_private" in data:
                 u.is_private = bool(data.get("is_private"))
         favs = (await session.execute(select(AppFavorite).where(AppFavorite.user_id == u.id)

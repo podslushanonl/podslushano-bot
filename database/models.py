@@ -896,10 +896,33 @@ class AppUser(Base):
     cover_v: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     # @username: строго lowercase, уникальный; выдаётся автоматически, человек может сменить в профиле
     username: Mapped[str | None] = mapped_column(String(30), unique=True, nullable=True, index=True)
+    # Местоположение по GPS (для ленты «Рядом» в радиусе 50 км); город и страну определяет Google по координатам
+    lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lng: Mapped[float | None] = mapped_column(Float, nullable=True)
+    geo_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    # Платная галочка: до какой даты оплачена (NULL у галочки, выданной администратором, — бессрочно)
+    verified_until: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     @validates("country")
     def _check_country(self, _key, value):
         return Country.parse(value)
+
+
+class AppPayment(Base):
+    """Платёж в приложении (сейчас — подписка «Премиум верификация» 3,99 € в месяц).
+    provider: stripe | mock (проверка без реальной оплаты — только при BILLING_MOCK=1)."""
+    __tablename__ = "app_payments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    user_id: Mapped[int] = mapped_column(Integer, index=True)
+    kind: Mapped[str] = mapped_column(String(20), default="verify")
+    provider: Mapped[str] = mapped_column(String(10), default="stripe")
+    amount_cents: Mapped[int] = mapped_column(Integer, default=399)
+    currency: Mapped[str] = mapped_column(String(3), default="EUR")
+    status: Mapped[str] = mapped_column(String(12), default="pending")   # pending | paid | canceled
+    external_id: Mapped[str | None] = mapped_column(String(120), nullable=True, index=True)   # Checkout Session / подписка
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
 
 class AppSession(Base):
@@ -1024,6 +1047,9 @@ class UserPost(Base):
     # Формат первого фото (ширина/высота), приведённый к стандарту: 1.0 — квадрат 1:1,
     # 0.8 — вертикальный 4:5 (1080×1350), 1.7778 — горизонтальный 16:9. Пусто — пост без фото или старый.
     photo_ratio: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Координаты автора в момент публикации (лента «Рядом» по радиусу); NULL — только по городу
+    lat: Mapped[float | None] = mapped_column(Float, nullable=True)
+    lng: Mapped[float | None] = mapped_column(Float, nullable=True)
     # «Поделиться в профиле» новостью или событием: ссылка-превью на стене
     share_kind: Mapped[str | None] = mapped_column(String(10), nullable=True)       # news | event
     share_key: Mapped[str | None] = mapped_column(String(120), nullable=True)

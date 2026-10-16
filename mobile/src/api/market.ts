@@ -40,7 +40,6 @@ export const CATEGORIES: (Category & { icon: IconName })[] = [
 ];
 export const CAT_ICON: Record<string, IconName> = Object.fromEntries(CATEGORIES.map((c) => [c.key, c.icon]));
 /** Города в форме подачи; остальные — через «Другой город». */
-export const MARKET_CITIES = ['Amsterdam', 'Rotterdam', 'Den Haag', 'Eindhoven'];
 
 export type MarketFilter = { cat: string; city: string; q: string };
 

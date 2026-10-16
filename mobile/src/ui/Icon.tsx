@@ -78,6 +78,8 @@ const I = {
   pulse: ['play.rectangle.on.rectangle', 'smart_display'], pulseFill: ['play.rectangle.on.rectangle.fill', 'smart_display'],
   sofa: ['sofa', 'chair'],
   bike: ['bicycle', 'pedal_bike'],
+  mic: ['mic.fill', 'mic'], creditcard: ['creditcard.fill', 'credit_card'], book: ['book.fill', 'menu_book'],
+  bellFill: ['bell.fill', 'notifications'], star: ['star.fill', 'star'],
 } as const;
 
 export type IconName = keyof typeof I;

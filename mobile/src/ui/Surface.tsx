@@ -108,8 +108,9 @@ export function Row({ title, sub, icon, iconBg, right, onPress, first, danger, c
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 13, minHeight: 56,
       borderTopWidth: first ? 0 : 1, borderTopColor: c.line }}>
       {icon ? (
-        <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: iconBg || c.bgSunken, alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name={icon} size={18} color={iconBg ? '#FFFFFF' : c.ink} />
+        // Цветная круглая плашка с белой иконкой (как в настройках iOS и VK); без цвета — нейтральная
+        <View style={{ width: 32, height: 32, borderRadius: iconBg ? 16 : 10, backgroundColor: iconBg || c.bgSunken, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name={icon} size={iconBg ? 17 : 18} color={iconBg ? '#FFFFFF' : c.ink} />
         </View>
       ) : null}
       <View style={{ flex: 1, gap: 2 }}>
