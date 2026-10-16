@@ -403,11 +403,11 @@ async def _migrate() -> None:
             await conn.exec_driver_sql("CREATE UNIQUE INDEX IF NOT EXISTS ix_app_users_username ON app_users (username)")
             await usernames.backfill(conn)
             # Синяя галочка создателю — бесплатно и бессрочно: аккаунт с Telegram ID из ADMIN_IDS, почтой из
-            # VERIFIED_EMAILS, @username из VERIFIED_USERNAMES или номером из VERIFIED_PHONES (через запятую)
+            # VERIFIED_EMAILS, @username создателя (usernames.OWNERS или VERIFIED_USERNAMES) или номером из VERIFIED_PHONES
             ids = [int(x) for x in config.ADMIN_IDS]
             env = lambda name, default="": [x.strip() for x in os.getenv(name, default).split(",") if x.strip()]  # noqa: E731
             emails = [e.lower() for e in env("VERIFIED_EMAILS", OWNER_EMAILS)]
-            names = [usernames.normalize(n) for n in env("VERIFIED_USERNAMES")]
+            names = usernames.owners()
             phones = ["+" + "".join(ch for ch in p if ch.isdigit()) for p in env("VERIFIED_PHONES")]
             conds = (([AppUser.tg_id.in_(ids)] if ids else []) + ([func.lower(AppUser.email).in_(emails)] if emails else [])
                      + ([AppUser.username.in_(names)] if names else []) + ([AppUser.phone.in_(phones)] if phones else []))

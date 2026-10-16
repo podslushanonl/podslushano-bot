@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import os
 import re
 
 from sqlalchemy import select, update
@@ -19,6 +20,15 @@ _TR = dict(zip("абвгдеёзийклмнопрстуфхыэ", "abvgdeezijkl
     "і": "i", "ї": "yi", "є": "ye", "ґ": "g"}
 
 
+# Юзернеймы создателя: бессрочная галочка при запуске (database/db.py) и резерв — занять может только аккаунт
+# с галочкой. Переопределяется переменной VERIFIED_USERNAMES (через запятую)
+OWNERS = "alexmair"
+
+
+def owners() -> list[str]:
+    return [normalize(x) for x in os.getenv("VERIFIED_USERNAMES", OWNERS).split(",") if normalize(x)]
+
+
 def normalize(raw: str | None) -> str:
     return str(raw or "").strip().lstrip("@").strip().lower()
 
@@ -29,7 +39,7 @@ def check(name: str, verified: bool = False) -> str | None:
         return f"Юзернейм — от {MIN} до {MAX} символов."
     if not _OK.match(name) or ".." in name:
         return "Только латинские буквы, цифры, «_» и «.» (не в начале и не в конце)."
-    if name in _RESERVED or (name.startswith(_BRAND) and not verified):
+    if name in _RESERVED or ((name.startswith(_BRAND) or name in owners()) and not verified):
         return "Этот юзернейм зарезервирован."
     if name.isdigit():
         return "Юзернейм не может состоять только из цифр."
