@@ -153,15 +153,17 @@ async def search(q: str, country: Country | None = None) -> list[dict]:
                 p = _place(r)
                 if not p or p["lat"] is None or (cc == "BE" and _language("BE", p["lat"], p["lng"] or 0) != lang):
                     continue
-                # Точное совпадение Google — всегда (в том числе по названию на другом языке: Ghent → Gent,
-                # Cologne → Köln). Неточное (partial_match) — только если похоже на запрос: так отсеиваются «похожие»
-                # места вроде Thiendorf на «Liège», но остаются подсказки по началу названия (Bun → Bunnik)
+                # Неточное совпадение (partial_match) — только если похоже на запрос (Bun → Bunnik)
                 if p["partial"] and not _similar(p["name"], q):
                     continue
                 if (p["name"], p["code"]) not in seen:
                     seen.add((p["name"], p["code"]))
                     out.append(p)
-    return out[:8]
+    # Google с фильтром по стране, не найдя места в ней, отвечает чем-то «точным», но чужим (на «Liège» в Германии —
+    # Thiendorf). Если среди ответов есть похожие на запрос — оставляем только их; если похожих нет (запрос на другом
+    # языке: Ghent → Gent, Cologne → Köln) — оставляем всё как есть
+    alike = [p for p in out if _similar(p["name"], q)]
+    return (alike or out)[:8]
 
 
 def near_clause(lat_col, lng_col, lat: float, lng: float, km: float = NEAR_KM):

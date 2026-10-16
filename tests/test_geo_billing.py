@@ -39,7 +39,7 @@ async def fake_geocode(params):
         return [_result("Bunnik", "NL", 52.067, 5.198)]
     if params.get("address", "") == "Liège":
         if cc == "DE":
-            return [_result("Thiendorf", "DE", 51.29, 13.74, partial=True)]   # «похожее» место, которое Google добавляет к запросу
+            return [_result("Thiendorf", "DE", 51.29, 13.74)]   # чужое место, которое Google отдаёт как точное совпадение
         if cc == "BE":
             fr = params.get("language") == "fr"
             return [_result("Liège" if fr else "Luik", "BE", 50.63, 5.57), _result("Gent" if not fr else "Gand", "BE", 51.05, 3.72, partial=True)]
