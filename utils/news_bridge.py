@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 LOCK = asyncio.Lock()
 SLOTS = {'morning': 10, 'evening': 18}
 CTAS = {'morning': 'Следите за новостями вместе с нами',
-        'evening': 'Подписывайтесь, чтобы не пропускать главные новости Нидерландов каждый день'}
+        'evening': '<a href="https://t.me/podslushanovnl">Подписывайтесь</a>, чтобы не пропускать главные новости Нидерландов каждый день'}
 
 
 def db():
