@@ -12,7 +12,9 @@ News payload: date (YYYY-MM-DD), slot (morning/evening), checked_at (timezone-aw
 ISO timestamp), items (exactly five objects containing plain text and HTTPS url).
 The server escapes text, renders the source as clickable «тут», disables previews,
 adds the dated heading and the exact fixed closing sentence. Morning news links
-follow the paragraph; evening links are on the following line.
+follow the paragraph; evening links are on the following line. The evening
+closing sentence links only «Подписывайтесь» to https://t.me/podslushanovnl
+using an HTML anchor; delivery uses Telegram HTML parse mode.
 
 GET /api/news/status checks channel permissions, pause, schedules and the last
 fourteen records. Research may be at most sixty minutes old. Intake windows are
