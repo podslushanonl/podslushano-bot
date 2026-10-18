@@ -33,7 +33,8 @@ def test_format_links_and_validation():
     assert text.endswith('Следите за новостями вместе с нами')
     evening = bridge.render(sample('evening'))
     assert '\n<a href=' in evening
-    assert evening.endswith(bridge.CTAS['evening'])
+    assert evening.endswith('<a href="https://t.me/podslushanovnl">Подписывайтесь</a>, чтобы не пропускать главные новости Нидерландов каждый день')
+    assert evening.count('>Подписывайтесь</a>') == 1
     for change in [{'date':'2026-10-14'},{'items':p['items'][:4]},
                    {'checked_at':'2026-10-15T08:00:00+02:00'},
                    {'checked_at':'2026-10-15T09:35:00'},{'slot':'other'}]:
@@ -81,6 +82,9 @@ def test_send_once_pause_and_ambiguity(tmp_path,monkeypatch):
             await bridge.publish_due(bot,moment(18))
             await bridge.publish_due(bot,moment(18))
             assert bot.send_message.await_count == 2
+            sent = bot.send_message.await_args.kwargs
+            assert sent['parse_mode'] == 'HTML'
+            assert '<a href="https://t.me/podslushanovnl">Подписывайтесь</a>' in bot.send_message.await_args.args[1]
             with bridge.db() as conn:
                 assert conn.execute("SELECT state FROM news WHERE slot='evening'").fetchone()[0] == 'delivery_unknown'
     asyncio.run(scenario())
