@@ -540,9 +540,10 @@ async def diagnose() -> str:
 
 
 async def update_post(
-    post_id: int, content: str | None = None, featured_media: int | None = None
+    post_id: int, content: str | None = None, featured_media: int | None = None,
+    title: str | None = None, excerpt: str | None = None,
 ) -> tuple[dict | None, str]:
-    """Обновляет запись (тело/обложку). Возвращает (данные, ошибка)."""
+    """Обновляет запись (тело/обложку/заголовок/анонс). Возвращает (данные, ошибка)."""
     if not wp_enabled():
         return None, "Публикация на сайт не настроена."
     if not isinstance(post_id, int) or post_id <= 0:
@@ -553,6 +554,10 @@ async def update_post(
         payload["content"] = content
     if featured_media:
         payload["featured_media"] = featured_media
+    if title:
+        payload["title"] = title
+    if excerpt:
+        payload["excerpt"] = excerpt
     if not payload:
         return {"id": post_id}, ""
     headers = {**_base_headers(), "Content-Type": "application/json"}

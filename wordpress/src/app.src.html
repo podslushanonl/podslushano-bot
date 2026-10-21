@@ -2284,6 +2284,68 @@ html.hw-lock,html.hw-lock body{overflow:hidden}
 .gcm.gc .wm{position:absolute;left:8%;top:11%}.gcm.gc .wm b{font-size:clamp(12px,1.6vw,17px)}
 .gcm.gc b.amt{position:absolute;left:8%;bottom:10%;font:400 clamp(24px,3.2vw,36px)/1 "DM Serif Display",Georgia,serif;color:var(--gci);text-shadow:none}
 .gd .sw .art,.fsw button .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:right center}
+
+/* ---- practical guides (Справочник, utils/site_guides.py): pg-* blocks ---- */
+.artbody [id^="pg-"]{scroll-margin-top:calc(84px + env(safe-area-inset-top,0px))}
+.artbody .pg-meta{display:inline-flex;align-items:center;gap:8px;font-size:14px;line-height:1;color:var(--muted);background:var(--surface-2);padding:9px 14px;border-radius:999px;margin:0 0 22px}
+.pg-meta::before{content:"";width:16px;height:16px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3Cpath d=%22M12 6v6l4 2%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3Cpath d=%22M12 6v6l4 2%22/%3E%3C/svg%3E") center/contain no-repeat}
+.pg-sum{margin:0 0 26px;padding:22px 24px;border-radius:20px;background:var(--accent-soft);border:1px solid rgba(255,90,31,.18)}
+.artbody .pg-sum-h{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-deep);margin:0 0 12px}
+.pg-sum dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:0}
+.pg-sum dl>div{background:var(--surface);border-radius:14px;padding:12px 14px;box-shadow:var(--e1)}
+.pg-sum dt{font-size:12.5px;color:var(--muted);margin-bottom:4px}.pg-sum dd{margin:0;font-size:16px;line-height:1.4;font-weight:600;color:var(--ink)}
+.pg-toc{margin:0 0 30px;padding:20px 24px;border-radius:20px;background:var(--surface);border:1px solid var(--line)}
+.artbody .pg-toc-h{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.pg-toc ol{margin:0;padding:0;list-style:none;counter-reset:toc;display:grid;gap:2px}
+.artbody .pg-toc li{counter-increment:toc;margin:0;font-size:16px;line-height:1.45}
+.pg-toc a{display:flex;gap:12px;padding:7px 8px;border-radius:10px;color:var(--ink-2)!important;text-decoration:none!important;transition:background .2s}
+.pg-toc a::before{content:counter(toc);flex:none;width:24px;height:24px;border-radius:8px;display:grid;place-items:center;font-size:12.5px;font-weight:700;background:var(--surface-2);color:var(--ink)}
+.pg-toc a:hover{background:var(--surface-2)}
+.pg-steps{list-style:none;counter-reset:st;margin:8px 0 24px!important;padding:0!important}
+.artbody .pg-steps>li{counter-increment:st;position:relative;padding:0 0 18px 56px;margin:0}
+.pg-steps>li::before{content:counter(st);position:absolute;left:0;top:0;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:16px;background:var(--accent);color:#fff;box-shadow:var(--e-acc)}
+.pg-steps>li:not(:last-child)::after{content:"";position:absolute;left:18px;top:44px;bottom:4px;width:2px;border-radius:2px;background:var(--line-2)}
+.artbody .pg-steps p{margin:0 0 4px}.artbody .pg-step-t{font-weight:700;color:var(--ink);font-size:18px;line-height:1.35;padding-top:7px}
+.pg-check{list-style:none;padding:0!important;margin:6px 0 22px!important;display:grid;gap:8px}
+.artbody .pg-check li{position:relative;margin:0;padding:10px 14px 10px 46px;border-radius:14px;background:var(--surface);border:1px solid var(--line);line-height:1.5}
+.pg-check li::before{content:"";position:absolute;left:12px;top:11px;width:24px;height:24px;border-radius:8px;background:var(--mint)}
+.pg-check li::after{content:"";position:absolute;left:16px;top:15px;width:16px;height:16px;background:var(--mint-ink);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M20 6 9 17l-5-5%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M20 6 9 17l-5-5%22/%3E%3C/svg%3E") center/contain no-repeat}
+.pg-list{list-style:none;padding:0!important;margin:4px 0 22px!important}
+.artbody .pg-list li{position:relative;padding-left:24px;margin-bottom:8px}
+.pg-list li::before{content:"";position:absolute;left:4px;top:.68em;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.pg-table{margin:8px 0 24px;overflow-x:auto;border-radius:16px;border:1px solid var(--line);background:var(--surface)}
+.pg-table table{width:100%;border-collapse:collapse;font-size:15.5px;min-width:420px}
+.pg-table th{background:var(--slate);color:var(--slate-ink);font-weight:700;text-align:left;padding:12px 14px;font-size:14px}
+.pg-table td{padding:12px 14px;border-top:1px solid var(--line);vertical-align:top;line-height:1.5;color:var(--ink-2)}
+.pg-table td:first-child{font-weight:600;color:var(--ink)}
+.pg-note{position:relative;margin:10px 0 24px;padding:16px 18px 16px 58px;border-radius:18px}
+.pg-note::before{content:"";position:absolute;left:16px;top:16px;width:28px;height:28px;border-radius:9px;background:currentColor;opacity:.14}
+.pg-note::after{content:"";position:absolute;left:21px;top:21px;width:18px;height:18px;background:currentColor}
+.artbody .pg-note p{margin:0;color:var(--ink-2)}.artbody .pg-note .pg-note-h{font-weight:700;margin-bottom:4px;color:inherit;font-size:15px;letter-spacing:.02em}
+.pg-tip{background:var(--mint);color:var(--mint-ink)}.pg-tip::after{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M9 18h6%22/%3E%3Cpath d=%22M10 22h4%22/%3E%3Cpath d=%22M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M9 18h6%22/%3E%3Cpath d=%22M10 22h4%22/%3E%3Cpath d=%22M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z%22/%3E%3C/svg%3E") center/contain no-repeat}
+.pg-warn{background:var(--rose);color:var(--rose-ink)}.pg-warn::after{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z%22/%3E%3Cpath d=%22M12 9v4%22/%3E%3Cpath d=%22M12 17h.01%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z%22/%3E%3Cpath d=%22M12 9v4%22/%3E%3Cpath d=%22M12 17h.01%22/%3E%3C/svg%3E") center/contain no-repeat}
+.pg-info{background:var(--sky);color:var(--sky-ink)}.pg-info::after{-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3Cpath d=%22M12 16v-4%22/%3E%3Cpath d=%22M12 8h.01%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Ccircle cx=%2212%22 cy=%2212%22 r=%2210%22/%3E%3Cpath d=%22M12 16v-4%22/%3E%3Cpath d=%22M12 8h.01%22/%3E%3C/svg%3E") center/contain no-repeat}
+.pg-faq{margin:36px 0 10px}.pg-faq-i{border-radius:16px;background:var(--surface);border:1px solid var(--line);margin-bottom:10px;overflow:hidden}
+.pg-faq-i summary{list-style:none;cursor:pointer;padding:16px 52px 16px 18px;position:relative;font-weight:600;font-size:17px;line-height:1.4;color:var(--ink)}
+.pg-faq-i summary::-webkit-details-marker{display:none}
+.pg-faq-i summary::after{content:"";position:absolute;right:18px;top:50%;width:20px;height:20px;margin-top:-10px;background:var(--muted);transition:transform .25s;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22m6 9 6 6 6-6%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22m6 9 6 6 6-6%22/%3E%3C/svg%3E") center/contain no-repeat}
+.pg-faq-i[open] summary::after{transform:rotate(180deg)}.pg-faq-i[open] summary{color:var(--accent-deep)}
+.pg-faq-i>div{padding:0 18px 4px}
+.pg-cta{margin:30px 0;padding:24px;border-radius:22px;background:var(--ink);color:#fff}
+.artbody .pg-cta p{color:rgba(255,255,255,.78);margin:0 0 14px}.artbody .pg-cta .pg-cta-t{color:#fff;font-weight:700;font-size:20px;line-height:1.3;margin-bottom:6px}
+.artbody .pg-cta a.pg-cta-b{display:inline-flex;align-items:center;height:46px;padding:0 22px;border-radius:999px;background:var(--accent);color:#fff;text-decoration:none;font-weight:700;box-shadow:var(--e-acc)}
+.pg-src{margin:26px 0 0;padding:18px 20px;border-radius:18px;background:var(--surface-2)}
+.artbody .pg-src p,.artbody .pg-src li{font-size:14.5px;line-height:1.55;color:var(--muted);margin:0 0 6px}
+.artbody .pg-src .pg-src-h{font-weight:700;color:var(--ink);font-size:15px}
+.pg-src ul{list-style:none;padding:0!important;margin:0 0 10px!important}
+.pg-src a{display:inline-flex;align-items:center;gap:6px}.pg-src a::after{content:"";width:13px;height:13px;flex:none;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M15 3h6v6%22/%3E%3Cpath d=%22M10 14 21 3%22/%3E%3Cpath d=%22M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M15 3h6v6%22/%3E%3Cpath d=%22M10 14 21 3%22/%3E%3Cpath d=%22M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6%22/%3E%3C/svg%3E") center/contain no-repeat}
+@media (max-width:600px){.pg-sum,.pg-toc{padding:18px}.artbody .pg-steps>li{padding-left:50px}.pg-note{padding-left:52px}}
+
+/* past events at the bottom of the Афиша */
+.ev-past-h{font-size:var(--t-h2);letter-spacing:-.03em;margin:56px 0 18px;color:var(--ink)}
+.ev-past .evc{opacity:.78}.ev-past .evc:hover{opacity:1}.ev-past .pf img{filter:grayscale(.55)}
+.ev-past .badge2{background:var(--surface-3);color:var(--muted)}
+.ev-was{display:inline-block;margin:0 0 6px;padding:6px 12px;border-radius:999px;background:var(--surface-3);color:var(--ink-2);font-size:14px;font-weight:600}
 </style>
 <script>/* Хэллоуин: заставка стартует первой строкой страницы, параллельно с загрузкой сайта. После взрыва тыквы искры собираются в podslushano.nl, буквы «o» — горящие тыквы. */
 (function(){try{
@@ -3203,6 +3265,11 @@ const WD=['вс','пн','вт','ср','чт','пт','сб'];
 const dParts=iso=>{const [y,m,d]=iso.slice(0,10).split('-').map(Number);const dt=new Date(Date.UTC(y,m-1,d));return{d,m:MON[m-1],mf:MONF[m-1],w:WD[dt.getUTCDay()],mi:m}};
 const eur=c=>'€'+(c/100).toFixed(2).replace('.',',').replace(',00','');
 const TODAY=new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Amsterdam'});
+/* past events: from the server (PN.past) plus anything that ended since the page was built; newest first */
+const PAST=[];{const norm=e=>({h:'',s:'',date:'',time:'',doors:'',venue:'',addr:'',city:'',price:'',org:'',age:'',lang:'',img:'',url:'',note:'',end:'',p:[],...e});
+  if(Array.isArray(PN.past))PAST.push(...PN.past.map(norm).filter(e=>e.key&&/^\d{4}-\d\d-\d\d/.test(e.date)));
+  for(let i=EV.length-1;i>=0;i--)if((EV[i].end||EV[i].date)<TODAY)PAST.push(...EV.splice(i,1));
+  PAST.sort((a,b)=>(a.date+a.time)<(b.date+b.time)?1:-1)}
 // event image: a bundled key (IMG) or a URL from WordPress; favourites use the event key, not its position
 const evImg=e=>!e||!e.img?'':IMG[e.img]||(/^(https?:)?\/\/|^\//.test(e.img)?e.img:'');
 const evFav=e=>'ev:'+e.key;
@@ -3260,7 +3327,7 @@ INIT.events=()=>{$('#evF').addEventListener('click',e=>{const b=e.target.closest
 function evRender(){const items=[...EV.map((e,i)=>({t:'show',date:e.date,city:e.city,html:evCard4(e,i)})),...WALKS.filter(w=>w.starts_at.slice(0,10)>=TODAY).map((w,i)=>({t:'walk',date:w.starts_at.slice(0,10),city:w.place,html:walkCard(w,i)}))].sort((a,b)=>a.date<b.date?-1:1)
   .filter(x=>evF==='all'||(evF==='show'&&x.t==='show')||(evF==='walk'&&x.t==='walk')||(evF==='amsterdam'&&x.city==='Amsterdam')||(evF==='oct'&&x.date.slice(5,7)==='10')||(evF==='nov'&&x.date.slice(5,7)==='11'));
   $('#evGrid').innerHTML=items.length?items.map(x=>x.html).join(''):`<div class="empty"><img loading="lazy" decoding="async" src="{{DEER}}" alt=""><h4>Ничего не нашли</h4><p>Попробуйте другой фильтр.</p></div>`;bindTilt($('#evGrid'))}
-function renderEventPage(key){const i=EV.findIndex(e=>e.key===key),e=EV[i];if(!e){$('#evDet').innerHTML='<div class="empty"><h4>Событие не найдено</h4><a class="btn btn-soft btn-sm" href="#events">К афише</a></div>';return}const p=dParts(e.date);
+function renderEventPage(key){const i=EV.findIndex(e=>e.key===key),e=EV[i]||PAST.find(x=>x.key===key);if(!e){$('#evDet').innerHTML='<div class="empty"><h4>Событие не найдено</h4><a class="btn btn-soft btn-sm" href="#events">К афише</a></div>';return}const p=dParts(e.date);
   const map='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(e.venue.split(',')[0]+', '+e.addr);
   $('#evDet').innerHTML=`<div class="det"><div class="det-side"><a class="back" href="#events">${svg('left').replace('class="ico"','class="ico" style="width:16px;height:16px"')}Афиша</a><div class="evc" style="cursor:default"><div class="pf">${posterHTML(e)}</div></div></div>
    <div><span class="eyebrow"><span class="dot"></span>${p.w}, ${p.d} ${p.mf} ${e.date.slice(0,4)}${e.time?' · '+e.time:''}</span><h1 style="margin-top:12px">${esc(e.h)}</h1><p class="sub">${esc(e.s)}</p>
@@ -4156,6 +4223,15 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-rl]');if(b
 /* partner events */
 evCard4=(()=>{const base=evCard4;return (e,i)=>{let h=base(e,i);if(e&&e.partner)h=h.replace('<div class="pf">','<div class="pf"><span class="ptn">Партнёр</span>');return h}})();
 ENTER.event=(()=>{const base=ENTER.event;return()=>{base();const e=EV.find(x=>x.key===curParam);if(!e||!e.partner)return;$$('#evDet a[href^="http"]').forEach(a=>{if(a.href.split('?')[0]===e.url.split('?')[0])a.rel='noopener sponsored'});const h=$('#evDet h1');if(h&&!$('#evDet .ptn2'))h.insertAdjacentHTML('beforebegin','<span class="ptn2">Партнёр podslushano.nl</span>')}})();
+/* past event page: a clear note on top, tickets are no longer on sale */
+ENTER.event=(()=>{const base=ENTER.event;return()=>{base();const e=PAST.find(x=>x.key===curParam);const h=$('#evDet h1');if(!e||!h||$('#evDet .ev-was'))return;
+  h.insertAdjacentHTML('beforebegin','<p class="ev-was">Событие уже прошло</p>');
+  $$('#evDet a[href^="http"]').forEach(a=>{if(e.url&&a.href.split('?')[0]===e.url.split('?')[0])a.remove()});
+  h.parentNode.insertAdjacentHTML('beforeend','<p style="margin-top:18px"><a class="btn btn-soft btn-sm" href="#events">Ближайшие события в афише</a></p>')}})();
+/* «Прошедшие» under the Афиша grid: the date decides by itself, newest first */
+function evPastRender(){const g=$('#evGrid');if(!g)return;let box=$('#evPast');if(!box){box=document.createElement('div');box.id='evPast';g.after(box)}
+  box.innerHTML=PAST.length?`<h2 class="ev-past-h">Прошедшие</h2><div class="pgrid4 ev-past">${PAST.slice(0,12).map(e=>evCard4(e,-1)).join('')}</div>`:''}
+INIT.events=(()=>{const base=INIT.events;return()=>{base();evPastRender()}})();
 
 
 /* ===================== WordPress integration ===================== */
@@ -4215,6 +4291,9 @@ function pnRealLinks(root){(root.querySelectorAll?root:document).querySelectorAl
   if(p){a.dataset.hash=h;a.setAttribute('href',p)}})}
 pnRealLinks(document);
 new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nodeType===1)pnRealLinks(n.parentNode||n)}).observe(document.body,{childList:true,subtree:true});
+/* table of contents in guides: scroll inside the article instead of routing */
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href^="#pg-"]');if(!a)return;
+  const t=document.getElementById(a.getAttribute('href').slice(1));if(!t)return;e.preventDefault();t.scrollIntoView({behavior:'smooth',block:'start'})});
 document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[data-hash]');
   if(!a||e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||a.target==='_blank')return;
   e.preventDefault();if(location.hash==='#'+a.dataset.hash)route();else location.hash='#'+a.dataset.hash});

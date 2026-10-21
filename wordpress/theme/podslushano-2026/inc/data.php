@@ -112,12 +112,15 @@ if (!function_exists('array_is_list')) {
 /* ---------- posts ---------- */
 function pn_art_cat_ids() {
     $ids = [];
-    foreach (['stati', 'statyi', 'articles', 'stati-ru'] as $slug) {
+    // Статьи редакции и практические справки бота (utils/site_guides.py, рубрика «Справочник»)
+    foreach (['stati', 'statyi', 'articles', 'stati-ru', 'spravochnik'] as $slug) {
         $c = get_category_by_slug($slug);
         if ($c) $ids[] = $c->term_id;
     }
-    $c = get_term_by('name', 'Статьи', 'category');
-    if ($c) $ids[] = $c->term_id;
+    foreach (['Статьи', 'Справочник'] as $name) {
+        $c = get_term_by('name', $name, 'category');
+        if ($c) $ids[] = $c->term_id;
+    }
     return array_unique($ids);
 }
 function pn_post_item($p, $full = false) {
@@ -242,7 +245,7 @@ function pn_user_events() {
     }
     return $out;
 }
-function pn_events() {
+function pn_all_events() {
     static $ev = null;
     if ($ev !== null) return $ev;
     if (pn_has_entries('pn_event')) {
@@ -251,12 +254,20 @@ function pn_events() {
         $ev = array_map(function ($e) { $e['img'] = pn_asset_img($e['img'] ?? ''); return $e; }, pn_theme_json('events.json'));
     }
     $ev = array_merge($ev, pn_user_events());
-    $ev = array_values(array_filter($ev, 'pn_upcoming'));
     pn_sort_events($ev);
     return $ev;
 }
+function pn_events() {
+    return array_values(array_filter(pn_all_events(), 'pn_upcoming'));
+}
+/* Past events for «Прошедшие» at the bottom of the Афиша: newest first. The date decides by itself (Amsterdam time). */
+function pn_past_events($n = 12) {
+    $past = array_values(array_filter(pn_all_events(), function ($e) { return !empty($e['date']) && !pn_upcoming($e); }));
+    return array_slice(array_reverse($past), 0, $n);
+}
+/* Past events keep their pages (they are in Google and in shared links), marked as past by the app. */
 function pn_event($key) {
-    foreach (pn_events() as $e) if (($e['key'] ?? '') === $key) return $e;
+    foreach (pn_all_events() as $e) if (($e['key'] ?? '') === $key) return $e;
     return null;
 }
 /* Events for /links/ (shape of data/links.json events): entries with «Показывать на /links/». */

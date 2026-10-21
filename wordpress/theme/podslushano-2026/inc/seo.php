@@ -68,7 +68,8 @@ function pn_seo_shell($html, $pn) {
         $html = pn_seo_fill($html, 'wpBody', pn_seo_back('/', 'Главная') . '<h1>' . esc_html($pn['page']['title']) . '</h1>' . $pn['page']['html']);
     }
     if ($route === 'event' && ($e = pn_event($pn['param'] ?? ''))) $html = pn_seo_fill($html, 'evDet', pn_seo_event($e));
-    if ($route === 'events') $html = pn_seo_fill($html, 'evGrid', pn_seo_events_list($pn['events']));
+    if ($route === 'events') $html = pn_seo_fill($html, 'evGrid', pn_seo_events_list($pn['events'])
+        . (!empty($pn['past']) ? '<h2>Прошедшие</h2>' . pn_seo_events_list($pn['past']) : ''));
     if ($route === 'news') $html = pn_seo_fill($html, 'newsBody', pn_seo_news_list(array_merge($pn['posts'], pn_posts('arts'))));
     if ($route === 'home') $html = pn_seo_fill($html, 'homeNews', pn_seo_news_list(array_slice($pn['posts'], 0, 8)));
     // "#route" links → real addresses (JS keeps them fast: it catches the click and switches the section)
@@ -109,7 +110,8 @@ function pn_seo_event_ld($e) {
     if (!empty($e['img'])) $ld['image'] = [preg_match('#^https?://#', $e['img']) ? $e['img'] : home_url($e['img'])];
     if (!empty($e['org'])) $ld['organizer'] = ['@type' => 'Organization', 'name' => $e['org']];
     if (!empty($e['lang'])) $ld['inLanguage'] = $e['lang'] === 'русский' ? 'ru' : $e['lang'];
-    $offer = ['@type' => 'Offer', 'url' => ($e['url'] ?? '') ?: $url, 'availability' => 'https://schema.org/InStock', 'priceCurrency' => 'EUR'];
+    $offer = ['@type' => 'Offer', 'url' => ($e['url'] ?? '') ?: $url, 'priceCurrency' => 'EUR',
+        'availability' => pn_upcoming($e) ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut'];
     if (preg_match('/(\d+(?:[.,]\d+)?)/', (string) ($e['price'] ?? ''), $m)) $offer['price'] = str_replace(',', '.', $m[1]);
     elseif (preg_match('/бесплатн|free|gratis/iu', (string) ($e['price'] ?? ''))) $offer['price'] = '0';
     $ld['offers'] = $offer;
@@ -160,3 +162,20 @@ add_action('init', function () {
 add_filter('wpseo_sitemap_index', function ($x) {
     return $x . '<sitemap><loc>' . esc_url(home_url('/news-sitemap.xml')) . '</loc></sitemap>';
 });
+
+/* ---------- Practical guides: their «Частые вопросы» block as FAQPage ---------- */
+add_action('wp_head', function () {
+    if (!is_singular('post')) return;
+    $html = (string) get_post_field('post_content', get_queried_object_id());
+    if (strpos($html, 'pg-faq-i') === false) return;
+    preg_match_all('#<details class="pg-faq-i"><summary>(.*?)</summary><div>(.*?)</div></details>#s', $html, $m, PREG_SET_ORDER);
+    $q = [];
+    foreach ($m as $x) {
+        $name = trim(html_entity_decode(wp_strip_all_tags($x[1]), ENT_QUOTES, 'UTF-8'));
+        $text = trim(html_entity_decode(wp_strip_all_tags($x[2]), ENT_QUOTES, 'UTF-8'));
+        if ($name && $text) $q[] = ['@type' => 'Question', 'name' => $name, 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $text]];
+    }
+    if (!$q) return;
+    echo '<script type="application/ld+json">' . wp_json_encode(['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => $q],
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+}, 5);
