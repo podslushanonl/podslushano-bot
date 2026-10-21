@@ -30,6 +30,7 @@ $pn['posts'] = pn_posts('news');
 $pn['arts'] = pn_posts('arts');
 // Афиша and Вакансии from wp-admin (theme JSON while empty), upcoming only
 $pn['events'] = pn_events();
+$pn['past'] = pn_past_events();
 $pn['jobs'] = pn_jobs();
 add_action('wp_enqueue_scripts', function () use ($pn) {
     wp_add_inline_script('pn-app', 'window.PN=' . wp_json_encode($pn) . ';', 'before');

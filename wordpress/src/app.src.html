@@ -2340,6 +2340,12 @@ html.hw-lock,html.hw-lock body{overflow:hidden}
 .pg-src ul{list-style:none;padding:0!important;margin:0 0 10px!important}
 .pg-src a{display:inline-flex;align-items:center;gap:6px}.pg-src a::after{content:"";width:13px;height:13px;flex:none;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M15 3h6v6%22/%3E%3Cpath d=%22M10 14 21 3%22/%3E%3Cpath d=%22M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22black%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M15 3h6v6%22/%3E%3Cpath d=%22M10 14 21 3%22/%3E%3Cpath d=%22M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6%22/%3E%3C/svg%3E") center/contain no-repeat}
 @media (max-width:600px){.pg-sum,.pg-toc{padding:18px}.artbody .pg-steps>li{padding-left:50px}.pg-note{padding-left:52px}}
+
+/* past events at the bottom of the Афиша */
+.ev-past-h{font-size:var(--t-h2);letter-spacing:-.03em;margin:56px 0 18px;color:var(--ink)}
+.ev-past .evc{opacity:.78}.ev-past .evc:hover{opacity:1}.ev-past .pf img{filter:grayscale(.55)}
+.ev-past .badge2{background:var(--surface-3);color:var(--muted)}
+.ev-was{display:inline-block;margin:0 0 6px;padding:6px 12px;border-radius:999px;background:var(--surface-3);color:var(--ink-2);font-size:14px;font-weight:600}
 </style>
 <script>/* Хэллоуин: заставка стартует первой строкой страницы, параллельно с загрузкой сайта. После взрыва тыквы искры собираются в podslushano.nl, буквы «o» — горящие тыквы. */
 (function(){try{
@@ -3259,6 +3265,11 @@ const WD=['вс','пн','вт','ср','чт','пт','сб'];
 const dParts=iso=>{const [y,m,d]=iso.slice(0,10).split('-').map(Number);const dt=new Date(Date.UTC(y,m-1,d));return{d,m:MON[m-1],mf:MONF[m-1],w:WD[dt.getUTCDay()],mi:m}};
 const eur=c=>'€'+(c/100).toFixed(2).replace('.',',').replace(',00','');
 const TODAY=new Date().toLocaleDateString('sv-SE',{timeZone:'Europe/Amsterdam'});
+/* past events: from the server (PN.past) plus anything that ended since the page was built; newest first */
+const PAST=[];{const norm=e=>({h:'',s:'',date:'',time:'',doors:'',venue:'',addr:'',city:'',price:'',org:'',age:'',lang:'',img:'',url:'',note:'',end:'',p:[],...e});
+  if(Array.isArray(PN.past))PAST.push(...PN.past.map(norm).filter(e=>e.key&&/^\d{4}-\d\d-\d\d/.test(e.date)));
+  for(let i=EV.length-1;i>=0;i--)if((EV[i].end||EV[i].date)<TODAY)PAST.push(...EV.splice(i,1));
+  PAST.sort((a,b)=>(a.date+a.time)<(b.date+b.time)?1:-1)}
 // event image: a bundled key (IMG) or a URL from WordPress; favourites use the event key, not its position
 const evImg=e=>!e||!e.img?'':IMG[e.img]||(/^(https?:)?\/\/|^\//.test(e.img)?e.img:'');
 const evFav=e=>'ev:'+e.key;
@@ -3316,7 +3327,7 @@ INIT.events=()=>{$('#evF').addEventListener('click',e=>{const b=e.target.closest
 function evRender(){const items=[...EV.map((e,i)=>({t:'show',date:e.date,city:e.city,html:evCard4(e,i)})),...WALKS.filter(w=>w.starts_at.slice(0,10)>=TODAY).map((w,i)=>({t:'walk',date:w.starts_at.slice(0,10),city:w.place,html:walkCard(w,i)}))].sort((a,b)=>a.date<b.date?-1:1)
   .filter(x=>evF==='all'||(evF==='show'&&x.t==='show')||(evF==='walk'&&x.t==='walk')||(evF==='amsterdam'&&x.city==='Amsterdam')||(evF==='oct'&&x.date.slice(5,7)==='10')||(evF==='nov'&&x.date.slice(5,7)==='11'));
   $('#evGrid').innerHTML=items.length?items.map(x=>x.html).join(''):`<div class="empty"><img loading="lazy" decoding="async" src="{{DEER}}" alt=""><h4>Ничего не нашли</h4><p>Попробуйте другой фильтр.</p></div>`;bindTilt($('#evGrid'))}
-function renderEventPage(key){const i=EV.findIndex(e=>e.key===key),e=EV[i];if(!e){$('#evDet').innerHTML='<div class="empty"><h4>Событие не найдено</h4><a class="btn btn-soft btn-sm" href="#events">К афише</a></div>';return}const p=dParts(e.date);
+function renderEventPage(key){const i=EV.findIndex(e=>e.key===key),e=EV[i]||PAST.find(x=>x.key===key);if(!e){$('#evDet').innerHTML='<div class="empty"><h4>Событие не найдено</h4><a class="btn btn-soft btn-sm" href="#events">К афише</a></div>';return}const p=dParts(e.date);
   const map='https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(e.venue.split(',')[0]+', '+e.addr);
   $('#evDet').innerHTML=`<div class="det"><div class="det-side"><a class="back" href="#events">${svg('left').replace('class="ico"','class="ico" style="width:16px;height:16px"')}Афиша</a><div class="evc" style="cursor:default"><div class="pf">${posterHTML(e)}</div></div></div>
    <div><span class="eyebrow"><span class="dot"></span>${p.w}, ${p.d} ${p.mf} ${e.date.slice(0,4)}${e.time?' · '+e.time:''}</span><h1 style="margin-top:12px">${esc(e.h)}</h1><p class="sub">${esc(e.s)}</p>
@@ -4212,6 +4223,15 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-rl]');if(b
 /* partner events */
 evCard4=(()=>{const base=evCard4;return (e,i)=>{let h=base(e,i);if(e&&e.partner)h=h.replace('<div class="pf">','<div class="pf"><span class="ptn">Партнёр</span>');return h}})();
 ENTER.event=(()=>{const base=ENTER.event;return()=>{base();const e=EV.find(x=>x.key===curParam);if(!e||!e.partner)return;$$('#evDet a[href^="http"]').forEach(a=>{if(a.href.split('?')[0]===e.url.split('?')[0])a.rel='noopener sponsored'});const h=$('#evDet h1');if(h&&!$('#evDet .ptn2'))h.insertAdjacentHTML('beforebegin','<span class="ptn2">Партнёр podslushano.nl</span>')}})();
+/* past event page: a clear note on top, tickets are no longer on sale */
+ENTER.event=(()=>{const base=ENTER.event;return()=>{base();const e=PAST.find(x=>x.key===curParam);const h=$('#evDet h1');if(!e||!h||$('#evDet .ev-was'))return;
+  h.insertAdjacentHTML('beforebegin','<p class="ev-was">Событие уже прошло</p>');
+  $$('#evDet a[href^="http"]').forEach(a=>{if(e.url&&a.href.split('?')[0]===e.url.split('?')[0])a.remove()});
+  h.parentNode.insertAdjacentHTML('beforeend','<p style="margin-top:18px"><a class="btn btn-soft btn-sm" href="#events">Ближайшие события в афише</a></p>')}})();
+/* «Прошедшие» under the Афиша grid: the date decides by itself, newest first */
+function evPastRender(){const g=$('#evGrid');if(!g)return;let box=$('#evPast');if(!box){box=document.createElement('div');box.id='evPast';g.after(box)}
+  box.innerHTML=PAST.length?`<h2 class="ev-past-h">Прошедшие</h2><div class="pgrid4 ev-past">${PAST.slice(0,12).map(e=>evCard4(e,-1)).join('')}</div>`:''}
+INIT.events=(()=>{const base=INIT.events;return()=>{base();evPastRender()}})();
 
 
 /* ===================== WordPress integration ===================== */
