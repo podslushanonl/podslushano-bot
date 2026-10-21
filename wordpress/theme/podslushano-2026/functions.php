@@ -7,7 +7,7 @@
  */
 if (!defined('ABSPATH')) exit;
 
-define('PN_VER', '1.0.0');
+define('PN_VER', '1.1.0');
 define('PN_BOT', 'https://worker-production-ad76.up.railway.app');
 define('PN_DIR', get_template_directory());
 define('PN_URI', get_template_directory_uri());
@@ -16,6 +16,7 @@ require PN_DIR . '/inc/data.php';
 require PN_DIR . '/inc/content.php';
 require PN_DIR . '/inc/forms.php';
 require PN_DIR . '/inc/importer.php';
+require PN_DIR . '/inc/seo.php';
 
 add_action('after_setup_theme', function () {
     add_theme_support('title-tag');
@@ -169,6 +170,12 @@ add_action('wp_head', function () {
     // Подтверждение сайта для партнёрской сети Impact (eSIM)
     echo "<meta name='impact-site-verification' value='42876f45-152c-4874-81ce-e154db4b471f'>" . "\n";
 }, 1);
+
+// Yoast leaves the description empty when a post has no excerpt: use the lead of the article
+add_filter('wpseo_metadesc', function ($d) {
+    if ($d || !is_singular('post')) return $d;
+    return wp_trim_words(wp_strip_all_tags(get_the_excerpt(get_queried_object())), 30, '…');
+});
 
 /* ---------- assets ---------- */
 add_action('wp_enqueue_scripts', function () {

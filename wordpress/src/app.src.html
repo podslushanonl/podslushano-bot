@@ -2956,7 +2956,7 @@ function show(id,anchor){
   if(!ROUTES.includes(id))id='home';
   const go=()=>{
     $$('.page').forEach(p=>p.classList.toggle('on',p.id==='p-'+id));
-    $$('.nav a,.tabbar a').forEach(a=>a.getAttribute('href')==='#'+id?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
+    $$('.nav a,.tabbar a').forEach(a=>(a.dataset.hash?'#'+a.dataset.hash:a.getAttribute('href'))==='#'+id?a.setAttribute('aria-current','page'):a.removeAttribute('aria-current'));
     navPill(); document.title='podslushano.nl · '+$('#p-'+id).dataset.title;
     if(!inits[id]&&INIT[id]){INIT[id]();inits[id]=1}
     ENTER[id]&&ENTER[id]();
@@ -4206,6 +4206,18 @@ function pnRouteKey(){const h=decodeURIComponent(location.hash.slice(1));
   if(h){const p=pnPath(h);if(p&&!pnIsApp(p)){location.href=p;return null}if(p){history.replaceState(null,'',p)}return h}
   return pnFromPath()}
 addEventListener('popstate',()=>route());
+/* ---- real links for search engines ----
+   Links inside the app are hashes (#guide, #art-…, #ev-…): instant, without reloading. Google does not follow
+   hash links, so every link that has a real address gets it in href (/guide/, /novost/, /events/x/), and a click
+   still goes the fast way through the hash router. Links added later (lists, sheets, search) are fixed too. */
+function pnRealLinks(root){(root.querySelectorAll?root:document).querySelectorAll('a[href^="#"]').forEach(a=>{
+  const h=decodeURIComponent(a.getAttribute('href').slice(1));if(!h)return;let p=null;try{p=pnPath(h)}catch(e){}
+  if(p){a.dataset.hash=h;a.setAttribute('href',p)}})}
+pnRealLinks(document);
+new MutationObserver(ms=>{for(const m of ms)for(const n of m.addedNodes)if(n.nodeType===1)pnRealLinks(n.parentNode||n)}).observe(document.body,{childList:true,subtree:true});
+document.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[data-hash]');
+  if(!a||e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||a.target==='_blank')return;
+  e.preventDefault();if(location.hash==='#'+a.dataset.hash)route();else location.hash='#'+a.dataset.hash});
 
 /* ---- single post and WordPress pages ---- */
 if(PN.post){const P=PN.post;if(!NEWSF.find(x=>x.id===P.id))NEWSF.unshift(P);else Object.assign(NEWSF.find(x=>x.id===P.id),P)}

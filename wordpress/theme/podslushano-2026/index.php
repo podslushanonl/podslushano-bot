@@ -43,10 +43,12 @@ add_action('wp_enqueue_scripts', function () use ($pn) {
 </head>
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
-<?php include PN_DIR . '/shell.php'; ?>
-<?php if (!empty($pn['post']['html'])): ?>
-<noscript><article class="wrap"><h1><?php echo esc_html($pn['post']['h']); ?></h1><?php echo $pn['post']['html']; // already filtered by the_content ?></article></noscript>
-<?php endif; ?>
+<?php
+// Search engines get the current section with its text and real links (inc/seo.php)
+ob_start();
+include PN_DIR . '/shell.php';
+echo pn_seo_shell(ob_get_clean(), $pn);
+?>
 <?php wp_footer(); ?>
 </body>
 </html>
