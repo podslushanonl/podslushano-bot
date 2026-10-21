@@ -34,6 +34,7 @@ from handlers.evenementen_current_month import evenementen_catalog_loop, install
 from utils.editorial_channel import editorial_channel_loop, router as editorial_router
 from utils.editorial_research_desk import router as editorial_research_router
 from utils.editorial_research_daily import editorial_research_loop
+from utils.site_guides import site_guides_loop
 from utils.site_news import site_news_loop
 from utils.ns_alerts import ns_alerts_loop, router as ns_alerts_router
 from utils.savings import router as savings_router, savings_loop
@@ -180,6 +181,7 @@ async def main() -> None:
     asyncio.create_task(editorial_research_loop(bot))
     # Автоновости на сайт: NOS → русская новость в WordPress раз в 10 минут
     asyncio.create_task(site_news_loop(bot))
+    asyncio.create_task(site_guides_loop(bot))
     # Уведомления подписчикам о сбоях NS на их станции, раз в 5 минут, без ИИ
     asyncio.create_task(ns_alerts_loop(bot))
     asyncio.create_task(savings_loop(bot))

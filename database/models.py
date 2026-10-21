@@ -765,6 +765,31 @@ class CommentReplyExample(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
 
 
+class SiteGuide(Base):
+    """Практическая справка на сайте («Как получить BSN»), которую пишет и обновляет бот.
+
+    key — тема из utils/site_guides.TOPICS (или предложенная ИИ), одна справка на тему.
+    status: published | failed. updated_at — когда текст последний раз переписан.
+    """
+
+    __tablename__ = "site_guides"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    key: Mapped[str] = mapped_column(String(80), unique=True)
+    query: Mapped[str] = mapped_column(String(300), default="")
+    title: Mapped[str] = mapped_column(String(300), default="")
+    status: Mapped[str] = mapped_column(String(16), index=True)
+    wp_post_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    wp_link: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+    )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+    )
+
+
 class SiteNewsItem(Base):
     """Статья из новостной ленты, которую бот уже рассмотрел для сайта.
 

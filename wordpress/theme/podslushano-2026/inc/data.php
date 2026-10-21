@@ -112,12 +112,15 @@ if (!function_exists('array_is_list')) {
 /* ---------- posts ---------- */
 function pn_art_cat_ids() {
     $ids = [];
-    foreach (['stati', 'statyi', 'articles', 'stati-ru'] as $slug) {
+    // Статьи редакции и практические справки бота (utils/site_guides.py, рубрика «Справочник»)
+    foreach (['stati', 'statyi', 'articles', 'stati-ru', 'spravochnik'] as $slug) {
         $c = get_category_by_slug($slug);
         if ($c) $ids[] = $c->term_id;
     }
-    $c = get_term_by('name', 'Статьи', 'category');
-    if ($c) $ids[] = $c->term_id;
+    foreach (['Статьи', 'Справочник'] as $name) {
+        $c = get_term_by('name', $name, 'category');
+        if ($c) $ids[] = $c->term_id;
+    }
     return array_unique($ids);
 }
 function pn_post_item($p, $full = false) {

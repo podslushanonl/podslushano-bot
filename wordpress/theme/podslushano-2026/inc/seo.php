@@ -160,3 +160,20 @@ add_action('init', function () {
 add_filter('wpseo_sitemap_index', function ($x) {
     return $x . '<sitemap><loc>' . esc_url(home_url('/news-sitemap.xml')) . '</loc></sitemap>';
 });
+
+/* ---------- Practical guides: their «Частые вопросы» block as FAQPage ---------- */
+add_action('wp_head', function () {
+    if (!is_singular('post')) return;
+    $html = (string) get_post_field('post_content', get_queried_object_id());
+    if (strpos($html, 'pg-faq-i') === false) return;
+    preg_match_all('#<details class="pg-faq-i"><summary>(.*?)</summary><div>(.*?)</div></details>#s', $html, $m, PREG_SET_ORDER);
+    $q = [];
+    foreach ($m as $x) {
+        $name = trim(html_entity_decode(wp_strip_all_tags($x[1]), ENT_QUOTES, 'UTF-8'));
+        $text = trim(html_entity_decode(wp_strip_all_tags($x[2]), ENT_QUOTES, 'UTF-8'));
+        if ($name && $text) $q[] = ['@type' => 'Question', 'name' => $name, 'acceptedAnswer' => ['@type' => 'Answer', 'text' => $text]];
+    }
+    if (!$q) return;
+    echo '<script type="application/ld+json">' . wp_json_encode(['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => $q],
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+}, 5);
