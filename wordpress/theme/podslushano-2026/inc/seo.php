@@ -12,8 +12,11 @@ function pn_seo_back($href, $label) {
 function pn_seo_news_list($posts) {
     $h = '<ul class="nw-seo">';
     foreach ($posts as $n) {
-        $h .= '<li><a href="' . esc_url($n['link']) . '">' . esc_html($n['h']) . '</a>'
-            . ($n['lead'] ? ' <span>' . esc_html($n['lead']) . '</span>' : '') . '</li>';
+        // News items carry h/lead, articles (pn_posts('arts')) carry t/blocks
+        $t = $n['h'] ?? $n['t'] ?? '';
+        $lead = $n['lead'] ?? ($n['blocks'][0][1] ?? '');
+        $h .= '<li><a href="' . esc_url($n['link']) . '">' . esc_html($t) . '</a>'
+            . ($lead ? ' <span>' . esc_html($lead) . '</span>' : '') . '</li>';
     }
     return $h . '</ul>';
 }
