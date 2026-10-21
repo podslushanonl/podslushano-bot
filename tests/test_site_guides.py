@@ -119,9 +119,10 @@ class RunTests(unittest.IsolatedAsyncioTestCase):
     async def test_failed_topic_retried_next_day_and_stale_guide_refreshed(self):
         now = datetime(2026, 10, 21, 10)
         async with self.sessions() as s:
-            s.add(SiteGuide(key="bsn", query="Как получить BSN", status="failed", updated_at=now - timedelta(hours=10)))
+            s.add(SiteGuide(key="bsn", query="Как получить BSN", status="failed", tried_at=now - timedelta(hours=10)))
             s.add(SiteGuide(key="digid", query="Как получить DigiD", status="published", wp_post_id=9,
-                            wp_link="https://site/digid/", updated_at=now - timedelta(days=200)))
+                            wp_link="https://site/digid/", updated_at=now - timedelta(days=200),
+                            tried_at=now - timedelta(days=200)))
             await s.commit()
         job = await site_guides.next_job(now)
         self.assertEqual(job[0], "digid")   # BSN упал меньше суток назад — сначала обновление старой справки
@@ -134,6 +135,28 @@ class RunTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(rows["digid"].updated_at.date(), datetime.now().date())
         job = await site_guides.next_job(now + timedelta(days=1))
         self.assertEqual(job[0], "bsn")
+
+    async def test_failed_refresh_keeps_guide_stale_and_suggested_topic_retried(self):
+        now = datetime(2026, 10, 21, 10)
+        async with self.sessions() as s:
+            for k in ("bsn", "digid"):
+                s.add(SiteGuide(key=k, query=k, status="published", wp_post_id=1, updated_at=now, tried_at=now))
+            s.add(SiteGuide(key="vog", query="Как получить VOG", status="failed", tried_at=now - timedelta(days=2)))
+            s.add(SiteGuide(key="old", query="Старая", status="published", wp_post_id=3,
+                            updated_at=now - timedelta(days=300), tried_at=now - timedelta(days=300)))
+            await s.commit()
+        self.assertEqual((await site_guides.next_job(now))[0], "vog")   # предложенная тема повторяется
+        self.write.stop()
+        with patch.object(site_guides, "write_guide", AsyncMock(return_value=None)):
+            await site_guides.publish(self.bot, "vog", "Как получить VOG", None)
+            await site_guides.publish(self.bot, "old", "Старая", (await self.rows())["old"])
+        self.write.start()
+        old = (await self.rows())["old"]
+        self.assertEqual(old.status, "published")
+        self.assertLess(old.updated_at, now - timedelta(days=200))   # срок свежести не сдвинулся
+        later = site_guides._now() + timedelta(days=2)
+        job = await site_guides.next_job(later)
+        self.assertIn(job[0], ("vog", "old"))
 
     async def test_bad_answer_is_recorded_as_failed(self):
         self.write.stop()

@@ -769,7 +769,7 @@ class SiteGuide(Base):
     """Практическая справка на сайте («Как получить BSN»), которую пишет и обновляет бот.
 
     key — тема из utils/site_guides.TOPICS (или предложенная ИИ), одна справка на тему.
-    status: published | failed. updated_at — когда текст последний раз переписан.
+    status: published | failed. updated_at — когда текст последний раз переписан (только при успехе).
     """
 
     __tablename__ = "site_guides"
@@ -783,6 +783,10 @@ class SiteGuide(Base):
     wp_link: Mapped[str | None] = mapped_column(String(500), nullable=True)
     reason: Mapped[str | None] = mapped_column(String(300), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
+    )
+    # Последняя попытка (удачная или нет) — по ней считается интервал и повтор неудачных тем
+    tried_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None), index=True
     )
     updated_at: Mapped[datetime] = mapped_column(

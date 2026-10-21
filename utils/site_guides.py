@@ -352,12 +352,20 @@ async def next_job(now: datetime | None = None) -> tuple[str, str, SiteGuide | N
     now = now or _now()
     async with get_session() as session:
         rows = {g.key: g for g in (await session.scalars(select(SiteGuide))).all()}
+    def retry(g: SiteGuide) -> bool:
+        return g.status == "failed" and not g.wp_post_id and g.tried_at < now - RETRY_FAILED
+
     for key, query in TOPICS:
         g = rows.get(key)
-        if g is None or (g.status == "failed" and not g.wp_post_id and g.updated_at < now - RETRY_FAILED):
+        if g is None or retry(g):
             return key, query, g
+    # Неудачные темы, предложенные Claude (их нет в TOPICS)
+    for g in sorted(rows.values(), key=lambda x: x.tried_at):
+        if retry(g):
+            return g.key, g.query, g
     stale = [g for g in rows.values() if g.wp_post_id
-             and g.updated_at < now - timedelta(days=config.SITE_GUIDES_REFRESH_DAYS)]
+             and g.updated_at < now - timedelta(days=config.SITE_GUIDES_REFRESH_DAYS)
+             and g.tried_at < now - RETRY_FAILED]
     if stale:
         g = min(stale, key=lambda x: x.updated_at)
         return g.key, g.query, g
@@ -375,11 +383,12 @@ async def _save(key: str, query: str, status: str, *, title: str = "", post: dic
         if g is None:
             g = SiteGuide(key=key, query=query, status=status)
             session.add(g)
-        g.query, g.reason, g.updated_at = query, reason, _now()
+        g.query, g.reason, g.tried_at = query, reason, _now()
         if title:
             g.title = title
         if post:
-            g.status = "published"
+            # Срок свежести сдвигаем только после удачной записи: неудачное обновление повторится через сутки
+            g.status, g.updated_at = "published", g.tried_at
             g.wp_post_id = post.get("id") or g.wp_post_id
             g.wp_link = post.get("link") or g.wp_link
         elif not g.wp_post_id:
@@ -426,7 +435,7 @@ async def publish(bot, key: str, query: str, existing: SiteGuide | None) -> bool
 async def _recently_worked(now: datetime) -> bool:
     """Была ли попытка за последний интервал: перезапуски сервера не должны публиковать справки чаще."""
     async with get_session() as session:
-        last = (await session.scalars(select(SiteGuide.updated_at).order_by(SiteGuide.updated_at.desc()).limit(1))).first()
+        last = (await session.scalars(select(SiteGuide.tried_at).order_by(SiteGuide.tried_at.desc()).limit(1))).first()
     return bool(last and last > now - timedelta(seconds=config.SITE_GUIDES_INTERVAL))
 
 
