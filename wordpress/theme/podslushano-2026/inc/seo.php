@@ -12,8 +12,22 @@ function pn_seo_back($href, $label) {
 function pn_seo_news_list($posts) {
     $h = '<ul class="nw-seo">';
     foreach ($posts as $n) {
-        $h .= '<li><a href="' . esc_url($n['link']) . '">' . esc_html($n['h']) . '</a>'
-            . ($n['lead'] ? ' <span>' . esc_html($n['lead']) . '</span>' : '') . '</li>';
+        // News items carry h/lead, articles (pn_posts('arts')) carry t/blocks
+        $t = $n['h'] ?? $n['t'] ?? '';
+        $lead = $n['lead'] ?? ($n['blocks'][0][1] ?? '');
+        $h .= '<li><a href="' . esc_url($n['link']) . '">' . esc_html($t) . '</a>'
+            . ($lead ? ' <span>' . esc_html($lead) . '</span>' : '') . '</li>';
+    }
+    return $h . '</ul>';
+}
+
+function pn_seo_events_list($events) {
+    $h = '<ul class="nw-seo">';
+    foreach ($events as $e) {
+        if (empty($e['key'])) continue;
+        $where = implode(', ', array_filter([$e['venue'] ?? '', $e['city'] ?? '']));
+        $h .= '<li><a href="' . esc_url(home_url('/events/' . $e['key'] . '/')) . '">' . esc_html($e['h']) . '</a> <span>'
+            . esc_html(trim(($e['date'] ?? '') . ($where ? ' · ' . $where : ''))) . '</span></li>';
     }
     return $h . '</ul>';
 }
@@ -54,6 +68,7 @@ function pn_seo_shell($html, $pn) {
         $html = pn_seo_fill($html, 'wpBody', pn_seo_back('/', 'Главная') . '<h1>' . esc_html($pn['page']['title']) . '</h1>' . $pn['page']['html']);
     }
     if ($route === 'event' && ($e = pn_event($pn['param'] ?? ''))) $html = pn_seo_fill($html, 'evDet', pn_seo_event($e));
+    if ($route === 'events') $html = pn_seo_fill($html, 'evGrid', pn_seo_events_list($pn['events']));
     if ($route === 'news') $html = pn_seo_fill($html, 'newsBody', pn_seo_news_list(array_merge($pn['posts'], pn_posts('arts'))));
     if ($route === 'home') $html = pn_seo_fill($html, 'homeNews', pn_seo_news_list(array_slice($pn['posts'], 0, 8)));
     // "#route" links → real addresses (JS keeps them fast: it catches the click and switches the section)
@@ -64,3 +79,84 @@ function pn_seo_shell($html, $pn) {
         return 'href="' . esc_url(home_url($map[$m[1]])) . '" data-hash="' . $m[1] . '"';
     }, $html);
 }
+
+/* ---------- Structured data: events for Google (Event rich results) ---------- */
+function pn_seo_iso($date, $time) {
+    if (!$date) return '';
+    try {
+        $d = new DateTime($date . ' ' . ($time ?: '00:00'), new DateTimeZone('Europe/Amsterdam'));
+    } catch (Exception $x) {
+        return '';
+    }
+    return $time ? $d->format('c') : $d->format('Y-m-d');
+}
+function pn_seo_event_ld($e) {
+    $start = pn_seo_iso($e['date'] ?? '', $e['time'] ?? '');
+    if (!$start || empty($e['h'])) return null;
+    $url = home_url('/events/' . $e['key'] . '/');
+    $desc = ($e['s'] ?? '') ?: implode(' ', array_slice((array) ($e['p'] ?? []), 0, 2));
+    $ld = ['@context' => 'https://schema.org', '@type' => 'Event', 'name' => $e['h'], 'startDate' => $start, 'url' => $url,
+        'eventStatus' => 'https://schema.org/EventScheduled', 'description' => wp_strip_all_tags((string) $desc)];
+    if (!empty($e['end'])) $ld['endDate'] = pn_seo_iso($e['end'], '');
+    if (!empty($e['venue']) || !empty($e['addr']) || !empty($e['city'])) {
+        $ld['eventAttendanceMode'] = 'https://schema.org/OfflineEventAttendanceMode';
+        $ld['location'] = ['@type' => 'Place', 'name' => ($e['venue'] ?? '') ?: ($e['city'] ?? ''),
+            'address' => array_filter(['@type' => 'PostalAddress', 'streetAddress' => $e['addr'] ?? '', 'addressLocality' => $e['city'] ?? ''])];
+    } else {
+        $ld['eventAttendanceMode'] = 'https://schema.org/OnlineEventAttendanceMode';
+        $ld['location'] = ['@type' => 'VirtualLocation', 'url' => ($e['url'] ?? '') ?: $url];
+    }
+    if (!empty($e['img'])) $ld['image'] = [preg_match('#^https?://#', $e['img']) ? $e['img'] : home_url($e['img'])];
+    if (!empty($e['org'])) $ld['organizer'] = ['@type' => 'Organization', 'name' => $e['org']];
+    if (!empty($e['lang'])) $ld['inLanguage'] = $e['lang'] === 'русский' ? 'ru' : $e['lang'];
+    $offer = ['@type' => 'Offer', 'url' => ($e['url'] ?? '') ?: $url, 'availability' => 'https://schema.org/InStock', 'priceCurrency' => 'EUR'];
+    if (preg_match('/(\d+(?:[.,]\d+)?)/', (string) ($e['price'] ?? ''), $m)) $offer['price'] = str_replace(',', '.', $m[1]);
+    elseif (preg_match('/бесплатн|free|gratis/iu', (string) ($e['price'] ?? ''))) $offer['price'] = '0';
+    $ld['offers'] = $offer;
+    return $ld;
+}
+add_action('wp_head', function () {
+    $r = get_query_var('pn_route');
+    $list = [];
+    if ($r === 'event' && ($e = pn_event(get_query_var('pn_key')))) $list = [$e];
+    elseif ($r === 'events') $list = array_slice(pn_events(), 0, 30);
+    foreach ($list as $e) {
+        if ($ld = pn_seo_event_ld($e)) {
+            echo '<script type="application/ld+json">' . wp_json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+        }
+    }
+}, 5);
+
+/* ---------- Google News: news posts are NewsArticle, and /news-sitemap.xml lists the last two days ---------- */
+function pn_is_news_post($p) {
+    $arts = pn_art_cat_ids();
+    return !$arts || !has_category($arts, $p);
+}
+add_filter('wpseo_schema_article_type', function ($type) {
+    return is_singular('post') && pn_is_news_post(get_queried_object()) ? 'NewsArticle' : $type;
+});
+function pn_news_sitemap_xml() {
+    $args = ['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 1000, 'ignore_sticky_posts' => true,
+        'no_found_rows' => true, 'date_query' => [['after' => '2 days ago']]];
+    if ($arts = pn_art_cat_ids()) $args['category__not_in'] = $arts;
+    $xml = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">';
+    foreach (get_posts($args) as $p) {
+        $xml .= '<url><loc>' . esc_url(get_permalink($p)) . '</loc><news:news><news:publication><news:name>podslushano.nl</news:name>'
+            . '<news:language>ru</news:language></news:publication><news:publication_date>' . esc_html(get_post_time('c', true, $p))
+            . '</news:publication_date><news:title>' . esc_html(html_entity_decode(get_the_title($p), ENT_QUOTES, 'UTF-8'))
+            . '</news:title></news:news></url>';
+    }
+    return $xml . '</urlset>';
+}
+// Served by Yoast (it owns every *-sitemap.xml address), next to /pn-pages-sitemap.xml
+add_action('init', function () {
+    global $wpseo_sitemaps;
+    if (empty($wpseo_sitemaps) || !method_exists($wpseo_sitemaps, 'register_sitemap')) return;
+    $wpseo_sitemaps->register_sitemap('news', function () {
+        global $wpseo_sitemaps;
+        $wpseo_sitemaps->set_sitemap(pn_news_sitemap_xml());
+    });
+}, 20);
+add_filter('wpseo_sitemap_index', function ($x) {
+    return $x . '<sitemap><loc>' . esc_url(home_url('/news-sitemap.xml')) . '</loc></sitemap>';
+});
