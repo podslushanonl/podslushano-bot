@@ -7,7 +7,7 @@
  */
 if (!defined('ABSPATH')) exit;
 
-define('PN_VER', '1.3.1');
+define('PN_VER', '1.3.2');
 define('PN_BOT', 'https://worker-production-ad76.up.railway.app');
 define('PN_DIR', get_template_directory());
 define('PN_URI', get_template_directory_uri());
@@ -95,6 +95,13 @@ function pn_route_title() {
 }
 function pn_route_desc() {
     $r = get_query_var('pn_route');
+    if ($r === 'event' && ($e = pn_event(get_query_var('pn_key')))) {
+        // Each event gets its own description: date, place and what it is
+        $where = implode(', ', array_filter([$e['venue'] ?? '', $e['city'] ?? '']));
+        $about = ($e['s'] ?? '') ?: implode(' ', array_slice((array) ($e['p'] ?? []), 0, 1));
+        $d = trim($e['h'] . ': ' . date_i18n('j F Y', strtotime($e['date'])) . ($where ? ', ' . $where : '') . '. ' . $about);
+        return wp_trim_words($d, 28, '…');
+    }
     return $r && ($m = pn_route_meta($r)) ? $m[1] : null;
 }
 function pn_route_url() {

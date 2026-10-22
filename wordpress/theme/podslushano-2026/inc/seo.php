@@ -32,6 +32,61 @@ function pn_seo_events_list($events) {
     return $h . '</ul>';
 }
 
+/* КонтактGuide for search engines: specialists grouped by category (name, place, what they do; contacts stay in the app) */
+function pn_seo_specialists($list) {
+    $by = [];
+    foreach ($list as $x) {
+        if (empty($x['name'])) continue;
+        $c = trim((string) ($x['category'] ?? '')) ?: 'другое';
+        $by[mb_strtoupper(mb_substr($c, 0, 1)) . mb_substr($c, 1)][] = $x;
+    }
+    ksort($by);
+    $h = '';
+    foreach ($by as $cat => $items) {
+        $h .= '<h2>' . esc_html($cat) . '</h2><ul class="nw-seo">';
+        foreach ($items as $x) {
+            $where = !empty($x['online']) ? 'онлайн' : implode(', ', array_filter([$x['city'] ?? '', $x['province'] ?? '']));
+            $h .= '<li><strong>' . esc_html($x['name']) . '</strong>' . ($where ? ' · ' . esc_html($where) : '')
+                . (!empty($x['description']) ? ' <span>' . esc_html(wp_trim_words(wp_strip_all_tags($x['description']), 30, '…')) . '</span>' : '') . '</li>';
+        }
+        $h .= '</ul>';
+    }
+    return $h;
+}
+
+/* Histories of the 12 provinces (WordPress pages history-province-*) as real links under the map */
+function pn_seo_provinces() {
+    $pages = get_posts(['post_type' => 'page', 'post_status' => 'publish', 'posts_per_page' => 20, 'orderby' => 'title', 'order' => 'ASC',
+        'no_found_rows' => true]);
+    $h = '';
+    foreach ($pages as $p) {
+        if (strpos($p->post_name, 'history-province-') !== 0) continue;
+        $h .= '<li><a href="' . esc_url(get_permalink($p)) . '">' . esc_html(get_the_title($p)) . '</a></li>';
+    }
+    return $h ? '<nav class="wrap pv-seo" aria-label="История провинций"><h2>История провинций</h2><ul>' . $h . '</ul></nav>' : '';
+}
+
+/* Append HTML at the end of a section */
+function pn_seo_append($html, $sec, $inner) {
+    if ($inner === '') return $html;
+    $i = strpos($html, 'id="p-' . $sec . '"');
+    if ($i === false) return $html;
+    $j = strpos($html, '</section>', $i);
+    return $j === false ? $html : substr($html, 0, $j) . $inner . substr($html, $j);
+}
+
+/* One H1 in the visible section: add a hidden one from the route title when the section has none */
+function pn_seo_h1($html, $sec) {
+    $i = strpos($html, '<section class="page on" id="p-' . $sec . '"');
+    if ($i === false) return $html;
+    $j = strpos($html, '</section>', $i);
+    if ($j === false || strpos(substr($html, $i, $j - $i), '<h1') !== false) return $html;
+    $m = pn_route_meta($sec);
+    if (!$m) return $html;
+    $k = strpos($html, '>', $i) + 1;
+    return substr($html, 0, $k) . '<h1 class="sr">' . esc_html($m[0]) . '</h1>' . substr($html, $k);
+}
+
 function pn_seo_art($n) {
     $img = $n['img'] ? '<figure><img loading="lazy" decoding="async" src="' . esc_url($n['img']) . '" alt="' . esc_attr($n['h']) . '">'
         . ($n['photo_credit'] ? '<figcaption>Фото: ' . esc_html($n['photo_credit']) . '</figcaption>' : '') . '</figure>' : '';
@@ -72,6 +127,12 @@ function pn_seo_shell($html, $pn) {
         . (!empty($pn['past']) ? '<h2>Прошедшие</h2>' . pn_seo_events_list($pn['past']) : ''));
     if ($route === 'news') $html = pn_seo_fill($html, 'newsBody', pn_seo_news_list(array_merge($pn['posts'], pn_posts('arts'))));
     if ($route === 'home') $html = pn_seo_fill($html, 'homeNews', pn_seo_news_list(array_slice($pn['posts'], 0, 8)));
+    if ($route === 'guide' && !empty($pn['spec'])) $html = pn_seo_fill($html, 'gGrid', pn_seo_specialists($pn['spec']));
+    if ($route === 'provinces') $html = pn_seo_append($html, 'provinces', pn_seo_provinces());
+    if ($route === 'allo') $html = pn_seo_fill($html, 'awRoot', '<p>allowalks: прогулки по Нидерландам в небольшой компании на русском языке, '
+        . 'маршруты по городам и природе, подарочные карты.</p>');
+    // A section without its own heading (allowalks) still gets one H1 for search engines and screen readers
+    $html = pn_seo_h1($html, $sec);
     // "#route" links → real addresses (JS keeps them fast: it catches the click and switches the section)
     $map = ['home' => '/', 'links' => '/links/'];
     foreach (pn_routes() as $slug => $r) $map[$r] = '/' . $slug . '/';
