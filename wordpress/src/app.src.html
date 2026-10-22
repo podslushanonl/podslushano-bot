@@ -4289,7 +4289,7 @@ function pnPath(h){if(PN_R2P[h])return PN_R2P[h];if(h==='links')return '/links/'
   if(h.startsWith('art-')){const id=h.slice(4);const n=[...NEWSF,...ART].find(x=>String(x.id)===id);return n&&n.link?n.link:null}
   if(h.startsWith('legal-'))return PN_LEGAL[h.slice(6)]||null;return null}
 function pnFromPath(){const p=location.pathname.replace(/\/?$/,'/');for(const [k,v] of Object.entries(PN_R2P))if(v===p)return k;
-  const m=p.match(/^\/events\/([a-z0-9-]+)\/$/);if(m)return 'ev-'+m[1];if(PN.route==='art'&&PN.post)return 'art-'+PN.post.id;if(PN.route==='wp')return 'wp';return 'home'}
+  const m=p.match(/^\/events\/([a-z0-9-]+)\/$/);if(m)return 'ev-'+m[1];if(PN.route==='art'&&PN.post)return 'art-'+PN.post.id;if(PN.route==='wp')return 'wp';if(PN.route==='news')return 'news';return 'home'}
 function pnRouteKey(){const h=decodeURIComponent(location.hash.slice(1));
   if(h){const p=pnPath(h);if(p&&!pnIsApp(p)){location.href=p;return null}if(p){history.replaceState(null,'',p)}return h}
   return pnFromPath()}

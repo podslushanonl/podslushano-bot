@@ -34,7 +34,8 @@ if ($r) {
 if (!in_array($pn['route'], ['art', 'wp'], true) && !defined('DONOTCACHEPAGE')) define('DONOTCACHEPAGE', true);
 $pn['wx'] = pn_weather();
 $pn['spec'] = pn_specialists();
-$pn['posts'] = !empty($pn['termPosts']) ? $pn['termPosts'] : pn_posts('news');
+// An empty category stays empty (its own heading, no unrelated news)
+$pn['posts'] = isset($pn['termPosts']) ? $pn['termPosts'] : pn_posts('news');
 unset($pn['termPosts']);
 $pn['arts'] = pn_posts('arts');
 // Афиша and Вакансии from wp-admin (theme JSON while empty), upcoming only
