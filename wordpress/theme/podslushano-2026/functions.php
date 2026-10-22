@@ -220,8 +220,6 @@ add_action('wp_head', function () {
         echo '<meta name="description" content="' . esc_attr($d) . '">' . "\n";
     }
     echo '<meta name="theme-color" content="#F4F5F7">' . "\n";
-    // Подтверждение сайта для партнёрской сети Impact (eSIM)
-    echo "<meta name='impact-site-verification' value='42876f45-152c-4874-81ce-e154db4b471f'>" . "\n";
 }, 1);
 
 // Yoast leaves the description empty when a post has no excerpt: use the lead of the article

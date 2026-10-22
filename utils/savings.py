@@ -1,8 +1,8 @@
 """Раздел «💶 Сэкономить»: редакционные разборы + ссылки на сравнение и оформление.
 
 Темы: медстраховка (zorgverzekering, сменить можно до 31 декабря) и eSIM для поездок.
-Бот объясняет и даёт общие подсказки (не персональный финансовый совет), а сравнение
-и оформление происходят у сравнителя или поставщика по ссылке.
+Бот объясняет и даёт общие подсказки (не персональный финансовый совет). Конкретные
+страховые и eSIM-сервисы не рекомендуем: помогаем разобраться и ведём на официальные сайты.
 
 Ссылки идут через /go/<ключ>?s=<источник>: так считаем переходы из бота, с сайта и
 из Instagram. Партнёрские ссылки задаются переменной SAVINGS_LINKS (JSON
@@ -40,12 +40,11 @@ EIGEN_RISICO = 400                       # обязательный eigen risico
 # Пороги дохода для zorgtoeslag 2027 (предварительные, по бюджету; окончательные — в ноябре)
 TOESLAG_SINGLE, TOESLAG_PAIR = 43000, 54000
 
+# Конкретные страховые и eSIM-сервисы мы не рекомендуем: объясняем, как выбрать самому,
+# и ведём на независимые официальные сайты.
 DEFAULT_LINKS = {
-    "zorg_compare": ("Сравнить медстраховки", "https://www.zorgwijzer.nl/"),
+    "zorg_compare": ("Все полисы: Zorgverzekeringslijn", "https://www.zorgverzekeringslijn.nl/"),
     "zorg_toeslag": ("Zorgtoeslag: проверить", "https://www.belastingdienst.nl/wps/wcm/connect/nl/zorgtoeslag/zorgtoeslag"),
-    "esim_holafly": ("Holafly", "https://esim.holafly.com/"),
-    "esim_saily": ("Saily", "https://saily.com/"),
-    "esim_airalo": ("Airalo", "https://www.airalo.com/"),
 }
 
 
@@ -116,7 +115,13 @@ ESIM_TEXT = (
     "• Проверьте, что телефон поддерживает eSIM и не привязан к оператору (simlock).\n"
     "• Обычно это только интернет, без номера. Звонить можно через WhatsApp и Telegram.\n"
     "• Устанавливайте дома по Wi-Fi, а включайте по прилёте.\n\n"
-    "<b>Сравните цены на свою страну</b> у нескольких сервисов: тарифы на одно направление часто отличаются в разы."
+    "<b>Как выбрать самому</b>\n"
+    "Конкретные сервисы мы не советуем: сравните 2–3 варианта на свою страну, цены часто отличаются в разы.\n"
+    "• Цена за 1 ГБ и сколько дней действует пакет.\n"
+    "• Какие местные операторы и есть ли 4G/5G там, куда вы едете.\n"
+    "• Можно ли пополнить в приложении и раздавать интернет на ноутбук.\n"
+    "• Условия возврата, если eSIM не заработала.\n"
+    "• Свежие отзывы в App Store и Google Play."
 )
 
 QUESTIONS = [
@@ -180,13 +185,12 @@ def menu_kb() -> InlineKeyboardMarkup:
 
 
 def zorg_kb() -> InlineKeyboardMarkup:
-    return _kb([[_cb("📝 Ответить на 6 вопросов", "sv:q:")], [_url("🔍 Сравнить цены", "zorg_compare")],
+    return _kb([[_cb("📝 Ответить на 6 вопросов", "sv:q:")], [_url("🔍 Все полисы и цены", "zorg_compare")],
                 [_cb("🔔 Напомнить до 31 декабря", "sv:remind")], [_cb("⬅️ Назад", "sv:menu")]])
 
 
 def esim_kb() -> InlineKeyboardMarkup:
-    keys = ["esim_holafly", "esim_saily", "esim_airalo"]
-    return _kb([[_url(DEFAULT_LINKS[k][0], k)] for k in keys] + [[_cb("⬅️ Назад", "sv:menu")]])
+    return _kb([[InlineKeyboardButton(text="🌐 Подробнее на сайте", url=SITE_PAGE)], [_cb("⬅️ Назад", "sv:menu")]])
 
 
 def question(answers: str) -> tuple[str, InlineKeyboardMarkup]:
@@ -201,7 +205,7 @@ def result(answers: str) -> tuple[str, InlineKeyboardMarkup]:
     text = (f"<b>На что смотреть вам</b>\n\n{hints}\n\n"
             "Теперь сравните цены на 2027 год и оформите новую страховку до 31 декабря.\n\n"
             "<i>Это общая информация, а не персональный финансовый совет.</i>")
-    return text, _kb([[_url("🔍 Сравнить цены", "zorg_compare")], [_url("💶 Проверить zorgtoeslag", "zorg_toeslag")],
+    return text, _kb([[_url("🔍 Все полисы и цены", "zorg_compare")], [_url("💶 Проверить zorgtoeslag", "zorg_toeslag")],
                       [_cb("🔔 Напомнить до 31 декабря", "sv:remind")], [_cb("⬅️ Назад", "sv:zorg")]])
 
 
@@ -297,7 +301,7 @@ async def send_due(bot: Bot, today: date | None = None) -> int:
         for r in rows:
             try:
                 await bot.send_message(r.user_id, REMINDER_TEXT, reply_markup=_kb([
-                    [_url("🔍 Сравнить цены", "zorg_compare")], [_cb("🏥 Что выбрать: 6 вопросов", "sv:q:")]]),
+                    [_url("🔍 Все полисы и цены", "zorg_compare")], [_cb("🏥 Что выбрать: 6 вопросов", "sv:q:")]]),
                     disable_web_page_preview=True)
                 sent += 1
             except TelegramForbiddenError:
