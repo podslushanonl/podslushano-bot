@@ -1855,6 +1855,20 @@ h3,h4{font-family:var(--f-display);font-weight:700;letter-spacing:-.01em}
 .pv-book b{font:900 clamp(15px,1.5vw,18px)/1.05 var(--f-head)}
 .pv-book em{font:200 clamp(30px,3vw,38px)/1 var(--f-head);font-style:normal;color:#FFB48E}
 .pv-book .ft{margin-top:auto;font-size:9px;opacity:.7}
+/* Хэллоуинские стикеры */
+.hws h2{margin:0 0 6px}.hws>p{margin-bottom:14px}
+.hws-g{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.hws-g a{display:block;border-radius:16px;padding:4px;transition:background .2s,transform .3s var(--spring)}
+.hws-g a:hover{background:var(--surface-2);transform:scale(1.06) rotate(-2deg)}
+.hws-g img{width:100%;height:auto;display:block}
+.hws .acts{display:flex;justify-content:center;margin-top:16px}
+.pv-st.hws-pv img{height:auto;width:31%;margin:0 -3%;filter:drop-shadow(0 10px 14px rgba(0,0,0,.35))}
+.hwn{display:flex;gap:14px;align-items:center;margin:22px 0 4px;padding:10px 16px 10px 10px;border-radius:20px;background:var(--surface-2);color:var(--ink-2);font-size:15px;line-height:1.45;text-decoration:none}
+.hwn img{width:76px;height:76px;flex:none;transform:rotate(-6deg);transition:transform .4s var(--spring)}
+.hwn:hover img{transform:rotate(4deg) scale(1.08)}
+.hwn b{color:var(--accent-deep)}
+.empty img.hws-e,.hempty img.hws-e{width:120px;height:auto}
+@media (max-width:520px){.hws-g{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .pv-st{position:relative;width:86%;height:80%;display:flex;justify-content:center;align-items:center}
 .pv-st img{height:78%;width:auto;margin:0 -4%;transform:rotate(var(--r));filter:drop-shadow(0 0 0 #fff) drop-shadow(2px 0 0 #fff) drop-shadow(-2px 0 0 #fff) drop-shadow(0 2px 0 #fff) drop-shadow(0 -2px 0 #fff) drop-shadow(0 10px 12px rgba(30,40,70,.25));animation:stickB 4s ease-in-out var(--d) infinite}
 @keyframes stickB{50%{transform:rotate(var(--r)) translateY(-6px)}}
@@ -4777,6 +4791,30 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preven
   const after=()=>{startFx();if(recvP)setTimeout(showRecv,500)};
   const HI=window.__hwIntro;if(HI&&!HI.done)HI.cb.push(after);else after();
 })();
+
+/* ---------- Хэллоуинские стикеры с лосёнком ----------
+   Электронная версия бесплатная: 20 стикеров из нашего пака в Telegram, каждый можно сохранить (WebP 512 подходит для WhatsApp).
+   Сезон по времени Amsterdam: в магазине с 1 октября по 3 ноября, в статьях и пустых списках с 15 октября по 1 ноября. */
+const HWS=['Привет, нечисть','Boo!','Сладость или гадость','Я сегодня ведьма','Не буди монстра','Страшно красиво','Кофе и тыквы','Я в домике','Кошмар, но мило','Пора колдовать','Бу!','Моя тыква','Я в образе','Слишком страшно','Я всё вижу','Собираю сладости','Тыквенный латте','Полный мрак','Уже началось','Мои конфеты'];
+const hwsImg=i=>IMG['hw-s'+String(i+1).padStart(2,'0')];
+function hwsSeason(from,to){let d;try{d=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Amsterdam',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){d=new Date().toISOString().slice(5,10)}return d>=from&&d<=to}
+const HWS_ON=hwsSeason('10-15','11-01');
+function hwsGallery(){
+  openSheet(`<div class="hws"><h2 id="shTitle">Хэллоуин с лосёнком</h2><p class="muted">20 стикеров бесплатно. Добавьте весь пак в Telegram или нажмите на стикер, чтобы сохранить его: формат подходит и для WhatsApp.</p>
+    <div class="hws-g">${HWS.map((t,i)=>`<a href="${hwsImg(i)}" download="podslushano-halloween-${String(i+1).padStart(2,'0')}.webp" title="Сохранить"><img src="${hwsImg(i)}" alt="Стикер «${t}»" loading="lazy" decoding="async"></a>`).join('')}</div>
+    <div class="acts"><a class="btn btn-acc" href="https://t.me/addstickers/Podslushanonl" target="_blank" rel="noopener">Добавить в Telegram${svg('ext')}</a></div></div>`)}
+if(hwsSeason('10-01','11-03'))PRODUCTS10.unshift({k:'hwst',cat:'Бесплатно',t:'Хэллоуин с лосёнком',d:'20 стикеров: тыквы, ведьмы и «Сладость или гадость». Для Telegram и WhatsApp.',p:'бесплатно',href:'#hw-stickers',cta:'Смотреть стикеры',bg:'linear-gradient(150deg,#2A1408,#6B2A0B 55%,#E0661E)'});
+prodVisual=(()=>{const base=prodVisual;return k=>k==='hwst'?`<div class="pv-st hws-pv">${[2,9,13,0].map((n,i)=>`<img loading="lazy" decoding="async" src="${hwsImg(n)}" alt="" style="--r:${[-12,8,-5,11][i]}deg;--d:${i*.4}s">`).join('')}</div>`:base(k)})();
+document.addEventListener('click',e=>{const a=e.target.closest('a[href="#hw-stickers"]');if(!a)return;e.preventDefault();e.stopPropagation();hwsGallery()},true);
+if(HWS_ON){
+  /* Пустые списки: вместо обычного лосёнка «Полный мрак» */
+  const fix=root=>root.querySelectorAll('.empty img[src="{{DEER}}"],.hempty img[src="{{DEER}}"]').forEach(im=>{im.src=hwsImg(17);im.classList.add('hws-e')});
+  new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>n.nodeType===1&&fix(n.parentNode||n)))).observe(document.body,{childList:true,subtree:true});
+  /* Статьи: стикер в конце текста, у каждой статьи свой */
+  renderArt=(()=>{const base=renderArt;return id=>{base(id);const b=$('#artBody .artbody');if(!b||b.parentNode.querySelector('.hwn'))return;
+    const n=Math.abs(parseInt(String(id).replace(/\D/g,''),10)||0)%HWS.length;
+    b.insertAdjacentHTML('afterend',`<a class="hwn" href="#hw-stickers"><img src="${hwsImg(n)}" alt="Стикер «${HWS[n]}»" loading="lazy" decoding="async"><span>Лосёнок тоже готовится к Хэллоуину. <b>20 бесплатных стикеров</b> для Telegram и WhatsApp</span></a>`)}})();
+}
 
 /* ---------- boot ---------- */
 syncFav();route();if(!consent&&!CMP())setTimeout(()=>cookieBar(false),900);
