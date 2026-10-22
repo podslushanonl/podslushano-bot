@@ -4289,7 +4289,8 @@ renderArt=(()=>{const base=renderArt;return id=>{const n=PN.post&&String(PN.post
   const back=`<a class="back" href="#news">${svg('left').replace('class="ico"','class="ico" style="width:16px;height:16px"')}Новости и статьи</a>`;
   $('#artBody').innerHTML=`${back}<article class="na9"><span class="kick"><span class="tag t-acc">${esc(n.cat)}</span>${agoTxt(n)}</span><h1>${esc(n.h)}</h1>${n.lead?`<p class="lead">${esc(n.lead)}</p>`:''}${n.img?`<figure><img loading="lazy" decoding="async" src="${n.img}" alt="">${n.photo_credit?`<figcaption>Фото: ${esc(n.photo_credit)}</figcaption>`:''}</figure>`:''}<div class="artbody wpc">${n.html}</div>
    <div class="share9"><button class="btn btn-soft btn-sm" data-share="${esc(n.h)}"><svg class="ico"><use href="#i-link"/></svg>Поделиться</button></div></article>`;document.title=n.h+' · podslushano.nl'}})();
-ENTER.wp=()=>{const P=PN.page||{};$('#wpBody').innerHTML=`<a class="back" href="#home">${svg('left').replace('class="ico"','class="ico" style="width:16px;height:16px"')}Главная</a><h1>${esc(P.title||'')}</h1><div class="card wpc" style="padding:26px;border-radius:24px;margin-top:20px">${P.html||''}</div>`};
+ENTER.wp=()=>{const P=PN.page||{};$('#wpBody').innerHTML=`<a class="back" href="#home">${svg('left').replace('class="ico"','class="ico" style="width:16px;height:16px"')}Главная</a><h1>${esc(P.title||'')}</h1><div class="card wpc" style="padding:26px;border-radius:24px;margin-top:20px">${P.html||''}</div>`;
+  if(P.title)document.title=P.title+' · podslushano.nl'};
 
 /* ---- real payments through the bot ---- */
 async function pnPost(url,body,isForm){const r=await fetch(url,{method:'POST',headers:isForm?undefined:{'Content-Type':'application/json'},body:isForm?body:JSON.stringify(body)});let j={};try{j=await r.json()}catch(e){}
