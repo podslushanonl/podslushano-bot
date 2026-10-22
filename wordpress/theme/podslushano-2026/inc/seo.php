@@ -56,7 +56,8 @@ function pn_seo_specialists($list) {
 
 /* Histories of the 12 provinces (WordPress pages history-province-*) as real links under the map */
 function pn_seo_provinces() {
-    $pages = get_posts(['post_type' => 'page', 'post_status' => 'publish', 'posts_per_page' => 20, 'orderby' => 'title', 'order' => 'ASC',
+    // All published pages (a few dozen), filtered below: a limit could cut off some of the 12 histories
+    $pages = get_posts(['post_type' => 'page', 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC',
         'no_found_rows' => true]);
     $h = '';
     foreach ($pages as $p) {
