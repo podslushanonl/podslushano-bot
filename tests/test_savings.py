@@ -48,19 +48,19 @@ class TextTests(unittest.TestCase):
     def test_partner_links(self):
         with patch.dict(os.environ, {"SAVINGS_LINKS": ""}):
             self.assertFalse(savings.is_partner("zorg_compare"))
-            self.assertEqual(savings.target("zorg_compare"), "https://www.zorgwijzer.nl/")
+            self.assertEqual(savings.target("zorg_compare"), "https://www.zorgverzekeringslijn.nl/")
             self.assertEqual(savings.label("Сравнить", "zorg_compare"), "Сравнить")
         with patch.dict(os.environ, {"SAVINGS_LINKS": '{"zorg_compare": "https://p.example/x", "bad": "https://e", '
-                                                       '"esim_saily": "http://insecure"}'}):
+                                                       '"zorg_toeslag": "http://insecure"}'}):
             self.assertTrue(savings.is_partner("zorg_compare"))
             self.assertEqual(savings.target("zorg_compare"), "https://p.example/x")
-            self.assertFalse(savings.is_partner("esim_saily"))
+            self.assertFalse(savings.is_partner("zorg_toeslag"))
             self.assertIsNone(savings.target("bad"))
             self.assertEqual(savings.label("Сравнить", "zorg_compare"), "Сравнить · партнёр")
-            self.assertEqual(savings.zorg_kb().inline_keyboard[1][0].text, "🔍 Сравнить цены · партнёр")
-            self.assertNotIn("партнёр", savings.ESIM_TEXT + savings.result("000000")[0])
+            self.assertEqual(savings.zorg_kb().inline_keyboard[1][0].text, "🔍 Все полисы и цены · партнёр")
+            self.assertNotIn("партнёр", savings.MENU_TEXT + savings.result("000000")[0])
         with patch.dict(os.environ, {"SAVINGS_LINKS": "{oops"}):
-            self.assertEqual(savings.target("esim_saily"), "https://saily.com/")
+            self.assertTrue(savings.target("zorg_toeslag").startswith("https://www.belastingdienst.nl/"))
 
 
 class DbTests(unittest.IsolatedAsyncioTestCase):
@@ -93,28 +93,28 @@ class DbTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(len((await s.scalars(select(SavingsReminder))).all()), 1)
 
     async def test_go_counts_and_redirects(self):
-        req = SimpleNamespace(match_info={"key": "esim_saily"}, query={"s": "IG<script>"})
+        req = SimpleNamespace(match_info={"key": "zorg_toeslag"}, query={"s": "IG<script>"})
         with self.assertRaises(web.HTTPFound) as cm:
             await savings.go(req)
-        self.assertEqual(cm.exception.location, "https://saily.com/")
+        self.assertTrue(cm.exception.location.startswith("https://www.belastingdienst.nl/"))
         with self.assertRaises(web.HTTPFound) as cm:
             await savings.go(SimpleNamespace(match_info={"key": "nope"}, query={}))
         self.assertEqual(cm.exception.location, savings.SITE_PAGE)
         async with self.sessions() as s:
             rows = (await s.scalars(select(LinkClick))).all()
-        self.assertEqual([(r.key, r.source) for r in rows], [("esim_saily", "igscript")])
+        self.assertEqual([(r.key, r.source) for r in rows], [("zorg_toeslag", "igscript")])
         text = await savings.stats_text()
-        self.assertIn("Saily: <b>1</b>", text)
+        self.assertIn("Zorgtoeslag: проверить: <b>1</b>", text)
 
 
 
 class PartnersApiTests(unittest.IsolatedAsyncioTestCase):
     async def test_partners_flags(self):
         import json
-        with patch.dict(os.environ, {"SAVINGS_LINKS": '{"esim_saily": "https://p.example/s"}'}):
+        with patch.dict(os.environ, {"SAVINGS_LINKS": '{"zorg_toeslag": "https://p.example/s"}'}):
             resp = await savings.partners(SimpleNamespace(headers={}))
         data = json.loads(resp.body)
-        self.assertTrue(data["esim_saily"])
+        self.assertTrue(data["zorg_toeslag"])
         self.assertFalse(data["zorg_compare"])
 
 

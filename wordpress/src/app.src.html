@@ -2110,7 +2110,6 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 .sv-c ul{margin:0;padding-left:18px;display:grid;gap:8px;line-height:1.5}
 .sv-c .k{font:700 11.5px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 .sv-act{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
-#esim{scroll-margin-top:96px}
 .svb{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
 .svb-t{position:relative;overflow:hidden;padding:24px;border-radius:28px;display:grid;gap:10px;align-content:start}
 .svb-t h3{margin:0;font:800 clamp(22px,2.4vw,30px)/1.1 var(--f-display);letter-spacing:-.03em}
@@ -2352,6 +2351,12 @@ html.hw-lock,html.hw-lock body{overflow:hidden}
 .pv-seo ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
 .pv-seo a{display:block;padding:12px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--line);color:var(--ink);font-weight:600;text-decoration:none}
 .pv-seo a:hover{border-color:var(--accent);color:var(--accent-deep)}
+
+
+/* native hint inside an article: one line in the flow of the text, pointing to a section of the site on the same topic */
+.artbody .native{display:flex;gap:12px;align-items:flex-start;margin:22px 0;padding:14px 16px;border-radius:16px;background:var(--surface-2);font-size:16px;line-height:1.55;color:var(--ink-2)}
+.artbody .native .ico{flex:none;width:20px;height:20px;margin-top:2px;color:var(--accent)}
+.artbody .native a{font-weight:600}
 </style>
 <script>/* Хэллоуин: заставка стартует первой строкой страницы, параллельно с загрузкой сайта. После взрыва тыквы искры собираются в podslushano.nl, буквы «o» — горящие тыквы. */
 (function(){try{
@@ -2478,7 +2483,7 @@ if(!v)lite();else{v.muted=true;
         <div class="pop" id="morePop" hidden>
           <a href="#travel"><span class="pi"><svg class="ico"><use href="#i-plane"/></svg></span><span>Путешествия<small>Отели и билеты из Нидерландов</small></span></a>
           <a href="#shop"><span class="pi"><svg class="ico"><use href="#i-gift"/></svg></span><span>Магазин<small>Подарочные карты, гайды, стикеры</small></span></a>
-          <a href="#save"><span class="pi"><svg class="ico"><use href="#i-coin"/></svg></span><span>Сэкономить<small>Медстраховка 2027 и eSIM</small></span></a><a href="#trains"><span class="pi"><svg class="ico"><use href="#i-clock"/></svg></span><span>Поезда NS<small>Табло, отмены, сбои и ремонт</small></span></a><a href="#live"><span class="pi"><svg class="ico"><use href="#i-cloud"/></svg></span><span>Погода и камеры<small>Buienradar и 17 трансляций</small></span></a>
+          <a href="#save"><span class="pi"><svg class="ico"><use href="#i-coin"/></svg></span><span>Сэкономить<small>Медстраховка 2027</small></span></a><a href="#trains"><span class="pi"><svg class="ico"><use href="#i-clock"/></svg></span><span>Поезда NS<small>Табло, отмены, сбои и ремонт</small></span></a><a href="#live"><span class="pi"><svg class="ico"><use href="#i-cloud"/></svg></span><span>Погода и камеры<small>Buienradar и 17 трансляций</small></span></a>
           <a href="#board"><span class="pi"><svg class="ico"><use href="#i-briefcase"/></svg></span><span>Работа и жильё<small>Объявления после модерации</small></span></a>
           <a href="#business"><span class="pi"><svg class="ico"><use href="#i-hand"/></svg></span><span>Сотрудничество<small>Реклама и партнёрства</small></span></a>
           <a href="#contact"><span class="pi"><svg class="ico"><use href="#i-chat"/></svg></span><span>Связаться<small>Ответим за 5 рабочих дней</small></span></a>
@@ -2521,9 +2526,7 @@ if(!v)lite();else{v.muted=true;
       <div class="sh5 st"><div><h2>Сэкономить</h2><p>Разбираем, где в Нидерландах переплачивают, и как выбрать выгоднее.</p></div><a class="btn btn-soft btn-sm" href="#save">Все советы</a></div>
       <div class="svb">
         <div class="card svb-t st" data-until="2026-12-31"><span class="gi t-rose"><svg class="ico"><use href="#i-heart"/></svg></span><span class="eyebrow">Медстраховка 2027 · до 31 декабря</span><h3>Не переплачивайте за страховку</h3><p>Базовый пакет у всех страховщиков одинаковый, разница только в цене. Ответьте на 6 вопросов, и вы будете знать, на что смотреть.</p>
-          <div class="sv-act"><button class="btn btn-acc" type="button" data-zq>6 вопросов: что выбрать</button><a class="btn btn-soft" data-go="zorg_compare" href="https://www.zorgwijzer.nl/" target="_blank" rel="noopener">Сравнить цены</a></div></div>
-        <div class="card svb-t st" style="--i:1"><span class="gi t-sky"><svg class="ico"><use href="#i-globe"/></svg></span><span class="eyebrow">Путешествия · eSIM</span><h3>Интернет в поездке без роуминга</h3><p>За пределами ЕС выручит eSIM: ставится по QR-коду за 5 минут. Сравните цены на свою страну, они отличаются в разы.</p>
-          <div class="sv-act"><a class="btn btn-acc" href="#travel" data-esim>Выбрать eSIM</a></div></div>
+          <div class="sv-act"><button class="btn btn-acc" type="button" data-zq>6 вопросов: что выбрать</button><a class="btn btn-soft" data-go="zorg_compare" href="https://www.zorgverzekeringslijn.nl/" target="_blank" rel="noopener">Все полисы и цены</a></div></div>
       </div>
     </div>
 
@@ -2589,7 +2592,7 @@ if(!v)lite();else{v.muted=true;
     </div>
 
     <div class="sec">
-      <div class="sh5 st"><div><h2>Нас больше 100 тысяч</h2><p>Выбирайте, где удобнее читать.</p></div></div>
+      <div class="sh5 st"><div><h2>Нас больше 100 тысяч</h2><p>podslushano.nl — русскоязычное сообщество в Нидерландах. Выбирайте, где удобнее читать.</p></div></div>
       <div class="soc5" id="soc5"></div>
     </div>
   </div>
@@ -2617,7 +2620,7 @@ if(!v)lite();else{v.muted=true;
 </section>
 <section class="page" id="p-save" data-title="Сэкономить">
   <div class="wrap">
-    <div class="phead"><div><h1 class="st">Сэкономить</h1><p class="st" style="--i:1">Где в Нидерландах чаще всего переплачивают и как выбрать выгоднее. Сравниваете и оформляете вы сами, у сравнителя или поставщика, а мы подсказываем, на что смотреть.</p></div></div>
+    <div class="phead"><div><h1 class="st">Сэкономить</h1><p class="st" style="--i:1">Где в Нидерландах чаще всего переплачивают и как выбрать выгоднее. Конкретные страховые мы не рекомендуем: подсказываем, на что смотреть, а выбираете вы сами.</p></div></div>
     <div class="sec" style="margin-top:0">
       <div class="sec-h st"><div><h2>Медстраховка 2027</h2><p>Сменить страховку на следующий год можно до 31 декабря</p></div></div>
       <div class="sv-g">
@@ -2634,20 +2637,7 @@ if(!v)lite();else{v.muted=true;
           <li><b>Добровольный eigen risico</b> (до €500 сверху) снижает взнос, но в плохой год заплатите до €900 сами.</li>
           <li>Спросите на работе про коллективную скидку, а при невысоком доходе проверьте zorgtoeslag.</li></ul></div>
         <div class="card sv-c st" style="--i:2"><span class="k">Что выбрать именно вам</span><p style="margin:0">Ответьте на 6 коротких вопросов: дети, стоматолог, как часто ходите к врачам, свой врач, физиотерапия и очки, доход. Сразу увидите, на что смотреть именно вам.</p>
-          <div class="sv-act"><button class="btn btn-acc" type="button" data-zq>6 вопросов: что выбрать</button><a class="btn btn-soft" data-go="zorg_compare" href="https://www.zorgwijzer.nl/" target="_blank" rel="noopener">Сравнить цены</a><a class="btn btn-soft" data-go="zorg_toeslag" href="https://www.belastingdienst.nl/wps/wcm/connect/nl/zorgtoeslag/zorgtoeslag" target="_blank" rel="noopener">Zorgtoeslag</a></div></div>
-      </div>
-    </div>
-    <div class="sec">
-      <div class="sec-h st"><div><h2>Интернет в поездке: eSIM</h2><p>Сим-карта по QR-коду за 5 минут до вылета</p></div></div>
-      <div class="sv-g">
-        <div class="card sv-c st"><span class="k">Что важно знать</span><ul>
-          <li><b>По ЕС eSIM не нужна:</b> голландская сим-карта работает в странах ЕС по домашнему тарифу.</li>
-          <li>Пригодится за пределами ЕС: Турция, Египет, ОАЭ, Великобритания, США, Грузия, Украина.</li>
-          <li>Проверьте, что телефон поддерживает eSIM и не привязан к оператору (simlock).</li>
-          <li>Обычно это только интернет, без номера: звонить можно через WhatsApp и Telegram.</li>
-          <li>Устанавливайте дома по Wi-Fi, а включайте по прилёте.</li></ul></div>
-        <div class="card sv-c st" style="--i:1"><span class="k">Сравните цены на свою страну</span><p style="margin:0">Тарифы на одно направление у разных сервисов часто отличаются в разы. Посмотрите два-три варианта перед покупкой.</p>
-          <div class="sv-act"><a class="btn btn-soft" data-go="esim_holafly" href="https://esim.holafly.com/" target="_blank" rel="noopener">Holafly</a><a class="btn btn-soft" data-go="esim_saily" href="https://saily.com/" target="_blank" rel="noopener">Saily</a><a class="btn btn-soft" data-go="esim_airalo" href="https://www.airalo.com/" target="_blank" rel="noopener">Airalo</a></div></div>
+          <div class="sv-act"><button class="btn btn-acc" type="button" data-zq>6 вопросов: что выбрать</button><a class="btn btn-soft" data-go="zorg_compare" href="https://www.zorgverzekeringslijn.nl/" target="_blank" rel="noopener">Все полисы и цены</a><a class="btn btn-soft" data-go="zorg_toeslag" href="https://www.belastingdienst.nl/wps/wcm/connect/nl/zorgtoeslag/zorgtoeslag" target="_blank" rel="noopener">Zorgtoeslag</a></div></div>
       </div>
     </div>
     <p class="hint" style="margin-top:28px">Это общая информация, а не персональный финансовый совет.</p>
@@ -2753,19 +2743,6 @@ if(!v)lite();else{v.muted=true;
         <button class="btn btn-acc" type="submit" style="height:52px"><svg class="ico"><use href="#i-search"/></svg><span id="fBtn">Найти билеты</span></button>
       </form>
       <p class="fnote"><svg class="ico" style="width:16px;height:16px"><use href="#i-ext"/></svg>Откроем результаты Skyscanner в новой вкладке, сразу с вашими параметрами.</p>
-    </div>
-    <div class="sec" id="esim">
-      <div class="sec-h st"><div><h2>Интернет в поездке: eSIM</h2><p>Сим-карта по QR-коду за 5 минут до вылета</p></div></div>
-      <div class="sv-g">
-        <div class="card sv-c st"><span class="k">Что важно знать</span><ul>
-          <li><b>По ЕС eSIM не нужна:</b> голландская сим-карта работает в странах ЕС по домашнему тарифу.</li>
-          <li>Пригодится за пределами ЕС: Турция, Египет, ОАЭ, Великобритания, США, Грузия, Украина.</li>
-          <li>Проверьте, что телефон поддерживает eSIM и не привязан к оператору (simlock).</li>
-          <li>Обычно это только интернет, без номера: звонить можно через WhatsApp и Telegram.</li>
-          <li>Устанавливайте дома по Wi-Fi, а включайте по прилёте.</li></ul></div>
-        <div class="card sv-c st" style="--i:1"><span class="k">Сравните цены на свою страну</span><p style="margin:0">Тарифы на одно направление у разных сервисов часто отличаются в разы. Посмотрите два-три варианта перед покупкой.</p>
-          <div class="sv-act"><a class="btn btn-soft" data-go="esim_holafly" href="https://esim.holafly.com/" target="_blank" rel="noopener">Holafly</a><a class="btn btn-soft" data-go="esim_saily" href="https://saily.com/" target="_blank" rel="noopener">Saily</a><a class="btn btn-soft" data-go="esim_airalo" href="https://www.airalo.com/" target="_blank" rel="noopener">Airalo</a></div></div>
-      </div>
     </div>
     <div class="sec">
       <div class="sec-h st"><div><h2>Перед поездкой</h2></div></div>
@@ -2919,7 +2896,7 @@ if(!v)lite();else{v.muted=true;
   <div class="wrap">
     <div class="ft">
       <div><a href="#home" class="logo"><img loading="lazy" decoding="async" class="lg" src="{{IMG:logo-orig}}" alt="podslushano.nl"></a><p class="req">podslushano.nl@gmail.com<br>KVK: 98882317 · BTW: NL005359099B74<br>Karel Doormanstraat 63, 5342 TJ Oss</p></div>
-      <div><h5>Разделы</h5><a href="#news">Новости и статьи</a><a href="#guide">КонтактGuide</a><a href="#events">Афиша</a><a href="#travel">Путешествия</a><a href="#provinces">Провинции</a><a href="#allo">allowalks</a><a href="#board">Работа и жильё</a><a href="#shop">Магазин</a></div>
+      <div><h5>Разделы</h5><a href="#news">Новости и статьи</a><a href="#spravochnik">Справочник</a><a href="#guide">КонтактGuide</a><a href="#events">Афиша</a><a href="#travel">Путешествия</a><a href="#provinces">Провинции</a><a href="#allo">allowalks</a><a href="#board">Работа и жильё</a><a href="#shop">Магазин</a></div>
       <div><h5>Сообщество</h5><a href="https://www.instagram.com/podslushano.nl">Instagram</a><a href="https://t.me/podslushanovnl">Telegram</a><a href="https://www.facebook.com/podslushano.nl">Facebook</a><a href="https://www.tiktok.com/@podslushano.nl">TikTok</a><a href="#links">Links</a></div>
       <div><h5>Документы</h5><a href="#cabinet">Кабинет бизнеса</a><a href="#contact">Связаться</a><a href="#business">Сотрудничество</a><a href="#legal-imprint">Imprint</a><a href="#legal-disclaimer">Disclaimer</a><a href="#legal-privacy">Privacy Statement</a><a href="#legal-cookies">Cookie Policy</a><a href="#legal-terms">Terms and Conditions</a><a href="#" data-cookie>Настройки cookie</a></div>
     </div>
@@ -4273,7 +4250,7 @@ pnTrains();setInterval(pnTrains,60000);
 (function pnSave(){const go=$$('[data-go]');go.forEach(a=>{a.href=PN_BOT+'/go/'+a.dataset.go+'?s=site'+(a.closest('#homeSave')?'_home':'')});
   if(go.length)fetch(PN_BOT+'/api/savings/partners').then(r=>r.json()).then(p=>{window.PN_PARTNERS=p;go.forEach(a=>{if(p[a.dataset.go]&&!a.querySelector('.sv-pb'))a.insertAdjacentHTML('beforeend','<span class="sv-pb">партнёр</span>')})}).catch(()=>{});
   const today=new Date().toISOString().slice(0,10);$$('[data-until]').forEach(t=>{if(today>t.dataset.until)t.remove()});
-  document.addEventListener('click',e=>{if(!e.target.closest('[data-esim]'))return;setTimeout(()=>{const x=$('#esim');x&&x.scrollIntoView({behavior:'smooth',block:'start'})},800)})})();
+  const hs=$('#homeSave');if(hs&&!hs.querySelector('.svb-t'))hs.remove();})();
 
 /* ---- pretty URLs (History API) ---- */
 const PN_R2P={home:'/',trains:'/trains/',save:'/save/',news:'/news/',guide:'/guide/',events:'/events/',live:'/live/',allo:'/allowalks/',shop:'/shop/',provinces:'/provinces/',board:'/work/',place:'/place/',cabinet:'/cabinet/',business:'/business/',contact:'/contact/',travel:'/travel/'};
@@ -4283,7 +4260,7 @@ function pnPath(h){if(PN_R2P[h])return PN_R2P[h];if(h==='links')return '/links/'
   if(h.startsWith('art-')){const id=h.slice(4);const n=[...NEWSF,...ART].find(x=>String(x.id)===id);return n&&n.link?n.link:null}
   if(h.startsWith('legal-'))return PN_LEGAL[h.slice(6)]||null;return null}
 function pnFromPath(){const p=location.pathname.replace(/\/?$/,'/');for(const [k,v] of Object.entries(PN_R2P))if(v===p)return k;
-  const m=p.match(/^\/events\/([a-z0-9-]+)\/$/);if(m)return 'ev-'+m[1];if(PN.route==='art'&&PN.post)return 'art-'+PN.post.id;if(PN.route==='wp')return 'wp';return 'home'}
+  const m=p.match(/^\/events\/([a-z0-9-]+)\/$/);if(m)return 'ev-'+m[1];if(PN.route==='art'&&PN.post)return 'art-'+PN.post.id;if(PN.route==='wp')return 'wp';if(PN.route==='news')return 'news';return 'home'}
 function pnRouteKey(){const h=decodeURIComponent(location.hash.slice(1));
   if(h){const p=pnPath(h);if(p&&!pnIsApp(p)){location.href=p;return null}if(p){history.replaceState(null,'',p)}return h}
   return pnFromPath()}
@@ -4431,7 +4408,7 @@ function zqHints(a){const [kids,dent,often,own,extra,low]=a,o=[];
   o.push('Спросите на работе про коллективную скидку (collectiviteit): многие работодатели её дают.');return o}
 function zqGo(k,c,t){const pb=(window.PN_PARTNERS||{})[k]?'<span class="sv-pb">партнёр</span>':'';return `<a class="btn ${c}" href="${PN_BOT}/go/${k}?s=site_quiz" target="_blank" rel="noopener">${t}${pb}</a>`}
 function zqDraw(a){if(a.length<ZQ.length){const [q,y,n]=ZQ[a.length];openSheet(`<span class="eyebrow">Медстраховка 2027 · вопрос ${a.length+1} из ${ZQ.length}</span><h2 id="shTitle" style="margin:10px 0 18px;font-size:24px">${q}</h2><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px"><button class="btn btn-acc" data-zqa="1">${y}</button><button class="btn btn-soft" data-zqa="0">${n}</button></div>${a.length?'<button class="btn btn-soft btn-sm" data-zqb style="margin-top:14px">Назад</button>':''}`);zqDraw.a=a;return}
-  openSheet(`<span class="eyebrow">Медстраховка 2027</span><h2 id="shTitle" style="margin:10px 0 14px;font-size:24px">На что смотреть вам</h2><ul style="display:grid;gap:10px;padding-left:18px;color:var(--ink-2)">${zqHints(a).map(h=>`<li>${h}</li>`).join('')}</ul><p class="muted" style="margin-top:14px;font-size:14px">Сменить страховку на 2027 год можно до 31 декабря. Это общая информация, а не персональный финансовый совет.</p><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">${zqGo('zorg_compare','btn-acc','Сравнить цены')}${a[5]?zqGo('zorg_toeslag','btn-soft','Проверить zorgtoeslag'):''}<button class="btn btn-soft" data-zq>Пройти заново</button></div>`)}
+  openSheet(`<span class="eyebrow">Медстраховка 2027</span><h2 id="shTitle" style="margin:10px 0 14px;font-size:24px">На что смотреть вам</h2><ul style="display:grid;gap:10px;padding-left:18px;color:var(--ink-2)">${zqHints(a).map(h=>`<li>${h}</li>`).join('')}</ul><p class="muted" style="margin-top:14px;font-size:14px">Сменить страховку на 2027 год можно до 31 декабря. Это общая информация, а не персональный финансовый совет.</p><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">${zqGo('zorg_compare','btn-acc','Все полисы и цены')}${a[5]?zqGo('zorg_toeslag','btn-soft','Проверить zorgtoeslag'):''}<button class="btn btn-soft" data-zq>Пройти заново</button></div>`)}
 document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preventDefault();zqDraw([]);return}
   const b=e.target.closest('[data-zqa]');if(b){zqDraw([...(zqDraw.a||[]),b.dataset.zqa==='1']);return}
   if(e.target.closest('[data-zqb]'))zqDraw((zqDraw.a||[]).slice(0,-1))});

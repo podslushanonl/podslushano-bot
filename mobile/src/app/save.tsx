@@ -1,5 +1,5 @@
 import { View } from 'react-native';
-import { goUrl, SITE } from '@/api/client';
+import { goUrl } from '@/api/client';
 import { openBot, openUrl } from '@/lib/open';
 import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Button, Icon, IconName, PageScreen, Txt } from '@/ui';
@@ -24,17 +24,12 @@ export default function Save() {
     <PageScreen title="Сэкономить">
       <View style={{ gap: 6 }}>
         <Txt v="title1">Сэкономить</Txt>
-        <Txt v="callout" tone="muted">Проверенные способы платить меньше. Часть ссылок может быть партнёрской — для вас цена та же.</Txt>
+        <Txt v="callout" tone="muted">Где в Нидерландах переплачивают и как выбрать выгоднее. Конкретные страховые не рекомендуем — подсказываем, на что смотреть.</Txt>
       </View>
       <Offer dark icon="shield" over="Медстраховка 2027 · до 31 декабря" title="Не переплачивайте за zorgverzekering"
         text="Базовый пакет у всех страховщиков одинаковый — разница только в цене. 6 вопросов, и вы знаете, что вам нужно.">
         <Button title="6 вопросов в боте" kind="accent" onPress={() => openBot('save_zorg')} />
-        <Button title="Сравнить цены" kind="glass" onPress={() => openUrl(goUrl('zorg_compare'))} />
-      </Offer>
-      <Offer icon="globe" over="Путешествия" title="eSIM: интернет за границей без роуминга"
-        text="Покупаете до поездки, включаете по прилёту. Без пластиковой карты и очередей.">
-        <Button title="Выбрать eSIM" kind="primary" onPress={() => openBot('save_esim')} />
-        <Button title="Подробнее на сайте" kind="secondary" onPress={() => openUrl(`${SITE}/travel/`)} />
+        <Button title="Все полисы и цены" kind="glass" onPress={() => openUrl(goUrl('zorg_compare'))} />
       </Offer>
     </PageScreen>
   );

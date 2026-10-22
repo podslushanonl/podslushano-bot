@@ -152,7 +152,7 @@ async def cmd_start(message: Message, state: FSMContext, command: CommandObject)
             "Ссылка для входа устарела. Вернитесь в приложение и нажмите «Войти через Telegram» ещё раз.",
             parse_mode=None)
         return
-    # Раздел «Сэкономить»: ?start=save, save_zorg (медстраховка), save_esim (eSIM)
+    # Раздел «Сэкономить»: ?start=save, save_zorg (медстраховка); старая save_esim открывает меню раздела
     if command.args in ("save", "save_zorg", "save_esim"):
         from utils.savings import open_menu, open_topic
         if command.args == "save":
