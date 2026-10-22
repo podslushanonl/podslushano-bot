@@ -7,7 +7,7 @@
  */
 if (!defined('ABSPATH')) exit;
 
-define('PN_VER', '1.5.1');
+define('PN_VER', '1.5.2');
 define('PN_BOT', 'https://worker-production-ad76.up.railway.app');
 define('PN_DIR', get_template_directory());
 define('PN_URI', get_template_directory_uri());
@@ -235,6 +235,14 @@ add_filter('wpseo_metadesc', function ($d) {
     return wp_trim_words(wp_strip_all_tags(get_the_excerpt(get_queried_object())), 30, '…');
 });
 
+/* Cache Enabler stores pages in wp-content/cache; create the folder when it is missing. */
+add_action('init', function () {
+    if (!is_dir(WP_CONTENT_DIR . '/cache') && !get_transient('pn_mk_cache')) {
+        set_transient('pn_mk_cache', 1, DAY_IN_SECONDS);
+        wp_mkdir_p(WP_CONTENT_DIR . '/cache');
+    }
+});
+
 /* Cache diagnostics: one hidden line at the end of every page, read when checking why Cache Enabler
    stores nothing. No secrets: only whether caching is on and what blocks it. */
 add_action('wp_footer', function () {
@@ -248,6 +256,10 @@ add_action('wp_footer', function () {
         'bypass' => class_exists('Cache_Enabler_Engine') && is_callable(['Cache_Enabler_Engine', 'bypass_cache']) ? (Cache_Enabler_Engine::bypass_cache() ? 1 : 0) : -1,
         'adv' => file_exists(WP_CONTENT_DIR . '/advanced-cache.php') ? (strpos((string) @file_get_contents(WP_CONTENT_DIR . '/advanced-cache.php', false, null, 0, 600), 'Cache Enabler') !== false ? 'ce' : 'other') : 'none',
         'dir' => is_dir(WP_CONTENT_DIR . '/cache') ? (wp_is_writable(WP_CONTENT_DIR . '/cache') ? 'w' : 'ro') : 'none',
+        // wp-content itself: writable for PHP? and where the site lives (last two folders of the path)
+        'wpc' => wp_is_writable(WP_CONTENT_DIR) ? 'w' : 'ro',
+        'path' => basename(dirname(dirname(WP_CONTENT_DIR))) . '/' . basename(dirname(WP_CONTENT_DIR)) . '/' . basename(WP_CONTENT_DIR),
+        'list' => implode(',', array_slice(array_map('basename', (array) glob(WP_CONTENT_DIR . '/*', GLOB_ONLYDIR)), 0, 12)),
         'script' => basename((string) ($_SERVER['SCRIPT_NAME'] ?? '')),
         'php' => PHP_VERSION,
     ];
