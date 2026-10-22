@@ -7,7 +7,7 @@
  */
 if (!defined('ABSPATH')) exit;
 
-define('PN_VER', '1.5.0');
+define('PN_VER', '1.6.0');
 define('PN_BOT', 'https://worker-production-ad76.up.railway.app');
 define('PN_DIR', get_template_directory());
 define('PN_URI', get_template_directory_uri());
@@ -18,6 +18,7 @@ require PN_DIR . '/inc/forms.php';
 require PN_DIR . '/inc/importer.php';
 require PN_DIR . '/inc/seo.php';
 require PN_DIR . '/inc/cities.php';
+require PN_DIR . '/inc/specialists.php';
 
 add_action('after_setup_theme', function () {
     add_theme_support('title-tag');
@@ -40,11 +41,12 @@ function pn_add_rules() {
     }
     add_rewrite_rule('^events/([a-z0-9-]+)/?$', 'index.php?pn_route=event&pn_key=$matches[1]', 'top');
     add_rewrite_rule('^city/([a-z0-9-]+)/?$', 'index.php?pn_route=city&pn_key=$matches[1]', 'top');
+    add_rewrite_rule('^guide/[a-z0-9-]*?-?([0-9]+)/?$', 'index.php?pn_route=spec&pn_key=$matches[1]', 'top');
 }
 add_action('init', 'pn_add_rules');
 // New sections need fresh rewrite rules: flush once whenever the route list changes.
 add_action('init', function () {
-    $ver = md5(wp_json_encode(pn_routes()) . 'city');
+    $ver = md5(wp_json_encode(pn_routes()) . 'city,spec');
     if (get_option('pn_rules_ver') !== $ver) {
         flush_rewrite_rules(false);
         update_option('pn_rules_ver', $ver);
@@ -75,6 +77,7 @@ function pn_route_meta($route) {
         'events' => ['Афиша: концерты, стендап, фестивали', 'Концерты, стендап, театр и фестивали в Нидерландах для русскоязычных.'],
         'event' => ['Афиша', 'Событие в Нидерландах: дата, место, билеты.'],
         'city' => ['Город', 'Русскоязычные в городах Нидерландов: специалисты, события, новости.'],
+        'spec' => ['КонтактGuide', 'Русскоязычный специалист в Нидерландах.'],
         'live' => ['Погода и камеры онлайн', 'Погода Buienradar по городам Нидерландов, дождь на 2 часа и живые камеры.'],
         'save' => ['Сэкономить: медстраховка 2027', 'Как выбрать медстраховку на 2027 год и не переплатить: eigen risico, типы полиса, zorgtoeslag. По-русски.'],
         'trains' => ['Поезда NS: табло, отмены и сбои', 'Табло отправлений NS по станциям, отмены, сбои и ремонтные работы на железной дороге Нидерландов на русском.'],
@@ -95,11 +98,13 @@ function pn_route_title() {
     if (!$r || !($m = pn_route_meta($r))) return null;
     if ($r === 'event' && ($e = pn_event(get_query_var('pn_key')))) return $e['h'] . ' · Афиша podslushano.nl';
     if ($r === 'city' && ($c = pn_city(get_query_var('pn_key')))) return pn_city_title($c) . ' · podslushano.nl';
+    if ($r === 'spec' && ($x = pn_spec(get_query_var('pn_key')))) return pn_spec_title($x) . ' · КонтактGuide';
     return $m[0] . ' · podslushano.nl';
 }
 function pn_route_desc() {
     $r = get_query_var('pn_route');
     if ($r === 'city' && ($c = pn_city(get_query_var('pn_key')))) return pn_city_desc($c);
+    if ($r === 'spec' && ($x = pn_spec(get_query_var('pn_key')))) return pn_spec_desc($x);
     if ($r === 'event' && ($e = pn_event(get_query_var('pn_key')))) {
         // Each event gets its own description: date, place and what it is
         $where = implode(', ', array_filter([$e['venue'] ?? '', $e['city'] ?? '']));
@@ -114,6 +119,7 @@ function pn_route_url() {
     if (!$r) return null;
     if ($r === 'event') return home_url('/events/' . sanitize_key(get_query_var('pn_key')) . '/');
     if ($r === 'city') return home_url('/city/' . sanitize_key(get_query_var('pn_key')) . '/');
+    if ($r === 'spec') return ($x = pn_spec(get_query_var('pn_key'))) ? pn_spec_url($x) : null;
     $slug = array_search($r, pn_routes(), true);
     return $slug ? home_url('/' . $slug . '/') : null;
 }
@@ -184,6 +190,7 @@ add_action('init', function () {
         $urls = array_map(function ($slug) { return home_url('/' . $slug . '/'); }, array_keys(pn_routes()));
         foreach (pn_events() as $e) if (!empty($e['key'])) $urls[] = home_url('/events/' . $e['key'] . '/');
         foreach (array_keys(pn_cities()) as $slug) $urls[] = home_url('/city/' . $slug . '/');
+        foreach ((array) (pn_specialists() ?: []) as $x) if (!empty($x['id']) && !empty($x['name'])) $urls[] = pn_spec_url($x);
         $xml = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
         foreach ($urls as $u) $xml .= '<url><loc>' . esc_url($u) . '</loc></url>';
         $wpseo_sitemaps->set_sitemap($xml . '</urlset>');
@@ -226,13 +233,22 @@ add_action('wp_head', function () {
     if ($d && !defined('WPSEO_VERSION') && !defined('RANK_MATH_VERSION')) {
         echo '<meta name="description" content="' . esc_attr($d) . '">' . "\n";
     }
-    echo '<meta name="theme-color" content="#F4F5F7">' . "\n";
+    echo '<meta name="theme-color" content="#F4F5F7" media="(prefers-color-scheme: light)">' . "\n";
+    echo '<meta name="theme-color" content="#0E1014" media="(prefers-color-scheme: dark)">' . "\n";
 }, 1);
 
 // Yoast leaves the description empty when a post has no excerpt: use the lead of the article
 add_filter('wpseo_metadesc', function ($d) {
     if ($d || !is_singular('post')) return $d;
     return wp_trim_words(wp_strip_all_tags(get_the_excerpt(get_queried_object())), 30, '…');
+});
+
+/* Cache Enabler stores pages in wp-content/cache; create the folder when it is missing. */
+add_action('init', function () {
+    if (!is_dir(WP_CONTENT_DIR . '/cache') && !get_transient('pn_mk_cache')) {
+        set_transient('pn_mk_cache', 1, DAY_IN_SECONDS);
+        wp_mkdir_p(WP_CONTENT_DIR . '/cache');
+    }
 });
 
 /* ---------- assets ---------- */

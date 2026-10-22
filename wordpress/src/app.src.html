@@ -4,8 +4,8 @@
 :root{
   color-scheme:light;
   --bg:#F4F5F7; --surface:#FFFFFF; --surface-2:#EEF0F3; --surface-3:#E6E9EE;
-  --ink:#0D1117; --ink-2:#2E3540; --muted:#6A7280; --line:#E2E5EA; --line-2:#D5DAE1;
-  --accent:#FF5A1F; --accent-ink:#FFFFFF; --accent-soft:#FFEEE6; --accent-deep:#D9440D;
+  --ink:#0D1117; --ink-2:#2E3540; --muted:#5D6573; --line:#E2E5EA; --line-2:#D5DAE1;
+  --accent:#FF5A1F; --accent-ink:#FFFFFF; --accent-soft:#FFEEE6; --accent-deep:#B83B0B;
   --mint:#E2F3E9; --mint-ink:#14633C; --sky:#E3EEFA; --sky-ink:#1D5592; --lilac:#EEEAFB; --lilac-ink:#5536AE;
   --butter:#FFF3D3; --butter-ink:#835E00; --rose:#FCE7EC; --rose-ink:#B0234A; --slate:#E9EDF2; --slate-ink:#36404D;
   --e1:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.04);
@@ -2357,6 +2357,169 @@ html.hw-lock,html.hw-lock body{overflow:hidden}
 .artbody .native{display:flex;gap:12px;align-items:flex-start;margin:22px 0;padding:14px 16px;border-radius:16px;background:var(--surface-2);font-size:16px;line-height:1.55;color:var(--ink-2)}
 .artbody .native .ico{flex:none;width:20px;height:20px;margin-top:2px;color:var(--accent)}
 .artbody .native a{font-weight:600}
+
+/* ===================== dark theme: follows the system setting (prefers-color-scheme) =====================
+   Colour tokens are redefined; the second part (generated from the light rules) turns hard-coded white
+   panels and glass into dark ones. */
+@media (prefers-color-scheme:dark){
+:root{
+  color-scheme:dark;
+  --bg:#0E1014; --surface:#171A20; --surface-2:#1E222A; --surface-3:#272C35;
+  --ink:#EEF1F5; --ink-2:#C6CDD7; --muted:#8E97A5; --line:#2A2F38; --line-2:#363C47;
+  --accent-soft:#3A2116; --accent-deep:#FF8152;
+  --mint:#132A1F; --mint-ink:#74D9A0; --sky:#13243A; --sky-ink:#86BBF4; --lilac:#221C3B; --lilac-ink:#B9A8F8;
+  --butter:#2F2610; --butter-ink:#F2C95B; --rose:#35171F; --rose-ink:#F592AC; --slate:#1F242C; --slate-ink:#C6CED9;
+  --e1:0 1px 2px rgba(0,0,0,.4); --e2:0 2px 4px rgba(0,0,0,.3),0 12px 24px -8px rgba(0,0,0,.5);
+  --e3:0 4px 8px rgba(0,0,0,.3),0 24px 48px -16px rgba(0,0,0,.6);
+  --glass:rgba(26,29,36,.55); --glass-2:rgba(30,34,42,.72); --glass-brd:rgba(255,255,255,.08);
+  --glass-edge:inset 0 1px 0 rgba(255,255,255,.06),inset 0 -1px 0 rgba(255,255,255,.02);
+}
+body{background:var(--bg)}
+.mesh{background:linear-gradient(180deg,#101318,#0C0E12)}
+.hdr{background:rgba(14,16,20,.78)}
+img{color-scheme:normal}
+.hdr.scrolled{background:rgba(26,29,36,0.82)}
+.nav{background:rgba(26,29,36,0.60)}
+.glass{background:rgba(26,29,36,0.78);border:1px solid rgba(255,255,255,.08)}
+.b-guide{background:var(--surface)}
+.b-allo .arrow-c{background:rgba(255,255,255,0.06)}
+.stamp{background:rgba(26,29,36,0.85)}
+.mapbox{background:var(--surface)}
+.bstats div{background:rgba(255,255,255,0.06)}
+.mesh{background:var(--surface)}
+.hdr{background:rgba(255,255,255,0.06) !important;border-color:rgba(255,255,255,.08) !important}
+.hdr.scrolled{background:rgba(26,29,36,0.55) !important}
+.nav{background:rgba(26,29,36,0.55);border-color:rgba(255,255,255,.08)}
+.nav-pill{background:rgba(26,29,36,0.90)}
+.seg{background:rgba(26,29,36,0.55);border:1px solid rgba(255,255,255,.08)}
+.seg .pill{background:rgba(26,29,36,0.92)}
+.pop,.pal,.sheet{background:rgba(26,29,36,0.70);border:1px solid rgba(255,255,255,.08)}
+.b-guide{background:rgba(26,29,36,0.55)}
+.tabbar{background:rgba(26,29,36,0.55) !important;border:1px solid rgba(255,255,255,.08) !important}
+.wform input{background:rgba(26,29,36,0.70)}
+.issue{background:rgba(26,29,36,0.78)}
+.ck .box{background:rgba(26,29,36,0.60)}
+.cab-side button:hover{background:rgba(26,29,36,0.60)}
+.cab-side button[aria-current="true"]{background:rgba(26,29,36,0.90)}
+.mini{background:rgba(26,29,36,0.60)}
+.photo-drop{background:rgba(26,29,36,0.55)}
+.tabbar{background:rgba(26,29,36,0.86)}
+.today4 .inner{background:rgba(26,29,36,0.62);border:1px solid rgba(255,255,255,.08)}
+.avs span{border:2px solid rgba(255,255,255,.08)}
+.chip4 .inner{background:rgba(26,29,36,0.75);border:1px solid rgba(255,255,255,.08)}
+.wx-meta div{background:rgba(26,29,36,0.55)}
+.rainbox{background:rgba(26,29,36,0.55)}
+.fd{background:rgba(26,29,36,0.55)}
+.live::before{background:var(--surface)}
+.cam .play span{background:rgba(26,29,36,0.85)}
+.pf .badge2{background:rgba(26,29,36,0.85)}
+.facts4 div{background:rgba(26,29,36,0.55)}
+.tix div{background:rgba(26,29,36,0.55)}
+.route div::before{background:var(--surface)}
+.lists2 > div{background:rgba(26,29,36,0.55)}
+.steps4 span{background:rgba(26,29,36,0.55)}
+.steps4 span.on{background:var(--surface)}
+.plan{background:rgba(26,29,36,0.55)}
+.plan[aria-pressed="true"]{background:var(--surface)}
+.pm{background:rgba(26,29,36,0.55)}
+.pm[aria-pressed="true"]{background:var(--surface)}
+.summary{background:rgba(26,29,36,0.60)}
+.mollie .box{background:var(--surface)}
+.gbar{background:rgba(26,29,36,0.62);border:1px solid rgba(255,255,255,.08)}
+.gbar .gs{background:rgba(26,29,36,0.70)}
+.gbar select{background:rgba(26,29,36,0.70)}
+.gbar .tog{background:rgba(26,29,36,0.70)}
+.sp4{background:rgba(26,29,36,0.58);border:1px solid rgba(255,255,255,.08)}
+.sp4:hover{background:rgba(26,29,36,0.80)}
+.sosd{background:rgba(26,29,36,0.55);border:1px solid rgba(255,255,255,.08)}
+.cta-place{border:1px solid rgba(255,255,255,.08)}
+.toc canvas{background:rgba(26,29,36,0.55)}
+.toc ol{background:rgba(26,29,36,0.55)}
+.toc li button.on{background:var(--surface)}
+.wk .ph .badge2{background:rgba(26,29,36,0.88)}
+.ck-bar{background:rgba(26,29,36,0.82);border:1px solid rgba(255,255,255,.08)}
+.ck-opt{background:rgba(26,29,36,0.70)}
+.sw2::after{background:var(--surface)}
+.hsearch{background:rgba(26,29,36,0.75);border:1px solid rgba(255,255,255,.08)}
+.hx-res{background:var(--surface)}
+.hl{background:rgba(26,29,36,0.55);border:1px solid rgba(255,255,255,.08)}
+.hl:hover{background:var(--surface)}
+.st-bars i{background:rgba(26,29,36,0.55)}
+.st-bars i b{background:var(--surface)}
+.avm .row span{background:rgba(255,255,255,0.06)}
+.tick5 a{border-right:1px solid rgba(255,255,255,.08)}
+.tick5 a:hover{background:rgba(255,255,255,0.06)}
+.gb5 input{background:rgba(26,29,36,0.80)}
+.wxc select{background:rgba(26,29,36,0.70)}
+.wxc .mini5 div{background:rgba(26,29,36,0.55)}
+.camm .cm .playbig{background:rgba(26,29,36,0.85)}
+.ab5 .nw{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,.08)}
+.player .ph .icon-btn{background:rgba(255,255,255,0.06)}
+.gd{background:rgba(26,29,36,0.55)}
+.gd[aria-pressed="true"]{background:var(--surface)}
+.ct{background:rgba(26,29,36,0.60)}
+.ct:hover{background:var(--surface)}
+.nlead .tag{background:rgba(255,255,255,0.06)}
+.ni6{background:rgba(26,29,36,0.55);border:1px solid rgba(255,255,255,.08)}
+.ni6:hover{background:var(--surface)}
+.wg{background:rgba(26,29,36,0.55)}
+.wg .h img{background:var(--surface)}
+.icons i{background:rgba(26,29,36,0.60)}
+.icons i img{background:var(--surface)}
+.howto>div{background:rgba(26,29,36,0.55)}
+.wbanner .mini-phone span{background:rgba(26,29,36,0.60)}
+.moose figcaption{background:var(--surface)}
+.iv-logo{background:rgba(26,29,36,0.88)}
+.iv-skip{background:rgba(26,29,36,0.75)}
+.csel-btn{background:rgba(26,29,36,0.72)}
+.csel-btn:hover{background:var(--surface)}
+.cpop{background:rgba(26,29,36,0.86);border:1px solid rgba(255,255,255,.08)}
+.cpop .cq{background:rgba(26,29,36,0.90)}
+.hx-top .hxlive{background:rgba(26,29,36,0.70)}
+.hx-q button{background:rgba(26,29,36,0.62)}
+.hx-q button:hover{background:var(--surface)}
+.bt-news .kick span{background:rgba(255,255,255,0.06)}
+.bt-wx{background:var(--surface)}
+.bt-ev .dt{background:var(--surface)}
+.wx2{background:rgba(26,29,36,0.62);border:1px solid rgba(255,255,255,.08)}
+.wx2 .h img{background:var(--surface)}
+.dn-pay{background:rgba(26,29,36,0.70);border:1px solid rgba(255,255,255,.08)}
+.dn-amts button{background:var(--surface)}
+.dn-own{background:var(--surface)}
+.pw{background:rgba(26,29,36,0.66);border:1px solid rgba(255,255,255,.08)}
+.pw-ph .tag{background:rgba(26,29,36,0.88)}
+.aw-next input{border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,0.06)}
+.nc9 .ph .tag{background:rgba(26,29,36,0.90)}
+.shop-feat{background:var(--surface)}
+.pc10{background:rgba(26,29,36,0.72);border:1px solid rgba(255,255,255,.08)}
+.ptag{background:rgba(26,29,36,0.85)}
+.pv-kg .mk{background:var(--surface)}
+.pv-book .fl i:nth-child(2){background:var(--surface)}
+.pv-dn span{background:var(--surface)}
+.lb10 button{background:rgba(255,255,255,0.06)}
+.lb10 button:hover{background:rgba(255,255,255,0.06)}
+.ivc{background:rgba(26,29,36,0.92)}
+.cc-white{background:var(--surface)}
+.sp4.prem{background:var(--surface)}
+.jc{background:rgba(26,29,36,0.70);border:1px solid rgba(255,255,255,.08)}
+.site{background:rgba(26,29,36,0.60);border:1px solid rgba(255,255,255,.08)}
+.site:hover{background:var(--surface)}
+.ptn{background:rgba(26,29,36,0.90)}
+.cab-row input{background:var(--surface)}
+.hw-b .btn-soft{background:rgba(255,255,255,0.06)}
+.hw-dots i{background:rgba(255,255,255,0.06)}
+.calmk .pg{background:var(--surface)}
+/* light panels on var(--ink) keep dark text */
+.btn-ink,.bx:hover .arrow-c,.datecard,.s3 .n,.toast,.tabbar [aria-current="page"],.info:hover,.info[aria-expanded="true"],.pop5 button:hover,.dn-amts button[aria-pressed=true],.pv-kg .cta,.pv-dn span.on,.thumbs .tmore,.sp4.prem .pcon .pgo2,.calmk .badge{color:#0E1014}
+.pg-cta{background:var(--surface-2)}.artbody .pg-cta p{color:var(--ink-2)}.artbody .pg-cta .pg-cta-t{color:var(--ink)}
+/* the original logo has dark lettering: it sits on a light card in the dark theme (the logo itself is unchanged) */
+/* the business hero keeps its dark panel: its text and breadcrumbs are white */
+.biz-hero{background:#1A1D24;color:#fff;border:1px solid rgba(255,255,255,.08)}
+img.lg{background:rgba(255,255,255,.92);border-radius:12px;padding:3px 6px}
+.hdr,.hdr.scrolled{background:rgba(14,16,20,.86)!important}
+.mesh i{opacity:.18}
+
+}
 </style>
 <script>/* Хэллоуин: заставка стартует первой строкой страницы, параллельно с загрузкой сайта. После взрыва тыквы искры собираются в podslushano.nl, буквы «o» — горящие тыквы. */
 (function(){try{

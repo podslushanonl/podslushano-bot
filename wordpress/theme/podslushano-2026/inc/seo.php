@@ -87,7 +87,7 @@ function pn_seo_specialists($list) {
         $h .= '<h2>' . esc_html($cat) . '</h2><ul class="nw-seo">';
         foreach ($items as $x) {
             $where = !empty($x['online']) ? 'онлайн' : implode(', ', array_filter([$x['city'] ?? '', $x['province'] ?? '']));
-            $h .= '<li><strong>' . esc_html($x['name']) . '</strong>' . ($where ? ' · ' . esc_html($where) : '')
+            $h .= '<li><a href="' . esc_url(pn_spec_url($x)) . '"><strong>' . esc_html($x['name']) . '</strong></a>' . ($where ? ' · ' . esc_html($where) : '')
                 . (!empty($x['description']) ? ' <span>' . esc_html(wp_trim_words(wp_strip_all_tags($x['description']), 30, '…')) . '</span>' : '') . '</li>';
         }
         $h .= '</ul>';
@@ -232,7 +232,7 @@ add_action('wp_head', function () {
     elseif ($r === 'events') $list = array_slice(pn_events(), 0, 30);
     foreach ($list as $e) {
         if ($ld = pn_seo_event_ld($e)) {
-            echo '<script type="application/ld+json">' . wp_json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+            echo '<script type="application/ld+json">' . wp_json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) . '</script>' . "\n";
         }
     }
 }, 5);
@@ -285,5 +285,5 @@ add_action('wp_head', function () {
     }
     if (!$q) return;
     echo '<script type="application/ld+json">' . wp_json_encode(['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => $q],
-        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) . '</script>' . "\n";
 }, 5);

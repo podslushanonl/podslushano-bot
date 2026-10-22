@@ -51,7 +51,7 @@ function pn_city_page($c) {
         $h .= '<ul class="pg-list">';
         foreach ($list as $x) {
             $where = !empty($x['online']) ? 'онлайн' : implode(', ', array_filter([$x['city'] ?? '', $x['province'] ?? '']));
-            $h .= '<li><strong>' . esc_html($x['name']) . '</strong> · ' . esc_html((string) ($x['category'] ?? '')) . ($where ? ' · ' . esc_html($where) : '')
+            $h .= '<li><a href="' . esc_url(pn_spec_url($x)) . '"><strong>' . esc_html($x['name']) . '</strong></a> · ' . esc_html((string) ($x['category'] ?? '')) . ($where ? ' · ' . esc_html($where) : '')
                 . (!empty($x['description']) ? '<br>' . esc_html(wp_trim_words(wp_strip_all_tags($x['description']), 22, '…')) : '') . '</li>';
         }
         $h .= '</ul>';
