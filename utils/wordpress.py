@@ -30,6 +30,8 @@ _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
 # Сколько раз повторять запрос при таймауте/сетевой ошибке (Wordfence может
 # кратковременно троттлить при серии запросов — пауза помогает восстановиться).
 _RETRIES = 3
+# Фоновые прогревы кэша: держим ссылки, чтобы задачи не собрал сборщик мусора
+_WARM_TASKS: set[asyncio.Task] = set()
 
 
 def _base_headers() -> dict:
@@ -52,6 +54,41 @@ def wp_enabled() -> bool:
 
 def _wp_url() -> str:
     return (config.WP_URL or config.SITE_URL or "").rstrip("/")
+
+
+async def _warm(urls: list[str]) -> None:
+    """Открывает страницы как браузер, чтобы Cache Enabler сохранил их заранее.
+
+    После публикации плагин очищает кэш главной и ленты; первый посетитель ждал
+    сборку страницы. Кэшируются только запросы с Accept: text/html.
+    """
+    await asyncio.sleep(3)
+    headers = {"User-Agent": _UA, "Accept": "text/html"}
+    try:
+        async with aiohttp.ClientSession() as session:
+            for url in urls:
+                try:
+                    async with session.get(url, headers=headers, ssl=_ssl_param(),
+                                           timeout=aiohttp.ClientTimeout(total=60)) as resp:
+                        await resp.read()
+                except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+                    log.info("Прогрев кэша %s: %s", url, e)
+    except Exception as e:  # noqa: BLE001
+        log.info("Прогрев кэша не удался: %s", e)
+
+
+def warm_cache(link: str = "") -> None:
+    """Запускает в фоне прогрев новой записи, главной и ленты новостей."""
+    base = _wp_url()
+    if not base:
+        return
+    urls = list(dict.fromkeys(u for u in (link, f"{base}/", f"{base}/news/") if u))
+    try:
+        task = asyncio.get_running_loop().create_task(_warm(urls))
+    except RuntimeError:
+        return
+    _WARM_TASKS.add(task)
+    task.add_done_callback(_WARM_TASKS.discard)
 
 
 def _auth_header() -> str:
@@ -372,9 +409,12 @@ async def create_post(
                                 return None, f"Сайт отклонил создание: {msg}"
                             return None, ("Сайт не вернул ID записи (запрос отклонён). "
                                           "Проверь защиту хостинга/плагины.")
+                        link = data.get("link", "") if isinstance(data, dict) else ""
+                        if data.get("status", status) == "publish":
+                            warm_cache(link)
                         return {
                             "id": pid,
-                            "link": data.get("link", "") if isinstance(data, dict) else "",
+                            "link": link,
                             "edit": edit_link(pid),
                             "status": data.get("status", status),
                         }, ""
@@ -569,6 +609,12 @@ async def update_post(
                     timeout=aiohttp.ClientTimeout(total=60),
                 ) as resp:
                     if resp.status in (200, 201):
+                        try:
+                            data = json.loads(await resp.text())
+                        except Exception:  # noqa: BLE001
+                            data = {}
+                        if isinstance(data, dict) and data.get("status") == "publish":
+                            warm_cache(data.get("link", ""))
                         return {"id": post_id}, ""
                     body = await resp.text()
                     log.warning("WP update_post %s: %s", resp.status, body[:300])
