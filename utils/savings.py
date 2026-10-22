@@ -1,15 +1,15 @@
 """Раздел «💶 Сэкономить»: редакционные разборы + ссылки на сравнение и оформление.
 
-Темы: медстраховка (zorgverzekering, сменить можно до 31 декабря) и eSIM для поездок.
+Тема: медстраховка (zorgverzekering, сменить можно до 31 декабря).
 Бот объясняет и даёт общие подсказки (не персональный финансовый совет). Конкретные
-страховые и eSIM-сервисы не рекомендуем: помогаем разобраться и ведём на официальные сайты.
+страховые не рекомендуем: помогаем разобраться и ведём на официальные сайты.
 
 Ссылки идут через /go/<ключ>?s=<источник>: так считаем переходы из бота, с сайта и
 из Instagram. Партнёрские ссылки задаются переменной SAVINGS_LINKS (JSON
 {"ключ": "url"}); пока её нет, ведём на обычные сайты. Если ключ задан там,
 ссылка считается партнёрской и показывается пометка об этом.
 
-Deep links: ?start=save, ?start=save_zorg, ?start=save_esim.
+Deep links: ?start=save, ?start=save_zorg (старая ссылка ?start=save_esim открывает раздел).
 """
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ EIGEN_RISICO = 400                       # обязательный eigen risico
 # Пороги дохода для zorgtoeslag 2027 (предварительные, по бюджету; окончательные — в ноябре)
 TOESLAG_SINGLE, TOESLAG_PAIR = 43000, 54000
 
-# Конкретные страховые и eSIM-сервисы мы не рекомендуем: объясняем, как выбрать самому,
+# Конкретные страховые мы не рекомендуем: объясняем, как выбрать самому,
 # и ведём на независимые официальные сайты.
 DEFAULT_LINKS = {
     "zorg_compare": ("Все полисы: Zorgverzekeringslijn", "https://www.zorgverzekeringslijn.nl/"),
@@ -85,7 +85,7 @@ def label(text: str, key: str) -> str:
 MENU_TEXT = (
     "<b>💶 Сэкономить</b>\n\n"
     "Разбираем по-русски, где в Нидерландах переплачивают, и как выбрать выгоднее. "
-    "Сравнение и оформление — на сайте сравнителя или поставщика, мы подсказываем, на что смотреть."
+    "Конкретные страховые не рекомендуем: подсказываем, на что смотреть, а выбираете вы сами."
 )
 
 ZORG_TEXT = (
@@ -103,25 +103,6 @@ ZORG_TEXT = (
     "• <b>Restitutiepolis</b> — любой врач, дороже.\n"
     "• <b>Budgetpolis</b> — самый дешёвый, но выбор клиник меньше.\n\n"
     "Ответьте на 6 коротких вопросов, и я подскажу, на что смотреть именно вам."
-)
-
-ESIM_TEXT = (
-    "<b>📶 Интернет в поездке: eSIM</b>\n\n"
-    "eSIM — это сим-карта, которую устанавливают в телефон по QR-коду. Без пластика и без похода в магазин, "
-    "за 5 минут до вылета.\n\n"
-    "<b>Что важно знать</b>\n"
-    "• <b>По ЕС она не нужна:</b> ваша голландская сим-карта работает в странах ЕС по домашнему тарифу.\n"
-    "• Пригодится за пределами ЕС: Турция, Египет, ОАЭ, Великобритания, США, Грузия, Украина и другие.\n"
-    "• Проверьте, что телефон поддерживает eSIM и не привязан к оператору (simlock).\n"
-    "• Обычно это только интернет, без номера. Звонить можно через WhatsApp и Telegram.\n"
-    "• Устанавливайте дома по Wi-Fi, а включайте по прилёте.\n\n"
-    "<b>Как выбрать самому</b>\n"
-    "Конкретные сервисы мы не советуем: сравните 2–3 варианта на свою страну, цены часто отличаются в разы.\n"
-    "• Цена за 1 ГБ и сколько дней действует пакет.\n"
-    "• Какие местные операторы и есть ли 4G/5G там, куда вы едете.\n"
-    "• Можно ли пополнить в приложении и раздавать интернет на ноутбук.\n"
-    "• Условия возврата, если eSIM не заработала.\n"
-    "• Свежие отзывы в App Store и Google Play."
 )
 
 QUESTIONS = [
@@ -180,17 +161,13 @@ def _cb(text: str, data: str) -> InlineKeyboardButton:
 
 
 def menu_kb() -> InlineKeyboardMarkup:
-    return _kb([[_cb("🏥 Медстраховка 2027", "sv:zorg")], [_cb("📶 eSIM для поездок", "sv:esim")],
+    return _kb([[_cb("🏥 Медстраховка 2027", "sv:zorg")],
                 [InlineKeyboardButton(text="🌐 Раздел на сайте", url=SITE_PAGE)], [_cb("☰ Меню", "m:main")]])
 
 
 def zorg_kb() -> InlineKeyboardMarkup:
     return _kb([[_cb("📝 Ответить на 6 вопросов", "sv:q:")], [_url("🔍 Все полисы и цены", "zorg_compare")],
                 [_cb("🔔 Напомнить до 31 декабря", "sv:remind")], [_cb("⬅️ Назад", "sv:menu")]])
-
-
-def esim_kb() -> InlineKeyboardMarkup:
-    return _kb([[InlineKeyboardButton(text="🌐 Подробнее на сайте", url=SITE_PAGE)], [_cb("⬅️ Назад", "sv:menu")]])
 
 
 def question(answers: str) -> tuple[str, InlineKeyboardMarkup]:
@@ -222,11 +199,10 @@ async def open_menu(message: Message, state: FSMContext | None = None) -> None:
 
 
 async def open_topic(message: Message, topic: str) -> None:
-    if topic == "esim":
-        await message.answer(ESIM_TEXT,
-                             reply_markup=esim_kb(), disable_web_page_preview=True)
-    else:
-        await message.answer(ZORG_TEXT, reply_markup=zorg_kb(), disable_web_page_preview=True)
+    if topic != "zorg":   # раздела eSIM больше нет: старые ссылки ведут в меню «Сэкономить»
+        await open_menu(message)
+        return
+    await message.answer(ZORG_TEXT, reply_markup=zorg_kb(), disable_web_page_preview=True)
 
 
 async def _edit(callback: CallbackQuery, text: str, kb: InlineKeyboardMarkup) -> None:
@@ -250,7 +226,7 @@ async def cb_zorg(callback: CallbackQuery) -> None:
 
 @router.callback_query(F.data == "sv:esim")
 async def cb_esim(callback: CallbackQuery) -> None:
-    await _edit(callback, ESIM_TEXT, esim_kb())
+    await _edit(callback, MENU_TEXT, menu_kb())   # кнопка из старых сообщений: раздела eSIM больше нет
     await callback.answer()
 
 
@@ -365,8 +341,7 @@ async def stats_text(days: int = 30) -> str:
     lines.append(f"\nНапоминаний о медстраховке в этом году: <b>{rem}</b>")
     lines.append("\nСсылки для Instagram и ChatPlace:\n"
                  f"<code>{go_url('zorg_compare', 'ig')}</code>\n"
-                 "<code>https://t.me/podslushano_nl_bot?start=save_zorg</code>\n"
-                 "<code>https://t.me/podslushano_nl_bot?start=save_esim</code>")
+                 "<code>https://t.me/podslushano_nl_bot?start=save_zorg</code>")
     return "\n".join(lines)
 
 

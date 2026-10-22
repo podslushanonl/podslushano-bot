@@ -2110,7 +2110,6 @@ html.pn-busy .btn-acc{opacity:.6;pointer-events:none}
 .sv-c ul{margin:0;padding-left:18px;display:grid;gap:8px;line-height:1.5}
 .sv-c .k{font:700 11.5px var(--f-display);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
 .sv-act{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
-#esim{scroll-margin-top:96px}
 .svb{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
 .svb-t{position:relative;overflow:hidden;padding:24px;border-radius:28px;display:grid;gap:10px;align-content:start}
 .svb-t h3{margin:0;font:800 clamp(22px,2.4vw,30px)/1.1 var(--f-display);letter-spacing:-.03em}
@@ -2484,7 +2483,7 @@ if(!v)lite();else{v.muted=true;
         <div class="pop" id="morePop" hidden>
           <a href="#travel"><span class="pi"><svg class="ico"><use href="#i-plane"/></svg></span><span>Путешествия<small>Отели и билеты из Нидерландов</small></span></a>
           <a href="#shop"><span class="pi"><svg class="ico"><use href="#i-gift"/></svg></span><span>Магазин<small>Подарочные карты, гайды, стикеры</small></span></a>
-          <a href="#save"><span class="pi"><svg class="ico"><use href="#i-coin"/></svg></span><span>Сэкономить<small>Медстраховка 2027 и eSIM</small></span></a><a href="#trains"><span class="pi"><svg class="ico"><use href="#i-clock"/></svg></span><span>Поезда NS<small>Табло, отмены, сбои и ремонт</small></span></a><a href="#live"><span class="pi"><svg class="ico"><use href="#i-cloud"/></svg></span><span>Погода и камеры<small>Buienradar и 17 трансляций</small></span></a>
+          <a href="#save"><span class="pi"><svg class="ico"><use href="#i-coin"/></svg></span><span>Сэкономить<small>Медстраховка 2027</small></span></a><a href="#trains"><span class="pi"><svg class="ico"><use href="#i-clock"/></svg></span><span>Поезда NS<small>Табло, отмены, сбои и ремонт</small></span></a><a href="#live"><span class="pi"><svg class="ico"><use href="#i-cloud"/></svg></span><span>Погода и камеры<small>Buienradar и 17 трансляций</small></span></a>
           <a href="#board"><span class="pi"><svg class="ico"><use href="#i-briefcase"/></svg></span><span>Работа и жильё<small>Объявления после модерации</small></span></a>
           <a href="#business"><span class="pi"><svg class="ico"><use href="#i-hand"/></svg></span><span>Сотрудничество<small>Реклама и партнёрства</small></span></a>
           <a href="#contact"><span class="pi"><svg class="ico"><use href="#i-chat"/></svg></span><span>Связаться<small>Ответим за 5 рабочих дней</small></span></a>
@@ -2528,8 +2527,6 @@ if(!v)lite();else{v.muted=true;
       <div class="svb">
         <div class="card svb-t st" data-until="2026-12-31"><span class="gi t-rose"><svg class="ico"><use href="#i-heart"/></svg></span><span class="eyebrow">Медстраховка 2027 · до 31 декабря</span><h3>Не переплачивайте за страховку</h3><p>Базовый пакет у всех страховщиков одинаковый, разница только в цене. Ответьте на 6 вопросов, и вы будете знать, на что смотреть.</p>
           <div class="sv-act"><button class="btn btn-acc" type="button" data-zq>6 вопросов: что выбрать</button><a class="btn btn-soft" data-go="zorg_compare" href="https://www.zorgverzekeringslijn.nl/" target="_blank" rel="noopener">Все полисы и цены</a></div></div>
-        <div class="card svb-t st" style="--i:1"><span class="gi t-sky"><svg class="ico"><use href="#i-globe"/></svg></span><span class="eyebrow">Путешествия · eSIM</span><h3>Интернет в поездке без роуминга</h3><p>За пределами ЕС выручит eSIM: ставится по QR-коду за 5 минут. Рассказываем, на что смотреть при выборе, чтобы не переплатить.</p>
-          <div class="sv-act"><a class="btn btn-acc" href="#travel" data-esim>Как выбрать eSIM</a></div></div>
       </div>
     </div>
 
@@ -2623,7 +2620,7 @@ if(!v)lite();else{v.muted=true;
 </section>
 <section class="page" id="p-save" data-title="Сэкономить">
   <div class="wrap">
-    <div class="phead"><div><h1 class="st">Сэкономить</h1><p class="st" style="--i:1">Где в Нидерландах чаще всего переплачивают и как выбрать выгоднее. Сравниваете и оформляете вы сами, у сравнителя или поставщика, а мы подсказываем, на что смотреть.</p></div></div>
+    <div class="phead"><div><h1 class="st">Сэкономить</h1><p class="st" style="--i:1">Где в Нидерландах чаще всего переплачивают и как выбрать выгоднее. Конкретные страховые мы не рекомендуем: подсказываем, на что смотреть, а выбираете вы сами.</p></div></div>
     <div class="sec" style="margin-top:0">
       <div class="sec-h st"><div><h2>Медстраховка 2027</h2><p>Сменить страховку на следующий год можно до 31 декабря</p></div></div>
       <div class="sv-g">
@@ -2641,23 +2638,6 @@ if(!v)lite();else{v.muted=true;
           <li>Спросите на работе про коллективную скидку, а при невысоком доходе проверьте zorgtoeslag.</li></ul></div>
         <div class="card sv-c st" style="--i:2"><span class="k">Что выбрать именно вам</span><p style="margin:0">Ответьте на 6 коротких вопросов: дети, стоматолог, как часто ходите к врачам, свой врач, физиотерапия и очки, доход. Сразу увидите, на что смотреть именно вам.</p>
           <div class="sv-act"><button class="btn btn-acc" type="button" data-zq>6 вопросов: что выбрать</button><a class="btn btn-soft" data-go="zorg_compare" href="https://www.zorgverzekeringslijn.nl/" target="_blank" rel="noopener">Все полисы и цены</a><a class="btn btn-soft" data-go="zorg_toeslag" href="https://www.belastingdienst.nl/wps/wcm/connect/nl/zorgtoeslag/zorgtoeslag" target="_blank" rel="noopener">Zorgtoeslag</a></div></div>
-      </div>
-    </div>
-    <div class="sec">
-      <div class="sec-h st"><div><h2>Интернет в поездке: eSIM</h2><p>Сим-карта по QR-коду за 5 минут до вылета</p></div></div>
-      <div class="sv-g">
-        <div class="card sv-c st"><span class="k">Что важно знать</span><ul>
-          <li><b>По ЕС eSIM не нужна:</b> голландская сим-карта работает в странах ЕС по домашнему тарифу.</li>
-          <li>Пригодится за пределами ЕС: Турция, Египет, ОАЭ, Великобритания, США, Грузия, Украина.</li>
-          <li>Проверьте, что телефон поддерживает eSIM и не привязан к оператору (simlock).</li>
-          <li>Обычно это только интернет, без номера: звонить можно через WhatsApp и Telegram.</li>
-          <li>Устанавливайте дома по Wi-Fi, а включайте по прилёте.</li></ul></div>
-        <div class="card sv-c st" style="--i:1"><span class="k">Как выбрать самому</span><p style="margin:0 0 10px">Конкретные сервисы мы не советуем: сравните два-три варианта на свою страну, цены часто отличаются в разы.</p><ul>
-          <li>Цена за 1 ГБ и сколько дней действует пакет.</li>
-          <li>Какие местные операторы и есть ли 4G/5G там, куда вы едете.</li>
-          <li>Можно ли пополнить в приложении и раздавать интернет на ноутбук.</li>
-          <li>Условия возврата, если eSIM не заработала.</li>
-          <li>Свежие отзывы в App Store и Google Play.</li></ul></div>
       </div>
     </div>
     <p class="hint" style="margin-top:28px">Это общая информация, а не персональный финансовый совет.</p>
@@ -2763,23 +2743,6 @@ if(!v)lite();else{v.muted=true;
         <button class="btn btn-acc" type="submit" style="height:52px"><svg class="ico"><use href="#i-search"/></svg><span id="fBtn">Найти билеты</span></button>
       </form>
       <p class="fnote"><svg class="ico" style="width:16px;height:16px"><use href="#i-ext"/></svg>Откроем результаты Skyscanner в новой вкладке, сразу с вашими параметрами.</p>
-    </div>
-    <div class="sec" id="esim">
-      <div class="sec-h st"><div><h2>Интернет в поездке: eSIM</h2><p>Сим-карта по QR-коду за 5 минут до вылета</p></div></div>
-      <div class="sv-g">
-        <div class="card sv-c st"><span class="k">Что важно знать</span><ul>
-          <li><b>По ЕС eSIM не нужна:</b> голландская сим-карта работает в странах ЕС по домашнему тарифу.</li>
-          <li>Пригодится за пределами ЕС: Турция, Египет, ОАЭ, Великобритания, США, Грузия, Украина.</li>
-          <li>Проверьте, что телефон поддерживает eSIM и не привязан к оператору (simlock).</li>
-          <li>Обычно это только интернет, без номера: звонить можно через WhatsApp и Telegram.</li>
-          <li>Устанавливайте дома по Wi-Fi, а включайте по прилёте.</li></ul></div>
-        <div class="card sv-c st" style="--i:1"><span class="k">Как выбрать самому</span><p style="margin:0 0 10px">Конкретные сервисы мы не советуем: сравните два-три варианта на свою страну, цены часто отличаются в разы.</p><ul>
-          <li>Цена за 1 ГБ и сколько дней действует пакет.</li>
-          <li>Какие местные операторы и есть ли 4G/5G там, куда вы едете.</li>
-          <li>Можно ли пополнить в приложении и раздавать интернет на ноутбук.</li>
-          <li>Условия возврата, если eSIM не заработала.</li>
-          <li>Свежие отзывы в App Store и Google Play.</li></ul></div>
-      </div>
     </div>
     <div class="sec">
       <div class="sec-h st"><div><h2>Перед поездкой</h2></div></div>
@@ -4287,7 +4250,7 @@ pnTrains();setInterval(pnTrains,60000);
 (function pnSave(){const go=$$('[data-go]');go.forEach(a=>{a.href=PN_BOT+'/go/'+a.dataset.go+'?s=site'+(a.closest('#homeSave')?'_home':'')});
   if(go.length)fetch(PN_BOT+'/api/savings/partners').then(r=>r.json()).then(p=>{window.PN_PARTNERS=p;go.forEach(a=>{if(p[a.dataset.go]&&!a.querySelector('.sv-pb'))a.insertAdjacentHTML('beforeend','<span class="sv-pb">партнёр</span>')})}).catch(()=>{});
   const today=new Date().toISOString().slice(0,10);$$('[data-until]').forEach(t=>{if(today>t.dataset.until)t.remove()});
-  document.addEventListener('click',e=>{if(!e.target.closest('[data-esim]'))return;setTimeout(()=>{const x=$('#esim');x&&x.scrollIntoView({behavior:'smooth',block:'start'})},800)})})();
+  const hs=$('#homeSave');if(hs&&!hs.querySelector('.svb-t'))hs.remove();})();
 
 /* ---- pretty URLs (History API) ---- */
 const PN_R2P={home:'/',trains:'/trains/',save:'/save/',news:'/news/',guide:'/guide/',events:'/events/',live:'/live/',allo:'/allowalks/',shop:'/shop/',provinces:'/provinces/',board:'/work/',place:'/place/',cabinet:'/cabinet/',business:'/business/',contact:'/contact/',travel:'/travel/'};

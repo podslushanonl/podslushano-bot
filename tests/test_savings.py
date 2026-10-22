@@ -58,7 +58,7 @@ class TextTests(unittest.TestCase):
             self.assertIsNone(savings.target("bad"))
             self.assertEqual(savings.label("Сравнить", "zorg_compare"), "Сравнить · партнёр")
             self.assertEqual(savings.zorg_kb().inline_keyboard[1][0].text, "🔍 Все полисы и цены · партнёр")
-            self.assertNotIn("партнёр", savings.ESIM_TEXT + savings.result("000000")[0])
+            self.assertNotIn("партнёр", savings.MENU_TEXT + savings.result("000000")[0])
         with patch.dict(os.environ, {"SAVINGS_LINKS": "{oops"}):
             self.assertTrue(savings.target("zorg_toeslag").startswith("https://www.belastingdienst.nl/"))
 
