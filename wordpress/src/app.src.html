@@ -4812,7 +4812,7 @@ if(HWS_ON){
   new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>n.nodeType===1&&fix(n.parentNode||n)))).observe(document.body,{childList:true,subtree:true});
   /* Статьи: стикер в конце текста, у каждой статьи свой */
   renderArt=(()=>{const base=renderArt;return id=>{base(id);const b=$('#artBody .artbody');if(!b||b.parentNode.querySelector('.hwn'))return;
-    const n=Math.abs(parseInt(String(id).replace(/\D/g,''),10)||0)%HWS.length;
+    let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;const n=h%HWS.length;
     b.insertAdjacentHTML('afterend',`<a class="hwn" href="#hw-stickers"><img src="${hwsImg(n)}" alt="Стикер «${HWS[n]}»" loading="lazy" decoding="async"><span>Лосёнок тоже готовится к Хэллоуину. <b>20 бесплатных стикеров</b> для Telegram и WhatsApp</span></a>`)}})();
 }
 
