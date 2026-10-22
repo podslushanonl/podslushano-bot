@@ -323,7 +323,7 @@ SITE_NEWS_WRITE_MODEL: str = os.getenv("SITE_NEWS_WRITE_MODEL", "claude-sonnet-5
 # Бот пишет подробную справку по официальным источникам раз в SITE_GUIDES_INTERVAL секунд
 # и переписывает справки старше SITE_GUIDES_REFRESH_DAYS дней. 0 = выключить.
 SITE_GUIDES_ENABLED: bool = os.getenv("SITE_GUIDES_ENABLED", "1").strip() != "0"
-SITE_GUIDES_INTERVAL: int = max(600, _int_env("SITE_GUIDES_INTERVAL", 8 * 3600))
+SITE_GUIDES_INTERVAL: int = max(600, _int_env("SITE_GUIDES_INTERVAL", 4 * 3600))
 SITE_GUIDES_REFRESH_DAYS: int = _int_env("SITE_GUIDES_REFRESH_DAYS", 120)
 SITE_GUIDES_MODEL: str = os.getenv("SITE_GUIDES_MODEL", "claude-sonnet-5-5")
 
