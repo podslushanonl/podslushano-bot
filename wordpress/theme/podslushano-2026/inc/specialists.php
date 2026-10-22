@@ -94,5 +94,5 @@ function pn_spec_ld($x) {
 }
 add_action('wp_head', function () {
     if (get_query_var('pn_route') !== 'spec' || !($x = pn_spec(get_query_var('pn_key')))) return;
-    echo '<script type="application/ld+json">' . wp_json_encode(pn_spec_ld($x), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+    echo '<script type="application/ld+json">' . wp_json_encode(pn_spec_ld($x), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) . '</script>' . "\n";
 }, 5);

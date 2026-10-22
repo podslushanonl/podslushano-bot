@@ -232,7 +232,7 @@ add_action('wp_head', function () {
     elseif ($r === 'events') $list = array_slice(pn_events(), 0, 30);
     foreach ($list as $e) {
         if ($ld = pn_seo_event_ld($e)) {
-            echo '<script type="application/ld+json">' . wp_json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+            echo '<script type="application/ld+json">' . wp_json_encode($ld, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) . '</script>' . "\n";
         }
     }
 }, 5);
@@ -285,5 +285,5 @@ add_action('wp_head', function () {
     }
     if (!$q) return;
     echo '<script type="application/ld+json">' . wp_json_encode(['@context' => 'https://schema.org', '@type' => 'FAQPage', 'mainEntity' => $q],
-        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . '</script>' . "\n";
+        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG) . '</script>' . "\n";
 }, 5);
