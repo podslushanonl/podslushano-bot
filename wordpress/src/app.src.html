@@ -548,7 +548,7 @@ p{margin:0}
 
 /* footer */
 footer.site{margin-top:40px;background:var(--surface);border-top:1px solid var(--line);padding-block:48px calc(96px + env(safe-area-inset-bottom,0px))}
-.ft{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(3,minmax(0,1fr));gap:32px;font-size:14px}
+.ft{display:grid;grid-template-columns:minmax(0,1.4fr) repeat(4,minmax(0,1fr));gap:32px;font-size:14px}
 .ft h5{margin:0 0 12px;font:500 11px var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .ft a{display:block;padding:4px 0;color:var(--ink-2)}
 .ft a:hover{color:var(--accent)}
@@ -2896,7 +2896,7 @@ if(!v)lite();else{v.muted=true;
   <div class="wrap">
     <div class="ft">
       <div><a href="#home" class="logo"><img loading="lazy" decoding="async" class="lg" src="{{IMG:logo-orig}}" alt="podslushano.nl"></a><p class="req">podslushano.nl@gmail.com<br>KVK: 98882317 · BTW: NL005359099B74<br>Karel Doormanstraat 63, 5342 TJ Oss</p></div>
-      <div><h5>Разделы</h5><a href="#news">Новости и статьи</a><a href="#spravochnik">Справочник</a><a href="#guide">КонтактGuide</a><a href="#events">Афиша</a><a href="#travel">Путешествия</a><a href="#provinces">Провинции</a><a href="#allo">allowalks</a><a href="#board">Работа и жильё</a><a href="#shop">Магазин</a></div>
+      <div><h5>Разделы</h5><a href="#news">Новости и статьи</a><a href="#spravochnik">Справочник</a><a href="#guide">КонтактGuide</a><a href="#events">Афиша</a><a href="#travel">Путешествия</a><a href="#provinces">Провинции</a><a href="#allo">allowalks</a><a href="#board">Работа и жильё</a><a href="#shop">Магазин</a></div><div><h5>Города</h5><a href="/city/amsterdam/">Amsterdam</a><a href="/city/rotterdam/">Rotterdam</a><a href="/city/den-haag/">Den Haag</a><a href="/city/utrecht/">Utrecht</a><a href="/city/eindhoven/">Eindhoven</a><a href="/city/groningen/">Groningen</a></div>
       <div><h5>Сообщество</h5><a href="https://www.instagram.com/podslushano.nl">Instagram</a><a href="https://t.me/podslushanovnl">Telegram</a><a href="https://www.facebook.com/podslushano.nl">Facebook</a><a href="https://www.tiktok.com/@podslushano.nl">TikTok</a><a href="#links">Links</a></div>
       <div><h5>Документы</h5><a href="#cabinet">Кабинет бизнеса</a><a href="#contact">Связаться</a><a href="#business">Сотрудничество</a><a href="#legal-imprint">Imprint</a><a href="#legal-disclaimer">Disclaimer</a><a href="#legal-privacy">Privacy Statement</a><a href="#legal-cookies">Cookie Policy</a><a href="#legal-terms">Terms and Conditions</a><a href="#" data-cookie>Настройки cookie</a></div>
     </div>
@@ -3455,7 +3455,9 @@ function readProgress(){if(cur!=='provinces')return;const chs=$$('.chap');if(!ch
   chs.forEach((c,k)=>{const r=c.getBoundingClientRect();if(r.top<vh*.45)act=k;const pp=Math.max(-1,Math.min(1,(r.top+r.height/2-vh/2)/vh));c.style.setProperty('--pp',pp.toFixed(3))});
   $$('#toc button').forEach((b,k)=>{b.classList.toggle('on',k===act);b.classList.toggle('past',k<act)});
   const s=$('#readerSec').getBoundingClientRect();$('#rbar').style.width=Math.max(0,Math.min(1,-s.top/(s.height-vh)))*100+'%';
-  const ab=$(`#toc button[data-ch="${act}"]`);if(ab&&innerWidth<900&&ab.dataset.seen!=='1'){$$('#toc button').forEach(x=>x.dataset.seen='');ab.dataset.seen='1';ab.scrollIntoView({inline:'center',block:'nearest'})}}
+  const ab=$(`#toc button[data-ch="${act}"]`);if(ab&&innerWidth<900&&ab.dataset.seen!=='1'){$$('#toc button').forEach(x=>x.dataset.seen='');ab.dataset.seen='1';
+    // only the chapter strip scrolls sideways: scrollIntoView would also pull the whole page back up to the strip on phones
+    const ol=ab.closest('ol');if(ol){const d=ab.getBoundingClientRect().left-ol.getBoundingClientRect().left-(ol.clientWidth-ab.offsetWidth)/2;ol.scrollTo({left:ol.scrollLeft+d,behavior:RM?'auto':'smooth'})}}}
 INIT.provinces=()=>{$('#pchips').innerHTML=PROV.map(p=>`<button class="chip" data-p="${p.id}" aria-pressed="${p.id===pSel}">${p.ru}</button>`).join('');
   $('#pchips').addEventListener('click',e=>{const b=e.target.closest('[data-p]');if(b)selProv(b.dataset.p)});
   $('#art').addEventListener('click',e=>{const b=e.target.closest('[data-gp]');if(b){selProv(b.dataset.gp);$('#readerSec').scrollIntoView({behavior:RM?'auto':'smooth'})}});
@@ -4287,7 +4289,8 @@ renderArt=(()=>{const base=renderArt;return id=>{const n=PN.post&&String(PN.post
   const back=`<a class="back" href="#news">${svg('left').replace('class="ico"','class="ico" style="width:16px;height:16px"')}Новости и статьи</a>`;
   $('#artBody').innerHTML=`${back}<article class="na9"><span class="kick"><span class="tag t-acc">${esc(n.cat)}</span>${agoTxt(n)}</span><h1>${esc(n.h)}</h1>${n.lead?`<p class="lead">${esc(n.lead)}</p>`:''}${n.img?`<figure><img loading="lazy" decoding="async" src="${n.img}" alt="">${n.photo_credit?`<figcaption>Фото: ${esc(n.photo_credit)}</figcaption>`:''}</figure>`:''}<div class="artbody wpc">${n.html}</div>
    <div class="share9"><button class="btn btn-soft btn-sm" data-share="${esc(n.h)}"><svg class="ico"><use href="#i-link"/></svg>Поделиться</button></div></article>`;document.title=n.h+' · podslushano.nl'}})();
-ENTER.wp=()=>{const P=PN.page||{};$('#wpBody').innerHTML=`<a class="back" href="#home">${svg('left').replace('class="ico"','class="ico" style="width:16px;height:16px"')}Главная</a><h1>${esc(P.title||'')}</h1><div class="card wpc" style="padding:26px;border-radius:24px;margin-top:20px">${P.html||''}</div>`};
+ENTER.wp=()=>{const P=PN.page||{};$('#wpBody').innerHTML=`<a class="back" href="#home">${svg('left').replace('class="ico"','class="ico" style="width:16px;height:16px"')}Главная</a><h1>${esc(P.title||'')}</h1><div class="card wpc" style="padding:26px;border-radius:24px;margin-top:20px">${P.html||''}</div>`;
+  if(P.title)document.title=P.title+' · podslushano.nl'};
 
 /* ---- real payments through the bot ---- */
 async function pnPost(url,body,isForm){const r=await fetch(url,{method:'POST',headers:isForm?undefined:{'Content-Type':'application/json'},body:isForm?body:JSON.stringify(body)});let j={};try{j=await r.json()}catch(e){}

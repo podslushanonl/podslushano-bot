@@ -9,6 +9,17 @@ if ($r) {
         $pn['param'] = sanitize_key(get_query_var('pn_key'));
         if (!pn_event($pn['param'])) status_header(404);
     }
+    // City page («Русскоязычные в Amsterdam») is shown as an ordinary page
+    if ($r === 'city') {
+        $c = pn_city(sanitize_key(get_query_var('pn_key')));
+        $pn['route'] = 'wp';
+        if ($c) {
+            $pn['page'] = ['title' => pn_city_title($c), 'html' => pn_city_page($c)];
+        } else {
+            status_header(404);
+            $pn['page'] = ['title' => 'Страница не найдена', 'html' => '<p>Такой страницы нет. Попробуйте поиск или вернитесь на главную.</p>'];
+        }
+    }
 } elseif (is_singular('post')) {
     $pn['route'] = 'art';
     $pn['post'] = pn_post_item(get_queried_object(), true);
@@ -30,8 +41,9 @@ if ($r) {
     $pn['route'] = 'wp';
     $pn['page'] = ['title' => 'Страница не найдена', 'html' => '<p>Такой страницы нет. Попробуйте поиск или вернитесь на главную.</p>'];
 }
-// App pages carry live weather and specialists: keep them out of Cache Enabler. Posts and pages stay cached.
-if (!in_array($pn['route'], ['art', 'wp'], true) && !defined('DONOTCACHEPAGE')) define('DONOTCACHEPAGE', true);
+// Only the live weather page and the business cabinet stay out of Cache Enabler; the rest is cached
+// (the cache is cleared on every new post, and its expiry in Cache Enabler keeps specialists fresh).
+if (in_array($r, ['live', 'cabinet'], true) && !defined('DONOTCACHEPAGE')) define('DONOTCACHEPAGE', true);
 $pn['wx'] = pn_weather();
 $pn['spec'] = pn_specialists();
 // An empty category stays empty (its own heading, no unrelated news)
