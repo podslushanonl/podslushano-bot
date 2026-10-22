@@ -2352,6 +2352,12 @@ html.hw-lock,html.hw-lock body{overflow:hidden}
 .pv-seo ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
 .pv-seo a{display:block;padding:12px 16px;border-radius:14px;background:var(--surface);border:1px solid var(--line);color:var(--ink);font-weight:600;text-decoration:none}
 .pv-seo a:hover{border-color:var(--accent);color:var(--accent-deep)}
+
+
+/* native hint inside an article: one line in the flow of the text, pointing to a section of the site on the same topic */
+.artbody .native{display:flex;gap:12px;align-items:flex-start;margin:22px 0;padding:14px 16px;border-radius:16px;background:var(--surface-2);font-size:16px;line-height:1.55;color:var(--ink-2)}
+.artbody .native .ico{flex:none;width:20px;height:20px;margin-top:2px;color:var(--accent)}
+.artbody .native a{font-weight:600}
 </style>
 <script>/* Хэллоуин: заставка стартует первой строкой страницы, параллельно с загрузкой сайта. После взрыва тыквы искры собираются в podslushano.nl, буквы «o» — горящие тыквы. */
 (function(){try{
@@ -2589,7 +2595,7 @@ if(!v)lite();else{v.muted=true;
     </div>
 
     <div class="sec">
-      <div class="sh5 st"><div><h2>Нас больше 100 тысяч</h2><p>Выбирайте, где удобнее читать.</p></div></div>
+      <div class="sh5 st"><div><h2>Нас больше 100 тысяч</h2><p>podslushano.nl — русскоязычное сообщество в Нидерландах. Выбирайте, где удобнее читать.</p></div></div>
       <div class="soc5" id="soc5"></div>
     </div>
   </div>
@@ -2919,7 +2925,7 @@ if(!v)lite();else{v.muted=true;
   <div class="wrap">
     <div class="ft">
       <div><a href="#home" class="logo"><img loading="lazy" decoding="async" class="lg" src="{{IMG:logo-orig}}" alt="podslushano.nl"></a><p class="req">podslushano.nl@gmail.com<br>KVK: 98882317 · BTW: NL005359099B74<br>Karel Doormanstraat 63, 5342 TJ Oss</p></div>
-      <div><h5>Разделы</h5><a href="#news">Новости и статьи</a><a href="#guide">КонтактGuide</a><a href="#events">Афиша</a><a href="#travel">Путешествия</a><a href="#provinces">Провинции</a><a href="#allo">allowalks</a><a href="#board">Работа и жильё</a><a href="#shop">Магазин</a></div>
+      <div><h5>Разделы</h5><a href="#news">Новости и статьи</a><a href="#spravochnik">Справочник</a><a href="#guide">КонтактGuide</a><a href="#events">Афиша</a><a href="#travel">Путешествия</a><a href="#provinces">Провинции</a><a href="#allo">allowalks</a><a href="#board">Работа и жильё</a><a href="#shop">Магазин</a></div>
       <div><h5>Сообщество</h5><a href="https://www.instagram.com/podslushano.nl">Instagram</a><a href="https://t.me/podslushanovnl">Telegram</a><a href="https://www.facebook.com/podslushano.nl">Facebook</a><a href="https://www.tiktok.com/@podslushano.nl">TikTok</a><a href="#links">Links</a></div>
       <div><h5>Документы</h5><a href="#cabinet">Кабинет бизнеса</a><a href="#contact">Связаться</a><a href="#business">Сотрудничество</a><a href="#legal-imprint">Imprint</a><a href="#legal-disclaimer">Disclaimer</a><a href="#legal-privacy">Privacy Statement</a><a href="#legal-cookies">Cookie Policy</a><a href="#legal-terms">Terms and Conditions</a><a href="#" data-cookie>Настройки cookie</a></div>
     </div>
