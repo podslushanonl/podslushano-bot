@@ -7,7 +7,7 @@
  */
 if (!defined('ABSPATH')) exit;
 
-define('PN_VER', '1.5.0');
+define('PN_VER', '1.5.1');
 define('PN_BOT', 'https://worker-production-ad76.up.railway.app');
 define('PN_DIR', get_template_directory());
 define('PN_URI', get_template_directory_uri());
@@ -234,6 +234,28 @@ add_filter('wpseo_metadesc', function ($d) {
     if ($d || !is_singular('post')) return $d;
     return wp_trim_words(wp_strip_all_tags(get_the_excerpt(get_queried_object())), 30, '…');
 });
+
+/* Cache diagnostics: one hidden line at the end of every page, read when checking why Cache Enabler
+   stores nothing. No secrets: only whether caching is on and what blocks it. */
+add_action('wp_footer', function () {
+  try {
+    $f = [
+        'wp_cache' => defined('WP_CACHE') && WP_CACHE ? 1 : 0,
+        'ce' => class_exists('Cache_Enabler') ? 1 : 0,
+        'engine' => class_exists('Cache_Enabler_Engine') && isset(Cache_Enabler_Engine::$started) ? (Cache_Enabler_Engine::$started ? 1 : 0) : -1,
+        'settings' => class_exists('Cache_Enabler_Engine') && isset(Cache_Enabler_Engine::$settings) ? (Cache_Enabler_Engine::$settings ? 1 : 0) : -1,
+        'donotcache' => defined('DONOTCACHEPAGE') && DONOTCACHEPAGE ? 1 : 0,
+        'bypass' => class_exists('Cache_Enabler_Engine') && is_callable(['Cache_Enabler_Engine', 'bypass_cache']) ? (Cache_Enabler_Engine::bypass_cache() ? 1 : 0) : -1,
+        'adv' => file_exists(WP_CONTENT_DIR . '/advanced-cache.php') ? (strpos((string) @file_get_contents(WP_CONTENT_DIR . '/advanced-cache.php', false, null, 0, 600), 'Cache Enabler') !== false ? 'ce' : 'other') : 'none',
+        'dir' => is_dir(WP_CONTENT_DIR . '/cache') ? (wp_is_writable(WP_CONTENT_DIR . '/cache') ? 'w' : 'ro') : 'none',
+        'script' => basename((string) ($_SERVER['SCRIPT_NAME'] ?? '')),
+        'php' => PHP_VERSION,
+    ];
+    echo "\n<!-- pn-cache " . esc_html(http_build_query($f, '', ' ')) . " -->\n";
+  } catch (\Throwable $e) {
+    echo "\n<!-- pn-cache error " . esc_html(get_class($e)) . " -->\n";
+  }
+}, 9999);
 
 /* ---------- assets ---------- */
 add_action('wp_enqueue_scripts', function () {
