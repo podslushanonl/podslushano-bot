@@ -87,7 +87,7 @@ function pn_seo_specialists($list) {
         $h .= '<h2>' . esc_html($cat) . '</h2><ul class="nw-seo">';
         foreach ($items as $x) {
             $where = !empty($x['online']) ? 'онлайн' : implode(', ', array_filter([$x['city'] ?? '', $x['province'] ?? '']));
-            $h .= '<li><strong>' . esc_html($x['name']) . '</strong>' . ($where ? ' · ' . esc_html($where) : '')
+            $h .= '<li><a href="' . esc_url(pn_spec_url($x)) . '"><strong>' . esc_html($x['name']) . '</strong></a>' . ($where ? ' · ' . esc_html($where) : '')
                 . (!empty($x['description']) ? ' <span>' . esc_html(wp_trim_words(wp_strip_all_tags($x['description']), 30, '…')) . '</span>' : '') . '</li>';
         }
         $h .= '</ul>';

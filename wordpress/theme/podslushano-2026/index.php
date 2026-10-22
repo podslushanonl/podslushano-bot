@@ -9,6 +9,17 @@ if ($r) {
         $pn['param'] = sanitize_key(get_query_var('pn_key'));
         if (!pn_event($pn['param'])) status_header(404);
     }
+    // Specialist page of КонтактGuide, shown as an ordinary page
+    if ($r === 'spec') {
+        $x = pn_spec(absint(get_query_var('pn_key')));
+        $pn['route'] = 'wp';
+        if ($x) {
+            $pn['page'] = ['title' => $x['name'], 'html' => pn_spec_page($x)];
+        } else {
+            status_header(404);
+            $pn['page'] = ['title' => 'Специалист не найден', 'html' => '<p>Этой карточки больше нет. <a href="' . esc_url(home_url('/guide/')) . '">Все специалисты в КонтактGuide</a></p>'];
+        }
+    }
     // City page («Русскоязычные в Amsterdam») is shown as an ordinary page
     if ($r === 'city') {
         $c = pn_city(sanitize_key(get_query_var('pn_key')));
