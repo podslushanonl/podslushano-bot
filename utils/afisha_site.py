@@ -190,13 +190,17 @@ def event_item(ev: EventListing) -> dict:
     end = ev.ends_at.replace(tzinfo=timezone.utc).astimezone(AMS).date() if ev.ends_at else None
     base = (config.WEBHOOK_BASE_URL or "").rstrip("/")
     has_img = bool(ev.photo_file_id) or os.path.exists(poster_path(ev.id))
+    # «Площадка, адрес» из бота: площадка отдельно, адрес отдельно (как у событий темы)
+    venue, _, addr = (ev.venue or "").partition(",")
     return {
         "key": f"u{ev.id}", "h": ev.title, "s": (ev.description or "").split("\n")[0][:140],
         "date": start.isoformat() if start else "", "end": end.isoformat() if end and end != start else "",
-        "time": ev.event_time or "", "venue": ev.venue or "",
+        "time": ev.event_time or "", "venue": venue.strip(),
         "city": "Онлайн / по всей стране" if ev.is_nationwide else (ev.city or ""),
         "url": ev.link or "", "img": f"{base}/ev-photo/{ev.id}" if has_img else "",
         "p": _paragraphs(ev.description or ""), "cat": ev.category or "событие", "user": True,
+        "price": ev.price or "", "org": ev.org or "", "lang": ev.lang or "", "age": ev.age or "",
+        "addr": addr.strip(), "partner": bool(ev.partner), "links": bool(ev.on_links),
     }
 
 

@@ -247,7 +247,8 @@ function pn_user_events() {
     $out = [];
     foreach (($j['list'] ?? []) as $e) {
         if (!is_array($e) || empty($e['key']) || empty($e['date'])) continue;
-        $out[] = $e + ['h' => '', 's' => '', 'time' => '', 'venue' => '', 'city' => '', 'img' => '', 'url' => '', 'p' => [], 'cat' => 'событие', 'end' => ''];
+        $out[] = $e + ['h' => '', 's' => '', 'time' => '', 'venue' => '', 'addr' => '', 'city' => '', 'img' => '', 'url' => '', 'p' => [], 'cat' => 'событие', 'end' => '',
+            'price' => '', 'org' => '', 'lang' => '', 'age' => '', 'partner' => false];
     }
     return $out;
 }
@@ -280,6 +281,25 @@ function pn_event($key) {
 }
 /* Events for /links/ (shape of data/links.json events): entries with «Показывать на /links/». */
 function pn_links_events() {
+    $bot = pn_links_bot_events();
+    if ($bot) {
+        $L = array_merge(pn_links_theme_events(), $bot);
+        usort($L, function ($a, $b) { return strcmp($a['d'], $b['d']); });
+        return $L;
+    }
+    return pn_links_theme_events();
+}
+/* Events added in the bot with «Показывать на /links/» */
+function pn_links_bot_events() {
+    $L = [];
+    foreach (pn_user_events() as $e) {
+        if (empty($e['links']) || !pn_upcoming($e) || empty($e['img'])) continue;
+        $L[] = ['d' => $e['date'], 'h' => $e['h'], 's' => implode(', ', array_filter([$e['venue'], $e['city']])),
+            'url' => $e['url'] ?: home_url('/events/' . $e['key'] . '/'), 'img' => $e['img']];
+    }
+    return $L;
+}
+function pn_links_theme_events() {
     if (!pn_has_entries('pn_event')) {
         $L = array_map(function ($e) { $e['img'] = pn_asset_img($e['img'] ?? ''); return $e; }, pn_theme_json('links.json')['events'] ?? []);
         // Events removed in the bot leave /links/ too (links.json has no keys, so match by title)

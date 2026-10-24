@@ -578,6 +578,14 @@ class EventListing(Base):
     venue: Mapped[str | None] = mapped_column(String(200), nullable=True)
     category: Mapped[str | None] = mapped_column(String(40), nullable=True)
     source: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    # Для карточки на сайте (заполняет админ): цена, организатор, язык, возраст
+    price: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    org: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    lang: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    age: Mapped[str | None] = mapped_column(String(40), nullable=True)
+    # Партнёрское событие (метка «Партнёр» на сайте) и показ на /links/ (шапка Instagram)
+    partner: Mapped[bool] = mapped_column(Boolean, default=False)
+    on_links: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class DiscoveredEvent(Base):
