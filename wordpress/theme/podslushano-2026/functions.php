@@ -273,6 +273,20 @@ add_filter('get_custom_logo_image_attributes', function ($attr) {
 });
 
 
+/* ---------- Афиша from the bot: after the editor adds or removes an event, the bot asks the site to refresh ----------
+   POST /wp-json/pn/v1/refresh with the bot's application password: forget the cached bot feed and clear the page cache. */
+add_action('rest_api_init', function () {
+    register_rest_route('pn/v1', '/refresh', [
+        'methods' => 'POST',
+        'permission_callback' => function () { return current_user_can('edit_posts'); },
+        'callback' => function () {
+            delete_transient('pn_user_ev2');
+            do_action('cache_enabler_clear_complete_cache');
+            return ['ok' => true];
+        },
+    ]);
+});
+
 /* ---------- Mobile app (podslushano): one public JSON with the live content ---------- */
 add_action('rest_api_init', function () {
     register_rest_route('pn/v1', '/app', [

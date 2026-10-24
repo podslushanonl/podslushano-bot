@@ -193,6 +193,10 @@ class AfishaSubmit(StatesGroup):
     photo = State()
     email = State()
     month = State()
+    # Только при ручном добавлении админом: время, место и рубрика для карточки на сайте
+    time = State()
+    venue = State()
+    category = State()
 
 
 class ListingForm(StatesGroup):
