@@ -1473,8 +1473,11 @@ async def test_personal_digest() -> None:
     check("в одном выпуске нет дублей специалистов с разными ID",
           len({_specialist_identity(item) for item in deduped_mix}) == len(deduped_mix))
 
-    digest_saturday = date.today() + timedelta(
-        days=(5 - date.today().weekday()) % 7
+    # Выпуск считает выходные по времени Amsterdam: тест берёт ту же дату, иначе
+    # в ночь на воскресенье (UTC ещё суббота) событие попадало бы в прошлые выходные
+    ams_today = datetime.now(ZoneInfo("Europe/Amsterdam")).date()
+    digest_saturday = ams_today + timedelta(
+        days=(5 - ams_today.weekday()) % 7
     )
     month = f"{date.today():%Y-%m}"
     async with db.get_session() as session:
