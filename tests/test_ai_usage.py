@@ -1,4 +1,5 @@
 """Учёт расходов на Claude API: цена ответа и сумма за день."""
+import asyncio
 import tempfile
 import unittest
 from pathlib import Path
@@ -46,6 +47,13 @@ class UsageTests(unittest.IsolatedAsyncioTestCase):
         (_, models), = await ai_usage.days()
         self.assertEqual(models["claude-sonnet-5-5"]["calls"], 2)
         self.assertAlmostEqual(models["claude-sonnet-5-5"]["usd"], 2 * (0.02 + 0.02))
+
+    async def test_concurrent_records_are_all_counted(self):
+        resp = SimpleNamespace(usage=usage(1_000, 100))
+        await ai_usage.record("claude-haiku-5-5", resp)
+        await asyncio.gather(*(ai_usage.record("claude-haiku-5-5", resp) for _ in range(10)))
+        (_, models), = await ai_usage.days()
+        self.assertEqual(models["claude-haiku-5-5"]["calls"], 11)
 
 
 if __name__ == "__main__":

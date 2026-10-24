@@ -7,6 +7,7 @@
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from datetime import datetime
@@ -22,6 +23,8 @@ PRICES = {
     "claude-haiku-4-5": (1.0, 5.0), "claude-opus-4": (5.0, 25.0),
 }
 SEARCH_USD = 0.01
+# Бот — один процесс: замок не даёт одновременным ответам перезаписать сумму дня друг друга
+_LOCK = asyncio.Lock()
 
 
 def _price(model: str) -> tuple[float, float]:
@@ -50,7 +53,7 @@ async def record(model: str, response) -> None:
         from database.db import get_session
         from database.models import Meta
         key = "ai_cost:" + datetime.now(AMS).date().isoformat()
-        async with get_session() as session:
+        async with _LOCK, get_session() as session:
             row = await session.get(Meta, key)
             try:
                 day = json.loads(row.value) if row else {}
