@@ -31,7 +31,7 @@ import config
 from database.db import get_session
 from database.models import EventListing, Meta
 from keyboards.menus import cancel_menu, main_menu
-from states.forms import AfishaSubmit
+from states.forms import AfishaEdit, AfishaSubmit
 from utils.analytics import log_event
 from utils.payments import create_payment
 
@@ -476,9 +476,44 @@ async def afisha_venue(message: Message, state: FSMContext) -> None:
         await message.answer("Напишите место текстом или «-» 🙂")
         return
     await state.update_data(af_venue="" if raw == "-" else raw[:200])
-    await state.set_state(AfishaSubmit.link)
-    await message.answer("Ссылка на билеты или страницу события? (или «-», чтобы пропустить)",
+    await state.set_state(AfishaSubmit.price)
+    await message.answer("Цена? Например, <b>€15</b> или <b>от €25</b>, <b>бесплатно</b>. Или «-».",
                          reply_markup=cancel_menu())
+
+
+# Необязательные поля карточки: следующий шаг, ключ в анкете, вопрос
+_EXTRA_STEPS = [
+    (AfishaSubmit.price, "af_price", AfishaSubmit.org, "Организатор? Например, <b>Театр «Сказка»</b>. Или «-».", 120),
+    (AfishaSubmit.org, "af_org", AfishaSubmit.lang, "Язык события? Например, <b>русский</b>, <b>украинский</b>, "
+     "<b>русский и английский</b>. Или «-».", 200),
+    (AfishaSubmit.lang, "af_lang", AfishaSubmit.age, "Возраст? Например, <b>3+</b> или <b>18+</b>. Или «-».", 60),
+    (AfishaSubmit.age, "af_age", AfishaSubmit.link, "Ссылка на билеты или страницу события? (или «-», чтобы пропустить)", 40),
+]
+
+
+def _extra_step(cur, key, nxt, question, limit):
+    @router.message(cur)
+    async def handler(message: Message, state: FSMContext) -> None:
+        raw = (message.text or "").strip()
+        if not raw:
+            await message.answer("Напишите текстом или «-» 🙂")
+            return
+        await state.update_data(**{key: "" if raw == "-" else raw[:limit]})
+        await state.set_state(nxt)
+        await message.answer(question, reply_markup=cancel_menu())
+    handler.__name__ = f"afisha_{key}"
+    return handler
+
+
+for _step in _EXTRA_STEPS:
+    _extra_step(*_step)
+
+
+def _yes_no(prefix: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="Да", callback_data=f"{prefix}:1"),
+        InlineKeyboardButton(text="Нет", callback_data=f"{prefix}:0"),
+    ]])
 
 
 @router.callback_query(AfishaSubmit.category, F.data.startswith("afc:"), F.from_user.id.in_(config.ADMIN_IDS))
@@ -488,6 +523,24 @@ async def afisha_category(callback: CallbackQuery, state: FSMContext) -> None:
     except (ValueError, IndexError):
         await callback.answer()
         return
+    await state.update_data(af_cat=cat)
+    await state.set_state(AfishaSubmit.partner)
+    await callback.answer()
+    await callback.message.answer("Это партнёрское событие? На сайте у него будет метка «Партнёр».",
+                                  reply_markup=_yes_no("afpt"))
+
+
+@router.callback_query(AfishaSubmit.partner, F.data.startswith("afpt:"), F.from_user.id.in_(config.ADMIN_IDS))
+async def afisha_partner(callback: CallbackQuery, state: FSMContext) -> None:
+    await state.update_data(af_partner=callback.data.endswith(":1"))
+    await state.set_state(AfishaSubmit.links)
+    await callback.answer()
+    await callback.message.answer("Показывать на странице /links/ (ссылка в шапке Instagram)?",
+                                  reply_markup=_yes_no("afln"))
+
+
+@router.callback_query(AfishaSubmit.links, F.data.startswith("afln:"), F.from_user.id.in_(config.ADMIN_IDS))
+async def afisha_links(callback: CallbackQuery, state: FSMContext) -> None:
     data = await state.get_data()
     async with get_session() as session:
         ev = EventListing(
@@ -497,7 +550,10 @@ async def afisha_category(callback: CallbackQuery, state: FSMContext) -> None:
             starts_at=datetime.fromisoformat(data["af_starts_at"]),
             ends_at=datetime.fromisoformat(data["af_ends_at"]),
             month_key=data["af_starts_at"][:7], status="approved", source="admin",
-            event_time=data.get("af_time") or None, venue=data.get("af_venue") or None, category=cat,
+            event_time=data.get("af_time") or None, venue=data.get("af_venue") or None,
+            category=data.get("af_cat"), price=data.get("af_price") or None, org=data.get("af_org") or None,
+            lang=data.get("af_lang") or None, age=data.get("af_age") or None,
+            partner=bool(data.get("af_partner")), on_links=callback.data.endswith(":1"),
         )
         session.add(ev)
         await session.commit()
@@ -512,7 +568,7 @@ async def afisha_category(callback: CallbackQuery, state: FSMContext) -> None:
         f"✅ «{html.escape(title)}» добавлено в афишу.\n"
         + (f"На сайте: {url}" if refreshed else
            f"На сайте появится в течение 10 минут: {url}")
-        + "\n\nВсе события и удаление: /afisha_site",
+        + "\n\nВсе события, изменение и удаление: /afisha_site",
         reply_markup=main_menu(), disable_web_page_preview=True,
     )
 
@@ -529,13 +585,14 @@ async def _site_list(message: Message) -> None:
     from utils import afisha_manage as am
     items = await am.upcoming()
     gone = await am.removed()
-    rows = [[InlineKeyboardButton(text=f"✕ {_short(e)}", callback_data=f"afx:{e['key']}"[:64])] for e in items[:90]]
+    rows = [[InlineKeyboardButton(text=_short(e), callback_data=f"afx:{e['key']}"[:64])] for e in items[:90]]
     rows.append([InlineKeyboardButton(text="➕ Добавить событие", callback_data="admin:afishanew")])
     if gone:
         rows.append([InlineKeyboardButton(text=f"↩ Убранные ({len(gone)})", callback_data="afhid")])
     await message.answer(
         f"🎭 <b>Афиша на сайте</b>. Будущих событий: {len(items)}.\n"
-        "Нажмите на событие, чтобы убрать его с сайта. Прошедшие события уходят сами.",
+        "Нажмите на событие, чтобы изменить его или убрать с сайта. Прошедшие события уходят сами.\n"
+        "События, которые добавлены не через бота, можно только убрать.",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=rows),
     )
 
@@ -561,7 +618,27 @@ async def afisha_remove_ask(callback: CallbackQuery) -> None:
         await callback.answer("Этого события уже нет в афише", show_alert=True)
         return
     await callback.answer()
-    await callback.message.answer(
+    if key.startswith("u") and key[1:].isdigit():
+        await _event_menu(callback.message, int(key[1:]))
+        return
+    await _remove_confirm(callback.message, item)
+
+
+@router.callback_query(F.data.startswith("afxq:"), F.from_user.id.in_(config.ADMIN_IDS))
+async def afisha_remove_q(callback: CallbackQuery) -> None:
+    from utils import afisha_manage as am
+    key = callback.data.split(":", 1)[1]
+    item = next((e for e in await am.upcoming() if e["key"] == key), None)
+    if not item:
+        await callback.answer("Этого события уже нет в афише", show_alert=True)
+        return
+    await callback.answer()
+    await _remove_confirm(callback.message, item)
+
+
+async def _remove_confirm(message: Message, item: dict) -> None:
+    key = item["key"]
+    await message.answer(
         f"Убрать с сайта «{html.escape(item['h'])}» ({_short(item)[:5]})?",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
             InlineKeyboardButton(text="Да, убрать", callback_data=f"afxy:{key}"[:64]),
@@ -590,6 +667,178 @@ async def afisha_remove_yes(callback: CallbackQuery) -> None:
     await callback.answer("Убрано")
     await callback.message.edit_text(
         f"🗑 «{html.escape(item['h'])}» убрано с сайта. Вернуть можно в /afisha_site → «Убранные».")
+
+
+# --- Событие из бота: поля, партнёр, /links/ --------------------------------------
+
+# поле → (подпись, подсказка)
+EDIT_FIELDS = {
+    "title": ("Название", "Новое название:"),
+    "description": ("Описание", "Новое описание:"),
+    "date": ("Дата", "Новая дата: <b>12.08.2026</b> или <b>12–14.08.2026</b>"),
+    "event_time": ("Время", "Время начала, например <b>19:30</b>, или «-»:"),
+    "city": ("Город", "Город:"),
+    "venue": ("Место", "Площадка и адрес, например <b>Paradiso, Weteringschans 6</b>, или «-»:"),
+    "price": ("Цена", "Цена, например <b>€15</b>, или «-»:"),
+    "org": ("Организатор", "Организатор или «-»:"),
+    "lang": ("Язык", "Язык события, например <b>русский</b>, или «-»:"),
+    "age": ("Возраст", "Возраст, например <b>3+</b>, или «-»:"),
+    "link": ("Ссылка", "Ссылка на билеты или «-»:"),
+    "photo": ("Постер", "Пришлите новый постер картинкой:"),
+}
+
+
+def _val(v) -> str:
+    return html.escape(str(v)) if v else "—"
+
+
+async def _event_menu(message: Message, ev_id: int) -> None:
+    async with get_session() as session:
+        ev = await session.get(EventListing, ev_id)
+    if not ev or ev.status != "approved":
+        await message.answer("Этого события уже нет в афише.")
+        return
+    text = (f"<b>{html.escape(ev.title)}</b>\n"
+            f"Дата: {_val(ev.event_date)} · время: {_val(ev.event_time)}\n"
+            f"Город: {_val(ev.city)} · место: {_val(ev.venue)}\n"
+            f"Цена: {_val(ev.price)} · организатор: {_val(ev.org)}\n"
+            f"Язык: {_val(ev.lang)} · возраст: {_val(ev.age)}\n"
+            f"Рубрика: {_val(ev.category)}\n"
+            f"Партнёр: {'да' if ev.partner else 'нет'} · на /links/: {'да' if ev.on_links else 'нет'}\n"
+            f"{config.SITE_URL.rstrip('/')}/events/u{ev.id}/")
+    kb = [
+        [InlineKeyboardButton(text="✏️ Изменить", callback_data=f"afe:{ev.id}")],
+        [InlineKeyboardButton(text=("Партнёр: да — снять" if ev.partner else "Партнёр: нет — отметить"),
+                              callback_data=f"aft:p:{ev.id}")],
+        [InlineKeyboardButton(text=("/links/: да — убрать оттуда" if ev.on_links else "/links/: нет — показать там"),
+                              callback_data=f"aft:l:{ev.id}")],
+        [InlineKeyboardButton(text="✕ Убрать с сайта", callback_data=f"afxq:u{ev.id}")],
+    ]
+    await message.answer(text, reply_markup=InlineKeyboardMarkup(inline_keyboard=kb), disable_web_page_preview=True)
+
+
+@router.callback_query(F.data.startswith("aft:"), F.from_user.id.in_(config.ADMIN_IDS))
+async def afisha_toggle(callback: CallbackQuery) -> None:
+    _, what, ev_s = callback.data.split(":", 2)
+    async with get_session() as session:
+        ev = await session.get(EventListing, int(ev_s))
+        if not ev or ev.status != "approved":
+            await callback.answer("Этого события уже нет в афише", show_alert=True)
+            return
+        if what == "p":
+            ev.partner = not ev.partner
+        else:
+            ev.on_links = not ev.on_links
+        await session.commit()
+    await callback.answer("Сохранено")
+    from utils import wordpress as wp
+    await wp.refresh_site()
+    try:
+        await callback.message.delete()
+    except Exception:  # noqa: BLE001
+        pass
+    await _event_menu(callback.message, int(ev_s))
+
+
+@router.callback_query(F.data.startswith("afe:"), F.from_user.id.in_(config.ADMIN_IDS))
+async def afisha_edit_pick(callback: CallbackQuery) -> None:
+    ev_id = callback.data.split(":", 1)[1]
+    keys = list(EDIT_FIELDS)
+    rows = [[InlineKeyboardButton(text=EDIT_FIELDS[k][0], callback_data=f"aff:{ev_id}:{k}") for k in keys[i:i + 3]]
+            for i in range(0, len(keys), 3)]
+    rows.append([InlineKeyboardButton(text="Рубрика", callback_data=f"afec:{ev_id}")])
+    await callback.answer()
+    await callback.message.answer("Что изменить?", reply_markup=InlineKeyboardMarkup(inline_keyboard=rows))
+
+
+@router.callback_query(F.data.startswith("afec:"), F.from_user.id.in_(config.ADMIN_IDS))
+async def afisha_edit_cat_pick(callback: CallbackQuery) -> None:
+    ev_id = callback.data.split(":", 1)[1]
+    rows = [[InlineKeyboardButton(text=c, callback_data=f"afecs:{ev_id}:{i}") for i, c in
+             list(enumerate(SITE_CATEGORIES))[j:j + 3]] for j in range(0, len(SITE_CATEGORIES), 3)]
+    await callback.answer()
+    await callback.message.answer("Рубрика:", reply_markup=InlineKeyboardMarkup(inline_keyboard=rows))
+
+
+@router.callback_query(F.data.startswith("afecs:"), F.from_user.id.in_(config.ADMIN_IDS))
+async def afisha_edit_cat(callback: CallbackQuery) -> None:
+    _, ev_s, idx = callback.data.split(":", 2)
+    await _save_field(callback.message, int(ev_s), "category", SITE_CATEGORIES[int(idx) % len(SITE_CATEGORIES)])
+    await callback.answer()
+
+
+@router.callback_query(F.data.startswith("aff:"), F.from_user.id.in_(config.ADMIN_IDS))
+async def afisha_edit_field(callback: CallbackQuery, state: FSMContext) -> None:
+    _, ev_s, field = callback.data.split(":", 2)
+    if field not in EDIT_FIELDS:
+        await callback.answer()
+        return
+    await state.set_state(AfishaEdit.value)
+    await state.update_data(afe_id=int(ev_s), afe_field=field)
+    await callback.answer()
+    await callback.message.answer(EDIT_FIELDS[field][1], reply_markup=cancel_menu())
+
+
+@router.message(AfishaEdit.value)
+async def afisha_edit_value(message: Message, state: FSMContext) -> None:
+    data = await state.get_data()
+    field, ev_id = data.get("afe_field"), data.get("afe_id")
+    raw = (message.text or "").strip()
+    if field == "photo":
+        if not message.photo:
+            await message.answer("Нужен постер картинкой (фото) 🙂")
+            return
+        value = message.photo[-1].file_id
+    elif field == "date":
+        period = _event_period(raw)
+        if not period:
+            await message.answer("Напишите дату как <b>12.08.2026</b> или <b>12–14.08.2026</b> 🙂")
+            return
+        value = (raw[:120], *period)
+    elif field == "event_time":
+        raw = raw.replace(".", ":")
+        if raw != "-" and not re.fullmatch(r"([01]?\d|2[0-3]):[0-5]\d", raw):
+            await message.answer("Напишите время как <b>19:30</b> или «-» 🙂")
+            return
+        value = "" if raw == "-" else raw.zfill(5)
+    else:
+        if not raw:
+            await message.answer("Напишите текстом 🙂")
+            return
+        if field in ("title", "description") and raw == "-":
+            await message.answer("Это поле нельзя оставить пустым 🙂")
+            return
+        value = "" if raw == "-" else raw
+    await state.clear()
+    await _save_field(message, ev_id, field, value)
+
+
+async def _save_field(message: Message, ev_id: int, field: str, value) -> None:
+    limits = {"title": 200, "city": 100, "venue": 200, "price": 120, "org": 200, "lang": 60, "age": 40, "link": 500}
+    async with get_session() as session:
+        ev = await session.get(EventListing, ev_id)
+        if not ev or ev.status != "approved":
+            await message.answer("Этого события уже нет в афише.", reply_markup=main_menu())
+            return
+        if field == "date":
+            ev.event_date, ev.starts_at, ev.ends_at = value
+            ev.month_key = ev.starts_at.strftime("%Y-%m")
+        elif field == "photo":
+            ev.photo_file_id = value
+            from utils.afisha_site import poster_path
+            try:
+                os.remove(poster_path(ev.id))   # постер с сайта больше не нужен
+            except OSError:
+                pass
+        elif field == "city":
+            ev.city, ev.is_nationwide = ("", True) if value.lower() in ONLINE_WORDS else (value[:100], False)
+        else:
+            setattr(ev, field, (value[:limits[field]] if field in limits else value) or None)
+        await session.commit()
+    from utils import wordpress as wp
+    await wp.refresh_site()
+    await message.answer("✅ Сохранено.", reply_markup=main_menu())
+    await _event_menu(message, ev_id)
 
 
 @router.callback_query(F.data == "afhid", F.from_user.id.in_(config.ADMIN_IDS))

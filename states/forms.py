@@ -196,7 +196,19 @@ class AfishaSubmit(StatesGroup):
     # Только при ручном добавлении админом: время, место и рубрика для карточки на сайте
     time = State()
     venue = State()
+    price = State()
+    org = State()
+    lang = State()
+    age = State()
     category = State()
+    partner = State()
+    links = State()
+
+
+class AfishaEdit(StatesGroup):
+    """Админ меняет одно поле события, добавленного через бота."""
+
+    value = State()
 
 
 class ListingForm(StatesGroup):

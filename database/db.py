@@ -90,6 +90,12 @@ _EVENT_LISTING_LATER_COLUMNS = {
     "venue": "VARCHAR(200)",
     "category": "VARCHAR(40)",
     "source": "VARCHAR(10)",
+    "price": "VARCHAR(120)",
+    "org": "VARCHAR(200)",
+    "lang": "VARCHAR(60)",
+    "age": "VARCHAR(40)",
+    "partner": "BOOLEAN DEFAULT FALSE",
+    "on_links": "BOOLEAN DEFAULT FALSE",
 }
 
 _ALLO_SALE_LATER_COLUMNS = {

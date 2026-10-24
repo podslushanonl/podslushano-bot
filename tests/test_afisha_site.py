@@ -141,7 +141,8 @@ class SubmitAndFeedTests(unittest.IsolatedAsyncioTestCase):
         async with self.sessions() as s:
             s.add_all([
                 EventListing(title="Да", month_key="2026-10", status="approved", starts_at=now + timedelta(days=2),
-                             ends_at=now + timedelta(days=2, hours=3), city="Utrecht", event_time="20:00", category="концерт"),
+                             ends_at=now + timedelta(days=2, hours=3), city="Utrecht", event_time="20:00", category="концерт",
+                             venue="Tivoli, Vredenburgkade 11", org="Театр", lang="русский", partner=True, on_links=True),
                 EventListing(title="Не оплачено", month_key="2026-10", status="awaiting_payment",
                              starts_at=now + timedelta(days=2), ends_at=now + timedelta(days=3)),
                 EventListing(title="Прошло", month_key="2026-10", status="approved",
@@ -155,6 +156,9 @@ class SubmitAndFeedTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual([i["h"] for i in items], ["Да"])
         self.assertEqual((items[0]["city"], items[0]["time"], items[0]["cat"]), ("Utrecht", "20:00", "концерт"))
         self.assertTrue(items[0]["key"].startswith("u"))
+        self.assertEqual((items[0]["venue"], items[0]["addr"], items[0]["org"], items[0]["lang"]),
+                         ("Tivoli", "Vredenburgkade 11", "Театр", "русский"))
+        self.assertTrue(items[0]["partner"] and items[0]["links"])
 
 
 _real_validate = afisha_site.validate
