@@ -233,11 +233,17 @@ function pn_sort_events(&$list) {
 }
 /* Upcoming events: Афиша in wp-admin, or data/events.json while it has no published entries. */
 /* Paid events from organisers (submitted on the site or in the bot, approved by the team). */
-function pn_user_events() {
-    $j = pn_cached('pn_user_ev', 10 * MINUTE_IN_SECONDS, function () {
+/* Events from the bot: paid ones after review and the ones the editor adds in the bot.
+   «hidden» are keys of theme events the editor removed in the bot. */
+function pn_bot_afisha() {
+    return pn_cached('pn_user_ev2', 10 * MINUTE_IN_SECONDS, function () {
         $j = pn_http_json(PN_BOT . '/api/afisha/events', 6);
-        return ($j && isset($j['events']) && is_array($j['events'])) ? ['list' => $j['events']] : null;
+        if (!$j || !isset($j['events']) || !is_array($j['events'])) return null;
+        return ['list' => $j['events'], 'hidden' => array_values(array_filter((array) ($j['hidden'] ?? []), 'is_string'))];
     });
+}
+function pn_user_events() {
+    $j = pn_bot_afisha();
     $out = [];
     foreach (($j['list'] ?? []) as $e) {
         if (!is_array($e) || empty($e['key']) || empty($e['date'])) continue;
@@ -253,6 +259,8 @@ function pn_all_events() {
     } else {
         $ev = array_map(function ($e) { $e['img'] = pn_asset_img($e['img'] ?? ''); return $e; }, pn_theme_json('events.json'));
     }
+    $hidden = (array) (pn_bot_afisha()['hidden'] ?? []);
+    if ($hidden) $ev = array_values(array_filter($ev, function ($e) use ($hidden) { return !in_array($e['key'] ?? '', $hidden, true); }));
     $ev = array_merge($ev, pn_user_events());
     pn_sort_events($ev);
     return $ev;
@@ -274,7 +282,11 @@ function pn_event($key) {
 function pn_links_events() {
     if (!pn_has_entries('pn_event')) {
         $L = array_map(function ($e) { $e['img'] = pn_asset_img($e['img'] ?? ''); return $e; }, pn_theme_json('links.json')['events'] ?? []);
-        return array_values(array_filter($L, function ($e) { return ($e['d'] ?? '') >= pn_today(); }));
+        // Events removed in the bot leave /links/ too (links.json has no keys, so match by title)
+        $hidden = (array) (pn_bot_afisha()['hidden'] ?? []);
+        $gone = [];
+        foreach (pn_theme_json('events.json') as $e) if (in_array($e['key'] ?? '', $hidden, true)) $gone[] = $e['h'] ?? '';
+        return array_values(array_filter($L, function ($e) use ($gone) { return ($e['d'] ?? '') >= pn_today() && !in_array($e['h'] ?? '', $gone, true); }));
     }
     $L = [];
     foreach (pn_entries('pn_event', ['meta_key' => '_pn_links', 'meta_value' => '1']) as $p) {

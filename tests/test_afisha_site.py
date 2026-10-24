@@ -16,7 +16,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 import config
 from database.models import Base, EventListing
-from utils import afisha_site
+from utils import afisha_manage, afisha_site
 
 TODAY = date(2026, 10, 12)
 GOOD = {"title": "Вечер стендапа", "description": "Русскоязычный стендап в центре города, два часа шуток.",
@@ -63,6 +63,7 @@ class SubmitAndFeedTests(unittest.IsolatedAsyncioTestCase):
         self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
         self.pay = AsyncMock(return_value={"id": "tr_1", "checkout_url": "https://pay.example/1"})
         self.patches = [patch.object(afisha_site, "get_session", self.sessions),
+                        patch.object(afisha_manage, "get_session", self.sessions),
                         patch.object(afisha_site, "create_payment", self.pay),
                         patch.object(afisha_site, "POSTER_DIR", self.tmp.name),
                         patch.object(afisha_site, "validate", lambda f: ValidateTests_validate(f)),
@@ -148,7 +149,9 @@ class SubmitAndFeedTests(unittest.IsolatedAsyncioTestCase):
             ])
             await s.commit()
         r = await self.client.get("/api/afisha/events")
-        items = json.loads(await r.text())["events"]
+        body = json.loads(await r.text())
+        items = body["events"]
+        self.assertEqual(body["hidden"], [])
         self.assertEqual([i["h"] for i in items], ["Да"])
         self.assertEqual((items[0]["city"], items[0]["time"], items[0]["cat"]), ("Utrecht", "20:00", "концерт"))
         self.assertTrue(items[0]["key"].startswith("u"))

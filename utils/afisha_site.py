@@ -208,7 +208,8 @@ async def events(request: web.Request) -> web.Response:
             EventListing.starts_at.is_not(None),
             or_(EventListing.ends_at.is_(None), EventListing.ends_at >= now),
         ).order_by(EventListing.starts_at).limit(200))).scalars().all()
-    resp = _json(request, {"events": [event_item(e) for e in rows]})
+    from utils.afisha_manage import hidden
+    resp = _json(request, {"events": [event_item(e) for e in rows], "hidden": sorted(await hidden())})
     resp.headers["Cache-Control"] = "public, max-age=300"
     return resp
 

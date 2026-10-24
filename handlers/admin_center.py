@@ -244,7 +244,8 @@ async def open_dates(message: Message, state: FSMContext):
 async def events(callback: CallbackQuery):
     await _show(callback.message, "🎭 <b>Афиша</b>", _kb([
         [InlineKeyboardButton(text="📅 Афиша в канал", callback_data="admin:afisha")],
-        [InlineKeyboardButton(text="🆕 Добавить вручную", callback_data="admin:afishanew")],
+        [InlineKeyboardButton(text="🌐 Афиша на сайте: список и удаление", callback_data="admin:afishasite")],
+        [InlineKeyboardButton(text="🆕 Добавить событие", callback_data="admin:afishanew")],
         _nav(),
     ])); await callback.answer()
 
