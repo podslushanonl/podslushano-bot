@@ -294,7 +294,10 @@ function pn_links_bot_events() {
     $L = [];
     foreach (pn_user_events() as $e) {
         if (empty($e['links']) || !pn_upcoming($e) || empty($e['img'])) continue;
-        $L[] = ['d' => $e['date'], 'h' => $e['h'], 's' => implode(', ', array_filter([$e['venue'], $e['city']])),
+        // Площадка и город; город не повторяем, если он уже в названии площадки
+        $city = (string) $e['city'];
+        $where = $city !== '' && mb_stripos((string) $e['venue'], $city) !== false ? [$e['venue']] : [$e['venue'], $city];
+        $L[] = ['d' => $e['date'], 'h' => $e['h'], 's' => implode(', ', array_filter($where)),
             'url' => $e['url'] ?: home_url('/events/' . $e['key'] . '/'), 'img' => $e['img']];
     }
     return $L;

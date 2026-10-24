@@ -99,13 +99,14 @@ img{display:block;max-width:100%}
 .pst{flex:0 0 168px;scroll-snap-align:start;border-radius:22px;overflow:hidden;position:relative;aspect-ratio:3/4.2;background:#111;color:#fff;box-shadow:0 20px 34px -22px rgba(0,0,0,.6);transition:transform .45s var(--spring)}
 .pst:active{transform:scale(.96)}
 .pst img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.pst::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 40%,rgba(0,0,0,.85))}
+.pst::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 34%,rgba(0,0,0,.72) 62%,rgba(0,0,0,.92))}
 .pst .dt{position:absolute;left:10px;top:10px;z-index:1;background:#fff;color:#0D1117;border-radius:12px;padding:5px 8px;text-align:center;font:700 17px/1 var(--f)}
 .pst .dt small{display:block;font:700 9px var(--f);color:#6A7280;margin-top:2px;text-transform:uppercase}
 .pst .ptn{position:absolute;right:10px;top:10px;z-index:1;font:700 9px var(--f);letter-spacing:.08em;text-transform:uppercase;padding:4px 7px;border-radius:7px;background:rgba(255,255,255,.88);color:#2E3540}
 .pst .tx{position:absolute;left:12px;right:12px;bottom:12px;z-index:1;display:grid;gap:3px}
-.pst .tx b{font:700 15px/1.15 var(--f)}
-.pst .tx small{font-size:11.5px;opacity:.85}
+.pst .tx b{font:700 15px/1.15 var(--f);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;overflow-wrap:anywhere;hyphens:auto;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.pst .tx b.lg{font-size:12.5px;-webkit-line-clamp:3}
+.pst .tx small{font-size:11.5px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pst .tx span{margin-top:6px;justify-self:start;font:700 11.5px var(--f);padding:6px 10px;border-radius:10px;background:var(--accent);color:#fff}
 .pst.all{background:linear-gradient(160deg,#FF8A4C,#D9440D);display:grid;place-items:center;text-align:center;padding:16px}
 .pst.all::after{display:none}
@@ -241,7 +242,7 @@ $('#apps').innerHTML=APPS.map(([k,t,s,u,bg,sh],i)=>`<a class="app in" style="--d
   let sx=null;const sp=$('.spot');sp.addEventListener('pointerdown',e=>sx=e.clientX);sp.addEventListener('pointerup',e=>{if(sx!=null&&Math.abs(e.clientX-sx)>40)go(k+(e.clientX<sx?1:-1));sx=null});go(0)})();
 /* events */
 const evs=EVENTS.filter(e=>e.d>=iso);
-$('#rail').innerHTML=evs.map(e=>{const [y,m,d]=e.d.split('-');return `<a class="pst" href="${esc(e.url)}" target="_blank" rel="noopener sponsored"><img src="${e.img}" alt="" style="object-position:${e.pos||'center'}"><span class="dt">${+d}<small>${MS[+m-1]}</small></span><span class="ptn">Партнёр</span><span class="tx"><b>${esc(e.h)}</b><small>${esc(e.s)}</small><span>Билеты</span></span></a>`}).join('')+`<a class="pst all" href="${SITE}/events/"><b>Вся афиша<br>на сайте</b></a>`;
+$('#rail').innerHTML=evs.map(e=>{const [y,m,d]=e.d.split('-');return `<a class="pst" href="${esc(e.url)}" target="_blank" rel="noopener sponsored"><img src="${e.img}" alt="" style="object-position:${e.pos||'center'}"><span class="dt">${+d}<small>${MS[+m-1]}</small></span><span class="ptn">Партнёр</span><span class="tx"><b${e.h.length>30?' class="lg"':''}>${esc(e.h)}</b><small>${esc(e.s)}</small><span>Билеты</span></span></a>`}).join('')+`<a class="pst all" href="${SITE}/events/"><b>Вся афиша<br>на сайте</b></a>`;
 /* news */
 $('#news').innerHTML=NEWS.slice(0,3).map(n=>`<a class="row" href="${SITE}/news/${n.id}/"><span class="th"><img src="${n.thumb}" alt=""></span><span><b>${esc(n.h)}</b><small>${esc(n.cat)} · ${+n.date.slice(8)} ${MON[+n.date.slice(5,7)-1]}</small></span>${CH}</a>`).join('');
 /* useful */
