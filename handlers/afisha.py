@@ -1006,6 +1006,26 @@ async def afisha_reject(callback: CallbackQuery) -> None:
 
 # --- Экспорт афиши для Instagram (только админы) -----------------------------
 
+@router.message(Command("ai_cost"), F.from_user.id.in_(config.ADMIN_IDS))
+async def ai_cost(message: Message, state: FSMContext) -> None:
+    """Сколько бот потратил на Claude API за последние дни (оценка по токенам)."""
+    await state.clear()
+    from utils.ai_usage import days
+    rows = await days(7)
+    if not rows:
+        await message.answer("Пока нет данных: учёт начинается с этого обновления бота.")
+        return
+    lines = ["<b>Расходы на Claude API</b> (оценка, точная сумма — в консоли Anthropic)"]
+    for d, models in rows:
+        total = sum(m.get("usd", 0) for m in models.values())
+        calls = sum(m.get("calls", 0) for m in models.values())
+        lines.append(f"\n<b>{d[8:10]}.{d[5:7]}</b>: ≈${total:.2f}, запросов: {calls}")
+        for name, m in sorted(models.items(), key=lambda x: -x[1].get("usd", 0)):
+            lines.append(f"  {html.escape(name)}: ≈${m.get('usd', 0):.2f} · {m.get('calls', 0)} запр."
+                         + (f" · поиск {m['search']}" if m.get("search") else ""))
+    await message.answer("\n".join(lines))
+
+
 @router.message(Command("afisha_export"), F.from_user.id.in_(config.ADMIN_IDS))
 async def afisha_export(message: Message, state: FSMContext) -> None:
     await state.clear()

@@ -103,7 +103,9 @@ def _get_client():
     if _client is None:
         from anthropic import AsyncAnthropic
 
-        _client = AsyncAnthropic(api_key=config.ANTHROPIC_API_KEY)
+        from utils.ai_usage import instrument
+
+        _client = instrument(AsyncAnthropic(api_key=config.ANTHROPIC_API_KEY))
     return _client
 
 
