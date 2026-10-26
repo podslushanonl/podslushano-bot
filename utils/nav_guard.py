@@ -10,7 +10,10 @@ from aiogram.types import Message
 
 from keyboards.menus import menu_texts
 
-NAV_COMMANDS = ("/start", "/menu", "/help", "/cancel")
+NAV_COMMANDS = (
+    "/start", "/menu", "/help", "/cancel",
+    "/planner", "/planner_post", "/planner_link", "/task", "/idea", "/direction",
+)
 
 
 def is_navigation(text: str | None) -> bool:
