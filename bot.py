@@ -21,6 +21,8 @@ from handlers import (
     submissions, support, tax_guide, cabinet_web,
 )
 from handlers import anonymous_replies
+from handlers import editorial_planner
+from utils.editorial_planner import planner_reminder_loop
 import ad_campaign_guide_runtime  # noqa: F401 — связывает €299 с Contact Guide Premium
 import ad_ads_cleanup_runtime  # noqa: F401 — облегчённая /ads + welcome e-mail после подписки
 import ad_contact_guide_web_runtime  # noqa: F401 — Contact Guide: анкета + Mollie прямо на /ads
@@ -65,6 +67,8 @@ async def configure_profile(bot: Bot) -> None:
         admin_commands = user_commands + [
             BotCommand(command="admin", description="Админ-центр: все функции кнопками"),
             BotCommand(command="inbox", description="Подключить инбокс (в группе с темами)"),
+            BotCommand(command="planner", description="Открыть планировщик авторов"),
+            BotCommand(command="planner_post", description="Пост с кнопкой планировщика в этом чате"),
         ]
         for admin_id in config.ADMIN_IDS:
             try:
@@ -113,6 +117,7 @@ async def main() -> None:
     dp.callback_query.middleware(RegisterUserMiddleware())
     await configure_profile(bot)
 
+    dp.include_router(editorial_planner.router)
     dp.include_router(inbox.router)
     dp.include_router(am_reviews.router)
     dp.include_router(stories.router)
@@ -191,6 +196,7 @@ async def main() -> None:
     asyncio.create_task(allo_reconciliation_loop())
     asyncio.create_task(calendar_sync_loop(bot))
     asyncio.create_task(ad_reminder_loop(bot))
+    asyncio.create_task(planner_reminder_loop(bot))
 
     asyncio.create_task(crm_sync_loop(bot))
     asyncio.create_task(calendar_shop_runtime.calendar_loop(bot))
