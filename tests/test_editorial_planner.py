@@ -117,17 +117,46 @@ class PlannerQueueTests(IsolatedAsyncioTestCase):
 
 
 class PlannerHttpTests(IsolatedAsyncioTestCase):
+    async def test_auth_errors_explain_bridge_and_profile_failures_separately(self):
+        cases = (
+            (401, "bind", "EDITORIAL_PLANNER_TOKEN"),
+            (401, "create", "EDITORIAL_PLANNER_TOKEN"),
+            (403, "bind", "Доступ к профилю"),
+            (403, "create", "Получить код подключения"),
+        )
+        for status, action, expected in cases:
+            with self.subTest(status=status, action=action):
+                response = MagicMock(status=status)
+                response.json = AsyncMock(return_value={"error": "untrusted test-secret"})
+                response_context = MagicMock()
+                response_context.__aenter__ = AsyncMock(return_value=response)
+                response_context.__aexit__ = AsyncMock(return_value=False)
+                session = MagicMock()
+                session.post.return_value = response_context
+                session_context = MagicMock()
+                session_context.__aenter__ = AsyncMock(return_value=session)
+                session_context.__aexit__ = AsyncMock(return_value=False)
+                with patch.dict("os.environ", {
+                    "EDITORIAL_PLANNER_URL": bridge.DEFAULT_PLANNER_URL,
+                    "EDITORIAL_PLANNER_TOKEN": "test-secret",
+                }, clear=True), patch.object(bridge.aiohttp, "ClientSession", return_value=session_context):
+                    with self.assertRaises(bridge.PlannerError) as error:
+                        await bridge.planner_request(action)
+                    self.assertIn(expected, str(error.exception))
+                    self.assertNotIn("test-secret", str(error.exception))
+                    response.json.assert_not_awaited()
+
     async def test_secret_is_in_header_and_redirects_are_disabled(self):
         response = MagicMock(status=200)
         response.json = AsyncMock(return_value={"ok": True})
         response_context = MagicMock()
         response_context.__aenter__ = AsyncMock(return_value=response)
-        response_context.__aexit__ = AsyncMock()
+        response_context.__aexit__ = AsyncMock(return_value=False)
         session = MagicMock()
         session.post.return_value = response_context
         session_context = MagicMock()
         session_context.__aenter__ = AsyncMock(return_value=session)
-        session_context.__aexit__ = AsyncMock()
+        session_context.__aexit__ = AsyncMock(return_value=False)
         with patch.dict("os.environ", {"EDITORIAL_PLANNER_URL": bridge.DEFAULT_PLANNER_URL, "EDITORIAL_PLANNER_TOKEN": "test-secret"}, clear=True), \
              patch.object(bridge.aiohttp, "ClientSession", return_value=session_context):
             self.assertEqual(await bridge.planner_request("ack", id="one"), {"ok": True})

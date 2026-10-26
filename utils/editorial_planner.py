@@ -70,9 +70,25 @@ async def planner_request(action: str, **payload) -> dict:
                 headers={"Authorization": f"Bearer {token}"},
                 allow_redirects=False,
             ) as response:
-                if response.status in (401, 403):
+                if response.status == 401:
                     raise PlannerError(
-                        "Сначала откройте приглашение в кабинет и подключите Telegram в профиле."
+                        "Бот не прошёл проверку подключения к планировщику. "
+                        "Владельцу: в кабинете откройте «Быстрый доступ» → "
+                        "«Подключение бота владельцем», создайте секрет и сохраните "
+                        "его в Railway как EDITORIAL_PLANNER_TOKEN, затем примените изменения. "
+                        "Личный код /planner_link для этой настройки не подходит."
+                    )
+                if response.status == 403:
+                    if action == "bind":
+                        raise PlannerError(
+                            "Доступ к профилю в планировщике отключён. "
+                            "Попросите Алекса проверить доступ участника."
+                        )
+                    raise PlannerError(
+                        "Telegram ещё не связан с активным профилем. "
+                        "Откройте кабинет → «Быстрый доступ» → Telegram → "
+                        "«Получить код подключения» и отправьте команду /planner_link "
+                        "боту в личные сообщения."
                     )
                 if response.status == 400:
                     raise PlannerError("Проверьте данные. Код подключения действует 10 минут.")
