@@ -44,7 +44,7 @@ async def planner_link(message: Message, command: CommandObject) -> None:
     code = (command.args or "").strip()
     if not code or len(code) > 200 or any(c.isspace() for c in code):
         await message.answer(
-            "В кабинете откройте профиль → «Подключить Telegram».\n"
+            "В кабинете откройте «Быстрый доступ» → Telegram → «Получить код подключения».\n"
             "Скопируйте команду /planner_link с кодом и отправьте её сюда."
         )
         return
