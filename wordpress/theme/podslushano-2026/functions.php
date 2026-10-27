@@ -19,6 +19,7 @@ require PN_DIR . '/inc/importer.php';
 require PN_DIR . '/inc/seo.php';
 require PN_DIR . '/inc/cities.php';
 require PN_DIR . '/inc/specialists.php';
+require PN_DIR . '/inc/donations.php';
 
 add_action('after_setup_theme', function () {
     add_theme_support('title-tag');
