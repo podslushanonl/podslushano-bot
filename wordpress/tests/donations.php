@@ -86,4 +86,9 @@ eq(pn_donation_public()['raised_cents'], 5000, 'outage preserves confirmed total
 eq(pn_donation_public()['delayed'], true, 'outage marked stale');
 eq(get_option('pn_donation_lock'), false, 'failed sync releases lock');
 eq(is_wp_error(pn_donation_api('/v2/payments/../../other')), true, 'reject arbitrary API paths');
+eq(pn_donation_tikkie_active(PN_TIKKIE_EXPIRES - 1), true, 'Tikkie active before deadline');
+eq(pn_donation_tikkie_active(PN_TIKKIE_EXPIRES), false, 'Tikkie removed exactly at deadline');
+eq(pn_donation_tikkie_active(PN_TIKKIE_EXPIRES + 1), false, 'Tikkie stays expired');
+update_option('pn_tikkie_expired', 1);
+eq(pn_donation_tikkie_active(PN_TIKKIE_EXPIRES - 1), false, 'server expiration flag respected');
 echo "Passed $checks donation accounting checks.\n";
