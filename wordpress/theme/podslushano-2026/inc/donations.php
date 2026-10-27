@@ -3,6 +3,24 @@
 if (!defined('ABSPATH')) exit;
 
 const PN_DONATION_GOAL = 50000; // Integer euro cents; one campaign, no automatic resets.
+const PN_TIKKIE_EXPIRES = 1794323178; // 2026-11-10T15:06:18+00:00
+function pn_donation_tikkie_active($now = null) {
+    return ($now ?? time()) < PN_TIKKIE_EXPIRES && !get_option('pn_tikkie_expired', false);
+}
+function pn_donation_expire_tikkie() {
+    if (time() < PN_TIKKIE_EXPIRES) return;
+    update_option('pn_tikkie_expired', 1, false);
+    wp_clear_scheduled_hook('pn_tikkie_expire');
+    do_action('cache_enabler_clear_complete_cache');
+}
+add_action('pn_tikkie_expire', 'pn_donation_expire_tikkie');
+add_action('init', function () {
+    if (time() >= PN_TIKKIE_EXPIRES) {
+        if (!get_option('pn_tikkie_expired')) pn_donation_expire_tikkie();
+    } elseif (!wp_next_scheduled('pn_tikkie_expire')) {
+        wp_schedule_single_event(PN_TIKKIE_EXPIRES, 'pn_tikkie_expire');
+    }
+});
 
 function pn_donation_cents($value) {
     if (!is_scalar($value) || !preg_match('/^\d{1,9}(?:[.,]\d{1,2})?$/D', (string) $value)) return null;
@@ -131,7 +149,7 @@ function pn_donation_public() {
     }
     $synced = get_option('pn_donation_synced', '');
     $stale = pn_donation_key() && (!$synced || strtotime($synced) < time() - 900);
-    return ['goal_cents' => PN_DONATION_GOAL, 'raised_cents' => $sum, 'remaining_cents' => max(0, PN_DONATION_GOAL - $sum), 'count' => count($donors), 'supporters' => array_slice($donors, 0, 20), 'updated_at' => $synced, 'delayed' => $stale || (bool) get_option('pn_donation_error', '') || (bool) get_option('pn_donation_cursor', '')];
+    return ['tikkie_active' => pn_donation_tikkie_active(), 'goal_cents' => PN_DONATION_GOAL, 'raised_cents' => $sum, 'remaining_cents' => max(0, PN_DONATION_GOAL - $sum), 'count' => count($donors), 'supporters' => array_slice($donors, 0, 20), 'updated_at' => $synced, 'delayed' => $stale || (bool) get_option('pn_donation_error', '') || (bool) get_option('pn_donation_cursor', '')];
 }
 add_action('rest_api_init', function () {
     register_rest_route('pn/v1', '/donations', ['methods' => 'GET', 'permission_callback' => '__return_true', 'callback' => function () {

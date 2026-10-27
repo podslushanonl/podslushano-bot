@@ -1687,6 +1687,13 @@ html.iv-on,html.iv-on body{overflow:hidden}
 @media (max-width:900px){.dn{grid-template-columns:1fr}}
 @media (max-width:420px){.dn-amts{grid-template-columns:repeat(2,1fr)}}
 
+/* Temporary Tikkie support link; removed automatically at its fixed deadline. */
+#dnBox{scroll-margin-top:110px}
+.dn-tikkie-wrap{display:grid;gap:8px}
+.dn .dn-tikkie{display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 16px;min-height:66px;border:1px solid var(--line-2);border-radius:18px;background:var(--surface);color:var(--ink);font-weight:600;font-size:15px;transition:transform .25s var(--ease),box-shadow .25s var(--ease)}
+.dn .dn-tikkie:hover{transform:translateY(-2px);box-shadow:var(--e2)}
+.dn-tikkie img{width:78px;height:52px;object-fit:contain;flex:none}
+.dn .dn-tikkie-note{font-size:12px;line-height:1.45;color:var(--muted);text-align:center}
 /* Community support goal: uses the existing theme palette, type and surfaces. */
 .dn-progress{grid-column:1/-1;min-width:0;position:relative;border-top:1px solid var(--line);padding-top:24px;display:grid;gap:16px}
 .dn-progress-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
@@ -4044,6 +4051,10 @@ function newsImg(n){return n.img&&IMG[n.img]?IMG[n.img]:'{{GROUP}}'}
 function agoTxt(n){if(!n.time)return dParts(n.date).d+' '+dParts(n.date).mf;const d=n.date===TODAY?'сегодня':dParts(n.date).d+' '+dParts(n.date).mf;return d+', '+n.time}
 
 /* donation */
+const DN_TIKKIE_UNTIL=1794323178000; // 2026-11-10T15:06:18+00:00
+function dnTikkieActive(now=Date.now()){return now<DN_TIKKIE_UNTIL}
+function dnTikkieSync(box,data){const item=box.querySelector('[data-dn-tikkie]');if(!item)return;if(!dnTikkieActive()||data?.tikkie_active===false){item.remove();return}item.hidden=false}
+function dnTikkieInit(box){dnTikkieSync(box);if(box.querySelector('[data-dn-tikkie]'))homeTimers.push(setTimeout(()=>dnTikkieSync(box),Math.max(0,DN_TIKKIE_UNTIL-Date.now())))}
 const dnEuro=c=>new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR',maximumFractionDigits:c%100?2:0}).format(c/100);
 function dnProgressRender(box,data){
   if(!data||!Number.isSafeInteger(data.raised_cents)||data.raised_cents<0||data.goal_cents!==50000||!Array.isArray(data.supporters))throw new Error('Invalid donation data');
@@ -4061,7 +4072,7 @@ function dnProgressRender(box,data){
   supporters.innerHTML=list.map(x=>`<li class="dn-supporter"><span>${esc(x.name)}</span><b>${dnEuro(x.amount_cents)}</b></li>`).join('');
   const empty=box.querySelector('[data-dn-empty]');empty.hidden=!!list.length;empty.textContent='Пока нет подтверждённых вкладов. Ваш может стать первым.';supporters.hidden=!list.length;
   const note=box.querySelector('[data-dn-note]');note.textContent=data.delayed?'Обновление задерживается. Показаны последние подтверждённые данные.':'Учитываем подтверждённые поступления';
-  box._dnLoaded=true;
+  dnTikkieSync(box,data);box._dnLoaded=true;
 }
 function dnProgressInit(box){
   let loading=false;
@@ -4070,9 +4081,9 @@ function dnProgressInit(box){
     catch(e){box.querySelector('[data-dn-note]').textContent=box._dnLoaded?'Обновление задерживается. Показаны последние подтверждённые данные.':'Сумма сбора временно недоступна. Попробуйте позже.';if(!box._dnLoaded){box.querySelector('[data-dn-empty]').textContent='Список поддержавших появится после загрузки данных.';box.querySelector('[data-dn-remaining]').textContent='Цель — €500'}}finally{loading=false}};
   load();homeTimers.push(setInterval(load,60000));
 }
-function donateInit(box){if(!box)return;dnProgressInit(box);if(box._dnBound)return;box._dnBound=true;const st={amt:7,monthly:false};
+function donateInit(box){if(!box)return;dnTikkieInit(box);dnProgressInit(box);if(box._dnBound)return;box._dnBound=true;const st={amt:7,monthly:false};
   const draw=()=>{const b=box.querySelector('[data-dn=pay]');b.textContent=`Внести €${st.amt}${st.monthly?' в месяц':''}`};
-  box.addEventListener('click',e=>{const a=e.target.closest('[data-da]');if(a){st.amt=+a.dataset.da;box.querySelectorAll('[data-da]').forEach(x=>x.setAttribute('aria-pressed',x===a));box.querySelector('#dnOwn').value='';draw();return}
+  box.addEventListener('click',e=>{if(e.target.closest('[data-dn-tikkie] a')&&!dnTikkieActive()){e.preventDefault();dnTikkieSync(box);toast('Эта ссылка Tikkie уже закрыта. Выберите другой способ поддержки.');return}const a=e.target.closest('[data-da]');if(a){st.amt=+a.dataset.da;box.querySelectorAll('[data-da]').forEach(x=>x.setAttribute('aria-pressed',x===a));box.querySelector('#dnOwn').value='';draw();return}
     const m=e.target.closest('[data-dm]');if(m){st.monthly=m.dataset.dm==='1';box.querySelectorAll('[data-dm]').forEach(x=>x.setAttribute('aria-selected',x===m));draw();return}
     if(e.target.closest('[data-dn=pay]')){if(!(st.amt>=1)){toast('Укажите сумму от €1');return}payDonate(st)}});
   box.addEventListener('input',e=>{if(e.target.id!=='dnOwn')return;const v=Math.round(+e.target.value.replace(',','.'));st.amt=v||0;box.querySelectorAll('[data-da]').forEach(x=>x.setAttribute('aria-pressed','false'));draw()});
@@ -4087,7 +4098,8 @@ const DONATE_HTML=`<div class="card dn st" id="dnBox">
    <div class="dn-amts">${[3,7,15,30].map(a=>`<button type="button" data-da="${a}" aria-pressed="${a===7}">€${a}</button>`).join('')}</div>
    <label class="dn-own"><span>€</span><input id="dnOwn" inputmode="decimal" placeholder="Другая сумма" aria-label="Другая сумма в евро"></label>
    <button class="btn btn-acc" type="button" data-dn="pay">Внести €7</button>
-   <p class="hint">Спасибо, что помогаете нам делать больше</p></div>
+   <p class="hint">Спасибо, что помогаете нам делать больше</p>
+   <div class="dn-tikkie-wrap" data-dn-tikkie hidden><a class="dn-tikkie" href="https://tikkie.me/pay/vkuv3pmlccduglf8i3s0" target="_blank" rel="noopener noreferrer" aria-label="Поддержать Podslushano.nl через Tikkie"><img src="{{IMG:tikkie-logo}}" width="78" height="52" alt="" loading="lazy"><span>Поддержать через Tikkie</span></a><p class="dn-tikkie-note">Взносы через Tikkie добавляем в шкалу после подтверждения</p></div></div>
   <section class="dn-progress" aria-label="Сбор на работу команды и сервисы">
    <div class="dn-progress-head"><h3>На работу команды и сервисы</h3><div class="dn-totals"><span>Собрано</span><strong data-dn-raised>—</strong><span data-dn-goal>из €500</span></div></div>
    <div class="dn-track" data-dn-track role="progressbar" aria-label="Подтверждённые пожертвования" aria-valuemin="0" aria-valuemax="50000" aria-valuetext="Загружаем сумму сбора"><div class="dn-fill"></div></div>
