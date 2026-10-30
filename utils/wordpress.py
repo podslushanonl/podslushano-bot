@@ -77,7 +77,7 @@ async def _warm(urls: list[str]) -> None:
         log.info("Прогрев кэша не удался: %s", e)
 
 
-async def refresh_site() -> bool:
+async def refresh_site(page: str = "/events/") -> bool:
     """Просит сайт забыть ленту афиши из бота и очистить кэш страниц, затем прогревает афишу.
 
     Нужна после того, как админ добавил или убрал событие: иначе сайт показывал бы
@@ -95,7 +95,7 @@ async def refresh_site() -> bool:
                     log.info("Сайт не обновил афишу: HTTP %s", resp.status)
     except (aiohttp.ClientError, asyncio.TimeoutError) as e:
         log.info("Сайт не обновил афишу: %s", e)
-    warm_cache(f"{_wp_url()}/events/")
+    warm_cache(f"{_wp_url()}{page}")
     return ok
 
 

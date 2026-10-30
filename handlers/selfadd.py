@@ -45,6 +45,11 @@ _EMAIL_RE = re.compile(
     re.IGNORECASE,
 )
 
+# Чем отличаются тарифы: описание и число контактов (то же на сайте)
+DESC_STANDARD = 300
+DESC_PREMIUM = 800
+CONTACTS_STANDARD = 2
+
 # Описание платежа (видно в Mollie/банке) — на нидерландском
 DESC_NEW = "Vermelding in podslushano.nl-gids"
 DESC_RENEW = "Verlenging vermelding podslushano.nl-gids"
@@ -78,7 +83,7 @@ def _valid_name(value: str) -> bool:
 def _valid_description(value: str) -> bool:
     words = re.findall(r"[A-Za-zА-Яа-яЁё0-9]+", value)
     letters = re.findall(r"[A-Za-zА-Яа-яЁё]", value)
-    return 20 <= len(value) <= 500 and len(words) >= 3 and len(letters) >= 12
+    return 20 <= len(value) <= DESC_PREMIUM and len(words) >= 3 and len(letters) >= 12
 
 
 def _valid_contact(value: str) -> bool:
@@ -457,8 +462,8 @@ async def _ask_description(message: Message, state: FSMContext) -> None:
     data = await state.get_data()
     await message.answer(
         "<b>4/6 · Что вы предлагаете?</b>\n\n"
-        "Коротко опишите основные услуги, формат работы и важные детали. От 20 до "
-        "500 символов.\n\n"
+        "Коротко опишите основные услуги, формат работы и важные детали. От 20 символов: "
+        f"до {DESC_STANDARD} в тарифе «Стандарт», до {DESC_PREMIUM} в «Премиуме».\n\n"
         "<i>Например: Маникюр, педикюр и наращивание. Принимаю в домашней студии, "
         "работаю по записи.</i>",
         reply_markup=_nav_kb(_back_for(data, "location")),
@@ -689,7 +694,7 @@ async def self_description(message: Message, state: FSMContext) -> None:
     if not _valid_description(desc):
         await message.answer(
             "Описание получилось слишком коротким или непонятным. Напишите 2–4 коротких "
-            "предложения об услугах — от 20 до 500 символов."
+            f"предложения об услугах — от 20 до {DESC_PREMIUM} символов."
         )
         return
     await state.update_data(sp_description=desc)
@@ -840,13 +845,15 @@ async def _show_tiers(message: Message, state: FSMContext) -> None:
     await message.answer(
         "<b>Выберите формат размещения</b>\n\n"
         "<b>Стандарт</b>\n"
-        "— имя, категория, город, описание и контакты\n"
-        "— обычная позиция в результатах поиска\n"
-        "— без фото\n\n"
+        "— карточка в КонтактGuide на сайте и в боте\n"
+        f"— описание до {DESC_STANDARD} символов, до {CONTACTS_STANDARD} контактов\n"
+        "— обычная позиция в поиске, без фото\n\n"
         "🌟 <b>Премиум</b>\n"
-        "— всё из Стандарта\n"
-        "— фото или логотип\n"
-        "— бейдж 🌟 и позиция выше стандартных карточек\n\n"
+        "— первые места в каталоге на сайте и в поиске бота\n"
+        "— фото или логотип и отметка «Премиум»\n"
+        f"— описание до {DESC_PREMIUM} символов и все контакты\n"
+        "— пост «Специалист месяца» в нашем Telegram-канале раз в месяц\n"
+        "— первым в подборках специалистов в боте\n\n"
         "Оба формата проходят одинаковую проверку перед публикацией."
         f"{referral_note}",
         reply_markup=_tier_kb(),
@@ -883,6 +890,18 @@ async def self_plan(callback: CallbackQuery, state: FSMContext) -> None:
     if plan not in SELFADD_PLANS:
         await callback.answer("Тариф не найден", show_alert=True)
         return
+    if not config.plan_info(plan)["premium"]:
+        data = await state.get_data()
+        too_long = len(data.get("sp_description") or "") > DESC_STANDARD
+        too_many = len(_public_contact_lines(data)) > CONTACTS_STANDARD
+        if too_long or too_many:
+            why = (f"описание длиннее {DESC_STANDARD} символов" if too_long else "") + \
+                  (" и " if too_long and too_many else "") + \
+                  (f"контактов больше {CONTACTS_STANDARD}" if too_many else "")
+            await callback.answer(
+                f"В «Стандарте» {why}. Выберите «Премиум» или сократите анкету: "
+                "«⬅️ Назад» → «Изменить».", show_alert=True)
+            return
     await state.update_data(sp_plan=plan)
     if config.plan_info(plan)["premium"]:
         await state.set_state(SelfAddSpecialist.photo)
@@ -1216,6 +1235,11 @@ async def on_payment_paid(bot, payment_id: str) -> None:
         f"нужна, заведи в utils/geo.py или поправь: <code>/setcategory {sp_id} категория</code>."
         if new_cat else ""
     )
+    # Фото премиум-карточки из анкеты на сайте: отправляем в Telegram, чтобы у карточки
+    # был photo_file_id, как у фото из бота (его видят админы, бот, сайт и канал)
+    from utils import specialist_photo
+    if specialist_photo.exists(sp_id):
+        await specialist_photo.attach_to_telegram(bot, sp_id, f"📷 Фото карточки «{name}» (с сайта)")
     for admin_id in config.ADMIN_IDS:
         expert_note = ""
         if expert_link and expert_link.get("status") == "linked":

@@ -366,6 +366,11 @@ async def cabinet_edit(request: web.Request) -> web.Response:
         return _err(request, "Это поле нельзя изменить.")
     if not value or len(value) > EDIT_FIELDS[field]:
         return _err(request, "Проверьте значение.")
+    if field == "description":
+        from handlers.selfadd import DESC_PREMIUM, DESC_STANDARD
+        limit = DESC_PREMIUM if sp.is_premium else DESC_STANDARD
+        if len(value) > limit:
+            return _err(request, f"Описание до {limit} символов" + ("" if sp.is_premium else ", в «Премиуме» до 800") + ".")
     if re.search(r"[іїєґІЇЄҐ]", value):
         return _err(request, "Карточка заполняется на русском языке.")
     async with get_session() as session:

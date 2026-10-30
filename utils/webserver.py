@@ -751,7 +751,8 @@ async def _mollie_webhook(request: web.Request) -> web.Response:
 
 def _photo_url(s: Specialist) -> str | None:
     """Абсолютный URL фото карточки (через наш прокси), или None."""
-    if not getattr(s, "photo_file_id", None):
+    from utils import specialist_photo
+    if not getattr(s, "photo_file_id", None) and not specialist_photo.exists(s.id):
         return None
     return f"{config.WEBHOOK_BASE_URL or ''}/sp-photo/{s.id}"
 
@@ -763,15 +764,21 @@ async def _sp_photo(request: web.Request) -> web.Response:
         return web.Response(status=404, text="not found")
     async with get_session() as session:
         sp = await session.get(Specialist, int(sid_s))
-    if sp is None or not sp.photo_file_id:
+    from utils import specialist_photo
+    if sp is None or (not sp.photo_file_id and not specialist_photo.exists(sp.id)):
         return web.Response(status=404, text="no photo")
-    bot = request.app["bot"]
-    try:
-        f = await bot.get_file(sp.photo_file_id)
-        buf = await bot.download_file(f.file_path)
-        data = buf.read()
-    except Exception as e:  # noqa: BLE001
-        log.warning("Не удалось отдать фото #%s: %s", sid_s, e)
+    if not sp.photo_file_id:   # фото из анкеты на сайте, ещё не отправленное в Telegram
+        data = specialist_photo.read(sp.id)
+    else:
+        bot = request.app["bot"]
+        try:
+            f = await bot.get_file(sp.photo_file_id)
+            buf = await bot.download_file(f.file_path)
+            data = buf.read()
+        except Exception as e:  # noqa: BLE001
+            log.warning("Не удалось отдать фото #%s: %s", sid_s, e)
+            return web.Response(status=404, text="no photo")
+    if not data:
         return web.Response(status=404, text="no photo")
     resp = web.Response(body=data, content_type="image/jpeg")
     resp.headers["Cache-Control"] = "public, max-age=86400"

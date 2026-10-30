@@ -274,7 +274,7 @@ add_filter('get_custom_logo_image_attributes', function ($attr) {
 });
 
 
-/* ---------- Афиша from the bot: after the editor adds or removes an event, the bot asks the site to refresh ----------
+/* ---------- The bot asks the site to refresh: after an afisha change or a change in КонтактGuide ----------
    POST /wp-json/pn/v1/refresh with the bot's application password: forget the cached bot feed and clear the page cache. */
 add_action('rest_api_init', function () {
     register_rest_route('pn/v1', '/refresh', [
@@ -282,6 +282,7 @@ add_action('rest_api_init', function () {
         'permission_callback' => function () { return current_user_can('edit_posts'); },
         'callback' => function () {
             delete_transient('pn_user_ev2');
+            delete_transient('pn_spec');   // КонтактGuide: новая или изменённая карточка
             do_action('cache_enabler_clear_complete_cache');
             return ['ok' => true];
         },
