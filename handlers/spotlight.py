@@ -8,6 +8,8 @@ import asyncio
 import html
 import logging
 import random
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
@@ -87,13 +89,17 @@ async def _done_ids() -> set[str]:
     return set(m.value.split(",")) if m and m.value else set()
 
 
-def _pick(elig: list[Specialist], done: set[str]) -> Specialist:
-    pool = [s for s in elig if str(s.id) not in done] or elig
+def _pick(elig: list[Specialist], done: set[str], due: set[int] | None = None) -> Specialist:
+    # Сначала премиум, которым по тарифу пора в канал (пост раз в месяц обещан)
+    pool = [s for s in elig if due and s.id in due] or [s for s in elig if str(s.id) not in done] or elig
     return random.choice(pool)
 
 
 def _confirm_kb(sp_id: int) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[
+    rows = []
+    if config.ANNOUNCE_CHANNEL:
+        rows.append([InlineKeyboardButton(text="📣 Опубликовать в канале", callback_data=f"sp:ch:{sp_id}")])
+    return InlineKeyboardMarkup(inline_keyboard=rows + [
         [InlineKeyboardButton(text="✅ Разослать подписчикам бота",
                               callback_data=f"sp:pub:{sp_id}")],
         [InlineKeyboardButton(text="🔁 Показать другого", callback_data="sp:next")],
@@ -108,7 +114,8 @@ async def _show(bot, chat_id) -> None:
             chat_id, "Пока нет премиум-специалистов или оплативших год — спотлайт пуст.")
         return
     done = await _done_ids()
-    sp = _pick(elig, done)
+    due = {s.id for s in await premium_due()}
+    sp = _pick(elig, done, due)
     async with get_session() as session:
         users = await session.scalar(
             select(func.count()).select_from(BotUser).where(BotUser.is_blocked.is_(False))
@@ -208,3 +215,94 @@ async def _mark_done(sp_id: int) -> None:
         done.add(str(sp_id))
         await session.merge(Meta(key=_DONE_KEY, value=",".join(done)))
         await session.commit()
+
+
+# --- Премиум: пост в Telegram-канале раз в месяц --------------------------------------
+
+_LAST_KEY = "spotlight_channel:"      # + id специалиста → дата последнего поста в канале
+_REMIND_KEY = "spotlight_remind_date"
+DUE_DAYS = 30
+
+
+async def premium_due(today: date | None = None) -> list[Specialist]:
+    """Активные премиум-карточки, которым пора в канал: поста не было больше 30 дней."""
+    today = today or datetime.now(ZoneInfo("Europe/Amsterdam")).date()
+    async with get_session() as session:
+        rows = (await session.scalars(select(Specialist).where(
+            Specialist.status == "active", Specialist.is_premium.is_(True)))).all()
+        last = {m.key[len(_LAST_KEY):]: m.value for m in (await session.scalars(
+            select(Meta).where(Meta.key.like(_LAST_KEY + "%")))).all()}
+    due = []
+    for sp in rows:
+        try:
+            d = date.fromisoformat(last.get(str(sp.id), ""))
+        except ValueError:
+            d = None
+        if d is None or (today - d).days >= DUE_DAYS:
+            due.append(sp)
+    return due
+
+
+async def _mark_channel(sp_id: int) -> None:
+    today = datetime.now(ZoneInfo("Europe/Amsterdam")).date().isoformat()
+    async with get_session() as session:
+        await session.merge(Meta(key=f"{_LAST_KEY}{sp_id}", value=today))
+        await session.commit()
+
+
+@router.callback_query(F.data.startswith("sp:ch:"))
+async def sp_channel(callback: CallbackQuery) -> None:
+    if not _is_admin(callback.from_user.id):
+        await callback.answer("Только для админов", show_alert=True)
+        return
+    sid = int(callback.data.split(":")[2])
+    async with get_session() as session:
+        sp = await session.get(Specialist, sid)
+    if sp is None or not config.ANNOUNCE_CHANNEL:
+        await callback.answer("Карточка или канал не найдены", show_alert=True)
+        return
+    from handlers.admin import _send_post
+    try:
+        await _send_post(callback.bot, config.ANNOUNCE_CHANNEL, _spotlight_text(sp), sp.photo_file_id)
+    except Exception as e:  # noqa: BLE001
+        await callback.answer("Не получилось опубликовать в канале", show_alert=True)
+        log.warning("Спотлайт #%s не опубликован в канале: %s", sid, e)
+        return
+    await _mark_channel(sid)
+    await _mark_done(sid)
+    try:
+        await callback.message.edit_reply_markup(reply_markup=None)
+    except Exception:  # noqa: BLE001
+        pass
+    left = len(await premium_due())
+    await callback.message.answer(f"📣 «{html.escape(sp.name)}» опубликован в канале."
+                                  + (f" Премиум ждут поста ещё: {left}. /spotlight" if left else ""))
+    await callback.answer("Опубликовано")
+
+
+async def spotlight_reminder_loop(bot) -> None:
+    """Раз в день (после 10:00 Amsterdam) напоминает админам о премиум-карточках без поста в канале."""
+    while True:
+        try:
+            now = datetime.now(ZoneInfo("Europe/Amsterdam"))
+            if now.hour >= 10 and config.ANNOUNCE_CHANNEL:
+                async with get_session() as session:
+                    sent = await session.get(Meta, _REMIND_KEY)
+                    if not sent or sent.value != now.date().isoformat():
+                        due = await premium_due(now.date())
+                        if due:
+                            names = ", ".join(html.escape(s.name) for s in due[:8]) + ("…" if len(due) > 8 else "")
+                            for admin_id in config.ADMIN_IDS:
+                                try:
+                                    await bot.send_message(
+                                        admin_id,
+                                        f"📣 <b>Премиум ждут пост в канале</b> ({len(due)}): {names}.\n"
+                                        "По тарифу обещан пост «Специалист месяца» раз в месяц. "
+                                        "Опубликовать: /spotlight → «Опубликовать в канале».")
+                                except Exception:  # noqa: BLE001
+                                    pass
+                        await session.merge(Meta(key=_REMIND_KEY, value=now.date().isoformat()))
+                        await session.commit()
+        except Exception as e:  # noqa: BLE001
+            log.warning("Напоминание о спотлайте: %s", e)
+        await asyncio.sleep(1800)

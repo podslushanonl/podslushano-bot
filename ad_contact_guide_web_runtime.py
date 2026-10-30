@@ -18,6 +18,7 @@ import config
 from database.db import get_session
 from database.models import Specialist
 from handlers import selfadd
+from utils import specialist_photo
 from utils.geo import detect_category, detect_city
 
 
@@ -29,6 +30,32 @@ _ALLOWED_PLANS = set(selfadd.SELFADD_PLANS)
 def _discount_price(value: str) -> str:
     amount = Decimal(str(value))
     return f"{(amount * (Decimal('1') - _DISCOUNT_RATE)).quantize(Decimal('0.01'), rounding=ROUND_HALF_UP):.2f}"
+
+
+# Чем отличаются тарифы (то же обещано на сайте и в боте)
+DESC_STANDARD, DESC_PREMIUM, CONTACTS_STANDARD = selfadd.DESC_STANDARD, selfadd.DESC_PREMIUM, selfadd.CONTACTS_STANDARD
+# поле формы → (тип для нормализации, подпись в строке контактов)
+_FIELDS = (("phone", "phone", "Телефон"), ("whatsapp", "phone", "WhatsApp"), ("instagram", "instagram", "Instagram"),
+           ("telegram", "telegram", "Telegram"), ("website", "website", "Сайт"), ("public_email", "email", "E-mail"))
+_FIELD_NAMES = {"phone": "телефон", "whatsapp": "WhatsApp", "instagram": "Instagram", "telegram": "Telegram",
+                "website": "сайт", "public_email": "почту"}
+
+
+def _contacts_from_fields(data) -> tuple[str, int, str]:
+    """Контакты из отдельных полей формы: (строка для карточки, сколько их, текст ошибки).
+
+    Ссылки и ники приводятся к одному виду: из https://www.instagram.com/name?… остаётся @name.
+    """
+    parts = []
+    for field, kind, label in _FIELDS:
+        raw = (data.get(field) or "").strip()
+        if not raw:
+            continue
+        value = selfadd._normalize_public_contact(kind, raw)
+        if not value:
+            return "", 0, f"Проверьте {_FIELD_NAMES[field]}: «{raw[:60]}» не похоже на рабочий контакт."
+        parts.append(f"{label}: {value}")
+    return " · ".join(parts), len(parts), ""
 
 
 def _flag(value: str | None) -> bool:
@@ -66,11 +93,17 @@ async def contact_guide_checkout(request: web.Request) -> web.Response:
     if not config.payments_enabled():
         return _json_error("Оплата временно недоступна. Попробуйте чуть позже.", 503)
 
+    info = config.plan_info(plan)
+    premium = info["premium"]
     name = selfadd._clean_text((data.get("name") or "").strip())
     category_raw = selfadd._clean_text((data.get("category") or "").strip())
     city_raw = selfadd._clean_text((data.get("city") or "").strip())
     description = (data.get("description") or "").strip()
-    contact = selfadd._clean_text((data.get("contact") or "").strip())
+    contact, n_contacts, contact_error = _contacts_from_fields(data)
+    if contact_error:
+        return _json_error(contact_error)
+    if not contact:   # старая форма (/ads) присылает контакты одной строкой
+        contact = selfadd._clean_text((data.get("contact") or "").strip())
     email = (data.get("email") or "").strip().lower()
     online = _flag(data.get("online"))
     terms = _flag(data.get("terms"))
@@ -84,7 +117,19 @@ async def contact_guide_checkout(request: web.Request) -> web.Response:
     if not 2 <= len(category_raw) <= 50 or len(re.findall(r"[A-Za-zА-Яа-яЁё]", category_raw)) < 2:
         return _json_error("Укажите понятную категорию услуги.")
     if not selfadd._valid_description(description):
-        return _json_error("Описание должно быть понятным и содержать минимум 20 символов.")
+        return _json_error("Описание должно быть понятным: от 20 символов, несколько слов.")
+    if premium and len(description) > DESC_PREMIUM:
+        return _json_error(f"Описание до {DESC_PREMIUM} символов.")
+    if not premium and len(description) > DESC_STANDARD:
+        return _json_error(f"В тарифе «Стандарт» описание до {DESC_STANDARD} символов. "
+                           f"Сократите его или выберите «Премиум» (до {DESC_PREMIUM}).")
+    if not premium and n_contacts > CONTACTS_STANDARD:
+        return _json_error(f"В тарифе «Стандарт» можно указать до {CONTACTS_STANDARD} контактов. "
+                           "Оставьте два или выберите «Премиум».")
+    photo = data.get("photo")
+    photo_blob = photo.file.read() if premium and getattr(photo, "file", None) else b""
+    if photo_blob and (len(photo_blob) > specialist_photo.MAX_BYTES or not specialist_photo.to_jpeg(photo_blob)):
+        return _json_error("Фото не открылось. Загрузите JPG, PNG или WebP до 8 МБ.")
     if not selfadd._valid_contact(contact):
         return _json_error("Укажите рабочий публичный контакт: сайт, e-mail, телефон или Telegram.")
     if not selfadd._valid_email(email):
@@ -101,7 +146,6 @@ async def contact_guide_checkout(request: web.Request) -> web.Response:
         city, province = known_city if known_city else (city_raw, "")
 
     category = detect_category(category_raw) or category_raw.lower()
-    info = config.plan_info(plan)
     seasonal = await _season_entitlement(email, token)
     if token and not seasonal:
         return _json_error(
@@ -131,6 +175,8 @@ async def contact_guide_checkout(request: web.Request) -> web.Response:
         await session.commit()
         await session.refresh(specialist)
         sid = specialist.id
+    if photo_blob:
+        specialist_photo.save(sid, photo_blob)
 
     metadata = {
         "specialist_id": sid,

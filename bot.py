@@ -187,6 +187,10 @@ async def main() -> None:
     # Автоновости на сайт: NOS → русская новость в WordPress раз в 10 минут
     asyncio.create_task(site_news_loop(bot))
     asyncio.create_task(site_guides_loop(bot))
+    from handlers.spotlight import spotlight_reminder_loop
+    asyncio.create_task(spotlight_reminder_loop(bot))
+    from utils.site_sync import site_sync_loop
+    asyncio.create_task(site_sync_loop(bot))
     # Уведомления подписчикам о сбоях NS на их станции, раз в 5 минут, без ИИ
     asyncio.create_task(ns_alerts_loop(bot))
     asyncio.create_task(savings_loop(bot))

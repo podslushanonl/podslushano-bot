@@ -37,13 +37,18 @@ def parse_contact_links(contact: str | None) -> list[dict]:
         return []
     links: list[dict] = []
 
-    m = _IG_RE.search(contact) or _IG_URL_RE.search(contact)
+    # Сначала ссылка на профиль: «instagram: @https://www.instagram.com/name?…» иначе дала бы ник «https»
+    m = _IG_URL_RE.search(contact) or _IG_RE.search(contact)
+    if m and m.group(1).lower() in ("https", "http", "www"):
+        m = None
     if m:
         handle = m.group(1).strip(".")
         links.append({"type": "instagram", "label": "📷 Instagram",
                       "url": f"https://instagram.com/{handle}"})
 
-    m = _TG_RE.search(contact) or _TG_URL_RE.search(contact)
+    m = _TG_URL_RE.search(contact) or _TG_RE.search(contact)
+    if m and m.group(1).lower() in ("https", "http", "www"):
+        m = None
     if m:
         links.append({"type": "telegram", "label": "✈️ Telegram",
                       "url": f"https://t.me/{m.group(1)}"})
