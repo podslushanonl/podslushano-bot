@@ -371,6 +371,16 @@ def gallery_block(images: list[dict]) -> str:
     )
 
 
+async def get_post(post_id: int) -> dict | None:
+    """Запись по id через REST: заголовок и выдержка (rendered). None — если не получилось."""
+    if not wp_enabled():
+        return None
+    status, data = await _wp_json("GET", f"posts/{int(post_id)}", params={"_fields": "id,title,excerpt,link,status"})
+    if status != 200 or not isinstance(data, dict):
+        return None
+    return data
+
+
 async def create_post(
     title: str,
     html: str,
