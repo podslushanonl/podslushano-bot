@@ -51,7 +51,7 @@ WEEKLY = Rubric(
     key="weekly",
     label="недельный дайджест",
     header="<b>Дайджест новостей</b>\n\nГлавные события недели в Нидерландах",
-    footer="Вот такие новости. Не забывайте ставить огонечки 🔥\n\n#дайджест",
+    footer="Вот такие новости. Не забывайте ставить огонечки 🔥\n\n#pnl_дайджест",
     max_items=20,
     min_items=4,
 )
@@ -59,7 +59,7 @@ DAILY = Rubric(
     key="daily",
     label="новости дня",
     header="<b>Новости дня</b>",
-    footer="#новости",
+    footer="#pnl_новости",
     max_items=config.DAILY_DIGEST_MAX_ITEMS,
     min_items=3,
 )

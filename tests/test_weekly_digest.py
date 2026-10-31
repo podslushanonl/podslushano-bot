@@ -29,7 +29,7 @@ class ExactOutputTests(unittest.TestCase):
             "<b>Новости дня</b>\n\n"
             f'🚆 <a href="{LINK}">NS</a> vertraagd bij Utrecht\n\n'
             f'🏠 <a href="{LINK}">Huur</a> stijgt in Amsterdam\n\n'
-            "#новости"
+            "#pnl_новости"
         )
         self.assertEqual(core.render(core.DAILY, items), expected)
 
@@ -40,7 +40,7 @@ class ExactOutputTests(unittest.TestCase):
             "Главные события недели в Нидерландах\n\n"
             f'💶 <a href="{LINK}">Belastingen</a> 2027: wat verandert\n\n'
             "Вот такие новости. Не забывайте ставить огонечки 🔥\n\n"
-            "#дайджест"
+            "#pnl_дайджест"
         )
         self.assertEqual(core.render(core.WEEKLY, items), expected)
 
