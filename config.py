@@ -331,6 +331,9 @@ SITE_GUIDES_MODEL: str = os.getenv("SITE_GUIDES_MODEL", "claude-sonnet-5-5")
 WEEKLY_DIGEST_ENABLED: bool = os.getenv("WEEKLY_DIGEST_ENABLED", "1").strip() != "0"
 # Ежедневный дайджест «Новости дня» (utils/daily_digest.py): каждый день 19:00 Амстердам. 0 = выключить.
 DAILY_DIGEST_ENABLED: bool = os.getenv("DAILY_DIGEST_ENABLED", "1").strip() != "0"
+# Тестовый режим дайджестов: сколько одобренных черновиков нужно рубрике до автопубликации.
+# 0 (по умолчанию) — тестового режима нет, всё публикуется сразу и админам приходит ссылка.
+DIGEST_TEST_RUNS: int = max(0, int(os.getenv("DIGEST_TEST_RUNS", "0").strip() or "0"))
 
 # Доска объявлений: срок жизни объявления и лимит активных у одного пользователя
 BOARD_LISTING_DAYS: int = _int_env("BOARD_LISTING_DAYS", 30)

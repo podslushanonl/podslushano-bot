@@ -1,12 +1,11 @@
 """Общее ядро дайджестов: недельного и ежедневного.
 
 Источник — site_news_items (status='published') и русские заголовки записей WordPress.
-Claude только выбирает записи и ставит эмодзи (JSON [{wp_post_id, emoji}]). Текст заголовка
-не меняется: публикуется заголовок из WordPress, весь он — ссылка на wp_link (podslushano.nl).
+Claude выбирает записи, упорядочивает их, подбирает эмодзи и отмечает 1–2 слова заголовка
+для ссылки. Сам текст заголовка не меняется: в ссылку оборачивается только выбранный фрагмент.
 
-Тестовый режим: первые TEST_RUNS одобренных запусков на рубрику не публикуются сами —
-черновик уходит админам с кнопками «✅ Опубликовать» / «❌ Пропустить». Одобренные кнопкой
-запуски считаются в meta; после этого рубрика публикует автоматически.
+Тестовый режим: DIGEST_TEST_RUNS одобренных запусков на рубрику (по умолчанию 0 — выключен,
+всё публикуется сразу). Пока одобрений меньше — черновик админам с кнопками.
 """
 from __future__ import annotations
 
@@ -32,7 +31,6 @@ from utils.site_news import _ask_claude
 
 log = logging.getLogger(__name__)
 
-TEST_RUNS = 2  # одобренных тестовых запусков на рубрику до автопубликации
 MAX_TEXT = 3800  # запас до лимита Telegram 4096
 MAX_CANDIDATES = 80
 PARALLEL_WP = 5
@@ -52,8 +50,8 @@ class Rubric:
 WEEKLY = Rubric(
     key="weekly",
     label="недельный дайджест",
-    header="<b>Дайджест новостей</b>\nГлавные события недели в Нидерландах",
-    footer="Вот такие новости. Не забывайте ставить огонечки 🔥\n#дайджест",
+    header="<b>Дайджест новостей</b>\n\nГлавные события недели в Нидерландах",
+    footer="Вот такие новости. Не забывайте ставить огонечки 🔥\n\n#дайджест",
     max_items=20,
     min_items=4,
 )
@@ -82,6 +80,11 @@ async def meta_set(key: str, value: str) -> None:
         await session.commit()
 
 
+def test_runs() -> int:
+    """Сколько одобренных тестовых запусков нужно рубрике. 0 — тестового режима нет."""
+    return max(0, int(config.DIGEST_TEST_RUNS))
+
+
 def _count_key(rubric_key: str) -> str:
     return f"digest:approved:{rubric_key}"
 
@@ -91,7 +94,8 @@ async def approved_count(rubric_key: str) -> int:
 
 
 async def in_test_mode(rubric_key: str) -> bool:
-    return await approved_count(rubric_key) < TEST_RUNS
+    runs = test_runs()
+    return runs > 0 and await approved_count(rubric_key) < runs
 
 
 async def reset_tests() -> None:
@@ -168,10 +172,13 @@ def _select_system(rubric: Rubric) -> str:
 • спортивные результаты и светские новости;
 • почти одинаковые истории: из нескольких записей об одном событии оставь одну, самую полную.
 
-Для каждой выбранной записи дай один короткий эмодзи по теме (один символ, без букв и цифр).
+Для каждой выбранной записи:
+• emoji — один короткий эмодзи по теме (один символ, без букв и цифр);
+• link_text — 1–2 слова ИЗ ЗАГОЛОВКА, побуквенно как в заголовке (та же форма, регистр и знаки),
+  лучше всего ключевое существительное или предмет новости. Не перефразируй и не добавляй слов.
 
 Ответь СТРОГО JSON-массивом без пояснений:
-[{{"wp_post_id": 123, "emoji": "🚆"}}]
+[{{"wp_post_id": 123, "emoji": "🚆", "link_text": "NS"}}]
 Используй только wp_post_id из списка."""
 
 
@@ -187,8 +194,18 @@ def parse_array(raw: str) -> list:
     return data if isinstance(data, list) else []
 
 
+def pick_link_text(title: str, candidate: object) -> str:
+    """Фрагмент для ссылки: точная подстрока заголовка из 1–2 слов (с учётом регистра).
+    Иначе — первое слово заголовка, оно всегда есть в заголовке."""
+    if isinstance(candidate, str):
+        text = candidate.strip()
+        if (text and text in title and "\n" not in text and len(text.split()) in (1, 2)):
+            return text
+    return title.split()[0]
+
+
 def validate_selection(raw_items: list, by_id: dict[int, dict], max_items: int) -> list[dict]:
-    """Только id из кандидатов, без повторов; эмодзи короткий и без букв/цифр."""
+    """Только id из кандидатов, без повторов; эмодзи короткий и без букв/цифр; link_text проверен."""
     out: list[dict] = []
     seen: set[int] = set()
     for entry in raw_items:
@@ -203,8 +220,9 @@ def validate_selection(raw_items: list, by_id: dict[int, dict], max_items: int) 
         emoji = str(entry.get("emoji", "")).strip()
         if not emoji or len(emoji) > 8 or re.search(r"[A-Za-z0-9]", emoji):
             emoji = "📰"
+        item = by_id[post_id]
         seen.add(post_id)
-        out.append({**by_id[post_id], "emoji": emoji})
+        out.append({**item, "emoji": emoji, "link_text": pick_link_text(item["title"], entry.get("link_text"))})
         if len(out) == max_items:
             break
     return out
@@ -220,14 +238,20 @@ async def select_items(rubric: Rubric, items: list[dict]) -> list[dict]:
 
 # --- Сообщение ---------------------------------------------------------------------------
 
+def _item_line(it: dict) -> str:
+    """«{эмодзи} {текст}<a href=wp_link>{фрагмент}</a>{текст}» — оборачиваем только фрагмент."""
+    title, frag = it["title"], it["link_text"]
+    start = title.index(frag)
+    before, after = title[:start], title[start + len(frag):]
+    return (f'{html.escape(it["emoji"])} {html.escape(before)}'
+            f'<a href="{html.escape(it["link"], quote=True)}">{html.escape(frag)}</a>'
+            f'{html.escape(after)}')
+
+
 def render(rubric: Rubric, items: list[dict]) -> str:
-    """Заголовок, пункты через пустую строку, подпись. Весь заголовок — ссылка на wp_link."""
-    body = "\n\n".join(
-        f'{html.escape(it["emoji"])} <a href="{html.escape(it["link"], quote=True)}">'
-        f'{html.escape(it["title"])}</a>'
-        for it in items
-    )
-    return f"{rubric.header}\n{body}\n{rubric.footer}"
+    """Заголовок, пункты через пустую строку, подпись — с пустыми строками между блоками."""
+    body = "\n\n".join(_item_line(it) for it in items)
+    return f"{rubric.header}\n\n{body}\n\n{rubric.footer}"
 
 
 # --- Черновики, админы, публикация -------------------------------------------------------
@@ -284,7 +308,7 @@ async def produce(bot, rubric: Rubric, since: datetime) -> dict:
         draft_id = secrets.token_hex(4)
         await _save_draft(draft_id, {"rubric": rubric.key, "text": text, "test": True, "state": "pending"})
         done = await approved_count(rubric.key)
-        head = f"🧪 Тестовый запуск: {rubric.label} ({done}/{TEST_RUNS}). Публикация по кнопке."
+        head = f"🧪 Тестовый запуск: {rubric.label} ({done}/{test_runs()}). Публикация по кнопке."
         await notify_admins(bot, f"{head}\n\n{text}", draft_markup(draft_id))
         return {"status": "drafted", "detail": "", "url": None}
 
