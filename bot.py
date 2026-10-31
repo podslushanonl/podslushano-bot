@@ -38,6 +38,7 @@ from utils.editorial_research_desk import router as editorial_research_router
 from utils.editorial_research_daily import editorial_research_loop
 from utils.site_guides import site_guides_loop
 from utils.site_news import site_news_loop
+from utils.weekly_digest import weekly_digest_loop, router as weekly_digest_router
 from utils.ns_alerts import ns_alerts_loop, router as ns_alerts_router
 from utils.savings import router as savings_router, savings_loop
 from utils.community import router as community_router
@@ -130,6 +131,7 @@ async def main() -> None:
     dp.include_router(savings_router)
     dp.include_router(community_router)
     dp.include_router(dm_router)
+    dp.include_router(weekly_digest_router)
     dp.include_router(menu.router)
     dp.include_router(start.router)
     dp.include_router(guides.router)
@@ -187,6 +189,8 @@ async def main() -> None:
     # Автоновости на сайт: NOS → русская новость в WordPress раз в 10 минут
     asyncio.create_task(site_news_loop(bot))
     asyncio.create_task(site_guides_loop(bot))
+    # Недельный дайджест в канал: пн 09:00 Амстердам
+    asyncio.create_task(weekly_digest_loop(bot))
     from handlers.spotlight import spotlight_reminder_loop
     asyncio.create_task(spotlight_reminder_loop(bot))
     from utils.site_sync import site_sync_loop

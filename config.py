@@ -327,6 +327,9 @@ SITE_GUIDES_INTERVAL: int = max(600, _int_env("SITE_GUIDES_INTERVAL", 24 * 3600)
 SITE_GUIDES_REFRESH_DAYS: int = _int_env("SITE_GUIDES_REFRESH_DAYS", 120)
 SITE_GUIDES_MODEL: str = os.getenv("SITE_GUIDES_MODEL", "claude-sonnet-5-5")
 
+# Недельный дайджест в канал (utils/weekly_digest.py): понедельник 09:00 Амстердам. 0 = выключить.
+WEEKLY_DIGEST_ENABLED: bool = os.getenv("WEEKLY_DIGEST_ENABLED", "1").strip() != "0"
+
 # Доска объявлений: срок жизни объявления и лимит активных у одного пользователя
 BOARD_LISTING_DAYS: int = _int_env("BOARD_LISTING_DAYS", 30)
 BOARD_MAX_ACTIVE: int = _int_env("BOARD_MAX_ACTIVE", 5)
