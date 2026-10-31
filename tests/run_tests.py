@@ -1479,7 +1479,7 @@ async def test_personal_digest() -> None:
     digest_saturday = ams_today + timedelta(
         days=(5 - ams_today.weekday()) % 7
     )
-    month = f"{date.today():%Y-%m}"
+    month = f"{ams_today:%Y-%m}"  # тот же месяц, что и у build_digest (Amsterdam)
     async with db.get_session() as session:
         session.add(BotUser(user_id=7001, first_name="Digest", is_blocked=False))
         session.add(pref)
@@ -1492,13 +1492,13 @@ async def test_personal_digest() -> None:
         session.add(EventListing(
             title="Past digest event", description="test", city="Amersfoort",
             is_nationwide=False,
-            event_date=(date.today() - timedelta(days=2)).strftime("%d.%m.%Y"),
+            event_date=(ams_today - timedelta(days=2)).strftime("%d.%m.%Y"),
             month_key=month, status="approved", link="https://example.nl/past",
         ))
         session.add(EventListing(
             title="Later digest event", description="test", city="Amersfoort",
             is_nationwide=False,
-            event_date=(date.today() + timedelta(days=14)).strftime("%d.%m.%Y"),
+            event_date=(ams_today + timedelta(days=14)).strftime("%d.%m.%Y"),
             month_key=month, status="approved", link="https://example.nl/later",
         ))
         session.add(Specialist(
