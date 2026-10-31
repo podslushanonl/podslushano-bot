@@ -139,6 +139,30 @@ class TestModeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(core.config.DIGEST_TEST_RUNS, 0)
 
 
+class DailyMaxItemsTests(unittest.TestCase):
+    def test_default_daily_max_is_7(self):
+        self.assertEqual(core.config.DAILY_DIGEST_MAX_ITEMS, 7)
+        self.assertEqual(core.DAILY.max_items, 7)
+
+    def test_daily_min_stays_3_and_weekly_unchanged(self):
+        self.assertEqual(core.DAILY.min_items, 3)
+        self.assertEqual(core.WEEKLY.max_items, 20)
+
+    def test_daily_prompt_asks_for_5_to_max_and_fewer_if_quiet(self):
+        prompt = core._select_system(core.DAILY)
+        self.assertIn("от 5 до 7", prompt)
+        self.assertIn("день был тихим", prompt)
+
+    def test_weekly_prompt_keeps_plain_cap(self):
+        self.assertIn("не больше 20", core._select_system(core.WEEKLY))
+
+    def test_daily_selection_capped_at_max(self):
+        by_id = {i: {"id": i, "link": f"l{i}", "title": f"Titel {i}"} for i in range(1, 11)}
+        raw = [{"wp_post_id": i, "emoji": "🏠", "link_text": "Titel"} for i in range(1, 11)]
+        got = core.validate_selection(raw, by_id, core.DAILY.max_items)
+        self.assertEqual(len(got), core.DAILY.max_items)
+
+
 class ScheduleTests(unittest.TestCase):
     def test_weekly_due_only_monday_from_0900(self):
         self.assertFalse(weekly.is_due_time(datetime(2026, 11, 2, 8, 59, tzinfo=AMS)))

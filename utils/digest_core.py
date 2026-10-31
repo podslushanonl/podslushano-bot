@@ -60,7 +60,7 @@ DAILY = Rubric(
     label="новости дня",
     header="<b>Новости дня</b>",
     footer="#новости",
-    max_items=10,
+    max_items=config.DAILY_DIGEST_MAX_ITEMS,
     min_items=3,
 )
 RUBRICS = {WEEKLY.key: WEEKLY, DAILY.key: DAILY}
@@ -156,11 +156,19 @@ async def load_headlines(rows: list[tuple[int, str]]) -> list[dict]:
 
 # --- Отбор (Claude) и проверка ответа ----------------------------------------------------
 
+def _count_rule(rubric: Rubric) -> str:
+    """Сколько брать: для «Новости дня» — 5–max, меньше только если день тихий."""
+    if rubric.key == "daily":
+        return (f"выбрать от {min(5, rubric.max_items)} до {rubric.max_items} самых важных; "
+                f"если день был тихим — меньше, но не меньше {rubric.min_items}, самые важные сверху")
+    return f"не больше {rubric.max_items}, самые важные сверху"
+
+
 def _select_system(rubric: Rubric) -> str:
     return f"""Ты — редактор podslushano.nl, русскоязычного медиа для жителей Нидерландов.
 Тебе дают записи сайта: wp_post_id и русский заголовок. Заголовки готовы: их НЕ меняй и НЕ пересказывай.
 
-Задача — выбрать и упорядочить записи для дайджеста «{rubric.label}»: не больше {rubric.max_items}, самые важные сверху.
+Задача — выбрать и упорядочить записи для дайджеста «{rubric.label}»: {_count_rule(rubric)}.
 
 БЕРЁМ только местные новости Нидерландов, важные для жизни здесь: цены, жильё, налоги, пособия,
 правила, транспорт, здоровье, погода и её влияние, города, общество, культура.
