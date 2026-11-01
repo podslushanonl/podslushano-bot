@@ -41,6 +41,7 @@ from utils.site_news import site_news_loop
 from utils.weekly_digest import weekly_digest_loop
 from utils.daily_digest import daily_digest_loop
 from utils.digest_commands import router as digest_router
+from utils.good_news import good_news_loop, router as good_news_router
 from utils.ns_alerts import ns_alerts_loop, router as ns_alerts_router
 from utils.savings import router as savings_router, savings_loop
 from utils.community import router as community_router
@@ -134,6 +135,7 @@ async def main() -> None:
     dp.include_router(community_router)
     dp.include_router(dm_router)
     dp.include_router(digest_router)
+    dp.include_router(good_news_router)
     dp.include_router(menu.router)
     dp.include_router(start.router)
     dp.include_router(guides.router)
@@ -195,6 +197,8 @@ async def main() -> None:
     asyncio.create_task(weekly_digest_loop(bot))
     # Ежедневный дайджест «Новости дня»: каждый день 19:00 Амстердам
     asyncio.create_task(daily_digest_loop(bot))
+    # Утренние «Хорошие новости»: черновик админам в 07:30 (Europe/Amsterdam)
+    asyncio.create_task(good_news_loop(bot))
     from handlers.spotlight import spotlight_reminder_loop
     asyncio.create_task(spotlight_reminder_loop(bot))
     from utils.site_sync import site_sync_loop
