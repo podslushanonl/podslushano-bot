@@ -335,6 +335,26 @@ DAILY_DIGEST_ENABLED: bool = os.getenv("DAILY_DIGEST_ENABLED", "1").strip() != "
 DAILY_DIGEST_MAX_ITEMS: int = min(10, max(3, _int_env("DAILY_DIGEST_MAX_ITEMS", 7)))
 # Утренние «Хорошие новости» (utils/good_news.py): черновик Алексу в 07:30, в канал не публикуется. 0 = выключить.
 GOOD_NEWS_ENABLED: bool = os.getenv("GOOD_NEWS_ENABLED", "1").strip() != "0"
+# Дешёвая модель для «Хороших новостей» (отбор + текст в одном вызове).
+GOOD_NEWS_MODEL: str = os.getenv("GOOD_NEWS_MODEL", "claude-haiku-5-5")
+# Модель для дайджестов (недельный и «Новости дня»): отбор по заголовкам, дешёвая Haiku.
+DIGEST_MODEL: str = os.getenv("DIGEST_MODEL", "claude-haiku-5-5")
+# RSS региональных вещателей и NOS для «Хороших новостей». Битая лента пропускается молча.
+GOOD_NEWS_FEEDS: list[str] = [
+    u.strip() for u in os.getenv(
+        "GOOD_NEWS_FEEDS",
+        "https://feeds.nos.nl/nosnieuwsbinnenland,"
+        "https://www.omroepbrabant.nl/rss,"
+        "https://www.rtvoost.nl/rss,"
+        "https://www.rtvutrecht.nl/rss/nieuws.xml,"
+        "https://www.omroepgelderland.nl/rss,"
+        "https://www.rtvnoord.nl/rss,"
+        "https://www.nhnieuws.nl/rss,"
+        "https://www.rijnmond.nl/rss/index.xml,"
+        "https://www.omroepwest.nl/rss/nieuws.xml,"
+        "https://www.omroepzeeland.nl/rss/index.xml",
+    ).split(",") if u.strip()
+]
 # Тестовый режим дайджестов: сколько одобренных черновиков нужно рубрике до автопубликации.
 # 0 (по умолчанию) — тестового режима нет, всё публикуется сразу и админам приходит ссылка.
 DIGEST_TEST_RUNS: int = max(0, int(os.getenv("DIGEST_TEST_RUNS", "0").strip() or "0"))

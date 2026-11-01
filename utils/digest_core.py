@@ -239,7 +239,7 @@ def validate_selection(raw_items: list, by_id: dict[int, dict], max_items: int) 
 async def select_items(rubric: Rubric, items: list[dict]) -> list[dict]:
     by_id = {it["id"]: it for it in items}
     listing = "\n".join(f"- wp_post_id: {it['id']} | заголовок: {it['title']}" for it in items)
-    raw = await _ask_claude(config.SITE_NEWS_TRIAGE_MODEL, _select_system(rubric),
+    raw = await _ask_claude(config.DIGEST_MODEL, _select_system(rubric),
                             "Записи:\n" + listing, max_tokens=2000)
     return validate_selection(parse_array(raw), by_id, rubric.max_items)
 
