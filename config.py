@@ -349,10 +349,12 @@ GOOD_NEWS_FEEDS: list[str] = [
         "https://www.rtvutrecht.nl/rss/nieuws.xml,"
         "https://www.omroepgelderland.nl/rss,"
         "https://www.rtvnoord.nl/rss,"
-        "https://www.nhnieuws.nl/rss,"
         "https://www.rijnmond.nl/rss/index.xml,"
-        "https://www.omroepwest.nl/rss/nieuws.xml,"
-        "https://www.omroepzeeland.nl/rss/index.xml",
+        "https://www.omroepwest.nl/rss/nieuws,"
+        "https://www.omroepzeeland.nl/rss/nieuws,"
+        "https://www.rtvdrenthe.nl/rss/index.xml,"
+        "https://www.omropfryslan.nl/rss/index.xml,"
+        "https://www.l1.nl/rss/index.xml",
     ).split(",") if u.strip()
 ]
 # Тестовый режим дайджестов: сколько одобренных черновиков нужно рубрике до автопубликации.
