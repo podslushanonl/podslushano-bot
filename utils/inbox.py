@@ -68,7 +68,7 @@ _MODULE_TOPIC = [
     ("handlers.allo", "allo"), ("utils.allo", "allo"),
     ("handlers.ads", "ads"), ("handlers.ad_", "ads"), ("handlers.ai_sales", "ads"), ("utils.ad_", "ads"),
     ("utils.ai_sales", "ads"), ("ad_", "ads"), ("instagram_sales_runtime", "ads"),
-    ("utils.editorial", "content"), ("handlers.content", "content"), ("utils.site_news", "content"), ("utils.weekly_digest", "content"), ("utils.digest", "content"), ("utils.daily_digest", "content"),
+    ("utils.editorial", "content"), ("handlers.content", "content"), ("utils.site_news", "content"), ("utils.weekly_digest", "content"), ("utils.digest", "content"), ("utils.daily_digest", "content"), ("utils.good_news", "content"),
     ("handlers.digest", "content"), ("handlers.spotlight", "content"), ("handlers.photo_refresh", "content"),
     ("utils.authors_web", "content"), ("handlers.guides", "content"),
     ("utils.community", "moderation"), ("utils.dm", "moderation"), ("utils.market", "board"),
