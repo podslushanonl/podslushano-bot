@@ -313,7 +313,7 @@ SITE_NEWS_FEEDS: list[str] = [
 ]
 # Сколько новостей публиковать максимум за один запуск и за сутки (по Амстердаму).
 SITE_NEWS_PER_RUN: int = _int_env("SITE_NEWS_PER_RUN", 2)
-SITE_NEWS_DAILY_MAX: int = _int_env("SITE_NEWS_DAILY_MAX", 20)
+SITE_NEWS_DAILY_MAX: int = _int_env("SITE_NEWS_DAILY_MAX", 5)   # новости закрыты от Google, на сайте — самые важные
 # Модели для новостей сайта — отдельно от остального бота, чтобы цену и качество новостей
 # можно было менять независимо. Отбор — дешёвая Haiku, текст — Sonnet.
 SITE_NEWS_TRIAGE_MODEL: str = os.getenv("SITE_NEWS_TRIAGE_MODEL", "claude-haiku-5-5")

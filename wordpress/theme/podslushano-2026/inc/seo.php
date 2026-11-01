@@ -237,38 +237,70 @@ add_action('wp_head', function () {
     }
 }, 5);
 
-/* ---------- Google News: news posts are NewsArticle, and /news-sitemap.xml lists the last two days ---------- */
+/* ---------- News stay for readers, Google gets the pages we want found ----------
+   Bot news are short retellings of NOS / NL Times. Many of them a day on a young site look like
+   aggregated content to Google and pull the whole site down, so news posts and the news rubric
+   archives are «noindex, follow» and are left out of the sitemaps. Indexed: home, practical
+   guides (Справочник), editorial articles, cities, specialists, events and the app sections. */
 function pn_is_news_post($p) {
     $arts = pn_art_cat_ids();
     return !$arts || !has_category($arts, $p);
 }
+function pn_is_news_rubric($term) {
+    return $term && !in_array((int) $term->term_id, array_map('intval', pn_art_cat_ids()), true);
+}
 add_filter('wpseo_schema_article_type', function ($type) {
     return is_singular('post') && pn_is_news_post(get_queried_object()) ? 'NewsArticle' : $type;
 });
-function pn_news_sitemap_xml() {
-    $args = ['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 1000, 'ignore_sticky_posts' => true,
-        'no_found_rows' => true, 'date_query' => [['after' => '2 days ago']]];
+add_filter('wpseo_robots', function ($robots) {
+    if (is_singular('post') && pn_is_news_post(get_queried_object())) return 'noindex, follow';
+    if ((is_category() || is_tag()) && pn_is_news_rubric(get_queried_object())) return 'noindex, follow';
+    return $robots;
+});
+// IDs of news posts for the sitemap filter (cached: the bot adds a few a day)
+function pn_news_post_ids() {
+    $ids = get_transient('pn_news_ids');
+    if ($ids !== false) return $ids;
+    $args = ['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => -1, 'fields' => 'ids', 'no_found_rows' => true];
     if ($arts = pn_art_cat_ids()) $args['category__not_in'] = $arts;
-    $xml = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9">';
-    foreach (get_posts($args) as $p) {
-        $xml .= '<url><loc>' . esc_url(get_permalink($p)) . '</loc><news:news><news:publication><news:name>podslushano.nl</news:name>'
-            . '<news:language>ru</news:language></news:publication><news:publication_date>' . esc_html(get_post_time('c', true, $p))
-            . '</news:publication_date><news:title>' . esc_html(html_entity_decode(get_the_title($p), ENT_QUOTES, 'UTF-8'))
-            . '</news:title></news:news></url>';
-    }
-    return $xml . '</urlset>';
+    $ids = array_map('intval', get_posts($args));
+    set_transient('pn_news_ids', $ids, HOUR_IN_SECONDS);
+    return $ids;
 }
-// Served by Yoast (it owns every *-sitemap.xml address), next to /pn-pages-sitemap.xml
-add_action('init', function () {
-    global $wpseo_sitemaps;
-    if (empty($wpseo_sitemaps) || !method_exists($wpseo_sitemaps, 'register_sitemap')) return;
-    $wpseo_sitemaps->register_sitemap('news', function () {
-        global $wpseo_sitemaps;
-        $wpseo_sitemaps->set_sitemap(pn_news_sitemap_xml());
-    });
-}, 20);
-add_filter('wpseo_sitemap_index', function ($x) {
-    return $x . '<sitemap><loc>' . esc_url(home_url('/news-sitemap.xml')) . '</loc></sitemap>';
+add_action('save_post_post', function () { delete_transient('pn_news_ids'); });
+add_filter('wpseo_exclude_from_sitemap_by_post_ids', function ($ids) {
+    return array_merge((array) $ids, pn_news_post_ids());
+});
+add_filter('wpseo_exclude_from_sitemap_by_term_ids', function ($ids) {
+    $keep = array_map('intval', pn_art_cat_ids());
+    $news = get_terms(['taxonomy' => ['category', 'post_tag'], 'fields' => 'ids', 'hide_empty' => false]);
+    return array_merge((array) $ids, array_values(array_diff(is_array($news) ? $news : [], $keep)));
+});
+
+/* ---------- Admin: «Новости» and «Справки» as two sections instead of one list of posts ---------- */
+add_action('admin_menu', function () {
+    remove_menu_page('edit.php');
+    add_menu_page('Новости', 'Новости', 'edit_posts', 'edit.php?pn_kind=news', '', 'dashicons-megaphone', 5);
+    add_menu_page('Справки', 'Справки', 'edit_posts', 'edit.php?pn_kind=guides', '', 'dashicons-book-alt', 6);
+    add_submenu_page('edit.php?pn_kind=guides', 'Рубрики', 'Рубрики', 'manage_categories', 'edit-tags.php?taxonomy=category');
+});
+add_action('pre_get_posts', function ($q) {
+    if (!is_admin() || !$q->is_main_query() || ($GLOBALS['pagenow'] ?? '') !== 'edit.php') return;
+    $kind = sanitize_key($_GET['pn_kind'] ?? '');
+    if (!in_array($kind, ['news', 'guides'], true) || !($arts = pn_art_cat_ids())) return;
+    $q->set($kind === 'news' ? 'category__not_in' : 'category__in', $arts);
+});
+// Keep the section highlighted in the menu and in the title
+add_filter('parent_file', function ($file) {
+    $kind = sanitize_key($_GET['pn_kind'] ?? '');
+    return in_array($kind, ['news', 'guides'], true) ? 'edit.php?pn_kind=' . $kind : $file;
+});
+add_filter('views_edit-post', function ($views) {
+    $kind = sanitize_key($_GET['pn_kind'] ?? '');
+    if (!in_array($kind, ['news', 'guides'], true)) return $views;
+    // Status links («Все», «Опубликованные»…) stay inside the chosen section
+    foreach ($views as $k => $html) $views[$k] = preg_replace('#href=([\'"])([^\'"]*edit\.php\?)#', 'href=$1$2pn_kind=' . $kind . '&amp;', $html);
+    return $views;
 });
 
 /* ---------- Practical guides: their «Частые вопросы» block as FAQPage ---------- */
