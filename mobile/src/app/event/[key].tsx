@@ -1,8 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Platform, ScrollView, Share, View } from 'react-native';
+import { Linking, Platform, ScrollView, Share, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toggleFavorite, useAuth } from '@/api/auth';
-import { SITE } from '@/api/client';
+import { BOT, SITE } from '@/api/client';
 import { useContent } from '@/api/content';
 import { dayMonth, weekday } from '@/lib/format';
 import { openRouteTo } from '@/lib/maps';
@@ -74,6 +74,12 @@ export default function EventScreen() {
           </View>
           {(e.p || []).map((t, i) => <Txt key={i} v="body" style={{ lineHeight: 25 }}>{t}</Txt>)}
           <View style={{ gap: 10 }}>
+            {/* Файл события .ics: iPhone и Android сами предлагают добавить его в календарь, разрешение не нужно */}
+            <Button title="Добавить в календарь" kind="secondary" icon="calendar" onPress={() => {
+              const url = `${BOT}/api/app/event/${encodeURIComponent(e.key)}.ics`;
+              if (Platform.OS === 'web') (globalThis as any).open(url, '_blank', 'noopener');
+              else Linking.openURL(url).catch(() => toast('Не получилось открыть календарь.', 'error'));
+            }} />
             {e.venue || e.addr ? (
               <Button title="Маршрут до площадки" kind="secondary" icon="route"
                 onPress={() => openRouteTo([e.venue, e.addr, e.city].filter(Boolean).join(', '))} />
