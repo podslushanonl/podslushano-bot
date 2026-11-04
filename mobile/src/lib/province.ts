@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSyncExternalStore } from 'react';
 import { Province, provinceById, ProvinceId } from './provinces';
+import { syncPushProvince } from './push';
 
 // Выбранная провинция хранится на устройстве: приложением можно пользоваться без входа.
 // ready — значение уже прочитано из памяти телефона (до этого не решаем, показывать ли выбор провинции).
@@ -21,6 +22,7 @@ export function setProvince(id: ProvinceId) {
   state = { id, ready: true };
   AsyncStorage.setItem(KEY, id).catch(() => {});
   emit();
+  syncPushProvince(id);
 }
 
 /** Текущая провинция (null — ещё не выбрана) и признак, что хранилище прочитано. */

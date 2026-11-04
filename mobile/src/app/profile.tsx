@@ -1,12 +1,14 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Platform, View } from 'react-native';
 import { logout, useAuth } from '@/api/auth';
 import { SITE } from '@/api/client';
 import { prettyPhone } from '@/features/auth/phone';
 import { openUrl } from '@/lib/open';
 import { useProvince } from '@/lib/province';
+import { disablePush, enablePush, PushError, pushSupported, usePushEnabled } from '@/lib/push';
 import { HAIRLINE, radius, useTheme } from '@/theme';
-import { Avatar, Button, Group, Img, PageScreen, Row, Tap, Txt, useToast } from '@/ui';
+import { Avatar, Button, Group, Img, PageScreen, Row, Tap, Toggle, Txt, useToast } from '@/ui';
 
 const SOCIAL: [any, string, string][] = [
   [require('@assets/images/social/instagram.png'), 'Instagram', 'https://www.instagram.com/podslushano.nl'],
@@ -22,6 +24,16 @@ export default function Profile() {
   const { user, favorites, ready } = useAuth();
   const { province } = useProvince();
   const events = favorites.filter((f) => f.kind === 'event');
+  const pushOn = usePushEnabled();
+  const [pushBusy, setPushBusy] = useState(false);
+  const togglePush = async (v: boolean) => {
+    setPushBusy(true);
+    try {
+      if (v) { await enablePush(province!.id); toast(`Уведомления включены: ${province!.name}`); } else { await disablePush(); toast('Уведомления выключены'); }
+    } catch (e) {
+      toast(e instanceof PushError ? e.message : 'Не получилось включить уведомления. Попробуйте ещё раз.', 'error');
+    } finally { setPushBusy(false); }
+  };
 
   return (
     <PageScreen title="Профиль">
@@ -49,6 +61,10 @@ export default function Profile() {
       <Group title="Провинция">
         <Row first icon="location" iconBg={c.accent} title={province?.name || 'Не выбрана'} sub="Афиша, места и контакт-гайд — из этой провинции"
           onPress={() => router.push('/province')} />
+        {pushSupported ? (
+          <Row icon="bell" title="Уведомления" sub={pushOn ? 'Новые события и важное в вашей провинции' : 'Выключены'} chevron={false}
+            right={<Toggle value={pushOn} onChange={togglePush} disabled={pushBusy || !province} label="Уведомления" />} />
+        ) : null}
       </Group>
 
       {user ? (

@@ -58,6 +58,14 @@
         {
           "locationWhenInUsePermission": "podslushano определяет ваш город или деревню, чтобы показывать посты соседей в радиусе 50 км в ленте «Рядом»."
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#FF5A1F",
+          "defaultChannel": "default"
+        }
       ]
     ],
     "experiments": {
