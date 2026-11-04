@@ -133,6 +133,7 @@ img{display:block;max-width:100%}
 .sosL .err{color:#ffb9a8;font-size:15px}
 .sosL .ok{padding:13px 14px;border-radius:13px;border:1px solid rgba(226,196,124,.5);background:rgba(226,196,124,.1);font-size:17px;line-height:1.4}
 .sosL .ok b{color:#e2c47c}
+.sosL .re{color:#e2c47c;font:inherit;font-size:15px;text-decoration:underline}
 .sosL .fake{display:flex;align-items:center;gap:12px;width:100%;max-width:200px;color:#c9a75a}.sosL .fake::before,.sosL .fake::after{content:"";flex:1;height:1px;background:currentColor;opacity:.7}
 .sosL .fake svg{width:15px;height:15px}
 .pst{flex:0 0 168px;scroll-snap-align:start;display:flex;flex-direction:column;gap:9px;color:var(--ink);transition:transform .45s var(--spring)}
@@ -303,13 +304,14 @@ $('#soc').innerHTML=SO.map(([k,b,v,u])=>`<a class="so glass" href="${u}" target=
   const ph=day<'2026-11-09'?'t':day<'2026-11-16'?'w':'s';let n=0,buy='';
   const flake='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9.6 3.6 12 6l2.4-2.4M9.6 20.4 12 18l2.4 2.4"/></svg>';
   const cdn=()=>{const s=Math.max(0,START-Date.now())/1000;return s?`<div class="cdn">${[[Math.floor(s/86400),'дн'],[Math.floor(s%86400/3600),'ч'],[Math.floor(s%3600/60),'мин']].map(([v,u])=>`<span><b>${v}</b><small>${u}</small></span>`).join('')}</div>`:'<p class="cap">Старт продаж сегодня</p>'};
-  const form=cta=>{const m=mem();if(m.joined)return `<p class="ok"><b>Вы в листе ожидания${m.pos?`, ваш номер ${m.pos}`:''}.</b> Письмо уже на почте, а в день старта продаж мы напишем вам первыми.</p>`;
+  const form=cta=>{const m=mem();if(m.joined)return `<p class="ok"><b>Вы в листе ожидания${m.pos?`, ваш номер ${m.pos}`:''}.</b> Письмо уже на почте, а в день старта продаж мы напишем вам первыми. <button class="re" type="button">Записать другую почту</button></p>`;
     return `<form novalidate><input type="email" required placeholder="Ваш e-mail" aria-label="Ваш e-mail" autocomplete="email"><button class="go" type="submit">${cta}</button><label><input type="checkbox" required><span>Согласен(на) получить письмо о старте продаж. Отписаться можно в один клик. <a href="${SITE}/#legal-privacy">Privacy</a></span></label><p class="err" role="alert" hidden></p></form>`};
   const draw=()=>{const eb=`<span class="eb">${ph==='t'?'podslushano.nl':'Soul of Sol × podslushano.nl'}</span>`,c=n>=10?`<p class="cnt">Уже <b>${n}</b> в листе ожидания, а свечей всего 24</p>`:'';
     box.innerHTML='<div class="cd">'+(ph==='t'?`${eb}<div class="q" aria-hidden="true">?</div><p class="h">Скоро у нас кое-что,<br>чего ещё не было</p><div class="fake">${flake}</div><p class="scr">Подсказка: её можно зажечь</p><p class="cap">Анонс — 9 ноября</p><p class="tx">Оставьте почту, и мы расскажем вам первыми.</p>${form('Узнать первыми')}`
       :ph==='w'?`${eb}<div class="box" role="img" aria-label="Подарочная коробка свечи"></div><p class="scr">Пахнет как дома</p><p class="cap">Старт продаж 16 ноября</p>${cdn()}<p class="it">Первая партия — всего 24 свечи</p>${c}${form('В лист ожидания')}`
       :`${eb}<p class="cap">Продажи открыты</p><div class="box" role="img" aria-label="Подарочная коробка свечи"></div><p class="scr">Пахнет как дома</p><p class="pr">45 €</p><p class="tx">Растительный воск · 220 г · до 40 часов, в подарочной коробке</p><p class="it">Первая партия — всего 24 свечи</p><a class="go" href="${buy||SHOP}" target="_blank" rel="noopener">Купить на soulofsol.com</a>`)+'</div>';
     box.hidden=false};
+  box.addEventListener('click',e=>{if(!e.target.closest('.re'))return;const m=mem();delete m.joined;delete m.pos;save(m);draw()});
   box.addEventListener('submit',async e=>{e.preventDefault();const f=e.target,em=f.querySelector('input[type=email]').value.trim(),ok=f.querySelector('input[type=checkbox]').checked,er=f.querySelector('.err'),b=f.querySelector('.go');
     const fail=t=>{er.textContent=t;er.hidden=false};er.hidden=true;
     if(!/^\S+@\S+\.\S+$/.test(em))return fail('Проверьте адрес почты.');if(!ok)return fail('Отметьте галочку согласия.');

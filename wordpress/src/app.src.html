@@ -1039,6 +1039,7 @@ body{background:var(--bg)}
 .sos-ck a{color:var(--au)}
 .sos-err{color:#ffb9a8;font-size:15px}
 .sos-ok{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;border:1px solid rgba(226,196,124,.5);background:rgba(226,196,124,.1);font-size:17px;line-height:1.4;text-align:left;max-width:440px}
+.sos-re{display:inline;padding:0;border:0;background:none;color:var(--au);font:inherit;font-size:15px;text-decoration:underline;cursor:pointer}
 .sos-ok .ico{width:22px;height:22px;flex:none;color:var(--au);margin-top:1px}
 .sos-hunt{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;font-size:15.5px;color:#d8cfb8}
 .sos-hunt i{display:flex;gap:4px}
@@ -4996,7 +4997,7 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preven
   const cnt=()=>`<p class="sos-cnt" data-sos-cnt ${st.count>=10?'':'hidden'}>Уже <b>${st.count}</b> в листе ожидания, а свечей всего ${C.stock}</p>`;
   const hunt=()=>{const n=lit().length;return `<p class="sos-hunt" data-sos-hunt><i>${EGGS.map((_,i)=>candle(i<n)).join('')}</i>${n>=EGGS.length?'Все пять свечей горят. Вы нашли их все!':n?`Зажжено ${n} из 5. Остальные спрятаны в разделах сайта.`:'На сайте спрятаны 5 свечей. Сможете зажечь их все?'}</p>`};
   const form=cta=>{const m=mem();
-    if(m.joined)return `<p class="sos-ok">${svg('check')}<span>Вы в листе ожидания${m.pos?`, ваш номер ${m.pos}`:''}. Письмо уже на почте, а в день старта продаж мы напишем вам первыми.</span></p>`;
+    if(m.joined)return `<p class="sos-ok">${svg('check')}<span>Вы в листе ожидания${m.pos?`, ваш номер ${m.pos}`:''}. Письмо уже на почте, а в день старта продаж мы напишем вам первыми. <button class="sos-re" type="button" data-sos-re>Записать другую почту</button></span></p>`;
     return `<form class="sos-f" novalidate><div class="sos-row"><input type="email" required placeholder="Ваш e-mail" aria-label="Ваш e-mail" autocomplete="email"><button class="sos-go" type="submit">${cta}</button></div><label class="sos-ck"><input type="checkbox" required><span>Согласен(на) получить письмо о старте продаж. Отписаться можно в один клик. <a href="#legal-privacy">Privacy</a></span></label><p class="sos-err" role="alert" hidden></p></form>`};
   const buyBtn=()=>`<a class="sos-buy" data-sos-buy href="${esc(buy())}" target="_blank" rel="noopener">Купить на soulofsol.com ${svg('ext')}</a>`;
   const DET='Растительный воск · 220 г · до 40 часов, в подарочной коробке';
@@ -5033,6 +5034,8 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preven
       setTimeout(()=>show(true),300)});
     h.appendChild(b);watch(b)});
   wrap.addEventListener('click',e=>{const b=e.target.closest('[data-sos]');if(!b)return;if(b.dataset.sos==='min')show(false);else show(true)});
+  /* ошиблись в адресе или отписались и хотят снова: форма возвращается, сервер сам скажет, если почта уже в списке */
+  document.addEventListener('click',e=>{if(!e.target.closest('[data-sos-re]'))return;const m=mem();delete m.joined;delete m.pos;save(m);drawAll()});
   document.addEventListener('submit',async e=>{const f=e.target.closest&&e.target.closest('.sos-f');if(!f)return;e.preventDefault();
     const em=f.querySelector('input[type=email]').value.trim(),ok=f.querySelector('input[type=checkbox]').checked,er=f.querySelector('.sos-err'),b=f.querySelector('.sos-go');
     const fail=t=>{er.textContent=t;er.hidden=false};er.hidden=true;
