@@ -3,19 +3,26 @@ import { View } from 'react-native';
 import { hoursLines, kindOf, placeById, PLACES_SOURCE } from '@/api/places';
 import { openRoute } from '@/lib/maps';
 import { openUrl } from '@/lib/open';
+import { toggleSavedPlace, useSavedPlaces } from '@/lib/saved';
 import { provinceById } from '@/lib/provinces';
 import { radius, useTheme } from '@/theme';
-import { Button, Empty, Group, Img, PageScreen, Row, Txt } from '@/ui';
+import { Button, Empty, Group, IconButton, Img, PageScreen, Row, Txt, useToast } from '@/ui';
 
 /** Карточка места: фото, описание, маршрут и сайт. */
 export default function PlaceScreen() {
   const { c } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const p = placeById(id);
+  const saved = useSavedPlaces();
+  const toast = useToast();
   if (!p) return <PageScreen title=""><Empty icon="pin" title="Место не найдено" /></PageScreen>;
   const prov = provinceById(p.province);
   return (
-    <PageScreen title={p.name} footer={<Button kind="accent" icon="route" title="Построить маршрут" onPress={() => openRoute(p.lat, p.lon, p.name)} />}>
+    <PageScreen title={p.name}
+      right={<IconButton icon={saved.includes(p.id) ? 'bookmarkFill' : 'bookmark'} label={saved.includes(p.id) ? 'Убрать из сохранённых' : 'Сохранить'}
+        color={saved.includes(p.id) ? c.accent : undefined}
+        onPress={() => toast(toggleSavedPlace(p.id) ? 'Место сохранено' : 'Убрано из сохранённых')} />}
+      footer={<Button kind="accent" icon="route" title="Построить маршрут" onPress={() => openRoute(p.lat, p.lon, p.name)} />}>
       {p.img ? <Img source={p.img} style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: radius.xl, backgroundColor: c.placeholder }} /> : null}
       <View style={{ gap: 8 }}>
         <Txt v="overline" tone="accent">{p.kinds.map((x) => kindOf(x).one).join(' · ')}</Txt>

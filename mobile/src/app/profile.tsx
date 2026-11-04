@@ -5,7 +5,9 @@ import { logout, useAuth } from '@/api/auth';
 import { SITE } from '@/api/client';
 import { prettyPhone } from '@/features/auth/phone';
 import { openUrl } from '@/lib/open';
+import { placeById } from '@/api/places';
 import { useProvince } from '@/lib/province';
+import { useSavedPlaces } from '@/lib/saved';
 import { disablePush, enablePush, PushError, pushSupported, usePushEnabled } from '@/lib/push';
 import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Avatar, Button, Group, Img, PageScreen, Row, Tap, Toggle, Txt, useToast } from '@/ui';
@@ -25,6 +27,7 @@ export default function Profile() {
   const { province } = useProvince();
   const events = favorites.filter((f) => f.kind === 'event');
   const pushOn = usePushEnabled();
+  const savedPlaces = useSavedPlaces().map(placeById).filter((x) => !!x);
   const [pushBusy, setPushBusy] = useState(false);
   const togglePush = async (v: boolean) => {
     setPushBusy(true);
@@ -85,6 +88,15 @@ export default function Profile() {
             </Group>
           ) : null}
         </>
+      ) : null}
+
+      {savedPlaces.length ? (
+        <Group title="Сохранённые места">
+          {savedPlaces.slice(0, 15).map((x, i) => (
+            <Row key={x!.id} first={i === 0} icon="bookmarkFill" title={x!.name} sub={x!.town || undefined}
+              onPress={() => router.push({ pathname: '/place/[id]', params: { id: x!.id } })} />
+          ))}
+        </Group>
       ) : null}
 
       <Group title="podslushano.nl">
