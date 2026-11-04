@@ -1761,6 +1761,8 @@ async def start_webserver(bot) -> web.AppRunner:
     install_afisha_site_routes(app)
     from utils.newsletter import install_routes as install_newsletter_routes
     install_newsletter_routes(app)
+    from utils.waitlist import install_routes as install_waitlist_routes
+    install_waitlist_routes(app)
     from utils.savings import install_routes as install_savings_routes
     install_savings_routes(app)
     from handlers.tax_guide import install_routes as install_tax_guide_routes

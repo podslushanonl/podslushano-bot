@@ -126,6 +126,8 @@ async def main() -> None:
     dp.include_router(am_reviews.router)
     dp.include_router(stories.router)
     dp.include_router(tax_guide.router)
+    from handlers import waitlist as waitlist_handlers
+    dp.include_router(waitlist_handlers.router)
     dp.include_router(cabinet_web.router)
     # ask_alex должен перехватывать только свой deep-link до общего /start.
     dp.include_router(anonymous_replies.router)

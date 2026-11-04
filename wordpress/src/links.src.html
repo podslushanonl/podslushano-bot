@@ -96,6 +96,21 @@ img{display:block;max-width:100%}
 /* posters */
 .rail{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding:4px 16px 14px;margin:0 -16px;scrollbar-width:none}
 .rail::-webkit-scrollbar{display:none}
+/* Свеча Soul of Sol × podslushano.nl */
+.cdlx{margin-top:14px;position:relative;display:grid;grid-template-columns:48px 1fr;gap:14px;align-items:center;padding:20px 18px 18px;border-radius:24px;background:#11281f;color:#f4ead6;border:1px solid #c9a45c;overflow:hidden;box-shadow:0 20px 40px -24px rgba(0,0,0,.6)}
+.cdlx::before{content:"";position:absolute;inset:0 0 auto 0;height:6px;background:repeating-linear-gradient(90deg,#7d1e24 0 14px,#11281f 14px 22px,#c9a45c 22px 24px,#11281f 24px 34px)}
+.cdlx .eb{font:600 10.5px var(--f);letter-spacing:.14em;text-transform:uppercase;color:#d9b86c}
+.cdlx h3{font:700 17px/1.2 var(--f);margin:4px 0 2px;color:#fff8ea}
+.cdlx .it{font-style:italic;color:#e3c77f;font-size:14px}
+.cdlx .cnt{grid-column:1/-1;font-size:13.5px;color:#f4ead6;background:rgba(201,164,92,.14);padding:8px 12px;border-radius:12px}
+.cdlx .cnt b{color:#ffd27a}
+.cdlx .acts{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap}
+.cdlx .acts a{font:700 13px var(--f);padding:10px 14px;border-radius:12px;background:var(--accent);color:#fff}
+.cdlx .acts a+a{background:rgba(255,255,255,.08);box-shadow:inset 0 0 0 1px rgba(255,255,255,.2)}
+.cdlx svg{width:44px;height:70px;overflow:visible}
+.cdlx .fl{transform-origin:20px 26px;animation:cdlFl 1.6s ease-in-out infinite}
+@keyframes cdlFl{0%,100%{transform:scale(1,1) rotate(-2deg)}30%{transform:scale(.94,1.06) rotate(2deg)}60%{transform:scale(1.04,.96) rotate(-1deg)}}
+@media (prefers-reduced-motion:reduce){.cdlx .fl{animation:none}}
 .pst{flex:0 0 168px;scroll-snap-align:start;display:flex;flex-direction:column;gap:9px;color:var(--ink);transition:transform .45s var(--spring)}
 .pst:active{transform:scale(.96)}
 .pst .pp{position:relative;display:block;aspect-ratio:3/4.2;border-radius:22px;overflow:hidden;background:#111;box-shadow:0 20px 34px -22px rgba(0,0,0,.6)}
@@ -156,6 +171,8 @@ img{display:block;max-width:100%}
     </div>
     <img class="moose" src="{{B64:../img/m-sun.webp}}" alt="Лосёнок podslushano.nl">
   </section>
+
+  <section class="cdlx in" style="--d:2" id="candle" hidden></section>
 
   <div class="sh in" style="--d:2"><h2>Партнёры</h2><span>реклама</span></div>
   <section class="spot in" style="--d:3"><div class="spot-in"><div class="slides" id="slides"></div><div class="bars" id="bars"></div></div></section>
@@ -252,6 +269,24 @@ $('#trio').innerHTML=TR.map(([t,s,u,bg,g])=>`<a class="tc glass" href="${u}" ${u
 const SO=[['instagram','b-ig','77K','https://www.instagram.com/podslushano.nl'],['telegram','b-tg','4K','https://t.me/podslushanovnl'],['facebook','b-fb','27K','https://www.facebook.com/podslushano.nl'],['tiktok','b-tt','TikTok','https://www.tiktok.com/@podslushano.nl']];
 const SL={{SLJSON}};
 $('#soc').innerHTML=SO.map(([k,b,v,u])=>`<a class="so glass" href="${u}" target="_blank" rel="noopener"><span class="bi ${b}"><svg viewBox="0 0 24 24"><path d="${SL[k]}"/></svg></span>${v}</a>`).join('');
+
+/* Свеча Soul of Sol × podslushano.nl: этапы по дате, как в баннере на сайте */
+(()=>{const box=document.getElementById('candle');if(!box)return;
+  let day;try{day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Amsterdam',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){day=new Date().toISOString().slice(0,10)}
+  if(day>'2026-12-24')return;
+  const draw=(n,buy)=>{const ph=day<'2026-11-09'?'t':day<'2026-11-15'?'w':day<'2026-11-16'||!buy?'l':'s';
+    const T={t:['podslushano.nl','Скоро у нас кое-что, чего ещё не было','Подсказка: её можно зажечь','Узнать первыми'],
+      w:['Soul of Sol × podslushano.nl','Рождественская свеча «Пахнет как дома»','Первая партия — 24 свечи','Записаться в лист ожидания'],
+      l:['Soul of Sol × podslushano.nl','Завтра старт продаж','Письмо придёт только тем, кто в списке','Записаться в лист ожидания'],
+      s:['Soul of Sol × podslushano.nl','Продажи открыты','Свеча «Пахнет как дома», 24 штуки','Купить']}[ph];
+    const href=ph==='s'?buy:SITE+'/?candle=1';
+    box.innerHTML=`<svg viewBox="0 0 40 64" aria-hidden="true"><path class="fl" d="M20 4c4 7 7 10 7 15a7 7 0 0 1-14 0c0-5 3-8 7-15z" fill="#ffc24a"/><path class="fl" d="M20 12c2 4 3 5 3 8a3 3 0 0 1-6 0c0-3 1-4 3-8z" fill="#fffbe6"/><rect x="19.2" y="25" width="1.6" height="5" rx=".8" fill="#2a1a10"/><rect x="9" y="30" width="22" height="30" rx="4" fill="#f4ead6"/><rect x="9" y="46" width="22" height="5" fill="#9c2b2b" opacity=".85"/></svg><div><span class="eb">${T[0]}</span><h3>${T[1]}</h3><p class="it">${T[2]}</p></div>`
+      +(n>=3&&ph!=='t'&&ph!=='s'?`<p class="cnt">Уже <b>${n}</b> в листе ожидания, а свечей 24</p>`:'')
+      +`<div class="acts"><a href="${href}" ${ph==='s'?'target="_blank" rel="noopener"':''}>${T[3]}</a>${ph!=='s'?'<a href="https://t.me/podslushano_nl_bot?start=wl_candle" target="_blank" rel="noopener">Через Telegram</a>':''}</div>`;
+    box.hidden=false};
+  draw(0,'');
+  fetch('https://worker-production-ad76.up.railway.app/api/waitlist/candle').then(r=>r.json()).then(j=>draw(j.count||0,j.buy||'')).catch(()=>{});
+})();
 </script>
 </body>
 </html>
