@@ -45,6 +45,10 @@ SELECT ?m ?prov ?label WHERE {
 """
 
 
+def pause() -> None:
+    time.sleep(65)  # не чаще одного запроса в минуту
+
+
 def query(classes: list[str], min_links: int) -> str:
     vals = " ".join(f"wd:{c}" for c in classes)
     return f"""
@@ -68,16 +72,26 @@ SELECT ?item ?loc ?loc2 ?nl ?en ?ru ?descRu ?coord ?site ?img ?links WHERE {{
 """
 
 
+CACHE = Path(__file__).resolve().parent / ".places-cache"   # ответы Wikidata: повторный запуск не начинает с нуля
+
+
 def sparql(q: str) -> list[dict]:
+    import hashlib
+    CACHE.mkdir(exist_ok=True)
+    cached = CACHE / (hashlib.sha1(q.encode()).hexdigest()[:16] + ".json")
+    if cached.exists():
+        return json.loads(cached.read_text())
     url = "https://query.wikidata.org/sparql?" + urllib.parse.urlencode({"query": q, "format": "json"})
-    for _ in range(6):
+    for _ in range(40):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/sparql-results+json"})
             with urllib.request.urlopen(req, timeout=90) as r:
-                return json.load(r)["results"]["bindings"]
-        except Exception as e:  # перегрузка или ограничение частоты — ждём минуту и повторяем
+                rows = json.load(r)["results"]["bindings"]
+            cached.write_text(json.dumps(rows))
+            return rows
+        except Exception as e:  # перегрузка или ограничение частоты — ждём и повторяем
             print("  повтор:", e, flush=True)
-            time.sleep(65)
+            time.sleep(180)
     raise RuntimeError("Wikidata не отвечает")
 
 
@@ -107,7 +121,6 @@ def build() -> None:
 
     places: dict[str, dict] = {}
     for kind, (classes, min_links, limit) in KINDS.items():
-        time.sleep(65)  # не чаще одного запроса в минуту
         rows = sorted(sparql(query(classes, min_links)), key=lambda r: -int(r["links"]["value"]))
         count: dict[str, int] = {}
         for r in rows:
