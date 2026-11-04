@@ -1,14 +1,17 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { useWalks, walkUrl } from '@/api/allo';
 import { EventItem } from '@/api/content';
 import { EventCard } from '@/features/feed/cards';
 import { useProvinceEvents } from '@/features/province/data';
 import { HeaderActions, ProvinceSwitch } from '@/features/province/ProvinceSwitch';
-import { monthTitle } from '@/lib/format';
+import { dayMonth, monthTitle, weekday } from '@/lib/format';
+import { openUrl } from '@/lib/open';
+import { provinceOfCity } from '@/lib/provinces';
 import { useProvince } from '@/lib/province';
-import { radius } from '@/theme';
-import { Button, ChipRow, Empty, Skeleton, TabScreen, Txt } from '@/ui';
+import { radius, useTheme } from '@/theme';
+import { Button, ChipRow, Empty, Img, Skeleton, TabScreen, Tap, Txt } from '@/ui';
 
 type When = 'all' | 'today' | 'weekend' | 'month';
 const WHEN: { key: When; title: string }[] = [
@@ -36,11 +39,15 @@ function inPeriod(e: EventItem, when: When, today: string) {
 
 /** Афиша выбранной провинции: фильтр по дате и городу, события по месяцам. */
 export default function Afisha() {
+  const { c } = useTheme();
   const { province } = useProvince();
+  const walksQ = useWalks();
   const p = province!;
   const q = useProvinceEvents(p.id);
   const [when, setWhen] = useState<When>('all');
   const [city, setCity] = useState('');
+  // Наши прогулки allo.walks в этой провинции
+  const walks = (walksQ.data || []).filter((w) => provinceOfCity(w.place) === p.id);
   const cities = useMemo(() => [...new Set(q.events.map((e) => e.city).filter(Boolean) as string[])].sort(), [q.events]);
   const shown = q.events.filter((e) => inPeriod(e, when, q.today) && (!city || e.city === city));
   const groups = useMemo(() => {
@@ -50,11 +57,36 @@ export default function Afisha() {
   }, [shown, q.today]);
 
   return (
-    <TabScreen title="Афиша" above={<ProvinceSwitch />} right={<HeaderActions />} refreshing={q.isRefetching} onRefresh={() => q.refetch()}>
+    <TabScreen title="Афиша" above={<ProvinceSwitch />} right={<HeaderActions />} refreshing={q.isRefetching} onRefresh={() => Promise.all([q.refetch(), walksQ.refetch()])}>
       <View style={{ gap: 10, marginHorizontal: -20 }}>
         <ChipRow items={WHEN} value={when} onChange={setWhen} />
         {cities.length > 1 ? <ChipRow items={[{ key: '', title: 'Все города' }, ...cities.map((x) => ({ key: x, title: x }))]} value={city} onChange={setCity} /> : null}
       </View>
+      {walks.length ? (
+        <View style={{ gap: 12 }}>
+          <Txt v="title2" accessibilityRole="header">От podslushano.nl</Txt>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
+            {walks.map((w) => {
+              const left = w.inventory?.available ?? w.capacity;
+              const day = w.starts_at.slice(0, 10);
+              return (
+                <Tap key={w.key} onPress={() => openUrl(walkUrl())} scaleTo={0.97} accessibilityLabel={`Прогулка allo.walks: ${w.title}`}
+                  style={{ width: 240, backgroundColor: c.bgElevated, borderRadius: radius.l, borderWidth: 1, borderColor: c.line, overflow: 'hidden' }}>
+                  <Img source={w.photos[0]?.url} style={{ width: '100%', height: 140, backgroundColor: c.placeholder }} />
+                  <View style={{ padding: 12, gap: 3 }}>
+                    <Txt v="overline" tone="accent">allo.walks · {weekday(day)}, {dayMonth(day)}, {w.starts_at.slice(11, 16)}</Txt>
+                    <Txt v="headline" numberOfLines={2} style={{ minHeight: 44 }}>{w.title}</Txt>
+                    <Txt v="footnote">{w.place} · {w.duration}</Txt>
+                    <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }}>
+                      {`€${(w.price_cents / 100).toFixed(2).replace('.', ',')} · ${left ? `мест: ${left}` : 'мест нет'}`}
+                    </Txt>
+                  </View>
+                </Tap>
+              );
+            })}
+          </ScrollView>
+        </View>
+      ) : null}
       {q.isLoading ? <View style={{ gap: 12 }}>{[0, 1, 2].map((i) => <Skeleton key={i} h={122} r={radius.xl} />)}</View>
         : groups.length ? groups.map(([month, list]) => (
           <View key={month} style={{ gap: 12 }}>

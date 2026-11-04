@@ -83,6 +83,10 @@ function pn_province_cities() {
         'nijkerk' => 'ge',
         'elburg' => 'ge',
         'otterlo' => 'ge',
+        'oosterbeek' => 'ge',
+        'renkum' => 'ge',
+        'ermelo' => 'ge',
+        'putten' => 'ge',
         'hogeveluwe' => 'ge',
         'utrecht' => 'ut',
         'amersfoort' => 'ut',
@@ -208,7 +212,7 @@ function pn_province_cities() {
 function pn_norm_city($s) {
     $s = mb_strtolower((string) $s, 'UTF-8');
     if (class_exists('Normalizer')) $s = preg_replace('/\p{Mn}/u', '', Normalizer::normalize($s, Normalizer::FORM_D));
-    $s = preg_replace("/^'s-/", '', $s);
+    $s = preg_replace("/^['’]s-/u", '', $s);
     return preg_replace('/[^a-z]/', '', $s);
 }
 

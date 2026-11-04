@@ -22,7 +22,7 @@ def norm(s: str) -> str:
     """Как norm() в provinces.ts: без регистра, диакритики, «'s-» и всего, кроме латинских букв."""
     s = unicodedata.normalize("NFD", s.lower())
     s = "".join(ch for ch in s if not unicodedata.combining(ch))
-    s = re.sub(r"^'s-", "", s)
+    s = re.sub(r"^['’]s-", "", s)
     return re.sub(r"[^a-z]", "", s)
 
 
@@ -62,7 +62,7 @@ function pn_province_cities() {{
 function pn_norm_city($s) {{
     $s = mb_strtolower((string) $s, 'UTF-8');
     if (class_exists('Normalizer')) $s = preg_replace('/\\p{{Mn}}/u', '', Normalizer::normalize($s, Normalizer::FORM_D));
-    $s = preg_replace("/^'s-/", '', $s);
+    $s = preg_replace("/^['’]s-/u", '', $s);
     return preg_replace('/[^a-z]/', '', $s);
 }}
 
