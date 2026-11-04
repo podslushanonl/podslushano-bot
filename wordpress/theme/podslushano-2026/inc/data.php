@@ -207,7 +207,7 @@ function pn_title($p) {
 function pn_event_item($p) {
     $id = $p->ID;
     $e = ['key' => $p->post_name, 'h' => pn_title($p)];
-    foreach (['s', 'date', 'time', 'doors', 'venue', 'addr', 'city', 'price', 'org', 'age', 'lang'] as $k) $e[$k] = pn_m($id, $k);
+    foreach (['s', 'date', 'time', 'doors', 'venue', 'addr', 'city', 'province', 'price', 'org', 'age', 'lang'] as $k) $e[$k] = pn_m($id, $k);
     $e['img'] = pn_thumb($id);
     $e['url'] = pn_m($id, 'url');
     $e['p'] = pn_paragraphs($p->post_content);
