@@ -331,8 +331,8 @@ SITE_GUIDES_MODEL: str = os.getenv("SITE_GUIDES_MODEL", "claude-sonnet-5-5")
 WEEKLY_DIGEST_ENABLED: bool = os.getenv("WEEKLY_DIGEST_ENABLED", "1").strip() != "0"
 # Ежедневный дайджест «Новости дня» (utils/daily_digest.py): каждый день 19:00 Амстердам. 0 = выключить.
 DAILY_DIGEST_ENABLED: bool = os.getenv("DAILY_DIGEST_ENABLED", "1").strip() != "0"
-# Сколько заголовков максимум в «Новости дня» (цель 5–7; ниже 3 не публикуем). Диапазон 3–10.
-DAILY_DIGEST_MAX_ITEMS: int = min(10, max(3, _int_env("DAILY_DIGEST_MAX_ITEMS", 7)))
+# Сколько заголовков в «Новости дня» (цель — ровно столько; ниже 3 не публикуем). Диапазон 3–10.
+DAILY_DIGEST_MAX_ITEMS: int = min(10, max(3, _int_env("DAILY_DIGEST_MAX_ITEMS", 10)))
 # Утренние «Хорошие новости» (utils/good_news.py): черновик Алексу в 07:30, в канал не публикуется. 0 = выключить.
 GOOD_NEWS_ENABLED: bool = os.getenv("GOOD_NEWS_ENABLED", "1").strip() != "0"
 # Дешёвая модель для «Хороших новостей» (отбор + текст в одном вызове).

@@ -17,6 +17,7 @@ import re
 import secrets
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from sqlalchemy import select
@@ -34,7 +35,22 @@ log = logging.getLogger(__name__)
 MAX_TEXT = 3800  # запас до лимита Telegram 4096
 MAX_CANDIDATES = 80
 PARALLEL_WP = 5
+EXCERPT_CHARS = 240  # выдержка для Claude: по ней видно, на какой день прогноз или событие
+SELECT_MAX_TOKENS = 3000
+AMSTERDAM = ZoneInfo("Europe/Amsterdam")
+_WEEKDAYS = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")
 _RUN_LOCK = asyncio.Lock()
+
+# Погода и погодные предупреждения: такая новость живёт один день. Если она вышла не сегодня,
+# к вечернему выпуску её день уже прошёл — отсекаем до Claude.
+WEATHER_RE = re.compile(
+    r"погод|прогноз|синоптик|метеоролог|\bKNMI\b|\bжар[аыуе]?\b|\bзно[йя]\b|дожд|ливн|снег|"
+    r"гололед|гололёд|\bгроз|шторм|ураган|\bветер|\bветр|туман|метел|похолод|потепл|заморозк|"
+    r"температур|\bград\b|code\s+(?:geel|oranje|rood)|(?:жёлт|желт|оранжев|красн)\w*\s+(?:уровень|код)",
+    re.IGNORECASE,
+)
+# Но прогноз на выходные/неделю/сезон вперёд остаётся полезным и на следующий день.
+LONG_RANGE_RE = re.compile(r"выходн|недел|следующ|месяц|сезон|\bзим|\bлет[оау]\b|весн|осен", re.IGNORECASE)
 
 
 @dataclass(frozen=True)
@@ -115,8 +131,8 @@ async def is_paused() -> bool:
 
 # --- Данные ----------------------------------------------------------------------------
 
-async def candidates(since: datetime) -> list[tuple[int, str]]:
-    """(wp_post_id, wp_link) опубликованных записей с момента since, свежие первыми."""
+async def candidates(since: datetime) -> list[tuple[int, str, datetime | None]]:
+    """(wp_post_id, wp_link, время публикации в UTC) записей с момента since, свежие первыми."""
     cutoff = since.astimezone(timezone.utc).replace(tzinfo=None)
     async with get_session() as session:
         rows = (await session.scalars(
@@ -127,7 +143,9 @@ async def candidates(since: datetime) -> list[tuple[int, str]]:
                 SiteNewsItem.created_at >= cutoff,
             ).order_by(SiteNewsItem.created_at.desc()).limit(MAX_CANDIDATES)
         )).all()
-        return [(row.wp_post_id, row.wp_link) for row in rows]
+        return [(row.wp_post_id, row.wp_link,
+                 row.created_at.replace(tzinfo=timezone.utc) if row.created_at else None)
+                for row in rows]
 
 
 def plain_title(raw: str) -> str:
@@ -136,11 +154,14 @@ def plain_title(raw: str) -> str:
     return re.sub(r"\s+", " ", html.unescape(text)).strip()
 
 
-async def load_headlines(rows: list[tuple[int, str]]) -> list[dict]:
-    """Русские заголовки из WordPress. Неопубликованные и пустые записи отбрасываются."""
+async def load_headlines(rows: list[tuple]) -> list[dict]:
+    """Русские заголовки из WordPress. Неопубликованные и пустые записи отбрасываются.
+
+    Строка — (wp_post_id, wp_link) или (wp_post_id, wp_link, время публикации).
+    """
     sem = asyncio.Semaphore(PARALLEL_WP)
 
-    async def one(post_id: int, link: str) -> dict | None:
+    async def one(post_id: int, link: str, published: datetime | None = None) -> dict | None:
         async with sem:
             data = await wp.get_post(post_id)
         if not data or data.get("status", "publish") != "publish":
@@ -148,27 +169,82 @@ async def load_headlines(rows: list[tuple[int, str]]) -> list[dict]:
         title = plain_title((data.get("title") or {}).get("rendered", ""))
         if not title or len(title) > 400:
             return None
-        return {"id": post_id, "link": link, "title": title}
+        excerpt = plain_title((data.get("excerpt") or {}).get("rendered", ""))[:EXCERPT_CHARS]
+        return {"id": post_id, "link": link, "title": title, "published": published, "excerpt": excerpt}
 
-    results = await asyncio.gather(*(one(pid, link) for pid, link in rows))
+    results = await asyncio.gather(*(one(*row) for row in rows))
     return [r for r in results if r]
+
+
+def is_stale_weather(item: dict, now: datetime) -> bool:
+    """Погодная новость, вышедшая до сегодняшнего дня (по Амстердаму): её день уже прошёл.
+    Прогнозы на выходные/неделю/сезон не трогаем."""
+    published = item.get("published")
+    if published is None or published.astimezone(AMSTERDAM).date() >= now.astimezone(AMSTERDAM).date():
+        return False
+    text = f"{item.get('title', '')} {item.get('excerpt', '')}"
+    return bool(WEATHER_RE.search(text)) and not LONG_RANGE_RE.search(item.get("title", ""))
+
+
+def drop_stale(items: list[dict], now: datetime) -> list[dict]:
+    kept = []
+    for it in items:
+        if is_stale_weather(it, now):
+            log.info("Дайджест: устаревшая погодная новость отброшена: %s", it["title"][:80])
+            continue
+        kept.append(it)
+    return kept
+
+
+def when_label(published: datetime | None, now: datetime) -> str:
+    """«сегодня 08:15», «вчера 21:40» или «пн 02.11 10:00» — по Амстердаму."""
+    if published is None:
+        return "время неизвестно"
+    local, today = published.astimezone(AMSTERDAM), now.astimezone(AMSTERDAM).date()
+    days = (today - local.date()).days
+    hhmm = local.strftime("%H:%M")
+    if days == 0:
+        return f"сегодня {hhmm}"
+    if days == 1:
+        return f"вчера ({_WEEKDAYS[local.weekday()]} {local:%d.%m}) {hhmm}"
+    return f"{_WEEKDAYS[local.weekday()]} {local:%d.%m} {hhmm}"
 
 
 # --- Отбор (Claude) и проверка ответа ----------------------------------------------------
 
 def _count_rule(rubric: Rubric) -> str:
-    """Сколько брать: для «Новости дня» — 5–max, меньше только если день тихий."""
+    """Сколько брать: для «Новости дня» — ровно max, меньше только если подходящих не хватает."""
     if rubric.key == "daily":
-        return (f"выбрать от {min(5, rubric.max_items)} до {rubric.max_items} самых важных; "
-                f"если день был тихим — меньше, но не меньше {rubric.min_items}, самые важные сверху")
+        return (f"выбрать РОВНО {rubric.max_items} самых важных, если подходящих записей хватает — "
+                f"не останавливайся раньше; если подходящих меньше {rubric.max_items}, возьми все подходящие "
+                f"(но не меньше {rubric.min_items}), самые важные сверху")
     return f"не больше {rubric.max_items}, самые важные сверху"
 
 
-def _select_system(rubric: Rubric) -> str:
+def _freshness_rule(now: datetime) -> str:
+    """Для «Новости дня»: выпуск выходит вечером, всё, что про уже прошедшее время, — мимо."""
+    local = now.astimezone(AMSTERDAM)
+    return f"""
+Сейчас {_WEEKDAYS[local.weekday()]} {local:%d.%m.%Y}, {local:%H:%M} по Амстердаму — это вечерний выпуск.
+У каждой записи указано, когда она вышла, и есть короткая выдержка. «Завтра» в записи, вышедшей вчера, —
+это СЕГОДНЯ, и к вечеру этот день уже по сути прошёл.
+
+НЕ БЕРЁМ УСТАРЕВШЕЕ к моменту выпуска:
+• прогнозы погоды, погодные предупреждения (code geel/oranje/rood), прогнозы пробок, перебоев, забастовок,
+  если они про сегодняшний день, сегодняшнее утро/день или уже прошедшее время;
+• анонсы мероприятий и акций, которые уже прошли или заканчиваются сегодня;
+• «сегодня ожидается…», «этой ночью…», «утром…» — если это утро/день уже прошли.
+БЕРЁМ, если актуально и вечером: прогнозы на завтра и дальше, на выходные и неделю, новые правила и цены,
+события с последствиями, которые продолжаются."""
+
+
+def _select_system(rubric: Rubric, now: datetime | None = None) -> str:
+    freshness = _freshness_rule(now or datetime.now(AMSTERDAM)) if rubric.key == "daily" else ""
     return f"""Ты — редактор podslushano.nl, русскоязычного медиа для жителей Нидерландов.
 Тебе дают записи сайта: wp_post_id и русский заголовок. Заголовки готовы: их НЕ меняй и НЕ пересказывай.
 
 Задача — выбрать и упорядочить записи для дайджеста «{rubric.label}»: {_count_rule(rubric)}.
+{freshness}
 
 БЕРЁМ только местные новости Нидерландов, важные для жизни здесь: цены, жильё, налоги, пособия,
 правила, транспорт, здоровье, погода и её влияние, города, общество, культура.
@@ -236,12 +312,30 @@ def validate_selection(raw_items: list, by_id: dict[int, dict], max_items: int) 
     return out
 
 
-async def select_items(rubric: Rubric, items: list[dict]) -> list[dict]:
+def listing(rubric: Rubric, items: list[dict], now: datetime) -> str:
+    if rubric.key != "daily":
+        return "\n".join(f"- wp_post_id: {it['id']} | заголовок: {it['title']}" for it in items)
+    return "\n".join(
+        f"- wp_post_id: {it['id']} | вышла: {when_label(it.get('published'), now)} | заголовок: {it['title']}"
+        + (f" | кратко: {it['excerpt']}" if it.get("excerpt") else "")
+        for it in items
+    )
+
+
+async def select_items(rubric: Rubric, items: list[dict], now: datetime | None = None) -> list[dict]:
+    now = now or datetime.now(AMSTERDAM)
     by_id = {it["id"]: it for it in items}
-    listing = "\n".join(f"- wp_post_id: {it['id']} | заголовок: {it['title']}" for it in items)
-    raw = await _ask_claude(config.DIGEST_MODEL, _select_system(rubric),
-                            "Записи:\n" + listing, max_tokens=2000)
+    raw = await _ask_claude(config.DIGEST_MODEL, _select_system(rubric, now),
+                            "Записи:\n" + listing(rubric, items, now), max_tokens=SELECT_MAX_TOKENS)
     return validate_selection(parse_array(raw), by_id, rubric.max_items)
+
+
+def fit_to_telegram(rubric: Rubric, chosen: list[dict]) -> list[dict]:
+    """Если сообщение длиннее лимита — убираем самые неважные пункты снизу, но не ниже min_items."""
+    chosen = list(chosen)
+    while len(render(rubric, chosen)) > MAX_TEXT and len(chosen) > rubric.min_items:
+        chosen.pop()
+    return chosen
 
 
 # --- Сообщение ---------------------------------------------------------------------------
@@ -302,12 +396,19 @@ async def produce(bot, rubric: Rubric, since: datetime) -> dict:
 
     Возвращает {status: posted|drafted|skipped, detail, url}. Частичный вывод не отправляется.
     """
+    now = datetime.now(AMSTERDAM)
     items = await load_headlines(await candidates(since))
+    if rubric.key == "daily":
+        items = drop_stale(items, now)
     if len(items) < rubric.min_items:
         return {"status": "skipped", "detail": f"подходящих записей {len(items)} из {rubric.min_items}", "url": None}
-    chosen = await select_items(rubric, items)
+    chosen = await select_items(rubric, items, now)
     if len(chosen) < rubric.min_items:
         return {"status": "skipped", "detail": f"Claude отобрал {len(chosen)} из {rubric.min_items}", "url": None}
+    if len(chosen) < rubric.max_items:
+        log.info("Дайджест %s: отобрано %d из %d (кандидатов %d)", rubric.key, len(chosen),
+                 rubric.max_items, len(items))
+    chosen = fit_to_telegram(rubric, chosen)
     text = render(rubric, chosen)
     if len(text) > MAX_TEXT:
         raise ValueError("дайджест длиннее лимита Telegram")
