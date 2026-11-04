@@ -1407,3 +1407,34 @@ class PulseComment(Base):
     )
     deleted: Mapped[bool] = mapped_column(Boolean, default=False)
     hidden: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class ShopOrder(Base):
+    """Заказ в магазине мерча podslushano.nl (шопперы). Товары печатает партнёр под каждый заказ.
+
+    status: new (ждёт оплаты) → paid → printing → shipped; failed — оплата не прошла; canceled — отменён.
+    items — JSON-список [{id, title, color, qty, price}], суммы в евро строками «24.95»."""
+
+    __tablename__ = "shop_orders"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    token: Mapped[str] = mapped_column(String(40), unique=True, index=True)   # для ссылки «мой заказ» без входа
+    code: Mapped[str] = mapped_column(String(12), unique=True, index=True)    # номер заказа для людей: PN-7K3QX
+    app_user_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    items: Mapped[str] = mapped_column(Text, default="[]")
+    subtotal: Mapped[str] = mapped_column(String(12), default="0.00")
+    shipping: Mapped[str] = mapped_column(String(12), default="0.00")
+    total: Mapped[str] = mapped_column(String(12), default="0.00")
+    name: Mapped[str] = mapped_column(String(120), default="")
+    email: Mapped[str] = mapped_column(String(200), default="")
+    phone: Mapped[str] = mapped_column(String(20), default="")
+    country: Mapped[str] = mapped_column(String(2), default="NL")          # NL | DE | BE
+    street: Mapped[str] = mapped_column(String(160), default="")
+    house: Mapped[str] = mapped_column(String(20), default="")
+    postcode: Mapped[str] = mapped_column(String(10), default="")
+    city: Mapped[str] = mapped_column(String(80), default="")
+    status: Mapped[str] = mapped_column(String(12), default="new", index=True)
+    payment_id: Mapped[str | None] = mapped_column(String(40), nullable=True, index=True)
+    tracking: Mapped[str] = mapped_column(String(200), default="")         # ссылка на отслеживание посылки
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
