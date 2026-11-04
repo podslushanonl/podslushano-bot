@@ -2,7 +2,7 @@
   "expo": {
     "name": "podslushano",
     "slug": "podslushanonl",
-    "version": "1.2.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "podslushano",
@@ -13,7 +13,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#FFFFFF",
+        "backgroundColor": "#FFF6EF",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
@@ -33,10 +33,12 @@
         {
           "image": "./assets/images/splash-icon.png",
           "resizeMode": "contain",
-          "backgroundColor": "#FFFFFF",
+          "backgroundColor": "#F4F5F7",
           "dark": {
-            "backgroundColor": "#121212"
-          }
+            "image": "./assets/images/splash-icon.png",
+            "backgroundColor": "#0E1014"
+          },
+          "imageWidth": 160
         }
       ],
       "expo-image",

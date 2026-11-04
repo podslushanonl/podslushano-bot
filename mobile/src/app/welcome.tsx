@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,6 +20,8 @@ export default function Welcome() {
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <ScrollView contentContainerStyle={{ paddingTop: insets.top + 48, paddingHorizontal: 24, paddingBottom: 160 + insets.bottom, gap: 32 }}>
         <View style={{ gap: 14 }}>
+          <Image source={require('../../assets/images/splash-icon.png')} style={{ width: 64, height: 64 }} accessibilityIgnoresInvertColors
+            accessible={false} />
           <Txt style={{ fontFamily: fonts.display, fontSize: 26, lineHeight: 30 }} accessibilityRole="header">
             <Txt style={{ fontFamily: fonts.display, fontSize: 26 }} tone="ink">podslushano</Txt>
             <Txt style={{ fontFamily: fonts.display, fontSize: 26 }} color={c.accent}>.nl</Txt>
