@@ -21,12 +21,12 @@ export function ProvinceSwitch() {
   );
 }
 
-/** Правая часть шапки: поиск и профиль (аватар, если вошли). */
-export function HeaderActions({ onSearch }: { onSearch?: () => void }) {
+/** Правая часть шапки: поиск по провинции и профиль (аватар, если вошли). */
+export function HeaderActions() {
   const { user } = useAuth();
   return (
     <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-      {onSearch ? <IconButton icon="search" label="Поиск" onPress={onSearch} /> : null}
+      <IconButton icon="search" label="Поиск" onPress={() => router.push('/search')} />
       {user ? (
         <Tap onPress={() => router.push('/profile')} accessibilityLabel="Профиль" scaleTo={0.92} style={{ borderRadius: 22 }}>
           <Avatar name={user.name || 'Я'} id={user.id} uri={user.avatar} size={44} />
