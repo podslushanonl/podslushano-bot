@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { logout, saveProfile, useAuth } from '@/api/auth';
 import { SITE } from '@/api/client';
@@ -157,8 +157,14 @@ export default function Settings() {
         {RULE_SECTIONS.map((s, i) => <RuleSection key={s.title} s={s} first={i === 0} color={RULE_COLORS[i % RULE_COLORS.length]} />)}
       </Group>
 
-      <Group title="podslushano">
+      <Group title="podslushano.nl">
         <Row first title="Связаться с нами" sub="Ответим за 5 рабочих дней" icon="mail" iconBg={C.blue} onPress={() => openUrl(`${SITE}/contact/`)} />
+        {/* Пожертвования через внешнюю оплату Apple и Google разрешают только некоммерческим организациям,
+            поэтому в сборках для магазинов приложений этого пункта нет, только в веб-версии */}
+        {Platform.OS === 'web' ? (
+          <Row title="Вклад в развитие" sub="Помогает оплачивать сервисы и контент" icon="heart" iconBg={C.pink}
+            onPress={() => openUrl('https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf')} />
+        ) : null}
         <Row title="Реклама и сотрудничество" icon="sparkles" iconBg={C.orange} onPress={() => openUrl(`${SITE}/business/`)} />
         <Row title="Наш Telegram-бот" sub="Новости и полезные подборки" icon="bubble" iconBg={C.tg} onPress={() => openBot()} />
         <Row title="Политика конфиденциальности" icon="shield" iconBg={C.gray} onPress={() => openUrl(`${SITE}/privacy-statement-eu/`)} />
@@ -168,6 +174,7 @@ export default function Settings() {
       {user ? (
         <Group>
           <Row first title="Выйти" icon="logout" iconBg={C.red} danger chevron={false} onPress={() => logout().then(() => toast('Вы вышли из аккаунта'))} />
+          <Row title="Удалить аккаунт" sub="Данные и публикации удалятся навсегда" icon="trash" danger onPress={() => router.push('/delete-account')} />
         </Group>
       ) : null}
 
@@ -179,6 +186,7 @@ export default function Settings() {
         ))}
       </View>
       <Txt v="footnote" center>podslushano.nl · Нидерланды изнутри</Txt>
+      <Txt v="caption" center selectable>KVK 98882317 · BTW NL005359099B74{'\n'}Karel Doormanstraat 63, 5342 TJ Oss · podslushano.nl@gmail.com</Txt>
       <CitySheet visible={picker} value={city} country={country} onPick={setCity} onClose={() => setPicker(false)} />
     </PageScreen>
   );
