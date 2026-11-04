@@ -46,17 +46,16 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "podslushano открывает фото, чтобы вы могли добавить снимок к посту, истории или объявлению.",
-          "cameraPermission": "podslushano использует камеру, чтобы вы могли снять фото или видео для поста, истории или Pulse.",
-          "microphonePermission": "podslushano использует микрофон, чтобы записать звук к вашему видео."
+          "photosPermission": "podslushano.nl открывает фото, чтобы вы могли поставить его на аватар.",
+          "cameraPermission": false,
+          "microphonePermission": false
         }
       ],
       "expo-font",
-      "expo-video",
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "podslushano определяет ваш город или деревню, чтобы показывать посты соседей в радиусе 50 км в ленте «Рядом»."
+          "locationWhenInUsePermission": "podslushano.nl определяет вашу провинцию, чтобы показывать афишу, места и контакты рядом с вами."
         }
       ],
       [

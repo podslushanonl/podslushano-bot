@@ -51,7 +51,7 @@ export function TopBar({ y, title, left, right, always, hidden }: {
   );
 }
 
-/** Крупный заголовок раздела (шрифт Unbounded) с действиями справа. */
+/** Крупный заголовок раздела (шрифт Nunito) с действиями справа. */
 export function LargeTitle({ title, sub, right, above }: { title: string; sub?: string; right?: ReactNode; above?: ReactNode }) {
   return (
     <View style={{ gap: 6 }}>

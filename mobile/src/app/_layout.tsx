@@ -10,8 +10,7 @@ import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { bootAuth, useAuth } from '@/api/auth';
-import { useRealtime } from '@/api/dm';
+import { bootAuth } from '@/api/auth';
 import { persister, queryClient } from '@/api/query';
 import { SwipeBack, WEB } from '@/features/nav/SwipeBack';
 import { pushSupported, setupNotifications } from '@/lib/push';
@@ -38,13 +37,6 @@ function useNotificationTaps() {
   }, []);
 }
 
-/** Живое соединение для сообщений — пока пользователь вошёл. */
-function Realtime() {
-  const { user } = useAuth();
-  useRealtime(user?.id ?? 0);
-  return null;
-}
-
 export default function RootLayout() {
   const scheme = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({
@@ -67,7 +59,6 @@ export default function RootLayout() {
             <ThemeProvider value={navTheme}>
               <ToastHost>
                 <StatusBar style="auto" />
-                <Realtime />
                 <Stack
                   screenOptions={{
                     headerShown: false,
@@ -85,12 +76,6 @@ export default function RootLayout() {
                   ) : children)}>
                   <Stack.Screen name="(tabs)" options={WEB ? { presentation: 'card' } : undefined} />
                   <Stack.Screen name="login" options={{ presentation: 'modal' }} />
-                  <Stack.Screen name="rules" options={{ presentation: 'modal' }} />
-                  <Stack.Screen name="new-post" options={{ presentation: 'modal' }} />
-                  <Stack.Screen name="stories/[uid]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
-                  <Stack.Screen name="story-new" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
-                  <Stack.Screen name="clips/[uid]" />
-                  <Stack.Screen name="market/new" options={{ presentation: 'modal' }} />
                 </Stack>
               </ToastHost>
             </ThemeProvider>

@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useWalks, walkUrl } from '@/api/allo';
 import { EventItem } from '@/api/content';
-import { EventCard } from '@/features/feed/cards';
+import { EventCard } from '@/features/afisha/EventCard';
 import { useProvinceEvents } from '@/features/province/data';
 import { HeaderActions, ProvinceSwitch } from '@/features/province/ProvinceSwitch';
 import { dayMonth, monthTitle, weekday } from '@/lib/format';
