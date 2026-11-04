@@ -57,6 +57,17 @@ class AppApiTests(unittest.IsolatedAsyncioTestCase):
         ok2 = await (await self.client.post("/api/app/auth/verify", json={"email": "anna@example.com", "code": code2})).json()
         self.assertEqual(ok2["user"]["id"], uid)  # тот же аккаунт, не новый
 
+    async def test_review_login_uses_fixed_code_without_email(self):
+        import config
+        with patch.object(config, "APP_REVIEW_EMAIL", "review@podslushano.nl"), patch.object(config, "APP_REVIEW_CODE", "246810"):
+            r = await self.client.post("/api/app/auth/email", json={"email": "Review@podslushano.nl"})
+            self.assertEqual(r.status, 200)
+            self.mail.assert_not_awaited()          # письмо проверяющему не отправляем
+            ok = await (await self.client.post("/api/app/auth/verify", json={"email": "review@podslushano.nl", "code": "246810"})).json()
+            self.assertTrue(ok["token"])
+            await self.client.post("/api/app/auth/email", json={"email": "anna@example.com"})
+            self.mail.assert_awaited()              # остальным код приходит как обычно
+
     async def test_attempt_limit(self):
         code = await self._code("b@example.com")
         wrong = "123456" if code != "123456" else "654321"
