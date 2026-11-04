@@ -4953,7 +4953,7 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preven
   fetch(PN_BOT+'/api/waitlist/candle').then(r=>r.json()).then(j=>{st.count=j.count||0;st.buy=j.buy||'';draw()}).catch(()=>{});
   const m=mem(),q=/[?&#]candle\b/.test(location.search+location.hash);
   open=q;draw();
-  if(!q&&!(m.ph===phase()&&m.closed)){const go=()=>{const ck=document.getElementById('ckBar');if(ck&&ck.classList.contains('on')){setTimeout(go,1500);return}show(true)};setTimeout(go,2500)}
+  if(!q&&!(m.ph===phase()&&m.closed)){const go=()=>{const ck=document.getElementById('ckBar');if(ck&&ck.classList.contains('on')){setTimeout(go,1500);return}const m2=mem();if(open||(m2.ph===phase()&&m2.closed))return;show(true)};setTimeout(go,2500)}
 })();
 
 /* ---------- boot ---------- */
