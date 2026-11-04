@@ -1438,3 +1438,19 @@ class ShopOrder(Base):
     tracking: Mapped[str] = mapped_column(String(200), default="")         # ссылка на отслеживание посылки
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
     paid_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
+class AppPushToken(Base):
+    """Устройство с приложением, которому можно слать push-уведомления (Expo push token).
+    province — выбранная в приложении провинция: уведомления приходят только по ней."""
+
+    __tablename__ = "app_push_tokens"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    token: Mapped[str] = mapped_column(String(200), unique=True, index=True)   # ExponentPushToken[...]
+    platform: Mapped[str] = mapped_column(String(10), default="")               # ios | android
+    province: Mapped[str] = mapped_column(String(2), default="", index=True)    # gr … li
+    app_user_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))

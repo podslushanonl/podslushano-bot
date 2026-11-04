@@ -727,3 +727,6 @@ def validate() -> None:
             "Не задан ни один ADMIN_IDS. Впиши в .env свой Telegram ID "
             "(узнать можно у @userinfobot)."
         )
+
+# Push-уведомления приложения (Expo). Необязательно: нужен, только если в Expo включена «Enhanced security for push».
+EXPO_ACCESS_TOKEN: str = os.getenv("EXPO_ACCESS_TOKEN", "")
