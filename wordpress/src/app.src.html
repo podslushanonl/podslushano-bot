@@ -3185,7 +3185,7 @@ if(!v)lite();else{v.muted=true;
       <div class="lsec">Полезное</div>
       <a class="lbtn" data-guidepdf href="#" target="_blank" rel="noopener"><span class="gi t-mint"><svg class="ico"><use href="#i-book"/></svg></span><span><b>Налоги и субсидии 2026</b><span>бесплатный гайд</span></span><svg class="ico muted"><use href="#i-right"/></svg></a>
       <a class="lbtn" href="https://api.numr.nl/app" target="_blank" rel="noopener"><span class="gi t-slate"><svg class="ico"><use href="#i-coin"/></svg></span><span><b>NUMR · партнёр</b><span>счета для ZZP, 14 дней бесплатно</span></span><svg class="ico muted"><use href="#i-ext"/></svg></a>
-      <a class="lbtn" href="https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf" target="_blank" rel="noopener"><span class="gi t-butter"><svg class="ico"><use href="#i-heart"/></svg></span><span><b>Поддержать проект</b><span>помогает оплачивать сервисы и контент</span></span><svg class="ico muted"><use href="#i-ext"/></svg></a>
+      <a class="lbtn" href="https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf" target="_blank" rel="noopener"><span class="gi t-butter"><svg class="ico"><use href="#i-heart"/></svg></span><span><b>Вклад в развитие</b><span>помогает оплачивать сервисы и контент</span></span><svg class="ico muted"><use href="#i-ext"/></svg></a>
       <a class="lbtn" href="#business"><span class="gi t-acc"><svg class="ico"><use href="#i-spark"/></svg></span><span><b>Для бизнеса</b><span>сотрудничество и реклама</span></span><svg class="ico muted"><use href="#i-right"/></svg></a>
       <a class="lbtn" href="#cabinet"><span class="gi t-slate"><svg class="ico"><use href="#i-card"/></svg></span><span><b>Кабинет бизнеса</b><span>ваша карточка в КонтактGuide</span></span><svg class="ico muted"><use href="#i-right"/></svg></a>
     </div>
@@ -4084,7 +4084,7 @@ const PRODUCTS=[
  {t:'Карточка в КонтактGuide',d:'Ваши услуги на сайте и в боте. Онлайн-оплата и кабинет для изменений.',p:'от €9,99 в месяц',href:'#place',bg:'linear-gradient(135deg,#E2F3E9,#AEE9CB)',ic:'user',cta:'Разместить'},
  {t:'Гайд «Налоги и субсидии 2026»',d:'Налоги, toeslagen, льготы, ZZP и изменения 2026 года в одном понятном гайде.',p:'бесплатно',href:'#',gpdf:1,bg:'linear-gradient(135deg,#E3EEFA,#A7CCFF)',ic:'book',cta:'Скачать PDF',ext:1},
  {t:'Стикерпак podslushano.nl',d:'Лосёнок и его друзья для ваших чатов в Telegram.',p:'бесплатно',href:'https://t.me/addstickers/Podslushanonl',bg:'linear-gradient(135deg,#FFEEE6,#FFB48E)',img:'deer',cta:'Добавить в Telegram',ext:1},
- {t:'Поддержать проект',d:'Помогает оплачивать сервисы и выпускать полезные материалы дальше.',p:'сумму выбираете вы',href:'https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf',bg:'linear-gradient(135deg,#EEEAFB,#D6CAFF)',ic:'heart',cta:'Поддержать',ext:1}];
+ {t:'Вклад в развитие',d:'Помогает оплачивать сервисы и выпускать полезные материалы дальше.',p:'сумму выбираете вы',href:'https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf',bg:'linear-gradient(135deg,#EEEAFB,#D6CAFF)',ic:'heart',cta:'Сделать вклад',ext:1}];
 INIT.shop=()=>{$('#shopGrid').innerHTML=PRODUCTS.map(p=>`<a class="card prod" href="${p.href}" ${p.ext?'target="_blank" rel="noopener"':''}><div class="pv" style="background:${p.bg}">${p.img==='allo'?`<img loading="lazy" decoding="async" src="{{IMG:allo-orig}}" alt="" style="width:96px;border-radius:50%;box-shadow:0 14px 30px -10px rgba(0,0,0,.4);animation:float2 6s ease-in-out infinite">`:p.img==='deer'?`<img loading="lazy" decoding="async" src="{{DEER}}" alt="Лосёнок" style="height:150px;width:auto;animation:peek 6s ease-in-out infinite;transform-origin:bottom">`:`<span class="gi" style="width:84px;height:84px;border-radius:26px;background:rgba(255,255,255,.7);display:grid;place-items:center">${svg(p.ic).replace('class="ico"','class="ico" style="width:38px;height:38px"')}</span>`}</div><div class="pb"><h3>${p.t}</h3><p class="muted" style="font-size:14px">${p.d}</p><div class="row4"><span class="price">${p.p}</span><span class="btn btn-ink btn-sm">${p.cta}${p.ext?svg('ext'):''}</span></div></div></a>`).join('')}
 
 /* ---------- WIDGET ---------- */
@@ -4210,34 +4210,34 @@ function dnProgressInit(box){
   let loading=false;
   const load=async()=>{if(loading||document.hidden||!box.isConnected)return;loading=true;
     try{const res=await fetch(window.PN_DONATIONS_URL||'/wp-json/pn/v1/donations',{cache:'no-store',credentials:'same-origin'});if(!res.ok)throw new Error('Donations unavailable');dnProgressRender(box,await res.json())}
-    catch(e){box.querySelector('[data-dn-note]').textContent=box._dnLoaded?'Обновление задерживается. Показаны последние подтверждённые данные.':'Сумма сбора временно недоступна. Попробуйте позже.';if(!box._dnLoaded){box.querySelector('[data-dn-empty]').textContent='Список поддержавших появится после загрузки данных.';box.querySelector('[data-dn-remaining]').textContent='Цель — €500'}}finally{loading=false}};
+    catch(e){box.querySelector('[data-dn-note]').textContent=box._dnLoaded?'Обновление задерживается. Показаны последние подтверждённые данные.':'Сумма сбора временно недоступна. Попробуйте позже.';if(!box._dnLoaded){box.querySelector('[data-dn-empty]').textContent='Список участников появится после загрузки данных.';box.querySelector('[data-dn-remaining]').textContent='Цель — €500'}}finally{loading=false}};
   load();homeTimers.push(setInterval(load,60000));
 }
 function donateInit(box){if(!box)return;dnTikkieInit(box);dnProgressInit(box);if(box._dnBound)return;box._dnBound=true;const st={amt:7,monthly:false};
   const draw=()=>{const b=box.querySelector('[data-dn=pay]');b.textContent=`Внести €${st.amt}${st.monthly?' в месяц':''}`};
-  box.addEventListener('click',e=>{if(e.target.closest('[data-dn-tikkie] a')&&!dnTikkieActive()){e.preventDefault();dnTikkieSync(box);toast('Эта ссылка Tikkie уже закрыта. Выберите другой способ поддержки.');return}const a=e.target.closest('[data-da]');if(a){st.amt=+a.dataset.da;box.querySelectorAll('[data-da]').forEach(x=>x.setAttribute('aria-pressed',x===a));box.querySelector('#dnOwn').value='';draw();return}
+  box.addEventListener('click',e=>{if(e.target.closest('[data-dn-tikkie] a')&&!dnTikkieActive()){e.preventDefault();dnTikkieSync(box);toast('Эта ссылка Tikkie уже закрыта. Выберите другой способ.');return}const a=e.target.closest('[data-da]');if(a){st.amt=+a.dataset.da;box.querySelectorAll('[data-da]').forEach(x=>x.setAttribute('aria-pressed',x===a));box.querySelector('#dnOwn').value='';draw();return}
     const m=e.target.closest('[data-dm]');if(m){st.monthly=m.dataset.dm==='1';box.querySelectorAll('[data-dm]').forEach(x=>x.setAttribute('aria-selected',x===m));draw();return}
     if(e.target.closest('[data-dn=pay]')){if(!(st.amt>=1)){toast('Укажите сумму от €1');return}payDonate(st)}});
   box.addEventListener('input',e=>{if(e.target.id!=='dnOwn')return;const v=Math.round(+e.target.value.replace(',','.'));st.amt=v||0;box.querySelectorAll('[data-da]').forEach(x=>x.setAttribute('aria-pressed','false'));draw()});
   const sg=box.querySelector('.seg');if(sg){sg._place=seg(sg,b=>{st.monthly=b.dataset.dm==='1';draw()});setTimeout(sg._place,30)}draw()}
 const DONATE_HTML=`<div class="card dn st" id="dnBox">
-  <div><span class="eyebrow"><span class="dot"></span>Поддержка сообщества</span><h2>Больше живых историй.<br>Больше пользы для вас</h2>
-   <p class="l">Podslushano.nl растёт благодаря людям. Помогите нам собрать €500 на работу команды и сервисы, с которыми мы делаем контент точнее и качественнее.</p>
+  <div><span class="eyebrow"><span class="dot"></span>Вклад в развитие</span><h2>Больше живых историй.<br>Больше пользы для вас</h2>
+   <p class="l">podslushano.nl растёт благодаря людям. Помогите нам собрать €500 на работу команды и сервисы, с которыми мы делаем контент точнее и качественнее.</p>
    <ul><li><span class="gi t-sky"><svg class="ico"><use href="#i-book"/></svg></span>находим источники и проверяем информацию вручную</li><li><span class="gi t-mint"><svg class="ico"><use href="#i-user"/></svg></span>готовим понятные разборы о жизни в Нидерландах</li><li><span class="gi t-acc"><svg class="ico"><use href="#i-spark"/></svg></span>оплачиваем инструменты для работы редакции</li></ul>
    <p class="dn-plan">Хотим снимать интервью с местными бизнесами и истории переехавших, выезжать на ивенты и делиться настоящими впечатлениями. Наши авторы уже готовы выходить за рамки постов — и встречаться с вами на событиях.</p>
-   <details class="dn-patron"><summary>Хотите поддержать проект?</summary><p>Нам важна и разовая, и регулярная помощь — от людей и компаний, которым нравится проект. Напишите нам, если хотите поддерживать работу команды и новые форматы.</p><a href="mailto:podslushano.nl@gmail.com?subject=Поддержка%20Podslushano.nl">Написать команде</a></details></div>
+   <details class="dn-patron"><summary>Хотите сделать вклад в развитие?</summary><p>Нам важна и разовая, и регулярная помощь — от людей и компаний, которым нравится проект. Напишите нам, если хотите регулярно вкладываться в работу команды и новые форматы.</p><a href="mailto:podslushano.nl@gmail.com?subject=Вклад%20в%20развитие%20podslushano.nl">Написать команде</a></details></div>
   <div class="dn-pay"><div class="seg" role="tablist" aria-label="Частота поддержки"><span class="pill"></span><button role="tab" aria-selected="true" data-dm="0">Один раз</button><button role="tab" aria-selected="false" data-dm="1">Каждый месяц</button></div>
    <div class="dn-amts">${[3,7,15,30].map(a=>`<button type="button" data-da="${a}" aria-pressed="${a===7}">€${a}</button>`).join('')}</div>
    <label class="dn-own"><span>€</span><input id="dnOwn" inputmode="decimal" placeholder="Другая сумма" aria-label="Другая сумма в евро"></label>
    <button class="btn btn-acc" type="button" data-dn="pay">Внести €7</button>
    <p class="hint">Спасибо, что помогаете нам делать больше</p>
-   <div class="dn-tikkie-wrap" data-dn-tikkie hidden><a class="dn-tikkie" href="https://tikkie.me/pay/vkuv3pmlccduglf8i3s0" target="_blank" rel="noopener noreferrer" aria-label="Поддержать Podslushano.nl через Tikkie"><img src="{{IMG:tikkie-logo}}" width="78" height="52" alt="" loading="lazy"><span>Поддержать через Tikkie</span></a><p class="dn-tikkie-note">Взносы через Tikkie добавляем в шкалу после подтверждения</p></div></div>
+   <div class="dn-tikkie-wrap" data-dn-tikkie hidden><a class="dn-tikkie" href="https://tikkie.me/pay/vkuv3pmlccduglf8i3s0" target="_blank" rel="noopener noreferrer" aria-label="Вклад в развитие podslushano.nl через Tikkie"><img src="{{IMG:tikkie-logo}}" width="78" height="52" alt="" loading="lazy"><span>Вклад через Tikkie</span></a><p class="dn-tikkie-note">Взносы через Tikkie добавляем в шкалу после подтверждения</p></div></div>
   <section class="dn-progress" aria-label="Сбор на работу команды и сервисы">
    <div class="dn-progress-head"><h3>На работу команды и сервисы</h3><div class="dn-totals"><span>Собрано</span><strong data-dn-raised>—</strong><span data-dn-goal>из €500</span></div></div>
    <div class="dn-track" data-dn-track role="progressbar" aria-label="Подтверждённые пожертвования" aria-valuemin="0" aria-valuemax="50000" aria-valuetext="Загружаем сумму сбора"><div class="dn-fill"></div></div>
    <div class="dn-progress-meta"><b data-dn-remaining>Загружаем сумму сбора…</b><span data-dn-percent></span></div>
-   <div class="dn-supporters-head"><h4>Спасибо за вашу поддержку</h4><span data-dn-count></span></div>
-   <ul class="dn-supporters" data-dn-supporters hidden aria-label="Последние вклады"></ul><p class="dn-supporters-empty" data-dn-empty>Загружаем список поддержавших…</p>
+   <div class="dn-supporters-head"><h4>Спасибо за ваш вклад</h4><span data-dn-count></span></div>
+   <ul class="dn-supporters" data-dn-supporters hidden aria-label="Последние вклады"></ul><p class="dn-supporters-empty" data-dn-empty>Загружаем список участников…</p>
    <p class="dn-progress-meta" data-dn-note role="status">Учитываем только подтверждённые поступления. Имена — с согласия участников.</p>
   </section></div>`;
 
