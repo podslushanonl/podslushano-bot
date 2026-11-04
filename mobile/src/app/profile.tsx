@@ -96,7 +96,7 @@ export default function Profile() {
           <Row icon="heart" title="Вклад в развитие" sub="Помогает оплачивать сервисы и контент"
             onPress={() => openUrl('https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf')} />
         ) : null}
-        <Row icon="shield" title="Политика конфиденциальности" onPress={() => openUrl(`${SITE}/privacy-statement-eu/`)} />
+        <Row icon="shield" title="Политика конфиденциальности" onPress={() => openUrl(`${SITE}/privacy-app/`)} />
         <Row icon="info" title="Условия использования" onPress={() => openUrl(`${SITE}/terms-and-conditions/`)} />
       </Group>
 

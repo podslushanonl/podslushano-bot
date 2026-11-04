@@ -61,7 +61,7 @@ podslushano.nl — приложение для русскоязычных, ко�
 
 - Сайт: https://www.podslushano.nl
 - Поддержка: https://www.podslushano.nl/contact/ (почта podslushano.nl@gmail.com)
-- Политика конфиденциальности: https://www.podslushano.nl/privacy-statement-eu/
+- Политика конфиденциальности: https://www.podslushano.nl/privacy-app/ (текст — `mobile/store/privacy-policy.md`, HTML для WordPress — `wordpress/pages/privacy-app.html`)
 - Удаление аккаунта (Google Play требует ссылку): в приложении — Профиль → Удалить аккаунт; вне приложения — письмом на podslushano.nl@gmail.com
 
 ## Конфиденциальность (App Privacy в App Store, Data safety в Google Play)

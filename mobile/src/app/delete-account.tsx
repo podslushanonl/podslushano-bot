@@ -37,7 +37,7 @@ export default function DeleteAccount() {
         <Txt v="headline">Что удалится</Txt>
         <Txt v="callout" tone="text">Имя, почта, телефон, фото, избранное, публикации, комментарии и объявления. Восстановить их будет нельзя.</Txt>
         <Txt v="headline">Что останется</Txt>
-        <Txt v="callout" tone="text">Записи об оплатах без личных данных: их требует хранить закон. Ваши сообщения у собеседников будут подписаны «Удалённый аккаунт».</Txt>
+        <Txt v="callout" tone="text">Заказы из магазина: закон требует хранить их 7 лет, но они больше не будут связаны с аккаунтом. Записи о других оплатах — без личных данных.</Txt>
       </View>
       <Field label={`Чтобы подтвердить, напишите «${WORD}»`} value={text} onChangeText={setText} autoCapitalize="none" autoCorrect={false}
         accessibilityLabel="Слово для подтверждения удаления" />

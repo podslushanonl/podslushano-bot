@@ -10,7 +10,7 @@ from aiohttp.test_utils import TestClient, TestServer
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from database.models import AppFavorite, AppUser, Base, PostLike, PostPhoto, UserPost
+from database.models import AppFavorite, AppPushToken, AppUser, Base, PostLike, PostPhoto, ShopOrder, UserPost
 from utils import app_account, app_api, newsletter
 
 
@@ -55,7 +55,9 @@ class AppAccountTests(unittest.IsolatedAsyncioTestCase):
             s.add(post)
             await s.flush()
             s.add_all([PostPhoto(post_id=post.id, idx=0, data=b"x"), PostLike(post_id=post.id, user_id=other),
-                       AppFavorite(user_id=uid, key="e1", title="Событие")])
+                       AppFavorite(user_id=uid, key="e1", title="Событие"),
+                       ShopOrder(token="t" * 24, code="PN-TEST1", app_user_id=uid, email="anna@example.com"),
+                       AppPushToken(token="ExponentPushToken[abcdefghijkl]", province="nb", app_user_id=uid)])
             await s.commit()
         h = {"Authorization": f"Bearer {token}"}
         no = await self.client.post("/api/app/me/delete", json={}, headers=h)
@@ -69,6 +71,10 @@ class AppAccountTests(unittest.IsolatedAsyncioTestCase):
             for model in (UserPost, PostPhoto, PostLike, AppFavorite):
                 self.assertEqual(await s.scalar(select(func.count()).select_from(model)), 0, model.__name__)
             self.assertIsNotNone(await s.get(AppUser, other))
+            order = await s.scalar(select(ShopOrder))
+            self.assertIsNone(order.app_user_id)   # заказ остался для бухгалтерии, но отвязан от аккаунта
+            push_row = await s.scalar(select(AppPushToken))
+            self.assertFalse(push_row.active)
         me = await self.client.get("/api/app/me", headers=h)
         self.assertEqual(me.status, 401)   # старый токен больше не пускает
         other_me = await self.client.get("/api/app/me", headers={"Authorization": f"Bearer {other_token}"})
