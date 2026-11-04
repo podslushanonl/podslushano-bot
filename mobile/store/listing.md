@@ -46,7 +46,7 @@ podslushano.nl — приложение для русскоязычных, ко�
 
 ## Ключевые слова App Store (100)
 
-нидерланды,голландия,афиша,эмигранты,BSN,DigiD,huisarts,Amsterdam,Rotterdam,Utrecht,провинции,русские
+нидерланды,голландия,афиша,эмигранты,BSN,DigiD,huisarts,Amsterdam,Rotterdam,Utrecht,провинции,русский
 
 ## Категории
 
