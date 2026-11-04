@@ -1,12 +1,11 @@
-"""Собирает базу мест для раздела «Места».
+"""Собирает базу мест для раздела «Места» из Wikidata (лицензия CC0), фото — Wikimedia Commons.
 
-Источники:
-- OpenStreetMap через Overpass API (лицензия ODbL, нужна подпись «© участники OpenStreetMap»):
-  музеи, замки и крепости, парки и природа, пляжи, мельницы, места для детей —
-  с часами работы, сайтом, телефоном и ценой, если они указаны;
-- Wikidata (CC0) для мест со ссылкой на неё: фото с Wikimedia Commons, русское название и описание.
+Для каждой из 12 провинций: музеи, замки и крепости, парки и природа, пляжи, мельницы, места для детей.
+Название — нидерландское (латиницей, как в бренд-буке), описание — русское, если оно есть в Wikidata.
 
-Название места — нидерландское, латиницей, как в бренд-буке.
+Запросы лёгкие (без рекурсии по административному делению): место → его муниципалитет или
+населённый пункт → провинция определяется по таблице муниципалитетов. Сервис Wikidata ограничивает
+частоту запросов, поэтому между ними пауза в минуту: вся сборка занимает около 8 минут.
 
 Запуск из папки mobile:  python3 tools/build_places.py
 Результат: src/data/places.json
@@ -14,6 +13,7 @@
 from __future__ import annotations
 
 import json
+import re
 import time
 import urllib.parse
 import urllib.request
@@ -21,154 +21,132 @@ from pathlib import Path
 
 OUT = Path(__file__).resolve().parents[1] / "src" / "data" / "places.json"
 UA = "podslushano-app-data/1.0 (https://www.podslushano.nl)"
-OVERPASS = [
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-]
 
 PROVINCES = {
-    "gr": "NL-GR", "fr": "NL-FR", "dr": "NL-DR", "ov": "NL-OV", "fl": "NL-FL", "ge": "NL-GE",
-    "ut": "NL-UT", "nh": "NL-NH", "zh": "NL-ZH", "ze": "NL-ZE", "nb": "NL-NB", "li": "NL-LI",
+    "gr": "Q752", "fr": "Q770", "dr": "Q772", "ov": "Q773", "fl": "Q707", "ge": "Q775",
+    "ut": "Q776", "nh": "Q701", "zh": "Q694", "ze": "Q705", "nb": "Q1101", "li": "Q1093",
 }
-LIMIT = {"museum": 60, "castle": 30, "nature": 40, "beach": 25, "windmill": 25, "kids": 30}
 
-QUERY = """[out:json][timeout:180];
-area["ISO3166-2"="{iso}"]->.a;
-(
-  nwr["tourism"="museum"]["name"](area.a);
-  nwr["historic"~"^(castle|fort)$"]["name"](area.a);
-  nwr["boundary"="national_park"]["name"](area.a);
-  nwr["leisure"~"^(park|nature_reserve)$"]["name"]["wikidata"](area.a);
-  nwr["natural"="beach"]["name"](area.a);
-  nwr["man_made"="windmill"]["name"]["wikidata"](area.a);
-  nwr["tourism"~"^(zoo|theme_park|aquarium)$"]["name"](area.a);
-  nwr["leisure"="water_park"]["name"](area.a);
-);
-out center tags;"""
+# тип места → (классы Wikidata, минимум ссылок на Википедии — отсекает совсем малоизвестное, лимит на провинцию)
+KINDS = {
+    "museum": (["Q33506", "Q207694", "Q1007870", "Q2772772", "Q588140", "Q17431399"], 1, 60),  # музеи разных видов
+    "castle": (["Q23413", "Q57821", "Q751876", "Q1785071", "Q16748868"], 1, 30),            # замки, крепости
+    "nature": (["Q46169", "Q22698", "Q167346", "Q179049", "Q473972"], 2, 40),               # нацпарки, парки, ботсады
+    "beach": (["Q40080"], 1, 25),                                                           # пляжи
+    "windmill": (["Q38720", "Q2593734", "Q1415899", "Q14954913"], 2, 25),                   # мельницы
+    "kids": (["Q43501", "Q194195", "Q2281788", "Q1144661", "Q2416723"], 1, 30),             # зоопарки, парки развлечений
+}
 
-
-def http(url: str, data: bytes | None = None, timeout: int = 200) -> bytes:
-    req = urllib.request.Request(url, data=data, headers={"User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
+MUNI_QUERY = """
+SELECT ?m ?prov ?label WHERE {
+  ?m wdt:P31 wd:Q2039348 ; wdt:P131 ?prov .
+  OPTIONAL { ?m rdfs:label ?label FILTER(LANG(?label) = "nl") }
+}
+"""
 
 
-def overpass(iso: str) -> list[dict]:
-    body = urllib.parse.urlencode({"data": QUERY.format(iso=iso)}).encode()
-    for attempt in range(6):
-        url = OVERPASS[attempt % len(OVERPASS)]
+def query(classes: list[str], min_links: int) -> str:
+    vals = " ".join(f"wd:{c}" for c in classes)
+    return f"""
+SELECT ?item ?loc ?loc2 ?nl ?en ?ru ?descRu ?coord ?site ?img ?links WHERE {{
+  VALUES ?cls {{ {vals} }}
+  ?item wdt:P31 ?cls ;
+        wdt:P17 wd:Q55 ;
+        wdt:P625 ?coord ;
+        wdt:P131 ?loc ;
+        wikibase:sitelinks ?links .
+  FILTER(?links >= {min_links})
+  FILTER NOT EXISTS {{ ?item wdt:P576 ?closed }}
+  OPTIONAL {{ ?loc wdt:P131 ?loc2 }}
+  OPTIONAL {{ ?item rdfs:label ?nl FILTER(LANG(?nl) = "nl") }}
+  OPTIONAL {{ ?item rdfs:label ?en FILTER(LANG(?en) = "en") }}
+  OPTIONAL {{ ?item rdfs:label ?ru FILTER(LANG(?ru) = "ru") }}
+  OPTIONAL {{ ?item schema:description ?descRu FILTER(LANG(?descRu) = "ru") }}
+  OPTIONAL {{ ?item wdt:P856 ?site }}
+  OPTIONAL {{ ?item wdt:P18 ?img }}
+}}
+"""
+
+
+def sparql(q: str) -> list[dict]:
+    url = "https://query.wikidata.org/sparql?" + urllib.parse.urlencode({"query": q, "format": "json"})
+    for _ in range(6):
         try:
-            return json.loads(http(url, body))["elements"]
-        except Exception as e:  # перегрузка зеркала — пробуем следующее
-            print("  повтор", url.split("/")[2], e, flush=True)
-            time.sleep(10)
-    raise RuntimeError("Overpass не отвечает")
+            req = urllib.request.Request(url, headers={"User-Agent": UA, "Accept": "application/sparql-results+json"})
+            with urllib.request.urlopen(req, timeout=90) as r:
+                return json.load(r)["results"]["bindings"]
+        except Exception as e:  # перегрузка или ограничение частоты — ждём минуту и повторяем
+            print("  повтор:", e, flush=True)
+            time.sleep(65)
+    raise RuntimeError("Wikidata не отвечает")
 
 
-def kind_of(t: dict) -> str | None:
-    if t.get("tourism") in ("zoo", "theme_park", "aquarium") or t.get("leisure") == "water_park":
-        return "kids"
-    if t.get("tourism") == "museum":
-        return "museum"
-    if t.get("historic") in ("castle", "fort"):
-        return "castle"
-    if t.get("man_made") == "windmill":
-        return "windmill"
-    if t.get("natural") == "beach":
-        return "beach"
-    if t.get("boundary") == "national_park" or t.get("leisure") in ("park", "nature_reserve"):
-        return "nature"
-    return None
+def qid(v: dict | None) -> str:
+    return v["value"].rsplit("/", 1)[-1] if v else ""
 
 
-def score(t: dict) -> int:
-    """Чем больше о месте известно, тем оно заметнее: выше в списке."""
-    return (5 * bool(t.get("wikidata")) + 3 * bool(t.get("wikipedia")) + 2 * bool(t.get("website") or t.get("contact:website"))
-            + 2 * bool(t.get("opening_hours")) + bool(t.get("image") or t.get("wikimedia_commons")))
+def point(wkt: str) -> tuple[float, float]:
+    lon, lat = re.findall(r"[-\d.]+", wkt)[:2]
+    return round(float(lat), 5), round(float(lon), 5)
 
 
-def commons(file: str) -> str:
-    name = file.removeprefix("File:").removeprefix("Файл:")
-    return "https://commons.wikimedia.org/wiki/Special:FilePath/" + urllib.parse.quote(name.replace(" ", "_")) + "?width=800"
-
-
-def enrich(places: list[dict]) -> None:
-    """Фото, русское название и описание из Wikidata — пачками по 50 мест."""
-    ids = [p["wd"] for p in places if p["wd"]]
-    info: dict[str, dict] = {}
-    for i in range(0, len(ids), 50):
-        chunk = "|".join(ids[i:i + 50])
-        url = ("https://www.wikidata.org/w/api.php?action=wbgetentities&props=claims|labels|descriptions"
-               f"&languages=ru&format=json&ids={chunk}")
-        for _ in range(4):
-            try:
-                info.update(json.loads(http(url, timeout=60)).get("entities", {}))
-                break
-            except Exception as e:
-                print("  повтор wikidata", e, flush=True)
-                time.sleep(15)
-        time.sleep(1)
-    for p in places:
-        e = info.get(p["wd"]) or {}
-        p["ru"] = e.get("labels", {}).get("ru", {}).get("value", "")
-        p["desc"] = e.get("descriptions", {}).get("ru", {}).get("value", "")
-        img = (e.get("claims", {}).get("P18") or [{}])[0].get("mainsnak", {}).get("datavalue", {}).get("value")
-        if img and not p["img"]:
-            p["img"] = commons(img)
+def image(url: str | None) -> str:
+    if not url:
+        return ""
+    name = urllib.parse.unquote(url.rsplit("/", 1)[-1])
+    return "https://commons.wikimedia.org/wiki/Special:FilePath/" + urllib.parse.quote(name) + "?width=800"
 
 
 def build() -> None:
-    places: list[dict] = []
-    seen: set[str] = set()
-    for pid, iso in PROVINCES.items():
-        elements = overpass(iso)
-        by_kind: dict[str, list[dict]] = {}
-        for el in elements:
-            t = el.get("tags", {})
-            k = kind_of(t)
-            name = t.get("name", "").strip()
-            if not k or not name:
+    by_q = {q: pid for pid, q in PROVINCES.items()}
+    muni: dict[str, tuple[str, str]] = {}   # муниципалитет → (провинция, название)
+    for r in sparql(MUNI_QUERY):
+        if qid(r["prov"]) in by_q:
+            muni[qid(r["m"])] = (by_q[qid(r["prov"])], r.get("label", {}).get("value", ""))
+    print("муниципалитетов:", len(muni), flush=True)
+
+    places: dict[str, dict] = {}
+    for kind, (classes, min_links, limit) in KINDS.items():
+        time.sleep(65)  # не чаще одного запроса в минуту
+        rows = sorted(sparql(query(classes, min_links)), key=lambda r: -int(r["links"]["value"]))
+        count: dict[str, int] = {}
+        for r in rows:
+            q = qid(r["item"])
+            loc, loc2 = qid(r.get("loc")), qid(r.get("loc2"))
+            hit = muni.get(loc) or muni.get(loc2) or ((by_q[loc], "") if loc in by_q else None)
+            if not hit:
                 continue
-            # у замков и крепостей много мелких руин и частных усадеб: оставляем известные или с сайтом
-            if k == "castle" and not (t.get("wikidata") or t.get("website") or t.get("tourism")):
+            pid, town = hit
+            name = (r.get("nl") or r.get("en") or {}).get("value", "")
+            if not name or re.fullmatch(r"Q\d+", name):
                 continue
-            key = (t.get("wikidata") or f"{name}|{k}").lower()
-            if key in seen:
+            if q in places:   # дубль строки (другое фото, метка) или то же место другого типа — дополняем
+                p = places[q]
+                if kind not in p["kinds"]:
+                    p["kinds"].append(kind)
+                for f, k in (("site", "site"), ("desc", "descRu"), ("ru", "ru")):
+                    if not p[f] and r.get(k):
+                        p[f] = r[k]["value"]
+                if not p["img"] and r.get("img"):
+                    p["img"] = image(r["img"]["value"])
                 continue
-            seen.add(key)
-            lat = el.get("lat") or el.get("center", {}).get("lat")
-            lon = el.get("lon") or el.get("center", {}).get("lon")
-            if lat is None:
+            if count.get(pid, 0) >= limit:
                 continue
-            img = t.get("image", "") if t.get("image", "").startswith("https://") else ""
-            if not img and t.get("wikimedia_commons", "").startswith("File:"):
-                img = commons(t["wikimedia_commons"])
-            by_kind.setdefault(k, []).append({
-                "id": f"{el['type'][0]}{el['id']}", "name": name, "ru": "", "desc": "", "kinds": [k], "province": pid,
-                "town": t.get("addr:city", ""), "street": " ".join(x for x in (t.get("addr:street", ""), t.get("addr:housenumber", "")) if x),
-                "lat": round(float(lat), 5), "lon": round(float(lon), 5),
-                "site": t.get("website") or t.get("contact:website") or "", "phone": t.get("phone") or t.get("contact:phone") or "",
-                "hours": t.get("opening_hours", ""), "fee": t.get("charge") or ("бесплатно" if t.get("fee") == "no" else ""),
-                "img": img, "wd": t.get("wikidata", ""), "rank": score(t),
-            })
-        counts = {}
-        for k, lst in by_kind.items():
-            lst.sort(key=lambda p: -p["rank"])
-            places += lst[:LIMIT[k]]
-            counts[k] = min(len(lst), LIMIT[k])
-        print(pid, "объектов:", len(elements), "взято:", counts, flush=True)
-        time.sleep(5)
-    enrich(places)
-    for p in places:
-        p["rank"] += 3 * bool(p["img"])
-        del p["wd"]
-    places.sort(key=lambda p: (p["province"], -p["rank"]))
+            lat, lon = point(r["coord"]["value"])
+            places[q] = {
+                "id": q, "name": name, "ru": r.get("ru", {}).get("value", ""), "desc": r.get("descRu", {}).get("value", ""),
+                "kinds": [kind], "province": pid, "town": town, "street": "", "lat": lat, "lon": lon,
+                "site": r.get("site", {}).get("value", ""), "phone": "", "hours": "", "fee": "",
+                "img": image(r.get("img", {}).get("value")), "rank": int(r["links"]["value"]),
+            }
+            count[pid] = count.get(pid, 0) + 1
+        print(kind, "строк:", len(rows), "по провинциям:", dict(sorted(count.items())), flush=True)
+
+    data = sorted(places.values(), key=lambda p: (p["province"], -(p["rank"] + 5 * bool(p["img"]))))
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps({"source": "© участники OpenStreetMap (ODbL), Wikidata, фото Wikimedia Commons",
-                               "built": time.strftime("%Y-%m-%d"), "places": places}, ensure_ascii=False, separators=(",", ":")))
-    print("всего мест:", len(places), "с фото:", sum(bool(p["img"]) for p in places),
-          "с часами:", sum(bool(p["hours"]) for p in places), "файл:", round(OUT.stat().st_size / 1024), "КБ")
+    OUT.write_text(json.dumps({"source": "Wikidata (CC0), фото Wikimedia Commons", "built": time.strftime("%Y-%m-%d"),
+                               "places": data}, ensure_ascii=False, separators=(",", ":")))
+    print("всего мест:", len(data), "с фото:", sum(bool(p["img"]) for p in data), "файл:", round(OUT.stat().st_size / 1024), "КБ")
 
 
 if __name__ == "__main__":
