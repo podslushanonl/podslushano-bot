@@ -19,7 +19,7 @@ const I = {
   person: ['person.crop.circle', 'account_circle'], personFill: ['person.crop.circle.fill', 'account_circle'],
   search: ['magnifyingglass', 'search'],
   bell: ['bell', 'notifications'],
-  plus: ['plus', 'add'],
+  plus: ['plus', 'add'], minus: ['minus', 'remove'],
   close: ['xmark', 'close'],
   back: ['chevron.left', 'arrow_back_ios_new'],
   chevron: ['chevron.right', 'chevron_right'],
