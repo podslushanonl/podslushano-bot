@@ -89,5 +89,22 @@ class ShopTests(unittest.IsolatedAsyncioTestCase):
             self.assertIn("14 дней", html_body)
 
 
+    async def test_admin_status_flow(self):
+        r = await (await self.client.post("/api/shop/order", json=ORDER)).json()
+        code = r["code"]
+        o, err = await shop.set_status(code, "printing")
+        self.assertIn("Нельзя", err)                       # неоплаченный заказ нельзя передать в печать
+        with patch.object(shop, "_after_paid", AsyncMock()):
+            await shop.on_payment(None, "tr_1", {"status": "paid", "metadata": {"token": r["token"]}})
+        o, err = await shop.set_status(code.lower(), "printing")
+        self.assertEqual((o.status, err), ("printing", ""))
+        o, err = await shop.set_status(code, "shipped", "postnl.nl/track")
+        self.assertIn("https://", err)
+        o, err = await shop.set_status(code, "shipped", "https://jouw.postnl.nl/track/3S123")
+        self.assertEqual(o.status, "shipped")
+        subject, body, _ = shop._shipped_email(o)
+        self.assertIn(code, subject)
+        self.assertIn("https://jouw.postnl.nl/track/3S123", body)
+
 if __name__ == "__main__":
     unittest.main()

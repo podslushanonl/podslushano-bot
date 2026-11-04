@@ -293,3 +293,92 @@ def install_routes(app: web.Application) -> None:
     app.router.add_post("/api/shop/order", create_order)
     app.router.add_get(r"/api/shop/order/{token:[A-Za-z0-9_\-]{16,64}}", get_order)
     app.router.add_get("/shop/return", return_page)
+
+
+# ---------------------------------------------------------------- управление заказами в боте
+
+from aiogram import F, Router  # noqa: E402
+from aiogram.enums import ChatType  # noqa: E402
+from aiogram.filters import Command, CommandObject  # noqa: E402
+from aiogram.types import Message  # noqa: E402
+
+router = Router()
+router.message.filter(F.chat.type == ChatType.PRIVATE, F.from_user.id.in_(config.ADMIN_IDS))
+
+ORDER_HELP = ("Заказы магазина:\n"
+              "/orders — открытые заказы (оплачены, в печати)\n"
+              "/order PN-XXXXX — показать заказ\n"
+              "/order PN-XXXXX printing — передан в печать\n"
+              "/order PN-XXXXX shipped https://ссылка-на-отслеживание — отправлен, покупателю уйдёт письмо\n"
+              "/order PN-XXXXX canceled — отменён (деньги возвращаются в Mollie вручную)")
+
+
+def admin_order_text(o: ShopOrder) -> str:
+    items = "\n".join(f"• {i['title']}{' · ' + i['color'] if i.get('color') else ''} × {i['qty']}" for i in json.loads(o.items or "[]"))
+    return (f"<b>{html.escape(o.code)}</b> · {STATUS_RU.get(o.status, o.status)} · €{html.escape(o.total)}\n{html.escape(items)}\n\n"
+            f"{html.escape(o.name)}\n{html.escape(o.street)} {html.escape(o.house)}, {html.escape(o.postcode)} {html.escape(o.city)}, "
+            f"{COUNTRIES.get(o.country, o.country)}\n{html.escape(o.email)} {html.escape(o.phone)}"
+            + (f"\nОтслеживание: {html.escape(o.tracking)}" if o.tracking else ""))
+
+
+async def set_status(code: str, status: str, tracking: str = "") -> tuple[ShopOrder | None, str]:
+    """Меняет статус оплаченного заказа. Возвращает (заказ, ошибка)."""
+    allowed = {"paid": {"printing", "shipped", "canceled"}, "printing": {"shipped", "canceled"}, "shipped": {"shipped"}}
+    async with get_session() as session:
+        o = await session.scalar(select(ShopOrder).where(ShopOrder.code == code.upper()))
+        if not o:
+            return None, "Заказ не найден."
+        if status not in allowed.get(o.status, set()):
+            return None, f"Нельзя перевести заказ из статуса «{STATUS_RU.get(o.status, o.status)}» в «{STATUS_RU.get(status, status)}»."
+        if status == "shipped":
+            if not tracking.startswith("https://"):
+                return None, "Для «отправлен» нужна ссылка на отслеживание, начинается с https://"
+            o.tracking = tracking[:200]
+        o.status = status
+        await session.commit()
+        return o, ""
+
+
+def _shipped_email(o: ShopOrder) -> tuple[str, str, str]:
+    from utils.email_brand import esc, p, render_email, small, text_version
+    body = p(f"Привет, {esc(o.name.split()[0])}! Заказ {esc(o.code)} отправлен.") + small(
+        "Посылка обычно идёт 1–3 рабочих дня по Нидерландам и 2–5 дней в Германию и Бельгию.")
+    html_body = render_email(eyebrow="Магазин podslushano.nl", title="Заказ в пути", preheader=f"{o.code} отправлен",
+                             body=body, cta=("Отследить посылку", o.tracking),
+                             reason="Это письмо о вашем заказе в магазине podslushano.nl.")
+    return f"Заказ {o.code} отправлен", html_body, text_version("Заказ в пути", [f"Заказ {o.code} отправлен."], ("Отследить посылку", o.tracking))
+
+
+@router.message(Command("orders"))
+async def orders_command(message: Message) -> None:
+    async with get_session() as session:
+        rows = list(await session.scalars(select(ShopOrder).where(ShopOrder.status.in_(("paid", "printing")))
+                                          .order_by(ShopOrder.paid_at)))
+    if not rows:
+        await message.answer("Открытых заказов нет.\n\n" + ORDER_HELP)
+        return
+    await message.answer("\n\n".join(admin_order_text(o) for o in rows[:20]), parse_mode="HTML")
+
+
+@router.message(Command("order"))
+async def order_command(message: Message, command: CommandObject) -> None:
+    parts = (command.args or "").split()
+    if not parts:
+        await message.answer(ORDER_HELP)
+        return
+    code = parts[0].upper()
+    if len(parts) == 1:
+        async with get_session() as session:
+            o = await session.scalar(select(ShopOrder).where(ShopOrder.code == code))
+        await message.answer(admin_order_text(o) if o else "Заказ не найден.", parse_mode="HTML")
+        return
+    o, error = await set_status(code, parts[1].lower(), parts[2] if len(parts) > 2 else "")
+    if error:
+        await message.answer(error)
+        return
+    if o.status == "shipped":
+        from utils.invoices import send_email_message
+        ok, _ = await send_email_message(o.email, *_shipped_email(o))
+        await message.answer(f"{o.code}: отправлен." + (" Покупателю ушло письмо со ссылкой." if ok else " Письмо не отправилось, напишите покупателю сами."))
+    else:
+        await message.answer(f"{o.code}: {STATUS_RU.get(o.status, o.status)}.")
