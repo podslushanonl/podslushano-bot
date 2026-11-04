@@ -1004,88 +1004,89 @@ body{background:var(--bg)}
 @font-face{font-family:"PN Cormorant";src:url({{FONT:cgi-lat}}) format("woff2");font-weight:400;font-style:italic;font-display:swap;unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
 @font-face{font-family:"PN Vibes";src:url({{FONT:gv-cyr}}) format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116}
 @font-face{font-family:"PN Vibes";src:url({{FONT:gv-lat}}) format("woff2");font-weight:400;font-style:normal;font-display:swap;unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}
-.sos{--g:#113021;--au:#e2c47c;--au2:#c9a75a;--cr:#f4ecda;font-family:"PN Cormorant",Georgia,serif;color:var(--cr)}
-.sos p,.sos h2{margin:0}
-.sos-tt{background:#2a3a2c url({{IMG:cdl-tartan}}) 0 0/170px 170px repeat}
-.sos-card{position:relative;background:var(--g);border:1.5px solid var(--au2);border-radius:22px;box-shadow:12px 14px 0 rgba(5,14,9,.35)}
-.sos-card::after{content:"";position:absolute;inset:7px;border:1px solid rgba(226,196,124,.5);border-radius:16px;pointer-events:none}
-.sos-card>*{position:relative;z-index:1}
-.sos-eb{font-weight:500;font-size:14px;letter-spacing:.3em;color:var(--au)}
-.sos-cap{font-weight:500;font-size:13.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--au)}
-.sos .sos-h{font-family:"PN Cormorant",Georgia,serif!important;font-weight:500;font-size:clamp(25px,2.7vw,34px);line-height:1.18;letter-spacing:0;color:#fbf5e8;margin:0}
-.sos .sos-scr{font-family:"PN Vibes","PN Cormorant",cursive!important;font-weight:400;margin:0;color:var(--au);font-size:clamp(42px,5.2vw,66px);line-height:1.08;letter-spacing:0}
-.sos-tx{font-size:clamp(17px,1.5vw,19px);line-height:1.45;color:#e9e0cb}
-.sos-it{font-style:italic;font-size:clamp(18px,1.7vw,21px);color:var(--au)}
-.sos-div{display:flex;align-items:center;gap:12px;color:var(--au2);width:100%;max-width:320px}
-.sos-div::before,.sos-div::after{content:"";flex:1;max-width:110px;height:1px;background:currentColor;opacity:.7}
-.sos-div svg{width:16px;height:16px}
-.sos-q{width:120px;height:120px;border-radius:50%;border:1.5px solid var(--au2);display:grid;place-items:center;font-size:76px;line-height:1;color:var(--au);font-weight:500}
-.sos-pr{display:flex;align-items:center;gap:16px;color:var(--au);font-size:40px;font-weight:500}
-.sos-pr::before,.sos-pr::after{content:"";width:60px;height:1px;background:var(--au2)}
-.sos-cd{display:flex;gap:8px;justify-content:center}
-.sos-cd span{min-width:64px;padding:8px 6px 6px;border:1px solid rgba(226,196,124,.55);border-radius:12px;text-align:center;background:rgba(0,0,0,.14)}
-.sos-cd b{display:block;font-size:30px;font-weight:500;line-height:1;color:var(--au);font-variant-numeric:lining-nums tabular-nums}
-.sos-cd small{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#cfc4a8}
-.sos-cnt{font-size:16px;color:#e9e0cb}.sos-cnt b{color:var(--au);font-weight:600}
-.sos-f{display:grid;gap:10px;width:100%;max-width:440px}
-.sos-row{display:flex;gap:8px}
-.sos-f input[type=email]{flex:1;min-width:0;height:50px;border-radius:12px;border:1px solid var(--au2);background:#f6eedb;color:#1b2a20;padding:0 14px;font:500 16px "PN Cormorant",Georgia,serif}
-.sos-f input[type=email]::placeholder{color:#6f7a6c}
-.sos-go,.sos-buy{height:50px;padding:0 20px;border:0;border-radius:12px;background:linear-gradient(180deg,#e6c977,#cfa953);color:#13281c;font:600 14px "PN Cormorant",Georgia,serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;transition:transform .25s var(--ease),filter .25s}
-.sos-go:hover,.sos-buy:hover{filter:brightness(1.06);transform:translateY(-1px)}
-.sos-go:disabled{opacity:.6;cursor:wait}
-.sos-ck{display:flex;gap:9px;align-items:flex-start;font-size:14.5px;line-height:1.35;color:#d8cfb8;text-align:left;cursor:pointer}
-.sos-ck input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:#cfa953}
-.sos-ck a{color:var(--au)}
-.sos-err{color:#ffb9a8;font-size:15px}
-.sos-ok{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;border:1px solid rgba(226,196,124,.5);background:rgba(226,196,124,.1);font-size:17px;line-height:1.4;text-align:left;max-width:440px}
-.sos-re{display:inline;padding:0;border:0;background:none;color:var(--au);font:inherit;font-size:15px;text-decoration:underline;cursor:pointer}
-.sos-ok .ico{width:22px;height:22px;flex:none;color:var(--au);margin-top:1px}
-.sos-hunt{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;font-size:15.5px;color:#d8cfb8}
-.sos-hunt i{display:flex;gap:4px}
+.cnd{--g:#113021;--au:#e2c47c;--au2:#c9a75a;--cr:#f4ecda;font-family:"PN Cormorant",Georgia,serif;color:var(--cr)}
+.cnd p,.cnd h2{margin:0}
+.cnd-tt{background:#2a3a2c url({{IMG:cdl-tartan}}) 0 0/170px 170px repeat}
+.cnd-card{position:relative;background:var(--g);border:1.5px solid var(--au2);border-radius:22px;box-shadow:12px 14px 0 rgba(5,14,9,.35)}
+.cnd-card::after{content:"";position:absolute;inset:7px;border:1px solid rgba(226,196,124,.5);border-radius:16px;pointer-events:none}
+.cnd-card>*{position:relative;z-index:1}
+.cnd-eb{font-weight:500;font-size:14px;letter-spacing:.3em;color:var(--au)}
+.cnd-cap{font-weight:500;font-size:13.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--au)}
+.cnd .cnd-h{font-family:"PN Cormorant",Georgia,serif!important;font-weight:500;font-size:clamp(25px,2.7vw,34px);line-height:1.18;letter-spacing:0;color:#fbf5e8;margin:0}
+.cnd .cnd-scr{font-family:"PN Vibes","PN Cormorant",cursive!important;font-weight:400;margin:0;color:var(--au);font-size:clamp(42px,5.2vw,66px);line-height:1.08;letter-spacing:0}
+.cnd-tx{font-size:clamp(17px,1.5vw,19px);line-height:1.45;color:#e9e0cb}
+.cnd-it{font-style:italic;font-size:clamp(18px,1.7vw,21px);color:var(--au)}
+.cnd-div{display:flex;align-items:center;gap:12px;color:var(--au2);width:100%;max-width:320px}
+.cnd-div::before,.cnd-div::after{content:"";flex:1;max-width:110px;height:1px;background:currentColor;opacity:.7}
+.cnd-div svg{width:16px;height:16px}
+.cnd-q{width:120px;height:120px;border-radius:50%;border:1.5px solid var(--au2);display:grid;place-items:center;font-size:76px;line-height:1;color:var(--au);font-weight:500}
+.cnd-pr{display:flex;align-items:center;gap:16px;color:var(--au);font-size:40px;font-weight:500}
+.cnd-pr::before,.cnd-pr::after{content:"";width:60px;height:1px;background:var(--au2)}
+.cnd-cd{display:flex;gap:8px;justify-content:center}
+.cnd-cd span{min-width:64px;padding:8px 6px 6px;border:1px solid rgba(226,196,124,.55);border-radius:12px;text-align:center;background:rgba(0,0,0,.14)}
+.cnd-cd b{display:block;font-size:30px;font-weight:500;line-height:1;color:var(--au);font-variant-numeric:lining-nums tabular-nums}
+.cnd-cd small{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#cfc4a8}
+.cnd-cnt{font-size:16px;color:#e9e0cb}.cnd-cnt b{color:var(--au);font-weight:600}
+.cnd-f{display:grid;gap:10px;width:100%;max-width:440px}
+.cnd-row{display:flex;gap:8px}
+.cnd-f input[type=email]{flex:1;min-width:0;height:50px;border-radius:12px;border:1px solid var(--au2);background:#f6eedb;color:#1b2a20;padding:0 14px;font:500 16px "PN Cormorant",Georgia,serif}
+.cnd-f input[type=email]::placeholder{color:#6f7a6c}
+.cnd-go,.cnd-buy{height:50px;padding:0 20px;border:0;border-radius:12px;background:linear-gradient(180deg,#e6c977,#cfa953);color:#13281c;font:600 14px "PN Cormorant",Georgia,serif;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;transition:transform .25s var(--ease),filter .25s}
+.cnd-go:hover,.cnd-buy:hover{filter:brightness(1.06);transform:translateY(-1px)}
+.cnd-go:disabled{opacity:.6;cursor:wait}
+.cnd-ck{display:flex;gap:9px;align-items:flex-start;font-size:14.5px;line-height:1.35;color:#d8cfb8;text-align:left;cursor:pointer}
+.cnd-ck input{width:18px;height:18px;margin:1px 0 0;flex:none;accent-color:#cfa953}
+.cnd-ck a{color:var(--au)}
+.cnd-err{color:#ffb9a8;font-size:15px}
+.cnd-ok{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:14px;border:1px solid rgba(226,196,124,.5);background:rgba(226,196,124,.1);font-size:17px;line-height:1.4;text-align:left;max-width:440px}
+.cnd-re{display:inline;padding:0;border:0;background:none;color:var(--au);font:inherit;font-size:15px;text-decoration:underline;cursor:pointer}
+.cnd-ok .ico{width:22px;height:22px;flex:none;color:var(--au);margin-top:1px}
+.cnd-hunt{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;font-size:15.5px;color:#d8cfb8}
+.cnd-hunt i{display:flex;gap:10px;align-items:flex-end}
 /* свеча: кремовый столбик с клетчатой лентой, фитиль, пламя */
-.sos-c{position:relative;display:inline-block;width:var(--w,14px);height:calc(var(--w,14px)*2.3);vertical-align:-.15em}
-.sos-c::before{content:"";position:absolute;left:0;right:0;bottom:0;height:62%;border-radius:2px 2px 3px 3px;background:linear-gradient(90deg,#e7dcc2,#fbf5e6 45%,#ddd0b2);box-shadow:inset 0 calc(var(--w,14px)*-.55) 0 -1px transparent}
-.sos-c::after{content:"";position:absolute;left:0;right:0;bottom:16%;height:16%;background:url({{IMG:cdl-tartan}}) 0 0/60px 60px}
-.sos-c .wk{position:absolute;left:50%;bottom:60%;width:1.5px;height:10%;margin-left:-.75px;background:#2b1d12;border-radius:1px}
-.sos-c .fl{position:absolute;left:50%;bottom:66%;width:46%;height:34%;margin-left:-23%;border-radius:50% 50% 50% 50%/62% 62% 38% 38%;background:radial-gradient(circle at 50% 72%,#fffbe8 0 22%,#ffd667 46%,#ff9a2e 78%,rgba(255,120,30,0) 100%);transform-origin:50% 92%;opacity:0;transform:scale(.3);transition:opacity .4s,transform .5s var(--spring)}
-.sos-c .gl{position:absolute;left:50%;bottom:52%;width:260%;aspect-ratio:1;margin-left:-130%;border-radius:50%;background:radial-gradient(circle,rgba(255,200,90,.38),rgba(255,200,90,0) 62%);opacity:0;transition:opacity .5s;pointer-events:none}
-.sos-c.lit .fl{opacity:1;transform:none}.sos-c.lit .gl{opacity:1}
-.sos-c.lit.run .fl{animation:sosF 1.9s ease-in-out infinite}
-.sos-c.lit.run .gl{animation:sosG 2.8s ease-in-out infinite}
-@keyframes sosF{0%,100%{transform:scale(1) rotate(-2deg)}35%{transform:scale(.93,1.07) rotate(2deg)}65%{transform:scale(1.04,.95) rotate(-1deg)}}
-@keyframes sosG{0%,100%{opacity:.75}50%{opacity:1}}
+.cnd-c{position:relative;display:inline-block;width:var(--w,14px);height:calc(var(--w,14px)*2.3);vertical-align:-.15em}
+.cnd-c::before{content:"";position:absolute;left:0;right:0;bottom:0;height:62%;border-radius:2px 2px 3px 3px;background:linear-gradient(90deg,#e7dcc2,#fbf5e6 45%,#ddd0b2);box-shadow:inset 0 calc(var(--w,14px)*-.55) 0 -1px transparent}
+.cnd-c::after{content:"";position:absolute;left:0;right:0;bottom:16%;height:16%;background:url({{IMG:cdl-tartan}}) 0 0/60px 60px}
+.cnd-c .wk{position:absolute;left:50%;bottom:60%;width:1.5px;height:10%;margin-left:-.75px;background:#2b1d12;border-radius:1px}
+.cnd-c .fl{position:absolute;left:50%;bottom:66%;width:46%;height:34%;margin-left:-23%;border-radius:50% 50% 50% 50%/62% 62% 38% 38%;background:radial-gradient(circle at 50% 72%,#fffbe8 0 22%,#ffd667 46%,#ff9a2e 78%,rgba(255,120,30,0) 100%);transform-origin:50% 92%;opacity:0;transform:scale(.3);transition:opacity .4s,transform .5s var(--spring)}
+.cnd-c .gl{position:absolute;left:50%;bottom:52%;width:260%;aspect-ratio:1;margin-left:-130%;border-radius:50%;background:radial-gradient(circle,rgba(255,200,90,.38),rgba(255,200,90,0) 62%);opacity:0;transition:opacity .5s;pointer-events:none}
+.cnd-c.lit .fl{opacity:1;transform:none}.cnd-c.lit .gl{opacity:1}
+.cnd-c.lit.run .fl{animation:cndF 1.9s ease-in-out infinite}
+.cnd-c.lit.run .gl{animation:cndG 2.8s ease-in-out infinite}
+@keyframes cndF{0%,100%{transform:scale(1) rotate(-2deg)}35%{transform:scale(.93,1.07) rotate(2deg)}65%{transform:scale(1.04,.95) rotate(-1deg)}}
+@keyframes cndG{0%,100%{opacity:.75}50%{opacity:1}}
 /* баннер в разделах */
-.sosB{margin:22px 0 6px;padding:clamp(14px,2.6vw,30px);border-radius:var(--r-l)}
-.sosB .sos-card{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(20px,3vw,40px);align-items:center;padding:clamp(28px,4vw,52px) clamp(22px,4vw,56px)}
-.sosB .sos-m,.sosB .sos-v{min-width:0}
-.sosB .sos-m{display:grid;gap:14px;justify-items:start;text-align:left}
-.sosB .sos-v{display:grid;gap:16px;justify-items:center;text-align:center}
-.sosB .sos-box{width:min(300px,100%);aspect-ratio:21/20;border-radius:14px;background:url({{IMG:cdl-box}}) center/cover;box-shadow:14px 16px 30px -12px rgba(0,0,0,.55)}
-.sos-hunt .sos-c{--w:15px}
-@media (max-width:820px){.sosB .sos-card{grid-template-columns:1fr;text-align:center}.sosB .sos-m{justify-items:center;text-align:center;order:2}.sosB .sos-v{order:1}.sos-ck{text-align:left}.sosB .sos-box{width:min(240px,80%)}}
-@media (max-width:480px){.sos-row{flex-direction:column}.sos-f input[type=email]{flex:none;width:100%}.sos-go{width:100%}.sos-cd span{min-width:58px}.sosP .sos-card{padding:20px 16px 16px;gap:9px}.sosP .sos-scr{font-size:40px}.sosP .sos-cd b{font-size:24px}.sosP .sos-cnt{display:none}}
+.cndB{margin:22px 0 6px;padding:clamp(14px,2.6vw,30px);border-radius:var(--r-l)}
+.cndB .cnd-card{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(20px,3vw,40px);align-items:center;padding:clamp(28px,4vw,52px) clamp(22px,4vw,56px)}
+.cndB .cnd-m,.cndB .cnd-v{min-width:0}
+.cndB .cnd-m{display:grid;gap:14px;justify-items:start;text-align:left}
+.cndB .cnd-v{display:grid;gap:16px;justify-items:center;text-align:center}
+.cndB .cnd-box{width:min(300px,100%);aspect-ratio:21/20;border-radius:14px;background:url({{IMG:cdl-box}}) center/cover;box-shadow:14px 16px 30px -12px rgba(0,0,0,.55)}
+.cnd-hunt .cnd-c{--w:17px}
+@media (max-width:820px){.cndB .cnd-card{grid-template-columns:1fr;text-align:center}.cndB .cnd-m{justify-items:center;text-align:center;order:2}.cndB .cnd-v{order:1}.cnd-ck{text-align:left}.cndB .cnd-box{width:min(240px,80%)}}
+@media (max-width:480px){.cnd-row{flex-direction:column}.cnd-f input[type=email]{flex:none;width:100%}.cnd-go{width:100%}.cnd-cd span{min-width:58px}.cndP .cnd-card{padding:20px 16px 16px;gap:9px}.cndP .cnd-scr{font-size:40px}.cndP .cnd-cd b{font-size:24px}.cndP .cnd-cnt{display:none}}
 /* всплывающее окно и свёрнутая иконка */
-.sosW{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:80;contain:layout paint}
-.sosP{width:min(400px,calc(100vw - 24px));padding:9px;border-radius:28px;box-shadow:0 26px 50px -18px rgba(0,0,0,.6);animation:sosIn .45s var(--ease) both}
-.sosP .sos-card{padding:26px 22px 22px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;justify-items:center;text-align:center;border-radius:20px;box-shadow:none}
-.sosP .sos-scr{font-size:46px}.sosP .sos-h{font-size:23px}.sosP .sos-tx{font-size:16.5px}
-.sosP .sos-c{--w:22px}
-.sosP .cx{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(226,196,124,.45);background:rgba(0,0,0,.18);color:var(--au);display:grid;place-items:center;cursor:pointer;z-index:2}
-.sosP .cx .ico{width:16px;height:16px}
-.sosP .sos-egg{font-size:16px;color:var(--au);font-style:italic}
-.sosI{position:relative;width:64px;height:64px;padding:5px;border:0;border-radius:50%;cursor:pointer;box-shadow:0 14px 28px -10px rgba(0,0,0,.55);animation:sosIn .4s var(--ease) both}
-.sosI span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--g);border:1.5px solid var(--au2)}
-.sosI .sos-c{--w:15px;margin-top:4px}
-.sosI b{position:absolute;top:-5px;right:-5px;min-width:24px;height:24px;padding:0 7px;border-radius:12px;background:#7d1e24;border:1.5px solid var(--au2);color:#fff;font:700 12px/21px var(--f-body)}
-@keyframes sosIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@media (max-width:900px){.sosW{right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px))}}
+.cndW{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:80;contain:layout paint}
+.cndP{width:min(400px,calc(100vw - 24px));padding:9px;border-radius:28px;box-shadow:0 26px 50px -18px rgba(0,0,0,.6);animation:cndIn .45s var(--ease) both}
+.cndP .cnd-card{padding:26px 22px 22px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;justify-items:center;text-align:center;border-radius:20px;box-shadow:none}
+.cndP .cnd-scr{font-size:46px}.cndP .cnd-h{font-size:23px}.cndP .cnd-tx{font-size:16.5px}
+.cndP .cnd-c{--w:22px}
+.cndP .cnd-row{flex-direction:column}.cndP .cnd-f input[type=email]{flex:none;width:100%}.cndP .cnd-go{width:100%}
+.cndP .cx{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(226,196,124,.45);background:rgba(0,0,0,.18);color:var(--au);display:grid;place-items:center;cursor:pointer;z-index:2}
+.cndP .cx .ico{width:16px;height:16px}
+.cndP .cnd-egg{font-size:16px;color:var(--au);font-style:italic}
+.cndI{position:relative;width:64px;height:64px;padding:5px;border:0;border-radius:50%;cursor:pointer;box-shadow:0 14px 28px -10px rgba(0,0,0,.55);animation:cndIn .4s var(--ease) both}
+.cndI span{display:grid;place-items:center;width:100%;height:100%;border-radius:50%;background:var(--g);border:1.5px solid var(--au2)}
+.cndI .cnd-c{--w:15px;margin-top:4px}
+.cndI b{position:absolute;top:-5px;right:-5px;min-width:24px;height:24px;padding:0 7px;border-radius:12px;background:#7d1e24;border:1.5px solid var(--au2);color:#fff;font:700 12px/21px var(--f-body)}
+@keyframes cndIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@media (max-width:900px){.cndW{right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px))}}
 /* пасхалки: незажжённые свечи рядом с заголовками разделов */
-.sosE{display:inline-grid;place-items:center;width:.9em;height:1.2em;margin-left:.25em;padding:0;border:0;background:none;cursor:pointer;vertical-align:-.12em;-webkit-tap-highlight-color:transparent}
-.sosE .sos-c{--w:.36em}
-.sosE:not(.got):hover .sos-c{transform:rotate(-6deg)}
-.sosE .sos-c{transition:transform .3s var(--spring)}
-@media (prefers-reduced-motion:reduce){.sos-c .fl,.sos-c .gl{animation:none!important}.sosP,.sosI{animation:none}}
+.cndE{display:inline-grid;place-items:center;width:.9em;height:1.2em;margin-left:.25em;padding:0;border:0;background:none;cursor:pointer;vertical-align:-.12em;-webkit-tap-highlight-color:transparent}
+.cndE .cnd-c{--w:.36em}
+.cndE:not(.got):hover .cnd-c{transform:rotate(-6deg)}
+.cndE .cnd-c{transition:transform .3s var(--spring)}
+@media (prefers-reduced-motion:reduce){.cnd-c .fl,.cnd-c .gl{animation:none!important}.cndP,.cndI{animation:none}}
 .plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
 .plan{padding:16px;border-radius:18px;text-align:left;background:rgba(255,255,255,.55);border:1.5px solid var(--glass-brd);display:grid;gap:4px;transition:transform .4s var(--spring),border-color .2s,background .2s}
 .plan:active{transform:scale(.97)}
@@ -4989,72 +4990,72 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preven
   const st={count:0,buy:''},phase=()=>day<C.announce?'t':day<C.start?'w':'s',buy=()=>st.buy||C.shop;
   const key='pod2:candle',mem=()=>{try{return JSON.parse(localStorage.getItem(key)||'{}')}catch(e){return{}}},save=v=>{try{localStorage.setItem(key,JSON.stringify(v))}catch(e){}};
   const EGGS=['guide','travel','save','live','trains'],lit=()=>(mem().lit||[]).filter(x=>EGGS.includes(x));
-  const candle=on=>`<span class="sos-c${on?' lit':''}" aria-hidden="true"><i class="gl"></i><i class="wk"></i><i class="fl"></i></span>`;
+  const candle=on=>`<span class="cnd-c${on?' lit':''}" aria-hidden="true"><i class="gl"></i><i class="wk"></i><i class="fl"></i></span>`;
   const flake='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9.6 3.6 12 6l2.4-2.4M9.6 20.4 12 18l2.4 2.4"/></svg>';
   const EB=ph=>ph==='t'?'podslushano.nl':'Soul of Sol × podslushano.nl';
-  const cdHTML=()=>{const s=Math.max(0,C.startAt-Date.now())/1000;if(!s)return '<p class="sos-cap">Старт продаж сегодня</p>';
-    return `<div class="sos-cd" data-sos-cd>${[[Math.floor(s/86400),'дн'],[Math.floor(s%86400/3600),'ч'],[Math.floor(s%3600/60),'мин']].map(([v,u])=>`<span><b>${v}</b><small>${u}</small></span>`).join('')}</div>`};
-  const cnt=()=>`<p class="sos-cnt" data-sos-cnt ${st.count>=10?'':'hidden'}>Уже <b>${st.count}</b> в листе ожидания, а свечей всего ${C.stock}</p>`;
-  const hunt=()=>{const n=lit().length;return `<p class="sos-hunt" data-sos-hunt><i>${EGGS.map((_,i)=>candle(i<n)).join('')}</i>${n>=EGGS.length?'Все пять свечей горят. Вы нашли их все!':n?`Зажжено ${n} из 5. Остальные спрятаны в разделах сайта.`:'На сайте спрятаны 5 свечей. Сможете зажечь их все?'}</p>`};
+  const cdHTML=()=>{const s=Math.max(0,C.startAt-Date.now())/1000;if(!s)return '<p class="cnd-cap">Старт продаж сегодня</p>';
+    return `<div class="cnd-cd" data-cnd-cd>${[[Math.floor(s/86400),'дн'],[Math.floor(s%86400/3600),'ч'],[Math.floor(s%3600/60),'мин']].map(([v,u])=>`<span><b>${v}</b><small>${u}</small></span>`).join('')}</div>`};
+  const cnt=()=>`<p class="cnd-cnt" data-cnd-cnt ${st.count>=10?'':'hidden'}>Уже <b>${st.count}</b> в листе ожидания, а свечей всего ${C.stock}</p>`;
+  const hunt=()=>{const n=lit().length;return `<p class="cnd-hunt" data-cnd-hunt><i>${EGGS.map((_,i)=>candle(i<n)).join('')}</i>${n>=EGGS.length?'Все пять свечей горят. Вы нашли их все!':n?`Зажжено ${n} из 5. Остальные спрятаны в разделах сайта.`:'На сайте спрятаны 5 свечей. Сможете зажечь их все?'}</p>`};
   const form=cta=>{const m=mem();
-    if(m.joined)return `<p class="sos-ok">${svg('check')}<span>Вы в листе ожидания${m.pos?`, ваш номер ${m.pos}`:''}. Письмо уже на почте, а в день старта продаж мы напишем вам первыми. <button class="sos-re" type="button" data-sos-re>Записать другую почту</button></span></p>`;
-    return `<form class="sos-f" novalidate><div class="sos-row"><input type="email" required placeholder="Ваш e-mail" aria-label="Ваш e-mail" autocomplete="email"><button class="sos-go" type="submit">${cta}</button></div><label class="sos-ck"><input type="checkbox" required><span>Согласен(на) получить письмо о старте продаж. Отписаться можно в один клик. <a href="#legal-privacy">Privacy</a></span></label><p class="sos-err" role="alert" hidden></p></form>`};
-  const buyBtn=()=>`<a class="sos-buy" data-sos-buy href="${esc(buy())}" target="_blank" rel="noopener">Купить на soulofsol.com ${svg('ext')}</a>`;
+    if(m.joined)return `<p class="cnd-ok">${svg('check')}<span>Вы в листе ожидания${m.pos?`, ваш номер ${m.pos}`:''}. Письмо уже на почте, а в день старта продаж мы напишем вам первыми. <button class="cnd-re" type="button" data-cnd-re>Записать другую почту</button></span></p>`;
+    return `<form class="cnd-f" novalidate><div class="cnd-row"><input type="email" required placeholder="Ваш e-mail" aria-label="Ваш e-mail" autocomplete="email"><button class="cnd-go" type="submit">${cta}</button></div><label class="cnd-ck"><input type="checkbox" required><span>Согласен(на) получить письмо о старте продаж. Отписаться можно в один клик. <a href="#legal-privacy">Privacy</a></span></label><p class="cnd-err" role="alert" hidden></p></form>`};
+  const buyBtn=()=>`<a class="cnd-buy" data-cnd-buy href="${esc(buy())}" target="_blank" rel="noopener">Купить на soulofsol.com ${svg('ext')}</a>`;
   const DET='Растительный воск · 220 г · до 40 часов, в подарочной коробке';
   /* большой баннер в разделах */
   const bannerHTML=()=>{const ph=phase();let m,v;
-    if(ph==='t'){m=`<span class="sos-eb">${EB(ph)}</span><h2 class="sos-h">Скоро у нас кое-что,<br>чего ещё не было</h2><div class="sos-div">${flake}</div><p class="sos-scr">Подсказка: её можно зажечь</p><p class="sos-cap">Анонс — 9 ноября</p><p class="sos-tx">Оставьте почту, и мы расскажем вам первыми.</p>${form('Узнать первыми')}`;v=`<div class="sos-q" aria-hidden="true">?</div>${hunt()}`}
-    else if(ph==='w'){m=`<span class="sos-eb">${EB(ph)}</span><h2 class="sos-scr">Пахнет как дома</h2><p class="sos-tx">Рождественская свеча о том, чего так не хватает зимой вдали от дома: ёлка, тепло и все свои рядом.</p><p class="sos-it">Первая партия — всего ${C.stock} свечи</p>${cnt()}${form('В лист ожидания')}`;v=`<div class="sos-box" role="img" aria-label="Подарочная коробка свечи Soul of Sol × podslushano.nl"></div><p class="sos-cap">Старт продаж 16 ноября</p>${cdHTML()}${hunt()}`}
-    else{m=`<span class="sos-eb">${EB(ph)}</span><p class="sos-cap">Продажи открыты</p><h2 class="sos-scr">Пахнет как дома</h2><p class="sos-tx">${DET}</p><p class="sos-pr">45 €</p><p class="sos-it">Первая партия — всего ${C.stock} свечи</p>${buyBtn()}`;v=`<div class="sos-box" role="img" aria-label="Подарочная коробка свечи Soul of Sol × podslushano.nl"></div>${hunt()}`}
-    return `<div class="sos-card"><div class="sos-m">${m}</div><div class="sos-v">${v}</div></div>`};
+    if(ph==='t'){m=`<span class="cnd-eb">${EB(ph)}</span><h2 class="cnd-h">Скоро у нас кое-что,<br>чего ещё не было</h2><div class="cnd-div">${flake}</div><p class="cnd-scr">Подсказка: её можно зажечь</p><p class="cnd-cap">Анонс — 9 ноября</p><p class="cnd-tx">Оставьте почту, и мы расскажем вам первыми.</p>${form('Узнать первыми')}`;v=`<div class="cnd-q" aria-hidden="true">?</div>${hunt()}`}
+    else if(ph==='w'){m=`<span class="cnd-eb">${EB(ph)}</span><h2 class="cnd-scr">Пахнет как дома</h2><p class="cnd-tx">Рождественская свеча о том, чего так не хватает зимой вдали от дома: ёлка, тепло и все свои рядом.</p><p class="cnd-it">Первая партия — всего ${C.stock} свечи</p>${cnt()}${form('В лист ожидания')}`;v=`<div class="cnd-box" role="img" aria-label="Подарочная коробка свечи Soul of Sol × podslushano.nl"></div><p class="cnd-cap">Старт продаж 16 ноября</p>${cdHTML()}${hunt()}`}
+    else{m=`<span class="cnd-eb">${EB(ph)}</span><p class="cnd-cap">Продажи открыты</p><h2 class="cnd-scr">Пахнет как дома</h2><p class="cnd-tx">${DET}</p><p class="cnd-pr">45 €</p><p class="cnd-it">Первая партия — всего ${C.stock} свечи</p>${buyBtn()}`;v=`<div class="cnd-box" role="img" aria-label="Подарочная коробка свечи Soul of Sol × podslushano.nl"></div>${hunt()}`}
+    return `<div class="cnd-card"><div class="cnd-m">${m}</div><div class="cnd-v">${v}</div></div>`};
   const SLOTS=[['home','#tick5'],['events','#p-events .phead'],['news','#p-news .phead'],['shop','#p-shop .phead']];
-  SLOTS.forEach(([pg,sel])=>{const a=$(sel);if(!a)return;a.insertAdjacentHTML('afterend',`<section class="sos sos-tt sosB" data-sos-b aria-label="Свеча Soul of Sol × podslushano.nl"></section>`)});
+  SLOTS.forEach(([pg,sel])=>{const a=$(sel);if(!a)return;a.insertAdjacentHTML('afterend',`<section class="cnd cnd-tt cndB" data-cnd-b aria-label="Свеча Soul of Sol × podslushano.nl"></section>`)});
   /* окно и свёрнутая иконка */
-  const wrap=document.createElement('div');wrap.className='sos sosW';document.body.appendChild(wrap);
+  const wrap=document.createElement('div');wrap.className='cnd cndW';document.body.appendChild(wrap);
   let open=false,egg='';
-  const popHTML=()=>{const ph=phase(),x=`<button class="cx" type="button" data-sos="min" aria-label="Свернуть">${svg('x')}</button>`,e=egg?`<p class="sos-egg">${egg}</p>`:'';let b;
-    if(ph==='t')b=`<span class="sos-eb">${EB(ph)}</span>${e}<p class="sos-h">Скоро у нас кое-что, чего ещё не было</p><p class="sos-scr">Подсказка: её можно зажечь</p><p class="sos-tx">Анонс 9 ноября. Оставьте почту, и мы расскажем первыми.</p>${form('Узнать первыми')}`;
-    else if(ph==='w')b=`<span class="sos-eb">${EB(ph)}</span>${e}<p class="sos-scr">Пахнет как дома</p><p class="sos-cap">Старт продаж 16 ноября</p>${cdHTML()}<p class="sos-it">Первая партия — всего ${C.stock} свечи</p>${cnt()}${form('В лист ожидания')}`;
-    else b=`<span class="sos-eb">${EB(ph)}</span>${e}<p class="sos-cap">Продажи открыты</p><p class="sos-scr">Пахнет как дома</p><p class="sos-pr">45 €</p><p class="sos-tx">${DET}</p>${buyBtn()}`;
-    return `<section class="sosP sos-tt" role="dialog" aria-label="Свеча Soul of Sol × podslushano.nl"><div class="sos-card">${x}${b}</div></section>`};
-  const iconHTML=()=>`<button class="sosI sos-tt" type="button" data-sos="open" aria-label="Свеча Soul of Sol × podslushano.nl: открыть"><span>${candle(true)}</span>${st.count>=10&&phase()!=='s'?`<b data-sos-badge>${st.count}</b>`:''}</button>`;
+  const popHTML=()=>{const ph=phase(),x=`<button class="cx" type="button" data-cnd="min" aria-label="Свернуть">${svg('x')}</button>`,e=egg?`<p class="cnd-egg">${egg}</p>`:'';let b;
+    if(ph==='t')b=`<span class="cnd-eb">${EB(ph)}</span>${e}<p class="cnd-h">Скоро у нас кое-что, чего ещё не было</p><p class="cnd-scr">Подсказка: её можно зажечь</p><p class="cnd-tx">Анонс 9 ноября. Оставьте почту, и мы расскажем первыми.</p>${form('Узнать первыми')}`;
+    else if(ph==='w')b=`<span class="cnd-eb">${EB(ph)}</span>${e}<p class="cnd-scr">Пахнет как дома</p><p class="cnd-cap">Старт продаж 16 ноября</p>${cdHTML()}<p class="cnd-it">Первая партия — всего ${C.stock} свечи</p>${cnt()}${form('В лист ожидания')}`;
+    else b=`<span class="cnd-eb">${EB(ph)}</span>${e}<p class="cnd-cap">Продажи открыты</p><p class="cnd-scr">Пахнет как дома</p><p class="cnd-pr">45 €</p><p class="cnd-tx">${DET}</p>${buyBtn()}`;
+    return `<section class="cndP cnd-tt" role="dialog" aria-label="Свеча Soul of Sol × podslushano.nl"><div class="cnd-card">${x}${b}</div></section>`};
+  const iconHTML=()=>`<button class="cndI cnd-tt" type="button" data-cnd="open" aria-label="Свеча Soul of Sol × podslushano.nl: открыть"><span>${candle(true)}</span>${st.count>=10&&phase()!=='s'?`<b data-cnd-badge>${st.count}</b>`:''}</button>`;
   /* пламя анимируется только пока свеча на экране */
   const io='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(en=>en.target.classList.toggle('run',en.isIntersecting))):null;
-  const watch=root=>{if(io)root.querySelectorAll('.sos-c.lit').forEach(c=>io.observe(c))};
+  const watch=root=>{if(io)root.querySelectorAll('.cnd-c.lit').forEach(c=>io.observe(c))};
   const drawPop=()=>{wrap.innerHTML=open?popHTML():iconHTML();watch(wrap)};
-  const drawAll=()=>{$$('[data-sos-b]').forEach(b=>{b.innerHTML=bannerHTML();watch(b)});drawPop()};
+  const drawAll=()=>{$$('[data-cnd-b]').forEach(b=>{b.innerHTML=bannerHTML();watch(b)});drawPop()};
   const show=v=>{open=v;if(!v)egg='';const m=mem();m.ph=phase();m.closed=!v;save(m);drawPop()};
   /* пасхалки */
   EGGS.forEach(pg=>{const h=$(`#p-${pg} .phead h1`);if(!h)return;const on=lit().includes(pg);
-    const b=document.createElement('button');b.type='button';b.className='sosE sos'+(on?' got':'');b.setAttribute('aria-label',on?'Свеча зажжена':'Незажжённая свеча: зажгите её');b.innerHTML=candle(on);
+    const b=document.createElement('button');b.type='button';b.className='cndE cnd'+(on?' got':'');b.setAttribute('aria-label',on?'Свеча зажжена':'Незажжённая свеча: зажгите её');b.innerHTML=candle(on);
     b.addEventListener('click',ev=>{ev.preventDefault();ev.stopPropagation();const m=mem(),L=lit();
-      if(!L.includes(pg)){L.push(pg);m.lit=L;save(m);b.classList.add('got');b.setAttribute('aria-label','Свеча зажжена');b.querySelector('.sos-c').classList.add('lit');watch(b);
-        $$('[data-sos-hunt]').forEach(x=>{x.outerHTML=hunt()});$$('[data-sos-b]').forEach(watch)}
+      if(!L.includes(pg)){L.push(pg);m.lit=L;save(m);b.classList.add('got');b.setAttribute('aria-label','Свеча зажжена');b.querySelector('.cnd-c').classList.add('lit');watch(b);
+        $$('[data-cnd-hunt]').forEach(x=>{x.outerHTML=hunt()});$$('[data-cnd-b]').forEach(watch)}
       const n=lit().length;egg=n>=EGGS.length?'Все пять свечей горят. Вы нашли их все!':`Вы зажгли свечу: ${n} из 5. Остальные спрятаны в разделах сайта.`;
       setTimeout(()=>show(true),300)});
     h.appendChild(b);watch(b)});
-  wrap.addEventListener('click',e=>{const b=e.target.closest('[data-sos]');if(!b)return;if(b.dataset.sos==='min')show(false);else show(true)});
+  wrap.addEventListener('click',e=>{const b=e.target.closest('[data-cnd]');if(!b)return;if(b.dataset.cnd==='min')show(false);else show(true)});
   /* ошиблись в адресе или отписались и хотят снова: форма возвращается, сервер сам скажет, если почта уже в списке */
-  document.addEventListener('click',e=>{if(!e.target.closest('[data-sos-re]'))return;const m=mem();delete m.joined;delete m.pos;save(m);drawAll()});
-  document.addEventListener('submit',async e=>{const f=e.target.closest&&e.target.closest('.sos-f');if(!f)return;e.preventDefault();
-    const em=f.querySelector('input[type=email]').value.trim(),ok=f.querySelector('input[type=checkbox]').checked,er=f.querySelector('.sos-err'),b=f.querySelector('.sos-go');
+  document.addEventListener('click',e=>{if(!e.target.closest('[data-cnd-re]'))return;const m=mem();delete m.joined;delete m.pos;save(m);drawAll()});
+  document.addEventListener('submit',async e=>{const f=e.target.closest&&e.target.closest('.cnd-f');if(!f)return;e.preventDefault();
+    const em=f.querySelector('input[type=email]').value.trim(),ok=f.querySelector('input[type=checkbox]').checked,er=f.querySelector('.cnd-err'),b=f.querySelector('.cnd-go');
     const fail=t=>{er.textContent=t;er.hidden=false};er.hidden=true;
     if(!vEmail(em))return fail('Проверьте адрес почты.');if(!ok)return fail('Отметьте галочку согласия.');
     b.disabled=true;
-    try{const j=await pnPost(PN_BOT+'/api/waitlist/candle/join',{email:em,consent:'1',source:f.closest('.sosP')?'site-popup':'site-banner'});
+    try{const j=await pnPost(PN_BOT+'/api/waitlist/candle/join',{email:em,consent:'1',source:f.closest('.cndP')?'site-popup':'site-banner'});
       const m=mem();m.joined=1;m.pos=j.position||0;save(m);if(j.count)st.count=j.count;drawAll()}
     catch(err){b.disabled=false;fail(/оплат/.test(err.message)?'Не получилось записать. Попробуйте ещё раз.':err.message)}});
   /* цифры с сервера: обновляем на месте, чтобы не стереть то, что человек уже вводит */
-  const upd=()=>{$$('[data-sos-cnt]').forEach(p=>{p.hidden=st.count<10;const b=p.querySelector('b');if(b)b.textContent=st.count});
-    $$('[data-sos-buy]').forEach(a=>a.href=buy());const bd=$('[data-sos-badge]');if(bd)bd.textContent=st.count;else if(!open&&st.count>=10)drawPop()};
+  const upd=()=>{$$('[data-cnd-cnt]').forEach(p=>{p.hidden=st.count<10;const b=p.querySelector('b');if(b)b.textContent=st.count});
+    $$('[data-cnd-buy]').forEach(a=>a.href=buy());const bd=$('[data-cnd-badge]');if(bd)bd.textContent=st.count;else if(!open&&st.count>=10)drawPop()};
   fetch(PN_BOT+'/api/waitlist/candle').then(r=>r.json()).then(j=>{st.count=j.count||0;st.buy=j.buy||'';upd()}).catch(()=>{});
-  if(phase()==='w')setInterval(()=>{if(document.hidden)return;$$('[data-sos-cd]').forEach(d=>{d.outerHTML=cdHTML()})},30000);
+  if(phase()==='w')setInterval(()=>{if(document.hidden)return;$$('[data-cnd-cd]').forEach(d=>{d.outerHTML=cdHTML()})},30000);
   const m0=mem(),q=/[?&#]candle\b/.test(location.search+location.hash);
   open=q;drawAll();
   /* окно само открывается один раз на этапе: не поверх куки-баннера и не когда большой баннер и так на экране */
   const need=()=>{const m=mem();return !(m.ph===phase()&&m.closed)&&!(m.joined&&phase()!=='s')};
   if(!q&&need()){const go=()=>{const ck=document.getElementById('ckBar');if(ck&&ck.classList.contains('on')){setTimeout(go,1500);return}
-      if(open||!need())return;const vis=$$('[data-sos-b]').some(b=>{const r=b.getBoundingClientRect();return r.height&&r.top<innerHeight&&r.bottom>0});if(vis){setTimeout(go,4000);return}show(true)};
+      if(open||!need())return;const vis=$$('[data-cnd-b]').some(b=>{const r=b.getBoundingClientRect();return r.height&&r.top<innerHeight&&r.bottom>0});if(vis){setTimeout(go,4000);return}show(true)};
     setTimeout(go,3000)}
 })();
 
