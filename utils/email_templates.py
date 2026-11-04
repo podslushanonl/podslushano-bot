@@ -231,16 +231,16 @@ def app_login_code(*, code: str) -> tuple[str, str, str]:
 
 # ---------------------------------------------------------------- Лист ожидания товара партнёра
 
-def waitlist_confirm(*, title: str, confirm_url: str) -> tuple[str, str, str]:
-    subject = f"Подтвердите место в листе ожидания: {title}"
-    html = render_email(eyebrow="Лист ожидания", title="Остался один клик",
-                        preheader="Подтвердите почту, и мы напишем вам первыми в день старта.",
-                        body=p(f"Нажмите кнопку, чтобы занять место в листе ожидания «{esc(title)}». "
-                               "Мы напишем вам первыми, когда откроются продажи."),
-                        cta=("Подтвердить", confirm_url),
-                        after_cta=small("Не записывались? Просто удалите письмо, больше мы не напишем."),
-                        reason="Кто-то указал эту почту в листе ожидания на podslushano.nl.")
-    return subject, html, text_version("Подтвердите место в листе ожидания", [title], ("Подтвердить", confirm_url))
+def waitlist_joined(*, title: str, position: int, stock: int, unsubscribe_url: str) -> tuple[str, str, str]:
+    subject = f"Вы в листе ожидания: {title}"
+    lines = [f"Готово, вы в листе ожидания «{title}». Ваш номер в списке: {position}, а в первой партии {stock} штук.",
+             "В день старта продаж мы напишем вам первыми, ещё до открытой продажи. Больше ничего делать не нужно."]
+    html = render_email(eyebrow="Лист ожидания", title="Вы в списке",
+                        preheader="Мы напишем вам первыми в день старта продаж.",
+                        body="".join(p(esc(x)) for x in lines),
+                        after_cta=small(f'Передумали? <a href="{esc(unsubscribe_url)}">Отписаться от рассылки</a> в один клик.'),
+                        reason="Вы записались в лист ожидания на podslushano.nl.", unsubscribe_url=unsubscribe_url)
+    return subject, html, text_version("Вы в листе ожидания", lines, None, unsubscribe_url)
 
 
 def waitlist_open(*, title: str, url: str, note: str, unsubscribe_url: str) -> tuple[str, str, str]:
@@ -250,4 +250,4 @@ def waitlist_open(*, title: str, url: str, note: str, unsubscribe_url: str) -> t
                         body=p(esc(note)), cta=("Купить", url),
                         after_cta=small("Вы получили письмо, потому что записались в лист ожидания на podslushano.nl."),
                         reason="Вы записались в лист ожидания на podslushano.nl.", unsubscribe_url=unsubscribe_url)
-    return subject, html, text_version(f"Открываем продажи: {title}", [note], ("Купить", url))
+    return subject, html, text_version(f"Открываем продажи: {title}", [note], ("Купить", url), unsubscribe_url)
