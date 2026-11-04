@@ -3,7 +3,9 @@ import json
 import os
 import unittest
 import xml.etree.ElementTree as ET
+from contextlib import contextmanager
 from datetime import datetime, timedelta
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 from zoneinfo import ZoneInfo
 
@@ -34,6 +36,39 @@ class FakeBot:
 
     async def send_message(self, chat_id, text, **kwargs):
         self.sent.append((chat_id, text, kwargs))
+
+
+# --- Замоканные ответы модели: та же форма, что у anthropic.types.Message ---------------
+
+def _text(s):
+    return SimpleNamespace(type="text", text=s)
+
+
+def _thinking():
+    return SimpleNamespace(type="thinking", thinking="", signature="sig")
+
+
+def _tool(ids=None, *, inp=None, name=None):
+    return SimpleNamespace(type="tool_use", id="toolu_1", name=name or gn.SELECT_TOOL_NAME,
+                           input={"ids": ids} if inp is None else inp)
+
+
+def _resp(*blocks, stop="end_turn", out=20):
+    return SimpleNamespace(content=list(blocks), stop_reason=stop,
+                           usage=SimpleNamespace(input_tokens=8498, output_tokens=out))
+
+
+def _written(*entries):
+    return _text(json.dumps(list(entries), ensure_ascii=False))
+
+
+@contextmanager
+def _model(*responses):
+    """Подменяет клиента Anthropic: messages.create отдаёт ответы по очереди."""
+    create = AsyncMock(side_effect=list(responses))
+    client = SimpleNamespace(messages=SimpleNamespace(create=create))
+    with patch.object(gn, "_get_client", return_value=client):
+        yield create
 
 
 class WindowTests(unittest.TestCase):
@@ -133,12 +168,30 @@ class VerificationTests(unittest.TestCase):
 
 
 class ParseTests(unittest.TestCase):
-    def test_ids_from_small_answer(self):
-        self.assertEqual(gn.parse_ids("[3, 7]"), [3, 7])
-        self.assertEqual(gn.parse_ids("[]"), [])
-        self.assertEqual(gn.parse_ids("[3, 3, 9, 1, 2]"), [3, 9, 1])  # уникальные, не больше 3
-        self.assertIsNone(gn.parse_ids("ответ без списка"))
-        self.assertIsNone(gn.parse_ids('[3, "x"'))
+    def test_ids_from_tool_input(self):
+        self.assertEqual(gn.parse_ids([3, 7]), [3, 7])
+        self.assertEqual(gn.parse_ids([]), [])
+        self.assertEqual(gn.parse_ids([3, 3, 9, 1, 2]), [3, 9, 1])  # уникальные, не больше 3
+        self.assertIsNone(gn.parse_ids("[3, 7]"))  # строка — не список
+        self.assertIsNone(gn.parse_ids([3, "x"]))
+        self.assertIsNone(gn.parse_ids([True]))
+        self.assertIsNone(gn.parse_ids(None))
+
+    def test_selected_ids_read_from_tool_use_not_text(self):
+        resp = _resp(_text("[9, 8]"), _tool([2]), stop="tool_use")
+        self.assertEqual(gn.selected_ids(resp), [2])
+
+    def test_selected_ids_none_without_tool_use(self):
+        self.assertIsNone(gn.selected_ids(_resp(_text("[1, 2]"))))
+        self.assertIsNone(gn.selected_ids(_resp(_tool([1], name="other_tool"))))
+        self.assertIsNone(gn.selected_ids(_resp(_tool(inp={}))))
+        self.assertIsNone(gn.selected_ids(_resp(_tool(inp={"ids": "1, 2"}))))
+
+    def test_response_text_joins_all_text_blocks(self):
+        resp = _resp(_thinking(), _text("[{\"id\": 1, "), _tool([1]), _text("\"x\": 2}]"))
+        self.assertEqual(gn.response_text(resp), '[{"id": 1, "x": 2}]')
+        self.assertEqual(gn.response_text(_resp(_thinking())), "")
+        self.assertEqual(gn.response_text(_resp()), "")
 
     def test_truncated_text_is_detected_as_parse_error(self):
         truncated = '[{"id": 1, "emoji": "🐕", "headline": "Собака", "text": "Нашлась и'
@@ -240,58 +293,160 @@ class BuildTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_backstop_applies_to_rss_items_before_model(self):
         bad = _item("Погибли двое в ДТП", url="https://a.nl/x")
-        call = AsyncMock()
-        with self._feeds([bad]), patch.object(gn, "_call", call):
+        with self._feeds([bad]), _model() as create:
             _, reason = await gn.build(NOW)
-        call.assert_not_awaited()
+        create.assert_not_awaited()
         self.assertEqual(reason, "no_candidates")
 
     async def test_two_calls_and_ok(self):
         item = _item("Собаку нашли 3 дня спустя", url="https://www.omroepbrabant.nl/n/1",
                      desc="Hond na 3 dagen teruggevonden in Tilburg.", source="Omroep Brabant")
-        calls = [("[1]", "end_turn"),
-                 ('[{"id": 1, "emoji": "🐕", "headline": "Собака нашлась", "text": "Пёс вернулся через 3 дня."}]',
-                  "end_turn")]
-        call = AsyncMock(side_effect=calls)
-        with self._feeds([item]), patch.object(gn, "_call", call):
+        written = _written({"id": 1, "emoji": "🐕", "headline": "Собака нашлась", "text": "Пёс вернулся через 3 дня."})
+        with self._feeds([item]), _model(_resp(_tool([1]), stop="tool_use"), _resp(written)) as create:
             items, reason = await gn.build(NOW)
         self.assertEqual(reason, "ok")
-        self.assertEqual(call.await_count, 2)
+        self.assertEqual(create.await_count, 2)
         self.assertEqual(items[0]["url"], "https://www.omroepbrabant.nl/n/1")
 
     async def test_no_llm_without_candidates(self):
-        call = AsyncMock()
-        with self._feeds([]), patch.object(gn, "_call", call):
+        with self._feeds([]), _model() as create:
             items, reason = await gn.build(NOW)
         self.assertEqual(reason, "no_sources")
-        call.assert_not_awaited()
+        create.assert_not_awaited()
 
     async def test_model_none(self):
         item = _item("Соседи помогли", url="https://a.nl/1")
-        with self._feeds([item]), patch.object(gn, "_call", AsyncMock(return_value=("[]", "end_turn"))):
+        with self._feeds([item]), _model(_resp(_tool([]), stop="tool_use")) as create:
             _, reason = await gn.build(NOW)
         self.assertEqual(reason, "model_none")
-
-    async def test_truncated_select_is_parse_error(self):
-        item = _item("Соседи помогли", url="https://a.nl/1")
-        with self._feeds([item]), patch.object(gn, "_call", AsyncMock(return_value=("[1", "max_tokens"))):
-            _, reason = await gn.build(NOW)
-        self.assertEqual(reason, "parse_error_select")
-
-    async def test_truncated_write_is_parse_error(self):
-        item = _item("Соседи помогли", url="https://a.nl/1")
-        calls = [("[1]", "end_turn"), ('[{"id": 1, "headline": "Собака', "max_tokens")]
-        with self._feeds([item]), patch.object(gn, "_call", AsyncMock(side_effect=calls)):
-            _, reason = await gn.build(NOW)
-        self.assertEqual(reason, "parse_error_write")
+        self.assertEqual(create.await_count, 1)
 
     async def test_dropped_by_verification(self):
         item = _item("Собаку нашли", url="https://a.nl/1", desc="Нашли через 3 дня.")
-        calls = [("[1]", "end_turn"), ('[{"id": 1, "emoji": "🐕", "headline": "Собака", "text": "Через 9 дней."}]',
-                                       "end_turn")]
-        with self._feeds([item]), patch.object(gn, "_call", AsyncMock(side_effect=calls)):
+        written = _written({"id": 1, "emoji": "🐕", "headline": "Собака", "text": "Через 9 дней."})
+        with self._feeds([item]), _model(_resp(_tool([1]), stop="tool_use"), _resp(written)):
             _, reason = await gn.build(NOW)
         self.assertEqual(reason, "dropped_by_verification")
+
+
+class ModelCallTests(unittest.IsolatedAsyncioTestCase):
+    """Сборка с замоканным ответом модели: tool_use, пустой текст, обрезанный ответ."""
+
+    async def asyncSetUp(self):
+        for p in [patch.object(gn, "_load_sent", AsyncMock(return_value={})),
+                  patch.object(gn, "_site_items", AsyncMock(return_value=[]))]:
+            p.start()
+            self.addCleanup(p.stop)
+        self.items = [
+            _item("Собаку нашли", url="https://a.nl/1", desc="Hond na 3 dagen gevonden."),
+            _item("Соседи помогли", url="https://a.nl/2", desc="Buren helpen elkaar."),
+        ]
+
+    async def _build(self, *responses):
+        with patch.object(gn, "_load_all_feeds", AsyncMock(return_value=self.items)), \
+             _model(*responses) as create:
+            items, reason = await gn.build(NOW)
+        return items, reason, create
+
+    # --- tool_use -----------------------------------------------------------------------
+
+    async def test_select_forces_tool_without_thinking_and_bigger_limits(self):
+        written = _written({"id": 1, "emoji": "🐕", "headline": "Собака нашлась", "text": "Нашлась через 3 дня."})
+        _, reason, create = await self._build(_resp(_tool([1]), stop="tool_use"), _resp(written))
+        self.assertEqual(reason, "ok")
+        select, write = (c.kwargs for c in create.await_args_list)
+        self.assertEqual(select["max_tokens"], 400)
+        self.assertEqual(select["thinking"], {"type": "disabled"})
+        self.assertEqual(select["tool_choice"], {"type": "tool", "name": gn.SELECT_TOOL_NAME})
+        self.assertEqual([t["name"] for t in select["tools"]], [gn.SELECT_TOOL_NAME])
+        schema = select["tools"][0]["input_schema"]
+        self.assertEqual(schema["required"], ["ids"])
+        ids = schema["properties"]["ids"]
+        self.assertEqual((ids["type"], ids["items"], ids["maxItems"]), ("array", {"type": "integer"}, 3))
+        self.assertEqual(write["max_tokens"], 900)
+        self.assertEqual(write["thinking"], {"type": "disabled"})
+        self.assertNotIn("tool_choice", write)
+        self.assertNotIn("tools", write)
+
+    async def test_ids_come_from_tool_use_block_not_text(self):
+        # Текст ответа говорит [2], инструмент — [1]: верим только tool_use.
+        written = _written({"id": 1, "emoji": "🐕", "headline": "Собака нашлась", "text": "Нашлась через 3 дня."})
+        items, reason, create = await self._build(
+            _resp(_text("Выбираю [2]"), _tool([1]), stop="tool_use"), _resp(written))
+        self.assertEqual(reason, "ok")
+        self.assertEqual([i["url"] for i in items], ["https://a.nl/1"])
+        self.assertIn("id: 1 |", create.await_args_list[1].kwargs["messages"][0]["content"])
+        self.assertNotIn("id: 2 |", create.await_args_list[1].kwargs["messages"][0]["content"])
+
+    async def test_bad_tool_input_is_parse_error(self):
+        _, reason, create = await self._build(_resp(_tool(inp={"ids": ["1"]}), stop="tool_use"))
+        self.assertEqual(reason, "parse_error_select")
+        self.assertEqual(create.await_count, 1)
+
+    async def test_unknown_ids_from_tool_are_parse_error(self):
+        _, reason, _ = await self._build(_resp(_tool([42]), stop="tool_use"))
+        self.assertEqual(reason, "parse_error_select")
+
+    # --- пустой текст -------------------------------------------------------------------
+
+    async def test_prod_case_empty_select_answer_is_error_not_no_news(self):
+        # Как в проде: выход=100, стоп=max_tokens, текста нет вовсе.
+        _, reason, create = await self._build(_resp(_thinking(), stop="max_tokens", out=100))
+        self.assertEqual(reason, "parse_error_select")
+        self.assertEqual(create.await_count, 1)
+
+    async def test_select_with_empty_text_and_no_tool_is_parse_error(self):
+        _, reason, _ = await self._build(_resp(_text("")))
+        self.assertEqual(reason, "parse_error_select")
+
+    async def test_write_with_empty_text_is_parse_error(self):
+        _, reason, create = await self._build(_resp(_tool([1]), stop="tool_use"), _resp(_text("")))
+        self.assertEqual(reason, "parse_error_write")
+        self.assertEqual(create.await_count, 2)
+
+    async def test_write_text_assembled_from_all_blocks(self):
+        entry = json.dumps([{"id": 1, "emoji": "🐕", "headline": "Собака нашлась",
+                             "text": "Нашлась через 3 дня."}], ensure_ascii=False)
+        cut = len(entry) // 2
+        items, reason, _ = await self._build(
+            _resp(_tool([1]), stop="tool_use"),
+            _resp(_thinking(), _text(entry[:cut]), _text(entry[cut:])))
+        self.assertEqual(reason, "ok")
+        self.assertEqual(items[0]["headline"], "Собака нашлась")
+
+    # --- обрезанный ответ ---------------------------------------------------------------
+
+    async def test_truncated_tool_call_is_parse_error(self):
+        _, reason, create = await self._build(_resp(_tool(inp={}), stop="max_tokens", out=400))
+        self.assertEqual(reason, "parse_error_select")
+        self.assertEqual(create.await_count, 1)
+
+    async def test_tool_call_cut_by_max_tokens_is_not_trusted(self):
+        _, reason, create = await self._build(_resp(_tool([1]), stop="max_tokens", out=400))
+        self.assertEqual(reason, "parse_error_select")
+        self.assertEqual(create.await_count, 1)
+
+    async def test_truncated_write_is_parse_error(self):
+        _, reason, _ = await self._build(
+            _resp(_tool([1]), stop="tool_use"),
+            _resp(_text('[{"id": 1, "emoji": "🐕", "headline": "Собака'), stop="max_tokens", out=900))
+        self.assertEqual(reason, "parse_error_write")
+
+    async def test_truncated_write_without_max_tokens_flag_is_parse_error(self):
+        _, reason, _ = await self._build(
+            _resp(_tool([1]), stop="tool_use"),
+            _resp(_text('[{"id": 1, "emoji": "🐕", "headline": "Собака')))
+        self.assertEqual(reason, "parse_error_write")
+
+    async def test_run_reports_prod_case_as_error_to_admins(self):
+        bot = FakeBot()
+        with patch.object(gn.config, "ADMIN_IDS", [1]), \
+             patch.object(gn, "_load_all_feeds", AsyncMock(return_value=self.items)), \
+             _model(_resp(_thinking(), stop="max_tokens", out=100)):
+            status = await gn.run(bot, NOW)
+        self.assertEqual(status, "error")
+        self.assertTrue(bot.sent[0][1].startswith(gn.ERROR_PREFIX))
+        self.assertIn("отбор", bot.sent[0][1])
 
 
 class RunTests(unittest.IsolatedAsyncioTestCase):

@@ -7,8 +7,10 @@
 Конвейер, без токенов где можно:
   1. сбор записей за 24 ч, дедупликация по URL и заголовку, отсев уже отправленных URL (Meta),
      регекс-фильтр негатива — всё до Claude;
-  2. вызов 1 (Haiku): ТОЛЬКО короткий JSON-список до 3 id;
-  3. вызов 2 (Haiku): тексты только для выбранных id, max_tokens 700;
+  2. вызов 1 (Haiku): обязательный вызов инструмента pick_good_news с {"ids": [...]}, до 3 id;
+     номера берутся из блока tool_use, а не из текста;
+  3. вызов 2 (Haiku): тексты только для выбранных id, текст собирается из всех text-блоков;
+  оба вызова — без extended thinking (иначе модель тратит max_tokens до ответа);
   4. проверка по коду: каждое число и латинское имя с заглавной должно быть в источнике записи;
   5. футер «Источник: … · дд.мм.гггг» и исходный URL собираются кодом.
 Причина пустого результата логируется; ошибка разбора отличается от «ничего не нашлось».
@@ -33,7 +35,7 @@ from database.db import get_session
 from database.models import SiteNewsItem
 from utils import digest_core as core
 from utils import wordpress as wp
-from utils.ai import _extract_text_and_sources, _get_client
+from utils.ai import _get_client
 from utils.site_news import FeedItem, fetch_feed, normalize_url, parse_feed
 
 log = logging.getLogger(__name__)
@@ -48,8 +50,30 @@ MAX_ITEMS = 3
 DESC_SELECT = 200  # описание в вызове 1 (только для отбора)
 DESC_WRITE = 600  # описание в вызове 2 (для текста)
 DESC_VERIFY = 1500  # описание, по которому проверяются числа и имена
-SELECT_MAX_TOKENS = 100  # вызов 1: только короткий список id
-WRITE_MAX_TOKENS = 700  # вызов 2: тексты для выбранных записей
+SELECT_MAX_TOKENS = 400  # вызов 1: вызов инструмента со списком id
+WRITE_MAX_TOKENS = 900  # вызов 2: тексты для выбранных записей
+# У Haiku 5.5 extended thinking включено по умолчанию и расходует max_tokens раньше ответа,
+# поэтому выключаем его явно. disabled допустим только при effort не выше high — у нас low.
+NO_THINKING = {"type": "disabled"}
+SELECT_TOOL_NAME = "pick_good_news"
+SELECT_TOOL = {
+    "name": SELECT_TOOL_NAME,
+    "description": "Передать id выбранных хороших новостей (до 3). Пустой список — хороших нет.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "ids": {
+                "type": "array",
+                "items": {"type": "integer"},
+                "maxItems": MAX_ITEMS,
+                "description": "id выбранных записей из списка, не больше 3; [] если хороших нет",
+            },
+        },
+        "required": ["ids"],
+        "additionalProperties": False,
+    },
+}
+SELECT_TOOL_CHOICE = {"type": "tool", "name": SELECT_TOOL_NAME}
 HEADLINE_MAX_WORDS = 10  # в промпте просим не больше 8; 10 — допуск
 TEXT_MAX_CHARS = 300
 LAST_DAY_KEY = "good_news:last_day"
@@ -249,18 +273,34 @@ async def _save_sent(now: datetime, urls: list[str]) -> None:
 
 # --- LLM -------------------------------------------------------------------------------
 
-async def _call(system: str, user: str, max_tokens: int, label: str) -> tuple[str, str | None]:
-    """Один вызов Claude. Возвращает (текст, stop_reason). Ошибки API не глушим — их покажет run()."""
+async def _call(system: str, user: str, max_tokens: int, label: str, **extra):
+    """Один вызов Claude без extended thinking. Возвращает ответ целиком (все content-блоки).
+
+    Ошибки API не глушим — их покажет run().
+    """
     resp = await _get_client().messages.create(
         model=config.GOOD_NEWS_MODEL, max_tokens=max_tokens, system=system,
         messages=[{"role": "user", "content": user}],
+        thinking=NO_THINKING,
         extra_body={"output_config": {"effort": "low"}},
+        **extra,
     )
     usage = getattr(resp, "usage", None)
-    stop = getattr(resp, "stop_reason", None)
-    log.info("Хорошие новости [%s] модель=%s вход=%s выход=%s стоп=%s", label, config.GOOD_NEWS_MODEL,
-             getattr(usage, "input_tokens", None), getattr(usage, "output_tokens", None), stop)
-    return _extract_text_and_sources(resp)[0].strip(), stop
+    log.info("Хорошие новости [%s] модель=%s вход=%s выход=%s стоп=%s блоки=%s", label, config.GOOD_NEWS_MODEL,
+             getattr(usage, "input_tokens", None), getattr(usage, "output_tokens", None),
+             getattr(resp, "stop_reason", None), _block_types(resp))
+    return resp
+
+
+def _block_types(resp) -> list[str]:
+    return [getattr(b, "type", "?") for b in (getattr(resp, "content", None) or [])]
+
+
+def response_text(resp) -> str:
+    """Текст ответа из ВСЕХ text-блоков по порядку; прочие блоки (thinking, tool_use) пропускаем."""
+    parts = [getattr(b, "text", "") or "" for b in (getattr(resp, "content", None) or [])
+             if getattr(b, "type", None) == "text"]
+    return "".join(parts).strip()
 
 
 def _select_system() -> str:
@@ -270,8 +310,8 @@ def _select_system() -> str:
         "люди, животные, помощь соседям, сообщество, рекорды, природа, приятные сюрпризы.\n"
         "НЕ выбирай: преступления, ДТП и аварии, смерти, болезни, катастрофы, политику, войну, "
         "забастовки, повышение цен, увольнения.\n"
-        "Если хороших нет — пустой список. Ответь ТОЛЬКО JSON-массивом id, например [2, 7] или []. "
-        "Ничего больше."
+        f"Передай id выбранных записей через инструмент {SELECT_TOOL_NAME}. "
+        "Если хороших нет — передай пустой список ids."
     )
 
 
@@ -287,22 +327,26 @@ def _write_system() -> str:
     )
 
 
-def parse_ids(text: str) -> list[int] | None:
-    """Список id из ответа вызова 1. None — ответ не разобран."""
-    m = re.search(r"\[[\s\d,]*\]", text or "")
-    if not m:
-        return None
-    try:
-        data = json.loads(m.group())
-    except ValueError:
-        return None
-    if not isinstance(data, list):
+def parse_ids(value: object) -> list[int] | None:
+    """Проверяет поле ids из вызова инструмента. None — не список целых."""
+    if not isinstance(value, list):
         return None
     ids: list[int] = []
-    for v in data:
-        if isinstance(v, int) and not isinstance(v, bool) and v not in ids:
+    for v in value:
+        if not isinstance(v, int) or isinstance(v, bool):
+            return None
+        if v not in ids:
             ids.append(v)
     return ids[:MAX_ITEMS]
+
+
+def selected_ids(resp) -> list[int] | None:
+    """Номера из блока tool_use инструмента отбора (текст ответа не читаем). None — блока нет или он кривой."""
+    for block in getattr(resp, "content", None) or []:
+        if getattr(block, "type", None) == "tool_use" and getattr(block, "name", None) == SELECT_TOOL_NAME:
+            data = getattr(block, "input", None)
+            return parse_ids(data.get("ids")) if isinstance(data, dict) else None
+    return None
 
 
 def parse_json_array(text: str) -> list | None:
@@ -399,11 +443,15 @@ async def build(now: datetime) -> tuple[list[dict], str]:
         return [], "no_candidates"
 
     by_id = dict(enumerate(cands, 1))
-    text, stop = await _call(system=_select_system(), user="Записи:\n" + _listing(
-        by_id, DESC_SELECT), max_tokens=SELECT_MAX_TOKENS, label="отбор")
-    ids = parse_ids(text)
+    resp = await _call(system=_select_system(), user="Записи:\n" + _listing(by_id, DESC_SELECT),
+                       max_tokens=SELECT_MAX_TOKENS, label="отбор",
+                       tools=[SELECT_TOOL], tool_choice=SELECT_TOOL_CHOICE)
+    stop = getattr(resp, "stop_reason", None)
+    # Обрезанный вызов инструмента не доверяем, даже если в нём что-то есть.
+    ids = None if stop == "max_tokens" else selected_ids(resp)
     if ids is None:
-        log.warning("Хорошие новости: ошибка разбора ответа отбора (стоп=%s): %r", stop, (text or "")[:200])
+        log.warning("Хорошие новости: ошибка разбора ответа отбора (стоп=%s, блоки=%s): %r",
+                    stop, _block_types(resp), response_text(resp)[:200])
         return [], "parse_error_select"
     picked = {i: by_id[i] for i in ids if i in by_id}
     if not ids:
@@ -413,8 +461,10 @@ async def build(now: datetime) -> tuple[list[dict], str]:
         log.warning("Хорошие новости: модель вернула неизвестные id %s", ids)
         return [], "parse_error_select"
 
-    text, stop = await _call(system=_write_system(), user="Записи:\n" + _listing(
+    resp = await _call(system=_write_system(), user="Записи:\n" + _listing(
         picked, DESC_WRITE), max_tokens=WRITE_MAX_TOKENS, label="текст")
+    stop = getattr(resp, "stop_reason", None)
+    text = response_text(resp)
     if stop == "max_tokens":
         log.warning("Хорошие новости: текст обрезан по max_tokens (%d)", WRITE_MAX_TOKENS)
         return [], "parse_error_write"
