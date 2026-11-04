@@ -1,5 +1,5 @@
 import { Onest_400Regular, Onest_500Medium, Onest_600SemiBold, Onest_700Bold } from '@expo-google-fonts/onest';
-import { Unbounded_600SemiBold, Unbounded_700Bold } from '@expo-google-fonts/unbounded';
+import { Nunito_800ExtraBold, Nunito_900Black } from '@expo-google-fonts/nunito';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
@@ -31,7 +31,7 @@ function Realtime() {
 export default function RootLayout() {
   const scheme = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({
-    Onest_400Regular, Onest_500Medium, Onest_600SemiBold, Onest_700Bold, Unbounded_600SemiBold, Unbounded_700Bold,
+    Onest_400Regular, Onest_500Medium, Onest_600SemiBold, Onest_700Bold, Nunito_800ExtraBold, Nunito_900Black,
   });
   useEffect(() => { bootAuth(); }, []);
   useEffect(() => { if (fontsLoaded || fontError) SplashScreen.hideAsync().catch(() => {}); }, [fontsLoaded, fontError]);

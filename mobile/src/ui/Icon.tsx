@@ -80,6 +80,13 @@ const I = {
   bike: ['bicycle', 'pedal_bike'],
   mic: ['mic.fill', 'mic'], creditcard: ['creditcard.fill', 'credit_card'], book: ['book.fill', 'menu_book'],
   bellFill: ['bell.fill', 'notifications'], star: ['star.fill', 'star'],
+  sunFill: ['sun.max.fill', 'light_mode'], ticketFill: ['ticket.fill', 'confirmation_number'],
+  pin: ['mappin.and.ellipse', 'location_on'], pinFill: ['mappin.circle.fill', 'location_on'],
+  guide: ['book', 'menu_book'], guideFill: ['book.fill', 'menu_book'],
+  museum: ['building.columns', 'museum'], tree: ['tree', 'park'], beach: ['beach.umbrella', 'beach_access'],
+  castle: ['building.2', 'castle'], fork: ['fork.knife', 'restaurant'], child: ['figure.and.child.holdinghands', 'child_care'],
+  doc: ['doc.text', 'description'], cross: ['cross.case', 'medical_services'], scale: ['scalemass', 'balance'],
+  sos: ['phone.badge.waveform', 'emergency'], wallet: ['wallet.pass', 'account_balance_wallet'],
 } as const;
 
 export type IconName = keyof typeof I;

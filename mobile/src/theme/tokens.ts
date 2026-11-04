@@ -1,21 +1,21 @@
-// Дизайн-система podslushano: цвета светлой и тёмной темы, радиусы, отступы, типографика.
-// Liquid Glass: основная поверхность — светлое стекло поверх живого контента, акцент — фирменный оранжевый.
+// Дизайн-система podslushano.nl: цвета светлой и тёмной темы, радиусы, отступы, типографика.
+// Источник значений — brand/tokens/tokens.json (бренд-бук). Заголовки — Nunito, текст — Onest.
 
 export const palette = {
   // Светлая тема: светло-серый фон, белые карточки с мягкой рамкой #E0E0E0, глубокий тёмный текст
   light: {
-    bg: '#F5F5F5',
+    bg: '#F4F5F7',
     bgElevated: '#FFFFFF',
-    bgSunken: '#EFEFEF',
-    ink: '#1A1A1A',
-    text: '#2B2B2B',
-    muted: '#666666',
-    faint: '#9A9A9A',
-    line: '#E0E0E0',
-    lineStrong: '#CFCFCF',
+    bgSunken: '#ECEEF1',
+    ink: '#0D1117',
+    text: '#2A2F37',
+    muted: '#5B6370',
+    faint: '#8A919C',
+    line: '#E3E6EA',
+    lineStrong: '#CDD2D8',
     accent: '#FF5A1F',
-    accentSoft: '#FFE9DF',
-    onAccent: '#0B0D12',
+    accentSoft: '#FFEEE6',
+    onAccent: '#0D1117',
     accentText: '#C2410C',
     success: '#1F7A4D',
     danger: '#C0262D',
@@ -27,34 +27,34 @@ export const palette = {
     glassEdge: 'rgba(11,13,18,0.08)',
     glassShadow: 'rgba(17,24,39,0.16)',
     scrim: 'rgba(11,13,18,0.38)',
-    inverse: '#1A1A1A',
+    inverse: '#0D1117',
     onInverse: '#FFFFFF',
     onInverseMuted: '#C4C4C4',
-    placeholder: '#E8E8E8',
+    placeholder: '#E6E9ED',
     // «витринные» карточки (Сейчас, Сэкономить, вход) — в светлой теме тоже светлые, без контрастных чёрных плашек
     hero: '#FFFFFF',
-    heroInner: '#F5F5F5',
-    heroInner2: '#EBEBEB',
-    onHero: '#1A1A1A',
-    onHeroMuted: '#666666',
-    segTrack: '#EBEBEB',
+    heroInner: '#F4F5F7',
+    heroInner2: '#ECEEF1',
+    onHero: '#0D1117',
+    onHeroMuted: '#5B6370',
+    segTrack: '#ECEEF1',
     segOn: '#FFFFFF',
-    iconOff: '#8E8E8E',   // неактивные вкладки нижнего меню
+    iconOff: '#8A919C',   // неактивные вкладки нижнего меню
   },
   dark: {
     // Слои как в Threads: графитовый фон, карточки на тон светлее, тонкая рамка #2E2E2E — без «мёртвого» чёрного
-    bg: '#121212',
-    bgElevated: '#1E1E1E',
-    bgSunken: '#262626',
+    bg: '#0E1014',
+    bgElevated: '#171A20',
+    bgSunken: '#1F232B',
     ink: '#FFFFFF',
-    text: '#E6E6E6',
-    muted: '#A0A0A0',
-    faint: '#6E6E6E',
-    line: '#2E2E2E',
-    lineStrong: '#3A3A3A',
+    text: '#E6E8EB',
+    muted: '#A3AAB5',
+    faint: '#6B7280',
+    line: '#262B33',
+    lineStrong: '#363C46',
     accent: '#FF6A33',
-    accentSoft: '#3A1D10',
-    onAccent: '#0B0D12',
+    accentSoft: '#3A2116',
+    onAccent: '#0D1117',
     accentText: '#FF9466',
     success: '#4ADE80',
     danger: '#F87171',
@@ -66,18 +66,18 @@ export const palette = {
     glassShadow: 'rgba(0,0,0,0.45)',
     scrim: 'rgba(0,0,0,0.55)',
     // «Сильная» поверхность в тёмной теме — графит, а не белый: без контрастных белых плашек
-    inverse: '#2E2E2E',
+    inverse: '#262B33',
     onInverse: '#FFFFFF',
     onInverseMuted: '#A0A0A0',
-    placeholder: '#262626',
-    hero: '#1E1E1E',
-    heroInner: '#272727',
-    heroInner2: '#323232',
+    placeholder: '#1F232B',
+    hero: '#171A20',
+    heroInner: '#1F232B',
+    heroInner2: '#262B33',
     onHero: '#FFFFFF',
-    onHeroMuted: '#AEB4BF',
-    segTrack: '#1E1E1E',
-    segOn: '#2E2E2E',
-    iconOff: '#666666',   // неактивные вкладки нижнего меню
+    onHeroMuted: '#A3AAB5',
+    segTrack: '#171A20',
+    segOn: '#262B33',
+    iconOff: '#6B7280',   // неактивные вкладки нижнего меню
   },
 } as const;
 
@@ -89,8 +89,8 @@ export const HAIRLINE = 0.5;
 export const space = { xs: 4, s: 8, m: 12, l: 16, xl: 20, xxl: 28, xxxl: 40 } as const;
 
 export const fonts = {
-  display: 'Unbounded_700Bold',
-  displaySemi: 'Unbounded_600SemiBold',
+  display: 'Nunito_900Black',
+  displaySemi: 'Nunito_800ExtraBold',
   regular: 'Onest_400Regular',
   medium: 'Onest_500Medium',
   semibold: 'Onest_600SemiBold',
@@ -98,7 +98,7 @@ export const fonts = {
 } as const;
 
 export const type = {
-  display: { fontFamily: fonts.display, fontSize: 32, lineHeight: 37, letterSpacing: -0.6 },
+  display: { fontFamily: fonts.display, fontSize: 32, lineHeight: 37, letterSpacing: -0.4 },
   title1: { fontFamily: fonts.display, fontSize: 26, lineHeight: 31, letterSpacing: -0.4 },
   title2: { fontFamily: fonts.displaySemi, fontSize: 20, lineHeight: 25, letterSpacing: -0.2 },
   title3: { fontFamily: fonts.bold, fontSize: 19, lineHeight: 24, letterSpacing: -0.2 },
