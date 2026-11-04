@@ -853,6 +853,25 @@ class NsAlertSent(Base):
     )
 
 
+class WaitlistEntry(Base):
+    """Лист ожидания товара партнёра (например, свеча Soul of Sol): почта с подтверждением или Telegram."""
+
+    __tablename__ = "waitlist_entries"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    campaign: Mapped[str] = mapped_column(String(40), index=True)
+    email: Mapped[str | None] = mapped_column(String(200), nullable=True, index=True)
+    tg_user_id: Mapped[int | None] = mapped_column(BigInteger, nullable=True, index=True)
+    # pending (ждёт подтверждения почты) | active | unsubscribed
+    status: Mapped[str] = mapped_column(String(16), default="pending", index=True)
+    source: Mapped[str] = mapped_column(String(40), default="site")
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None)
+    )
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    notified_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+
+
 class WeekSubscriber(Base):
     """Подписчик пятничной рассылки «Неделя в Нидерландах» (подписка с подтверждением почты)."""
 
