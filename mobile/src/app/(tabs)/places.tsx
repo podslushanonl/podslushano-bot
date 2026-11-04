@@ -1,37 +1,49 @@
+import { useMemo, useState } from 'react';
 import { View } from 'react-native';
+import { KINDS, PlaceKind, placesOf, PLACES_SOURCE } from '@/api/places';
+import { PlaceCard } from '@/features/places/PlaceCard';
 import { HeaderActions, ProvinceSwitch } from '@/features/province/ProvinceSwitch';
 import { useProvince } from '@/lib/province';
-import { radius, useTheme } from '@/theme';
-import { Card, Empty, Icon, IconName, TabScreen, Txt } from '@/ui';
+import { Button, ChipRow, Empty, TabScreen, Txt } from '@/ui';
 
-// Типы мест. Данные по провинциям — следующий этап (база мест из открытых источников).
-const KINDS: { icon: IconName; title: string }[] = [
-  { icon: 'museum', title: 'Музеи' }, { icon: 'castle', title: 'Замки и крепости' }, { icon: 'tree', title: 'Парки и природа' },
-  { icon: 'beach', title: 'Пляжи и озёра' }, { icon: 'tag', title: 'Рынки' }, { icon: 'child', title: 'Детям' },
-];
+const PAGE = 30;
 
-/** «Места»: музеи, замки, парки и другие места выбранной провинции. */
+/** «Места»: музеи, замки, природа, пляжи, мельницы и места для детей выбранной провинции. */
 export default function Places() {
-  const { c } = useTheme();
   const { province } = useProvince();
   const p = province!;
+  const all = useMemo(() => placesOf(p.id), [p.id]);
+  const [kind, setKind] = useState<PlaceKind | ''>('');
+  const [town, setTown] = useState('');
+  const [limit, setLimit] = useState(PAGE);
+
+  const kinds = KINDS.map((k) => ({ ...k, n: all.filter((x) => x.kinds.includes(k.key)).length })).filter((k) => k.n);
+  const byKind = all.filter((x) => !kind || x.kinds.includes(kind));
+  // Города — только те, где есть хотя бы 3 места выбранного типа: длинный хвост деревень не нужен в фильтре
+  const towns = useMemo(() => {
+    const n = new Map<string, number>();
+    byKind.forEach((x) => x.town && n.set(x.town, (n.get(x.town) || 0) + 1));
+    return [...n.entries()].filter(([, v]) => v >= 3).sort((a, b) => b[1] - a[1]).map(([t]) => t).slice(0, 12);
+  }, [byKind]);
+  const shown = byKind.filter((x) => !town || x.town === town);
+
+  const pickKind = (k: PlaceKind | '') => { setKind(k); setTown(''); setLimit(PAGE); };
+
   return (
     <TabScreen title="Места" above={<ProvinceSwitch />} right={<HeaderActions />}>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-        {KINDS.map((k) => (
-          <View key={k.title} style={{ width: '47.5%', flexGrow: 1, backgroundColor: c.bgElevated, borderRadius: radius.l, borderWidth: 1, borderColor: c.line,
-            padding: 16, gap: 12, opacity: 0.6 }}>
-            <View style={{ width: 40, height: 40, borderRadius: radius.s, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name={k.icon} size={22} color={c.accentText} />
-            </View>
-            <Txt v="headline">{k.title}</Txt>
-          </View>
-        ))}
+      <View style={{ gap: 10, marginHorizontal: -20 }}>
+        <ChipRow items={[{ key: '' as const, title: `Все ${all.length}` }, ...kinds.map((k) => ({ key: k.key, title: `${k.title} ${k.n}` }))]}
+          value={kind} onChange={pickKind} />
+        {towns.length > 1 ? <ChipRow items={[{ key: '', title: 'Все города' }, ...towns.map((t) => ({ key: t, title: t }))]} value={town}
+          onChange={(t) => { setTown(t); setLimit(PAGE); }} /> : null}
       </View>
-      <Card style={{ borderRadius: radius.l }}>
-        <Empty icon="pin" title={`Собираем места ${p.name}`}
-          text="Часы работы, цены, музейная карта и маршрут для каждого места. Раздел откроется в ближайшем обновлении." />
-      </Card>
+      {shown.length ? (
+        <View style={{ gap: 10 }}>
+          {shown.slice(0, limit).map((x) => <PlaceCard key={x.id} p={x} />)}
+          {shown.length > limit ? <Button kind="secondary" title={`Показать ещё ${Math.min(PAGE, shown.length - limit)}`} onPress={() => setLimit(limit + PAGE)} /> : null}
+          <Txt v="caption" center>{PLACES_SOURCE}</Txt>
+        </View>
+      ) : <Empty icon="pin" title="Здесь пока пусто" text="Попробуйте другой тип места или город." />}
     </TabScreen>
   );
 }

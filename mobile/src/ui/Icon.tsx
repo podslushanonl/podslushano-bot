@@ -86,7 +86,7 @@ const I = {
   museum: ['building.columns', 'museum'], tree: ['tree', 'park'], beach: ['beach.umbrella', 'beach_access'],
   castle: ['building.2', 'castle'], fork: ['fork.knife', 'restaurant'], child: ['figure.and.child.holdinghands', 'child_care'],
   doc: ['doc.text', 'description'], cross: ['cross.case', 'medical_services'], scale: ['scalemass', 'balance'],
-  sos: ['phone.badge.waveform', 'emergency'], wallet: ['wallet.pass', 'account_balance_wallet'],
+  sos: ['phone.badge.waveform', 'emergency'], windmill: ['fanblades', 'wind_power'], wallet: ['wallet.pass', 'account_balance_wallet'],
 } as const;
 
 export type IconName = keyof typeof I;
