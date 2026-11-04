@@ -1,7 +1,7 @@
-"""Лист ожидания в боте: запись по ссылке ?start=wl_<кампания> и команды для админов.
+"""Лист ожидания свечи: только команды для админов (записываются люди на сайте и в /links/ по почте).
 
-/candle              — сколько человек в листе ожидания свечи (почта и Telegram), выгрузка CSV
-/candle_open <ссылка> — письмо и сообщение в боте всем из списка: продажи открыты (с подтверждением)
+/candle              — сколько человек в листе ожидания, выгрузка CSV
+/candle_open <ссылка> — письмо всем из списка: продажи открыты (с подтверждением)
 """
 import asyncio
 import csv
@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
-from aiogram.filters import Command, CommandStart
+from aiogram.filters import Command
 from aiogram.types import (BufferedInputFile, CallbackQuery, InlineKeyboardButton, InlineKeyboardMarkup,
                            Message)
 from sqlalchemy import select
@@ -30,17 +30,6 @@ CAMPAIGN = "candle"
 _OPEN_URL_KEY = "waitlist_open_url:candle"
 
 
-@router.message(CommandStart(deep_link=True), F.text.endswith(" wl_candle"))
-async def join_from_bot(message: Message) -> None:
-    new, n = await wl.add_telegram(CAMPAIGN, message.from_user.id)
-    stock = wl.CAMPAIGNS[CAMPAIGN]["stock"]
-    await message.answer(
-        ("Готово, вы в листе ожидания! 🕯" if new else "Вы уже в листе ожидания 🕯")
-        + f"\n\nРождественская свеча Soul of Sol × podslushano.nl «Пахнет как дома». "
-        f"Вы {n}-й в списке, а в первой партии {stock} свечей.\n\n"
-        "В день старта продаж я напишу вам первым, ещё до открытой продажи.")
-
-
 async def _rows() -> list[WaitlistEntry]:
     async with get_session() as session:
         return list((await session.scalars(select(WaitlistEntry).where(
@@ -51,12 +40,10 @@ async def _rows() -> list[WaitlistEntry]:
 async def candle_stats(message: Message) -> None:
     rows = await _rows()
     act = [r for r in rows if r.status == "active"]
-    mails = sum(1 for r in act if r.email)
-    tg = sum(1 for r in act if r.tg_user_id)
-    pend = sum(1 for r in rows if r.status == "pending")
+    out = sum(1 for r in rows if r.status == "unsubscribed")
     await message.answer(
-        f"🕯 <b>Лист ожидания свечи</b>\n\nВ списке: <b>{len(act)}</b> (почта {mails}, Telegram {tg}).\n"
-        f"Не подтвердили почту: {pend}. Свечей в первой партии: {wl.CAMPAIGNS[CAMPAIGN]['stock']}.\n\n"
+        f"🕯 <b>Лист ожидания свечи</b>\n\nВ списке: <b>{len(act)}</b>. Отписались: {out}.\n"
+        f"Свечей в первой партии: {wl.CAMPAIGNS[CAMPAIGN]['stock']}.\n\n"
         "Эту цифру сайт показывает в баннере сам.\n"
         "Открыть продажи для списка: <code>/candle_open https://ссылка-на-покупку</code>",
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
@@ -67,11 +54,10 @@ async def candle_stats(message: Message) -> None:
 async def candle_csv(callback: CallbackQuery) -> None:
     buf = io.StringIO()
     w = csv.writer(buf)
-    w.writerow(["№", "почта", "telegram_id", "статус", "источник", "записался", "подтвердил"])
+    w.writerow(["№", "почта", "статус", "источник", "записался"])
     for i, r in enumerate(await _rows(), 1):
-        w.writerow([i, r.email or "", r.tg_user_id or "", r.status, r.source,
-                    f"{r.created_at:%d.%m.%Y %H:%M}" if r.created_at else "",
-                    f"{r.confirmed_at:%d.%m.%Y %H:%M}" if r.confirmed_at else ""])
+        w.writerow([i, r.email or "", r.status, r.source,
+                    f"{r.created_at:%d.%m.%Y %H:%M}" if r.created_at else ""])
     await callback.answer()
     await callback.message.answer_document(
         BufferedInputFile(buf.getvalue().encode("utf-8-sig"), filename="waitlist-candle.csv"),
@@ -90,7 +76,7 @@ async def candle_open(message: Message) -> None:
         await session.commit()
     act = [r for r in await _rows() if r.status == "active" and not r.notified_at]
     await message.answer(
-        f"Разослать «продажи открыты» <b>{len(act)}</b> людям из листа ожидания (письмо или сообщение в боте)?\n"
+        f"Разослать «продажи открыты» <b>{len(act)}</b> людям из листа ожидания (письмо на почту)?\n"
         f"Ссылка: {html.escape(url)}",
         disable_web_page_preview=True,
         reply_markup=InlineKeyboardMarkup(inline_keyboard=[[
@@ -123,18 +109,12 @@ async def _send_all(bot, url: str, admin_id: int) -> None:
     note = ("Вы записались в лист ожидания, поэтому пишем вам первыми, ещё до открытой продажи. "
             f"В первой партии всего {wl.CAMPAIGNS[CAMPAIGN]['stock']} свечей.")
     sent = failed = 0
-    for r in [r for r in await _rows() if r.status == "active" and not r.notified_at]:
+    for r in [r for r in await _rows() if r.status == "active" and not r.notified_at and r.email]:
         ok = False
         try:
-            if r.email:
-                ok, _ = await send_email_message(
-                    r.email, *waitlist_open(title=title, url=url, note=note,
-                                            unsubscribe_url=wl.unsubscribe_url(CAMPAIGN, r.id)))
-            elif r.tg_user_id:
-                await bot.send_message(
-                    r.tg_user_id, f"🕯 <b>Продажи открыты!</b>\n\n{title}.\n{note}",
-                    reply_markup=InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Купить", url=url)]]))
-                ok = True
+            ok, _ = await send_email_message(
+                r.email, *waitlist_open(title=title, url=url, note=note,
+                                        unsubscribe_url=wl.unsubscribe_url(CAMPAIGN, r.id)))
         except Exception as e:  # noqa: BLE001
             log.info("Лист ожидания: не отправлено #%s: %s", r.id, e)
         if ok:

@@ -1,15 +1,16 @@
 """Лист ожидания товара партнёра на сайте (первая кампания — свеча Soul of Sol × podslushano.nl).
 
-POST /api/waitlist/<campaign>/join  {email, consent}  → письмо «Подтвердите место» (защита от чужих адресов)
-GET  /api/waitlist/confirm?t=                         → место подтверждено, страница с номером в списке
-GET  /api/waitlist/<campaign>                         → {"count": N, "stock": 24} для баннера на сайте
+POST /api/waitlist/<campaign>/join  {email, consent}  → сразу в списке + письмо «Вы в листе ожидания» с отпиской
+GET  /api/waitlist/<campaign>                         → {"count": N, "stock": 24, "buy": ""} для баннера
 GET|POST /api/waitlist/unsubscribe?t=                 → выйти из списка
+GET  /api/waitlist/confirm?t=                         → только для старых писем с подтверждением
 
-Через Telegram записываются по ссылке t.me/<бот>?start=wl_<campaign> (handlers/waitlist.py).
-Данные нужны только для одного письма о старте продаж; партнёру мы передаём число, а не адреса.
+Запись в один шаг: человек сам ставит галочку согласия, отдельного подтверждения нет.
+Данные нужны только для письма о старте продаж; партнёру мы передаём число, а не адреса.
 """
 from __future__ import annotations
 
+import logging
 import time
 from datetime import datetime, timezone
 
@@ -20,7 +21,7 @@ import config
 from database.db import get_session
 from database.models import WaitlistEntry
 from utils.allo_v2 import _cors
-from utils.email_templates import waitlist_confirm
+from utils.email_templates import waitlist_joined
 from utils.invoices import send_email_message
 from utils.site_api import EMAIL_RE, _api_base, _body, _err, _html_page, _json, make_token, read_token
 
@@ -29,6 +30,7 @@ CAMPAIGNS = {
     "candle": {"title": "рождественская свеча Soul of Sol × podslushano.nl «Пахнет как дома»", "stock": 24},
 }
 _hits: dict[str, list[float]] = {}
+log = logging.getLogger(__name__)
 
 
 def _now() -> datetime:
@@ -62,22 +64,6 @@ async def position(campaign: str, entry: WaitlistEntry) -> int:
             WaitlistEntry.confirmed_at <= entry.confirmed_at)) or 0)
 
 
-async def add_telegram(campaign: str, user_id: int) -> tuple[bool, int]:
-    """Записывает пользователя бота. (новый ли, номер в списке)."""
-    async with get_session() as session:
-        row = (await session.execute(select(WaitlistEntry).where(
-            WaitlistEntry.campaign == campaign, WaitlistEntry.tg_user_id == user_id))).scalars().first()
-        new = row is None or row.status != "active"
-        if row is None:
-            row = WaitlistEntry(campaign=campaign, tg_user_id=user_id, source="telegram")
-            session.add(row)
-        if row.status != "active":
-            row.status, row.confirmed_at = "active", _now()
-        await session.commit()
-        await session.refresh(row)
-    return new, await position(campaign, row)
-
-
 async def join(request: web.Request) -> web.Response:
     campaign = request.match_info.get("campaign", "")
     if campaign not in CAMPAIGNS:
@@ -94,19 +80,26 @@ async def join(request: web.Request) -> web.Response:
     async with get_session() as session:
         row = (await session.execute(select(WaitlistEntry).where(
             WaitlistEntry.campaign == campaign, WaitlistEntry.email == email))).scalars().first()
-        if row and row.status == "active":
-            return _json(request, {"ok": True, "already": True})
+        already = bool(row and row.status == "active")
         if row is None:
             row = WaitlistEntry(campaign=campaign, email=email, source=str(data.get("source") or "site")[:40])
             session.add(row)
-        row.status = "pending"
+        if not already:
+            row.status, row.confirmed_at = "active", _now()
         await session.commit()
         await session.refresh(row)
-    link = f"{_api_base()}/api/waitlist/confirm?t={make_token({'k': 'wlok', 'c': campaign, 'i': row.id}, 7 * 86400)}"
-    ok, _ = await send_email_message(email, *waitlist_confirm(title=CAMPAIGNS[campaign]["title"], confirm_url=link))
-    if not ok:
-        return _err(request, "Не удалось отправить письмо. Попробуйте ещё раз позже.", 502)
-    return _json(request, {"ok": True})
+    n = await position(campaign, row)
+    if not already:
+        info = CAMPAIGNS[campaign]
+        try:
+            ok, err = await send_email_message(email, *waitlist_joined(
+                title=info["title"], position=n, stock=info["stock"],
+                unsubscribe_url=unsubscribe_url(campaign, row.id)))
+            if not ok:
+                log.info("Лист ожидания: письмо #%s не ушло: %s", row.id, err)
+        except Exception as e:  # noqa: BLE001 — место в списке уже сохранено, письмо не главное
+            log.info("Лист ожидания: письмо #%s не ушло: %s", row.id, e)
+    return _json(request, {"ok": True, "already": already, "position": n, "count": await count(campaign)})
 
 
 async def confirm(request: web.Request) -> web.Response:

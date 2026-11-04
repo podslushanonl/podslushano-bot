@@ -159,8 +159,17 @@ async def init_db() -> None:
         await conn.run_sync(Base.metadata.create_all)
 
     await _migrate()
+    await _activate_waitlist_pending()
     await _seed_if_needed()
     await _repair_misclassified_specialists()
+
+
+async def _activate_waitlist_pending() -> None:
+    """Лист ожидания теперь в один шаг. Тех, кто записался раньше и не нажал «Подтвердить», считаем записанными:
+    согласие они дали галочкой на сайте, в письме о старте продаж будет ссылка на отписку."""
+    async with engine.begin() as conn:
+        await conn.exec_driver_sql(
+            "UPDATE waitlist_entries SET status='active', confirmed_at=created_at WHERE status='pending'")
 
 
 SQLITE_IMPORTED_KEY = "sqlite_imported_at"
