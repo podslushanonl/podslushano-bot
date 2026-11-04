@@ -99,9 +99,13 @@ def qid(v: dict | None) -> str:
     return v["value"].rsplit("/", 1)[-1] if v else ""
 
 
-def point(wkt: str) -> tuple[float, float]:
-    lon, lat = re.findall(r"[-\d.]+", wkt)[:2]
-    return round(float(lat), 5), round(float(lon), 5)
+def point(wkt: str) -> tuple[float, float] | None:
+    """Координаты из «Point(долгота широта)». Точки на других небесных телах и кривые записи пропускаем."""
+    m = re.fullmatch(r"Point\(([-\d.eE]+) ([-\d.eE]+)\)", wkt.strip())
+    if not m:
+        return None
+    lon, lat = float(m.group(1)), float(m.group(2))
+    return (round(lat, 5), round(lon, 5)) if 50.5 < lat < 53.8 and 3.2 < lon < 7.3 else None
 
 
 def image(url: str | None) -> str:
@@ -145,7 +149,10 @@ def build() -> None:
                 continue
             if count.get(pid, 0) >= limit:
                 continue
-            lat, lon = point(r["coord"]["value"])
+            pt = point(r["coord"]["value"])
+            if not pt:
+                continue
+            lat, lon = pt
             places[q] = {
                 "id": q, "name": name, "ru": r.get("ru", {}).get("value", ""), "desc": r.get("descRu", {}).get("value", ""),
                 "kinds": [kind], "province": pid, "town": town, "street": "", "lat": lat, "lon": lon,
