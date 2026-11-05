@@ -79,6 +79,9 @@ class ShopTests(unittest.IsolatedAsyncioTestCase):
             await shop.on_payment(None, "tr_1", {"status": "paid", "metadata": {"kind": "shop", "token": d["token"]}})
             await shop.on_payment(None, "tr_1", {"status": "paid", "metadata": {"kind": "shop", "token": d["token"]}})
             self.assertEqual(after.call_count, 1)                # повторный webhook не шлёт письмо второй раз
+        page = await (await self.client.get(f"/shop/return?token={d['token']}")).text()
+        self.assertIn(f"podslushano://shop/order/{d['token']}", page)
+        self.assertIn(f"/app/shop/order/{d['token']}", page)   # вернуться можно и без установленного приложения
         o = await (await self.client.get(f"/api/shop/order/{d['token']}")).json()
         self.assertEqual(o["order"]["status"], "paid")
         self.assertEqual(o["order"]["items"][0]["qty"], 2)
