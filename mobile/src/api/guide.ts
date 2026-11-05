@@ -10,7 +10,7 @@ export type Specialist = {
 
 /** Убирает эмодзи и лишние пробелы: в приложении только текст и настоящие иконки. */
 export const clean = (s: string) =>
-  (s || '').replace(/[\p{Extended_Pictographic}\u{FE0F}\u{200D}\u{20E3}]/gu, '').replace(/\s{2,}/g, ' ').trim();
+  (s || '').replace(/[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{1F3FB}-\u{1F3FF}\u{FE0F}\u{200D}\u{20E3}]/gu, '').replace(/\s{2,}/g, ' ').trim();
 
 async function load(): Promise<Specialist[]> {
   const d = await getJson<{ specialists: Specialist[] }>(`${BOT}/api/specialists.json`);

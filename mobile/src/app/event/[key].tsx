@@ -98,10 +98,13 @@ export default function EventScreen() {
       {ticket ? (
         <View style={{ position: 'absolute', left: 12, right: 12, bottom: insets.bottom + 12 }}>
           <Glass radius={radius.xxl} strong style={{ padding: 8 }}>
-            <Button title={e.price ? `Билеты · ${e.price}` : 'Билеты'} kind="accent" icon="ticket" onPress={() => openUrl(ticket)} />
+            <Button title={isFree(e.price) ? 'Вход свободный · подробнее' : e.price ? `Билеты · ${e.price}` : 'Билеты'} kind="accent" icon="ticket" onPress={() => openUrl(ticket)} />
           </Glass>
         </View>
       ) : null}
     </View>
   );
 }
+
+/** «бесплатно», «gratis», «free», «0 €» — вход свободный, кнопка не должна называться «Билеты». */
+const isFree = (p?: string) => !!p && /бесплат|gratis|free|^\s*€?\s*0([.,]0+)?\s*€?\s*$/i.test(p);
