@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery } from '@tanstack/react-query';
 import { useSyncExternalStore } from 'react';
-import { api, BOT, getJson } from './client';
+import { api, BOT, getJson, mediaUrl } from './client';
 
 // Магазин мерча podslushano.nl (сервер: utils/shop.py). Шопперы печатаются под каждый заказ.
 export type Product = { id: string; title: string; price: string; text?: string; colors?: string[]; images?: string[]; available?: boolean };
@@ -18,7 +18,9 @@ export const euro = (v: string | number) => `€${Number(v).toFixed(2).replace('
 
 export const useCatalog = () => useQuery({
   queryKey: ['shop', 'catalog'], staleTime: 10 * 60_000,
-  queryFn: () => getJson<Catalog>(`${BOT}/api/shop/catalog`),
+  // путь к фото без домена («/shop-img/…») дополняем адресом сервера
+  queryFn: () => getJson<Catalog>(`${BOT}/api/shop/catalog`)
+    .then((c) => ({ ...c, products: c.products.map((p) => ({ ...p, images: (p.images || []).map(mediaUrl) })) })),
 });
 
 export const useOrder = (token: string) => useQuery({
