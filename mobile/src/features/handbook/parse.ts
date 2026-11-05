@@ -34,8 +34,8 @@ const TOP = new RegExp([
   '<section class="pg-faq">([\\s\\S]*?)<\\/section>',               // 11 faq
   '<div class="pg-cta">[\\s\\S]*?<\\/div>',                         //   призыв к контакт-гайду
   '<div class="pg-src">([\\s\\S]*?)<\\/div>',                       // 12 sources
-  '<p>([\\s\\S]*?)<\\/p>',                                          // 13 p
-  '<ul>([\\s\\S]*?)<\\/ul>',                                        // 14 простой список
+  '<p(?:\\s[^>]*)?>([\\s\\S]*?)<\\/p>',                             // 13 p (и <p class="wp-block-paragraph"> в новостях)
+  '<ul(?:\\s[^>]*)?>([\\s\\S]*?)<\\/ul>',                           // 14 простой список
 ].join('|'), 'g');
 
 export function parseArticle(html: string): Block[] {
