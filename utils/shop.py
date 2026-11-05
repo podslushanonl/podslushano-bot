@@ -68,7 +68,18 @@ def load_catalog() -> dict:
     except (OSError, ValueError):
         raw = {}
     shipping = {c: str(raw.get("shipping", {}).get(c) or "") for c in COUNTRIES}
-    products = [p for p in raw.get("products", []) if p.get("id") and p.get("title") and _money(p.get("price"))]
+    products = []
+    for p in raw.get("products", []):
+        if not (p.get("id") and p.get("title") and _money(p.get("price"))):
+            continue
+        # фото из папки data/shop/img (путь «img/…») сервер раздаёт сам; без файла фото не показываем
+        imgs = []
+        for src in p.get("images") or []:
+            if src.startswith("https://"):
+                imgs.append(src)
+            elif src.startswith("img/") and (CATALOG.parent / src).is_file():
+                imgs.append(f"{config.WEBHOOK_BASE_URL or ''}/shop-img/{src[4:]}")
+        products.append({**p, "images": imgs})
     return {"currency": raw.get("currency", "EUR"), "shipping": shipping, "products": products}
 
 
@@ -293,6 +304,9 @@ def install_routes(app: web.Application) -> None:
     app.router.add_post("/api/shop/order", create_order)
     app.router.add_get(r"/api/shop/order/{token:[A-Za-z0-9_\-]{16,64}}", get_order)
     app.router.add_get("/shop/return", return_page)
+    img_dir = CATALOG.parent / "img"
+    img_dir.mkdir(parents=True, exist_ok=True)
+    app.router.add_static("/shop-img/", img_dir, show_index=False)
 
 
 # ---------------------------------------------------------------- управление заказами в боте
