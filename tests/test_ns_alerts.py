@@ -31,6 +31,14 @@ class StationsTests(unittest.TestCase):
             {"code": "ASD", "namen": {"lang": "Amsterdam Centraal"}, "land": "NL"}]})
         self.assertEqual(rows, [["ASD", "Amsterdam Centraal"], ["UT", "Utrecht Centraal"]])
 
+    def test_arrivals_and_train_kind(self):
+        payload = {"payload": {"arrivals": [{
+            "origin": "Nijmegen", "plannedDateTime": "2026-11-05T08:00:00+0100", "actualDateTime": "2026-11-05T08:03:00+0100",
+            "plannedTrack": "2", "actualTrack": "3", "product": {"categoryCode": "SPR", "operatorName": "NS"}}]}}
+        a = ns_trains.normalize_departures(payload, 5, "arrivals")[0]
+        self.assertEqual((a["direction"], a["time"], a["delay"], a["code"], a["category"], a["track_changed"]),
+                         ("Nijmegen", "08:00", 3, "SPR", "Спринтер", True))
+
     def test_station_coords(self):
         c = ns_trains.station_coords({"payload": [
             {"code": "O", "lat": 51.764831, "lng": 5.531464, "land": "NL"},

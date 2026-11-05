@@ -7,7 +7,7 @@ import { openBot } from '@/lib/open';
 import { useProvince } from '@/lib/province';
 import { setMyStation, useMyStation } from '@/lib/station';
 import { HAIRLINE, radius, type as T, useTheme } from '@/theme';
-import { Button, Icon, IconButton, LargeTitle, PageScreen, Skeleton, Tap, Txt } from '@/ui';
+import { Button, Icon, IconButton, LargeTitle, Segmented, PageScreen, Skeleton, Tap, Txt } from '@/ui';
 
 export default function Trains() {
   const { c } = useTheme();
@@ -15,7 +15,11 @@ export default function Trains() {
   const my = useMyStation();
   const st = my.st;
   const [picker, setPicker] = useState(false);
-  const deps = useDepartures(st[0]);
+  const [kind, setKind] = useState<'departures' | 'arrivals'>('departures');
+  const deps = useDepartures(st[0], kind);
+  const dep = useDepartures(st[0], 'departures');
+  // Какие поезда здесь останавливаются — по ближайшим отправлениям (на части станций только Sprinter)
+  const kinds = useMemo(() => [...new Set((dep.data || []).filter((d) => !d.cancelled).map((d) => (d.code && KIND[d.code]) || d.category).filter(Boolean))], [dep.data]);
   const dis = useDisruptions();
   const mine = useMemo(() => [...(dis.data?.now || []), ...(dis.data?.planned || [])].filter((d) => (d.stations || []).includes(st[0])), [dis.data, st]);
   const choose = (s: [string, string]) => { setMyStation(s, home?.name || ''); setPicker(false); };
@@ -64,20 +68,26 @@ export default function Trains() {
       )}
 
       <View style={{ gap: 10 }}>
-        <Txt v="title2">Отправления</Txt>
+        <Segmented items={[{ key: 'departures', title: 'Отправление' }, { key: 'arrivals', title: 'Прибытие' }]} value={kind} onChange={setKind} />
+        {kinds.length ? <Txt v="footnote">Останавливаются: {kinds.join(', ')}</Txt> : null}
         <View style={{ backgroundColor: c.bgElevated, borderRadius: radius.xl, borderWidth: 1, borderColor: c.line, overflow: 'hidden' }}>
           {deps.isLoading ? <View style={{ padding: 16, gap: 14 }}>{[0, 1, 2, 3].map((i) => <Skeleton key={i} h={34} />)}</View>
             : !deps.data?.length ? <Txt v="callout" tone="muted" style={{ padding: 16 }}>
-              {deps.isError ? 'Не удалось загрузить расписание. Потяните вниз, чтобы обновить.' : 'Ближайших отправлений нет. Ночью поезда почти не ходят.'}</Txt>
+              {deps.isError ? 'Не удалось загрузить расписание. Потяните вниз, чтобы обновить.' : (kind === 'arrivals' ? 'Ближайших прибытий нет.' : 'Ближайших отправлений нет.') + ' Ночью поезда почти не ходят.'}</Txt>
             : deps.data.map((d, i) => (
               <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i ? 1 : 0, borderTopColor: c.line }}>
                 <View style={{ width: 54 }}>
                   <Txt v="headline" style={[{ fontVariant: ['tabular-nums'] }, d.cancelled && { textDecorationLine: 'line-through', color: c.muted }]}>{d.time}</Txt>
                   {d.delay && !d.cancelled ? <Txt v="caption" tone="danger" style={{ fontFamily: 'Onest_700Bold' }}>+{d.delay}</Txt> : null}
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Txt v="bodyStrong" numberOfLines={1} style={d.cancelled ? { textDecorationLine: 'line-through', color: c.muted } : undefined}>{d.direction}</Txt>
-                  <Txt v="footnote" numberOfLines={1}>{d.cancelled ? 'Отменён' : [d.category, d.via?.length ? `через ${d.via.slice(0, 2).join(', ')}` : ''].filter(Boolean).join(' · ')}</Txt>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Txt v="bodyStrong" numberOfLines={1} style={d.cancelled ? { textDecorationLine: 'line-through', color: c.muted } : undefined}>
+                    {kind === 'arrivals' ? `из ${d.direction}` : d.direction}</Txt>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    {d.code ? <TrainKind code={d.code} /> : null}
+                    <Txt v="footnote" numberOfLines={1} style={{ flexShrink: 1 }}>
+                      {d.cancelled ? 'Отменён' : [d.code ? '' : d.category, kind === 'departures' && d.via?.length ? `через ${d.via.slice(0, 2).join(', ')}` : ''].filter(Boolean).join(' · ')}</Txt>
+                  </View>
                 </View>
                 <View style={{ minWidth: 36, height: 36, paddingHorizontal: 6, borderRadius: 10, backgroundColor: d.track_changed ? c.accent : c.bgSunken, alignItems: 'center', justifyContent: 'center' }}>
                   <Txt v="headline" color={d.track_changed ? c.onAccent : c.ink}>{d.track || '—'}</Txt>
@@ -85,7 +95,7 @@ export default function Trains() {
               </View>
             ))}
         </View>
-        <Txt v="footnote">Данные NS, обновляются каждую минуту. Оранжевый номер — поезд уйдёт с другого пути.</Txt>
+        <Txt v="footnote">Данные NS, обновляются каждую минуту. Оранжевый номер пути — путь изменился.</Txt>
       </View>
 
       <Button title="Уведомления о сбоях в Telegram" kind="secondary" icon="bell" onPress={() => openBot(`ns_${st[0]}`)} />
@@ -102,7 +112,7 @@ function StationPicker({ visible, onClose, onPick }: { visible: boolean; onClose
   const found = useMemo(() => {
     const t = q.trim().toLowerCase();
     const all = list.data?.list || [];
-    return (t ? all.filter(([, n]) => n.toLowerCase().includes(t)) : all).slice(0, 80);
+    return t ? all.filter(([, n]) => n.toLowerCase().includes(t)) : all;
   }, [q, list.data]);
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
@@ -130,3 +140,16 @@ function StationPicker({ visible, onClose, onPick }: { visible: boolean; onClose
   );
 }
 
+
+/** Значок типа поезда: Intercity — тёмный, Sprinter — светлый, остальные — нейтральные. */
+const KIND: Record<string, string> = { IC: 'Intercity', ICD: 'Intercity Direct', SPR: 'Sprinter', ST: 'Stoptrein', SNEL: 'Sneltrein', ICE: 'ICE', EST: 'Eurostar', NSI: 'International' };
+function TrainKind({ code }: { code: string }) {
+  const { c } = useTheme();
+  const ic = code === 'IC' || code === 'ICD';
+  return (
+    <View style={{ paddingHorizontal: 6, height: 18, borderRadius: 5, justifyContent: 'center',
+      backgroundColor: ic ? c.ink : code === 'SPR' ? c.accentSoft : c.bgSunken }}>
+      <Txt v="caption" color={ic ? c.bg : code === 'SPR' ? c.accentText : c.ink} style={{ fontFamily: 'Onest_700Bold' }}>{KIND[code] || code}</Txt>
+    </View>
+  );
+}

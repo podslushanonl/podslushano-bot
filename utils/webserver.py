@@ -1784,6 +1784,8 @@ async def start_webserver(bot) -> web.AppRunner:
     install_push_routes(app)
     from utils.app_ics import install_routes as install_ics_routes
     install_ics_routes(app)
+    from utils.auto_events import install_routes as install_auto_events_routes
+    install_auto_events_routes(app)
     from utils.community import install_routes as install_community_routes
     install_community_routes(app)
     from utils.feed import install_routes as install_feed_routes

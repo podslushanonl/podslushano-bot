@@ -71,7 +71,7 @@ def build_ics(e: dict, now: datetime | None = None) -> str:
         last = datetime.strptime(end if re.fullmatch(r"\d{4}-\d{2}-\d{2}", end) else date, "%Y-%m-%d")
         lines += [f"DTSTART;VALUE=DATE:{date.replace('-', '')}", f"DTEND;VALUE=DATE:{(last + timedelta(days=1)):%Y%m%d}"]
     place = ", ".join(x for x in (e.get("venue"), e.get("addr") or e.get("city")) if x)
-    url = f"https://www.podslushano.nl/events/{e.get('key')}/"
+    url = e.get("url") if e.get("src") else f"https://www.podslushano.nl/events/{e.get('key')}/"
     # описание собираем отдельно: в Python 3.11 (сервер) внутри f-строки нельзя писать «\n»
     desc = ((e.get("s") or "") + "\n" if e.get("s") else "") + "Афиша podslushano.nl: " + url
     lines += [_fold(f"SUMMARY:{_esc(e.get('h', ''))}"), _fold(f"LOCATION:{_esc(place)}"), _fold(f"URL:{url}"),
@@ -82,7 +82,8 @@ def build_ics(e: dict, now: datetime | None = None) -> str:
 
 async def event_ics(request: web.Request) -> web.Response:
     key = request.match_info["key"]
-    e = next((x for x in await _events() if x.get("key") == key), None)
+    from utils.auto_events import load as auto_events
+    e = next((x for x in [*await _events(), *auto_events()] if x.get("key") == key), None)
     if not e:
         return web.Response(status=404, text="Событие не найдено")
     try:

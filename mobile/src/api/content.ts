@@ -7,6 +7,8 @@ export type EventItem = {
   city?: string; price?: string; img?: string; url?: string; cat?: string; p?: string[]; tickets?: string[][]; partner?: boolean;
   /** id провинции с сервера ('' — сервер не определил); старая версия сайта поля не отдаёт */
   province?: string;
+  /** откуда событие: eventbrite | ticketmaster (собрано сервером); у событий сайта поля нет */
+  src?: string;
 };
 export type Job = { id: string; title: string; company?: string; city?: string; lang?: string; type?: string; salary?: string; posted?: string; about?: string; url?: string };
 export type Content = { news: News[]; events: EventItem[]; jobs: Job[] };
@@ -15,10 +17,25 @@ const strip = (html: string) =>
   html.replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&#8230;/g, '…').replace(/&#8211;/g, '–')
     .replace(/&#8212;/g, '—').replace(/&#171;/g, '«').replace(/&#187;/g, '»').replace(/&amp;/g, '&').trim();
 
+/** Афиша, которую сервер собирает сам (Eventbrite, Ticketmaster) по всем провинциям. Сбой не мешает остальному. */
+// Не дольше 6 секунд: медленный сервер не должен задерживать новости и афишу сайта.
+const loadAuto = () => Promise.race([
+  getJson<{ events: EventItem[] }>(`${BOT}/api/app/events.json`).then((d) => d.events || []),
+  new Promise<EventItem[]>((resolve) => setTimeout(() => resolve([]), 6000)),
+]).catch(() => [] as EventItem[]);
+
+/** События сайта (редакция и партнёры) первыми; автоматические — без повторов того же названия в тот же день. */
+function mergeEvents(site: EventItem[], auto: EventItem[]) {
+  const sig = (e: EventItem) => e.h.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '') + e.date;
+  const seen = new Set(site.map(sig));
+  return [...site, ...auto.filter((e) => !seen.has(sig(e)))];
+}
+
 async function loadContent(): Promise<Content> {
+  const auto = loadAuto();
   try {
     const d = await getJson<Content>(`${SITE}/wp-json/pn/v1/app`);
-    return { news: d.news || [], events: d.events || [], jobs: d.jobs || [] };
+    return { news: d.news || [], events: mergeEvents(d.events || [], await auto), jobs: d.jobs || [] };
   } catch {
     const posts = await getJson<any[]>(`${SITE}/wp-json/wp/v2/posts?per_page=20&_embed=wp:featuredmedia`);
     return {
@@ -27,7 +44,7 @@ async function loadContent(): Promise<Content> {
         h: strip(p.title?.rendered || ''), lead: strip(p.excerpt?.rendered || ''),
         img: p._embedded?.['wp:featuredmedia']?.[0]?.source_url || '', thumb: '',
       })),
-      events: [], jobs: [],
+      events: await auto, jobs: [],
     };
   }
 }
@@ -74,16 +91,17 @@ export const useWeather = (city: string, at?: [number, number] | null) => useQue
 
 // ---------------------------------------------------------------- поезда NS
 
-export type Departure = { direction: string; time: string; delay: number; track: string; track_changed: boolean; category: string; cancelled: boolean; via?: string[] };
+/** Отправление или прибытие (у прибытия direction — откуда поезд). code — IC, ICD, SPR… */
+export type Departure = { direction: string; time: string; delay: number; track: string; track_changed: boolean; category: string; code?: string; cancelled: boolean; via?: string[] };
 export type Disruption = { id: string; type: string; type_ru: string; title: string; active: boolean; stations: string[]; text?: string; situation?: string; cause?: string; advice?: string[]; start_ru?: string; end_ru?: string; expected?: string };
 
 export const useDisruptions = () => useQuery({
   queryKey: ['ns', 'disruptions'], staleTime: 2 * 60_000, refetchInterval: 5 * 60_000,
   queryFn: () => getJson<{ now: Disruption[]; planned: Disruption[] }>(`${BOT}/api/ns/disruptions`),
 });
-export const useDepartures = (code: string) => useQuery({
-  queryKey: ['ns', 'dep', code], enabled: !!code, staleTime: 30_000, refetchInterval: 60_000,
-  queryFn: () => getJson<{ departures: Departure[] }>(`${BOT}/api/ns/departures?station=${encodeURIComponent(code)}&limit=15`).then((d) => d.departures || []),
+export const useDepartures = (code: string, kind: 'departures' | 'arrivals' = 'departures') => useQuery({
+  queryKey: ['ns', kind, code], enabled: !!code, staleTime: 30_000, refetchInterval: 60_000,
+  queryFn: () => getJson<Record<string, Departure[]>>(`${BOT}/api/ns/${kind}?station=${encodeURIComponent(code)}&limit=25`).then((d) => d[kind] || []),
 });
 export const useStations = () => useQuery({
   queryKey: ['ns', 'stations2'], staleTime: 24 * 3600_000, // «2»: теперь {list, coords}, старый кеш на телефоне — массив
