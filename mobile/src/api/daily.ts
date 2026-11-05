@@ -17,7 +17,7 @@ export const newsSlug = (n: Pick<News, 'link'>) => n.link.replace(/\/+$/, '').sp
 export const useNewsArticle = (slug: string) => useQuery({
   queryKey: ['news', slug], enabled: !!slug, staleTime: 3600_000,
   queryFn: async () => {
-    const list = await getJson<any[]>(`${SITE}/wp-json/wp/v2/posts?slug=${encodeURIComponent(slug)}&_fields=id,title,content,link,date&_embed=wp:featuredmedia`);
+    const list = await getJson<any[]>(`${SITE}/wp-json/wp/v2/posts?slug=${encodeURIComponent(slug)}&_fields=id,title,content,link,date,_links,_embedded&_embed=wp:featuredmedia`);
     const p = list[0];
     if (!p) throw new Error('not found');
     return {

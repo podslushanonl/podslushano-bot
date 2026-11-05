@@ -117,9 +117,12 @@ def parse_holidays(data, school_year: str) -> list[dict]:
 
 async def school_holidays(today: date) -> list[dict]:
     first = today.year if today.month >= 8 else today.year - 1
+    # С августа начинается новый учебный год, но летние каникулы прошлого идут до конца августа — сентября:
+    # берём и прошлый год, лишнее уберёт upcoming() по дате окончания.
+    years = (first - 1, first, first + 1) if today.month in (8, 9) else (first, first + 1)
     out = []
     async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=15), trust_env=True) as s:
-        for y in (first, first + 1):
+        for y in years:
             key = f"{y}-{y + 1}"
             hit = _cache.get(key)
             if hit and time.time() - hit[0] < 86400:

@@ -31,5 +31,29 @@ class NlDatesTest(unittest.TestCase):
         self.assertEqual([r["title"] for r in d.upcoming(rows, date(2026, 11, 5))], ["Рождественские каникулы"])
 
 
+class SchoolYearsTest(unittest.IsolatedAsyncioTestCase):
+    async def test_previous_year_summer_kept_in_august(self):
+        asked = []
+
+        class Resp:
+            status = 500
+            async def __aenter__(self): return self
+            async def __aexit__(self, *a): return False
+
+        class Sess:
+            def __init__(self, *a, **k): pass
+            async def __aenter__(self): return self
+            async def __aexit__(self, *a): return False
+            def get(self, url):
+                asked.append(url.split("/schoolyear/")[1].split("?")[0])
+                return Resp()
+
+        from unittest import mock
+        d._cache.clear()
+        with mock.patch.object(d.aiohttp, "ClientSession", Sess):
+            await d.school_holidays(date(2027, 8, 1))
+        self.assertEqual(asked, ["2026-2027", "2027-2028", "2028-2029"])
+
+
 if __name__ == "__main__":
     unittest.main()
