@@ -47,8 +47,10 @@ export default function EventScreen() {
   const heart = () => (user ? toggleFavorite(e.key, e.h, !fav).then(() => toast(fav ? 'Убрано из избранного' : 'Добавлено в избранное')).catch(() => {}) : router.push('/login'));
   const when = `${weekday(e.date)}, ${dayMonth(e.date)}${e.end && e.end !== e.date ? ` — ${dayMonth(e.end)}` : ''}`;
   const ticket = e.tickets?.[0]?.[2] || e.url;
+  // У событий, собранных сервером (Eventbrite, Ticketmaster), страницы на нашем сайте нет — ведём на источник
+  const page = e.src && e.url ? e.url : `${SITE}/events/${e.key}/`;
   const share = async () => {
-    const url = e.src && e.url ? e.url : `${SITE}/events/${e.key}/`;
+    const url = page;
     try {
       if (Platform.OS === 'web') {
         const nav = (globalThis as any).navigator;
@@ -84,7 +86,7 @@ export default function EventScreen() {
               <Button title="Маршрут до площадки" kind="secondary" icon="route"
                 onPress={() => openRouteTo([e.venue, e.addr, e.city].filter(Boolean).join(', '))} />
             ) : null}
-            <Button title="Открыть на сайте" kind="secondary" icon="globe" onPress={() => openUrl(`${SITE}/events/${e.key}/`)} />
+            <Button title={e.src === 'ticketmaster' ? 'Открыть на Ticketmaster' : e.src === 'eventbrite' ? 'Открыть на Eventbrite' : 'Открыть на сайте'} kind="secondary" icon="globe" onPress={() => openUrl(page)} />
           </View>
         </View>
       </ScrollView>

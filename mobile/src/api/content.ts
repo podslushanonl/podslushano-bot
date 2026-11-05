@@ -18,7 +18,11 @@ const strip = (html: string) =>
     .replace(/&#8212;/g, '—').replace(/&#171;/g, '«').replace(/&#187;/g, '»').replace(/&amp;/g, '&').trim();
 
 /** Афиша, которую сервер собирает сам (Eventbrite, Ticketmaster) по всем провинциям. Сбой не мешает остальному. */
-const loadAuto = () => getJson<{ events: EventItem[] }>(`${BOT}/api/app/events.json`).then((d) => d.events || []).catch(() => [] as EventItem[]);
+// Не дольше 6 секунд: медленный сервер не должен задерживать новости и афишу сайта.
+const loadAuto = () => Promise.race([
+  getJson<{ events: EventItem[] }>(`${BOT}/api/app/events.json`).then((d) => d.events || []),
+  new Promise<EventItem[]>((resolve) => setTimeout(() => resolve([]), 6000)),
+]).catch(() => [] as EventItem[]);
 
 /** События сайта (редакция и партнёры) первыми; автоматические — без повторов того же названия в тот же день. */
 function mergeEvents(site: EventItem[], auto: EventItem[]) {
