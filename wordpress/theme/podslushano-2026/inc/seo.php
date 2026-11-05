@@ -237,45 +237,23 @@ add_action('wp_head', function () {
     }
 }, 5);
 
-/* ---------- News stay for readers, Google gets the pages we want found ----------
-   Bot news are short retellings of NOS / NL Times. Many of them a day on a young site look like
-   aggregated content to Google and pull the whole site down, so news posts and the news rubric
-   archives are «noindex, follow» and are left out of the sitemaps. Indexed: home, practical
-   guides (Справочник), editorial articles, cities, specialists, events and the app sections. */
+/* ---------- Indexing: every post and rubric is open to Google and listed in the sitemaps ----------
+   News are marked up as NewsArticle. Only tag archives («/tag/…/», the topic of a news item) are
+   «noindex, follow» and left out of the sitemaps: they are bare lists of links that repeat the
+   «Новости» rubric. */
 function pn_is_news_post($p) {
     $arts = pn_art_cat_ids();
     return !$arts || !has_category($arts, $p);
-}
-function pn_is_news_rubric($term) {
-    return $term && !in_array((int) $term->term_id, array_map('intval', pn_art_cat_ids()), true);
 }
 add_filter('wpseo_schema_article_type', function ($type) {
     return is_singular('post') && pn_is_news_post(get_queried_object()) ? 'NewsArticle' : $type;
 });
 add_filter('wpseo_robots', function ($robots) {
-    if (is_singular('post') && pn_is_news_post(get_queried_object())) return 'noindex, follow';
-    if ((is_category() || is_tag()) && pn_is_news_rubric(get_queried_object())) return 'noindex, follow';
-    return $robots;
+    return is_tag() ? 'noindex, follow' : $robots;
 });
-// IDs of news posts for the sitemap filter (cached: the bot adds a few a day)
-function pn_news_post_ids() {
-    $ids = get_transient('pn_news_ids');
-    if ($ids !== false) return $ids;
-    $args = ['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => -1, 'fields' => 'ids', 'no_found_rows' => true];
-    if ($arts = pn_art_cat_ids()) $args['category__not_in'] = $arts;
-    $ids = array_map('intval', get_posts($args));
-    set_transient('pn_news_ids', $ids, HOUR_IN_SECONDS);
-    return $ids;
-}
-add_action('save_post_post', function () { delete_transient('pn_news_ids'); });
-add_filter('wpseo_exclude_from_sitemap_by_post_ids', function ($ids) {
-    return array_merge((array) $ids, pn_news_post_ids());
-});
-add_filter('wpseo_exclude_from_sitemap_by_term_ids', function ($ids) {
-    $keep = array_map('intval', pn_art_cat_ids());
-    $news = get_terms(['taxonomy' => ['category', 'post_tag'], 'fields' => 'ids', 'hide_empty' => false]);
-    return array_merge((array) $ids, array_values(array_diff(is_array($news) ? $news : [], $keep)));
-});
+add_filter('wpseo_sitemap_exclude_taxonomy', function ($excluded, $taxonomy) {
+    return $taxonomy === 'post_tag' ? true : $excluded;
+}, 10, 2);
 
 /* ---------- Admin: «Новости» and «Справки» as two sections instead of one list of posts ---------- */
 add_action('admin_menu', function () {

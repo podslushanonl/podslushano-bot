@@ -41,6 +41,7 @@ from utils.site_news import site_news_loop
 from utils.weekly_digest import weekly_digest_loop
 from utils.daily_digest import daily_digest_loop
 from utils.digest_commands import router as digest_router
+from utils.wp_rubrics import router as wp_rubrics_router
 from utils.good_news import good_news_loop, router as good_news_router
 from utils.ns_alerts import ns_alerts_loop, router as ns_alerts_router
 from utils.savings import router as savings_router, savings_loop
@@ -141,6 +142,7 @@ async def main() -> None:
     dp.include_router(shop_router)
     dp.include_router(dm_router)
     dp.include_router(digest_router)
+    dp.include_router(wp_rubrics_router)
     dp.include_router(good_news_router)
     dp.include_router(menu.router)
     dp.include_router(start.router)

@@ -192,26 +192,29 @@ class RunTests(unittest.IsolatedAsyncioTestCase):
         upload = AsyncMock(return_value=({"id": 77, "source_url": "u"}, ""))
         create = AsyncMock(return_value=({"id": 501, "link": "https://podslushano.nl/ns/",
                                           "edit": "e", "status": "publish"}, ""))
-        cats = AsyncMock(side_effect=[5, 9])
+        cats = AsyncMock(return_value=5)
+        tags = AsyncMock(return_value=9)
         with patch.object(site_news, "_ask_claude", ask), \
                 patch.object(site_news, "fetch_article", AsyncMock(return_value=page)), \
                 patch.object(site_news, "download_image",
                              AsyncMock(return_value=(b"img", "image/webp"))) as dl, \
                 patch.object(site_news.wp, "upload_media", upload), \
                 patch.object(site_news.wp, "create_post", create), \
-                patch.object(site_news.wp, "ensure_category", cats):
+                patch.object(site_news.wp, "ensure_category", cats), \
+                patch.object(site_news.wp, "ensure_tag", tags):
             await site_news.run_once(self.bot, NOW)
 
         dl.assert_awaited_once_with("https://images.cdn.nos.nl/og.webp")
         self.assertEqual(upload.await_args.kwargs["caption"], "Фото: NOS")
         self.assertTrue(upload.await_args.args[0].endswith(".webp"))
-        self.assertEqual(cats.await_args_list[0].args, ("Новости",))
-        self.assertEqual(cats.await_args_list[1].args, ("Транспорт",))
-        self.assertEqual(cats.await_args_list[1].kwargs, {"parent_id": 5})
+        # Одна рубрика «Новости» без подрубрик; тема — меткой
+        cats.assert_awaited_once_with("Новости")
+        tags.assert_awaited_once_with("Транспорт")
         kw = create.await_args.kwargs
         self.assertEqual(kw["status"], "publish")
         self.assertEqual(kw["featured_media"], 77)
-        self.assertEqual(kw["category_ids"], [9])
+        self.assertEqual(kw["category_ids"], [5])
+        self.assertEqual(kw["tag_ids"], [9])
         self.assertEqual(kw["excerpt"], ARTICLE["lead"])
         self.assertTrue(kw["slug"].startswith("ns-otmenyaet"))
         self.assertIn("https://nos.nl/artikel/10-ns", create.await_args.args[1])
@@ -237,7 +240,8 @@ class RunTests(unittest.IsolatedAsyncioTestCase):
                 patch.object(site_news, "fetch_article", AsyncMock(return_value=None)), \
                 patch.object(site_news.wp, "upload_media", upload), \
                 patch.object(site_news.wp, "create_post", create), \
-                patch.object(site_news.wp, "ensure_category", AsyncMock(return_value=3)):
+                patch.object(site_news.wp, "ensure_category", AsyncMock(return_value=3)), \
+                patch.object(site_news.wp, "ensure_tag", AsyncMock(return_value=4)):
             await site_news.run_once(self.bot, NOW)
         upload.assert_not_called()
         self.assertIsNone(create.await_args.kwargs["featured_media"])
@@ -254,7 +258,8 @@ class RunTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(site_news, "_ask_claude", ask), \
                 patch.object(site_news, "fetch_article", AsyncMock(return_value=None)), \
                 patch.object(site_news.wp, "create_post", create), \
-                patch.object(site_news.wp, "ensure_category", AsyncMock(return_value=3)):
+                patch.object(site_news.wp, "ensure_category", AsyncMock(return_value=3)), \
+                patch.object(site_news.wp, "ensure_tag", AsyncMock(return_value=4)):
             await site_news.run_once(self.bot, NOW)
         rows = await self.rows()
         self.assertEqual(rows[a.url].status, "failed")
@@ -271,7 +276,8 @@ class RunTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(site_news, "_ask_claude", ask), \
                 patch.object(site_news, "fetch_article", AsyncMock(return_value=None)), \
                 patch.object(site_news.wp, "create_post", create), \
-                patch.object(site_news.wp, "ensure_category", AsyncMock(return_value=3)):
+                patch.object(site_news.wp, "ensure_category", AsyncMock(return_value=3)), \
+                patch.object(site_news.wp, "ensure_tag", AsyncMock(return_value=4)):
             await site_news.run_once(self.bot, NOW)
         rows = await self.rows()
         self.assertEqual(create.await_count, 2)

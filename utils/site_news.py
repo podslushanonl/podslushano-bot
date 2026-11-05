@@ -59,7 +59,7 @@ _UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36")
 _MAX_IMAGE_BYTES = 12_000_000
 
-# Кэш id рубрик WordPress на время жизни процесса: {название: id}
+# Кэш id на время жизни процесса: рубрика «Новости» и метки тем ("tag:<тема>")
 _category_ids: dict[str, int] = {}
 
 
@@ -428,18 +428,24 @@ def make_slug(title: str, max_len: int = 60) -> str:
     return text
 
 
-async def _category_id(name: str) -> int | None:
+async def _news_category_id() -> int | None:
+    """Все новости — в одной рубрике «Новости»; тема новости идёт меткой (_topic_tag_id)."""
     if PARENT_CATEGORY not in _category_ids:
-        parent = await wp.ensure_category(PARENT_CATEGORY)
-        if not parent:
-            return None
-        _category_ids[PARENT_CATEGORY] = parent
-    if name not in _category_ids:
-        cid = await wp.ensure_category(name, parent_id=_category_ids[PARENT_CATEGORY])
+        cid = await wp.ensure_category(PARENT_CATEGORY)
         if not cid:
-            return _category_ids[PARENT_CATEGORY]
-        _category_ids[name] = cid
-    return _category_ids[name]
+            return None
+        _category_ids[PARENT_CATEGORY] = cid
+    return _category_ids[PARENT_CATEGORY]
+
+
+async def _topic_tag_id(topic: str) -> int | None:
+    key = f"tag:{topic}"
+    if key not in _category_ids:
+        tid = await wp.ensure_tag(topic)
+        if not tid:
+            return None
+        _category_ids[key] = tid
+    return _category_ids[key]
 
 
 async def download_image(url: str) -> tuple[bytes, str] | None:
@@ -515,11 +521,12 @@ async def publish_item(bot, item: FeedItem) -> bool:
     if image_url:
         featured = await _upload_photo(image_url, article, item.source, slug)
 
-    cat_id = await _category_id(article["cat"])
+    cat_id = await _news_category_id()
+    tag_id = await _topic_tag_id(article["cat"])
     post, err = await wp.create_post(
         article["h"], build_html(article, source_url, item.source), status="publish",
-        category_ids=[cat_id] if cat_id else None, featured_media=featured,
-        excerpt=article["lead"], slug=slug or None,
+        category_ids=[cat_id] if cat_id else None, tag_ids=[tag_id] if tag_id else None,
+        featured_media=featured, excerpt=article["lead"], slug=slug or None,
     )
     if not post:
         await _record(item, "failed", f"WordPress: {err}")

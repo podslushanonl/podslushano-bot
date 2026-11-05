@@ -9,11 +9,25 @@ function pn_http_json($url, $timeout = 6) {
     return is_array($j) ? $j : null;
 }
 
-/* Remembers the last good value so a failing source never empties the site. */
+/* Remembers the last good value so a failing source never empties the site.
+   A visitor (or Googlebot) never waits for a slow source: when the value is older than $ttl the page
+   gets the last good value at once and the source is refreshed in the background (WP-Cron).
+   Only the very first load, with nothing stored yet, fetches inline. $fn is a function name, so the
+   background refresh can call it. */
 function pn_cached($key, $ttl, $fn) {
     $v = get_transient($key);
     if ($v !== false) return $v;
-    $v = $fn();
+    $last = get_option($key . '_last');
+    if ($last) {
+        set_transient($key, $last, $ttl);  // keep serving it until the refresh lands
+        $args = [$key, (int) $ttl, (string) $fn];
+        if (!wp_next_scheduled('pn_cache_refresh', $args)) wp_schedule_single_event(time(), 'pn_cache_refresh', $args);
+        return $last;
+    }
+    return pn_cache_fill($key, $ttl, $fn);
+}
+function pn_cache_fill($key, $ttl, $fn) {
+    $v = is_callable($fn) ? call_user_func($fn) : null;
     if ($v) {
         set_transient($key, $v, $ttl);
         update_option($key . '_last', $v, false);
@@ -22,6 +36,9 @@ function pn_cached($key, $ttl, $fn) {
     set_transient($key, get_option($key . '_last') ?: [], 120);
     return get_option($key . '_last') ?: null;
 }
+add_action('pn_cache_refresh', function ($key, $ttl, $fn) {
+    if (strpos((string) $fn, 'pn_') === 0 && function_exists($fn)) pn_cache_fill($key, $ttl, $fn);
+}, 10, 3);
 
 /* ---------- weather: Buienradar ---------- */
 function pn_wx_kind($icon) {
@@ -46,64 +63,66 @@ function pn_wx_desc($nl, $kind) {
     return $k[$kind] ?? 'Облачно';
 }
 function pn_weather() {
-    return pn_cached('pn_wx', 10 * MINUTE_IN_SECONDS, function () {
-        $br = pn_http_json('https://data.buienradar.nl/2.0/feed/json', 8);
-        if (!$br || empty($br['actual']['stationmeasurements'])) return null;
-        $C = [
-            'Amsterdam' => ['Amsterdam', 'Schiphol', 52.37, 4.90], 'Rotterdam' => ['Rotterdam', 'Rotterdam', 51.92, 4.48],
-            'Den Haag' => ['Den Haag', 'Hoek van Holland', 52.08, 4.30], 'Utrecht' => ['Utrecht', 'De Bilt', 52.09, 5.12],
-            'Eindhoven' => ['Eindhoven', 'Eindhoven', 51.44, 5.48], 'Groningen' => ['Groningen', 'Groningen', 53.22, 6.57],
-            'Maastricht' => ['Maastricht', 'Maastricht', 50.85, 5.69], 'Arnhem' => ['Arnhem', 'Arnhem', 51.98, 5.91],
-            'Tilburg' => ['Tilburg', 'Gilze Rijen', 51.56, 5.09], 'Leeuwarden' => ['Leeuwarden', 'Leeuwarden', 53.20, 5.80],
-            'Nijmegen' => ['Nijmegen', 'Arnhem', 51.84, 5.86],
-        ];
-        $st = $br['actual']['stationmeasurements'];
-        $cities = [];
-        foreach ($C as $nl => [$ru, $station, $lat, $lon]) {
-            $s = null;
-            foreach ($st as $x) if (stripos($x['stationname'] ?? '', $station) !== false) { $s = $x; break; }
-            if (!$s) continue;
-            $rain = [];
-            $r = wp_remote_get("https://gpsgadget.buienradar.nl/data/raintext?lat=$lat&lon=$lon", ['timeout' => 3]);
-            if (!is_wp_error($r)) {
-                foreach (preg_split('/\r?\n/', trim(wp_remote_retrieve_body($r))) as $line) {
-                    $p = explode('|', trim($line));
-                    if (count($p) === 2) $rain[] = [intval($p[0]), $p[1]];
-                }
+    return pn_cached('pn_wx', 10 * MINUTE_IN_SECONDS, 'pn_weather_fetch');
+}
+function pn_weather_fetch() {
+    $br = pn_http_json('https://data.buienradar.nl/2.0/feed/json', 8);
+    if (!$br || empty($br['actual']['stationmeasurements'])) return null;
+    $C = [
+        'Amsterdam' => ['Amsterdam', 'Schiphol', 52.37, 4.90], 'Rotterdam' => ['Rotterdam', 'Rotterdam', 51.92, 4.48],
+        'Den Haag' => ['Den Haag', 'Hoek van Holland', 52.08, 4.30], 'Utrecht' => ['Utrecht', 'De Bilt', 52.09, 5.12],
+        'Eindhoven' => ['Eindhoven', 'Eindhoven', 51.44, 5.48], 'Groningen' => ['Groningen', 'Groningen', 53.22, 6.57],
+        'Maastricht' => ['Maastricht', 'Maastricht', 50.85, 5.69], 'Arnhem' => ['Arnhem', 'Arnhem', 51.98, 5.91],
+        'Tilburg' => ['Tilburg', 'Gilze Rijen', 51.56, 5.09], 'Leeuwarden' => ['Leeuwarden', 'Leeuwarden', 53.20, 5.80],
+        'Nijmegen' => ['Nijmegen', 'Arnhem', 51.84, 5.86],
+    ];
+    $st = $br['actual']['stationmeasurements'];
+    $cities = [];
+    foreach ($C as $nl => [$ru, $station, $lat, $lon]) {
+        $s = null;
+        foreach ($st as $x) if (stripos($x['stationname'] ?? '', $station) !== false) { $s = $x; break; }
+        if (!$s) continue;
+        $rain = [];
+        $r = wp_remote_get("https://gpsgadget.buienradar.nl/data/raintext?lat=$lat&lon=$lon", ['timeout' => 3]);
+        if (!is_wp_error($r)) {
+            foreach (preg_split('/\r?\n/', trim(wp_remote_retrieve_body($r))) as $line) {
+                $p = explode('|', trim($line));
+                if (count($p) === 2) $rain[] = [intval($p[0]), $p[1]];
             }
-            $k = pn_wx_kind($s['iconurl'] ?? '');
-            $cities[] = ['nl' => $nl, 'ru' => $ru, 'st' => str_replace('Meetstation ', '', $s['stationname']),
-                't' => $s['temperature'] ?? null, 'f' => $s['feeltemperature'] ?? ($s['temperature'] ?? null),
-                'd' => pn_wx_desc($s['weatherdescription'] ?? '', $k), 'k' => $k, 'w' => $s['windspeedBft'] ?? 0,
-                'wd' => $s['winddirection'] ?? '', 'h' => $s['humidity'] ?? 0, 'rain' => $rain];
         }
-        if (!$cities) return null;
-        $fc = [];
-        foreach (($br['forecast']['fivedayforecast'] ?? []) as $x) {
-            $k = pn_wx_kind($x['iconurl'] ?? '');
-            $fc[] = ['day' => substr($x['day'], 0, 10), 'min' => $x['mintemperatureMin'] ?? null, 'max' => $x['maxtemperatureMax'] ?? null,
-                'rc' => $x['rainChance'] ?? 0, 'd' => pn_wx_desc($x['weatherdescription'] ?? '', $k), 'k' => $k];
-        }
-        $report = '';
-        if ($fc) {
-            $mx = max(array_column($fc, 'max'));
-            $wet = array_filter($fc, function ($f) { return $f['rc'] >= 60; });
-            $report = 'ближайшие пять дней до ' . round($mx) . '°' . ($wet ? ', дождливых дней: ' . count($wet) : ', почти без дождя');
-        }
-        $a = $br['actual'];
-        return ['at' => $st[0]['timestamp'] ?? current_time('c'), 'sunrise' => substr($a['sunrise'] ?? '', 11, 5),
-            'sunset' => substr($a['sunset'] ?? '', 11, 5), 'cities' => $cities, 'fc' => $fc, 'report' => $report];
-    });
+        $k = pn_wx_kind($s['iconurl'] ?? '');
+        $cities[] = ['nl' => $nl, 'ru' => $ru, 'st' => str_replace('Meetstation ', '', $s['stationname']),
+            't' => $s['temperature'] ?? null, 'f' => $s['feeltemperature'] ?? ($s['temperature'] ?? null),
+            'd' => pn_wx_desc($s['weatherdescription'] ?? '', $k), 'k' => $k, 'w' => $s['windspeedBft'] ?? 0,
+            'wd' => $s['winddirection'] ?? '', 'h' => $s['humidity'] ?? 0, 'rain' => $rain];
+    }
+    if (!$cities) return null;
+    $fc = [];
+    foreach (($br['forecast']['fivedayforecast'] ?? []) as $x) {
+        $k = pn_wx_kind($x['iconurl'] ?? '');
+        $fc[] = ['day' => substr($x['day'], 0, 10), 'min' => $x['mintemperatureMin'] ?? null, 'max' => $x['maxtemperatureMax'] ?? null,
+            'rc' => $x['rainChance'] ?? 0, 'd' => pn_wx_desc($x['weatherdescription'] ?? '', $k), 'k' => $k];
+    }
+    $report = '';
+    if ($fc) {
+        $mx = max(array_column($fc, 'max'));
+        $wet = array_filter($fc, function ($f) { return $f['rc'] >= 60; });
+        $report = 'ближайшие пять дней до ' . round($mx) . '°' . ($wet ? ', дождливых дней: ' . count($wet) : ', почти без дождя');
+    }
+    $a = $br['actual'];
+    return ['at' => $st[0]['timestamp'] ?? current_time('c'), 'sunrise' => substr($a['sunrise'] ?? '', 11, 5),
+        'sunset' => substr($a['sunset'] ?? '', 11, 5), 'cities' => $cities, 'fc' => $fc, 'report' => $report];
 }
 
 /* ---------- specialists: bot API ---------- */
 function pn_specialists() {
-    return pn_cached('pn_spec', 15 * MINUTE_IN_SECONDS, function () {
-        $j = pn_http_json(PN_BOT . '/api/specialists.json', 8);
-        if (!$j) return null;
-        $list = $j['specialists'] ?? (array_is_list($j) ? $j : null);
-        return (is_array($list) && count($list) > 10) ? $list : null;
-    });
+    return pn_cached('pn_spec', 15 * MINUTE_IN_SECONDS, 'pn_specialists_fetch');
+}
+function pn_specialists_fetch() {
+    $j = pn_http_json(PN_BOT . '/api/specialists.json', 8);
+    if (!$j) return null;
+    $list = $j['specialists'] ?? (array_is_list($j) ? $j : null);
+    return (is_array($list) && count($list) > 10) ? $list : null;
 }
 if (!function_exists('array_is_list')) {
     function array_is_list($a) { return $a === [] || array_keys($a) === range(0, count($a) - 1); }
@@ -236,11 +255,12 @@ function pn_sort_events(&$list) {
 /* Events from the bot: paid ones after review and the ones the editor adds in the bot.
    «hidden» are keys of theme events the editor removed in the bot. */
 function pn_bot_afisha() {
-    return pn_cached('pn_user_ev2', 10 * MINUTE_IN_SECONDS, function () {
-        $j = pn_http_json(PN_BOT . '/api/afisha/events', 6);
-        if (!$j || !isset($j['events']) || !is_array($j['events'])) return null;
-        return ['list' => $j['events'], 'hidden' => array_values(array_filter((array) ($j['hidden'] ?? []), 'is_string'))];
-    });
+    return pn_cached('pn_user_ev2', 10 * MINUTE_IN_SECONDS, 'pn_bot_afisha_fetch');
+}
+function pn_bot_afisha_fetch() {
+    $j = pn_http_json(PN_BOT . '/api/afisha/events', 6);
+    if (!$j || !isset($j['events']) || !is_array($j['events'])) return null;
+    return ['list' => $j['events'], 'hidden' => array_values(array_filter((array) ($j['hidden'] ?? []), 'is_string'))];
 }
 function pn_user_events() {
     $j = pn_bot_afisha();
