@@ -18,9 +18,9 @@ export default function Welcome() {
   const insets = useSafeAreaInsets();
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
-      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 48, paddingHorizontal: 24, paddingBottom: 160 + insets.bottom, gap: 32 }}>
+      <ScrollView contentContainerStyle={{ paddingTop: insets.top + 28, paddingHorizontal: 24, paddingBottom: 150 + insets.bottom, gap: 26 }}>
         <View style={{ gap: 14 }}>
-          <Image source={require('../../assets/images/splash-icon.png')} style={{ width: 64, height: 64 }} accessibilityIgnoresInvertColors
+          <Image source={require('../../assets/images/splash-icon.png')} style={{ width: 52, height: 52 }} accessibilityIgnoresInvertColors
             accessible={false} />
           <Txt style={{ fontFamily: fonts.display, fontSize: 26, lineHeight: 30 }} accessibilityRole="header">
             <Txt style={{ fontFamily: fonts.display, fontSize: 26 }} tone="ink">podslushano</Txt>
@@ -29,10 +29,10 @@ export default function Welcome() {
           <Txt v="display">Жизнь в Нидерландах на русском</Txt>
           <Txt v="body" tone="muted">Всё нужное о вашей провинции в одном приложении.</Txt>
         </View>
-        <View style={{ gap: 20 }}>
+        <View style={{ gap: 16 }}>
           {POINTS.map((p) => (
             <View key={p.title} style={{ flexDirection: 'row', gap: 16, alignItems: 'flex-start' }}>
-              <View style={{ width: 48, height: 48, borderRadius: radius.m, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: 44, height: 44, borderRadius: radius.m, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
                 <Icon name={p.icon} size={24} color={c.accentText} />
               </View>
               <View style={{ flex: 1, gap: 2 }}>

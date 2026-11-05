@@ -39,8 +39,8 @@ export function Button({ title, onPress, kind = 'primary', icon, size = 'm', loa
 }
 
 /** Круглая кнопка-иконка. По умолчанию — на стекле (для панелей поверх контента). */
-export function IconButton({ icon, onPress, label, kind = 'glass', size = 44, badge, color }: {
-  icon: IconName; onPress: () => void; label: string; kind?: 'glass' | 'solid' | 'accent' | 'plain'; size?: number; badge?: boolean; color?: string;
+export function IconButton({ icon, onPress, label, kind = 'surface', size = 44, badge, color }: {
+  icon: IconName; onPress: () => void; label: string; kind?: 'glass' | 'solid' | 'accent' | 'plain' | 'surface'; size?: number; badge?: boolean; color?: string;
 }) {
   const { c } = useTheme();
   const fg = color ?? (kind === 'accent' ? c.onAccent : kind === 'solid' ? c.onInverse : c.ink);
@@ -53,7 +53,8 @@ export function IconButton({ icon, onPress, label, kind = 'glass', size = 44, ba
   return (
     <Tap onPress={onPress} accessibilityLabel={label} scaleTo={0.9} style={{ borderRadius: size / 2 }}>
       {kind === 'glass' ? <Glass radius={size / 2} interactive>{body}</Glass>
-        : <View style={{ borderRadius: size / 2, backgroundColor: kind === 'accent' ? c.accent : kind === 'solid' ? c.inverse : 'transparent' }}>{body}</View>}
+        : <View style={{ borderRadius: size / 2, backgroundColor: kind === 'accent' ? c.accent : kind === 'solid' ? c.inverse : kind === 'surface' ? c.bgElevated : 'transparent',
+          borderWidth: kind === 'surface' ? HAIRLINE : 0, borderColor: c.line }}>{body}</View>}
     </Tap>
   );
 }

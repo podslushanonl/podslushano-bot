@@ -28,6 +28,8 @@ from utils.site_api import EMAIL_RE, _api_base, _body, _err, _html_page, _json, 
 # Кампании: название для писем, сколько товара в первой партии
 CAMPAIGNS = {
     "candle": {"title": "рождественская свеча Soul of Sol × podslushano.nl «Пахнет как дома»", "stock": 24},
+    # шопперы ALLO печатаются под заказ: ограниченной партии нет (stock None)
+    "shoppers": {"title": "шопперы ALLO", "stock": None},
 }
 _hits: dict[str, list[float]] = {}
 log = logging.getLogger(__name__)

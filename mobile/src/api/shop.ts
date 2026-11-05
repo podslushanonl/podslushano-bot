@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery } from '@tanstack/react-query';
 import { useSyncExternalStore } from 'react';
-import { api, BOT, getJson, mediaUrl } from './client';
+import { api, ApiError, BOT, getJson, mediaUrl } from './client';
 
 // Магазин мерча podslushano.nl (сервер: utils/shop.py). Шопперы печатаются под каждый заказ.
 export type Product = { id: string; title: string; price: string; text?: string; colors?: string[]; images?: string[]; available?: boolean };
@@ -80,4 +80,29 @@ function rememberOrder(token: string) {
   orders = [token, ...orders.filter((t) => t !== token)].slice(0, 20);
   AsyncStorage.setItem(ORDERS, JSON.stringify(orders)).catch(() => {});
   emit();
+}
+
+// ---------------------------------------------------------------- лист ожидания (пока продажи закрыты)
+
+export const useWaitlist = () => useQuery({
+  queryKey: ['shop', 'waitlist'], staleTime: 60_000,
+  queryFn: () => getJson<{ count: number }>(`${BOT}/api/waitlist/shoppers`).then((d) => d.count || 0),
+});
+
+/** Запись в лист ожидания шопперов: письмо придёт в день старта продаж. Возвращает номер в списке. */
+// Запрос публичный: без токена и X-Client, иначе браузер на другом домене отклонит его на проверке CORS
+// (сервер листа ожидания разрешает только Content-Type).
+export async function joinWaitlist(email: string, productId: string) {
+  let r: Response;
+  try {
+    r = await fetch(`${BOT}/api/waitlist/shoppers/join`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim(), consent: '1', source: `app:${productId}`.slice(0, 40) }),
+    });
+  } catch {
+    throw new ApiError('Нет соединения. Проверьте интернет.', 0);
+  }
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok || d.ok === false) throw new ApiError(d.error || 'Что-то пошло не так. Попробуйте ещё раз.', r.status, d);
+  return d as { position: number; already: boolean; count: number };
 }

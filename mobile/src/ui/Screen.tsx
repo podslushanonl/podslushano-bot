@@ -105,14 +105,20 @@ export function TabScreen({ title, sub, right, above, children, refreshing, onRe
     }
   };
   const pinStyle = useAnimatedStyle(() => ({ transform: [{ translateY: -BAR_H * hidden.value }] }));
+  const fade = useAnimatedStyle(() => ({ opacity: interpolate(y.value, [30, 70], [0, 1], 'clamp') }));
   const list = useRef<ScrollView>(null);
   const refresh = useRefresh(list, onRefresh, () => last.current < 4);
   return (
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <ScrollView ref={list} onScroll={scroll} scrollEventThrottle={16} keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="never" refreshControl={refresh.control}
-        contentContainerStyle={[{ paddingTop: insets.top + 64, paddingHorizontal: 20, paddingBottom: TAB_SPACE + insets.bottom, gap: 22 }, contentStyle]}>
-        <LargeTitle title={title} sub={sub} above={above} />
+        contentContainerStyle={[{ paddingTop: insets.top + 8, paddingHorizontal: 20, paddingBottom: TAB_SPACE + insets.bottom, gap: 20 }, contentStyle]}>
+        {/* Строка над заголовком: слева провинция, справа поиск и профиль — без пустой полосы и плавающих кнопок */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, gap: 12, marginBottom: -8 }}>
+          <View style={{ flexShrink: 1 }}>{above}</View>
+          {right ? <View style={{ flexDirection: 'row', gap: 8 }}>{right}</View> : null}
+        </View>
+        <LargeTitle title={title} sub={sub} />
         {children}
       </ScrollView>
       {pinned && pinnedOn ? (
@@ -121,7 +127,8 @@ export function TabScreen({ title, sub, right, above, children, refreshing, onRe
           {pinned}
         </Animated.View>
       ) : null}
-      <TopBar y={y} title={title} right={right} hidden={collapsing ? hidden : undefined} />
+      {/* Тонкая панель с названием появляется при прокрутке; кнопки в ней те же, что в строке над заголовком */}
+      <TopBar y={y} title={title} right={right ? <Animated.View style={fade}>{right}</Animated.View> : undefined} hidden={collapsing ? hidden : undefined} />
       {refresh.indicator}
     </View>
   );

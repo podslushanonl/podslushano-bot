@@ -109,5 +109,14 @@ class ShopTests(unittest.IsolatedAsyncioTestCase):
         self.assertIn(code, subject)
         self.assertIn("https://jouw.postnl.nl/track/3S123", body)
 
+    def test_waitlist_email_without_batch(self):
+        from utils.email_templates import waitlist_joined
+        from utils.waitlist import CAMPAIGNS
+        self.assertIn("shoppers", CAMPAIGNS)
+        subject, html_body, text = waitlist_joined(title="шопперы ALLO", position=3, stock=None, unsubscribe_url="https://x/u")
+        self.assertIn("шопперы ALLO", subject)
+        self.assertNotIn("партии", text)        # шопперы печатаются под заказ: про партию не пишем
+        self.assertIn("партии 24", waitlist_joined(title="свеча", position=1, stock=24, unsubscribe_url="https://x/u")[2])
+
 if __name__ == "__main__":
     unittest.main()
