@@ -86,7 +86,7 @@ export const useDepartures = (code: string) => useQuery({
   queryFn: () => getJson<{ departures: Departure[] }>(`${BOT}/api/ns/departures?station=${encodeURIComponent(code)}&limit=15`).then((d) => d.departures || []),
 });
 export const useStations = () => useQuery({
-  queryKey: ['ns', 'stations'], staleTime: 24 * 3600_000,
+  queryKey: ['ns', 'stations2'], staleTime: 24 * 3600_000, // «2»: теперь {list, coords}, старый кеш на телефоне — массив
   queryFn: () => getJson<{ stations: [string, string][]; coords?: Record<string, [number, number]> }>(`${BOT}/api/ns/stations`)
     .then((d) => ({ list: d.stations || [], coords: d.coords || {} })),
 });

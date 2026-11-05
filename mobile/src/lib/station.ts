@@ -44,7 +44,7 @@ export function useMyStation(): { st: Station; source: 'own' | 'home' | 'main'; 
   const { province, home } = useProvince();
   const all = useStations();
   const mine = useSyncExternalStore(subscribe, () => own, () => own);
-  const near = useMemo(() => (home && all.data ? nearestStation(home.lat, home.lon, all.data.list, all.data.coords) : null), [home, all.data]);
+  const near = useMemo(() => (home && Array.isArray(all.data?.list) ? nearestStation(home.lat, home.lon, all.data.list, all.data.coords || {}) : null), [home, all.data]);
   if (mine && mine.home === (home?.name || '')) return { st: mine.st, source: 'own' };
   if (near) return { st: near.st, source: 'home', km: near.km };
   return { st: MAIN[province?.id || 'ut'] || MAIN.ut, source: 'main' };
