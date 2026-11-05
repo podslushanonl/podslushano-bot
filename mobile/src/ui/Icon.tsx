@@ -30,6 +30,7 @@ const I = {
   tag: ['tag', 'sell'],
   calendar: ['calendar', 'calendar_month'],
   clock: ['clock', 'schedule'],
+  school: ['graduationcap', 'school'],
   heart: ['heart', 'favorite'], heartFill: ['heart.fill', 'favorite'],
   share: ['square.and.arrow.up', 'ios_share'],
   more: ['ellipsis', 'more_horiz'],

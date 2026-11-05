@@ -1786,6 +1786,8 @@ async def start_webserver(bot) -> web.AppRunner:
     install_ics_routes(app)
     from utils.auto_events import install_routes as install_auto_events_routes
     install_auto_events_routes(app)
+    from utils.nl_dates import install_routes as install_dates_routes
+    install_dates_routes(app)
     from utils.community import install_routes as install_community_routes
     install_community_routes(app)
     from utils.feed import install_routes as install_feed_routes

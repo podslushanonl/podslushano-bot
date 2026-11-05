@@ -82,6 +82,11 @@ export default function Guide() {
         </>
       ) : (
         <>
+          <Group title="Каждый день">
+            <Row first icon="newspaper" title="Новости" sub="Главное о Нидерландах на русском" onPress={() => router.push('/news')} />
+            <Row icon="calendar" title="Важные даты" sub="Праздники, каникулы, сроки налогов и страховки" onPress={() => router.push('/dates')} />
+            <Row icon="briefcase" title="Работа" sub="Вакансии, где пригодится русский" onPress={() => router.push('/jobs')} />
+          </Group>
           <Group title="Экстренные номера">
             {NUMBERS.map((n, i) => (
               <Row key={n.tel} first={i === 0} icon="phone" iconBg={i === 0 ? c.danger : undefined} title={n.title} sub={n.sub}

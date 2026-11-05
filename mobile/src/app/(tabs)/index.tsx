@@ -1,7 +1,11 @@
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
-import { useDisruptions, useWeather, weatherIcon, weatherText } from '@/api/content';
+import { useContent, useDisruptions, useWeather, weatherIcon, weatherText } from '@/api/content';
+import { newsProvince, useNlDates } from '@/api/daily';
+import { NewsRow } from '@/features/news/NewsRow';
+import { DateCard } from '@/features/daily/DateCard';
+import { JobCard } from '@/features/daily/JobCard';
 import { kindOf, placesOf } from '@/api/places';
 import { EventCard } from '@/features/afisha/EventCard';
 import { useProvinceEvents } from '@/features/province/data';
@@ -35,6 +39,15 @@ export default function Today() {
   // Погода, станция и места — у дома, если человек указал город; иначе по столице провинции
   const w = useWeather(home?.name || p.capital, home ? [home.lat, home.lon] : [p.lat, p.lon]);
   const ev = useProvinceEvents(p.id);
+  const content = useContent();
+  const dates = useNlDates(p.id);
+  // Новости: сначала своей провинции, всего четыре
+  const news = useMemo(() => {
+    const all = (content.data?.news || []).map((n) => ({ n, local: newsProvince(n.h) === p.id }));
+    return [...all.filter((x) => x.local), ...all.filter((x) => !x.local)].slice(0, 4);
+  }, [content.data, p.id]);
+  const soon = (dates.data || []).slice(0, 2);
+  const jobs = (content.data?.jobs || []).slice(0, 2);
   const dis = useDisruptions();
   const my = useMyStation();
   const mineNow = (dis.data?.now || []).filter((d) => (d.stations || []).includes(my.st[0])).length;
@@ -54,7 +67,7 @@ export default function Today() {
 
   return (
     <TabScreen title="Сегодня" sub={dateLine()} above={<ProvinceSwitch />} right={<HeaderActions />}
-      refreshing={ev.isRefetching} onRefresh={() => Promise.all([ev.refetch(), w.refetch(), dis.refetch()])}>
+      refreshing={ev.isRefetching} onRefresh={() => Promise.all([ev.refetch(), w.refetch(), dis.refetch(), dates.refetch()])}>
       {/* Погода в провинции */}
       <Card pad={18} style={{ borderRadius: radius.l, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
         {w.data ? (
@@ -72,6 +85,25 @@ export default function Today() {
           </>
         ) : <Skeleton h={56} />}
       </Card>
+
+      {soon.length ? (
+        <Section title="Скоро" more="Все даты" onMore={() => router.push('/dates')}>
+          {soon.map((d) => <DateCard key={d.date + d.title} d={d} short />)}
+        </Section>
+      ) : null}
+
+      {news.length ? (
+        <Section title="Новости" more="Все новости" onMore={() => router.push('/news')}>
+          <Card pad={16} style={{ borderRadius: radius.l, gap: 14 }}>
+            {news.map(({ n, local }, i) => (
+              <View key={n.id} style={{ gap: 14 }}>
+                {i ? <View style={{ height: 1, backgroundColor: c.line }} /> : null}
+                <NewsRow n={n} local={local} />
+              </View>
+            ))}
+          </Card>
+        </Section>
+      ) : null}
 
       <Section title="Ближайшие события" more="Вся афиша" onMore={() => router.push('/afisha')}>
         {ev.isLoading ? <View style={{ gap: 12 }}>{[0, 1].map((i) => <Skeleton key={i} h={122} r={radius.xl} />)}</View>
@@ -105,6 +137,12 @@ export default function Today() {
           sub={mineNow ? `${mineNow} ${plural(mineNow, ['сбой', 'сбоя', 'сбоев'])} на вашей станции`
             : allNow ? `На вашей станции сбоев нет · по стране ${allNow}` : 'Сбоев сейчас нет'} onPress={() => router.push('/trains')} />
       </Group>
+
+      {jobs.length ? (
+        <Section title="Работа" more="Все вакансии" onMore={() => router.push('/jobs')}>
+          {jobs.map((j) => <JobCard key={j.id} j={j} compact />)}
+        </Section>
+      ) : null}
 
       <Section title={p.name}>
         <Card pad={18} style={{ borderRadius: radius.l, gap: 10 }}>
