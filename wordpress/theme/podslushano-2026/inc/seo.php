@@ -159,7 +159,7 @@ function pn_seo_shell($html, $pn) {
     // The visible section
     $html = preg_replace('#<section class="page" id="p-' . preg_quote($sec, '#') . '"#', '<section class="page on" id="p-' . $sec . '"', $html, 1);
     // Home: one heading for the page, readable by screen readers too
-    $html = preg_replace('#(<section class="page( on)?" id="p-home"[^>]*>)#', '$1<h1 class="sr">podslushano.nl — русскоязычное сообщество в Нидерландах: новости, специалисты, справки, афиша</h1>', $html, 1);
+    $html = preg_replace('#(<section class="page( on)?" id="p-home"[^>]*>)#', '$1<h1 class="sr">Подслушано в Нидерландах — русскоязычное сообщество в Нидерландах: новости, специалисты, справки, афиша</h1>', $html, 1);
     if ($route === 'art' && !empty($pn['post'])) $html = pn_seo_fill($html, 'artBody', pn_seo_art($pn['post']));
     if ($route === 'wp' && !empty($pn['page'])) {
         $html = pn_seo_fill($html, 'wpBody', pn_seo_back('/', 'Главная') . '<h1>' . esc_html($pn['page']['title']) . '</h1>' . $pn['page']['html']);
@@ -236,6 +236,36 @@ add_action('wp_head', function () {
         }
     }
 }, 5);
+
+/* ---------- Rubrics: their own title and description for search ----------
+   [title, description] for the «Новости» and «Справочник» archives, in the words people search with. */
+function pn_rubric_seo($term) {
+    if (!$term || ($term->taxonomy ?? '') !== 'category') return null;
+    $name = mb_strtolower(html_entity_decode((string) $term->name, ENT_QUOTES, 'UTF-8'));
+    if ($name === 'новости' || ($term->slug ?? '') === 'dutch-news') return [
+        'Новости Нидерландов на русском языке сегодня',
+        'Новости Нидерландов на русском каждый день: транспорт и NS, жильё, налоги и деньги, погода, здоровье, работа. '
+        . 'Для русскоязычных и русскоговорящих жителей Нидерландов.',
+    ];
+    if ($name === 'справочник') return [
+        'Справочник: жизнь в Нидерландах пошагово — BSN, DigiD, налоги, пособия',
+        'Пошаговые инструкции на русском: как получить BSN и DigiD, подать налоговую декларацию, оформить toeslagen, '
+        . 'медстраховку и больничный, найти жильё и работу в Нидерландах.',
+    ];
+    return null;
+}
+foreach (['wpseo_title', 'wpseo_opengraph_title', 'wpseo_twitter_title'] as $f) {
+    add_filter($f, function ($t) {
+        $s = is_category() ? pn_rubric_seo(get_queried_object()) : null;
+        return $s ? $s[0] . ' | podslushano.nl' : $t;
+    }, 20);
+}
+foreach (['wpseo_metadesc', 'wpseo_opengraph_desc', 'wpseo_twitter_description'] as $f) {
+    add_filter($f, function ($d) {
+        $s = is_category() ? pn_rubric_seo(get_queried_object()) : null;
+        return $s ? $s[1] : $d;
+    }, 20);
+}
 
 /* ---------- Indexing: every post and rubric is open to Google and listed in the sitemaps ----------
    News are marked up as NewsArticle. Only tag archives («/tag/…/», the topic of a news item) are
