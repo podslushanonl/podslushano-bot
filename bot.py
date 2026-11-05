@@ -45,6 +45,8 @@ from utils.good_news import good_news_loop, router as good_news_router
 from utils.ns_alerts import ns_alerts_loop, router as ns_alerts_router
 from utils.savings import router as savings_router, savings_loop
 from utils.community import router as community_router
+from utils.push import router as push_router
+from utils.shop import router as shop_router
 from utils.dm import router as dm_router
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
 from utils.limits import ThrottleMiddleware
@@ -135,6 +137,8 @@ async def main() -> None:
     dp.include_router(ns_alerts_router)
     dp.include_router(savings_router)
     dp.include_router(community_router)
+    dp.include_router(push_router)
+    dp.include_router(shop_router)
     dp.include_router(dm_router)
     dp.include_router(digest_router)
     dp.include_router(good_news_router)

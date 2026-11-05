@@ -2,18 +2,16 @@ import { TabList, TabSlot, TabTrigger, Tabs, TabTriggerSlotProps } from 'expo-ro
 import { forwardRef } from 'react';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '@/api/auth';
-import { useConversations } from '@/api/dm';
 import { HAIRLINE, useTheme } from '@/theme';
 import { Badge, emitTabReselect, Icon, IconName, Txt } from '@/ui';
 
-// Пять вкладок, как в VK и Instagram: Главная — Pulse — Сообщения — Барахолка — Профиль
-const TABS: { name: string; href: '/' | '/pulse' | '/market' | '/messages' | '/profile'; title: string; icon: IconName; iconOn: IconName }[] = [
-  { name: 'index', href: '/', title: 'Главная', icon: 'home', iconOn: 'homeFill' },
-  { name: 'pulse', href: '/pulse', title: 'Pulse', icon: 'pulse', iconOn: 'pulseFill' },
-  { name: 'messages', href: '/messages', title: 'Сообщения', icon: 'chat', iconOn: 'chatFill' },
-  { name: 'market', href: '/market', title: 'Барахолка', icon: 'market', iconOn: 'marketFill' },
-  { name: 'profile', href: '/profile', title: 'Профиль', icon: 'person', iconOn: 'personFill' },
+// Пять разделов: Сегодня — Афиша — Места — Гид — Магазин. Профиль открывается из шапки.
+const TABS: { name: string; href: '/' | '/afisha' | '/places' | '/guide' | '/shop'; title: string; icon: IconName; iconOn: IconName }[] = [
+  { name: 'index', href: '/', title: 'Сегодня', icon: 'sun', iconOn: 'sunFill' },
+  { name: 'afisha', href: '/afisha', title: 'Афиша', icon: 'ticket', iconOn: 'ticketFill' },
+  { name: 'places', href: '/places', title: 'Места', icon: 'pin', iconOn: 'pinFill' },
+  { name: 'guide', href: '/guide', title: 'Гид', icon: 'guide', iconOn: 'guideFill' },
+  { name: 'shop', href: '/shop', title: 'Магазин', icon: 'market', iconOn: 'marketFill' },
 ];
 
 type BtnProps = TabTriggerSlotProps & { title: string; icon: IconName; iconOn: IconName; badge?: number };
@@ -37,8 +35,6 @@ const TabButton = forwardRef<View, BtnProps>(function TabButton({ isFocused, tit
 export default function AppTabs() {
   const insets = useSafeAreaInsets();
   const { c } = useTheme();
-  const { user } = useAuth();
-  const unread = useConversations(!!user).data?.unread || 0;
   return (
     <Tabs style={{ flex: 1 }}>
       <TabSlot style={{ flex: 1 }} />
@@ -49,7 +45,7 @@ export default function AppTabs() {
         borderTopWidth: HAIRLINE, borderTopColor: c.line, paddingBottom: Math.max(insets.bottom, 6), paddingHorizontal: 6 }}>
         {TABS.map((t) => (
           <TabTrigger key={t.name} name={t.name} asChild>
-            <TabButton title={t.title} icon={t.icon} iconOn={t.iconOn} badge={t.name === 'messages' ? unread : 0} />
+            <TabButton title={t.title} icon={t.icon} iconOn={t.iconOn} />
           </TabTrigger>
         ))}
       </View>

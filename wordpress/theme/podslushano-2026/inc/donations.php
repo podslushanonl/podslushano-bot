@@ -75,7 +75,7 @@ function pn_donation_api($path) {
 
 add_action('init', function () {
     register_post_type('pn_donation', [
-        'labels' => ['name' => 'Поддержка сообщества', 'singular_name' => 'Вклад', 'add_new_item' => 'Добавить подтверждённый вклад', 'edit_item' => 'Редактировать вклад'],
+        'labels' => ['name' => 'Вклад в развитие', 'singular_name' => 'Вклад', 'add_new_item' => 'Добавить подтверждённый вклад', 'edit_item' => 'Редактировать вклад'],
         'public' => false, 'show_ui' => true, 'show_in_rest' => false,
         'menu_icon' => 'dashicons-heart', 'supports' => ['title'],
         'capabilities' => ['edit_posts' => 'manage_options', 'edit_others_posts' => 'manage_options', 'publish_posts' => 'manage_options', 'read_private_posts' => 'manage_options', 'delete_posts' => 'manage_options', 'delete_others_posts' => 'manage_options', 'edit_post' => 'manage_options', 'read_post' => 'manage_options', 'delete_post' => 'manage_options'],
@@ -217,7 +217,7 @@ function pn_donation_settings() {
             $notice = 'Настройки сохранены.';
         }
     }
-    echo '<div class="wrap"><h1>Поддержка Podslushano.nl · цель €500</h1>';
+    echo '<div class="wrap"><h1>Вклад в развитие podslushano.nl · цель €500</h1>';
     if ($notice) echo '<div class="notice notice-info"><p>' . esc_html($notice) . '</p></div>';
     echo '<p>Это один сбор без ежемесячного обнуления. Шкала считает только подтверждённые поступления с даты начала.</p><form method="post">';
     wp_nonce_field('pn_donation_settings');

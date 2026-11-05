@@ -29,6 +29,7 @@ from datetime import datetime, timedelta, timezone
 from aiohttp import web
 from sqlalchemy import delete, select, update
 
+import config
 from database import usernames
 from database.db import get_session
 from database.models import AppFavorite, AppLogin, AppSession, AppUser, Country
@@ -166,6 +167,12 @@ async def _send(request: web.Request, kind: str, to: str, store: str = "") -> we
         return _err(request, "Слишком много попыток. Попробуйте через час.", 429)
     store_kind, store_key = _store(kind, to, store)
     code = f"{secrets.randbelow(1_000_000):06d}"
+    # Вход для проверки в App Store и Google Play: постоянный код для одной почты, письмо не отправляется.
+    # Работает, только когда в переменных сервера заданы обе: APP_REVIEW_EMAIL и APP_REVIEW_CODE (6 цифр).
+    review = (kind == "email" and not store and bool(config.APP_REVIEW_EMAIL) and to == config.APP_REVIEW_EMAIL
+              and len(config.APP_REVIEW_CODE) == 6 and config.APP_REVIEW_CODE.isdigit())
+    if review:
+        code = config.APP_REVIEW_CODE
     async with get_session() as session:
         await session.execute(delete(AppLogin).where(AppLogin.kind == store_kind, AppLogin.key == store_key))
         session.add(AppLogin(kind=store_kind, key=store_key, code_hash=_hash(store_key, code),
@@ -174,7 +181,7 @@ async def _send(request: web.Request, kind: str, to: str, store: str = "") -> we
     if kind == "phone":
         if not await sms.send_code(to, code, CODE_MIN):
             return _err(request, "Не удалось отправить SMS. Проверьте номер или войдите по почте.", 502)
-    else:
+    elif not review:
         ok, _ = await send_email_message(to, *app_login_code(code=code))
         if not ok:
             return _err(request, "Не удалось отправить письмо. Попробуйте позже.", 502)

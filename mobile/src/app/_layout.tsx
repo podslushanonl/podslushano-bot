@@ -1,18 +1,19 @@
 import { Onest_400Regular, Onest_500Medium, Onest_600SemiBold, Onest_700Bold } from '@expo-google-fonts/onest';
-import { Unbounded_600SemiBold, Unbounded_700Bold } from '@expo-google-fonts/unbounded';
+import { Nunito_800ExtraBold, Nunito_900Black } from '@expo-google-fonts/nunito';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
+import * as Notifications from 'expo-notifications';
 import { useEffect } from 'react';
 import { useColorScheme } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { bootAuth, useAuth } from '@/api/auth';
-import { useRealtime } from '@/api/dm';
+import { bootAuth } from '@/api/auth';
 import { persister, queryClient } from '@/api/query';
 import { SwipeBack, WEB } from '@/features/nav/SwipeBack';
+import { pushSupported, setupNotifications } from '@/lib/push';
 import { palette, ThemeRoot } from '@/theme';
 import { ToastHost } from '@/ui';
 
@@ -20,20 +21,29 @@ export { ErrorBoundary } from 'expo-router';
 export const unstable_settings = { initialRouteName: '(tabs)' };
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+setupNotifications();
 
-/** Живое соединение для сообщений — пока пользователь вошёл. */
-function Realtime() {
-  const { user } = useAuth();
-  useRealtime(user?.id ?? 0);
-  return null;
+/** Нажатие на уведомление открывает экран из data.url (например, /afisha), в том числе при холодном запуске. */
+function useNotificationTaps() {
+  useEffect(() => {
+    if (!pushSupported) return;
+    const open = (r: Notifications.NotificationResponse | null) => {
+      const url = r?.notification.request.content.data?.url;
+      if (typeof url === 'string' && url.startsWith('/')) router.push(url as any);
+    };
+    Notifications.getLastNotificationResponseAsync().then(open).catch(() => {});
+    const sub = Notifications.addNotificationResponseReceivedListener(open);
+    return () => sub.remove();
+  }, []);
 }
 
 export default function RootLayout() {
   const scheme = useColorScheme();
   const [fontsLoaded, fontError] = useFonts({
-    Onest_400Regular, Onest_500Medium, Onest_600SemiBold, Onest_700Bold, Unbounded_600SemiBold, Unbounded_700Bold,
+    Onest_400Regular, Onest_500Medium, Onest_600SemiBold, Onest_700Bold, Nunito_800ExtraBold, Nunito_900Black,
   });
   useEffect(() => { bootAuth(); }, []);
+  useNotificationTaps();
   useEffect(() => { if (fontsLoaded || fontError) SplashScreen.hideAsync().catch(() => {}); }, [fontsLoaded, fontError]);
   if (!fontsLoaded && !fontError) return null;
 
@@ -49,7 +59,6 @@ export default function RootLayout() {
             <ThemeProvider value={navTheme}>
               <ToastHost>
                 <StatusBar style="auto" />
-                <Realtime />
                 <Stack
                   screenOptions={{
                     headerShown: false,
@@ -67,12 +76,6 @@ export default function RootLayout() {
                   ) : children)}>
                   <Stack.Screen name="(tabs)" options={WEB ? { presentation: 'card' } : undefined} />
                   <Stack.Screen name="login" options={{ presentation: 'modal' }} />
-                  <Stack.Screen name="rules" options={{ presentation: 'modal' }} />
-                  <Stack.Screen name="new-post" options={{ presentation: 'modal' }} />
-                  <Stack.Screen name="stories/[uid]" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
-                  <Stack.Screen name="story-new" options={{ presentation: 'fullScreenModal', animation: 'slide_from_bottom' }} />
-                  <Stack.Screen name="clips/[uid]" />
-                  <Stack.Screen name="market/new" options={{ presentation: 'modal' }} />
                 </Stack>
               </ToastHost>
             </ThemeProvider>

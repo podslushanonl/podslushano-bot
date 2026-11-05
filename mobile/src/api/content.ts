@@ -5,6 +5,8 @@ export type News = { id: string; link: string; date: string; time: string; cat: 
 export type EventItem = {
   key: string; h: string; s?: string; date: string; time?: string; end?: string; venue?: string; addr?: string;
   city?: string; price?: string; img?: string; url?: string; cat?: string; p?: string[]; tickets?: string[][]; partner?: boolean;
+  /** id провинции с сервера ('' — сервер не определил); старая версия сайта поля не отдаёт */
+  province?: string;
 };
 export type Job = { id: string; title: string; company?: string; city?: string; lang?: string; type?: string; salary?: string; posted?: string; about?: string; url?: string };
 export type Content = { news: News[]; events: EventItem[]; jobs: Job[] };

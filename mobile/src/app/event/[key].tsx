@@ -1,10 +1,11 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { Platform, ScrollView, Share, View } from 'react-native';
+import { Linking, Platform, ScrollView, Share, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { toggleFavorite, useAuth } from '@/api/auth';
-import { SITE } from '@/api/client';
+import { BOT, SITE } from '@/api/client';
 import { useContent } from '@/api/content';
 import { dayMonth, weekday } from '@/lib/format';
+import { openRouteTo } from '@/lib/maps';
 import { openUrl } from '@/lib/open';
 import { radius, useTheme } from '@/theme';
 import { BackButton, Button, Empty, Glass, Icon, IconButton, IconName, Img, Skeleton, Txt, useToast } from '@/ui';
@@ -72,7 +73,19 @@ export default function EventScreen() {
             {e.price ? <Info icon="euro" label="Цена" value={e.price} /> : null}
           </View>
           {(e.p || []).map((t, i) => <Txt key={i} v="body" style={{ lineHeight: 25 }}>{t}</Txt>)}
-          <Button title="Открыть на сайте" kind="secondary" icon="globe" onPress={() => openUrl(`${SITE}/events/${e.key}/`)} />
+          <View style={{ gap: 10 }}>
+            {/* Файл события .ics: iPhone и Android сами предлагают добавить его в календарь, разрешение не нужно */}
+            <Button title="Добавить в календарь" kind="secondary" icon="calendar" onPress={() => {
+              const url = `${BOT}/api/app/event/${encodeURIComponent(e.key)}.ics`;
+              if (Platform.OS === 'web') (globalThis as any).open(url, '_blank', 'noopener');
+              else Linking.openURL(url).catch(() => toast('Не получилось открыть календарь.', 'error'));
+            }} />
+            {e.venue || e.addr ? (
+              <Button title="Маршрут до площадки" kind="secondary" icon="route"
+                onPress={() => openRouteTo([e.venue, e.addr, e.city].filter(Boolean).join(', '))} />
+            ) : null}
+            <Button title="Открыть на сайте" kind="secondary" icon="globe" onPress={() => openUrl(`${SITE}/events/${e.key}/`)} />
+          </View>
         </View>
       </ScrollView>
       <View pointerEvents="box-none" style={{ position: 'absolute', top: insets.top + 8, left: 14, right: 14, flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -85,7 +98,7 @@ export default function EventScreen() {
       {ticket ? (
         <View style={{ position: 'absolute', left: 12, right: 12, bottom: insets.bottom + 12 }}>
           <Glass radius={radius.xxl} strong style={{ padding: 8 }}>
-            <Button title={e.price ? `Билеты · ${e.price}` : 'Билеты'} kind="primary" icon="ticket" onPress={() => openUrl(ticket)} />
+            <Button title={e.price ? `Билеты · ${e.price}` : 'Билеты'} kind="accent" icon="ticket" onPress={() => openUrl(ticket)} />
           </Glass>
         </View>
       ) : null}

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { View } from 'react-native';
 import { AppSession, endSessions, listSessions } from '@/api/auth';
-import { timeLabel } from '@/features/feed/cards';
+import { timeLabel } from '@/features/afisha/EventCard';
 import { useTheme } from '@/theme';
 import { ActionSheet, Button, Group, IconName, PageScreen, Row, Skeleton, Txt, useToast } from '@/ui';
 

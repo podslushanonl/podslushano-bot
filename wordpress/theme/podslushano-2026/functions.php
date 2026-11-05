@@ -12,6 +12,7 @@ define('PN_BOT', 'https://worker-production-ad76.up.railway.app');
 define('PN_DIR', get_template_directory());
 define('PN_URI', get_template_directory_uri());
 
+require PN_DIR . '/inc/provinces.php';
 require PN_DIR . '/inc/data.php';
 require PN_DIR . '/inc/content.php';
 require PN_DIR . '/inc/forms.php';
@@ -295,9 +296,13 @@ add_action('rest_api_init', function () {
         'methods' => 'GET',
         'permission_callback' => '__return_true',
         'callback' => function () {
+            // Провинция: выбранная в админке, иначе по городу (справочник inc/provinces.php, тот же, что в приложении)
             $events = array_map(function ($e) {
-                return array_intersect_key($e, array_flip(['key', 'h', 's', 'date', 'time', 'end', 'venue', 'addr', 'city', 'price', 'img', 'url', 'cat', 'p', 'tickets', 'partner']));
-            }, array_slice(pn_events(), 0, 60));
+                $out = array_intersect_key($e, array_flip(['key', 'h', 's', 'date', 'time', 'end', 'venue', 'addr', 'city', 'price', 'img', 'url', 'cat', 'p', 'tickets', 'partner']));
+                $prov = (string) ($e['province'] ?? '');
+                $out['province'] = isset(pn_provinces()[$prov]) ? $prov : pn_province_of_city($e['city'] ?? '');
+                return $out;
+            }, array_slice(pn_events(), 0, 150));
             $jobs = array_map(function ($j) {
                 return array_intersect_key($j, array_flip(['id', 'title', 'company', 'city', 'lang', 'type', 'salary', 'posted', 'about', 'url']));
             }, array_slice(pn_jobs(), 0, 40));

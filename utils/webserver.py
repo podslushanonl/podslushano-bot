@@ -1769,6 +1769,14 @@ async def start_webserver(bot) -> web.AppRunner:
     install_tax_guide_routes(app)
     from utils.app_api import install_routes as install_app_routes
     install_app_routes(app)
+    from utils.app_account import install_routes as install_account_routes
+    install_account_routes(app)
+    from utils.shop import install_routes as install_shop_routes
+    install_shop_routes(app)
+    from utils.push import install_routes as install_push_routes
+    install_push_routes(app)
+    from utils.app_ics import install_routes as install_ics_routes
+    install_ics_routes(app)
     from utils.community import install_routes as install_community_routes
     install_community_routes(app)
     from utils.feed import install_routes as install_feed_routes

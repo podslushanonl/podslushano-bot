@@ -21,6 +21,7 @@ function pn_content_fields($type) {
             'venue' => ['Площадка', 'text', 'Например, Zuiderkerk. Названия пишем по-голландски, латиницей.'],
             'addr' => ['Адрес', 'text', 'Например, Zuiderkerkhof 72, 1011 WB Amsterdam.'],
             'city' => ['Город', 'text', 'Латиницей: Amsterdam, Den Haag, Tilburg.'],
+            'province' => ['Провинция', 'province', 'В приложении событие видно только в этой провинции. «По городу» — определится сама; выберите вручную, если город маленький.'],
             'price' => ['Цена', 'text', 'Например, «от €30». Цена со словом «от» видна на карточке.'],
             'org' => ['Организатор', 'text', ''],
             'age' => ['Возраст', 'text', 'Например, 18+. Можно оставить пустым.'],
@@ -159,6 +160,11 @@ function pn_content_box($post) {
             echo '<label for="' . esc_attr($id) . '">' . esc_html($label) . '</label>';
             if ($kind === 'textarea' || $kind === 'tickets') {
                 echo '<textarea id="' . esc_attr($id) . '" name="' . esc_attr($id) . '" rows="3">' . esc_textarea($v) . '</textarea>';
+            } elseif ($kind === 'province') {
+                echo '<select id="' . esc_attr($id) . '" name="' . esc_attr($id) . '">';
+                echo '<option value="">По городу' . ($post->ID && pn_m($post->ID, 'city') && ($auto = pn_province_of_city(pn_m($post->ID, 'city'))) ? ' (' . esc_html(pn_provinces()[$auto]) . ')' : '') . '</option>';
+                foreach (pn_provinces() as $pid => $pname) echo '<option value="' . esc_attr($pid) . '"' . selected($v, $pid, false) . '>' . esc_html($pname) . '</option>';
+                echo '</select>';
             } elseif ($kind === 'cat') {
                 echo '<input type="text" id="' . esc_attr($id) . '" name="' . esc_attr($id) . '" value="' . esc_attr($v) . '" list="pn_cats">';
                 echo '<datalist id="pn_cats">';
@@ -189,6 +195,9 @@ function pn_content_clean($kind, $raw) {
             return esc_url_raw(trim($raw));
         case 'check':
             return $raw ? '1' : '';
+        case 'province':
+            $v = sanitize_key($raw);
+            return isset(pn_provinces()[$v]) ? $v : '';
         case 'pos':
             $v = sanitize_text_field($raw);
             return preg_match('/^[a-z0-9%. -]{1,40}$/i', $v) ? $v : '';
