@@ -73,11 +73,11 @@ export default function Profile() {
         ) : null}
         {pushSupported && pushOn ? (
           <Row icon="sun" title="Утренняя сводка в 7:30" sub="Погода, события дня и главная новость" chevron={false}
-            right={<Toggle value={prefs.morning} onChange={(v) => setPushPrefs({ morning: v }).catch(() => {})} label="Утренняя сводка" />} />
+            right={<Toggle value={prefs.morning} onChange={(v) => setPushPrefs({ morning: v }).catch(() => toast('Не получилось сохранить. Проверьте интернет и попробуйте ещё раз.', 'error'))} label="Утренняя сводка" />} />
         ) : null}
         {pushSupported && pushOn ? (
           <Row icon="train" title="Сбои на моей станции" sub={`${my.st[1]}: сбои и ремонт на сутки вперёд`} chevron={false}
-            right={<Toggle value={prefs.trains} onChange={(v) => setPushPrefs({ trains: v }).catch(() => {})} label="Сбои на станции" />} />
+            right={<Toggle value={prefs.trains} onChange={(v) => setPushPrefs({ trains: v }).catch(() => toast('Не получилось сохранить. Проверьте интернет и попробуйте ещё раз.', 'error'))} label="Сбои на станции" />} />
         ) : null}
       </Group>
 

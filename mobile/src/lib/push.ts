@@ -28,7 +28,22 @@ const body = (t: string) => ({
   token: t, province: ctx.province, platform: Platform.OS, station: ctx.station, station_name: ctx.stationName,
   morning: prefs.morning, trains: prefs.trains,
 });
-const register = (t: string) => api('/api/app/push/register', body(t));
+// Регистрации идут по одной: если данные изменились, пока запрос в пути, следом уходит ещё один —
+// с самыми свежими провинцией, станцией и выбором. Старый запрос не может перезаписать новый.
+let inflight: Promise<void> | null = null;
+let again = false;
+function register(t: string): Promise<void> {
+  if (inflight) { again = true; return inflight; }
+  const run = async (): Promise<void> => {
+    try {
+      await api('/api/app/push/register', body(t));
+    } finally {
+      if (again && token) { again = false; await run(); }
+    }
+  };
+  inflight = run().finally(() => { inflight = null; });
+  return inflight;
+}
 
 export const pushSupported = Platform.OS !== 'web';
 
@@ -50,10 +65,18 @@ export function usePushPrefs() {
 
 /** Какие уведомления получать: утренняя сводка, сбои на своей станции. Сразу сообщаем серверу. */
 export async function setPushPrefs(next: Partial<PushPrefs>) {
+  const before = prefs;
   prefs = { ...prefs, ...next };
   emit();
+  try {
+    if (token) await register(token);
+  } catch (e) {
+    // Сервер не узнал о выборе — возвращаем переключатель, чтобы он не обещал того, чего нет
+    prefs = before;
+    emit();
+    throw e;
+  }
   await AsyncStorage.setItem(PREFS, JSON.stringify(prefs)).catch(() => {});
-  if (token) await register(token);
 }
 
 /** Провинция или станция изменились: если уведомления включены, обновить данные на сервере. */
