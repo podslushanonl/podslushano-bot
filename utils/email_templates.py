@@ -231,9 +231,10 @@ def app_login_code(*, code: str) -> tuple[str, str, str]:
 
 # ---------------------------------------------------------------- Лист ожидания товара партнёра
 
-def waitlist_joined(*, title: str, position: int, stock: int, unsubscribe_url: str) -> tuple[str, str, str]:
+def waitlist_joined(*, title: str, position: int, stock: int | None, unsubscribe_url: str) -> tuple[str, str, str]:
     subject = f"Вы в листе ожидания: {title}"
-    lines = [f"Готово, вы в листе ожидания «{title}». Ваш номер в списке: {position}, а в первой партии {stock} штук.",
+    batch = f", а в первой партии {stock} штук" if stock else ""
+    lines = [f"Готово, вы в листе ожидания «{title}». Ваш номер в списке: {position}{batch}.",
              "В день старта продаж мы напишем вам первыми, ещё до открытой продажи. Больше ничего делать не нужно."]
     html = render_email(eyebrow="Лист ожидания", title="Вы в списке",
                         preheader="Мы напишем вам первыми в день старта продаж.",

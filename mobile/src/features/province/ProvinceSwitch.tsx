@@ -26,12 +26,12 @@ export function HeaderActions() {
   const { user } = useAuth();
   return (
     <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-      <IconButton icon="search" label="Поиск" onPress={() => router.push('/search')} />
+      <IconButton icon="search" kind="surface" size={40} label="Поиск" onPress={() => router.push('/search')} />
       {user ? (
-        <Tap onPress={() => router.push('/profile')} accessibilityLabel="Профиль" scaleTo={0.92} style={{ borderRadius: 22 }}>
-          <Avatar name={user.name || 'Я'} id={user.id} uri={user.avatar} size={44} />
+        <Tap onPress={() => router.push('/profile')} accessibilityLabel="Профиль" scaleTo={0.92} style={{ borderRadius: 20 }}>
+          <Avatar name={user.name || 'Я'} id={user.id} uri={user.avatar} size={40} />
         </Tap>
-      ) : <IconButton icon="person" label="Профиль и вход" onPress={() => router.push('/profile')} />}
+      ) : <IconButton icon="person" kind="surface" size={40} label="Профиль и вход" onPress={() => router.push('/profile')} />}
     </View>
   );
 }

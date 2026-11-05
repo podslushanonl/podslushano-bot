@@ -81,3 +81,17 @@ function rememberOrder(token: string) {
   AsyncStorage.setItem(ORDERS, JSON.stringify(orders)).catch(() => {});
   emit();
 }
+
+// ---------------------------------------------------------------- лист ожидания (пока продажи закрыты)
+
+export const useWaitlist = () => useQuery({
+  queryKey: ['shop', 'waitlist'], staleTime: 60_000,
+  queryFn: () => getJson<{ count: number }>(`${BOT}/api/waitlist/shoppers`).then((d) => d.count || 0),
+});
+
+/** Запись в лист ожидания шопперов: письмо придёт в день старта продаж. Возвращает номер в списке. */
+export async function joinWaitlist(email: string, productId: string) {
+  return api<{ position: number; already: boolean; count: number }>('/api/waitlist/shoppers/join', {
+    email: email.trim(), consent: '1', source: `app:${productId}`.slice(0, 40),
+  });
+}
