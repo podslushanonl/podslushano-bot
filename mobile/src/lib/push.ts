@@ -6,14 +6,44 @@ import { useSyncExternalStore } from 'react';
 import { Platform } from 'react-native';
 import { api } from '@/api/client';
 
-// Push-уведомления по выбранной провинции (сервер: utils/push.py).
+// Push-уведомления (сервер: utils/push.py, utils/app_alerts.py): утренняя сводка по провинции и сбои на своей станции.
 // Включаются только по действию человека; токен хранится на телефоне, чтобы при смене
 // провинции перерегистрироваться, а при выключении — отписаться.
 const KEY = 'pn_push_token';
+const PREFS = 'pn_push_prefs';
+export type PushPrefs = { morning: boolean; trains: boolean };
 let token: string | null = null;
+let prefs: PushPrefs = { morning: true, trains: true };
+// Последнее, что знаем о человеке: провинция и станция (для сбоев на ней). Обновляет usePushSync.
+let ctx: { province: string; station: string; stationName: string } = { province: '', station: '', stationName: '' };
 const subs = new Set<() => void>();
 const emit = () => subs.forEach((f) => f());
-AsyncStorage.getItem(KEY).then((v) => { token = v; emit(); }).catch(() => {});
+AsyncStorage.multiGet([KEY, PREFS]).then(([[, t], [, p]]) => {
+  token = t;
+  try { if (p) prefs = { ...prefs, ...JSON.parse(p) }; } catch { /* по умолчанию всё включено */ }
+  emit();
+}).catch(() => {});
+
+const body = (t: string) => ({
+  token: t, province: ctx.province, platform: Platform.OS, station: ctx.station, station_name: ctx.stationName,
+  morning: prefs.morning, trains: prefs.trains,
+});
+// Регистрации идут по одной: если данные изменились, пока запрос в пути, следом уходит ещё один —
+// с самыми свежими провинцией, станцией и выбором. Старый запрос не может перезаписать новый.
+let inflight: Promise<void> | null = null;
+let again = false;
+function register(t: string): Promise<void> {
+  if (inflight) { again = true; return inflight; }
+  const run = async (): Promise<void> => {
+    try {
+      await api('/api/app/push/register', body(t));
+    } finally {
+      if (again && token) { again = false; await run(); }
+    }
+  };
+  inflight = run().finally(() => { inflight = null; });
+  return inflight;
+}
 
 export const pushSupported = Platform.OS !== 'web';
 
@@ -25,8 +55,35 @@ export function setupNotifications() {
   });
 }
 
+const subscribe = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };
 export function usePushEnabled() {
-  return useSyncExternalStore((f) => { subs.add(f); return () => { subs.delete(f); }; }, () => !!token, () => !!token);
+  return useSyncExternalStore(subscribe, () => !!token, () => !!token);
+}
+export function usePushPrefs() {
+  return useSyncExternalStore(subscribe, () => prefs, () => prefs);
+}
+
+/** Какие уведомления получать: утренняя сводка, сбои на своей станции. Сразу сообщаем серверу. */
+export async function setPushPrefs(next: Partial<PushPrefs>) {
+  const before = prefs;
+  prefs = { ...prefs, ...next };
+  emit();
+  try {
+    if (token) await register(token);
+  } catch (e) {
+    // Сервер не узнал о выборе — возвращаем переключатель, чтобы он не обещал того, чего нет
+    prefs = before;
+    emit();
+    throw e;
+  }
+  await AsyncStorage.setItem(PREFS, JSON.stringify(prefs)).catch(() => {});
+}
+
+/** Провинция или станция изменились: если уведомления включены, обновить данные на сервере. */
+export function syncPushContext(next: typeof ctx) {
+  const changed = next.province !== ctx.province || next.station !== ctx.station;
+  ctx = next;
+  if (changed && token && ctx.province) register(token).catch(() => {});
 }
 
 export class PushError extends Error {}
@@ -44,7 +101,8 @@ export async function enablePush(province: string) {
   if (!granted) throw new PushError('Уведомления запрещены. Разрешите их в настройках телефона.');
   const projectId = Constants?.expoConfig?.extra?.eas?.projectId ?? Constants?.easConfig?.projectId;
   const t = (await Notifications.getExpoPushTokenAsync({ projectId })).data;
-  await api('/api/app/push/register', { token: t, province, platform: Platform.OS });
+  ctx = { ...ctx, province };
+  await register(t);
   token = t;
   await AsyncStorage.setItem(KEY, t).catch(() => {});
   emit();
@@ -60,5 +118,5 @@ export async function disablePush() {
 
 /** Провинция сменилась: если уведомления включены, перерегистрироваться с новой. */
 export function syncPushProvince(province: string) {
-  if (token) api('/api/app/push/register', { token, province, platform: Platform.OS }).catch(() => {});
+  syncPushContext({ ...ctx, province });
 }

@@ -51,7 +51,9 @@ export function IconButton({ icon, onPress, label, kind = 'surface', size = 44, 
     </View>
   );
   return (
-    <Tap onPress={onPress} accessibilityLabel={label} scaleTo={0.9} style={{ borderRadius: size / 2 }}>
+    // Зона нажатия не меньше 44×44 даже у маленьких кнопок (Apple HIG, WCAG 2.5.8)
+    <Tap onPress={onPress} accessibilityLabel={label} scaleTo={0.9} style={{ borderRadius: size / 2 }}
+      hitSlop={size < 44 ? Math.ceil((44 - size) / 2) : undefined}>
       {kind === 'glass' ? <Glass radius={size / 2} interactive>{body}</Glass>
         : <View style={{ borderRadius: size / 2, backgroundColor: kind === 'accent' ? c.accent : kind === 'solid' ? c.inverse : kind === 'surface' ? c.bgElevated : 'transparent',
           borderWidth: kind === 'surface' ? HAIRLINE : 0, borderColor: c.line }}>{body}</View>}

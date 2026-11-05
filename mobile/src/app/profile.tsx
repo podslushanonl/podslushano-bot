@@ -8,7 +8,8 @@ import { openUrl } from '@/lib/open';
 import { placeById } from '@/api/places';
 import { useProvince } from '@/lib/province';
 import { useSavedPlaces } from '@/lib/saved';
-import { disablePush, enablePush, PushError, pushSupported, usePushEnabled } from '@/lib/push';
+import { disablePush, enablePush, PushError, pushSupported, setPushPrefs, usePushEnabled, usePushPrefs } from '@/lib/push';
+import { useMyStation } from '@/lib/station';
 import { HAIRLINE, radius, useTheme } from '@/theme';
 import { Avatar, Button, Group, Img, PageScreen, Row, Tap, Toggle, Txt, useToast } from '@/ui';
 
@@ -27,6 +28,8 @@ export default function Profile() {
   const { province } = useProvince();
   const events = favorites.filter((f) => f.kind === 'event');
   const pushOn = usePushEnabled();
+  const prefs = usePushPrefs();
+  const my = useMyStation();
   const savedPlaces = useSavedPlaces().map(placeById).filter((x) => !!x);
   const [pushBusy, setPushBusy] = useState(false);
   const togglePush = async (v: boolean) => {
@@ -65,8 +68,16 @@ export default function Profile() {
         <Row first icon="location" iconBg={c.accent} title={province?.name || 'Не выбрана'} sub="Афиша, места и контакт-гайд — из этой провинции"
           onPress={() => router.push('/province')} />
         {pushSupported ? (
-          <Row icon="bell" title="Уведомления" sub={pushOn ? 'Новые события и важное в вашей провинции' : 'Выключены'} chevron={false}
+          <Row icon="bell" title="Уведомления" sub={pushOn ? 'Включены' : 'Утренняя сводка и сбои на вашей станции'} chevron={false}
             right={<Toggle value={pushOn} onChange={togglePush} disabled={pushBusy || !province} label="Уведомления" />} />
+        ) : null}
+        {pushSupported && pushOn ? (
+          <Row icon="sun" title="Утренняя сводка в 7:30" sub="Погода, события дня и главная новость" chevron={false}
+            right={<Toggle value={prefs.morning} onChange={(v) => setPushPrefs({ morning: v }).catch(() => toast('Не получилось сохранить. Проверьте интернет и попробуйте ещё раз.', 'error'))} label="Утренняя сводка" />} />
+        ) : null}
+        {pushSupported && pushOn ? (
+          <Row icon="train" title="Сбои на моей станции" sub={`${my.st[1]}: сбои и ремонт на сутки вперёд`} chevron={false}
+            right={<Toggle value={prefs.trains} onChange={(v) => setPushPrefs({ trains: v }).catch(() => toast('Не получилось сохранить. Проверьте интернет и попробуйте ещё раз.', 'error'))} label="Сбои на станции" />} />
         ) : null}
       </Group>
 

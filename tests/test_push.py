@@ -57,6 +57,15 @@ class PushTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(rows[c].province, "li")
         self.assertEqual(len(rows), 3)
 
+    async def test_register_station_and_choices(self):
+        t = "ExponentPushToken[ssssssssssss]"
+        r = await self.client.post("/api/app/push/register", json={
+            "token": t, "province": "nb", "platform": "android", "station": "o", "station_name": "Oss", "morning": False, "trains": True})
+        self.assertEqual(r.status, 200)
+        async with self.sessions() as s:
+            row = await s.scalar(select(AppPushToken).where(AppPushToken.token == t))
+        self.assertEqual((row.station, row.station_name, row.morning, row.trains), ("O", "Oss", False, True))
+
     def test_parse_command(self):
         self.assertEqual(push.parse_command("nb Афиша | Новые события | /afisha"), ("nb", "Афиша", "Новые события", "/afisha"))
         self.assertIsInstance(push.parse_command("xx Заголовок | Текст"), str)

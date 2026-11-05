@@ -1,7 +1,8 @@
 """Push-уведомления приложения по провинциям (Expo Push API).
 
 Приложение после разрешения на уведомления присылает свой Expo push token и выбранную провинцию:
-    POST /api/app/push/register   {"token": "ExponentPushToken[...]", "province": "nb", "platform": "ios"}
+    POST /api/app/push/register   {"token": "ExponentPushToken[...]", "province": "nb", "platform": "ios",
+                                   "station": "O", "station_name": "Oss", "morning": true, "trains": true}
     POST /api/app/push/unregister {"token": "..."}            — человек выключил уведомления
 При смене провинции приложение просто регистрируется заново с новой провинцией.
 
@@ -49,6 +50,10 @@ async def register(request: web.Request) -> web.Response:
     token = str(data.get("token") or "").strip()
     province = str(data.get("province") or "").strip().lower()
     platform = str(data.get("platform") or "")[:10]
+    station = str(data.get("station") or "").strip().upper()[:8]
+    station = station if re.fullmatch(r"[A-Z0-9]{1,8}", station) else ""
+    station_name = str(data.get("station_name") or "").strip()[:100]
+    flag = lambda k: str(data.get(k, "1")).lower() not in ("0", "false", "no", "")  # noqa: E731
     if not TOKEN_RE.match(token):
         return _err(request, "Неверный токен уведомлений.")
     if province not in PROVINCES:
@@ -68,6 +73,10 @@ async def register(request: web.Request) -> web.Response:
             row = AppPushToken(token=token)
             session.add(row)
         row.province, row.platform, row.active, row.updated_at = province, platform, True, _now()
+        if station != (row.station or ""):
+            row.sent_alerts = ""          # новая станция — старые отметки не нужны
+        row.station, row.station_name = station, station_name
+        row.morning, row.trains = flag("morning"), flag("trains")
         if uid:
             row.app_user_id = uid
         await session.commit()
@@ -100,38 +109,44 @@ async def _post(messages: list[dict]) -> list[dict]:
     return data.get("data") or []
 
 
+async def send_messages(msgs: list[dict]) -> tuple[int, int]:
+    """Отправить готовые сообщения Expo (у каждого «to» — токен). Возвращает (отправлено, ошибок)."""
+    ok = await send_each(msgs)
+    return sum(ok), len(ok) - sum(ok)
+
+
+async def send_each(msgs: list[dict]) -> list[bool]:
+    """Отправить сообщения Expo; для каждого — принял ли его Expo (False — можно повторить позже).
+    Токены, которые Expo называет недействительными (DeviceNotRegistered), выключаются."""
+    result: list[bool] = []
+    dead: list[str] = []
+    for i in range(0, len(msgs), 100):   # Expo принимает до 100 сообщений за запрос
+        chunk = [{"sound": "default", "channelId": "default", **m} for m in msgs[i:i + 100]]
+        try:
+            tickets = await _post(chunk)
+        except Exception as e:  # noqa: BLE001
+            log.warning("Expo push failed: %s", e)
+            tickets = []
+        tickets = list(tickets) + [{}] * (len(chunk) - len(tickets))
+        for m, ticket in zip(chunk, tickets):
+            result.append(ticket.get("status") == "ok")
+            if (ticket.get("details") or {}).get("error") == "DeviceNotRegistered":
+                dead.append(m["to"])
+    if dead:
+        async with get_session() as session:
+            await session.execute(update(AppPushToken).where(AppPushToken.token.in_(dead)).values(active=False, updated_at=_now()))
+            await session.commit()
+    return result
+
+
 async def send_to_province(province: str, title: str, body: str, url: str = "") -> tuple[int, int]:
-    """Отправить уведомление всем устройствам провинции (или всем: province="all").
-    Возвращает (отправлено, ошибок). Недействительные токены выключаются."""
+    """Отправить уведомление всем устройствам провинции (или всем: province="all")."""
     async with get_session() as session:
         q = select(AppPushToken.token).where(AppPushToken.active.is_(True))
         if province != "all":
             q = q.where(AppPushToken.province == province)
         tokens = list(await session.scalars(q))
-    sent = failed = 0
-    dead: list[str] = []
-    for i in range(0, len(tokens), 100):   # Expo принимает до 100 сообщений за запрос
-        chunk = tokens[i:i + 100]
-        msgs = [{"to": t, "title": title, "body": body, "sound": "default", "channelId": "default",
-                 "data": {"url": url} if url else {}} for t in chunk]
-        try:
-            tickets = await _post(msgs)
-        except Exception as e:  # noqa: BLE001
-            log.warning("Expo push failed: %s", e)
-            failed += len(chunk)
-            continue
-        for t, ticket in zip(chunk, tickets):
-            if ticket.get("status") == "ok":
-                sent += 1
-            else:
-                failed += 1
-                if (ticket.get("details") or {}).get("error") == "DeviceNotRegistered":
-                    dead.append(t)
-    if dead:
-        async with get_session() as session:
-            await session.execute(update(AppPushToken).where(AppPushToken.token.in_(dead)).values(active=False, updated_at=_now()))
-            await session.commit()
-    return sent, failed
+    return await send_messages([{"to": t, "title": title, "body": body, "data": {"url": url} if url else {}} for t in tokens])
 
 
 def parse_command(args: str) -> tuple[str, str, str, str] | str:

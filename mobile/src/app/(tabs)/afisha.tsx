@@ -13,6 +13,7 @@ import { useProvince } from '@/lib/province';
 import { radius, useTheme } from '@/theme';
 import { Button, ChipRow, Empty, Img, Skeleton, TabScreen, Tap, Txt } from '@/ui';
 
+const PAGE = 30;
 type When = 'all' | 'today' | 'weekend' | 'month';
 const WHEN: { key: When; title: string }[] = [
   { key: 'all', title: 'Все даты' }, { key: 'today', title: 'Сегодня' }, { key: 'weekend', title: 'Выходные' }, { key: 'month', title: 'Этот месяц' },
@@ -49,12 +50,17 @@ export default function Afisha() {
   // Наши прогулки allo.walks в этой провинции
   const walks = (walksQ.data || []).filter((w) => provinceOfCity(w.place) === p.id);
   const cities = useMemo(() => [...new Set(q.events.map((e) => e.city).filter(Boolean) as string[])].sort(), [q.events]);
-  const shown = q.events.filter((e) => inPeriod(e, when, q.today) && (!city || e.city === city));
+  const shown = useMemo(() => q.events.filter((e) => inPeriod(e, when, q.today) && (!city || e.city === city)), [q.events, when, city, q.today]);
+  // Показываем по 30 событий: длинный список не рисуется целиком сразу
+  // Сколько показано — для текущих фильтров; сменили даты, город или провинцию — снова первые 30
+  const fkey = `${when}|${city}|${p.id}`;
+  const [page, setPage] = useState({ key: fkey, n: PAGE });
+  const limit = page.key === fkey ? page.n : PAGE;
   const groups = useMemo(() => {
     const m = new Map<string, EventItem[]>();
-    shown.forEach((e) => { const k = (e.date < q.today ? q.today : e.date).slice(0, 7); m.set(k, [...(m.get(k) || []), e]); });
+    shown.slice(0, limit).forEach((e) => { const k = (e.date < q.today ? q.today : e.date).slice(0, 7); m.set(k, [...(m.get(k) || []), e]); });
     return [...m.entries()];
-  }, [shown, q.today]);
+  }, [shown, limit, q.today]);
 
   return (
     <TabScreen title="Афиша" above={<ProvinceSwitch />} right={<HeaderActions />} refreshing={q.isRefetching} onRefresh={() => Promise.all([q.refetch(), walksQ.refetch()])}>
@@ -94,7 +100,9 @@ export default function Afisha() {
             <Txt v="title2" accessibilityRole="header">{monthTitle(`${month}-01`)}</Txt>
             {list.map((e) => <EventCard key={e.key} e={e} />)}
           </View>
-        )) : (
+        )).concat(shown.length > limit ? [
+          <Button key="more" kind="secondary" title={`Показать ещё · ${shown.length - limit}`} onPress={() => setPage({ key: fkey, n: limit + PAGE })} />,
+        ] : []) : (
           <Empty icon="ticket" title={when === 'all' && !city ? `В ${p.name} пока нет событий` : 'На эти даты событий нет'}
             text={when === 'all' && !city ? 'Афиша пополняется каждую неделю. Можно посмотреть соседнюю провинцию.' : 'Попробуйте другие даты или город.'}
             action={when === 'all' && !city ? <Button kind="secondary" icon="location" title="Сменить провинцию" onPress={() => router.push('/province')} />

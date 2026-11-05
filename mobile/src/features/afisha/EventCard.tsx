@@ -5,13 +5,16 @@ import { dayMonth, weekday } from '@/lib/format';
 import { radius, useTheme } from '@/theme';
 import { Icon, Img, Tap, Txt } from '@/ui';
 
+// Форматтеры создаются один раз: Intl дорогой, а функция вызывается для каждой строки списка
+const HM = new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' });
+const DM = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short', timeZone: 'Europe/Amsterdam' });
+
 /** Время для списков («14:05» сегодня, иначе «3 нояб., 14:05»), по Амстердаму. */
 export function timeLabel(iso: string) {
   const d = new Date(iso);
-  const now = new Date();
-  const hm = d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Amsterdam' });
-  if (d.toDateString() === now.toDateString()) return hm;
-  return `${d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', timeZone: 'Europe/Amsterdam' })}, ${hm}`;
+  const hm = HM.format(d);
+  if (d.toDateString() === new Date().toDateString()) return hm;
+  return `${DM.format(d)}, ${hm}`;
 }
 
 /** Карточка события в афише: постер, дата, название, место, цена. */

@@ -130,6 +130,15 @@ _APP_USER_LATER_COLUMNS = {
     "geo_at": "TIMESTAMP",
     "verified_until": "TIMESTAMP",
 }
+# Уведомления приложения: станция и выбор, какие уведомления получать
+_APP_PUSH_LATER_COLUMNS = {
+    "station": "VARCHAR(8) DEFAULT ''",
+    "station_name": "VARCHAR(100) DEFAULT ''",
+    "morning": "BOOLEAN DEFAULT TRUE",
+    "trains": "BOOLEAN DEFAULT TRUE",
+    "sent_alerts": "TEXT DEFAULT ''",
+}
+
 _USER_POST_LATER_COLUMNS = {
     "country": "VARCHAR(20) NOT NULL DEFAULT 'Нидерланды'",
     "repost_of": "INTEGER",
@@ -432,6 +441,13 @@ async def _migrate() -> None:
                     AppUser.is_verified.is_(False), AppUser.verified_until.is_not(None))).values(is_verified=True, verified_until=None))
                 if r.rowcount:
                     logging.getLogger(__name__).info("Галочка создателя выдана аккаунтам: %s", r.rowcount)
+
+        push_cols = await conn.run_sync(lambda c: {x["name"] for x in inspect(c).get_columns("app_push_tokens")}
+                                        if "app_push_tokens" in inspect(c).get_table_names() else None)
+        if push_cols is not None:
+            for name, ddl in _APP_PUSH_LATER_COLUMNS.items():
+                if name not in push_cols:
+                    await conn.exec_driver_sql(f"ALTER TABLE app_push_tokens ADD COLUMN {name} {ddl}")
 
         # Посты: страна (лента «Рядом»), репосты, число фото — появились в этапе 2
         up_cols = await conn.run_sync(lambda c: {x["name"] for x in inspect(c).get_columns("user_posts")}
