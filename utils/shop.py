@@ -224,9 +224,11 @@ async def return_page(request: web.Request) -> web.Response:
     status = STATUS_RU.get(o.status, "") if o else ""
     title = "Спасибо, заказ оплачен" if o and o.status == "paid" else ("Заказ не найден" if not o else status)
     app_link = f"podslushano://shop/order/{token}"
+    web_link = f"{config.WEBHOOK_BASE_URL or ''}/app/shop/order/{token}"   # для тех, кто оплачивал в веб-версии
     body = (f"<h1>{html.escape(title)}</h1>"
             + (f"<p>Заказ {html.escape(o.code)} на €{html.escape(o.total)}. Подтверждение придёт на {html.escape(o.email)}.</p>" if o else "")
-            + f'<p><a class="b" href="{html.escape(app_link)}">Вернуться в приложение</a></p>')
+            + (f'<p><a class="b" href="{html.escape(app_link)}">Вернуться в приложение</a></p>'
+               f'<p><a href="{html.escape(web_link)}">Открыть заказ в браузере</a></p>' if o else ""))
     page = ("<!doctype html><html lang=ru><meta charset=utf-8><meta name=viewport content='width=device-width,initial-scale=1'>"
             "<title>podslushano.nl</title><style>body{font:16px/1.5 -apple-system,Segoe UI,Roboto,Arial,sans-serif;"
             "background:#F4F5F7;color:#0D1117;margin:0;padding:48px 20px;text-align:center}h1{font-size:24px}"
