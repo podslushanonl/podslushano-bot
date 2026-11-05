@@ -48,7 +48,7 @@ export default function EventScreen() {
   const when = `${weekday(e.date)}, ${dayMonth(e.date)}${e.end && e.end !== e.date ? ` — ${dayMonth(e.end)}` : ''}`;
   const ticket = e.tickets?.[0]?.[2] || e.url;
   const share = async () => {
-    const url = `${SITE}/events/${e.key}/`;
+    const url = e.src && e.url ? e.url : `${SITE}/events/${e.key}/`;
     try {
       if (Platform.OS === 'web') {
         const nav = (globalThis as any).navigator;
