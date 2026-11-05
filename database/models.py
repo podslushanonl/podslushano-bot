@@ -1450,6 +1450,12 @@ class AppPushToken(Base):
     token: Mapped[str] = mapped_column(String(200), unique=True, index=True)   # ExponentPushToken[...]
     platform: Mapped[str] = mapped_column(String(10), default="")               # ios | android
     province: Mapped[str] = mapped_column(String(2), default="", index=True)    # gr … li
+    # Станция NS человека (у дома или выбранная) — для оповещений о сбоях на ней
+    station: Mapped[str] = mapped_column(String(8), default="", index=True)
+    station_name: Mapped[str] = mapped_column(String(100), default="")
+    morning: Mapped[bool] = mapped_column(Boolean, default=True)    # утренняя сводка дня
+    trains: Mapped[bool] = mapped_column(Boolean, default=True)     # сбои на своей станции
+    sent_alerts: Mapped[str] = mapped_column(Text, default="")      # id уже отправленных сбоев, через запятую
     app_user_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True, index=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc).replace(tzinfo=None))

@@ -13,6 +13,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { bootAuth } from '@/api/auth';
 import { persister, queryClient } from '@/api/query';
 import { SwipeBack, WEB } from '@/features/nav/SwipeBack';
+import { PushSync } from '@/features/push/PushSync';
 import { pushSupported, setupNotifications } from '@/lib/push';
 import { palette, ThemeRoot } from '@/theme';
 import { ToastHost } from '@/ui';
@@ -55,6 +56,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, maxAge: 1000 * 60 * 60 * 24 * 3 }}>
+          <PushSync />
           <ThemeRoot>
             <ThemeProvider value={navTheme}>
               <ToastHost>

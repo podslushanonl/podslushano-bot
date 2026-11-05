@@ -34,6 +34,8 @@ from handlers.digest import digest_announcement_loop, digest_draft_loop
 from handlers.notifications import notification_loop
 from handlers.evenementen_current_month import evenementen_catalog_loop, install_evenementen_source
 from utils.auto_events import auto_events_loop
+from utils.site_pages import site_pages_loop
+from utils.app_alerts import app_alerts_loop
 from utils.editorial_channel import editorial_channel_loop, router as editorial_router
 from utils.editorial_research_desk import router as editorial_research_router
 from utils.editorial_research_daily import editorial_research_loop
@@ -217,6 +219,8 @@ async def main() -> None:
     asyncio.create_task(savings_loop(bot))
     asyncio.create_task(evenementen_catalog_loop(bot))
     asyncio.create_task(auto_events_loop())
+    asyncio.create_task(site_pages_loop())
+    asyncio.create_task(app_alerts_loop())
     asyncio.create_task(ad_lead_reminder_loop(bot))
     asyncio.create_task(ad_payment_reconciliation_loop(bot))
     asyncio.create_task(allo_reconciliation_loop())
