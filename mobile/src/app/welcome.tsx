@@ -45,7 +45,7 @@ export default function Welcome() {
       </ScrollView>
       <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 24, paddingTop: 16, paddingBottom: insets.bottom + 20,
         backgroundColor: c.bg, gap: 6 }}>
-        <Button kind="accent" title="Выбрать провинцию" onPress={() => router.push({ pathname: '/province', params: { first: '1' } })} />
+        <Button kind="accent" title="Указать, где я живу" onPress={() => router.push({ pathname: '/province', params: { first: '1' } })} />
         <Button kind="plain" title="У меня уже есть аккаунт" onPress={() => router.push('/login')} />
       </View>
     </View>

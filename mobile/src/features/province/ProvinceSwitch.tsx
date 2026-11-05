@@ -5,17 +5,18 @@ import { useProvince } from '@/lib/province';
 import { radius, useTheme } from '@/theme';
 import { Avatar, Icon, IconButton, Tap, Txt } from '@/ui';
 
-/** Переключатель провинции под заголовком раздела: «Noord-Brabant ⌄». Открывает список провинций. */
+/** Переключатель места жительства в шапке раздела: «Oss ⌄» (или провинция, если город не указан). */
 export function ProvinceSwitch() {
   const { c } = useTheme();
-  const { province } = useProvince();
+  const { province, home } = useProvince();
+  const label = home?.name || province?.name;
   return (
     <Tap onPress={() => router.push('/province')} accessibilityRole="button"
-      accessibilityLabel={`Провинция ${province?.name || 'не выбрана'}. Сменить`}
+      accessibilityLabel={`Место жительства: ${label || 'не выбрано'}. Сменить`}
       style={{ alignSelf: 'flex-start', flexDirection: 'row', alignItems: 'center', gap: 6, height: 34, paddingLeft: 10, paddingRight: 12,
         borderRadius: radius.pill, backgroundColor: c.accentSoft }}>
       <Icon name="location" size={16} color={c.accentText} />
-      <Txt v="subhead" tone="accent" style={{ fontFamily: 'Onest_600SemiBold' }}>{province?.name || 'Выбрать провинцию'}</Txt>
+      <Txt v="subhead" tone="accent" numberOfLines={1} style={{ fontFamily: 'Onest_600SemiBold', flexShrink: 1 }}>{label || 'Где вы живёте?'}</Txt>
       <Icon name="down" size={12} color={c.accentText} />
     </Tap>
   );

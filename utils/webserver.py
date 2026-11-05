@@ -538,6 +538,13 @@ async def _active_specialists() -> list[Specialist]:
     return uniq
 
 
+def _premium_now(s) -> bool:
+    """Премиум показываем только до конца оплаченного срока (premium_until): в день окончания
+    подпись «Рекомендуем» пропадает сама, даже если фоновая задача ещё не сняла флаг."""
+    until = getattr(s, "premium_until", None)
+    return bool(s.is_premium) and (until is None or until > datetime.utcnow())
+
+
 async def _api_specialists(request: web.Request) -> web.Response:
     """JSON со всеми активными специалистами (для сайта). CORS открыт."""
     rows = await _active_specialists()
@@ -553,7 +560,7 @@ async def _api_specialists(request: web.Request) -> web.Response:
             "city": s.city or "",
             "province": s.province or "",
             "online": bool(s.is_online),
-            "premium": bool(s.is_premium),
+            "premium": _premium_now(s),
             "description": s.description or "",
             "contact": s.contact or "",
             "links": parse_contact_links(s.contact),
@@ -629,7 +636,7 @@ async def _guide(request: web.Request) -> web.Response:
     for cat in sorted(groups):
         parts.append(f"<h2>{html_lib.escape(cat).capitalize()}</h2>")
         # премиум — вперёд внутри категории
-        cat_specs = sorted(groups[cat], key=lambda s: 0 if s.is_premium else 1)
+        cat_specs = sorted(groups[cat], key=lambda s: 0 if _premium_now(s) else 1)
         parts.extend(
             _guide_card(s, rating_badge(ratings.get(specialist_key(s.name, s.contact))))
             for s in cat_specs
@@ -880,7 +887,7 @@ async def _api_guide(request: web.Request) -> web.Response:
     Контакты идут в desc, виджет сам делает ссылки кликабельными.
     """
     rows = await _active_specialists()
-    rows = sorted(rows, key=lambda s: (0 if s.is_premium else 1, s.category, s.name))
+    rows = sorted(rows, key=lambda s: (0 if _premium_now(s) else 1, s.category, s.name))
     data = []
     for s in rows:
         site_categories = list(dict.fromkeys(
@@ -915,7 +922,7 @@ async def _api_guide(request: web.Request) -> web.Response:
             "prov": "онлайн" if s.is_online else (s.province or ""),
             "cat": primary_site_category,
             "cats": site_categories,
-            "premium": bool(s.is_premium),
+            "premium": _premium_now(s),
             "photo": _photo_url(s) or "",
         })
     resp = web.json_response(data)

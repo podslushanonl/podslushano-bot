@@ -7,7 +7,8 @@ import { EventCard } from '@/features/afisha/EventCard';
 import { useProvinceEvents } from '@/features/province/data';
 import { HeaderActions, ProvinceSwitch } from '@/features/province/ProvinceSwitch';
 import { plural } from '@/lib/format';
-import { useProvince } from '@/lib/province';
+import { km, useProvince } from '@/lib/province';
+import { useMyStation } from '@/lib/station';
 import { radius, useTheme } from '@/theme';
 import { Button, Card, Empty, Group, Icon, Img, Row, Skeleton, TabScreen, Tap, Txt } from '@/ui';
 
@@ -29,14 +30,27 @@ function Section({ title, more, onMore, children }: { title: string; more?: stri
 /** «Сегодня»: погода, ближайшие события, поезда и коротко о провинции. */
 export default function Today() {
   const { c } = useTheme();
-  const { province } = useProvince();
+  const { province, home } = useProvince();
   const p = province!;
-  const w = useWeather(p.capital, [p.lat, p.lon]);
+  // Погода, станция и места — у дома, если человек указал город; иначе по столице провинции
+  const w = useWeather(home?.name || p.capital, home ? [home.lat, home.lon] : [p.lat, p.lon]);
   const ev = useProvinceEvents(p.id);
   const dis = useDisruptions();
-  const now = dis.data?.now?.length || 0;
-  // Подборка «Куда сходить»: самые известные места провинции с фото
-  const picks = useMemo(() => placesOf(p.id).filter((x) => x.img).slice(0, 10), [p.id]);
+  const my = useMyStation();
+  const mineNow = (dis.data?.now || []).filter((d) => (d.stations || []).includes(my.st[0])).length;
+  const allNow = dis.data?.now?.length || 0;
+  // События в своём городе (или gemeente) — первыми
+  const events = useMemo(() => {
+    if (!home) return ev.events;
+    const local = (e: { city?: string }) => [home.name, home.gemeente].some((n) => n && sameTown(e.city, n));
+    return [...ev.events.filter(local), ...ev.events.filter((e) => !local(e))];
+  }, [ev.events, home]);
+  // «Куда сходить»: у дома — ближайшие места с фото, иначе самые известные места провинции
+  const picks = useMemo(() => {
+    const list = placesOf(p.id).filter((x) => x.img);
+    if (!home) return list.slice(0, 10);
+    return list.map((x) => ({ x, d: km(home.lat, home.lon, x.lat, x.lon) })).sort((a, b) => a.d - b.d).slice(0, 10).map((r) => r.x);
+  }, [p.id, home]);
 
   return (
     <TabScreen title="Сегодня" sub={dateLine()} above={<ProvinceSwitch />} right={<HeaderActions />}
@@ -53,6 +67,7 @@ export default function Today() {
               <Txt v="subhead" tone="muted">
                 {weatherText(w.data.code)}, ветер {w.data.wind} км/ч{w.data.rainSoon ? `, дождь около ${w.data.rainSoon}` : ''}
               </Txt>
+              <Txt v="footnote" tone="faint">{home?.name || p.capital}</Txt>
             </View>
           </>
         ) : <Skeleton h={56} />}
@@ -60,13 +75,13 @@ export default function Today() {
 
       <Section title="Ближайшие события" more="Вся афиша" onMore={() => router.push('/afisha')}>
         {ev.isLoading ? <View style={{ gap: 12 }}>{[0, 1].map((i) => <Skeleton key={i} h={122} r={radius.xl} />)}</View>
-          : ev.isError && !ev.events.length ? <Card style={{ borderRadius: radius.l }}><Empty icon="warning" title="События не загрузились" text="Проверьте интернет и попробуйте ещё раз." action={<Button kind="secondary" title="Повторить" onPress={() => ev.refetch()} />} /></Card>
-          : ev.events.length ? ev.events.slice(0, 3).map((e) => <EventCard key={e.key} e={e} />)
+          : ev.isError && !events.length ? <Card style={{ borderRadius: radius.l }}><Empty icon="warning" title="События не загрузились" text="Проверьте интернет и попробуйте ещё раз." action={<Button kind="secondary" title="Повторить" onPress={() => ev.refetch()} />} /></Card>
+          : events.length ? events.slice(0, 3).map((e) => <EventCard key={e.key} e={e} />)
             : <Card style={{ borderRadius: radius.l }}><Empty icon="ticket" title={`В ${p.name} пока нет событий`} text="Афиша пополняется каждую неделю." /></Card>}
       </Section>
 
       {picks.length ? (
-        <Section title="Куда сходить" more="Все места" onMore={() => router.push('/places')}>
+        <Section title={home ? 'Рядом с домом' : 'Куда сходить'} more="Все места" onMore={() => router.push('/places')}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }}
             contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
             {picks.map((x) => (
@@ -86,8 +101,9 @@ export default function Today() {
       ) : null}
 
       <Group title="В дороге">
-        <Row first icon="train" iconBg={now ? c.danger : c.success} title="Поезда NS"
-          sub={now ? `${now} ${plural(now, ['сбой', 'сбоя', 'сбоев'])} сейчас` : 'Сбоев сейчас нет'} onPress={() => router.push('/trains')} />
+        <Row first icon="train" iconBg={mineNow ? c.danger : c.success} title={my.st[1]}
+          sub={mineNow ? `${mineNow} ${plural(mineNow, ['сбой', 'сбоя', 'сбоев'])} на вашей станции`
+            : allNow ? `На вашей станции сбоев нет · по стране ${allNow}` : 'Сбоев сейчас нет'} onPress={() => router.push('/trains')} />
       </Group>
 
       <Section title={p.name}>
@@ -99,4 +115,10 @@ export default function Today() {
       </Section>
     </TabScreen>
   );
+}
+
+/** Один ли это населённый пункт: «'s-Hertogenbosch» и «s-Hertogenbosch», регистр и диакритика не важны. */
+function sameTown(a: string | undefined, b: string) {
+  const n = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/^['’]s-/, '').replace(/[^a-z]/g, '');
+  return !!a && n(a) === n(b);
 }
