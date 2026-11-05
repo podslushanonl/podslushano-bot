@@ -1,6 +1,6 @@
 """Магазин мерча podslushano.nl в приложении: шопперы, которые печатаются под заказ.
 
-Каталог — файл data/shop/catalog.json (правится в репозитории, без кода):
+Каталог — файл content/shop/catalog.json (правится в репозитории, без кода):
     {
       "currency": "EUR",
       "shipping": {"NL": "4.95", "DE": "7.95", "BE": "7.95"},    # доставка за заказ
@@ -45,7 +45,8 @@ from utils.site_api import EMAIL_RE, _body, _err, _json
 
 log = logging.getLogger(__name__)
 
-CATALOG = Path(__file__).resolve().parent.parent / "data" / "shop" / "catalog.json"
+# Не в data/: на Railway туда подключён отдельный диск (volume), он скрывает файлы из репозитория
+CATALOG = Path(__file__).resolve().parent.parent / "content" / "shop" / "catalog.json"
 COUNTRIES = {"NL": "Нидерланды", "DE": "Германия", "BE": "Бельгия"}
 POSTCODE = {"NL": r"\d{4}\s?[A-Za-z]{2}", "DE": r"\d{5}", "BE": r"\d{4}"}
 MAX_QTY = 10
@@ -72,7 +73,7 @@ def load_catalog() -> dict:
     for p in raw.get("products", []):
         if not (p.get("id") and p.get("title") and _money(p.get("price"))):
             continue
-        # фото из папки data/shop/img (путь «img/…») сервер раздаёт сам; без файла фото не показываем
+        # фото из папки content/shop/img (путь «img/…») сервер раздаёт сам; без файла фото не показываем
         imgs = []
         for src in p.get("images") or []:
             if src.startswith("https://"):

@@ -11,7 +11,7 @@ Expo (React Native), один код для iPhone, Android и браузера.
 | Афиша | сайт `/wp-json/pn/v1/app` (у события есть `province`), прогулки allo.walks `/api/allo/v2/events` |
 | Места | `src/data/places.json` — собирается `tools/build_places.py` из Wikidata (CC0), фото Wikimedia Commons |
 | Гид | контакт-гайд `/api/specialists.json`, справочник — рубрика «Справочник» сайта |
-| Магазин | `/api/shop/*` на сервере, каталог `../data/shop/catalog.json`, оплата Mollie |
+| Магазин | `/api/shop/*` на сервере, каталог `../content/shop/catalog.json`, оплата Mollie |
 | Профиль | вход по SMS или почте `/api/app/auth/*`, уведомления `/api/app/push/*`, удаление аккаунта |
 
 Справочник городов и провинций — `src/lib/provinces.ts`. Для сайта из него собирается
