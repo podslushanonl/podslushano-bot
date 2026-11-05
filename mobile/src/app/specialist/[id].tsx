@@ -3,7 +3,8 @@ import { View } from 'react-native';
 import { catTitle, SpecialistLink, useSpecialists } from '@/api/guide';
 import { openUrl } from '@/lib/open';
 import { radius, useTheme } from '@/theme';
-import { Button, Card, Empty, Group, IconName, PageScreen, Row, Skeleton, Txt } from '@/ui';
+import { Button, Card, Empty, Group, IconName, Img, PageScreen, Row, Skeleton, Txt } from '@/ui';
+import { Recommended } from '@/features/guide/SpecialistCard';
 
 const LINK_ICON: Record<string, IconName> = {
   phone: 'phone', whatsapp: 'bubble', telegram: 'paperplane', instagram: 'camera', email: 'mail', site: 'globe', website: 'globe',
@@ -28,7 +29,11 @@ export default function SpecialistScreen() {
     <PageScreen title={s.name}
       footer={first ? <Button kind="accent" icon={LINK_ICON[first.type] || 'link'} title={LINK_TITLE[first.type] || first.label || 'Связаться'} onPress={() => openUrl(first.url)} /> : undefined}>
       <View style={{ gap: 8 }}>
-        <Txt v="overline" tone="accent">{catTitle(s.category)}</Txt>
+        {s.photo ? <Img source={s.photo} style={{ width: 88, height: 88, borderRadius: radius.l, marginBottom: 4 }} accessibilityIgnoresInvertColors /> : null}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+          <Txt v="overline" tone="accent">{catTitle(s.category)}</Txt>
+          {s.premium ? <Recommended /> : null}
+        </View>
         <Txt v="title1" accessibilityRole="header">{s.name}</Txt>
         {where ? <Txt v="subhead" tone="muted">{where}</Txt> : null}
       </View>

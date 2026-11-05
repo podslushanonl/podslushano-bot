@@ -87,5 +87,6 @@ export const useDepartures = (code: string) => useQuery({
 });
 export const useStations = () => useQuery({
   queryKey: ['ns', 'stations'], staleTime: 24 * 3600_000,
-  queryFn: () => getJson<{ stations: [string, string][] }>(`${BOT}/api/ns/stations`).then((d) => d.stations || []),
+  queryFn: () => getJson<{ stations: [string, string][]; coords?: Record<string, [number, number]> }>(`${BOT}/api/ns/stations`)
+    .then((d) => ({ list: d.stations || [], coords: d.coords || {} })),
 });

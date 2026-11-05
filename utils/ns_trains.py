@@ -18,7 +18,7 @@ NS_BASE = "https://gateway.apiportal.ns.nl/reisinformatie-api/api"
 DEPARTURES_TTL = 60
 DISRUPTIONS_TTL = 300
 STATIONS_TTL = 24 * 3600
-_STATION_RE = re.compile(r"^[A-Za-z0-9]{2,8}$")
+_STATION_RE = re.compile(r"^[A-Za-z0-9]{1,8}$")
 _CATEGORY_RU = {"IC": "Интерсити", "ICD": "Интерсити Директ", "SPR": "Спринтер",
                 "ICE": "ICE", "EST": "Eurostar", "NSI": "NS International"}
 
@@ -422,13 +422,33 @@ def normalize_stations(payload) -> list[list[str]]:
     return sorted(([c, n] for c, n in out.items()), key=lambda x: x[1].lower())
 
 
+def station_coords(payload) -> dict[str, list[float]]:
+    """Координаты станций {код: [lat, lng]} — приложение по ним находит станцию рядом с домом."""
+    rows = payload if isinstance(payload, list) else (payload or {}).get("payload") or []
+    out = {}
+    for s in rows:
+        if not isinstance(s, dict):
+            continue
+        code = s.get("code") or (s.get("id") or {}).get("code") or s.get("stationCode")
+        lat, lng = s.get("lat"), s.get("lng") if s.get("lng") is not None else s.get("lon")
+        country = s.get("land") or s.get("country") or "NL"
+        if isinstance(code, str) and country == "NL" and _STATION_RE.match(code) and isinstance(lat, (int, float)) and isinstance(lng, (int, float)):
+            out[code.upper()] = [round(float(lat), 5), round(float(lng), 5)]
+    return out
+
+
+async def _station_data() -> dict:
+    # ключ «stations2»: в старом кеше «stations» координат нет
+    return await _cached("stations2", STATIONS_TTL, lambda: _load_stations())
+
+
 async def get_stations() -> list[list[str]]:
-    data = await _cached("stations", STATIONS_TTL, lambda: _load_stations())
-    return data["stations"]
+    return (await _station_data())["stations"]
 
 
 async def _load_stations() -> dict:
-    return {"stations": normalize_stations(await _ns_get("/v2/stations", {}))}
+    payload = await _ns_get("/v2/stations", {})
+    return {"stations": normalize_stations(payload), "coords": station_coords(payload)}
 
 
 async def station_name(code: str) -> str | None:
@@ -444,11 +464,11 @@ async def stations(request: web.Request) -> web.Response:
     if not _key():
         return _json({"error": "ns_key_missing"}, 503)
     try:
-        rows = await get_stations()
+        data = await _station_data()
     except Exception as e:  # noqa: BLE001
         log.warning("NS stations: %s", e)
         return _json({"error": "ns_unavailable"}, 502)
-    return _json({"stations": rows, "source": "NS"})
+    return _json({"stations": data["stations"], "coords": data.get("coords") or {}, "source": "NS"})
 
 
 async def disruptions(request: web.Request) -> web.Response:

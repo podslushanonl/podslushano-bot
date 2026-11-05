@@ -5,7 +5,7 @@ import { BOT, getJson } from './client';
 export type SpecialistLink = { type: string; label: string; url: string };
 export type Specialist = {
   id: number; slug: string; name: string; category: string; city: string; province: string;
-  online: boolean; premium: boolean; description: string; contact: string; links: SpecialistLink[];
+  online: boolean; premium: boolean; description: string; contact: string; links: SpecialistLink[]; photo?: string | null;
 };
 
 /** Убирает эмодзи и лишние пробелы: в приложении только текст и настоящие иконки. */

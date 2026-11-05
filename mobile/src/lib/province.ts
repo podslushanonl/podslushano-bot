@@ -3,30 +3,60 @@ import { useSyncExternalStore } from 'react';
 import { Province, provinceById, ProvinceId } from './provinces';
 import { syncPushProvince } from './push';
 
-// Выбранная провинция хранится на устройстве: приложением можно пользоваться без входа.
-// ready — значение уже прочитано из памяти телефона (до этого не решаем, показывать ли выбор провинции).
+// Провинция и место жительства хранятся на устройстве: приложением можно пользоваться без входа.
+// Место жительства (город или деревня) уточняет провинцию: по нему выбираются станция, события и места рядом.
+// ready — значения уже прочитаны из памяти телефона (до этого не решаем, показывать ли выбор).
+export type Home = { name: string; gemeente: string; lat: number; lon: number };
+
 const KEY = 'pn_province';
-let state: { id: ProvinceId | null; ready: boolean } = { id: null, ready: false };
+const HOME = 'pn_home';
+let state: { id: ProvinceId | null; home: Home | null; ready: boolean } = { id: null, home: null, ready: false };
 const subs = new Set<() => void>();
 const emit = () => subs.forEach((f) => f());
 
-AsyncStorage.getItem(KEY)
-  .then((v) => { state = { id: provinceById(v)?.id ?? null, ready: true }; emit(); })
+const parseHome = (v: string | null): Home | null => {
+  try {
+    const h = v ? JSON.parse(v) : null;
+    return h && typeof h.name === 'string' && typeof h.lat === 'number' && typeof h.lon === 'number' ? h : null;
+  } catch { return null; }
+};
+
+AsyncStorage.multiGet([KEY, HOME])
+  .then(([[, p], [, h]]) => { state = { id: provinceById(p)?.id ?? null, home: parseHome(h), ready: true }; emit(); })
   .catch(() => { state = { ...state, ready: true }; emit(); });
 
 const subscribe = (f: () => void) => { subs.add(f); return () => { subs.delete(f); }; };
 const snap = () => state;
 
-/** Сменить провинцию: сохраняется на устройстве, все разделы перестраиваются сразу. */
+/** Сменить провинцию без города: место жительства из другой провинции сбрасывается. */
 export function setProvince(id: ProvinceId) {
-  state = { id, ready: true };
+  const keepHome = state.id === id ? state.home : null;
+  state = { id, home: keepHome, ready: true };
   AsyncStorage.setItem(KEY, id).catch(() => {});
+  if (!keepHome) AsyncStorage.removeItem(HOME).catch(() => {});
   emit();
   syncPushProvince(id);
 }
 
-/** Текущая провинция (null — ещё не выбрана) и признак, что хранилище прочитано. */
-export function useProvince(): { province: Province | null; ready: boolean } {
+/** Место жительства: город или деревня вместе с провинцией. */
+export function setHome(home: Home, id: ProvinceId) {
+  const changed = state.id !== id;
+  state = { id, home, ready: true };
+  AsyncStorage.multiSet([[KEY, id], [HOME, JSON.stringify(home)]]).catch(() => {});
+  emit();
+  if (changed) syncPushProvince(id);
+}
+
+/** Текущая провинция (null — ещё не выбрана), место жительства и признак, что хранилище прочитано. */
+export function useProvince(): { province: Province | null; home: Home | null; ready: boolean } {
   const s = useSyncExternalStore(subscribe, snap, snap);
-  return { province: provinceById(s.id), ready: s.ready };
+  return { province: provinceById(s.id), home: s.home, ready: s.ready };
+}
+
+/** Расстояние в километрах (для «рядом с домом»). */
+export function km(aLat: number, aLon: number, bLat: number, bLon: number) {
+  const r = Math.PI / 180;
+  const x = (bLon - aLon) * r * Math.cos(((aLat + bLat) / 2) * r);
+  const y = (bLat - aLat) * r;
+  return Math.sqrt(x * x + y * y) * 6371;
 }

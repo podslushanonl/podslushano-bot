@@ -1,32 +1,24 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useMemo, useState } from 'react';
+import { router } from 'expo-router';
+import { useMemo, useState } from 'react';
 import { FlatList, Modal, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDepartures, useDisruptions, useStations } from '@/api/content';
 import { openBot } from '@/lib/open';
 import { useProvince } from '@/lib/province';
+import { setMyStation, useMyStation } from '@/lib/station';
 import { HAIRLINE, radius, type as T, useTheme } from '@/theme';
 import { Button, Icon, IconButton, LargeTitle, PageScreen, Skeleton, Tap, Txt } from '@/ui';
 
-const KEY = 'ns_station';
-// Станция по умолчанию — главный вокзал провинции, пока человек не выбрал свою
-const MAIN: Record<string, [string, string]> = {
-  gr: ['GN', 'Groningen'], fr: ['LW', 'Leeuwarden'], dr: ['ASN', 'Assen'], ov: ['ZL', 'Zwolle'],
-  fl: ['ALM', 'Almere Centrum'], ge: ['AH', 'Arnhem Centraal'], ut: ['UT', 'Utrecht Centraal'], nh: ['ASD', 'Amsterdam Centraal'],
-  zh: ['RTD', 'Rotterdam Centraal'], ze: ['MDB', 'Middelburg'], nb: ['HT', "'s-Hertogenbosch"], li: ['MT', 'Maastricht'],
-};
-
 export default function Trains() {
   const { c } = useTheme();
-  const { province } = useProvince();
-  const [own, setOwn] = useState<[string, string] | null>(null);
-  const st = own || MAIN[province?.id || 'ut'] || MAIN.ut;
+  const { home } = useProvince();
+  const my = useMyStation();
+  const st = my.st;
   const [picker, setPicker] = useState(false);
-  useEffect(() => { AsyncStorage.getItem(KEY).then((v) => { if (v) setOwn(JSON.parse(v)); }).catch(() => {}); }, []);
   const deps = useDepartures(st[0]);
   const dis = useDisruptions();
   const mine = useMemo(() => [...(dis.data?.now || []), ...(dis.data?.planned || [])].filter((d) => (d.stations || []).includes(st[0])), [dis.data, st]);
-  const choose = (s: [string, string]) => { setOwn(s); setPicker(false); AsyncStorage.setItem(KEY, JSON.stringify(s)).catch(() => {}); };
+  const choose = (s: [string, string]) => { setMyStation(s, home?.name || ''); setPicker(false); };
 
   return (
     <PageScreen title="Поезда NS" refreshing={deps.isRefetching} onRefresh={() => { deps.refetch(); dis.refetch(); }}>
@@ -38,11 +30,17 @@ export default function Trains() {
           <Icon name="train" size={28} color={c.accentText} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
-          <Txt v="footnote" tone="muted">{own ? 'Ваша станция' : 'Главный вокзал'}</Txt>
+          <Txt v="footnote" tone="muted">{my.source === 'own' ? 'Ваша станция' : my.source === 'home' ? `Рядом с домом · ${Math.max(1, Math.round(my.km!))}\u00a0км` : 'Вокзал провинции'}</Txt>
           <Txt v="title2" numberOfLines={1}>{st[1]}</Txt>
         </View>
         <Txt v="subhead" color={c.accentText} style={{ fontFamily: 'Onest_600SemiBold' }}>Сменить</Txt>
       </Tap>
+      {my.source === 'main' ? (
+        <Tap onPress={() => router.push('/province')} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -6 }}>
+          <Icon name="home" size={16} color={c.accentText} />
+          <Txt v="subhead" tone="accent" style={{ flex: 1 }}>Укажите, где живёте, — покажем ближайшую к дому станцию</Txt>
+        </Tap>
+      ) : null}
 
       {dis.isLoading ? <Skeleton h={70} r={22} /> : mine.length ? mine.map((d) => (
         <View key={d.id} style={{ backgroundColor: d.type === 'MAINTENANCE' ? c.bgElevated : c.accentSoft, borderRadius: radius.xl, padding: 16, gap: 6,
@@ -103,7 +101,7 @@ function StationPicker({ visible, onClose, onPick }: { visible: boolean; onClose
   const [q, setQ] = useState('');
   const found = useMemo(() => {
     const t = q.trim().toLowerCase();
-    const all = list.data || [];
+    const all = list.data?.list || [];
     return (t ? all.filter(([, n]) => n.toLowerCase().includes(t)) : all).slice(0, 80);
   }, [q, list.data]);
   return (
@@ -131,3 +129,4 @@ function StationPicker({ visible, onClose, onPick }: { visible: boolean; onClose
     </Modal>
   );
 }
+

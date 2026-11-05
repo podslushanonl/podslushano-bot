@@ -31,6 +31,13 @@ class StationsTests(unittest.TestCase):
             {"code": "ASD", "namen": {"lang": "Amsterdam Centraal"}, "land": "NL"}]})
         self.assertEqual(rows, [["ASD", "Amsterdam Centraal"], ["UT", "Utrecht Centraal"]])
 
+    def test_station_coords(self):
+        c = ns_trains.station_coords({"payload": [
+            {"code": "O", "lat": 51.764831, "lng": 5.531464, "land": "NL"},
+            {"code": "BRUSN", "lat": 50.86, "lng": 4.36, "land": "B"},
+            {"code": "XX", "land": "NL"}]})
+        self.assertEqual(c, {"O": [51.76483, 5.53146]})  # у Oss код из одной буквы
+
     def test_relevant_and_text(self):
         now = datetime(2026, 10, 12, 12, tzinfo=timezone.utc)
         cur = ns_trains.normalize_disruption(DIS)
