@@ -4,34 +4,44 @@ import { FlatList, Modal, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDepartures, useDisruptions, useStations } from '@/api/content';
 import { openBot } from '@/lib/open';
+import { useProvince } from '@/lib/province';
 import { HAIRLINE, radius, type as T, useTheme } from '@/theme';
-import { Button, Glass, Icon, IconButton, PageScreen, Skeleton, Tap, Txt } from '@/ui';
+import { Button, Icon, IconButton, LargeTitle, PageScreen, Skeleton, Tap, Txt } from '@/ui';
 
 const KEY = 'ns_station';
-const DEFAULT: [string, string] = ['UT', 'Utrecht Centraal'];
+// Станция по умолчанию — главный вокзал провинции, пока человек не выбрал свою
+const MAIN: Record<string, [string, string]> = {
+  gr: ['GN', 'Groningen'], fr: ['LW', 'Leeuwarden'], dr: ['ASN', 'Assen'], ov: ['ZL', 'Zwolle'],
+  fl: ['ALM', 'Almere Centrum'], ge: ['AH', 'Arnhem Centraal'], ut: ['UT', 'Utrecht Centraal'], nh: ['ASD', 'Amsterdam Centraal'],
+  zh: ['RTD', 'Rotterdam Centraal'], ze: ['MDB', 'Middelburg'], nb: ['HT', "'s-Hertogenbosch"], li: ['MT', 'Maastricht'],
+};
 
 export default function Trains() {
   const { c } = useTheme();
-  const [st, setSt] = useState<[string, string]>(DEFAULT);
+  const { province } = useProvince();
+  const [own, setOwn] = useState<[string, string] | null>(null);
+  const st = own || MAIN[province?.id || 'ut'] || MAIN.ut;
   const [picker, setPicker] = useState(false);
-  useEffect(() => { AsyncStorage.getItem(KEY).then((v) => { if (v) setSt(JSON.parse(v)); }).catch(() => {}); }, []);
+  useEffect(() => { AsyncStorage.getItem(KEY).then((v) => { if (v) setOwn(JSON.parse(v)); }).catch(() => {}); }, []);
   const deps = useDepartures(st[0]);
   const dis = useDisruptions();
   const mine = useMemo(() => [...(dis.data?.now || []), ...(dis.data?.planned || [])].filter((d) => (d.stations || []).includes(st[0])), [dis.data, st]);
-  const choose = (s: [string, string]) => { setSt(s); setPicker(false); AsyncStorage.setItem(KEY, JSON.stringify(s)).catch(() => {}); };
+  const choose = (s: [string, string]) => { setOwn(s); setPicker(false); AsyncStorage.setItem(KEY, JSON.stringify(s)).catch(() => {}); };
 
   return (
     <PageScreen title="Поезда NS" refreshing={deps.isRefetching} onRefresh={() => { deps.refetch(); dis.refetch(); }}>
+      <LargeTitle title="Поезда NS" sub="Отправления и сбои на вашей станции" />
       <Tap onPress={() => setPicker(true)} scaleTo={0.98} accessibilityLabel={`Станция ${st[1]}. Сменить`}
-        style={{ backgroundColor: c.hero, borderRadius: radius.xxl, borderWidth: HAIRLINE, borderColor: c.line, padding: 20, gap: 4 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Icon name="train" size={16} color={c.accent} />
-          <Txt v="overline" color={c.accent}>Ваша станция</Txt>
+        style={{ backgroundColor: c.bgElevated, borderRadius: radius.l, borderWidth: HAIRLINE, borderColor: c.line, padding: 18,
+          flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+        <View style={{ width: 56, height: 56, borderRadius: radius.m, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name="train" size={28} color={c.accentText} />
         </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Txt v="title1" color={c.onHero} style={{ flex: 1 }}>{st[1]}</Txt>
-          <Txt v="subhead" color={c.onHeroMuted} style={{ fontFamily: 'Onest_600SemiBold' }}>Сменить</Txt>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Txt v="footnote" tone="muted">{own ? 'Ваша станция' : 'Главный вокзал'}</Txt>
+          <Txt v="title2" numberOfLines={1}>{st[1]}</Txt>
         </View>
+        <Txt v="subhead" color={c.accentText} style={{ fontFamily: 'Onest_600SemiBold' }}>Сменить</Txt>
       </Tap>
 
       {dis.isLoading ? <Skeleton h={70} r={22} /> : mine.length ? mine.map((d) => (
@@ -59,7 +69,8 @@ export default function Trains() {
         <Txt v="title2">Отправления</Txt>
         <View style={{ backgroundColor: c.bgElevated, borderRadius: radius.xl, borderWidth: 1, borderColor: c.line, overflow: 'hidden' }}>
           {deps.isLoading ? <View style={{ padding: 16, gap: 14 }}>{[0, 1, 2, 3].map((i) => <Skeleton key={i} h={34} />)}</View>
-            : !deps.data?.length ? <Txt v="callout" tone="muted" style={{ padding: 16 }}>Нет данных о поездах.</Txt>
+            : !deps.data?.length ? <Txt v="callout" tone="muted" style={{ padding: 16 }}>
+              {deps.isError ? 'Не удалось загрузить расписание. Потяните вниз, чтобы обновить.' : 'Ближайших отправлений нет. Ночью поезда почти не ходят.'}</Txt>
             : deps.data.map((d, i) => (
               <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i ? 1 : 0, borderTopColor: c.line }}>
                 <View style={{ width: 54 }}>
@@ -100,14 +111,15 @@ function StationPicker({ visible, onClose, onPick }: { visible: boolean; onClose
       <View style={{ flex: 1, backgroundColor: c.bg, paddingTop: 16 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, gap: 10 }}>
           <Txt v="title2" style={{ flex: 1 }}>Станция</Txt>
-          <IconButton icon="close" label="Закрыть" onPress={onClose} kind="solid" size={38} />
+          <IconButton icon="close" label="Закрыть" onPress={onClose} size={38} />
         </View>
         <View style={{ padding: 16 }}>
-          <Glass radius={radius.l} strong style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, height: 50 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, height: 50, borderRadius: radius.l,
+            backgroundColor: c.bgElevated, borderWidth: HAIRLINE, borderColor: c.line }}>
             <Icon name="search" size={18} color={c.muted} />
             <TextInput value={q} onChangeText={setQ} placeholder="Например, Amsterdam" placeholderTextColor={c.faint} autoFocus
               style={[T.callout, { flex: 1, color: c.ink, outlineStyle: 'none' } as any]} />
-          </Glass>
+          </View>
         </View>
         <FlatList data={found} keyExtractor={(x) => x[0]} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
           renderItem={({ item }) => (

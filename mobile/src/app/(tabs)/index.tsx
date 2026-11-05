@@ -60,6 +60,7 @@ export default function Today() {
 
       <Section title="Ближайшие события" more="Вся афиша" onMore={() => router.push('/afisha')}>
         {ev.isLoading ? <View style={{ gap: 12 }}>{[0, 1].map((i) => <Skeleton key={i} h={122} r={radius.xl} />)}</View>
+          : ev.isError && !ev.events.length ? <Card style={{ borderRadius: radius.l }}><Empty icon="warning" title="События не загрузились" text="Проверьте интернет и попробуйте ещё раз." action={<Button kind="secondary" title="Повторить" onPress={() => ev.refetch()} />} /></Card>
           : ev.events.length ? ev.events.slice(0, 3).map((e) => <EventCard key={e.key} e={e} />)
             : <Card style={{ borderRadius: radius.l }}><Empty icon="ticket" title={`В ${p.name} пока нет событий`} text="Афиша пополняется каждую неделю." /></Card>}
       </Section>
