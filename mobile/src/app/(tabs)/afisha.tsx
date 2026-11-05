@@ -88,6 +88,7 @@ export default function Afisha() {
         </View>
       ) : null}
       {q.isLoading ? <View style={{ gap: 12 }}>{[0, 1, 2].map((i) => <Skeleton key={i} h={122} r={radius.xl} />)}</View>
+        : q.isError && !groups.length ? <Empty icon="warning" title="Афиша не загрузилась" text="Проверьте интернет и попробуйте ещё раз." action={<Button kind="secondary" title="Повторить" onPress={() => q.refetch()} />} />
         : groups.length ? groups.map(([month, list]) => (
           <View key={month} style={{ gap: 12 }}>
             <Txt v="title2" accessibilityRole="header">{monthTitle(`${month}-01`)}</Txt>

@@ -65,6 +65,7 @@ export default function Guide() {
             </View>
           ) : null}
           {q.isLoading ? <View style={{ gap: 10 }}>{[0, 1, 2, 3].map((i) => <Skeleton key={i} h={78} r={radius.l} />)}</View>
+            : q.isError && !shown.length ? <Empty icon="warning" title="Контакт-гайд не загрузился" text="Проверьте интернет и попробуйте ещё раз." action={<Button kind="secondary" title="Повторить" onPress={() => q.refetch()} />} />
             : shown.length ? (
               <View style={{ gap: 10 }}>
                 <Txt v="footnote">{p.name} и онлайн: {shown.length}</Txt>

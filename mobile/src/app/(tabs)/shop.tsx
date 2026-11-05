@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { View } from 'react-native';
 import { euro, useCart, useCatalog, useMyOrders, useOrder, useWaitlist } from '@/api/shop';
 import { radius, useTheme } from '@/theme';
-import { Card, Empty, Group, Icon, IconButton, Img, Row, Skeleton, TabScreen, Tap, Txt } from '@/ui';
+import { Button, Card, Empty, Group, Icon, IconButton, Img, Row, Skeleton, TabScreen, Tap, Txt } from '@/ui';
 
 /** Строка «мой заказ»: номер и статус подгружаются с сервера. */
 function MyOrder({ token, first }: { token: string; first: boolean }) {
@@ -67,7 +67,8 @@ export default function Shop() {
           </View>
         </>
       ) : (
-        <Empty icon="market" title="Товаров пока нет" text="Скоро здесь появится мерч." />
+        q.isError ? <Empty icon="warning" title="Магазин не загрузился" text="Проверьте интернет и попробуйте ещё раз." action={<Button kind="secondary" title="Повторить" onPress={() => q.refetch()} />} />
+          : <Empty icon="market" title="Товаров пока нет" text="Скоро здесь появится мерч." />
       )}
       {orders.length ? <Group title="Мои заказы">{orders.map((t, i) => <MyOrder key={t} token={t} first={i === 0} />)}</Group> : null}
     </TabScreen>
