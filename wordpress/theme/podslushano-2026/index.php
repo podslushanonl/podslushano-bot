@@ -20,7 +20,7 @@ if ($r) {
             $pn['page'] = ['title' => 'Специалист не найден', 'html' => '<p>Этой карточки больше нет. <a href="' . esc_url(home_url('/guide/')) . '">Все специалисты в КонтактGuide</a></p>'];
         }
     }
-    // City page («Русскоязычные в Amsterdam») is shown as an ordinary page
+    // City page («Русскоязычные в Амстердаме (Amsterdam)») is shown as an ordinary page
     if ($r === 'city') {
         $c = pn_city(sanitize_key(get_query_var('pn_key')));
         $pn['route'] = 'wp';
@@ -44,7 +44,7 @@ if ($r) {
     $pn['route'] = 'news';
     // Category / tag page: its own posts and heading (Справочник, Транспорт…), not the general feed
     if ((is_category() || is_tag()) && ($term = get_queried_object())) {
-        $pn['term'] = ['name' => $term->name, 'desc' => wp_strip_all_tags(term_description($term))];
+        $pn['term'] = ['name' => $term->name, 'desc' => wp_strip_all_tags(term_description($term)) ?: (pn_rubric_seo($term)[1] ?? '')];
         $pn['termPosts'] = array_map('pn_post_item', get_posts(['post_type' => 'post', 'post_status' => 'publish', 'posts_per_page' => 60,
             'no_found_rows' => true, 'ignore_sticky_posts' => true, 'tax_query' => [['taxonomy' => $term->taxonomy, 'terms' => $term->term_id]]]));
     }

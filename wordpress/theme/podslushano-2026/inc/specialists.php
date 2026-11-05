@@ -66,7 +66,7 @@ function pn_spec_page($x) {
     // The city page, when the specialist's city has one
     foreach (pn_cities() as $slug => $c) {
         if (mb_strtolower($c[0]) === mb_strtolower(trim((string) ($x['city'] ?? '')))) {
-            $h .= '<p><a href="' . esc_url(home_url('/city/' . $slug . '/')) . '">Русскоязычные в ' . esc_html($c[0]) . '</a></p>';
+            $h .= '<p><a href="' . esc_url(home_url('/city/' . $slug . '/')) . '">' . esc_html(pn_city_title(pn_city($slug))) . '</a></p>';
             break;
         }
     }

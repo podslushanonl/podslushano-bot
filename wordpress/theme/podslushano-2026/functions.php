@@ -7,7 +7,7 @@
  */
 if (!defined('ABSPATH')) exit;
 
-define('PN_VER', '1.7.1');
+define('PN_VER', '1.8.0');
 define('PN_BOT', 'https://worker-production-ad76.up.railway.app');
 define('PN_DIR', get_template_directory());
 define('PN_URI', get_template_directory_uri());
@@ -19,6 +19,7 @@ require PN_DIR . '/inc/forms.php';
 require PN_DIR . '/inc/importer.php';
 require PN_DIR . '/inc/seo.php';
 require PN_DIR . '/inc/redirects.php';
+require PN_DIR . '/inc/health.php';
 require PN_DIR . '/inc/cities.php';
 require PN_DIR . '/inc/specialists.php';
 require PN_DIR . '/inc/donations.php';
@@ -129,8 +130,8 @@ foreach (['wpseo_canonical', 'wpseo_opengraph_url'] as $f) {
     add_filter($f, function ($u) { return pn_route_url() ?? $u; });
 }
 // Home page: who we are, in the words people search with («русскоязычные в Нидерландах», «русскоязычное сообщество»)
-define('PN_HOME_TITLE', 'podslushano.nl — русскоязычное сообщество в Нидерландах');
-define('PN_HOME_DESC', 'podslushano.nl — русскоязычное сообщество в Нидерландах: новости на русском, русскоязычные специалисты, пошаговые справки про BSN, DigiD и налоги, афиша и прогулки.');
+define('PN_HOME_TITLE', 'Подслушано в Нидерландах — русскоязычное сообщество и новости');
+define('PN_HOME_DESC', 'Подслушано в Нидерландах (podslushano.nl) — русскоязычное сообщество в Нидерландах: новости на русском, русскоговорящие специалисты, справки про BSN, DigiD и налоги, афиша.');
 foreach (['wpseo_title', 'wpseo_opengraph_title', 'wpseo_twitter_title'] as $f) {
     add_filter($f, function ($t) { return is_front_page() && !get_query_var('pn_route') ? PN_HOME_TITLE : $t; }, 20);
 }
@@ -138,10 +139,21 @@ foreach (['wpseo_metadesc', 'wpseo_opengraph_desc', 'wpseo_twitter_description']
     add_filter($f, function ($d) { return is_front_page() && !get_query_var('pn_route') ? PN_HOME_DESC : $d; }, 20);
 }
 // Organization in Yoast schema: what the community is and where, for search engines and assistants
+// Other names people search for, and the community's channels: Google links them to the site
+define('PN_ALT_NAMES', ['Подслушано в Нидерландах', 'Подслушано NL', 'Подслушано Нидерланды', 'podslushano.nl',
+    'Русскоязычное сообщество в Нидерландах']);
+define('PN_SAME_AS', ['https://www.instagram.com/podslushano.nl', 'https://t.me/podslushanovnl']);
 add_filter('wpseo_schema_organization', function ($data) {
     $data['description'] = 'Русскоязычное сообщество и медиа в Нидерландах: новости, специалисты, справки, афиша.';
     $data['areaServed'] = ['@type' => 'Country', 'name' => 'Netherlands'];
     $data['knowsLanguage'] = ['ru', 'nl'];
+    $data['alternateName'] = PN_ALT_NAMES;
+    $data['sameAs'] = array_values(array_unique(array_merge((array) ($data['sameAs'] ?? []), PN_SAME_AS)));
+    return $data;
+});
+add_filter('wpseo_schema_website', function ($data) {
+    $data['alternateName'] = PN_ALT_NAMES;
+    $data['inLanguage'] = 'ru';
     return $data;
 });
 
