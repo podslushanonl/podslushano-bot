@@ -21,11 +21,54 @@ class AppAlertsTest(unittest.TestCase):
         items = [{"id": "d1", "type_ru": "Сбой", "title": "Между Oss и Nijmegen не ходят поезда", "stations": ["O", "NM"]},
                  {"id": "d2", "type_ru": "Ремонтные работы", "title": "Работы", "stations": ["UT"], "active": False}]
         tokens = [("t1", "O", "Oss", ""), ("t2", "O", "Oss", "d1"), ("t3", "UT", "Utrecht Centraal", "")]
-        msgs, marks = a.station_alerts(tokens, items)
+        msgs, ids = a.station_alerts(tokens, items)
         self.assertEqual([m["to"] for m in msgs], ["t1", "t3"])
+        self.assertEqual(ids, ["d1", "d2"])
         self.assertEqual(msgs[0]["title"], "Поезда · Oss: сбой")
         self.assertEqual(msgs[0]["data"], {"url": "/trains"})
-        self.assertEqual(marks, {"t1": "d1", "t3": "d2"})
+        # Expo не принял второе сообщение — его сбой не помечается и повторится
+        self.assertEqual(a.new_marks(tokens, msgs, ids, [True, False]), {"t1": "d1"})
+
+
+class MorningRoundTest(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        import tempfile
+        from pathlib import Path
+        from unittest import mock
+        from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+        from database.models import AppPushToken, Base
+        self.tmp = tempfile.TemporaryDirectory()
+        self.engine = create_async_engine(f"sqlite+aiosqlite:///{Path(self.tmp.name) / 't.db'}")
+        async with self.engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        self.sessions = async_sessionmaker(self.engine, expire_on_commit=False)
+        async with self.sessions() as s:
+            s.add_all([AppPushToken(token="t1", province="nb"), AppPushToken(token="t2", province="nb")])
+            await s.commit()
+        self.p = mock.patch.object(a, "get_session", self.sessions)
+        self.p.start()
+
+    async def asyncTearDown(self):
+        self.p.stop()
+        await self.engine.dispose()
+        self.tmp.cleanup()
+
+    async def test_retries_only_undelivered_and_stops_when_all_got_it(self):
+        from datetime import datetime
+        from unittest import mock
+        calls = []
+
+        async def fake(day, skip):
+            calls.append(set(skip))
+            return [t for t in ("t1", "t2") if t not in skip][:1]   # за раз доходит одно
+
+        now = datetime(2026, 11, 6, 7, 35, tzinfo=a.TZ)
+        with mock.patch.object(a, "send_morning", fake):
+            self.assertEqual(await a.morning_round(now), 1)
+            self.assertEqual(await a.morning_round(now), 1)
+            self.assertEqual(await a.morning_round(now), 0)      # всем дошло — больше не шлём
+            self.assertEqual(await a.morning_round(datetime(2026, 11, 6, 11, 5, tzinfo=a.TZ)), 0)
+        self.assertEqual(calls, [set(), {"t1"}])
 
 
 if __name__ == "__main__":

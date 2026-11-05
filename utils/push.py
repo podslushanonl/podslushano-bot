@@ -110,9 +110,15 @@ async def _post(messages: list[dict]) -> list[dict]:
 
 
 async def send_messages(msgs: list[dict]) -> tuple[int, int]:
-    """Отправить готовые сообщения Expo (у каждого «to» — токен). Возвращает (отправлено, ошибок).
+    """Отправить готовые сообщения Expo (у каждого «to» — токен). Возвращает (отправлено, ошибок)."""
+    ok = await send_each(msgs)
+    return sum(ok), len(ok) - sum(ok)
+
+
+async def send_each(msgs: list[dict]) -> list[bool]:
+    """Отправить сообщения Expo; для каждого — принял ли его Expo (False — можно повторить позже).
     Токены, которые Expo называет недействительными (DeviceNotRegistered), выключаются."""
-    sent = failed = 0
+    result: list[bool] = []
     dead: list[str] = []
     for i in range(0, len(msgs), 100):   # Expo принимает до 100 сообщений за запрос
         chunk = [{"sound": "default", "channelId": "default", **m} for m in msgs[i:i + 100]]
@@ -120,20 +126,17 @@ async def send_messages(msgs: list[dict]) -> tuple[int, int]:
             tickets = await _post(chunk)
         except Exception as e:  # noqa: BLE001
             log.warning("Expo push failed: %s", e)
-            failed += len(chunk)
-            continue
+            tickets = []
+        tickets = list(tickets) + [{}] * (len(chunk) - len(tickets))
         for m, ticket in zip(chunk, tickets):
-            if ticket.get("status") == "ok":
-                sent += 1
-            else:
-                failed += 1
-                if (ticket.get("details") or {}).get("error") == "DeviceNotRegistered":
-                    dead.append(m["to"])
+            result.append(ticket.get("status") == "ok")
+            if (ticket.get("details") or {}).get("error") == "DeviceNotRegistered":
+                dead.append(m["to"])
     if dead:
         async with get_session() as session:
             await session.execute(update(AppPushToken).where(AppPushToken.token.in_(dead)).values(active=False, updated_at=_now()))
             await session.commit()
-    return sent, failed
+    return result
 
 
 async def send_to_province(province: str, title: str, body: str, url: str = "") -> tuple[int, int]:

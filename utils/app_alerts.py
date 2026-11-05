@@ -21,7 +21,7 @@ from sqlalchemy import select
 
 from database.db import get_session
 from database.models import AppPushToken, Meta
-from utils.push import PROVINCES, send_messages
+from utils.push import PROVINCES, send_each
 
 log = logging.getLogger(__name__)
 TZ = ZoneInfo("Europe/Amsterdam")
@@ -87,13 +87,15 @@ def events_on(events: list[dict], province: str, day: date) -> int:
                and (e.get("date") or "") <= d <= (e.get("end") or e.get("date") or ""))
 
 
-async def send_morning(today: date | None = None) -> int:
+async def send_morning(today: date | None = None, skip: set[str] | None = None) -> list[str]:
+    """Разослать сводку тем, кто её ещё не получил сегодня (skip). Возвращает токены, которые Expo принял."""
     today = today or datetime.now(TZ).date()
+    skip = skip or set()
     async with get_session() as session:
-        rows = list(await session.execute(select(AppPushToken.token, AppPushToken.province).where(
-            AppPushToken.active.is_(True), AppPushToken.morning.is_(True))))
+        rows = [(t, p) for t, p in await session.execute(select(AppPushToken.token, AppPushToken.province).where(
+            AppPushToken.active.is_(True), AppPushToken.morning.is_(True))) if t not in skip]
     if not rows:
-        return 0
+        return []
     from utils.auto_events import load as auto_events
     async with aiohttp.ClientSession(trust_env=True) as s:
         site = await _json(s, SITE_JSON) or {}
@@ -104,14 +106,15 @@ async def send_morning(today: date | None = None) -> int:
         for province in sorted({p for _, p in rows if p in CENTER}):
             title, body = morning_text(province, await _weather(s, province), events_on(events, province, today), headline)
             msgs += [{"to": t, "title": title, "body": body, "data": {"url": "/"}} for t, p in rows if p == province]
-    sent, failed = await send_messages(msgs)
-    log.info("app_alerts: morning sent %d, failed %d", sent, failed)
-    return sent
+    ok = await send_each(msgs)
+    done = [m["to"] for m, good in zip(msgs, ok) if good]
+    log.info("app_alerts: morning sent %d of %d", len(done), len(msgs))
+    return done
 
 
-def station_alerts(tokens: list[tuple[str, str, str, str]], items: list[dict]) -> tuple[list[dict], dict[str, str]]:
-    """Сообщения о сбоях для устройств (token, station, station_name, sent_alerts) и их новые отметки."""
-    msgs, marks = [], {}
+def station_alerts(tokens: list[tuple[str, str, str, str]], items: list[dict]) -> tuple[list[dict], list[str]]:
+    """Сообщения о сбоях для устройств (token, station, station_name, sent_alerts) и id сбоя каждого сообщения."""
+    msgs, ids = [], []
     for token, station, name, sent in tokens:
         done = [x for x in (sent or "").split(",") if x]
         for x in items:
@@ -122,10 +125,19 @@ def station_alerts(tokens: list[tuple[str, str, str, str]], items: list[dict]) -
             body = " ".join(filter(None, [x.get("title") or "", x.get("situation") or "", when.strip()]))
             msgs.append({"to": token, "title": f"Поезда · {name or station}: {kind.lower()}"[:80], "body": body[:178],
                          "data": {"url": "/trains"}})
+            ids.append(x["id"])
             done.append(x["id"])
-        if done != [x for x in (sent or "").split(",") if x]:
-            marks[token] = ",".join(done[-40:])
-    return msgs, marks
+    return msgs, ids
+
+
+def new_marks(tokens: list[tuple[str, str, str, str]], msgs: list[dict], ids: list[str], ok: list[bool]) -> dict[str, str]:
+    """Отметки «уже отправлено»: только сбои, которые Expo принял — остальные повторятся при следующей проверке."""
+    prev = {t: [x for x in (sent or "").split(",") if x] for t, _, _, sent in tokens}
+    marks: dict[str, list[str]] = {}
+    for m, aid, good in zip(msgs, ids, ok):
+        if good:
+            marks.setdefault(m["to"], list(prev.get(m["to"], []))).append(aid)
+    return {t: ",".join(v[-40:]) for t, v in marks.items()}
 
 
 async def check_trains() -> int:
@@ -137,10 +149,12 @@ async def check_trains() -> int:
     if not tokens:
         return 0
     items = ns_alerts.relevant(await ns_trains.get_disruptions())
-    msgs, marks = station_alerts(tokens, items)
+    msgs, ids = station_alerts(tokens, items)
     if not msgs:
         return 0
-    sent, _ = await send_messages(msgs)
+    ok = await send_each(msgs)
+    marks = new_marks(tokens, msgs, ids, ok)
+    sent = sum(ok)
     async with get_session() as session:
         for row in await session.scalars(select(AppPushToken).where(AppPushToken.token.in_(list(marks)))):
             row.sent_alerts = marks[row.token]
@@ -148,18 +162,37 @@ async def check_trains() -> int:
     return sent
 
 
-async def _morning_due(now: datetime) -> bool:
-    """Пора ли утренняя сводка: после 7:30 и сегодня ещё не отправляли (отметка в meta)."""
-    if (now.hour, now.minute) < MORNING_AT or now.hour >= 11:
-        return False
-    key = "app_morning_push"
+MORNING_KEY = "app_morning_push"
+
+
+def morning_window(now: datetime) -> bool:
+    """Сводку шлём с 7:30 до 11:00: позже она уже не утренняя."""
+    return MORNING_AT <= (now.hour, now.minute) and now.hour < 11
+
+
+async def morning_round(now: datetime) -> int:
+    """Одна попытка утренней рассылки. Прогресс по получателям хранится в meta:
+    значение «дата|токен,токен…» — кто уже получил; «дата|done» — все получили.
+    Сбой Expo или ошибка не теряют сводку: в следующий раз дошлём тем, кому не дошло."""
+    if not morning_window(now):
+        return 0
+    day = now.date().isoformat()
     async with get_session() as session:
-        row = await session.get(Meta, key)
-        if row and row.value == now.date().isoformat():
-            return False
-        await session.merge(Meta(key=key, value=now.date().isoformat()))
+        row = await session.get(Meta, MORNING_KEY)
+        value = row.value if row else ""
+    stamp, _, got = value.partition("|")
+    if stamp == day and got == "done":
+        return 0
+    have = set(got.split(",")) - {""} if stamp == day else set()
+    done = await send_morning(now.date(), have)
+    async with get_session() as session:
+        total = {t for (t,) in await session.execute(select(AppPushToken.token).where(
+            AppPushToken.active.is_(True), AppPushToken.morning.is_(True)))}
+        have |= set(done)
+        mark = "done" if total <= have else ",".join(sorted(have & total))
+        await session.merge(Meta(key=MORNING_KEY, value=f"{day}|{mark}"))
         await session.commit()
-    return True
+    return len(done)
 
 
 async def app_alerts_loop() -> None:
@@ -168,8 +201,7 @@ async def app_alerts_loop() -> None:
     while True:
         started = time.monotonic()
         try:
-            if await _morning_due(datetime.now(TZ)):
-                await send_morning()
+            await morning_round(datetime.now(TZ))
         except Exception:  # noqa: BLE001
             log.exception("app_alerts: morning failed")
         try:
@@ -182,4 +214,4 @@ async def app_alerts_loop() -> None:
         await asyncio.sleep(max(60, 300 - (time.monotonic() - started)))
 
 
-__all__ = ["app_alerts_loop", "morning_text", "station_alerts", "events_on"]
+__all__ = ["app_alerts_loop", "morning_text", "station_alerts", "new_marks", "events_on", "morning_round"]
