@@ -288,6 +288,70 @@ async def ensure_category(name: str, parent_id: int | None = None) -> int | None
     return None
 
 
+async def ensure_tag(name: str) -> int | None:
+    """id метки по названию; если такой нет — создаёт. None — если не удалось."""
+    name = (name or "").strip()
+    if not name or not wp_enabled():
+        return None
+    status, data = await _wp_json(
+        "GET", "tags", params={"search": name, "per_page": "100", "_fields": "id,name"})
+    if status == 200 and isinstance(data, list):
+        wanted = name.casefold()
+        for tag in data:
+            if _html.unescape(str(tag.get("name", ""))).strip().casefold() == wanted:
+                return int(tag["id"])
+    status, data = await _wp_json("POST", "tags", payload={"name": name})
+    if status in (200, 201) and isinstance(data, dict) and data.get("id"):
+        return int(data["id"])
+    if isinstance(data, dict) and data.get("code") == "term_exists":
+        term_id = (data.get("data") or {}).get("term_id")
+        try:
+            return int(term_id) if term_id else None
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
+async def all_categories() -> list[dict] | None:
+    """Все рубрики сайта: id, name, slug, parent, count. None — сайт не ответил."""
+    status, data = await _wp_json(
+        "GET", "categories",
+        params={"per_page": "100", "hide_empty": "false", "_fields": "id,name,slug,parent,count"})
+    if status != 200 or not isinstance(data, list):
+        return None
+    return [{**c, "name": _html.unescape(str(c.get("name", ""))).strip()} for c in data]
+
+
+async def all_posts(fields: str = "id,categories,tags,link") -> list[dict] | None:
+    """Все опубликованные записи постранично (по 100). None — сайт не ответил."""
+    out: list[dict] = []
+    for page in range(1, 200):
+        status, data = await _wp_json(
+            "GET", "posts",
+            params={"per_page": "100", "page": str(page), "status": "publish", "_fields": fields})
+        if status == 400 and isinstance(data, dict) and data.get("code") == "rest_post_invalid_page_number":
+            break  # страницы кончились
+        if status != 200 or not isinstance(data, list):
+            return None
+        out += data
+        if len(data) < 100:
+            break
+    return out
+
+
+async def set_post_terms(post_id: int, category_ids: list[int], tag_ids: list[int]) -> bool:
+    """Заменяет рубрики и метки записи. True — WordPress принял."""
+    status, data = await _wp_json(
+        "POST", f"posts/{int(post_id)}", payload={"categories": category_ids, "tags": tag_ids})
+    return status in (200, 201) and isinstance(data, dict) and data.get("id") == int(post_id)
+
+
+async def rename_category(cat_id: int, name: str) -> bool:
+    """Меняет только название рубрики; адрес (slug) остаётся прежним."""
+    status, data = await _wp_json("POST", f"categories/{int(cat_id)}", payload={"name": name})
+    return status in (200, 201) and isinstance(data, dict)
+
+
 def section_titles(body_html: str) -> list[str]:
     """Заголовки разделов статьи (<h2>) — по ним раскладываем фото по пунктам."""
     raw = re.findall(r"<h2[^>]*>(.*?)</h2>", body_html or "", re.S | re.I)
@@ -389,10 +453,11 @@ async def create_post(
     featured_media: int | None = None,
     excerpt: str | None = None,
     slug: str | None = None,
+    tag_ids: list[int] | None = None,
 ) -> tuple[dict | None, str]:
     """Создаёт запись в WordPress. Возвращает (данные_записи, ошибка).
 
-    status: 'draft' (черновик) или 'publish'. category_ids — рубрики,
+    status: 'draft' (черновик) или 'publish'. category_ids — рубрики, tag_ids — метки,
     featured_media — id картинки-обложки, excerpt — анонс, slug — адрес
     записи (пусто = WordPress сделает сам).
     """
@@ -403,6 +468,8 @@ async def create_post(
     payload: dict = {"title": title, "content": html, "status": status}
     if category_ids:
         payload["categories"] = category_ids
+    if tag_ids:
+        payload["tags"] = tag_ids
     if featured_media:
         payload["featured_media"] = featured_media
     if excerpt:
