@@ -25,7 +25,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
       - name: Run WordPress theme checks (PHP)
-        run: php wordpress/tests/cache.php && php wordpress/tests/donations.php
+        run: php wordpress/tests/cache.php && php wordpress/tests/redirects.php && php wordpress/tests/donations.php
       - name: Run editorial system checks
         run: python tests/test_editorial_full_pipeline.py
       - name: Run full legacy regression suite

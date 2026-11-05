@@ -7,7 +7,7 @@
  */
 if (!defined('ABSPATH')) exit;
 
-define('PN_VER', '1.7.0');
+define('PN_VER', '1.7.1');
 define('PN_BOT', 'https://worker-production-ad76.up.railway.app');
 define('PN_DIR', get_template_directory());
 define('PN_URI', get_template_directory_uri());
@@ -18,6 +18,7 @@ require PN_DIR . '/inc/content.php';
 require PN_DIR . '/inc/forms.php';
 require PN_DIR . '/inc/importer.php';
 require PN_DIR . '/inc/seo.php';
+require PN_DIR . '/inc/redirects.php';
 require PN_DIR . '/inc/cities.php';
 require PN_DIR . '/inc/specialists.php';
 require PN_DIR . '/inc/donations.php';
@@ -57,16 +58,6 @@ add_action('init', function () {
 add_filter('query_vars', function ($v) { $v[] = 'pn_route'; $v[] = 'pn_key'; return $v; });
 add_action('after_switch_theme', function () { pn_add_rules(); flush_rewrite_rules(); });
 add_filter('redirect_canonical', function ($url) { return get_query_var('pn_route') ? false : $url; });
-// Old addresses: the phone widget page was removed, the old business page is replaced by /business/.
-add_action('template_redirect', function () {
-    $path = (string) wp_parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
-    foreach (['#^/widget/?$#' => '/live/', '#^/collaboration-for-business-netherlands/?$#' => '/business/'] as $re => $to) {
-        if (preg_match($re, $path)) {
-            wp_safe_redirect(home_url($to), 301);
-            exit;
-        }
-    }
-}, 1);
 add_filter('template_include', function ($t) {
     return get_query_var('pn_route') ? PN_DIR . '/index.php' : $t;
 });
