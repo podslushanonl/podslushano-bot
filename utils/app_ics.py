@@ -72,8 +72,10 @@ def build_ics(e: dict, now: datetime | None = None) -> str:
         lines += [f"DTSTART;VALUE=DATE:{date.replace('-', '')}", f"DTEND;VALUE=DATE:{(last + timedelta(days=1)):%Y%m%d}"]
     place = ", ".join(x for x in (e.get("venue"), e.get("addr") or e.get("city")) if x)
     url = f"https://www.podslushano.nl/events/{e.get('key')}/"
+    # описание собираем отдельно: в Python 3.11 (сервер) внутри f-строки нельзя писать «\n»
+    desc = ((e.get("s") or "") + "\n" if e.get("s") else "") + "Афиша podslushano.nl: " + url
     lines += [_fold(f"SUMMARY:{_esc(e.get('h', ''))}"), _fold(f"LOCATION:{_esc(place)}"), _fold(f"URL:{url}"),
-              _fold(f"DESCRIPTION:{_esc((e.get('s') or '') + ('\n' if e.get('s') else '') + 'Афиша podslushano.nl: ' + url)}"),
+              _fold("DESCRIPTION:" + _esc(desc)),
               "END:VEVENT", "END:VCALENDAR"]
     return "\r\n".join(lines) + "\r\n"
 
