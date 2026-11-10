@@ -161,8 +161,15 @@ def _now() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
+_SEARCH_CITATION = re.compile(
+    r"""<cite\s+index\s*=\s*(["'])\d+-\d+(?::\d+)?(?:\s*,\s*\d+-\d+(?::\d+)?)*\1\s*>(.*?)</cite\s*>""",
+    re.IGNORECASE | re.DOTALL,
+)
+
+
 def _s(v: object, limit: int = 2000) -> str:
-    return re.sub(r"\s+", " ", str(v or "")).strip()[:limit]
+    text = _SEARCH_CITATION.sub(r"\2", str(v or ""))
+    return re.sub(r"\s+", " ", text).strip()[:limit]
 
 
 # --- Проверка ответа Claude ---------------------------------------------------------

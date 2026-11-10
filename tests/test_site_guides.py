@@ -55,6 +55,25 @@ class ValidateTests(unittest.TestCase):
         self.assertIsNone(site_guides.validate(guide_json(), min_words=100000))
         self.assertIsNone(site_guides.validate("text"))
 
+    def test_web_search_citations_are_removed_before_html_and_excerpt(self):
+        data = guide_json()
+        data["lead"] = '<cite index="4-1:3,4-5">Как оформить документ.</cite>'
+        data["sections"][0]["blocks"][0][1] = (
+            '<cite index="1-1">**Важно**\n' + LONG + '</cite>'
+        )
+        data["sections"][2]["blocks"][-2][1]["rows"][0][1] = "<cite index='2-4'>5 дней</cite>"
+        data["faq"][0]["a"] = '<cite index="2-5">Принесите паспорт.</cite>'
+        guide = site_guides.validate(data)
+
+        self.assertEqual(guide["lead"], "Как оформить документ.")
+        self.assertEqual(guide["faq"][0]["a"], "Принесите паспорт.")
+        h = site_guides.build_html(guide)
+        self.assertIn("<strong>Важно</strong>", h)
+        self.assertIn("<td>5 дней</td>", h)
+        self.assertIn('href="https://www.rijksoverheid.nl/bsn"', h)
+        self.assertNotIn("&lt;cite", h)
+        self.assertNotIn("&lt;/cite", h)
+
     def test_html(self):
         h = site_guides.build_html(site_guides.validate(guide_json()), datetime(2026, 10, 21, 12, 0))
         self.assertTrue(h.startswith("<!-- wp:html -->"))
