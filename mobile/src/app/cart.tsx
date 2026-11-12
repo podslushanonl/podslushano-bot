@@ -28,7 +28,7 @@ export default function Cart() {
               <View style={{ flex: 1, gap: 2 }}>
                 <Txt v="headline" numberOfLines={2}>{l.p!.title}</Txt>
                 {l.color ? <Txt v="footnote">{l.color}</Txt> : null}
-                <Txt v="callout" tone="accent" style={{ fontFamily: 'Onest_700Bold' }}>{euro(Number(l.p!.price) * l.qty)}</Txt>
+                <Txt v="callout" tone="accent" style={{ fontWeight: '700' }}>{euro(Number(l.p!.price) * l.qty)}</Txt>
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                 <IconButton icon={l.qty === 1 ? 'trash' : 'minus'} kind="plain" size={38} label={l.qty === 1 ? 'Убрать из корзины' : 'Меньше'}

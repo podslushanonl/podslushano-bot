@@ -50,7 +50,7 @@ export function Badge({ n }: { n: number }) {
   if (!n) return null;
   return (
     <View style={{ minWidth: 20, height: 20, paddingHorizontal: 6, borderRadius: 10, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
-      <Txt v="caption" color={c.onAccent} style={{ fontFamily: 'Onest_700Bold' }}>{n > 99 ? '99+' : n}</Txt>
+      <Txt v="caption" color={c.onAccent} style={{ fontWeight: '700' }}>{n > 99 ? '99+' : n}</Txt>
     </View>
   );
 }
@@ -103,7 +103,7 @@ export function Empty({ icon = 'sparkles', title, text, action }: { icon?: IconN
   const { c } = useTheme();
   return (
     <View style={{ alignItems: 'center', gap: 10, paddingVertical: 48, paddingHorizontal: 28 }}>
-      <View style={{ width: 64, height: 64, borderRadius: 22, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+      <View style={{ width: 64, height: 64, borderRadius: radius.card, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
         <Icon name={icon} size={28} color={c.accentText} />
       </View>
       <Txt v="title3" center>{title}</Txt>
@@ -112,3 +112,6 @@ export function Empty({ icon = 'sparkles', title, text, action }: { icon?: IconN
     </View>
   );
 }
+
+/** Пустой экран с понятным следующим шагом (имя из ТЗ; то же, что Empty). */
+export const EmptyState = Empty;

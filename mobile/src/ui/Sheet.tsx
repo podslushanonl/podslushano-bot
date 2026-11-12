@@ -20,7 +20,7 @@ export function ActionSheet({ visible, title, actions, onClose }: { visible: boo
         accessibilityLabel="Закрыть">
         <Pressable onPress={() => {}} style={{ gap: 8 }}>
           <Glass radius={radius.xl} strong>
-            {title ? <Txt v="footnote" center style={{ paddingTop: 14, paddingBottom: 6, paddingHorizontal: 20 }}>{title}</Txt> : null}
+            {title ? <Txt v="footnote" center style={{ paddingTop: 14, paddingBottom: 6, paddingHorizontal: 16 }}>{title}</Txt> : null}
             {actions.map((a, i) => (
               <Tap key={a.title} scaleTo={0.98} onPress={() => { onClose(); setTimeout(a.onPress, Platform.OS === 'ios' ? 250 : 0); }}
                 style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingVertical: 17,
@@ -32,7 +32,7 @@ export function ActionSheet({ visible, title, actions, onClose }: { visible: boo
           </Glass>
           <Glass radius={radius.xl} strong>
             <Tap scaleTo={0.98} onPress={onClose} style={{ paddingVertical: 17, alignItems: 'center' }}>
-              <Txt v="bodyStrong" style={{ fontFamily: 'Onest_700Bold' }}>Отмена</Txt>
+              <Txt v="bodyStrong" style={{ fontWeight: '700' }}>Отмена</Txt>
             </Tap>
           </Glass>
         </Pressable>

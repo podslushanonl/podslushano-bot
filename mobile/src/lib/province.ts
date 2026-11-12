@@ -47,10 +47,13 @@ export function setHome(home: Home, id: ProvinceId) {
   if (changed) syncPushProvince(id);
 }
 
-/** Текущая провинция (null — ещё не выбрана), место жительства и признак, что хранилище прочитано. */
-export function useProvince(): { province: Province | null; home: Home | null; ready: boolean } {
+// Гостевой режим: пока человек не указал город, показываем столичный регион — контент виден сразу, без вопросов
+const DEFAULT = provinceById('nh')!;
+
+/** Текущая провинция (если не выбрана — Noord-Holland и chosen=false), место жительства, готовность хранилища. */
+export function useProvince(): { province: Province; chosen: boolean; home: Home | null; ready: boolean } {
   const s = useSyncExternalStore(subscribe, snap, snap);
-  return { province: provinceById(s.id), home: s.home, ready: s.ready };
+  return { province: provinceById(s.id) ?? DEFAULT, chosen: !!s.id, home: s.home, ready: s.ready };
 }
 
 /** Расстояние в километрах (для «рядом с домом»). */

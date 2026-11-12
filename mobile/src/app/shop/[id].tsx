@@ -48,7 +48,7 @@ export default function ProductScreen() {
       {colors.length > 1 ? (
         <View style={{ gap: 8 }}>
           <Txt v="overline">Цвет</Txt>
-          <View style={{ marginHorizontal: -20 }}><ChipRow items={colors.map((x) => ({ key: x, title: x }))} value={picked} onChange={setColor} /></View>
+          <View style={{ marginHorizontal: -16 }}><ChipRow items={colors.map((x) => ({ key: x, title: x }))} value={picked} onChange={setColor} /></View>
         </View>
       ) : null}
       {q.data?.open ? (

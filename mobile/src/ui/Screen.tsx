@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { ReactNode, useRef, useState } from 'react';
-import { NativeScrollEvent, NativeSyntheticEvent, Platform, RefreshControl, ScrollView, StyleProp, View, ViewStyle } from 'react-native';
+import { NativeScrollEvent, NativeSyntheticEvent, RefreshControl, ScrollView, StyleProp, View, ViewStyle } from 'react-native';
 import Animated, { interpolate, SharedValue, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { HAIRLINE, useTheme } from '@/theme';
@@ -10,7 +10,8 @@ import { useRefresh } from './Refresh';
 import { Txt } from './Text';
 
 /** Место под нижнюю панель вкладок: в браузере она плавает поверх контента. */
-export const TAB_SPACE = Platform.OS === 'web' ? 80 : Platform.OS === 'android' ? 24 : 40;
+// Место под нижнее меню: панель 52pt + выступ кнопки «+» + воздух (к нему добавляется SafeArea)
+export const TAB_SPACE = 84;
 
 export function useScrollY() {
   const y = useSharedValue(0);
@@ -112,7 +113,7 @@ export function TabScreen({ title, sub, right, above, children, refreshing, onRe
     <View style={{ flex: 1, backgroundColor: c.bg }}>
       <ScrollView ref={list} onScroll={scroll} scrollEventThrottle={16} keyboardShouldPersistTaps="handled"
         contentInsetAdjustmentBehavior="never" refreshControl={refresh.control}
-        contentContainerStyle={[{ paddingTop: insets.top + 8, paddingHorizontal: 20, paddingBottom: TAB_SPACE + insets.bottom, gap: 20 }, contentStyle]}>
+        contentContainerStyle={[{ paddingTop: insets.top + 8, paddingHorizontal: 16, paddingBottom: TAB_SPACE + insets.bottom, gap: 20 }, contentStyle]}>
         {/* Строка над заголовком: слева провинция, справа поиск и профиль — без пустой полосы и плавающих кнопок */}
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 44, gap: 12, marginBottom: -8 }}>
           <View style={{ flexShrink: 1 }}>{above}</View>
@@ -123,7 +124,7 @@ export function TabScreen({ title, sub, right, above, children, refreshing, onRe
       </ScrollView>
       {pinned && pinnedOn ? (
         <Animated.View style={[{ position: 'absolute', top: insets.top + BAR_H, left: 0, right: 0, zIndex: 9, backgroundColor: c.bg,
-          paddingHorizontal: 20, paddingTop: 8, paddingBottom: 10, borderBottomWidth: HAIRLINE, borderBottomColor: c.line }, pinStyle]}>
+          paddingHorizontal: 16, paddingTop: 8, paddingBottom: 10, borderBottomWidth: HAIRLINE, borderBottomColor: c.line }, pinStyle]}>
           {pinned}
         </Animated.View>
       ) : null}
@@ -146,7 +147,7 @@ export function PageScreen({ title, right, children, contentStyle, refreshing, o
     <View style={{ flex: 1, backgroundColor: bg || c.bg }}>
       <ScrollView onScroll={onScroll} scrollEventThrottle={16} keyboardShouldPersistTaps="handled" contentInsetAdjustmentBehavior="never"
         refreshControl={onRefresh ? <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={c.accent} /> : undefined}
-        contentContainerStyle={[{ paddingTop: topInset ? insets.top + 64 : 0, paddingHorizontal: 20, paddingBottom: (footer ? 120 : 40) + insets.bottom, gap: 18 }, contentStyle]}>
+        contentContainerStyle={[{ paddingTop: topInset ? insets.top + 64 : 0, paddingHorizontal: 16, paddingBottom: (footer ? 120 : 40) + insets.bottom, gap: 18 }, contentStyle]}>
         {children}
       </ScrollView>
       <TopBar y={y} title={title} left={<BackButton />} right={right} />

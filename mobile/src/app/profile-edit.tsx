@@ -68,7 +68,7 @@ export default function ProfileEdit() {
             </View>
           </Tap>
           <Tap onPress={pickPhoto} disabled={photoBusy}>
-            <Txt v="subhead" tone="accent" style={{ fontFamily: 'Onest_600SemiBold' }}>{photoBusy ? 'Загружаем…' : user?.avatar ? 'Изменить фото' : 'Добавить фото'}</Txt>
+            <Txt v="subhead" tone="accent" style={{ fontWeight: '600' }}>{photoBusy ? 'Загружаем…' : user?.avatar ? 'Изменить фото' : 'Добавить фото'}</Txt>
           </Tap>
           {user?.avatar ? <Tap onPress={() => saveAvatar('').then(() => toast('Фото убрано'))}><Txt v="footnote">Убрать фото</Txt></Tap> : null}
         </View>

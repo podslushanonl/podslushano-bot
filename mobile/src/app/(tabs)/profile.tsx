@@ -11,7 +11,7 @@ import { useSavedPlaces } from '@/lib/saved';
 import { disablePush, enablePush, PushError, pushSupported, setPushPrefs, usePushEnabled, usePushPrefs } from '@/lib/push';
 import { useMyStation } from '@/lib/station';
 import { HAIRLINE, radius, useTheme } from '@/theme';
-import { Avatar, Button, Group, Img, PageScreen, Row, Tap, Toggle, Txt, useToast } from '@/ui';
+import { Avatar, Button, Group, Img, TabScreen, Row, Tap, Toggle, Txt, useToast } from '@/ui';
 
 const SOCIAL: [any, string, string][] = [
   [require('@assets/images/social/instagram.png'), 'Instagram', 'https://www.instagram.com/podslushano.nl'],
@@ -25,7 +25,7 @@ export default function Profile() {
   const { c } = useTheme();
   const toast = useToast();
   const { user, favorites, ready } = useAuth();
-  const { province } = useProvince();
+  const { province, chosen, home } = useProvince();
   const events = favorites.filter((f) => f.kind === 'event');
   const pushOn = usePushEnabled();
   const prefs = usePushPrefs();
@@ -42,8 +42,7 @@ export default function Profile() {
   };
 
   return (
-    <PageScreen title="Профиль">
-      <Txt v="title1" accessibilityRole="header">Профиль</Txt>
+    <TabScreen title="Профиль">
 
       {!ready ? null : user ? (
         <Tap onPress={() => router.push('/profile-edit')} scaleTo={0.98} accessibilityLabel="Изменить имя и фото"
@@ -54,7 +53,7 @@ export default function Profile() {
             <Txt v="title3" numberOfLines={1}>{user.name || 'Без имени'}</Txt>
             <Txt v="footnote" numberOfLines={1}>{user.phone ? prettyPhone(user.phone) : user.email}</Txt>
           </View>
-          <Txt v="subhead" tone="accent" style={{ fontFamily: 'Onest_600SemiBold' }}>Изменить</Txt>
+          <Txt v="subhead" tone="accent" style={{ fontWeight: '600' }}>Изменить</Txt>
         </Tap>
       ) : (
         <View style={{ backgroundColor: c.bgElevated, borderRadius: radius.xl, borderWidth: HAIRLINE, borderColor: c.line, padding: 20, gap: 12 }}>
@@ -64,9 +63,12 @@ export default function Profile() {
         </View>
       )}
 
-      <Group title="Провинция">
-        <Row first icon="location" iconBg={c.accent} title={province?.name || 'Не выбрана'} sub="Афиша, места и контакт-гайд — из этой провинции"
+      <Group title="Город и станция">
+        <Row first icon="location" iconBg={c.accent} title={home?.name || (chosen ? province.name : 'Укажите свой город')}
+          sub={chosen ? `${province.name}: события, новости и специалисты рядом` : 'Покажем погоду, события и специалистов рядом с домом'}
           onPress={() => router.push('/province')} />
+        <Row icon="train" title={my.st[1]} sub={my.source === 'own' ? 'Ваша станция NS' : my.source === 'home' ? 'Станция NS рядом с домом' : 'Станция NS: вокзал провинции'}
+          onPress={() => router.push('/trains')} />
         {pushSupported ? (
           <Row icon="bell" title="Уведомления" sub={pushOn ? 'Включены' : 'Утренняя сводка и сбои на вашей станции'} chevron={false}
             right={<Toggle value={pushOn} onChange={togglePush} disabled={pushBusy || !province} label="Уведомления" />} />
@@ -123,6 +125,12 @@ export default function Profile() {
         <Row icon="info" title="Условия использования" onPress={() => openUrl(`${SITE}/terms-and-conditions/`)} />
       </Group>
 
+      <Group title="Для бизнеса">
+        <Row first icon="briefcase" title="Кабинет бизнеса" sub="Ваши события и карточки, оплата, просмотры и клики"
+          onPress={() => router.push(user ? '/business' : '/login')} />
+        <Row icon="market" title="Магазин" sub="Шопперы ALLO: лист ожидания" onPress={() => router.push('/shop')} />
+      </Group>
+
       {user ? (
         <Group>
           <Row first icon="logout" title="Выйти" danger chevron={false} onPress={() => logout().then(() => toast('Вы вышли из аккаунта'))} />
@@ -140,6 +148,6 @@ export default function Profile() {
       <Txt v="caption" center selectable>
         podslushano.nl · KVK 98882317 · BTW NL005359099B74{'\n'}Karel Doormanstraat 63, 5342 TJ Oss · podslushano.nl@gmail.com
       </Txt>
-    </PageScreen>
+    </TabScreen>
   );
 }

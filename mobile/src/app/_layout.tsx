@@ -1,7 +1,5 @@
-import { Onest_400Regular, Onest_500Medium, Onest_600SemiBold, Onest_700Bold } from '@expo-google-fonts/onest';
-import { Nunito_800ExtraBold, Nunito_900Black } from '@expo-google-fonts/nunito';
+import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { useFonts } from 'expo-font';
 import { DarkTheme, DefaultTheme, router, Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -40,13 +38,10 @@ function useNotificationTaps() {
 
 export default function RootLayout() {
   const scheme = useColorScheme();
-  const [fontsLoaded, fontError] = useFonts({
-    Onest_400Regular, Onest_500Medium, Onest_600SemiBold, Onest_700Bold, Nunito_800ExtraBold, Nunito_900Black,
-  });
   useEffect(() => { bootAuth(); }, []);
   useNotificationTaps();
-  useEffect(() => { if (fontsLoaded || fontError) SplashScreen.hideAsync().catch(() => {}); }, [fontsLoaded, fontError]);
-  if (!fontsLoaded && !fontError) return null;
+  // Шрифты системные — ждать загрузки нечего, заставку убираем сразу
+  useEffect(() => { SplashScreen.hideAsync().catch(() => {}); }, []);
 
   // Тема по системной настройке телефона — как в ThemeRoot
   const p = scheme === 'dark' ? palette.dark : palette.light;
@@ -60,6 +55,7 @@ export default function RootLayout() {
           <ThemeRoot>
             <ThemeProvider value={navTheme}>
               <ToastHost>
+                <BottomSheetModalProvider>
                 <StatusBar style="auto" />
                 <Stack
                   screenOptions={{
@@ -79,6 +75,7 @@ export default function RootLayout() {
                   <Stack.Screen name="(tabs)" options={WEB ? { presentation: 'card' } : undefined} />
                   <Stack.Screen name="login" options={{ presentation: 'modal' }} />
                 </Stack>
+                </BottomSheetModalProvider>
               </ToastHost>
             </ThemeProvider>
           </ThemeRoot>

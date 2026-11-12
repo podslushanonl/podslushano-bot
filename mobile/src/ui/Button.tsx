@@ -1,5 +1,5 @@
 import { ActivityIndicator, StyleProp, View, ViewStyle } from 'react-native';
-import { HAIRLINE, radius, useTheme } from '@/theme';
+import { HAIRLINE, radius, TOUCH, useTheme } from '@/theme';
 import { Glass } from './Glass';
 import { Icon, IconName } from './Icon';
 import { Tap } from './Tap';
@@ -12,7 +12,7 @@ export function Button({ title, onPress, kind = 'primary', icon, size = 'm', loa
   style?: StyleProp<ViewStyle>; full?: boolean;
 }) {
   const { c } = useTheme();
-  const h = size === 'm' ? 54 : 40;
+  const h = size === 'm' ? 52 : TOUCH;   // даже маленькая кнопка не ниже 44pt
   const bg = { primary: c.inverse, accent: c.accent, secondary: c.bgElevated, glass: 'transparent', danger: c.bgElevated, plain: 'transparent' }[kind];
   const fg = { primary: c.onInverse, accent: c.onAccent, secondary: c.ink, glass: c.ink, danger: c.danger, plain: c.accentText }[kind];
   const inner = (
@@ -20,19 +20,17 @@ export function Button({ title, onPress, kind = 'primary', icon, size = 'm', loa
       {loading ? <ActivityIndicator color={fg} /> : (
         <>
           {icon ? <Icon name={icon} size={size === 'm' ? 19 : 16} color={fg} /> : null}
-          <Txt v={size === 'm' ? 'bodyStrong' : 'subhead'} color={fg} style={{ fontFamily: 'Onest_700Bold' }} numberOfLines={1}>{title}</Txt>
+          <Txt v={size === 'm' ? 'bodyStrong' : 'subhead'} color={fg} style={{ fontWeight: '700' }} numberOfLines={1}>{title}</Txt>
         </>
       )}
     </View>
   );
   return (
-    <Tap onPress={onPress} disabled={disabled || loading} haptic={kind === 'primary' || kind === 'accent' ? 'light' : 'select'}
-      accessibilityLabel={title}
-      style={[{ borderRadius: radius.pill, alignSelf: full ? 'stretch' : 'flex-start' }, style]}>
-      {kind === 'glass' ? <Glass radius={radius.pill} interactive>{inner}</Glass> : (
-        <View style={{ borderRadius: radius.pill, backgroundColor: bg, overflow: 'hidden',
-          borderWidth: kind === 'secondary' || kind === 'danger' || kind === 'primary' ? HAIRLINE : 0,
-          borderColor: kind === 'primary' ? c.lineStrong : c.line }}>{inner}</View>
+    <Tap onPress={onPress} disabled={disabled || loading} haptic="light" accessibilityLabel={title}
+      style={[{ borderRadius: radius.control, alignSelf: full ? 'stretch' : 'flex-start' }, style]}>
+      {kind === 'glass' ? <Glass radius={radius.control} interactive>{inner}</Glass> : (
+        <View style={{ borderRadius: radius.control, backgroundColor: bg, overflow: 'hidden',
+          borderWidth: kind === 'secondary' || kind === 'danger' ? HAIRLINE : 0, borderColor: c.line }}>{inner}</View>
       )}
     </Tap>
   );

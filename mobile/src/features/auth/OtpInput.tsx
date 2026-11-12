@@ -32,7 +32,7 @@ export const OtpInput = forwardRef<OtpHandle, { value: string; onChange: (v: str
           return (
             <View key={i} style={{ flex: 1, maxWidth: 54, aspectRatio: 0.84, borderRadius: radius.m, alignItems: 'center', justifyContent: 'center',
               backgroundColor: c.bgElevated, borderWidth: on || error ? 2 : 1, borderColor: error ? c.danger : on ? c.accent : d ? c.lineStrong : c.line }}>
-              {d ? <Txt v="title1" style={{ fontFamily: 'Onest_600SemiBold', fontVariant: ['tabular-nums'] }}>{d}</Txt>
+              {d ? <Txt v="title1" style={{ fontWeight: '600', fontVariant: ['tabular-nums'] }}>{d}</Txt>
                 : on ? <Animated.View style={[{ width: 2, height: 26, borderRadius: 1, backgroundColor: c.accent }, caretStyle]} /> : null}
             </View>
           );

@@ -29,7 +29,7 @@ export function EventCard({ e }: { e: EventItem }) {
         <Txt v="overline" tone="accent">{weekday(e.date)}, {dayMonth(e.date)}{e.time ? ` · ${e.time}` : ''}</Txt>
         <Txt v="headline" numberOfLines={2}>{e.h}</Txt>
         <Txt v="footnote" numberOfLines={1}>{[e.venue, e.city].filter(Boolean).join(', ')}</Txt>
-        {e.price ? <Txt v="footnote" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }}>{e.price}</Txt> : null}
+        {e.price ? <Txt v="footnote" tone="ink" style={{ fontWeight: '600' }}>{e.price}</Txt> : null}
       </View>
     </Tap>
   );

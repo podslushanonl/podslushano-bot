@@ -8,7 +8,7 @@ export const Field = forwardRef<TextInput, TextInputProps & { label?: string; hi
     const { c } = useTheme();
     return (
       <View style={{ gap: 7 }}>
-        {label ? <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold', marginLeft: 4 }}>{label}</Txt> : null}
+        {label ? <Txt v="subhead" tone="ink" style={{ fontWeight: '600', marginLeft: 4 }}>{label}</Txt> : null}
         <View style={{ flexDirection: 'row', alignItems: multiline ? 'flex-start' : 'center', gap: 10, backgroundColor: c.bgElevated,
           borderRadius: radius.m, borderWidth: error ? 1 : HAIRLINE, borderColor: error ? c.danger : c.line, paddingHorizontal: 14 }}>
           {left}

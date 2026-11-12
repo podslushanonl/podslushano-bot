@@ -39,7 +39,7 @@ export function Recommended() {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 8, height: 20, borderRadius: 10, backgroundColor: c.accent }}>
       <Icon name="star" size={11} color={c.onAccent} />
-      <Txt v="caption" color={c.onAccent} style={{ fontFamily: 'Onest_700Bold' }}>Рекомендуем</Txt>
+      <Txt v="caption" color={c.onAccent} style={{ fontWeight: '700' }}>Рекомендуем</Txt>
     </View>
   );
 }

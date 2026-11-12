@@ -24,7 +24,7 @@ export function JobCard({ j, compact }: { j: Job; compact?: boolean }) {
           {meta ? <Txt v="footnote">{meta}</Txt> : null}
         </View>
       </View>
-      {j.salary ? <Txt v="subhead" style={{ fontFamily: 'Onest_600SemiBold' }}>{j.salary}</Txt> : null}
+      {j.salary ? <Txt v="subhead" style={{ fontWeight: '600' }}>{j.salary}</Txt> : null}
       {open ? (
         <View style={{ gap: 10, marginTop: 4 }}>
           {j.lang ? <Txt v="footnote" tone="accent">Язык: {j.lang}</Txt> : null}

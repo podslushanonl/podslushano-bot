@@ -31,7 +31,7 @@ export default function Places() {
 
   return (
     <TabScreen title="Места" above={<ProvinceSwitch />} right={<HeaderActions />}>
-      <View style={{ gap: 10, marginHorizontal: -20 }}>
+      <View style={{ gap: 10, marginHorizontal: -16 }}>
         <ChipRow items={[{ key: '' as const, title: `Все ${all.length}` }, ...kinds.map((k) => ({ key: k.key, title: `${k.title} ${k.n}` }))]}
           value={kind} onChange={pickKind} />
         {towns.length > 1 ? <ChipRow items={[{ key: '', title: 'Все города' }, ...towns.map((t) => ({ key: t, title: t }))]} value={town}

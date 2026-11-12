@@ -1,116 +1,119 @@
-// Дизайн-система podslushano.nl: цвета светлой и тёмной темы, радиусы, отступы, типографика.
-// Источник значений — brand/tokens/tokens.json (бренд-бук). Заголовки — Nunito, текст — Onest.
+// Дизайн-система podslushano.nl «Dutch Modern Editorial»: цвета светлой и тёмной темы, сетка 8pt,
+// скругления и типографика на системных шрифтах (San Francisco на iOS, Roboto на Android).
+// Имена из ТЗ: background → bg, surface → bgElevated, primary → accent, secondary → secondary,
+// textPrimary → ink, textSecondary → muted, border → line.
 
 export const palette = {
-  // Светлая тема: светло-серый фон, белые карточки с мягкой рамкой #E0E0E0, глубокий тёмный текст
   light: {
-    bg: '#F4F5F7',
-    bgElevated: '#FFFFFF',
-    bgSunken: '#ECEEF1',
-    ink: '#0D1117',
-    text: '#2A2F37',
-    muted: '#5B6370',
-    faint: '#8A919C',
-    line: '#E3E6EA',
-    lineStrong: '#CDD2D8',
-    accent: '#FF5A1F',
-    accentSoft: '#FFEEE6',
-    onAccent: '#0D1117',
-    accentText: '#C2410C',
-    success: '#1F7A4D',
-    danger: '#C0262D',
-    info: '#2563EB',
-    // стекло
-    glassFill: 'rgba(255,255,255,0.64)',
-    glassFillStrong: 'rgba(255,255,255,0.82)',
+    bg: '#F8F9FA',            // background
+    bgElevated: '#FFFFFF',    // surface: карточки
+    bgSunken: '#F1F3F5',
+    ink: '#111827',           // textPrimary
+    text: '#1F2937',
+    muted: '#6B7280',         // textSecondary
+    faint: '#9CA3AF',
+    line: '#E5E7EB',          // border, 1px
+    lineStrong: '#D1D5DB',
+    accent: '#FF5A1F',        // primary: Dutch Orange — кнопки, активные вкладки, бейджи
+    accentSoft: '#FFF1EB',
+    onAccent: '#FFFFFF',
+    accentText: '#C2410C',    // оранжевый для текста на светлом фоне (контраст 4,5:1)
+    secondary: '#0066CC',     // Tulip Blue — ссылки, теги городов, статус NS
+    secondarySoft: '#E6F0FA',
+    success: '#10B981',
+    danger: '#EF4444',
+    info: '#0066CC',
+    glassFill: 'rgba(255,255,255,0.72)',
+    glassFillStrong: 'rgba(255,255,255,0.9)',
     glassStroke: 'rgba(255,255,255,0.75)',
-    glassEdge: 'rgba(11,13,18,0.08)',
+    glassEdge: 'rgba(17,24,39,0.08)',
     glassShadow: 'rgba(17,24,39,0.16)',
-    scrim: 'rgba(11,13,18,0.38)',
-    inverse: '#0D1117',
+    scrim: 'rgba(17,24,39,0.4)',
+    inverse: '#111827',
     onInverse: '#FFFFFF',
-    onInverseMuted: '#C4C4C4',
-    placeholder: '#E6E9ED',
-    // «витринные» карточки (Сейчас, Сэкономить, вход) — в светлой теме тоже светлые, без контрастных чёрных плашек
+    onInverseMuted: '#D1D5DB',
+    placeholder: '#E5E7EB',
     hero: '#FFFFFF',
-    heroInner: '#F4F5F7',
-    heroInner2: '#ECEEF1',
-    onHero: '#0D1117',
-    onHeroMuted: '#5B6370',
-    segTrack: '#ECEEF1',
+    heroInner: '#F8F9FA',
+    heroInner2: '#F1F3F5',
+    onHero: '#111827',
+    onHeroMuted: '#6B7280',
+    segTrack: '#EEF0F2',
     segOn: '#FFFFFF',
-    iconOff: '#8A919C',   // неактивные вкладки нижнего меню
+    iconOff: '#6B7280',       // неактивные вкладки нижнего меню
   },
   dark: {
-    // Слои как в Threads: графитовый фон, карточки на тон светлее, тонкая рамка #2E2E2E — без «мёртвого» чёрного
-    bg: '#0E1014',
-    bgElevated: '#171A20',
-    bgSunken: '#1F232B',
-    ink: '#FFFFFF',
-    text: '#E6E8EB',
-    muted: '#A3AAB5',
+    bg: '#0F1115',
+    bgElevated: '#1A1D24',
+    bgSunken: '#232730',
+    ink: '#F3F4F6',
+    text: '#E5E7EB',
+    muted: '#9CA3AF',
     faint: '#6B7280',
-    line: '#262B33',
-    lineStrong: '#363C46',
-    accent: '#FF6A33',
+    line: '#2A2E39',
+    lineStrong: '#3A3F4B',
+    accent: '#FF5A1F',
     accentSoft: '#3A2116',
-    onAccent: '#0D1117',
-    accentText: '#FF9466',
-    success: '#4ADE80',
-    danger: '#F87171',
-    info: '#60A5FA',
-    glassFill: 'rgba(30,30,30,0.62)',
-    glassFillStrong: 'rgba(30,30,30,0.84)',
+    onAccent: '#FFFFFF',
+    accentText: '#FF8A5C',
+    secondary: '#4DA3FF',     // Tulip Blue светлее: на тёмном фоне #0066CC не читается
+    secondarySoft: '#14273D',
+    success: '#10B981',
+    danger: '#EF4444',
+    info: '#4DA3FF',
+    glassFill: 'rgba(26,29,36,0.72)',
+    glassFillStrong: 'rgba(26,29,36,0.9)',
     glassStroke: 'rgba(255,255,255,0.12)',
     glassEdge: 'rgba(255,255,255,0.08)',
     glassShadow: 'rgba(0,0,0,0.45)',
     scrim: 'rgba(0,0,0,0.55)',
-    // «Сильная» поверхность в тёмной теме — графит, а не белый: без контрастных белых плашек
-    inverse: '#262B33',
+    inverse: '#2A2E39',
     onInverse: '#FFFFFF',
-    onInverseMuted: '#A0A0A0',
-    placeholder: '#1F232B',
-    hero: '#171A20',
-    heroInner: '#1F232B',
-    heroInner2: '#262B33',
-    onHero: '#FFFFFF',
-    onHeroMuted: '#A3AAB5',
-    segTrack: '#171A20',
-    segOn: '#262B33',
-    iconOff: '#6B7280',   // неактивные вкладки нижнего меню
+    onInverseMuted: '#9CA3AF',
+    placeholder: '#232730',
+    hero: '#1A1D24',
+    heroInner: '#232730',
+    heroInner2: '#2A2E39',
+    onHero: '#F3F4F6',
+    onHeroMuted: '#9CA3AF',
+    segTrack: '#1A1D24',
+    segOn: '#2A2E39',
+    iconOff: '#9CA3AF',
   },
 } as const;
 
 export type Colors = { [K in keyof (typeof palette)['light']]: string };
 
-export const radius = { xs: 8, s: 12, m: 16, l: 22, xl: 28, xxl: 34, pill: 999 } as const;
-/** Тонкая рамка карточек: даёт объём слоям, не перегружая. */
-export const HAIRLINE = 0.5;
-export const space = { xs: 4, s: 8, m: 12, l: 16, xl: 20, xxl: 28, xxxl: 40 } as const;
+// Скругления: карточки 16, кнопки и поля 12, теги и чипы 999
+export const radius = { xs: 8, s: 12, m: 12, l: 16, xl: 16, xxl: 20, pill: 999, card: 16, control: 12 } as const;
+/** Рамка карточек — 1px. */
+export const HAIRLINE = 1;
+// Сетка 8pt. screen — горизонтальный отступ экрана, gap — отступ между карточками
+export const space = { xs: 4, s: 8, m: 12, l: 16, xl: 24, xxl: 32, xxxl: 40, screen: 16, gap: 12 } as const;
+/** Минимальная зона нажатия (Apple HIG, Material). */
+export const TOUCH = 44;
 
+// Системный шрифт: семейство не задаём, меняется только насыщенность
+type W = '400' | '500' | '600' | '700' | '800';
+const w = (fontWeight: W) => ({ fontWeight });
 export const fonts = {
-  display: 'Nunito_900Black',
-  displaySemi: 'Nunito_800ExtraBold',
-  regular: 'Onest_400Regular',
-  medium: 'Onest_500Medium',
-  semibold: 'Onest_600SemiBold',
-  bold: 'Onest_700Bold',
+  display: w('800'), displaySemi: w('700'), regular: w('400'), medium: w('500'), semibold: w('600'), bold: w('700'),
 } as const;
 
 export const type = {
-  display: { fontFamily: fonts.display, fontSize: 32, lineHeight: 37, letterSpacing: -0.4 },
-  title1: { fontFamily: fonts.display, fontSize: 26, lineHeight: 31, letterSpacing: -0.4 },
-  title2: { fontFamily: fonts.displaySemi, fontSize: 20, lineHeight: 25, letterSpacing: -0.2 },
-  title3: { fontFamily: fonts.bold, fontSize: 19, lineHeight: 24, letterSpacing: -0.2 },
-  headline: { fontFamily: fonts.bold, fontSize: 17, lineHeight: 22 },
-  body: { fontFamily: fonts.regular, fontSize: 16, lineHeight: 23 },
-  bodyStrong: { fontFamily: fonts.semibold, fontSize: 16, lineHeight: 22 },
-  callout: { fontFamily: fonts.medium, fontSize: 15, lineHeight: 20 },
-  subhead: { fontFamily: fonts.medium, fontSize: 14, lineHeight: 19 },
-  footnote: { fontFamily: fonts.medium, fontSize: 13, lineHeight: 17 },
-  caption: { fontFamily: fonts.medium, fontSize: 12, lineHeight: 16 },
-  overline: { fontFamily: fonts.bold, fontSize: 11.5, lineHeight: 14, letterSpacing: 0.9, textTransform: 'uppercase' as const },
-  price: { fontFamily: fonts.display, fontSize: 17, lineHeight: 21, letterSpacing: -0.2 },
+  display: { ...fonts.display, fontSize: 30, lineHeight: 36, letterSpacing: -0.4 },
+  title1: { ...fonts.display, fontSize: 26, lineHeight: 32, letterSpacing: -0.4 },
+  title2: { ...fonts.bold, fontSize: 20, lineHeight: 26, letterSpacing: -0.2 },
+  title3: { ...fonts.bold, fontSize: 18, lineHeight: 24, letterSpacing: -0.2 },
+  headline: { ...fonts.semibold, fontSize: 16, lineHeight: 22 },
+  body: { ...fonts.regular, fontSize: 16, lineHeight: 24 },
+  bodyStrong: { ...fonts.semibold, fontSize: 16, lineHeight: 22 },
+  callout: { ...fonts.regular, fontSize: 15, lineHeight: 21 },
+  subhead: { ...fonts.medium, fontSize: 14, lineHeight: 20 },
+  footnote: { ...fonts.regular, fontSize: 13, lineHeight: 18 },
+  caption: { ...fonts.medium, fontSize: 12, lineHeight: 16 },
+  overline: { ...fonts.bold, fontSize: 11, lineHeight: 14, letterSpacing: 0.8, textTransform: 'uppercase' as const },
+  price: { ...fonts.bold, fontSize: 17, lineHeight: 22, letterSpacing: -0.2 },
 } as const;
 
 export type TypeVariant = keyof typeof type;

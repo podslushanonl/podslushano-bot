@@ -76,7 +76,7 @@ function Cropper({ uri, onDone, onCancel }: { uri: string; onDone: (crop: Crop) 
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#000' }}>
       <StatusBar barStyle="light-content" />
-      <View style={{ paddingTop: insets.top + 18, paddingHorizontal: 20, gap: 6 }}>
+      <View style={{ paddingTop: insets.top + 18, paddingHorizontal: 16, gap: 6 }}>
         <Txt v="title2" color="#fff" center>Фото профиля</Txt>
         <Txt v="subhead" color="rgba(255,255,255,0.65)" center>Передвиньте и масштабируйте фото</Txt>
       </View>
@@ -96,7 +96,7 @@ function Cropper({ uri, onDone, onCancel }: { uri: string; onDone: (crop: Crop) 
           </View>
         </GestureDetector>
       </View>
-      <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 20, paddingBottom: insets.bottom + 16 }}>
+      <View style={{ flexDirection: 'row', gap: 12, paddingHorizontal: 16, paddingBottom: insets.bottom + 16 }}>
         <Button title="Отмена" kind="secondary" onPress={onCancel} style={{ flex: 1 }} />
         <Button title="Готово" kind="accent" disabled={!size} onPress={done} style={{ flex: 1 }} />
       </View>

@@ -11,3 +11,4 @@ export * from './Text';
 export * from './Flag';
 export * from './Refresh';
 export * from './Toggle';
+export * from './BottomSheet';

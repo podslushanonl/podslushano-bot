@@ -22,9 +22,9 @@ export default function Welcome() {
         <View style={{ gap: 14 }}>
           <Image source={require('../../assets/images/splash-icon.png')} style={{ width: 52, height: 52 }} accessibilityIgnoresInvertColors
             accessible={false} />
-          <Txt style={{ fontFamily: fonts.display, fontSize: 26, lineHeight: 30 }} accessibilityRole="header">
-            <Txt style={{ fontFamily: fonts.display, fontSize: 26 }} tone="ink">podslushano</Txt>
-            <Txt style={{ fontFamily: fonts.display, fontSize: 26 }} color={c.accent}>.nl</Txt>
+          <Txt style={{ ...fonts.display, fontSize: 26, lineHeight: 30 }} accessibilityRole="header">
+            <Txt style={{ ...fonts.display, fontSize: 26 }} tone="ink">podslushano</Txt>
+            <Txt style={{ ...fonts.display, fontSize: 26 }} color={c.accent}>.nl</Txt>
           </Txt>
           <Txt v="display">Жизнь в Нидерландах на русском</Txt>
           <Txt v="body" tone="muted">Всё нужное о вашей провинции в одном приложении.</Txt>

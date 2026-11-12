@@ -37,7 +37,7 @@ export default function Trains() {
           <Txt v="footnote" tone="muted">{my.source === 'own' ? 'Ваша станция' : my.source === 'home' ? `Рядом с домом · ${Math.max(1, Math.round(my.km!))}\u00a0км` : 'Вокзал провинции'}</Txt>
           <Txt v="title2" numberOfLines={1}>{st[1]}</Txt>
         </View>
-        <Txt v="subhead" color={c.accentText} style={{ fontFamily: 'Onest_600SemiBold' }}>Сменить</Txt>
+        <Txt v="subhead" color={c.accentText} style={{ fontWeight: '600' }}>Сменить</Txt>
       </Tap>
       {my.source === 'main' ? (
         <Tap onPress={() => router.push('/province')} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: -6 }}>
@@ -78,7 +78,7 @@ export default function Trains() {
               <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: i ? 1 : 0, borderTopColor: c.line }}>
                 <View style={{ width: 54 }}>
                   <Txt v="headline" style={[{ fontVariant: ['tabular-nums'] }, d.cancelled && { textDecorationLine: 'line-through', color: c.muted }]}>{d.time}</Txt>
-                  {d.delay && !d.cancelled ? <Txt v="caption" tone="danger" style={{ fontFamily: 'Onest_700Bold' }}>+{d.delay}</Txt> : null}
+                  {d.delay && !d.cancelled ? <Txt v="caption" tone="danger" style={{ fontWeight: '700' }}>+{d.delay}</Txt> : null}
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
                   <Txt v="bodyStrong" numberOfLines={1} style={d.cancelled ? { textDecorationLine: 'line-through', color: c.muted } : undefined}>
@@ -131,7 +131,7 @@ function StationPicker({ visible, onClose, onPick }: { visible: boolean; onClose
         </View>
         <FlatList data={found} keyExtractor={(x) => x[0]} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
           renderItem={({ item }) => (
-            <Tap onPress={() => { onPick(item); setQ(''); }} scaleTo={0.99} style={{ paddingHorizontal: 20, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: c.line }}>
+            <Tap onPress={() => { onPick(item); setQ(''); }} scaleTo={0.99} style={{ paddingHorizontal: 16, paddingVertical: 15, borderBottomWidth: 1, borderBottomColor: c.line }}>
               <Txt v="bodyStrong">{item[1]}</Txt>
             </Tap>
           )} />
@@ -149,7 +149,7 @@ function TrainKind({ code }: { code: string }) {
   return (
     <View style={{ paddingHorizontal: 6, height: 18, borderRadius: 5, justifyContent: 'center',
       backgroundColor: ic ? c.ink : code === 'SPR' ? c.accentSoft : c.bgSunken }}>
-      <Txt v="caption" color={ic ? c.bg : code === 'SPR' ? c.accentText : c.ink} style={{ fontFamily: 'Onest_700Bold' }}>{KIND[code] || code}</Txt>
+      <Txt v="caption" color={ic ? c.bg : code === 'SPR' ? c.accentText : c.ink} style={{ fontWeight: '700' }}>{KIND[code] || code}</Txt>
     </View>
   );
 }

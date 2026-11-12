@@ -29,7 +29,7 @@ export default function Shop() {
       {count ? (
         <View pointerEvents="none" style={{ position: 'absolute', top: -2, right: -2, minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5,
           backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
-          <Txt v="caption" color={c.onAccent} style={{ fontFamily: 'Onest_700Bold' }}>{count}</Txt>
+          <Txt v="caption" color={c.onAccent} style={{ fontWeight: '700' }}>{count}</Txt>
         </View>
       ) : null}
     </View>
@@ -59,8 +59,8 @@ export default function Shop() {
                   : <View style={{ width: '100%', aspectRatio: 4 / 5, backgroundColor: c.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
                     <Icon name="market" size={36} color={c.accentText} /></View>}
                 <View style={{ padding: 12, gap: 4 }}>
-                  <Txt v="subhead" tone="ink" numberOfLines={2} style={{ fontFamily: 'Onest_600SemiBold', minHeight: 38 }}>{p.title.replace(/^Шоппер ALLO /, '')}</Txt>
-                  <Txt v="callout" tone="accent" style={{ fontFamily: 'Onest_700Bold' }}>{euro(p.price)}</Txt>
+                  <Txt v="subhead" tone="ink" numberOfLines={2} style={{ fontWeight: '600', minHeight: 38 }}>{p.title.replace(/^Шоппер ALLO /, '')}</Txt>
+                  <Txt v="callout" tone="accent" style={{ fontWeight: '700' }}>{euro(p.price)}</Txt>
                 </View>
               </Tap>
             ))}

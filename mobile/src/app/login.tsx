@@ -119,7 +119,7 @@ export default function Login() {
                 <Tap onPress={telegram} scaleTo={0.97} style={{ flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 8 }}
                   accessibilityLabel="Войти через Telegram">
                   <Img source={require('@assets/images/social/telegram.png')} style={{ width: 20, height: 20, backgroundColor: 'transparent' }} />
-                  <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_600SemiBold' }}>Войти через Telegram</Txt>
+                  <Txt v="subhead" tone="ink" style={{ fontWeight: '600' }}>Войти через Telegram</Txt>
                 </Tap>
               )}
             </View>

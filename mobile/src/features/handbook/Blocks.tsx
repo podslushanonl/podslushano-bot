@@ -35,7 +35,7 @@ export function ArticleBlock({ b }: { b: Block }) {
         <Txt v="overline" tone="accent">Коротко</Txt>
         {b.rows.map(([k, v]) => (
           <View key={k} style={{ gap: 2 }}>
-            <Txt v="subhead" tone="ink" style={{ fontFamily: 'Onest_700Bold' }}>{k}</Txt>
+            <Txt v="subhead" tone="ink" style={{ fontWeight: '700' }}>{k}</Txt>
             <Txt v="callout" tone="text">{v}</Txt>
           </View>
         ))}
@@ -72,7 +72,7 @@ export function ArticleBlock({ b }: { b: Block }) {
           <View key={i} style={{ flexDirection: 'row', gap: 14 }}>
             <View style={{ alignItems: 'center' }}>
               <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: c.accent, alignItems: 'center', justifyContent: 'center' }}>
-                <Txt v="subhead" color={c.onAccent} style={{ fontFamily: 'Onest_700Bold' }}>{i + 1}</Txt>
+                <Txt v="subhead" color={c.onAccent} style={{ fontWeight: '700' }}>{i + 1}</Txt>
               </View>
               {i < b.items.length - 1 ? <View style={{ width: 2, flex: 1, backgroundColor: c.line, marginVertical: 4 }} /> : null}
             </View>
@@ -91,17 +91,17 @@ export function ArticleBlock({ b }: { b: Block }) {
         <View style={[card, { padding: 16, gap: 8, borderColor: tint }]}>
           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
             <Icon name={n.icon} size={18} color={tint} />
-            <Txt v="subhead" color={tint} style={{ fontFamily: 'Onest_700Bold' }}>{b.title || n.title}</Txt>
+            <Txt v="subhead" color={tint} style={{ fontWeight: '700' }}>{b.title || n.title}</Txt>
           </View>
           {b.text.map((x, i) => <Txt key={i} v="callout" tone="text">{x}</Txt>)}
         </View>
       );
     }
     case 'table': return (
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -20 }} contentContainerStyle={{ paddingHorizontal: 20 }}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginHorizontal: -16 }} contentContainerStyle={{ paddingHorizontal: 16 }}>
         <View style={[card, { overflow: 'hidden' }]}>
           <View style={{ flexDirection: 'row', backgroundColor: c.bgSunken }}>
-            {b.head.map((h, i) => <Txt key={i} v="footnote" tone="ink" style={{ width: 200, padding: 12, fontFamily: 'Onest_700Bold' }}>{h}</Txt>)}
+            {b.head.map((h, i) => <Txt key={i} v="footnote" tone="ink" style={{ width: 200, padding: 12, fontWeight: '700' }}>{h}</Txt>)}
           </View>
           {b.rows.map((r, i) => (
             <View key={i} style={{ flexDirection: 'row', borderTopWidth: 1, borderTopColor: c.line }}>

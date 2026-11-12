@@ -23,7 +23,7 @@ export const ContactInput = forwardRef<TextInput, {
 }>(function ContactInput({ value, onChange, onSubmit, error, autoFocus }, ref) {
   const { c } = useTheme();
   const [picker, setPicker] = useState(false);
-  const inputStyle = [T.title3, { flex: 1, color: c.ink, paddingVertical: 16, fontFamily: 'Onest_500Medium', letterSpacing: 0.3,
+  const inputStyle = [T.title3, { flex: 1, color: c.ink, paddingVertical: 16, fontWeight: '500', letterSpacing: 0.3,
     minWidth: 0, width: '100%', outlineStyle: 'none' } as any];
   const focus = () => setTimeout(() => (ref as RefObject<TextInput | null>)?.current?.focus(), 100);
   return (
@@ -70,7 +70,7 @@ function CountryPicker({ visible, value, onPick, onClose }: { visible: boolean; 
             <Txt v="footnote" center style={{ paddingTop: 14, paddingBottom: 6 }}>Страна номера</Txt>
             {COUNTRIES.map((x) => (
               <Tap key={x.cc} onPress={() => onPick(x)} scaleTo={0.98} accessibilityLabel={`${x.name}, +${x.cc}`}
-                style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 20, borderTopWidth: 1, borderTopColor: c.line }}>
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, paddingHorizontal: 16, borderTopWidth: 1, borderTopColor: c.line }}>
                 <Flag code={x.flag} size={26} />
                 <Txt v="bodyStrong" style={{ flex: 1 }}>{x.name}</Txt>
                 <Txt v="body" tone="muted" style={{ fontVariant: ['tabular-nums'] }}>+{x.cc}</Txt>
