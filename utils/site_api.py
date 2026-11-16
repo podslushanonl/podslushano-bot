@@ -71,8 +71,9 @@ def _unb64(text: str) -> bytes:
     return base64.urlsafe_b64decode(text + "=" * (-len(text) % 4))
 
 
-def make_token(payload: dict, ttl: int) -> str:
-    body = dict(payload, x=int(time.time()) + ttl)
+def make_token(payload: dict, ttl: int, *, expires_at: int | None = None) -> str:
+    expiry = int(time.time()) + ttl if expires_at is None else expires_at
+    body = dict(payload, x=expiry)
     raw = _b64(json.dumps(body, separators=(",", ":")).encode())
     sig = _b64(hmac.new(_secret(), raw.encode(), hashlib.sha256).digest())
     return f"{raw}.{sig}"

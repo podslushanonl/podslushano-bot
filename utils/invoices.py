@@ -330,6 +330,8 @@ async def send_email_message(
     html_body: str,
     text_body: str,
     unsubscribe_url: str | None = None,
+    *,
+    idempotency_key: str | None = None,
 ) -> tuple[bool, str]:
     """Отправляет служебное письмо через тот же канал, что и счета.
 
@@ -357,10 +359,13 @@ async def send_email_message(
             "Authorization": f"Bearer {config.RESEND_API_KEY}",
             "Content-Type": "application/json",
         }
+        if idempotency_key:
+            headers["Idempotency-Key"] = idempotency_key
         try:
             async with aiohttp.ClientSession() as session:
                 async with session.post(
-                    "https://api.resend.com/emails", json=body, headers=headers
+                    "https://api.resend.com/emails", json=body, headers=headers,
+                    timeout=aiohttp.ClientTimeout(total=20),
                 ) as response:
                     if response.status >= 300:
                         detail = (

@@ -1,16 +1,21 @@
 """Лист ожидания свечи: запись в один шаг с согласием, письмо с отпиской, число для баннера."""
+import asyncio
 import json
 import tempfile
 import unittest
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
 from unittest.mock import AsyncMock, patch
 
 from aiohttp import web
 from aiohttp.test_utils import TestClient, TestServer
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from database.models import Base, Meta
+from database.models import Base, Meta, WaitlistEntry
+from handlers import waitlist as launch
+from utils import invoices
 from utils import waitlist as wl
+from utils.email_templates import candle_launch
 
 
 class WaitlistTests(unittest.IsolatedAsyncioTestCase):
@@ -56,7 +61,18 @@ class WaitlistTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(json.loads(await r.text())["already"])
         self.assertEqual(self.mail.await_count, 1)                   # второе письмо не шлём
         link = text[text.index("/api/waitlist/unsubscribe?t="):].split()[0]
-        await self.client.post(link)
+        launch_url = "https://soulofsol.com/podslushano/?utm_source=podslushano"
+        unsubscribe_url = f"https://podslushano.nl{link}"
+        _, launch_html, launch_text = candle_launch(url=launch_url, unsubscribe_url=unsubscribe_url, stock=24)
+        self.assertIn(f'href="{unsubscribe_url}"', launch_html)
+        self.assertIn("Отписаться от рассылки", launch_html)
+        self.assertNotIn("45 €", launch_html + launch_text)
+        self.assertIn("с Анной из Soul of Sol", launch_html)
+        confirmation = await (await self.client.get(link)).text()
+        self.assertIn("<button type='submit'>Выйти из листа ожидания</button>", confirmation)
+        self.assertEqual((await self.stats())["count"], 1)  # предварительное открытие ссылки не отписывает
+        result = await (await self.client.post(link)).text()
+        self.assertIn("Вы вышли из листа ожидания", result)
         self.assertEqual((await self.stats())["count"], 0)
 
     async def test_mail_failure_still_keeps_place(self):
@@ -70,6 +86,37 @@ class WaitlistTests(unittest.IsolatedAsyncioTestCase):
             s.add(Meta(key="waitlist_open_url:candle", value="https://soulofsol.example/buy"))
             await s.commit()
         self.assertEqual((await self.stats())["buy"], "https://soulofsol.example/buy")
+
+    async def test_launch_sends_only_active_unnotified_contacts(self):
+        async with self.sessions() as session:
+            session.add_all([
+                WaitlistEntry(campaign="candle", email="active@example.test", status="active"),
+                WaitlistEntry(campaign="candle", email="unsubscribed@example.test", status="unsubscribed"),
+                WaitlistEntry(campaign="candle", email="pending@example.test", status="pending"),
+                WaitlistEntry(campaign="candle", email="sent@example.test", status="active",
+                              notified_at=datetime.now(timezone.utc).replace(tzinfo=None)),
+            ])
+            await session.commit()
+        mail = AsyncMock(side_effect=[(False, "retry"), (True, "")])
+        with patch.object(launch, "get_session", self.sessions), patch.object(invoices, "send_email_message", mail):
+            self.assertEqual(await launch._deliver_launch(launch._LAUNCH_URL), (0, 1))
+            self.assertEqual(await launch._deliver_launch(launch._LAUNCH_URL), (1, 0))
+            self.assertEqual(await launch._deliver_launch(launch._LAUNCH_URL), (0, 0))
+        first, second = mail.await_args_list
+        self.assertEqual(first, second)
+        self.assertEqual(first.args[0], "active@example.test")
+        self.assertIn("/api/waitlist/unsubscribe?t=", first.kwargs["unsubscribe_url"])
+        self.assertTrue(first.kwargs["idempotency_key"].startswith("waitlist-candle-launch-"))
+
+    async def test_scheduled_launch_waits_until_start(self):
+        start = datetime.now(timezone.utc) + timedelta(milliseconds=100)
+        delivery = AsyncMock(return_value=(1, 0))
+        with patch.object(launch, "_LAUNCH_AT", start), patch.object(launch, "_deliver_launch", delivery):
+            task = asyncio.create_task(launch.scheduled_launch())
+            await asyncio.sleep(0)
+            delivery.assert_not_awaited()
+            await task
+        delivery.assert_awaited_once_with(launch._LAUNCH_URL)
 
     async def test_unknown_campaign(self):
         self.assertEqual((await self.client.get("/api/waitlist/nope")).status, 404)
