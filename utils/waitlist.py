@@ -49,8 +49,9 @@ def _limited(key: str, limit: int, window: int = 3600) -> bool:
     return False
 
 
-def unsubscribe_url(campaign: str, entry_id: int) -> str:
-    return f"{_api_base()}/api/waitlist/unsubscribe?t={make_token({'k': 'wlout', 'c': campaign, 'i': entry_id}, 365 * 86400)}"
+def unsubscribe_url(campaign: str, entry_id: int, *, expires_at: int | None = None) -> str:
+    token = make_token({"k": "wlout", "c": campaign, "i": entry_id}, 365 * 86400, expires_at=expires_at)
+    return f"{_api_base()}/api/waitlist/unsubscribe?t={token}"
 
 
 async def count(campaign: str) -> int:

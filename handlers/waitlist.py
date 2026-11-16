@@ -8,7 +8,8 @@ import csv
 import html
 import io
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 from aiogram import F, Router
 from aiogram.enums import ChatType
@@ -28,6 +29,10 @@ router.message.filter(F.chat.type == ChatType.PRIVATE)
 
 CAMPAIGN = "candle"
 _OPEN_URL_KEY = "waitlist_open_url:candle"
+_LAUNCH_AT = datetime(2026, 11, 16, 9, tzinfo=ZoneInfo("Europe/Amsterdam"))
+_LAUNCH_URL = ("https://soulofsol.com/podslushano/?utm_source=podslushano"
+               "&utm_medium=referral&utm_campaign=paxnet_kak_doma")
+_UNSUBSCRIBE_EXPIRES = int((_LAUNCH_AT + timedelta(days=365)).timestamp())
 
 
 async def _rows() -> list[WaitlistEntry]:
@@ -102,31 +107,71 @@ async def candle_send(callback: CallbackQuery) -> None:
     asyncio.create_task(_send_all(callback.bot, m.value, callback.from_user.id))
 
 
-async def _send_all(bot, url: str, admin_id: int) -> None:
+async def _deliver_launch(url: str) -> tuple[int, int]:
     from utils.email_templates import candle_launch
     from utils.invoices import send_email_message
+
     stock = wl.CAMPAIGNS[CAMPAIGN]["stock"]
     sent = failed = 0
-    for r in [r for r in await _rows() if r.status == "active" and not r.notified_at and r.email]:
-        ok = False
+    async with get_session() as session:
+        entry_ids = (await session.scalars(select(WaitlistEntry.id).where(
+            WaitlistEntry.campaign == CAMPAIGN,
+            WaitlistEntry.status == "active",
+            WaitlistEntry.notified_at.is_(None),
+            WaitlistEntry.email.is_not(None),
+        ).order_by(WaitlistEntry.id))).all()
+    for entry_id in entry_ids:
         try:
-            unsubscribe = wl.unsubscribe_url(CAMPAIGN, r.id)
-            ok, _ = await send_email_message(
-                r.email, *candle_launch(url=url, unsubscribe_url=unsubscribe, stock=stock),
-                unsubscribe_url=unsubscribe,
-            )
-        except Exception as e:  # noqa: BLE001
-            log.info("Лист ожидания: не отправлено #%s: %s", r.id, e)
-        if ok:
-            sent += 1
             async with get_session() as session:
-                row = await session.get(WaitlistEntry, r.id)
-                row.notified_at = datetime.now(timezone.utc).replace(tzinfo=None)
-                await session.commit()
-        else:
+                row = await session.get(WaitlistEntry, entry_id, with_for_update=True)
+                if not row or row.status != "active" or row.notified_at or not row.email:
+                    continue
+                unsubscribe = wl.unsubscribe_url(CAMPAIGN, row.id, expires_at=_UNSUBSCRIBE_EXPIRES)
+                ok, _ = await send_email_message(
+                    row.email, *candle_launch(url=url, unsubscribe_url=unsubscribe, stock=stock),
+                    unsubscribe_url=unsubscribe,
+                    idempotency_key=f"waitlist-candle-launch-2026-11-16-{row.id}",
+                )
+                if ok:
+                    row.notified_at = datetime.now(timezone.utc).replace(tzinfo=None)
+                    await session.commit()
+                    sent += 1
+                else:
+                    failed += 1
+        except Exception as exc:
             failed += 1
-        await asyncio.sleep(0.1)
+            log.warning("Не удалось обработать запись рассылки свечи #%s: %s", entry_id, type(exc).__name__)
+        await asyncio.sleep(0.15)
+    return sent, failed
+
+
+async def scheduled_launch() -> None:
+    end_at = _LAUNCH_AT + timedelta(hours=1)
+    now = datetime.now(timezone.utc)
+    if now >= end_at:
+        return
+    log.info("Письма листа ожидания свечи запланированы на %s", _LAUNCH_AT.isoformat())
+    while (delay := (_LAUNCH_AT - datetime.now(timezone.utc)).total_seconds()) > 0:
+        await asyncio.sleep(min(delay, 60))
+    if datetime.now(timezone.utc) >= end_at:
+        return
+    while datetime.now(timezone.utc) < end_at:
+        try:
+            sent, failed = await _deliver_launch(_LAUNCH_URL)
+        except Exception:
+            log.exception("Не удалось начать рассылку свечи")
+        else:
+            log.info("Рассылка свечи: принято к отправке %s, ошибок %s", sent, failed)
+            if not failed:
+                return
+        if datetime.now(timezone.utc) + timedelta(seconds=60) >= end_at:
+            return
+        await asyncio.sleep(60)
+
+
+async def _send_all(bot, url: str, admin_id: int) -> None:
+    sent, failed = await _deliver_launch(url)
     try:
-        await bot.send_message(admin_id, f"🕯 Рассылка листа ожидания: доставлено {sent}, не доставлено {failed}.")
+        await bot.send_message(admin_id, f"🕯 Рассылка листа ожидания: принято к отправке {sent}, ошибок {failed}.")
     except Exception:  # noqa: BLE001
         pass

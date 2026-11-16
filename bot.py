@@ -195,6 +195,7 @@ async def main() -> None:
         await ad_season_campaign_runtime.start_webserver_with_ads_campaign(bot)
     except Exception as e:
         logging.warning("Веб-сервер не запустился: %s", e)
+    asyncio.create_task(waitlist_handlers.scheduled_launch())
     asyncio.create_task(reminder_loop(bot))
     asyncio.create_task(digest_draft_loop(bot))
     asyncio.create_task(digest_announcement_loop(bot))
