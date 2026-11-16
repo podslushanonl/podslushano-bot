@@ -298,13 +298,17 @@ _WRITE_SYSTEM = f"""Ты — редактор новостей podslushano.nl д
 В blocks от 4 до 8 элементов, в основном абзацы "p"; лид в blocks не повторяй."""
 
 
-async def _ask_claude(model: str, system: str, content: str, max_tokens: int) -> str:
+async def _ask_claude(
+    model: str, system: str, content: str, max_tokens: int, *, require_complete: bool = False,
+) -> str:
     # Низкое усилие: задача — отбор и пересказ, долгие размышления тут только тратят токены.
     resp = await _get_client().messages.create(
         model=model, max_tokens=max_tokens, system=system,
         messages=[{"role": "user", "content": content}],
         extra_body={"output_config": {"effort": "low"}},
     )
+    if require_complete and resp.stop_reason == "max_tokens":
+        raise ValueError(f"Claude исчерпал лимит ответа ({max_tokens} токенов)")
     return _extract_text_and_sources(resp)[0].strip()
 
 

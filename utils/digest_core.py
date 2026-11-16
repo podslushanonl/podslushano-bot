@@ -36,7 +36,7 @@ MAX_TEXT = 3800  # запас до лимита Telegram 4096
 MAX_CANDIDATES = 80
 PARALLEL_WP = 5
 EXCERPT_CHARS = 240  # выдержка для Claude: по ней видно, на какой день прогноз или событие
-SELECT_MAX_TOKENS = 3000
+SELECT_MAX_TOKENS = 8000
 AMSTERDAM = ZoneInfo("Europe/Amsterdam")
 _WEEKDAYS = ("пн", "вт", "ср", "чт", "пт", "сб", "вс")
 _RUN_LOCK = asyncio.Lock()
@@ -270,12 +270,11 @@ def parse_array(raw: str) -> list:
     """JSON-массив из ответа модели, даже если он обёрнут в текст."""
     start, end = raw.find("["), raw.rfind("]")
     if start == -1 or end < start:
-        return []
+        raise ValueError("Claude не вернул JSON-массив для дайджеста")
     try:
-        data = json.loads(raw[start : end + 1])
-    except ValueError:
-        return []
-    return data if isinstance(data, list) else []
+        return json.loads(raw[start : end + 1])
+    except json.JSONDecodeError as exc:
+        raise ValueError("Claude вернул некорректный JSON для дайджеста") from exc
 
 
 def pick_link_text(title: str, candidate: object) -> str:
@@ -325,9 +324,16 @@ def listing(rubric: Rubric, items: list[dict], now: datetime) -> str:
 async def select_items(rubric: Rubric, items: list[dict], now: datetime | None = None) -> list[dict]:
     now = now or datetime.now(AMSTERDAM)
     by_id = {it["id"]: it for it in items}
-    raw = await _ask_claude(config.DIGEST_MODEL, _select_system(rubric, now),
-                            "Записи:\n" + listing(rubric, items, now), max_tokens=SELECT_MAX_TOKENS)
-    return validate_selection(parse_array(raw), by_id, rubric.max_items)
+    raw = await _ask_claude(
+        config.DIGEST_MODEL, _select_system(rubric, now),
+        "Записи:\n" + listing(rubric, items, now),
+        max_tokens=SELECT_MAX_TOKENS, require_complete=True,
+    )
+    selection = parse_array(raw)
+    chosen = validate_selection(selection, by_id, rubric.max_items)
+    if selection and not chosen:
+        raise ValueError("Claude не вернул действительных идентификаторов новостей")
+    return chosen
 
 
 def fit_to_telegram(rubric: Rubric, chosen: list[dict]) -> list[dict]:
@@ -404,7 +410,11 @@ async def produce(bot, rubric: Rubric, since: datetime) -> dict:
         return {"status": "skipped", "detail": f"подходящих записей {len(items)} из {rubric.min_items}", "url": None}
     chosen = await select_items(rubric, items, now)
     if len(chosen) < rubric.min_items:
-        return {"status": "skipped", "detail": f"Claude отобрал {len(chosen)} из {rubric.min_items}", "url": None}
+        return {
+            "status": "skipped",
+            "detail": f"из {len(items)} записей отобрано {len(chosen)}, для выпуска нужно {rubric.min_items}",
+            "url": None,
+        }
     if len(chosen) < rubric.max_items:
         log.info("Дайджест %s: отобрано %d из %d (кандидатов %d)", rubric.key, len(chosen),
                  rubric.max_items, len(items))

@@ -4,6 +4,7 @@ import os
 import re
 import unittest
 from datetime import datetime, timedelta
+from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 from zoneinfo import ZoneInfo
 
@@ -115,13 +116,28 @@ class SelectionTests(unittest.TestCase):
 
     def test_parse_array_extracts_json_from_text(self):
         self.assertEqual(core.parse_array('Ответ:\n[{"wp_post_id": 1}]\nготово')[0]["wp_post_id"], 1)
-        self.assertEqual(core.parse_array("нет json"), [])
+        self.assertEqual(core.parse_array("[]"), [])
+        with self.assertRaisesRegex(ValueError, "не вернул JSON"):
+            core.parse_array("нет json")
+        with self.assertRaisesRegex(ValueError, "некорректный JSON"):
+            core.parse_array('[{"wp_post_id": ]')
 
     def test_selection_prompt_excludes_war_and_geopolitics(self):
         prompt = core._select_system(core.WEEKLY)
         self.assertIn("войны", prompt)
         self.assertIn("геополитику", prompt)
         self.assertIn("link_text", prompt)
+
+
+class DigestResponseTests(unittest.IsolatedAsyncioTestCase):
+    async def test_truncated_claude_response_is_reported_as_error(self):
+        response = SimpleNamespace(stop_reason="max_tokens")
+        create = AsyncMock(return_value=response)
+        client = SimpleNamespace(messages=SimpleNamespace(create=create))
+        with patch("utils.site_news._get_client", return_value=client):
+            with self.assertRaisesRegex(ValueError, "лимит ответа"):
+                await core.select_items(core.WEEKLY, [])
+        self.assertEqual(create.call_args.kwargs["max_tokens"], core.SELECT_MAX_TOKENS)
 
 
 class TestModeTests(unittest.IsolatedAsyncioTestCase):
@@ -277,7 +293,8 @@ class ProduceDailyTests(unittest.IsolatedAsyncioTestCase):
         async def fake_get_post(pid):
             return posts.get(pid)
 
-        async def fake_ask(model, system, content, max_tokens):
+        async def fake_ask(model, system, content, max_tokens, *, require_complete):
+            self.assertTrue(require_complete)
             self.asked = {"system": system, "content": content, "max_tokens": max_tokens}
             ids = [int(x) for x in re.findall(r"wp_post_id: (\d+)", content)]
             return json.dumps([{"wp_post_id": i, "emoji": "📰", "link_text": "Новость"} for i in ids])
