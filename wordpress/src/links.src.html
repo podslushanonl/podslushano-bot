@@ -51,6 +51,7 @@ img{display:block;max-width:100%}
 .stat .bi{width:24px;height:24px;border-radius:8px;display:grid;place-items:center;color:#fff}
 .stat .bi svg{width:13px;height:13px;fill:currentColor}
 .stat b{font:700 15px var(--f)}
+a.stat.yt{color:inherit;transition:transform .2s}a.stat.yt:active{transform:scale(.96)}
 /* section heads */
 .sh{display:flex;justify-content:space-between;align-items:baseline;margin:26px 4px 10px}
 .sh h2{font:700 18px var(--f);letter-spacing:-.01em}
@@ -204,6 +205,7 @@ img{display:block;max-width:100%}
       <span class="stat"><span class="bi b-ig">{{SL:instagram}}</span><b><span data-n="76">0</span>K</b></span>
       <span class="stat"><span class="bi b-fb">{{SL:facebook}}</span><b><span data-n="26">0</span>K</b></span>
       <span class="stat"><span class="bi b-tg">{{SL:telegram}}</span><b><span data-n="4">0</span>K</b></span>
+      <a class="stat yt" href="https://www.youtube.com/@podslushanonl" target="_blank" rel="noopener" aria-label="Наш YouTube-канал"><span class="bi b-yt">{{SL:youtube}}</span><b>YouTube</b></a>
     </div>
     <img class="moose" src="{{B64:../img/m-sun.webp}}" alt="Лосёнок podslushano.nl">
   </section>
@@ -302,7 +304,7 @@ const TR=[['Гайд «Налоги и субсидии 2026»','бесплат�
  ['Для бизнеса','реклама и партнёрские ссылки здесь',SITE+'/business/','linear-gradient(160deg,#3A4150,#0D1117)','<svg class="g" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v3l11 5V6L3 11Z" fill="rgba(255,255,255,.22)"/><path d="M14 9a4 4 0 0 1 0 6M7 15l1.5 5"/></svg>']];
 $('#trio').innerHTML=TR.map(([t,s,u,bg,g])=>`<a class="tc glass" href="${u}" ${u.startsWith(SITE)?'':'target="_blank" rel="noopener"'}><span class="ic" style="background:${bg}">${g}</span><span><b>${t}</b><small>${s}</small></span>${CH}</a>`).join('');
 /* socials */
-const SO=[['instagram','b-ig','77K','https://www.instagram.com/podslushano.nl'],['telegram','b-tg','4K','https://t.me/podslushanovnl'],['facebook','b-fb','27K','https://www.facebook.com/podslushano.nl'],['tiktok','b-tt','TikTok','https://www.tiktok.com/@podslushano.nl']];
+const SO=[['instagram','b-ig','77K','https://www.instagram.com/podslushano.nl'],['telegram','b-tg','4K','https://t.me/podslushanovnl'],['facebook','b-fb','27K','https://www.facebook.com/podslushano.nl'],['tiktok','b-tt','TikTok','https://www.tiktok.com/@podslushano.nl'],['youtube','b-yt','YouTube','https://www.youtube.com/@podslushanonl']];
 const SL={{SLJSON}};
 $('#soc').innerHTML=SO.map(([k,b,v,u])=>`<a class="so glass" href="${u}" target="_blank" rel="noopener"><span class="bi ${b}"><svg viewBox="0 0 24 24"><path d="${SL[k]}"/></svg></span>${v}</a>`).join('');
 
