@@ -10,8 +10,12 @@
 """
 from __future__ import annotations
 
+from pathlib import Path
+from string import Template
+
+import config
 from utils.email_brand import (
-    box, bullets, esc, facts, p, render_email, site, small, steps, text_version,
+    asset, box, bullets, esc, facts, p, render_email, site, small, steps, text_version,
 )
 
 
@@ -252,3 +256,36 @@ def waitlist_open(*, title: str, url: str, note: str, unsubscribe_url: str) -> t
                         after_cta=small("Вы получили письмо, потому что записались в лист ожидания на podslushano.nl."),
                         reason="Вы записались в лист ожидания на podslushano.nl.", unsubscribe_url=unsubscribe_url)
     return subject, html, text_version(f"Открываем продажи: {title}", [note], ("Купить", url), unsubscribe_url)
+
+
+def candle_launch(*, url: str, unsubscribe_url: str, stock: int) -> tuple[str, str, str]:
+    subject = "🕯 Свеча «Пахнет как дома». У вас час до общего старта"
+    access_title = "Ваш ранний доступ открыт"
+    access = "С 09:00 по Амстердаму вы можете заказать свечу. Общие продажи начнутся в 10:00."
+    batch = f"В первой партии всего {stock} свечи"
+    story = ("Помните, как пахнет комната, когда в неё только что принесли ёлку? Вы выбрали этот запах "
+             "в нашем опросе, а мы вместе с Аной из Soul of Sol собрали его в свече. Свежая сосна, "
+             "тёплый кедр и мягкий сандал.")
+    product = ("Ана сделала свечи вручную в Амстердаме. Каждая свеча в янтарном стекле, с 220 г "
+               "растительного воска и примерно 40 часами горения. Свеча уже в подарочной коробке, "
+               "можно сразу положить под ёлку.")
+    reason = ("Вы получили это письмо, потому что согласились получить уведомление о старте продаж "
+              "свечи «Пахнет как дома» на Podslushano.nl.")
+    cta = "Купить свечу за 45 €"
+    privacy = site("/#legal-privacy")
+    contact = config.SUPPORT_EMAIL
+    template = Template(Path(__file__).with_name("candle_launch.html").read_text(encoding="utf-8"))
+    html = template.substitute({key: esc(value) for key, value in {
+        "preheader": f"Сосна, кедр и сандал. Ручная работа из Амстердама. В первой партии {stock} свечи.",
+        "photo": asset("candle-launch.jpg"),
+        "access_title": access_title, "access": access, "buy_url": url, "cta": cta, "batch": batch,
+        "story": story, "product": product, "reason": reason, "sender": config.COMPANY_NAME,
+        "address": config.COMPANY_ADDRESS, "kvk": config.COMPANY_KVK, "unsubscribe_url": unsubscribe_url,
+        "privacy": privacy, "contact": f"mailto:{contact}",
+    }.items()})
+    text = (f"Пахнет как дома\n\n{access_title}\n{access}\n\n{cta}\n{url}\n{batch}\n\n"
+            f"{story}\n\n{product}\n\nАна, Soul of Sol, и команда Podslushano.nl\n\n"
+            f"{reason}\n{config.COMPANY_NAME} · {config.COMPANY_ADDRESS} · KvK {config.COMPANY_KVK}\n"
+            f"Отписаться от рассылки: {unsubscribe_url}\n"
+            f"Политика конфиденциальности: {privacy}\nСвязаться с нами: {contact}")
+    return subject, html, text

@@ -103,18 +103,18 @@ async def candle_send(callback: CallbackQuery) -> None:
 
 
 async def _send_all(bot, url: str, admin_id: int) -> None:
-    from utils.email_templates import waitlist_open
+    from utils.email_templates import candle_launch
     from utils.invoices import send_email_message
-    title = wl.CAMPAIGNS[CAMPAIGN]["title"]
-    note = ("Вы записались в лист ожидания, поэтому пишем вам первыми, ещё до открытой продажи. "
-            f"В первой партии всего {wl.CAMPAIGNS[CAMPAIGN]['stock']} свечей.")
+    stock = wl.CAMPAIGNS[CAMPAIGN]["stock"]
     sent = failed = 0
     for r in [r for r in await _rows() if r.status == "active" and not r.notified_at and r.email]:
         ok = False
         try:
+            unsubscribe = wl.unsubscribe_url(CAMPAIGN, r.id)
             ok, _ = await send_email_message(
-                r.email, *waitlist_open(title=title, url=url, note=note,
-                                        unsubscribe_url=wl.unsubscribe_url(CAMPAIGN, r.id)))
+                r.email, *candle_launch(url=url, unsubscribe_url=unsubscribe, stock=stock),
+                unsubscribe_url=unsubscribe,
+            )
         except Exception as e:  # noqa: BLE001
             log.info("Лист ожидания: не отправлено #%s: %s", r.id, e)
         if ok:
