@@ -264,14 +264,14 @@ def candle_launch(*, url: str, unsubscribe_url: str, stock: int) -> tuple[str, s
     access = "С 09:00 по Амстердаму вы можете заказать свечу. Общие продажи начнутся в 10:00."
     batch = f"В первой партии всего {stock} свечи"
     story = ("Помните, как пахнет комната, когда в неё только что принесли ёлку? Вы выбрали этот запах "
-             "в нашем опросе, а мы вместе с Аной из Soul of Sol собрали его в свече. Свежая сосна, "
+             "в нашем опросе, а мы вместе с Анной из Soul of Sol собрали его в свече. Свежая сосна, "
              "тёплый кедр и мягкий сандал.")
-    product = ("Ана сделала свечи вручную в Амстердаме. Каждая свеча в янтарном стекле, с 220 г "
+    product = ("Анна сделала свечи вручную в Амстердаме. Каждая свеча в янтарном стекле, с 220 г "
                "растительного воска и примерно 40 часами горения. Свеча уже в подарочной коробке, "
                "можно сразу положить под ёлку.")
     reason = ("Вы получили это письмо, потому что согласились получить уведомление о старте продаж "
               "свечи «Пахнет как дома» на Podslushano.nl.")
-    cta = "Купить свечу за 45 €"
+    cta = "Купить свечу"
     privacy = site("/#legal-privacy")
     contact = config.SUPPORT_EMAIL
     template = Template(Path(__file__).with_name("candle_launch.html").read_text(encoding="utf-8"))
@@ -284,7 +284,7 @@ def candle_launch(*, url: str, unsubscribe_url: str, stock: int) -> tuple[str, s
         "privacy": privacy, "contact": f"mailto:{contact}",
     }.items()})
     text = (f"Пахнет как дома\n\n{access_title}\n{access}\n\n{cta}\n{url}\n{batch}\n\n"
-            f"{story}\n\n{product}\n\nАна, Soul of Sol, и команда Podslushano.nl\n\n"
+            f"{story}\n\n{product}\n\nАнна, Soul of Sol, и команда Podslushano.nl\n\n"
             f"{reason}\n{config.COMPANY_NAME} · {config.COMPANY_ADDRESS} · KvK {config.COMPANY_KVK}\n"
             f"Отписаться от рассылки: {unsubscribe_url}\n"
             f"Политика конфиденциальности: {privacy}\nСвязаться с нами: {contact}")

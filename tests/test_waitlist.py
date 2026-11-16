@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from database.models import Base, Meta
 from utils import waitlist as wl
+from utils.email_templates import candle_launch
 
 
 class WaitlistTests(unittest.IsolatedAsyncioTestCase):
@@ -56,7 +57,18 @@ class WaitlistTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(json.loads(await r.text())["already"])
         self.assertEqual(self.mail.await_count, 1)                   # второе письмо не шлём
         link = text[text.index("/api/waitlist/unsubscribe?t="):].split()[0]
-        await self.client.post(link)
+        launch_url = "https://soulofsol.com/podslushano/?utm_source=podslushano"
+        unsubscribe_url = f"https://podslushano.nl{link}"
+        _, launch_html, launch_text = candle_launch(url=launch_url, unsubscribe_url=unsubscribe_url, stock=24)
+        self.assertIn(f'href="{unsubscribe_url}"', launch_html)
+        self.assertIn("Отписаться от рассылки", launch_html)
+        self.assertNotIn("45 €", launch_html + launch_text)
+        self.assertIn("с Анной из Soul of Sol", launch_html)
+        confirmation = await (await self.client.get(link)).text()
+        self.assertIn("<button type='submit'>Выйти из листа ожидания</button>", confirmation)
+        self.assertEqual((await self.stats())["count"], 1)  # предварительное открытие ссылки не отписывает
+        result = await (await self.client.post(link)).text()
+        self.assertIn("Вы вышли из листа ожидания", result)
         self.assertEqual((await self.stats())["count"], 0)
 
     async def test_mail_failure_still_keeps_place(self):
