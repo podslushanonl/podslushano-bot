@@ -1056,23 +1056,41 @@ body{background:var(--bg)}
 @keyframes cndF{0%,100%{transform:scale(1) rotate(-2deg)}35%{transform:scale(.93,1.07) rotate(2deg)}65%{transform:scale(1.04,.95) rotate(-1deg)}}
 @keyframes cndG{0%,100%{opacity:.75}50%{opacity:1}}
 /* баннер в разделах */
-.cndB{margin:22px 0 6px;padding:clamp(14px,2.6vw,30px);border-radius:var(--r-l)}
+.cndB{margin:22px 0 6px;padding:clamp(10px,2.6vw,30px);border-radius:var(--r-l)}
+.cndB[hidden]{display:none}
+.cndB .cx{position:absolute;top:14px;right:14px;width:36px;height:36px;border-radius:50%;border:1px solid rgba(226,196,124,.45);background:rgba(0,0,0,.18);color:var(--au);display:grid;place-items:center;cursor:pointer;z-index:2}
+.cndB .cx .ico{width:16px;height:16px}
 .cndB .cnd-card{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:clamp(20px,3vw,40px);align-items:center;padding:clamp(28px,4vw,52px) clamp(22px,4vw,56px)}
 .cndB .cnd-m,.cndB .cnd-v{min-width:0}
 .cndB .cnd-m{display:grid;gap:14px;justify-items:start;text-align:left}
 .cndB .cnd-v{display:grid;gap:16px;justify-items:center;text-align:center}
 .cndB .cnd-box{width:min(300px,100%);aspect-ratio:21/20;border-radius:14px;background:url({{IMG:cdl-box}}) center/cover;box-shadow:14px 16px 30px -12px rgba(0,0,0,.55)}
 .cnd-hunt .cnd-c{--w:17px}
-@media (max-width:820px){.cndB .cnd-card{grid-template-columns:1fr;text-align:center}.cndB .cnd-m{justify-items:center;text-align:center;order:2}.cndB .cnd-v{order:1}.cnd-ck{text-align:left}.cndB .cnd-box{width:min(240px,80%)}}
+/* настоящая свеча, факты и шаги (этап листа ожидания) */
+.cnd{font-variant-numeric:lining-nums}
+.cnd-ph{position:relative;width:min(250px,100%);margin:6px auto 4px}
+.cnd-ph::before{content:"";position:absolute;inset:-22% -38%;background:radial-gradient(closest-side,rgba(255,190,110,.30),rgba(255,190,110,.10) 55%,rgba(255,190,110,0));pointer-events:none}
+.cnd-ph img{position:relative;display:block;width:100%;height:auto;filter:drop-shadow(0 18px 20px rgba(0,0,0,.5))}
+.cndP .cnd-ph{width:96px;margin:0 auto}
+.cndP .cnd-eb{padding:0 34px}
+@media (max-width:480px){.cnd-fx b{font-size:20px;white-space:nowrap}.cnd-fx small{font-size:13.5px}.cnd-fx div{padding:9px 10px 8px}.cndP .cnd-ph{width:66px}.cndP .cnd-tx{font-size:15.5px}.cndP .cnd-eb{font-size:12.5px;letter-spacing:.2em}}
+.cnd-fx{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;max-width:460px}
+.cnd-fx div{padding:10px 12px 9px;border:1px solid rgba(226,196,124,.42);border-radius:12px;background:rgba(0,0,0,.14);text-align:left}
+.cnd-fx b{display:block;font-size:25px;font-weight:500;line-height:1.05;color:var(--au)}
+.cnd-fx small{display:block;margin-top:4px;font-size:14.5px;line-height:1.3;color:#d8cfb8}
+.cnd-st{margin:2px 0 0;padding:0;list-style:none;display:grid;gap:7px;width:100%;max-width:460px;counter-reset:cs;text-align:left}
+.cnd-st li{display:flex;gap:10px;align-items:center;font-size:16.5px;line-height:1.35;color:#e9e0cb}
+.cnd-st li::before{counter-increment:cs;content:counter(cs);flex:none;width:24px;height:24px;border-radius:50%;border:1px solid var(--au2);color:var(--au);display:grid;place-items:center;font-size:14px;font-weight:600;line-height:1}
+@media (max-width:820px){.cndB .cnd-card{grid-template-columns:minmax(0,1fr);text-align:center;padding:30px 18px 24px}.cndB .cnd-m{justify-items:center;text-align:center;order:2}.cndB .cnd-v{order:1}.cnd-ck{text-align:left}.cndB .cnd-box{width:min(240px,80%)}.cndB .cnd-ph{width:min(190px,60%)}}
 @media (max-width:480px){.cnd-row{flex-direction:column}.cnd-f input[type=email]{flex:none;width:100%}.cnd-go{width:100%}.cnd-cd span{min-width:58px}.cndP .cnd-card{padding:20px 16px 16px;gap:9px}.cndP .cnd-scr{font-size:40px}.cndP .cnd-cd b{font-size:24px}.cndP .cnd-cnt{display:none}}
 /* всплывающее окно и свёрнутая иконка */
-.cndW{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:80;contain:layout paint}
-.cndP{width:min(400px,calc(100vw - 24px));padding:9px;border-radius:28px;box-shadow:0 26px 50px -18px rgba(0,0,0,.6);animation:cndIn .45s var(--ease) both}
-.cndP .cnd-card{padding:26px 22px 22px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;justify-items:center;text-align:center;border-radius:20px;box-shadow:none}
+.cndW{position:fixed;right:20px;bottom:calc(20px + env(safe-area-inset-bottom,0px));z-index:80}
+.cndP{position:relative;width:min(400px,calc(100vw - 24px));padding:9px;border-radius:28px;box-shadow:0 26px 50px -18px rgba(0,0,0,.6);animation:cndIn .45s var(--ease) both}
+.cndP .cnd-card{max-height:calc(100dvh - 150px);overflow:auto;overscroll-behavior:contain;padding:26px 22px 22px;display:grid;grid-template-columns:minmax(0,1fr);gap:12px;justify-items:center;text-align:center;border-radius:20px;box-shadow:none}
 .cndP .cnd-scr{font-size:46px}.cndP .cnd-h{font-size:23px}.cndP .cnd-tx{font-size:16.5px}
 .cndP .cnd-c{--w:22px}
 .cndP .cnd-row{flex-direction:column}.cndP .cnd-f input[type=email]{flex:none;width:100%}.cndP .cnd-go{width:100%}
-.cndP .cx{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;border:1px solid rgba(226,196,124,.45);background:rgba(0,0,0,.18);color:var(--au);display:grid;place-items:center;cursor:pointer;z-index:2}
+.cndP .cx{position:absolute;top:19px;right:19px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(226,196,124,.45);background:rgba(0,0,0,.18);color:var(--au);display:grid;place-items:center;cursor:pointer;z-index:2}
 .cndP .cx .ico{width:16px;height:16px}
 .cndP .cnd-egg{font-size:16px;color:var(--au);font-style:italic}
 .cndI{position:relative;width:64px;height:64px;padding:5px;border:0;border-radius:50%;cursor:pointer;box-shadow:0 14px 28px -10px rgba(0,0,0,.55);animation:cndIn .4s var(--ease) both}
@@ -1080,7 +1098,11 @@ body{background:var(--bg)}
 .cndI .cnd-c{--w:15px;margin-top:4px}
 .cndI b{position:absolute;top:-5px;right:-5px;min-width:24px;height:24px;padding:0 7px;border-radius:12px;background:#7d1e24;border:1.5px solid var(--au2);color:#fff;font:700 12px/21px var(--f-body)}
 @keyframes cndIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
-@media (max-width:900px){.cndW{right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px))}}
+@media (max-width:900px){.cndW{right:12px;bottom:calc(88px + env(safe-area-inset-bottom,0px))}.cndP .cnd-card{max-height:calc(100dvh - 210px)}}
+.cndW.away .cndI,.cndW.ck{opacity:0;visibility:hidden;pointer-events:none}
+.cndW .cndI{transition:opacity .25s,visibility .25s}
+.cnd-buy{height:auto;min-height:50px;padding:12px 22px;white-space:normal;text-align:center;max-width:100%;line-height:1.25}
+@media (max-width:480px){.cndB .cnd-ph{width:140px}.cndB .cnd-v{gap:10px}.cndB .cnd-m{gap:12px}.cnd-eb{letter-spacing:.16em;font-size:13px}.cnd-buy{width:100%;letter-spacing:.1em;font-size:13.5px;padding:12px 14px}.cnd-cap{letter-spacing:.16em}.cndB .cx{top:10px;right:10px}}
 /* пасхалки: незажжённые свечи рядом с заголовками разделов */
 .cndE{display:inline-grid;place-items:center;width:.9em;height:1.2em;margin-left:.25em;padding:0;border:0;background:none;cursor:pointer;vertical-align:-.12em;-webkit-tap-highlight-color:transparent}
 .cndE .cnd-c{--w:.36em}
@@ -4979,15 +5001,15 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preven
 
 /* ---------- Свеча Soul of Sol × podslushano.nl ----------
    Лист ожидания собираем сами: почта и галочка согласия — человек сразу в списке, письмо с отпиской отправляет сервер.
-   Этапы по дате (Amsterdam): тизер до 9 ноября → анонс и лист ожидания до 15-го → с 16 ноября продажи на сайте Soul of Sol
-   (ссылку на страницу продаж отдаёт сервер после /candle_open, иначе ведём на soulofsol.com).
+   Этапы по дате (Amsterdam): тизер до 6 ноября → лист ожидания до 15-го (как страница Soul of Sol: фото свечи, факты, отсчёт) → с 16 ноября продажи на сайте Soul of Sol
+   (кнопка «Купить» всегда ведёт на страницу podslushano у Soul of Sol с utm-метками).
    Где видно: баннер на главной, в афише, новостях и магазине; окно при первом заходе на каждом этапе (сворачивается в свечу);
    пять незажжённых свечей у заголовков разделов — пасхалка «её можно зажечь». */
 (()=>{
-  const C={stock:24,until:'2026-12-24',announce:'2026-11-09',start:'2026-11-16',startAt:Date.UTC(2026,10,15,23,0,0),shop:'https://soulofsol.com/'};
+  const C={stock:24,until:'2026-12-24',announce:'2026-11-06',start:'2026-11-16',startAt:Date.UTC(2026,10,15,23,0,0),shop:'https://soulofsol.com/podslushano/?utm_source=podslushano&utm_medium=referral&utm_campaign=paxnet_kak_doma'};
   let day;try{day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Amsterdam',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){day=new Date().toISOString().slice(0,10)}
   if(day>C.until)return;
-  const st={count:0,buy:''},phase=()=>day<C.announce?'t':day<C.start?'w':'s',buy=()=>st.buy||C.shop;
+  const st={count:0},phase=()=>day<C.announce?'t':day<C.start?'w':'s',buy=()=>C.shop;
   const key='pod2:candle',mem=()=>{try{return JSON.parse(localStorage.getItem(key)||'{}')}catch(e){return{}}},save=v=>{try{localStorage.setItem(key,JSON.stringify(v))}catch(e){}};
   const EGGS=['guide','travel','save','live','trains'],lit=()=>(mem().lit||[]).filter(x=>EGGS.includes(x));
   const candle=on=>`<span class="cnd-c${on?' lit':''}" aria-hidden="true"><i class="gl"></i><i class="wk"></i><i class="fl"></i></span>`;
@@ -5002,12 +5024,17 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preven
     return `<form class="cnd-f" novalidate><div class="cnd-row"><input type="email" required placeholder="Ваш e-mail" aria-label="Ваш e-mail" autocomplete="email"><button class="cnd-go" type="submit">${cta}</button></div><label class="cnd-ck"><input type="checkbox" required><span>Согласен(на) получить письмо о старте продаж. Отписаться можно в один клик. <a href="#legal-privacy">Privacy</a></span></label><p class="cnd-err" role="alert" hidden></p></form>`};
   const buyBtn=()=>`<a class="cnd-buy" data-cnd-buy href="${esc(buy())}" target="_blank" rel="noopener">Купить на soulofsol.com ${svg('ext')}</a>`;
   const DET='Растительный воск · 220 г · до 40 часов, в подарочной коробке';
+  /* настоящая свеча (фото Soul of Sol), факты и порядок действий для этапа листа ожидания; цену до старта не показываем, аромат не называем до итога голосования */
+  const photo=()=>`<div class="cnd-ph"><img src="{{IMG:cdl-candle}}" width="492" height="624" alt="Свеча «Пахнет как дома» в янтарном стекле с этикеткой Soul of Sol × podslushano.nl" decoding="async"></div>`;
+  const LEAD='Свеча о том, чего так не хватает зимой вдали от дома: тепло, свет в окне и все свои рядом.';
+  const facts=()=>`<div class="cnd-fx">${[[C.stock,'свечи в первой партии'],['16 ноября','старт продаж в 10:00'],['≈ 40 часов','горения, растительный воск, 220 г'],['вручную','в Amsterdam, в подарочной коробке']].map(([b,s])=>`<div><b>${b}</b><small>${s}</small></div>`).join('')}</div>`;
+  const steps=()=>'<ol class="cnd-st"><li>Оставьте почту: письмо придёт сразу</li><li>16 ноября мы напишем вам первыми</li><li>В 10:00 продажи откроются на soulofsol.com</li></ol>';
   /* большой баннер в разделах */
   const bannerHTML=()=>{const ph=phase();let m,v;
     if(ph==='t'){m=`<span class="cnd-eb">${EB(ph)}</span><h2 class="cnd-h">Скоро у нас кое-что,<br>чего ещё не было</h2><div class="cnd-div">${flake}</div><p class="cnd-scr">Подсказка: её можно зажечь</p><p class="cnd-cap">Анонс — 9 ноября</p><p class="cnd-tx">Оставьте почту, и мы расскажем вам первыми.</p>${form('Узнать первыми')}`;v=`<div class="cnd-q" aria-hidden="true">?</div>${hunt()}`}
-    else if(ph==='w'){m=`<span class="cnd-eb">${EB(ph)}</span><h2 class="cnd-scr">Пахнет как дома</h2><p class="cnd-tx">Рождественская свеча о том, чего так не хватает зимой вдали от дома: ёлка, тепло и все свои рядом.</p><p class="cnd-it">Первая партия — всего ${C.stock} свечи</p>${cnt()}${form('В лист ожидания')}`;v=`<div class="cnd-box" role="img" aria-label="Подарочная коробка свечи Soul of Sol × podslushano.nl"></div><p class="cnd-cap">Старт продаж 16 ноября</p>${cdHTML()}${hunt()}`}
-    else{m=`<span class="cnd-eb">${EB(ph)}</span><p class="cnd-cap">Продажи открыты</p><h2 class="cnd-scr">Пахнет как дома</h2><p class="cnd-tx">${DET}</p><p class="cnd-pr">45 €</p><p class="cnd-it">Первая партия — всего ${C.stock} свечи</p>${buyBtn()}`;v=`<div class="cnd-box" role="img" aria-label="Подарочная коробка свечи Soul of Sol × podslushano.nl"></div>${hunt()}`}
-    return `<div class="cnd-card"><div class="cnd-m">${m}</div><div class="cnd-v">${v}</div></div>`};
+    else if(ph==='w'){m=`<span class="cnd-eb">${EB(ph)}</span><p class="cnd-cap">Лист ожидания открыт</p><h2 class="cnd-scr">Пахнет как дома</h2><p class="cnd-tx">${LEAD}</p>${facts()}${cnt()}${form('Хочу первой')}${steps()}`;v=`${photo()}<p class="cnd-cap">До старта продаж</p>${cdHTML()}${hunt()}`}
+    else{m=`<span class="cnd-eb">${EB(ph)}</span><p class="cnd-cap">Продажи открыты</p><h2 class="cnd-scr">Пахнет как дома</h2><p class="cnd-tx">${DET}</p><p class="cnd-pr">45 €</p><p class="cnd-it">Первая партия — всего ${C.stock} свечи</p>${buyBtn()}`;v=`${photo()}${hunt()}`}
+    return `<div class="cnd-card"><button class="cx" type="button" data-cnd-hide aria-label="Скрыть баннер">${svg('x')}</button><div class="cnd-m">${m}</div><div class="cnd-v">${v}</div></div>`};
   const SLOTS=[['home','#tick5'],['events','#p-events .phead'],['news','#p-news .phead'],['shop','#p-shop .phead']];
   SLOTS.forEach(([pg,sel])=>{const a=$(sel);if(!a)return;a.insertAdjacentHTML('afterend',`<section class="cnd cnd-tt cndB" data-cnd-b aria-label="Свеча Soul of Sol × podslushano.nl"></section>`)});
   /* окно и свёрнутая иконка */
@@ -5015,16 +5042,17 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preven
   let open=false,egg='';
   const popHTML=()=>{const ph=phase(),x=`<button class="cx" type="button" data-cnd="min" aria-label="Свернуть">${svg('x')}</button>`,e=egg?`<p class="cnd-egg">${egg}</p>`:'';let b;
     if(ph==='t')b=`<span class="cnd-eb">${EB(ph)}</span>${e}<p class="cnd-h">Скоро у нас кое-что, чего ещё не было</p><p class="cnd-scr">Подсказка: её можно зажечь</p><p class="cnd-tx">Анонс 9 ноября. Оставьте почту, и мы расскажем первыми.</p>${form('Узнать первыми')}`;
-    else if(ph==='w')b=`<span class="cnd-eb">${EB(ph)}</span>${e}<p class="cnd-scr">Пахнет как дома</p><p class="cnd-cap">Старт продаж 16 ноября</p>${cdHTML()}<p class="cnd-it">Первая партия — всего ${C.stock} свечи</p>${cnt()}${form('В лист ожидания')}`;
+    else if(ph==='w')b=`<span class="cnd-eb">${EB(ph)}</span>${e}${photo()}<p class="cnd-scr">Пахнет как дома</p><p class="cnd-cap">Старт 16 ноября, 10:00</p>${cdHTML()}<p class="cnd-it">Первая партия — всего ${C.stock} свечи</p><p class="cnd-tx">Оставьте почту, и 16 ноября мы напишем вам первыми.</p>${cnt()}${form('Хочу первой')}`;
     else b=`<span class="cnd-eb">${EB(ph)}</span>${e}<p class="cnd-cap">Продажи открыты</p><p class="cnd-scr">Пахнет как дома</p><p class="cnd-pr">45 €</p><p class="cnd-tx">${DET}</p>${buyBtn()}`;
-    return `<section class="cndP cnd-tt" role="dialog" aria-label="Свеча Soul of Sol × podslushano.nl"><div class="cnd-card">${x}${b}</div></section>`};
+    return `<section class="cndP cnd-tt" role="dialog" aria-label="Свеча Soul of Sol × podslushano.nl">${x}<div class="cnd-card">${b}</div></section>`};
   const iconHTML=()=>`<button class="cndI cnd-tt" type="button" data-cnd="open" aria-label="Свеча Soul of Sol × podslushano.nl: открыть"><span>${candle(true)}</span>${st.count>=10&&phase()!=='s'?`<b data-cnd-badge>${st.count}</b>`:''}</button>`;
   /* пламя анимируется только пока свеча на экране */
   const io='IntersectionObserver' in window?new IntersectionObserver(es=>es.forEach(en=>en.target.classList.toggle('run',en.isIntersecting))):null;
   const watch=root=>{if(io)root.querySelectorAll('.cnd-c.lit').forEach(c=>io.observe(c))};
   const drawPop=()=>{wrap.innerHTML=open?popHTML():iconHTML();watch(wrap)};
-  const drawAll=()=>{$$('[data-cnd-b]').forEach(b=>{b.innerHTML=bannerHTML();watch(b)});drawPop()};
-  const show=v=>{open=v;if(!v)egg='';const m=mem();m.ph=phase();m.closed=!v;save(m);drawPop()};
+  const hiddenB=()=>mem().hb===phase();
+  const drawAll=()=>{$$('[data-cnd-b]').forEach(b=>{b.hidden=hiddenB();b.innerHTML=bannerHTML();watch(b)});drawPop()};
+  const show=v=>{open=v;if(!v)egg='';const m=mem();m.ph=phase();m.closed=!v;save(m);drawPop();away()};
   /* пасхалки */
   EGGS.forEach(pg=>{const h=$(`#p-${pg} .phead h1`);if(!h)return;const on=lit().includes(pg);
     const b=document.createElement('button');b.type='button';b.className='cndE cnd'+(on?' got':'');b.setAttribute('aria-label',on?'Свеча зажжена':'Незажжённая свеча: зажгите её');b.innerHTML=candle(on);
@@ -5036,7 +5064,14 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preven
     h.appendChild(b);watch(b)});
   wrap.addEventListener('click',e=>{const b=e.target.closest('[data-cnd]');if(!b)return;if(b.dataset.cnd==='min')show(false);else show(true)});
   /* ошиблись в адресе или отписались и хотят снова: форма возвращается, сервер сам скажет, если почта уже в списке */
-  document.addEventListener('click',e=>{if(!e.target.closest('[data-cnd-re]'))return;const m=mem();delete m.joined;delete m.pos;save(m);drawAll()});
+  document.addEventListener('click',e=>{if(e.target.closest('[data-cnd-hide]')){const m=mem();m.hb=phase();save(m);$$('[data-cnd-b]').forEach(b=>b.hidden=true);away();return}
+    if(!e.target.closest('[data-cnd-re]'))return;const m=mem();delete m.joined;delete m.pos;save(m);drawAll()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&open)show(false)});
+  /* свеча в углу не заслоняет большой баннер, а окно и свеча прячутся, пока открыт выбор куки */
+  const vis=new Set(),away=()=>wrap.classList.toggle('away',!open&&vis.size>0);
+  if('IntersectionObserver' in window){const bio=new IntersectionObserver(es=>{es.forEach(en=>{en.isIntersecting&&!en.target.hidden?vis.add(en.target):vis.delete(en.target)});away()});$$('[data-cnd-b]').forEach(b=>bio.observe(b))}
+  const cookieOpen=()=>{const ck=document.getElementById('ckBar');if(ck&&ck.classList.contains('on'))return true;const c=document.querySelector('.cmplz-cookiebanner');return !!(c&&!c.classList.contains('cmplz-hidden')&&c.getClientRects().length&&getComputedStyle(c).display!=='none')};
+  setInterval(()=>{const c=cookieOpen();if(wrap.classList.contains('ck')!==c)wrap.classList.toggle('ck',c)},1000);
   document.addEventListener('submit',async e=>{const f=e.target.closest&&e.target.closest('.cnd-f');if(!f)return;e.preventDefault();
     const em=f.querySelector('input[type=email]').value.trim(),ok=f.querySelector('input[type=checkbox]').checked,er=f.querySelector('.cnd-err'),b=f.querySelector('.cnd-go');
     const fail=t=>{er.textContent=t;er.hidden=false};er.hidden=true;
@@ -5048,13 +5083,13 @@ document.addEventListener('click',e=>{if(e.target.closest('[data-zq]')){e.preven
   /* цифры с сервера: обновляем на месте, чтобы не стереть то, что человек уже вводит */
   const upd=()=>{$$('[data-cnd-cnt]').forEach(p=>{p.hidden=st.count<10;const b=p.querySelector('b');if(b)b.textContent=st.count});
     $$('[data-cnd-buy]').forEach(a=>a.href=buy());const bd=$('[data-cnd-badge]');if(bd)bd.textContent=st.count;else if(!open&&st.count>=10)drawPop()};
-  fetch(PN_BOT+'/api/waitlist/candle').then(r=>r.json()).then(j=>{st.count=j.count||0;st.buy=j.buy||'';upd()}).catch(()=>{});
+  fetch(PN_BOT+'/api/waitlist/candle').then(r=>r.json()).then(j=>{st.count=j.count||0;upd()}).catch(()=>{});
   if(phase()==='w')setInterval(()=>{if(document.hidden)return;$$('[data-cnd-cd]').forEach(d=>{d.outerHTML=cdHTML()})},30000);
   const m0=mem(),q=/[?&#]candle\b/.test(location.search+location.hash);
   open=q;drawAll();
   /* окно само открывается один раз на этапе: не поверх куки-баннера и не когда большой баннер и так на экране */
   const need=()=>{const m=mem();return !(m.ph===phase()&&m.closed)&&!(m.joined&&phase()!=='s')};
-  if(!q&&need()){const go=()=>{const ck=document.getElementById('ckBar');if(ck&&ck.classList.contains('on')){setTimeout(go,1500);return}
+  if(!q&&need()){const go=()=>{if(cookieOpen()){setTimeout(go,1500);return}
       if(open||!need())return;const vis=$$('[data-cnd-b]').some(b=>{const r=b.getBoundingClientRect();return r.height&&r.top<innerHeight&&r.bottom>0});if(vis){setTimeout(go,4000);return}show(true)};
     setTimeout(go,3000)}
 })();

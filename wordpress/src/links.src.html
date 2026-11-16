@@ -136,6 +136,17 @@ img{display:block;max-width:100%}
 .sosL .re{color:#e2c47c;font:inherit;font-size:15px;text-decoration:underline}
 .sosL .fake{display:flex;align-items:center;gap:12px;width:100%;max-width:200px;color:#c9a75a}.sosL .fake::before,.sosL .fake::after{content:"";flex:1;height:1px;background:currentColor;opacity:.7}
 .sosL .fake svg{width:15px;height:15px}
+.sosL{font-variant-numeric:lining-nums}
+.sosL .ph{position:relative;width:min(190px,62%);margin:2px auto}
+.sosL .ph::before{content:"";position:absolute;inset:-20% -40%;background:radial-gradient(closest-side,rgba(255,190,110,.30),rgba(255,190,110,.10) 55%,rgba(255,190,110,0));pointer-events:none}
+.sosL .ph img{position:relative;display:block;width:100%;height:auto;filter:drop-shadow(0 14px 16px rgba(0,0,0,.5))}
+.sosL .fx{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;width:100%}
+.sosL .fx div{padding:9px 10px 8px;border:1px solid rgba(226,196,124,.42);border-radius:11px;background:rgba(0,0,0,.14);text-align:left}
+.sosL .fx b{display:block;font-size:19.5px;white-space:nowrap;font-weight:500;line-height:1.05;color:#e2c47c}
+.sosL .fx small{display:block;margin-top:3px;font-size:13.5px;line-height:1.28;color:#d8cfb8}
+.sosL .st{margin:0;padding:0;list-style:none;display:grid;gap:7px;width:100%;counter-reset:cs;text-align:left}
+.sosL .st li{display:flex;gap:9px;align-items:center;font-size:15.5px;line-height:1.3;color:#e9e0cb}
+.sosL .st li::before{counter-increment:cs;content:counter(cs);flex:none;width:22px;height:22px;border-radius:50%;border:1px solid #c9a75a;color:#e2c47c;display:grid;place-items:center;font-size:13px;font-weight:600;line-height:1}
 .pst{flex:0 0 168px;scroll-snap-align:start;display:flex;flex-direction:column;gap:9px;color:var(--ink);transition:transform .45s var(--spring)}
 .pst:active{transform:scale(.96)}
 .pst .pp{position:relative;display:block;aspect-ratio:3/4.2;border-radius:22px;overflow:hidden;background:#111;box-shadow:0 20px 34px -22px rgba(0,0,0,.6)}
@@ -297,19 +308,23 @@ $('#soc').innerHTML=SO.map(([k,b,v,u])=>`<a class="so glass" href="${u}" target=
 
 /* Свеча Soul of Sol × podslushano.nl: этапы по дате, как на сайте. Записываются прямо здесь, без перехода на сайт */
 (()=>{const box=document.getElementById('candle');if(!box)return;
-  const API='https://worker-production-ad76.up.railway.app/api/waitlist/candle',SHOP='https://soulofsol.com/',START=Date.UTC(2026,10,15,23,0,0);
+  const API='https://worker-production-ad76.up.railway.app/api/waitlist/candle',SHOP='https://soulofsol.com/podslushano/?utm_source=podslushano&utm_medium=referral&utm_campaign=paxnet_kak_doma',START=Date.UTC(2026,10,15,23,0,0);
   let day;try{day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Amsterdam',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date())}catch(e){day=new Date().toISOString().slice(0,10)}
   if(day>'2026-12-24')return;
   const key='pod2:candle',mem=()=>{try{return JSON.parse(localStorage.getItem(key)||'{}')}catch(e){return{}}},save=v=>{try{localStorage.setItem(key,JSON.stringify(v))}catch(e){}};
-  const ph=day<'2026-11-09'?'t':day<'2026-11-16'?'w':'s';let n=0,buy='';
+  const ph=day<'2026-11-06'?'t':day<'2026-11-16'?'w':'s';let n=0,buy='';
+  /* этап листа ожидания как страница Soul of Sol: фото свечи, факты, шаги; без цены до старта и без названия аромата до итога голосования */
+  const photo='<div class="ph"><img src="{{B64:img/cdl-candle.webp}}" width="492" height="624" alt="Свеча «Пахнет как дома» в янтарном стекле с этикеткой Soul of Sol × podslushano.nl" decoding="async"></div>';
+  const facts='<div class="fx">'+[['24','свечи в первой партии'],['16 ноября','старт продаж в 10:00'],['≈ 40 часов','горения, растительный воск, 220 г'],['вручную','в Amsterdam, в подарочной коробке']].map(([b,s])=>`<div><b>${b}</b><small>${s}</small></div>`).join('')+'</div>';
+  const steps='<ol class="st"><li>Оставьте почту: письмо придёт сразу</li><li>16 ноября мы напишем вам первыми</li><li>В 10:00 продажи откроются на soulofsol.com</li></ol>';
   const flake='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M12 2v20M3.3 7l17.4 10M3.3 17 20.7 7M9.6 3.6 12 6l2.4-2.4M9.6 20.4 12 18l2.4 2.4"/></svg>';
   const cdn=()=>{const s=Math.max(0,START-Date.now())/1000;return s?`<div class="cdn">${[[Math.floor(s/86400),'дн'],[Math.floor(s%86400/3600),'ч'],[Math.floor(s%3600/60),'мин']].map(([v,u])=>`<span><b>${v}</b><small>${u}</small></span>`).join('')}</div>`:'<p class="cap">Старт продаж сегодня</p>'};
   const form=cta=>{const m=mem();if(m.joined)return `<p class="ok"><b>Вы в листе ожидания${m.pos?`, ваш номер ${m.pos}`:''}.</b> Письмо уже на почте, а в день старта продаж мы напишем вам первыми. <button class="re" type="button">Записать другую почту</button></p>`;
     return `<form novalidate><input type="email" required placeholder="Ваш e-mail" aria-label="Ваш e-mail" autocomplete="email"><button class="go" type="submit">${cta}</button><label><input type="checkbox" required><span>Согласен(на) получить письмо о старте продаж. Отписаться можно в один клик. <a href="${SITE}/#legal-privacy">Privacy</a></span></label><p class="err" role="alert" hidden></p></form>`};
   const draw=()=>{const eb=`<span class="eb">${ph==='t'?'podslushano.nl':'Soul of Sol × podslushano.nl'}</span>`,c=n>=10?`<p class="cnt">Уже <b>${n}</b> в листе ожидания, а свечей всего 24</p>`:'';
     box.innerHTML='<div class="cd">'+(ph==='t'?`${eb}<div class="q" aria-hidden="true">?</div><p class="h">Скоро у нас кое-что,<br>чего ещё не было</p><div class="fake">${flake}</div><p class="scr">Подсказка: её можно зажечь</p><p class="cap">Анонс — 9 ноября</p><p class="tx">Оставьте почту, и мы расскажем вам первыми.</p>${form('Узнать первыми')}`
-      :ph==='w'?`${eb}<div class="box" role="img" aria-label="Подарочная коробка свечи"></div><p class="scr">Пахнет как дома</p><p class="cap">Старт продаж 16 ноября</p>${cdn()}<p class="it">Первая партия — всего 24 свечи</p>${c}${form('В лист ожидания')}`
-      :`${eb}<p class="cap">Продажи открыты</p><div class="box" role="img" aria-label="Подарочная коробка свечи"></div><p class="scr">Пахнет как дома</p><p class="pr">45 €</p><p class="tx">Растительный воск · 220 г · до 40 часов, в подарочной коробке</p><p class="it">Первая партия — всего 24 свечи</p><a class="go" href="${buy||SHOP}" target="_blank" rel="noopener">Купить на soulofsol.com</a>`)+'</div>';
+      :ph==='w'?`${eb}<p class="cap">Лист ожидания открыт</p>${photo}<p class="scr">Пахнет как дома</p><p class="tx">Свеча о том, чего так не хватает зимой вдали от дома: тепло, свет в окне и все свои рядом.</p>${facts}<p class="cap">До старта продаж</p>${cdn()}${c}${form('Хочу первой')}${steps}`
+      :`${eb}<p class="cap">Продажи открыты</p>${photo}<p class="scr">Пахнет как дома</p><p class="pr">45 €</p><p class="tx">Растительный воск · 220 г · до 40 часов, в подарочной коробке</p><p class="it">Первая партия — всего 24 свечи</p><a class="go" href="${SHOP}" target="_blank" rel="noopener">Купить на soulofsol.com</a>`)+'</div>';
     box.hidden=false};
   box.addEventListener('click',e=>{if(!e.target.closest('.re'))return;const m=mem();delete m.joined;delete m.pos;save(m);draw()});
   box.addEventListener('submit',async e=>{e.preventDefault();const f=e.target,em=f.querySelector('input[type=email]').value.trim(),ok=f.querySelector('input[type=checkbox]').checked,er=f.querySelector('.err'),b=f.querySelector('.go');
