@@ -102,6 +102,13 @@ _ALLO_SALE_LATER_COLUMNS = {
     "send_on": "VARCHAR(10)",
 }
 
+# Анкета автора: ответы «о себе» и соглашение о неразглашении (условия v1.2)
+_AUTHOR_AGREEMENT_LATER_COLUMNS = {
+    "questionnaire": "TEXT",
+    "nda_version": "VARCHAR(20)",
+    "nda_sha256": "VARCHAR(64)",
+}
+
 _LISTING_LATER_COLUMNS = {
     "intent": "VARCHAR(20)",
     "app_user_id": "INTEGER",
@@ -510,6 +517,16 @@ async def _migrate() -> None:
                 if name not in sale_cols:
                     await conn.exec_driver_sql(
                         f"ALTER TABLE allo_web_sales ADD COLUMN {name} {ddl}"
+                    )
+
+        author_cols = await conn.run_sync(
+            lambda c: {x["name"] for x in inspect(c).get_columns("author_agreement_acceptances")}
+            if "author_agreement_acceptances" in inspect(c).get_table_names() else None)
+        if author_cols is not None:
+            for name, ddl in _AUTHOR_AGREEMENT_LATER_COLUMNS.items():
+                if name not in author_cols:
+                    await conn.exec_driver_sql(
+                        f"ALTER TABLE author_agreement_acceptances ADD COLUMN {name} {ddl}"
                     )
 
 

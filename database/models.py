@@ -188,8 +188,13 @@ class AuthorAgreementAcceptance(Base):
     telegram: Mapped[str] = mapped_column(String(200))
     instagram: Mapped[str | None] = mapped_column(String(200), nullable=True)
     phone_model: Mapped[str] = mapped_column(String(120))
+    # Ответы анкеты «о себе» (JSON: опыт, форматы, темы, языки, о себе, примеры работ…), с версии условий 1.2
+    questionnaire: Mapped[str | None] = mapped_column(Text, nullable=True)
     agreement_version: Mapped[str] = mapped_column(String(20))
     agreement_sha256: Mapped[str] = mapped_column(String(64))
+    # Соглашение о неразглашении, принятое вместе с условиями (пусто у заявок до версии 1.2)
+    nda_version: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    nda_sha256: Mapped[str | None] = mapped_column(String(64), nullable=True)
     user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)
     accepted_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), index=True)
 
