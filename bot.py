@@ -53,6 +53,7 @@ from utils.push import router as push_router
 from utils.shop import router as shop_router
 from utils.dm import router as dm_router
 from utils.editorial_overrides import install as install_editorial_overrides, router as editorial_preview_router
+from utils.editorial_quality_patch import install as install_editorial_quality_patch
 from utils.limits import ThrottleMiddleware
 from utils.nav_guard import NavigationGuard
 from utils import inbox
@@ -116,6 +117,7 @@ async def main() -> None:
         logging.info("Gmail read-only подключён для рекламных материалов: %s", connected_gmail)
     install_evenementen_source()
     install_editorial_overrides()
+    install_editorial_quality_patch()
     bot = Bot(token=config.BOT_TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     dp = Dispatcher()
     # Уведомления админам — в группу-инбокс с темами (если подключена командой /inbox)
