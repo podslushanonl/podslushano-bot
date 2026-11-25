@@ -129,6 +129,8 @@ async def main() -> None:
 
     from utils.deals_bridge import router as deals_router, forward_join, forward_channel
     dp.include_router(deals_router)
+    from utils.deals_editorial import router as deals_editorial_router, publish_startup_batch
+    dp.include_router(deals_editorial_router)
     dp.chat_join_request.outer_middleware(forward_join)
     dp.channel_post.outer_middleware(forward_channel)
     dp.include_router(editorial_planner.router)
@@ -199,6 +201,7 @@ async def main() -> None:
         await ad_season_campaign_runtime.start_webserver_with_ads_campaign(bot)
     except Exception as e:
         logging.warning("Веб-сервер не запустился: %s", e)
+    asyncio.create_task(publish_startup_batch(bot))
     asyncio.create_task(waitlist_handlers.scheduled_launch())
     asyncio.create_task(reminder_loop(bot))
     asyncio.create_task(digest_draft_loop(bot))
