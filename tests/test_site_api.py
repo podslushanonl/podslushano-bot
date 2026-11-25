@@ -67,8 +67,14 @@ class SiteApiDbTests(unittest.IsolatedAsyncioTestCase):
         site_api.create_payment = create_payment
         self.calls = []
 
-        async def mollie(method, path, body=None):
+        self.idempotency_keys = []
+        self.existing_subs = []
+        async def mollie(method, path, body=None, *, idempotency_key=None):
             self.calls.append((method, path, body))
+            if idempotency_key:
+                self.idempotency_keys.append(idempotency_key)
+            if method == "GET" and path.endswith("/subscriptions?limit=250"):
+                return {"_embedded": {"subscriptions": self.existing_subs}}
             if path == "/customers":
                 return {"id": "cst_1"}
             if path == "/payments":
@@ -117,21 +123,41 @@ class SiteApiDbTests(unittest.IsolatedAsyncioTestCase):
     async def test_monthly_needs_email_then_creates_first_payment(self):
         r = await site_api.donate(Req({"amount_cents": 700, "monthly": True}))
         self.assertEqual(r.status, 400)
-        r = await site_api.donate(Req({"amount_cents": 700, "monthly": True, "email": "D@Example.com"}))
+        r = await site_api.donate(Req({"amount_cents": 700, "monthly": True, "email": "D@Example.com", "consent": True}))
         self.assertEqual(body(r)["checkout_url"], "https://mollie.test/first")
         pay = [c for c in self.calls if c[1] == "/payments"][0][2]
         self.assertEqual(pay["sequenceType"], "first")
         self.assertEqual(pay["customerId"], "cst_1")
         self.assertEqual(pay["metadata"]["email"], "d@example.com")
 
+    async def test_monthly_minimum_and_consent(self):
+        for cents, consent in [(100, True), (500, False)]:
+            r = await site_api.donate(Req({"amount_cents": cents, "monthly": True,
+                                           "consent": consent, "email": "d@example.com"}))
+            self.assertEqual(r.status, 400)
+        self.assertFalse(self.calls)
+
+    async def test_reconcile_existing_subscription_without_creating_second(self):
+        self.existing_subs = [{"id": "sub_existing", "metadata": {"kind": "donation_sub", "first_payment_id": "tr_retry"}}]
+        payment = {"status": "paid", "amount": {"value": "7.00", "currency": "EUR"},
+                   "customerId": "cst_1", "sequenceType": "first", "paidAt": site_api.date.today().isoformat() + "T10:00:00Z",
+                   "metadata": {"kind": "donation", "monthly": True, "customer_id": "cst_1", "amount": "7.00", "email": "d@example.com"}}
+        await site_api.on_donation_payment("tr_retry", payment)
+        self.assertFalse([c for c in self.calls if c[0] == "POST"])
+        self.assertEqual(await site_api._meta_get("don:tr_retry"), "sub_existing")
+
     async def test_subscription_created_once_with_cancel_link(self):
-        payment = {"status": "paid", "amount": {"value": "7.00"},
+        payment = {"status": "paid", "amount": {"value": "7.00", "currency": "EUR"},
+                   "customerId": "cst_1", "sequenceType": "first", "paidAt": site_api.date.today().isoformat() + "T10:00:00Z",
                    "metadata": {"kind": "donation", "monthly": True, "customer_id": "cst_1", "amount": "7.00", "email": "d@example.com"}}
         await site_api.on_donation_payment("tr_first", payment)
         await site_api.on_donation_payment("tr_first", payment)
         subs = [c for c in self.calls if c[1].endswith("/subscriptions")]
         self.assertEqual(len(subs), 1)
         self.assertEqual(subs[0][2]["interval"], "1 month")
+        self.assertEqual(len(self.idempotency_keys), 1)
+        self.assertEqual(len(self.idempotency_keys[0]), 64)
+        self.assertEqual(subs[0][2]["metadata"]["first_payment_id"], "tr_first")
         self.assertEqual(self.mail.await_count, 1)
         self.assertIn("/api/donate/cancel?t=", self.mail.await_args.args[2])
 
