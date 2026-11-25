@@ -49,6 +49,9 @@ eq(pn_donation_net(payment(['amountRefunded' => ['currency' => 'EUR', 'value' =>
 eq(pn_donation_net(payment(['amountChargedBack' => ['currency' => 'EUR', 'value' => '50.00']])), 0, 'chargeback');
 eq(pn_donation_net(payment(['amountRefunded' => ['currency' => 'EUR', 'value' => '80.00']])), 0, 'never negative');
 eq(pn_donation_matches(payment()), true, 'donation marker');
+$renewal = ['redirectUrl' => '', 'sequenceType' => 'recurring', 'subscriptionId' => 'sub_A1', 'customerId' => 'cst_A1', 'metadata' => ['kind' => 'donation_sub']];
+eq(pn_donation_matches(payment($renewal)), true, 'monthly support renewal');
+eq(pn_donation_matches(payment(array_replace($renewal, ['metadata' => ['kind' => 'shop']]))), false, 'recurring sale excluded');
 eq(pn_donation_matches(payment(['redirectUrl' => 'https://podslushano.nl/?donation=thanks'])), true, 'canonical www alias');
 foreach (['https://evil.test/?donation=thanks', 'https://www.podslushano.nl.evil.test/?donation=thanks', 'https://www.podslushano.nl/?order=thanks', 'https://www.podslushano.nl/shop/?donation=thanks', 'http://www.podslushano.nl/?donation=thanks', ''] as $url) eq(pn_donation_matches(payment(['redirectUrl' => $url])), false, 'exclude unrelated payments');
 update_option('pn_donation_links', 'pl_Allowed');
