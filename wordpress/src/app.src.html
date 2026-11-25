@@ -4110,7 +4110,7 @@ const PRODUCTS=[
  {t:'Карточка в КонтактGuide',d:'Ваши услуги на сайте и в боте. Онлайн-оплата и кабинет для изменений.',p:'от €9,99 в месяц',href:'#place',bg:'linear-gradient(135deg,#E2F3E9,#AEE9CB)',ic:'user',cta:'Разместить'},
  {t:'Гайд «Налоги и субсидии 2026»',d:'Налоги, toeslagen, льготы, ZZP и изменения 2026 года в одном понятном гайде.',p:'бесплатно',href:'#',gpdf:1,bg:'linear-gradient(135deg,#E3EEFA,#A7CCFF)',ic:'book',cta:'Скачать PDF',ext:1},
  {t:'Стикерпак podslushano.nl',d:'Лосёнок и его друзья для ваших чатов в Telegram.',p:'бесплатно',href:'https://t.me/addstickers/Podslushanonl',bg:'linear-gradient(135deg,#FFEEE6,#FFB48E)',img:'deer',cta:'Добавить в Telegram',ext:1},
- {t:'Вклад в развитие',d:'Помогает оплачивать сервисы и выпускать полезные материалы дальше.',p:'сумму выбираете вы',href:'https://payment-links.mollie.com/payment/dTrV8jR8mFbe6iB2DWgtf',bg:'linear-gradient(135deg,#EEEAFB,#D6CAFF)',ic:'heart',cta:'Сделать вклад',ext:1}];
+ {t:'Свои — поддержка проекта',d:'Разово или каждый месяц. Все публикации открыты.',p:'от €2 в месяц',href:'/#dnBox',bg:'linear-gradient(135deg,#EEEAFB,#D6CAFF)',ic:'heart',cta:'Поддержать'}];
 INIT.shop=()=>{$('#shopGrid').innerHTML=PRODUCTS.map(p=>`<a class="card prod" href="${p.href}" ${p.ext?'target="_blank" rel="noopener"':''}><div class="pv" style="background:${p.bg}">${p.img==='allo'?`<img loading="lazy" decoding="async" src="{{IMG:allo-orig}}" alt="" style="width:96px;border-radius:50%;box-shadow:0 14px 30px -10px rgba(0,0,0,.4);animation:float2 6s ease-in-out infinite">`:p.img==='deer'?`<img loading="lazy" decoding="async" src="{{DEER}}" alt="Лосёнок" style="height:150px;width:auto;animation:peek 6s ease-in-out infinite;transform-origin:bottom">`:`<span class="gi" style="width:84px;height:84px;border-radius:26px;background:rgba(255,255,255,.7);display:grid;place-items:center">${svg(p.ic).replace('class="ico"','class="ico" style="width:38px;height:38px"')}</span>`}</div><div class="pb"><h3>${p.t}</h3><p class="muted" style="font-size:14px">${p.d}</p><div class="row4"><span class="price">${p.p}</span><span class="btn btn-ink btn-sm">${p.cta}${p.ext?svg('ext'):''}</span></div></div></a>`).join('')}
 
 /* ---------- WIDGET ---------- */
@@ -4719,7 +4719,7 @@ function postDraw(){$('#postFlow').innerHTML=`<div style="display:grid;gap:14px;
 async function payDonate(st,box){try{const mail=box.querySelector('#dnMail').value.trim();
   if(st.monthly&&!vEmail(mail)){toast('Укажите почту: на неё придёт ссылка для отмены');box.querySelector('#dnMail').focus();return}
   if(mail&&!vEmail(mail)){toast('Проверьте адрес почты');box.querySelector('#dnMail').focus();return}
-  pnBusy(true);const j=await pnPost(PN_BOT+'/api/donate',{amount_cents:Math.round(st.amt*100),monthly:!!st.monthly,consent:st.monthly&&box.querySelector('#dnConsent').checked,email:mail});location.href=j.checkout_url}catch(e){pnBusy(false);toast(e.message)}}
+  pnBusy(true);const j=await pnPost(window.PN_SUPPORT_CHECKOUT_URL||'/wp-json/pn/v1/svoi/checkout',{amount_cents:Math.round(st.amt*100),monthly:!!st.monthly,consent:st.monthly&&box.querySelector('#dnConsent').checked,email:mail});location.href=j.checkout_url}catch(e){pnBusy(false);toast(e.message)}}
 /* ---- organisers add their own event to the afisha (paid, checked by the team) ---- */
 (()=>{const f=$('#uaForm');if(!f)return;const today=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
   $('#uaDate').min=$('#uaEnd').min=today;
