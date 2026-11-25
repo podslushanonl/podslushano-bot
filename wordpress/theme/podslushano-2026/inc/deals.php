@@ -8,7 +8,7 @@ const PN_DEALS_PRICE_CENTS = 399;
 function pn_deals_plan($id) {
     $plans = [
         'month'=>['cents'=>399,'months'=>1,'interval'=>'1 month','description'=>'Vygodno NL - maandabonnement'],
-        'year'=>['cents'=>3999,'months'=>12,'interval'=>'12 months','description'=>'Vygodno NL - jaarabonnement'],
+        'year'=>['cents'=>3999,'months'=>12,'interval'=>null,'description'=>'Vygodno NL - toegang 12 maanden'],
     ];
     return is_string($id) ? ($plans[$id] ?? null) : null;
 }
@@ -40,7 +40,7 @@ function pn_deals_checkout($request) {
     $plan_id=$b['plan']??'';
     $plan=pn_deals_plan($plan_id);
     if (!$plan) return pn_deals_error('Выберите тариф.');
-    if (($b['consent'] ?? null) !== true) return pn_deals_error('Подтвердите автоматическое продление.');
+    if (($b['consent'] ?? null) !== true) return pn_deals_error('Подтвердите условия оплаты.');
     $rate = 'pn_deals_rate_' . hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? '') . '|' . wp_salt('nonce'));
     $n = (int)get_transient($rate);
     if ($n >= 5) return pn_deals_error('Повторите через минуту.', 429);
@@ -53,7 +53,7 @@ function pn_deals_checkout($request) {
     $payment = pn_svoi_api('POST', '/v2/payments', [
         'amount'=>['currency'=>'EUR','value'=>pn_deals_price($plan)],
         'description'=>$plan['description'],
-        'customerId'=>$cid,'sequenceType'=>'first',
+        'customerId'=>$cid,'sequenceType'=>$plan_id==='year'?'oneoff':'first',
         'redirectUrl'=>add_query_arg('checkout','return',pn_deals_url()),
         'webhookUrl'=>rest_url('pn/v1/deals/webhook'),
         'metadata'=>['kind'=>'deals_first','source'=>'deals_wp','plan'=>$plan_id],
@@ -83,7 +83,7 @@ function pn_deals_valid_payment($p,$r,$first) {
     if (($p['mode']??'')!=='live' || ($p['customerId']??'')!==$r['customer']
         || ($p['amount']['currency']??'')!=='EUR'
         || pn_donation_cents($p['amount']['value']??'') !== (int)$r['cents']) return false;
-    if ($first) return ($p['sequenceType']??'')==='first' && ($p['metadata']['kind']??'')==='deals_first'
+    if ($first) return ($p['sequenceType']??'')===($plan['interval']?'first':'oneoff') && ($p['metadata']['kind']??'')==='deals_first'
         && ($p['metadata']['source']??'')==='deals_wp';
     return ($p['sequenceType']??'')==='recurring' && ($p['metadata']['kind']??'')==='deals_renewal'
         && ($p['metadata']['source']??'')==='deals_wp'
@@ -91,7 +91,7 @@ function pn_deals_valid_payment($p,$r,$first) {
 }
 function pn_deals_subscription($id,$p,$r) {
     $plan=pn_deals_plan($r['plan']??'month');
-    if (!$plan||$plan['cents']!==(int)$r['cents']) return false;
+    if (!$plan||!$plan['interval']||$plan['cents']!==(int)$r['cents']) return false;
     $path='/v2/customers/'.$r['customer'].'/subscriptions';
     $list=pn_svoi_api('GET',$path.'?limit=250');
     if (is_wp_error($list)||!is_array($list['_embedded']['subscriptions']??null)||!empty($list['_links']['next'])) return false;
@@ -144,17 +144,18 @@ function pn_deals_process($pid) {
         $event_id=hash('sha256',$pid.':'.$event.':'.$net);
         $event_key='pn_deals_event_'.$event_id;
         if (get_option($event_key)) return true;
-        if ($first && $event==='paid' && empty($r['subscription'])) {
+        if ($first && $event==='paid' && ($r['plan']??'month')==='month' && empty($r['subscription'])) {
             if ($r['status']!=='pending'||empty($r['consent_at'])) return false;
             $sub=pn_deals_subscription($id,$p,$r);
             if (!$sub) return false;
             $r['subscription']=$sub; $r['status']='subscribed';
             update_option($rk,$r,false);
         }
+        if ($first && $event==='paid' && ($r['plan']??'month')==='year' && $r['status']==='pending') { $r['status']='paid_fixed'; update_option($rk,$r,false); }
         $payload=['event_id'=>$event_id,'kind'=>$event,'first_payment_id'=>$id,'payment_id'=>$pid,
             'customer_id'=>$r['customer'],'subscription_id'=>$r['subscription']??'','email'=>$r['email'],
             'paid_at'=>$p['paidAt']??'','created_at'=>$p['createdAt']??'','net_cents'=>$net,
-            'price_cents'=>(int)$r['cents'],'plan'=>$r['plan']??'month','period_months'=>pn_deals_plan($r['plan']??'month')['months'],'cancel_url'=>pn_deals_cancel_url($id)];
+            'price_cents'=>(int)$r['cents'],'plan'=>$r['plan']??'month','period_months'=>pn_deals_plan($r['plan']??'month')['months'],'cancel_url'=>($r['plan']??'month')==='month'?pn_deals_cancel_url($id):''];
         // No fabricated entitlement. Missing/failed delivery must retry.
         if (apply_filters('pn_deals_entitlement_event',false,$payload)!==true) return false;
         add_option($event_key,gmdate('c'),'',false);
