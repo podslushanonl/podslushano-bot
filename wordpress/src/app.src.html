@@ -4719,7 +4719,7 @@ function postDraw(){$('#postFlow').innerHTML=`<div style="display:grid;gap:14px;
 async function payDonate(st,box){try{const mail=box.querySelector('#dnMail').value.trim();
   if(st.monthly&&!vEmail(mail)){toast('Укажите почту: на неё придёт ссылка для отмены');box.querySelector('#dnMail').focus();return}
   if(mail&&!vEmail(mail)){toast('Проверьте адрес почты');box.querySelector('#dnMail').focus();return}
-  pnBusy(true);if(!window.PN_SUPPORT_CHECKOUT_URL)throw new Error('Оплата временно недоступна.');const j=await pnPost(window.PN_SUPPORT_CHECKOUT_URL,{amount_cents:Math.round(st.amt*100),monthly:!!st.monthly,consent:st.monthly&&box.querySelector('#dnConsent').checked,email:mail});location.href=j.checkout_url}catch(e){pnBusy(false);toast(e.message)}}
+  pnBusy(true);const j=await pnPost(window.PN_SUPPORT_CHECKOUT_URL||'/wp-json/pn/v1/svoi/checkout',{amount_cents:Math.round(st.amt*100),monthly:!!st.monthly,consent:st.monthly&&box.querySelector('#dnConsent').checked,email:mail});location.href=j.checkout_url}catch(e){pnBusy(false);toast(e.message)}}
 /* ---- organisers add their own event to the afisha (paid, checked by the team) ---- */
 (()=>{const f=$('#uaForm');if(!f)return;const today=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,10);
   $('#uaDate').min=$('#uaEnd').min=today;
