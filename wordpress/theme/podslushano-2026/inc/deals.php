@@ -5,6 +5,21 @@
 if (!defined('ABSPATH')) exit;
 
 const PN_DEALS_PRICE_CENTS = 399;
+function pn_deals_plan($id) {
+    $plans = [
+        'month'=>['cents'=>399,'months'=>1,'interval'=>'1 month','description'=>'Vygodno NL - maandabonnement'],
+        'year'=>['cents'=>3999,'months'=>12,'interval'=>'12 months','description'=>'Vygodno NL - jaarabonnement'],
+    ];
+    return is_string($id) ? ($plans[$id] ?? null) : null;
+}
+function pn_deals_period_end($paid,$months) {
+    if (!is_string($paid)||!preg_match('/^\d{4}-\d{2}-\d{2}T/',$paid)||!in_array($months,[1,12],true)) return '';
+    try {
+        $date=new DateTimeImmutable($paid,new DateTimeZone('UTC'));
+        $next=$date->modify('first day of +'.$months.' months');
+        return $next->setDate((int)$next->format('Y'),(int)$next->format('m'),min((int)$date->format('d'),(int)$next->format('t')))->format('Y-m-d');
+    } catch (Exception $e) { return ''; }
+}
 function pn_deals_ready() {
     return defined('PN_DEALS_ENABLE') && PN_DEALS_ENABLE === true
         && has_filter('pn_deals_entitlement_event')
@@ -12,7 +27,7 @@ function pn_deals_ready() {
         && preg_match('/^live_[A-Za-z0-9]+$/D', pn_donation_key());
 }
 function pn_deals_record_key($id) { return 'pn_deals_first_' . $id; }
-function pn_deals_price() { return pn_svoi_amount(PN_DEALS_PRICE_CENTS); }
+function pn_deals_price($plan) { return pn_svoi_amount($plan['cents']); }
 function pn_deals_url() { return add_query_arg('pn_deals', '1', home_url('/')); }
 function pn_deals_error($message, $status = 400) {
     return new WP_REST_Response(['ok' => false, 'error' => $message], $status);
@@ -22,7 +37,10 @@ function pn_deals_checkout($request) {
     $b = $request->get_json_params();
     $email = is_array($b) && is_string($b['email'] ?? null) ? trim($b['email']) : '';
     if (!is_email($email) || strlen($email) > 200) return pn_deals_error('Проверьте электронную почту.');
-    if (($b['consent'] ?? null) !== true) return pn_deals_error('Подтвердите ежемесячное списание.');
+    $plan_id=$b['plan']??'';
+    $plan=pn_deals_plan($plan_id);
+    if (!$plan) return pn_deals_error('Выберите тариф.');
+    if (($b['consent'] ?? null) !== true) return pn_deals_error('Подтвердите автоматическое продление.');
     $rate = 'pn_deals_rate_' . hash('sha256', ($_SERVER['REMOTE_ADDR'] ?? '') . '|' . wp_salt('nonce'));
     $n = (int)get_transient($rate);
     if ($n >= 5) return pn_deals_error('Повторите через минуту.', 429);
@@ -33,12 +51,12 @@ function pn_deals_checkout($request) {
         return pn_deals_error('Не удалось открыть оплату.', 502);
     $cid = $customer['id'];
     $payment = pn_svoi_api('POST', '/v2/payments', [
-        'amount'=>['currency'=>'EUR','value'=>pn_deals_price()],
-        'description'=>'Vygodno NL - maandabonnement',
+        'amount'=>['currency'=>'EUR','value'=>pn_deals_price($plan)],
+        'description'=>$plan['description'],
         'customerId'=>$cid,'sequenceType'=>'first',
         'redirectUrl'=>add_query_arg('checkout','return',pn_deals_url()),
         'webhookUrl'=>rest_url('pn/v1/deals/webhook'),
-        'metadata'=>['kind'=>'deals_first','source'=>'deals_wp'],
+        'metadata'=>['kind'=>'deals_first','source'=>'deals_wp','plan'=>$plan_id],
     ]);
     if (is_wp_error($payment) || !preg_match('/^tr_[A-Za-z0-9]+$/D', $payment['id'] ?? ''))
         return pn_deals_error('Не удалось открыть оплату.',502);
@@ -49,7 +67,7 @@ function pn_deals_checkout($request) {
         return pn_deals_error('Некорректный адрес оплаты.',502);
     // Do not expose a checkout until its local record exists.
     if (!add_option(pn_deals_record_key($id),[
-        'email'=>$email,'customer'=>$cid,'cents'=>PN_DEALS_PRICE_CENTS,'consent_at'=>gmdate('c'),
+        'email'=>$email,'customer'=>$cid,'cents'=>$plan['cents'],'plan'=>$plan_id,'consent_at'=>gmdate('c'),
         'status'=>'pending','created_at'=>time()
     ],'',false)) return pn_deals_error('Не удалось сохранить заявку.',503);
     wp_schedule_single_event(time()+300,'pn_deals_retry',[$id]);
@@ -60,6 +78,8 @@ function pn_deals_cancel_url($id) {
         'token'=>hash_hmac('sha256','deals-cancel:'.$id,wp_salt('auth'))],admin_url('admin-post.php'));
 }
 function pn_deals_valid_payment($p,$r,$first) {
+    $plan=pn_deals_plan($r['plan']??'month');
+    if (!$plan||$plan['cents']!==(int)$r['cents']||($p['metadata']['plan']??'month')!==($r['plan']??'month')) return false;
     if (($p['mode']??'')!=='live' || ($p['customerId']??'')!==$r['customer']
         || ($p['amount']['currency']??'')!=='EUR'
         || pn_donation_cents($p['amount']['value']??'') !== (int)$r['cents']) return false;
@@ -70,6 +90,8 @@ function pn_deals_valid_payment($p,$r,$first) {
         && !empty($r['subscription']) && ($p['subscriptionId']??'')===$r['subscription'];
 }
 function pn_deals_subscription($id,$p,$r) {
+    $plan=pn_deals_plan($r['plan']??'month');
+    if (!$plan||$plan['cents']!==(int)$r['cents']) return false;
     $path='/v2/customers/'.$r['customer'].'/subscriptions';
     $list=pn_svoi_api('GET',$path.'?limit=250');
     if (is_wp_error($list)||!is_array($list['_embedded']['subscriptions']??null)||!empty($list['_links']['next'])) return false;
@@ -80,18 +102,18 @@ function pn_deals_subscription($id,$p,$r) {
     if (count($matches)===1) $sub=$matches[0];
     elseif (count($all)!==0) return false;
     else {
-        $start=pn_svoi_next_date($p['paidAt']??'');
+        $start=pn_deals_period_end($p['paidAt']??'',$plan['months']);
         if (!$start||$start<gmdate('Y-m-d')) return false; // never backcharge
         $sub=pn_svoi_api('POST',$path,[
             'amount'=>['currency'=>'EUR','value'=>pn_svoi_amount($r['cents'])],
-            'interval'=>'1 month','startDate'=>$start,'description'=>'Vygodno NL - maandabonnement',
+            'interval'=>$plan['interval'],'startDate'=>$start,'description'=>$plan['description'],
             'webhookUrl'=>rest_url('pn/v1/deals/webhook'),
-            'metadata'=>['kind'=>'deals_renewal','source'=>'deals_wp','first_payment_id'=>$id],
+            'metadata'=>['kind'=>'deals_renewal','source'=>'deals_wp','first_payment_id'=>$id,'plan'=>$r['plan']??'month'],
         ],hash('sha256','deals-wp:'.$id));
     }
     if (is_wp_error($sub)||!preg_match('/^sub_[A-Za-z0-9]+$/D',$sub['id']??'')
         ||($sub['amount']['currency']??'')!=='EUR'||($sub['amount']['value']??'')!==pn_svoi_amount($r['cents'])
-        ||($sub['interval']??'')!=='1 month'||in_array($sub['status']??'', ['canceled','completed'],true)) return false;
+        ||($sub['interval']??'')!==$plan['interval']||in_array($sub['status']??'', ['canceled','completed'],true)) return false;
     return $sub['id'];
 }
 function pn_deals_process($pid) {
@@ -132,7 +154,7 @@ function pn_deals_process($pid) {
         $payload=['event_id'=>$event_id,'kind'=>$event,'first_payment_id'=>$id,'payment_id'=>$pid,
             'customer_id'=>$r['customer'],'subscription_id'=>$r['subscription']??'','email'=>$r['email'],
             'paid_at'=>$p['paidAt']??'','created_at'=>$p['createdAt']??'','net_cents'=>$net,
-            'price_cents'=>(int)$r['cents'],'cancel_url'=>pn_deals_cancel_url($id)];
+            'price_cents'=>(int)$r['cents'],'plan'=>$r['plan']??'month','period_months'=>pn_deals_plan($r['plan']??'month')['months'],'cancel_url'=>pn_deals_cancel_url($id)];
         // No fabricated entitlement. Missing/failed delivery must retry.
         if (apply_filters('pn_deals_entitlement_event',false,$payload)!==true) return false;
         add_option($event_key,gmdate('c'),'',false);
@@ -193,33 +215,9 @@ add_action('rest_api_init',function(){
 function pn_deals_widget($atts=[]) {
     $enabled=pn_deals_ready()&&!is_admin();
     $id=wp_unique_id('pn-deals-');
-    ob_start(); ?>
-    <section class="pn-deals-widget" id="<?php echo esc_attr($id); ?>" data-url="<?php echo esc_url(rest_url('pn/v1/deals/checkout')); ?>" data-enabled="<?php echo $enabled?'1':'0'; ?>">
-      <style>
-       .pn-deals-widget{--pd-orange:#f28c28;--pd-ink:#181818;--pd-paper:#fffaf3;box-sizing:border-box;max-width:1040px;margin:24px auto;font-family:Mont,Inter,system-ui,sans-serif;color:var(--pd-ink);background:var(--pd-paper);border:1px solid #e8e1d8;border-radius:32px;padding:clamp(22px,5vw,52px)}
-       .pn-deals-widget *{box-sizing:border-box}.pd-top{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:750;letter-spacing:.08em;text-transform:uppercase}.pd-dot{width:10px;height:10px;border-radius:50%;background:var(--pd-orange)}.pd-layout{display:grid;grid-template-columns:1.1fr 1fr;gap:clamp(22px,4vw,50px);align-items:center}.pd-title{font-size:clamp(42px,7vw,78px);line-height:.93;letter-spacing:-.065em;margin:25px 0 20px;font-weight:900}.pd-title span{color:var(--pd-orange)}.pd-lead{font-size:19px;line-height:1.5;max-width:36ch}.pd-features{display:grid;gap:12px;margin:24px 0;padding:0;list-style:none}.pd-features li{display:flex;align-items:center;gap:10px;font-size:15px}.pd-features li:before{content:"✓";background:#f7e5d1;border-radius:50%;display:grid;place-items:center;width:26px;height:26px;flex:none;font-weight:800}.pd-form{background:#fff;border:1px solid #eee7df;border-radius:26px;padding:26px;box-shadow:0 18px 50px -38px #21170d88;display:grid;gap:15px}.pd-price{font-size:52px;line-height:1;letter-spacing:-.06em;font-weight:850}.pd-price small{font-size:16px;letter-spacing:0;font-weight:500;color:#666}.pd-label{display:grid;gap:7px;font-size:14px;font-weight:600}.pd-email{width:100%;padding:14px;border-radius:14px;border:1px solid #ded8d1;font:inherit;background:white;color:#181818}.pd-consent{display:flex;gap:10px;align-items:flex-start;font-size:12px;line-height:1.5;color:#4e4b47}.pd-consent input{width:18px;height:18px;flex:none;accent-color:var(--pd-orange)}.pd-pay{border:0;border-radius:17px;padding:16px;background:var(--pd-orange);color:#161616;font-size:16px;font-weight:800;cursor:pointer}.pd-pay:disabled{cursor:not-allowed;opacity:.55}.pd-small{font-size:12px;color:#666;line-height:1.45;margin:0}.pd-status{font-size:13px;line-height:1.4}.pd-brand{font-size:12px;letter-spacing:.03em;margin-top:24px;color:#666}.pd-form a{color:inherit;text-decoration:underline}@media(max-width:700px){.pd-layout{grid-template-columns:1fr}.pn-deals-widget{border-radius:24px}.pd-form{padding:20px}.pd-title{margin-top:20px}}
-      </style>
-      <div class="pd-top"><span class="pd-dot"></span> Закрытый канал · Нидерланды</div>
-      <div class="pd-layout">
-       <div><h1 class="pd-title">ВЫГОДНО<br>В <span>NL.</span></h1>
-        <p class="pd-lead">Меньше времени на поиск скидок. Больше денег на то, что вам действительно нужно.</p>
-        <ul class="pd-features"><li>Проверенные акции супермаркетов</li><li>Купоны, кешбэк и бесплатные находки</li><li>Выгодные предложения для дома и досуга</li></ul>
-        <div class="pd-brand">Проект podslushano.nl</div></div>
-       <form class="pd-form">
-        <div><strong>Ежемесячный доступ</strong><div class="pd-price">€3,99 <small>/ месяц</small></div></div>
-        <p class="pd-small">Первый платёж при оформлении, далее — €3,99 каждый месяц до отмены.</p>
-        <label class="pd-label">Электронная почта<input class="pd-email" type="email" name="email" autocomplete="email" required placeholder="name@email.nl"></label>
-        <label class="pd-consent"><input name="consent" type="checkbox" required>Я согласен(-на) на ежемесячное списание €3,99 до отмены подписки. Доступ сохраняется до конца оплаченного периода.</label>
-        <button class="pd-pay" type="submit" <?php disabled(!$enabled); ?>><?php echo $enabled?'Оформить подписку · €3,99':'Подписка скоро откроется'; ?></button>
-        <p class="pd-small">Оплата через Mollie. Ссылка для управления подпиской придёт на почту. <a href="<?php echo esc_url(home_url('/privacy-statement-eu/')); ?>">Политика конфиденциальности</a>.</p>
-        <div class="pd-status" role="status" aria-live="polite"><?php echo $enabled?'':'Пилотный режим. Оплата пока отключена.'; ?></div>
-       </form>
-      </div>
-      <script data-category="functional">
-      (()=>{const root=document.getElementById(<?php echo wp_json_encode($id); ?>);if(!root)return;const form=root.querySelector('form'),btn=form.querySelector('button'),status=form.querySelector('.pd-status');form.addEventListener('submit',async e=>{e.preventDefault();if(root.dataset.enabled!=='1'||btn.disabled)return;btn.disabled=true;status.textContent='Открываем защищённую оплату…';try{const res=await fetch(root.dataset.url,{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:form.email.value.trim(),consent:form.consent.checked})});const j=await res.json();if(!res.ok||!j.ok||!j.checkout_url)throw Error(j.error||'Оплата временно недоступна.');const u=new URL(j.checkout_url);if(u.protocol!=='https:'||!/(^|\.)mollie\.com$/i.test(u.hostname))throw Error('Некорректный адрес оплаты.');location.assign(u.href)}catch(err){status.textContent=err.message;btn.disabled=false}})})();
-      </script>
-    </section>
-    <?php return ob_get_clean();
+    ob_start();
+    require __DIR__.'/deals-widget.php';
+    return ob_get_clean();
 }
 add_shortcode('pn_deals','pn_deals_widget');
 add_action('template_redirect',function(){
