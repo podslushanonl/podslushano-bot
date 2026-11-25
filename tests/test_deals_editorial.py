@@ -23,6 +23,33 @@ class DealsEditorialTests(unittest.IsolatedAsyncioTestCase):
         with self.assertRaises(ValueError):
             editorial.parse_batch(json.dumps(b))
 
+    def test_optional_photo_and_manual_buttons(self):
+        b=fixture()
+        b["posts"][0]["photo_url"]="https://example.com/product.jpg"
+        self.assertEqual(editorial.parse_batch(json.dumps(b))["posts"][0]["photo_url"],"https://example.com/product.jpg")
+        b["posts"][0]["html"]="x"*1001
+        with self.assertRaises(ValueError):
+            editorial.parse_batch(json.dumps(b))
+        self.assertEqual(editorial.manual_buttons("Магазин | https://example.com/a"),
+                         [{"label":"Магазин","url":"https://example.com/a"}])
+        with self.assertRaises(ValueError):
+            editorial.manual_buttons("Магазин | http://example.com")
+        self.assertIsNone(editorial.markup([]))
+
+    async def test_photo_delivery(self):
+        bot=AsyncMock()
+        bot.id=42
+        bot.get_chat.return_value=SimpleNamespace(type="channel")
+        bot.get_chat_member.return_value=SimpleNamespace(can_post_messages=True)
+        bot.send_photo.return_value=SimpleNamespace(message_id=1)
+        b=fixture()
+        b["posts"][0]["photo_url"]="https://example.com/product.jpg"
+        with patch.object(editorial,"wp_call",new=AsyncMock(return_value={"chat":"-1001234567890"})),patch.object(editorial,"_meta_set",new=AsyncMock(return_value=True)),patch.object(editorial.asyncio,"sleep",new=AsyncMock()):
+            self.assertEqual((await editorial.publish_batch(bot,b))["sent"],1)
+            bot.send_message.assert_not_awaited()
+            self.assertEqual(bot.send_photo.call_args.kwargs["photo"],"https://example.com/product.jpg")
+            self.assertEqual(bot.send_photo.call_args.kwargs["caption"],b["posts"][0]["html"])
+
     async def test_target_mismatch(self):
         with patch.object(editorial,"wp_call",new=AsyncMock(return_value={"chat":"-1009999999999"})):
             bot=AsyncMock()
