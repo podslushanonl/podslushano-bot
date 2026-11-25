@@ -2,7 +2,6 @@
 No webhook changes, new service, token transfer, or agent usage.
 """
 from __future__ import annotations
-import asyncio
 import hmac
 import logging
 import re
@@ -67,7 +66,10 @@ async def forward_join(handler, event, data):
     # Only send minimal join request data, only for links from this bot.
     inv = event.invite_link
     bot = data.get("bot")
-    if inv and bot and inv.creator.id == bot.id:
+    if inv and bot and inv.creator.id == bot.id and event.chat.type == 'channel':
+        cfg=await wp_call('bridge-secret')
+        if not cfg or str(event.chat.id)!=str(cfg.get('chat') or ''):
+            return await handler(event, data)
         payload = {"chat_join_request":{
             "chat":{"id":event.chat.id,"type":event.chat.type},
             "from":{"id":event.from_user.id},
