@@ -116,10 +116,10 @@ def afisha_rejected(*, title: str, contact: str) -> tuple[str, str, str]:
 
 def donation_thanks(*, amount: str, monthly: bool = False, cancel_url: str | None = None) -> tuple[str, str, str]:
     if monthly:
-        subject = "💛 Спасибо за ежемесячный вклад в развитие podslushano.nl"
-        body = (p(f"Каждый месяц €{esc(amount)} будут работать на podslushano.nl: новости по-русски, новые разделы, сервер.")
+        subject = "💛 Вы теперь среди своих — podslushano.nl"
+        body = (p(f"Ваша ежемесячная поддержка — €{esc(amount)}. Она помогает нам оплачивать работу редакции, сервисы и создавать новые истории.")
                 + p("Лосёнок отдельно передаёт спасибо. Без вас нас бы не было.")
-                + small(f'Отменить можно в любой момент, в один клик: <a href="{esc(cancel_url)}" style="color:#6A7280;">'
+                + small(f'Остановить будущие списания можно в любое время: <a href="{esc(cancel_url)}" style="color:#6A7280;">'
                         "отменить ежемесячный вклад</a>."))
     else:
         subject = "💛 Спасибо за вклад в развитие podslushano.nl"
