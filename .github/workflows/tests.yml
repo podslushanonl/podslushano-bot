@@ -24,6 +24,8 @@ jobs:
           python-version: "3.11"
       - name: Install dependencies
         run: pip install -r requirements.txt
+      - name: Run Vygodno NL bridge and editorial checks
+        run: python -m unittest tests.test_deals_bridge tests.test_deals_editorial
       - name: Run WordPress theme checks (PHP)
         run: php wordpress/tests/cache.php && php wordpress/tests/redirects.php && php wordpress/tests/seo.php && php wordpress/tests/donations.php
       - name: Run site payment and subscription checks
