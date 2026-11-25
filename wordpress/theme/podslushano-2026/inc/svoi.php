@@ -28,6 +28,7 @@ function pn_svoi_amount($cents) {
     return sprintf('%d.%02d', intdiv($cents, 100), $cents % 100);
 }
 function pn_svoi_next_date($paid) {
+    if (!is_string($paid) || !preg_match('/^\d{4}-\d{2}-\d{2}T/', $paid)) return '';
     try {
         $date = new DateTimeImmutable($paid, new DateTimeZone('UTC'));
         $next = $date->modify('first day of next month');
@@ -113,7 +114,10 @@ function pn_svoi_process($id) {
             if (is_wp_error($list) || !is_array($list['_embedded']['subscriptions'] ?? null) || !empty($list['_links']['next'])) return false;
             $all = $list['_embedded']['subscriptions'];
             $matches = array_values(array_filter($all, function($s) use ($id) { return ($s['metadata']['first_payment_id'] ?? '') === $id; }));
-            if (count($matches) === 1) $sub = $matches[0];
+            if (count($matches) === 1) {
+                $sub = $matches[0];
+                if (($sub['amount']['currency'] ?? '') !== 'EUR' || ($sub['amount']['value'] ?? '') !== pn_svoi_amount($r['cents']) || in_array($sub['status'] ?? '', ['canceled', 'completed'], true)) return false;
+            }
             elseif (count($all) !== 0) return false;
             else {
                 $start = pn_svoi_next_date($p['paidAt'] ?? '');
