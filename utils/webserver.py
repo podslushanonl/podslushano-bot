@@ -1752,6 +1752,8 @@ async def start_webserver(bot) -> web.AppRunner:
     # Постеры афиши и фото кабинета с сайта бывают до 8 МБ (по умолчанию aiohttp пускает 1 МБ)
     app = web.Application(client_max_size=10 * 1024 * 1024)
     app["bot"] = bot
+    from utils.deals_bridge import install_routes as install_deals_bridge
+    install_deals_bridge(app)
     from utils.morning_bridge import install_routes as install_morning_routes
     install_morning_routes(app)
     from utils.news_bridge import install_routes as install_news_routes
