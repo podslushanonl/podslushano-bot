@@ -1,0 +1,32 @@
+name: Svoi WordPress package
+
+on:
+  push:
+    branches:
+      - agent/svoi-monthly-support
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build installable WordPress theme
+        run: python wordpress/build_theme.py
+      - name: Verify generated archive
+        run: |
+          python -m zipfile -t wordpress/dist/podslushano-2026.zip
+          php -l wordpress/theme/podslushano-2026/inc/donations.php
+          node --check wordpress/theme/podslushano-2026/assets/app.js
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podslushano-2026-svoi
+          path: wordpress/dist/podslushano-2026.zip
+          if-no-files-found: error
+          retention-days: 7
