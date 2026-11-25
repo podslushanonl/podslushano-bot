@@ -31,3 +31,12 @@ class DealsBridgeTests(unittest.IsolatedAsyncioTestCase):
     def test_amounts(self):
         self.assertTrue(bridge.amount_ok({"amount":{"currency":"EUR","value":"3.99"}}))
         self.assertFalse(bridge.amount_ok({"amount":{"currency":"EUR","value":"1.00"}}))
+
+    def test_message_payload_telegram_wire_alias(self):
+        from aiogram.types import Message
+        msg=Message.model_validate({"message_id":1,"date":1760000000,"chat":{"id":123,"type":"private"},"from":{"id":123,"is_bot":False,"first_name":"Test","username":"testuser"},"text":"/start bind_"+"a"*48})
+        p=bridge.message_payload(msg)
+        self.assertEqual(p["from"]["id"],123)
+        self.assertEqual(p["from"]["username"],"testuser")
+        self.assertNotIn("from_user",p)
+        self.assertEqual(p["chat"]["type"],"private")
