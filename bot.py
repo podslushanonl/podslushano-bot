@@ -127,6 +127,10 @@ async def main() -> None:
     dp.callback_query.middleware(RegisterUserMiddleware())
     await configure_profile(bot)
 
+    from utils.deals_bridge import router as deals_router, forward_join, forward_channel
+    dp.include_router(deals_router)
+    dp.chat_join_request.outer_middleware(forward_join)
+    dp.channel_post.outer_middleware(forward_channel)
     dp.include_router(editorial_planner.router)
     dp.include_router(inbox.router)
     dp.include_router(am_reviews.router)
@@ -236,7 +240,7 @@ async def main() -> None:
 
     logging.info("Бот запущен. Останови через Ctrl+C.")
     await bot.delete_webhook(drop_pending_updates=True)
-    await dp.start_polling(bot)
+    await dp.start_polling(bot, allowed_updates=sorted(set(dp.resolve_used_update_types()) | {'chat_join_request', 'channel_post'}))
 
 
 if __name__ == "__main__":
