@@ -103,9 +103,18 @@ async def mollie_rpc(method, path, body, key):
             return None
         return await _mollie("POST","/customers",{"name":body["name"],"metadata":{"source":"deals_wp"}})
     if PAY_PATH.fullmatch(path):
-        if method=="GET" and path!="/v2/payments":
+        if method in ("GET","DELETE") and path!="/v2/payments":
             p=await _mollie("GET",path[3:])
-            return p if own(p) else None
+            if not own(p):
+                return None
+            if method=="GET":
+                return p
+            # Only an unpaid first checkout for Vygodno NL may be cancelled.
+            # The WordPress caller validates the private browser recovery key.
+            if (p.get("metadata") or {}).get("kind")!="deals_first" or p.get("status") not in ("open","pending") or p.get("isCancelable") is not True:
+                return None
+            result=await _mollie("DELETE",path[3:])
+            return result if own(result) and result.get("id")==p.get("id") else None
         if path!="/v2/payments" or method!="POST" or not amount_ok(body) or not own(body):
             return None
         meta=body["metadata"]

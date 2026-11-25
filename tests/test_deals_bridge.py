@@ -40,3 +40,16 @@ class DealsBridgeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(p["from"]["username"],"testuser")
         self.assertNotIn("from_user",p)
         self.assertEqual(p["chat"]["type"],"private")
+
+    async def test_only_cancel_unpaid_deals_checkout(self):
+        original={"id":"tr_test","metadata":{"source":"deals_wp","kind":"deals_first"},"status":"open","isCancelable":True}
+        cancelled={**original,"status":"canceled"}
+        with patch.object(bridge,"_mollie",new_callable=AsyncMock) as api:
+            api.side_effect=[original,cancelled]
+            self.assertEqual(await bridge.mollie_rpc("DELETE","/v2/payments/tr_test",{},""),cancelled)
+            self.assertEqual(api.await_count,2)
+        for payment in ({**original,"status":"paid"},{**original,"isCancelable":False},{**original,"metadata":{"source":"donation"}},{**original,"metadata":{"source":"deals_wp","kind":"deals_renewal"}}):
+            with patch.object(bridge,"_mollie",new_callable=AsyncMock) as api:
+                api.return_value=payment
+                self.assertIsNone(await bridge.mollie_rpc("DELETE","/v2/payments/tr_test",{},""))
+                self.assertEqual(api.await_count,1)
