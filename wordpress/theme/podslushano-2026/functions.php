@@ -24,6 +24,7 @@ require PN_DIR . '/inc/cities.php';
 require PN_DIR . '/inc/specialists.php';
 require PN_DIR . '/inc/donations.php';
 require PN_DIR . '/inc/svoi.php';
+require PN_DIR . '/inc/deals.php';
 
 add_action('after_setup_theme', function () {
     add_theme_support('title-tag');
