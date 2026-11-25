@@ -2684,6 +2684,10 @@ img.lg{background:rgba(255,255,255,.92);border-radius:12px;padding:3px 6px}
 .mesh i{opacity:.18}
 
 }
+
+/* Vygodno NL: compact top-of-page banner, no giant mobile hero. */
+.pn-deals-banner{position:relative;isolation:isolate;overflow:hidden;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:clamp(12px,2.5vw,28px);margin:10px 0 22px;padding:clamp(16px,2.5vw,28px);border:1px solid #f5d1b4;border-radius:26px;background:radial-gradient(ellipse at 95% 0,#f9b780 0%,transparent 51%),linear-gradient(125deg,#fff8ee 0%,#ffe9d7 100%);color:#211a15!important;text-decoration:none!important;box-shadow:0 12px 28px -23px #97411688;transition:transform .2s ease,box-shadow .2s ease}.pn-deals-banner:hover{transform:translateY(-2px);box-shadow:0 16px 32px -23px #974116aa}.pn-deals-banner:focus-visible{outline:3px solid #b64a10;outline-offset:3px}.pn-deals-icon{width:clamp(48px,7vw,78px);aspect-ratio:1;border-radius:25%;background:linear-gradient(145deg,#f5a45e,#c74b10);color:#fff;display:grid;place-items:center;font:800 clamp(28px,4vw,46px)/1 system-ui;box-shadow:inset 0 1px 2px #fff8,0 8px 16px -8px #9b370c80}.pn-deals-banner .pdb-text{min-width:0}.pn-deals-banner .pdb-kicker{display:block;font-size:10px;letter-spacing:.12em;font-weight:800;color:#a34716;text-transform:uppercase;margin-bottom:5px}.pn-deals-banner .pdb-title{display:block;font-size:clamp(22px,3.2vw,38px);font-weight:900;line-height:1.02;letter-spacing:-.045em;color:#211a15}.pn-deals-banner .pdb-sub{display:block;font-size:clamp(12px,1.4vw,16px);line-height:1.35;margin-top:7px;color:#6a4a38}.pn-deals-banner .pdb-cta{display:flex;align-items:center;gap:12px;border-radius:16px;background:#27211d;color:#fff;padding:15px 20px;white-space:nowrap;font-size:13px;font-weight:750}.pn-deals-banner .pdb-cta svg{width:18px;height:18px;flex:none}.pn-deals-banner .pdb-mobile{display:none}@media(max-width:650px){.pn-deals-banner{grid-template-columns:44px minmax(0,1fr) 32px;gap:10px;padding:13px;margin:7px 0 15px;border-radius:19px}.pn-deals-icon{width:44px;font-size:27px}.pn-deals-banner .pdb-kicker{font-size:9px;letter-spacing:.06em;margin-bottom:4px}.pn-deals-banner .pdb-title{font-size:23px}.pn-deals-banner .pdb-sub{font-size:12px;margin-top:4px}.pn-deals-banner .pdb-cta{padding:0;background:transparent;color:#8b3e14;justify-content:center}.pn-deals-banner .pdb-desktop{display:none}.pn-deals-banner .pdb-mobile{display:inline}}@media(prefers-reduced-motion:reduce){.pn-deals-banner{transition:none}.pn-deals-banner:hover{transform:none}}
+
 </style>
 <script>/* Хэллоуин: заставка стартует первой строкой страницы, параллельно с загрузкой сайта. После взрыва тыквы искры собираются в podslushano.nl, буквы «o» — горящие тыквы. */
 (function(){try{
@@ -2831,6 +2835,11 @@ if(!v)lite();else{v.muted=true;
 <!-- ================= HOME ================= -->
 <section class="page" id="p-home" data-title="Главная">
   <div class="wrap">
+    <a class="pn-deals-banner" href="/?pn_deals=1" aria-label="Выгодно в NL — узнать о закрытом канале">
+ <span class="pn-deals-icon" aria-hidden="true">€</span>
+ <span class="pdb-text"><span class="pdb-kicker">Новый проект · Telegram</span><strong class="pdb-title">Выгодно в NL</strong><span class="pdb-sub">Акции, купоны и кешбэк. От €3,99 в месяц.</span></span>
+ <span class="pdb-cta"><span class="pdb-desktop">Подробнее</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></span>
+</a>
     <div id="hxRoot"></div>
     <div class="tick5 st" style="--i:5" id="tick5" aria-label="Сегодня в Нидерландах"></div>
     <div class="hw-b st" style="--i:6" id="hwBanner" hidden aria-live="polite">

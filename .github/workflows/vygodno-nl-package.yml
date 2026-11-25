@@ -1,0 +1,35 @@
+name: Vygodno NL WordPress package
+on:
+  push:
+    branches:
+      - agent/vygodno-nl-checkout
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build theme
+        run: python wordpress/build_theme.py
+      - name: Check
+        run: |
+          python -m zipfile -t wordpress/dist/podslushano-2026.zip
+          php -l wordpress/theme/podslushano-2026/inc/deals.php
+          php -l wordpress/theme/podslushano-2026/inc/deals-widget.php
+          php wordpress/tests/deals.php
+          php wordpress/tests/svoi.php
+          php wordpress/tests/donations.php
+          node --check wordpress/theme/podslushano-2026/assets/app.js
+          grep -q 'pn-deals-banner' wordpress/theme/podslushano-2026/shell.php
+          grep -q 'pn-deals-banner' wordpress/theme/podslushano-2026/links.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: podslushano-2026-vygodno-nl
+          path: wordpress/dist/podslushano-2026.zip
+          if-no-files-found: error
+          retention-days: 7

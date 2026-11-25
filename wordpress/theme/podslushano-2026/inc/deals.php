@@ -223,10 +223,9 @@ function pn_deals_widget($atts=[]) {
 add_shortcode('pn_deals','pn_deals_widget');
 add_action('template_redirect',function(){
     if (($_GET['pn_deals']??'')!=='1') return;
-    // Private owner preview until paid access is ready. Return view never claims payment is confirmed.
-    if (!pn_deals_ready()&&!current_user_can('manage_options')) { status_header(404); nocache_headers(); exit; }
+    // Public introduction can be visible while payment remains gated. Never expose an invite or claim payment is confirmed.
     nocache_headers(); header('X-Robots-Tag: noindex, nofollow',true);
-    ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Выгодно в NL · podslushano.nl</title></head><body style="margin:0;padding:12px;background:#f5f2ee;font-family:system-ui,sans-serif"><?php
+    ?><!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Выгодно в NL · podslushano.nl</title></head><body style="margin:0;padding:8px;background:#faf8f5;font-family:system-ui,sans-serif"><?php
     if (($_GET['checkout']??'')==='return') echo '<p role="status" style="max-width:1040px;margin:20px auto">Платёж проверяется. Подтверждение и инструкции придут на вашу электронную почту после успешной оплаты.</p>';
     echo pn_deals_widget(); ?><p style="text-align:center"><a href="<?php echo esc_url(home_url('/')); ?>">На главную podslushano.nl</a></p></body></html><?php exit;
 },0);
