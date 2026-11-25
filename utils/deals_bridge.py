@@ -46,18 +46,22 @@ async def wp_call(path, body=None):
         log.warning("Vygodno NL: WordPress bridge unavailable")
         return None
 
+def message_payload(message: Message):
+    # Telegram wire aliases: WordPress expects "from", not aiogram from_user.
+    return message.model_dump(mode="json", by_alias=True, exclude_none=True)
+
 async def forward(update):
     result = await wp_call("bridge-update", update)
     return bool(result and result.get("ok") is True)
 
 @router.message(F.chat.type == "private", F.text.regexp(r"^/start(?:@\w+)?\s+bind_[a-f0-9]{48}$"))
 async def bind(message: Message):
-    if not await forward({"message":message.model_dump(mode="json", exclude_none=True)}):
+    if not await forward({"message":message_payload(message)}):
         await message.answer("Не удалось подтвердить Telegram. Вернитесь на сайт и повторите подключение.", parse_mode=None)
 
 @router.message(F.chat.type == "private", Command("deals_access"))
 async def access(message: Message):
-    payload = message.model_dump(mode="json", exclude_none=True)
+    payload = message_payload(message)
     payload["text"] = "/access"
     if not await forward({"message":payload}):
         await message.answer("Не удалось проверить подписку. Попробуйте чуть позже.", parse_mode=None)
