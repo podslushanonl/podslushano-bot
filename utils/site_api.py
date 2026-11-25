@@ -27,11 +27,13 @@ import logging
 import os
 import re
 import time
+from calendar import monthrange
 from datetime import date, timedelta
 
 import aiohttp
 from aiohttp import web
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 
 import config
 from database.db import get_session
@@ -125,10 +127,13 @@ def _money(cents: int) -> str:
     return f"{cents // 100}.{cents % 100:02d}"
 
 
-async def _mollie(method: str, path: str, body: dict | None = None) -> dict | None:
+async def _mollie(method: str, path: str, body: dict | None = None, *, idempotency_key: str | None = None) -> dict | None:
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.request(method, f"{MOLLIE_API}{path}", json=body, headers=_headers()) as resp:
+        headers = dict(_headers())
+        if idempotency_key:
+            headers["Idempotency-Key"] = idempotency_key
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=20)) as session:
+            async with session.request(method, f"{MOLLIE_API}{path}", json=body, headers=headers) as resp:
                 data = await resp.json(content_type=None) if resp.status != 204 else {}
                 if resp.status >= 300:
                     log.warning("Mollie %s %s: %s %s", method, path, resp.status, data)
@@ -151,7 +156,11 @@ async def _meta_set(key: str, value: str) -> bool:
         if await session.get(Meta, key):
             return False
         session.add(Meta(key=key, value=value[:100]))
-        await session.commit()
+        try:
+            await session.commit()
+        except IntegrityError:
+            await session.rollback()
+            return False
         return True
 
 
@@ -183,6 +192,10 @@ async def donate(request: web.Request) -> web.Response:
     if not 100 <= cents <= 100_000:
         return _err(request, "Укажите сумму от €1 до €1000.")
     monthly = body.get("monthly") is True
+    if monthly and cents < 200:
+        return _err(request, "Ежемесячная поддержка — от €2.")
+    if monthly and body.get("consent") is not True:
+        return _err(request, "Подтвердите согласие на ежемесячные списания.")
     email = str(body.get("email") or "").strip().lower()[:200]
     name = str(body.get("name") or "").strip()[:120]
     if email and not EMAIL_RE.match(email):
@@ -232,17 +245,50 @@ async def on_donation_payment(payment_id: str, payment: dict) -> None:
             await send_email_message(email, *donation_thanks(amount=value.replace(".", ",")))
         return
     customer_id = meta.get("customer_id")
-    if not customer_id or await _meta_get(f"don:{payment_id}"):
+    if not customer_id or payment.get("customerId") != customer_id or payment.get("sequenceType") != "first":
         return
-    start = (date.today() + timedelta(days=31)).isoformat()
-    sub = await _mollie("POST", f"/customers/{customer_id}/subscriptions", {
-        "amount": {"currency": "EUR", "value": meta.get("amount")},
-        "interval": "1 month",
-        "startDate": start,
-        "description": "Maandelijkse bijdrage podslushano.nl",
-        "webhookUrl": f"{_api_base()}/mollie-webhook",
-        "metadata": {"kind": "donation_sub", "email": email},
-    })
+    amount = payment.get("amount") or {}
+    if amount.get("currency") != "EUR" or amount.get("value") != meta.get("amount"):
+        return
+    if await _meta_get(f"don:{payment_id}"):
+        return
+    try:
+        paid = date.fromisoformat(str(payment.get("paidAt") or payment.get("createdAt"))[:10])
+    except ValueError:
+        log.error("Donation first payment %s has no valid payment date", payment_id)
+        return
+    month = paid.month % 12 + 1
+    year = paid.year + (paid.month == 12)
+    start = date(year, month, min(paid.day, monthrange(year, month)[1]))
+    path = f"/customers/{customer_id}/subscriptions"
+    # A new Mollie customer is created for each checkout. Reconcile before retrying,
+    # including after the provider's idempotency retention period.
+    existing = await _mollie("GET", path + "?limit=250")
+    if existing is None or not isinstance(existing.get("_embedded", {}).get("subscriptions"), list):
+        log.error("Cannot reconcile donation subscription for %s", payment_id)
+        return
+    subscriptions = existing["_embedded"]["subscriptions"]
+    matches = [x for x in subscriptions if (x.get("metadata") or {}).get("kind") == "donation_sub"]
+    if len(matches) > 1 or (existing.get("_links") or {}).get("next"):
+        log.error("Ambiguous donation subscriptions for %s", payment_id)
+        return
+    if matches:
+        sub = matches[0]
+        if (sub.get("metadata") or {}).get("first_payment_id") not in (None, payment_id):
+            return
+    elif subscriptions or start < date.today():
+        log.error("Donation subscription %s requires manual reconciliation", payment_id)
+        return
+    else:
+        key = hashlib.sha256(("svoi-sub:" + payment_id).encode()).hexdigest()
+        sub = await _mollie("POST", path, {
+            "amount": {"currency": "EUR", "value": amount["value"]},
+            "interval": "1 month",
+            "startDate": start.isoformat(),
+            "description": "Maandelijkse bijdrage podslushano.nl",
+            "webhookUrl": f"{_api_base()}/mollie-webhook",
+            "metadata": {"kind": "donation_sub", "email": email, "first_payment_id": payment_id},
+        }, idempotency_key=key)
     if not sub or not sub.get("id"):
         log.error("Could not create donation subscription for payment %s", payment_id)
         return

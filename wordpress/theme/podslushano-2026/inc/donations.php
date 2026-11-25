@@ -43,6 +43,12 @@ function pn_donation_net($payment) {
 }
 
 function pn_donation_matches($payment) {
+    // Renewals carry Mollie subscription metadata; never classify other recurring sales as support.
+    $meta = $payment['metadata'] ?? [];
+    if (is_array($meta) && ($meta['kind'] ?? '') === 'donation_sub'
+        && ($payment['sequenceType'] ?? '') === 'recurring'
+        && preg_match('/^sub_[A-Za-z0-9]+$/D', $payment['subscriptionId'] ?? '')
+        && preg_match('/^cst_[A-Za-z0-9]+$/D', $payment['customerId'] ?? '')) return true;
     // Only the existing donation return marker on this site's home page. Never import sales.
     $url = wp_parse_url($payment['redirectUrl'] ?? '');
     $home = wp_parse_url(home_url('/'));
@@ -226,7 +232,7 @@ function pn_donation_settings() {
     echo '<tr><th>Отдельные платёжные ссылки</th><td><input class="regular-text" name="pn_links" value="' . esc_attr(get_option('pn_donation_links', '')) . '" placeholder="pl_…"><p class="description">Необязательно: API ID ссылок Mollie, используемых исключительно для донатов. Ссылки продаж сюда не добавляйте.</p></td></tr></table>';
     submit_button('Сохранить и обновить');
     echo '</form><p>Автоимпорт: только live-платежи EUR с возвратом на главную этого сайта с ?donation=thanks или из указанных ссылок. Другие платежи не учитываются. Возвраты и оспоренные суммы вычитаются. Обновление через WP-Cron примерно раз в пять минут при посещениях сайта.</p>';
-    echo '<p>Регулярные списания без адреса возврата или ID платёжной ссылки не импортируются: их можно добавить как подтверждённые вклады вручную. Имена из банковских реквизитов не публикуются. Для имени получите согласие и отредактируйте соответствующий вклад.</p>';
+    echo '<p>Регулярные списания с меткой donation_sub и идентификаторами подписки и клиента импортируются автоматически. Другие платежи без адреса возврата или ID платёжной ссылки не импортируются. Имена из банковских реквизитов не публикуются. Для имени получите согласие и отредактируйте соответствующий вклад.</p>';
     echo '<p>Последнее обновление: ' . esc_html(get_option('pn_donation_synced', '') ?: 'ещё не выполнялось') . '</p>';
     if ($err = get_option('pn_donation_error')) echo '<p><strong>' . esc_html($err) . '</strong></p>';
     echo '</div>';
