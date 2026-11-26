@@ -12,6 +12,9 @@ from datetime import datetime, timezone
 from urllib.parse import urlsplit
 
 from aiogram import F, Router
+from aiogram.exceptions import TelegramRetryAfter, TelegramBadRequest
+from database.db import get_session
+from database.models import Meta
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, LinkPreviewOptions
 import config
 from utils.deals_bridge import wp_call
@@ -50,10 +53,44 @@ def parse_batch(raw):
             u = urlsplit(url)
             if u.scheme != "https" or not u.hostname or u.username or u.password:
                 raise ValueError("invalid URL")
+        photo = p.get("photo_url")
+        if photo is not None:
+            if not isinstance(photo, str) or len(photo) > 2000 or len(p["html"]) > 1000:
+                raise ValueError("invalid photo post")
+            u = urlsplit(photo)
+            if u.scheme != "https" or not u.hostname or u.username or u.password or u.port not in (None, 443):
+                raise ValueError("invalid photo URL")
         until = datetime.fromisoformat(p["publish_before"])
         if until.tzinfo is None:
             raise ValueError("timezone required")
     return obj
+
+async def release_claim(pid):
+    async with get_session() as session:
+        row = await session.get(Meta, "deals_editorial:" + pid)
+        if row and row.value == "claimed":
+            await session.delete(row)
+            await session.commit()
+
+async def deliver(bot, cid, post, silent):
+    markup = InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text=x["label"], url=x["url"])] for x in post["buttons"]
+    ])
+    for attempt in range(3):
+        try:
+            if post.get("photo_url"):
+                return await bot.send_photo(int(cid), photo=post["photo_url"],
+                    caption=post["html"], parse_mode="HTML", reply_markup=markup,
+                    disable_notification=silent)
+            return await bot.send_message(int(cid), post["html"], parse_mode="HTML",
+                reply_markup=markup, link_preview_options=LinkPreviewOptions(is_disabled=True),
+                disable_notification=silent)
+        except TelegramRetryAfter as exc:
+            if attempt == 2 or exc.retry_after > 30:
+                raise
+            await asyncio.sleep(exc.retry_after + 1)
+            if datetime.fromisoformat(post["publish_before"]) <= datetime.now(timezone.utc):
+                raise
 
 async def publish_batch(bot, batch):
     # Resolve the confirmed channel via existing authenticated WordPress bridge.
@@ -79,16 +116,13 @@ async def publish_batch(bot, batch):
                 stats["skipped"] += 1
                 continue
             try:
-                msg = await bot.send_message(
-                    int(cid), post["html"], parse_mode="HTML",
-                    reply_markup=InlineKeyboardMarkup(inline_keyboard=[
-                        [InlineKeyboardButton(text=x["label"], url=x["url"])] for x in post["buttons"]
-                    ]),
-                    link_preview_options=LinkPreviewOptions(is_disabled=True),
-                    disable_notification=bool(batch.get("silent", True)),
-                )
+                msg = await deliver(bot, cid, post, bool(batch.get("silent", True)))
                 stats["sent"] += 1
                 log.info("deals editorial published %s message_id=%s", pid, msg.message_id)
+            except (TelegramRetryAfter, TelegramBadRequest) as e:
+                await release_claim(pid)
+                stats["failed"] += 1
+                log.warning("deals editorial rejected %s (%s)", pid, type(e).__name__)
             except Exception as e:
                 stats["failed"] += 1
                 # Do not retry an ambiguous delivery. An administrator may review logs.
