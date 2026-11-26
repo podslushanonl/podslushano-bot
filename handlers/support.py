@@ -27,6 +27,19 @@ log = logging.getLogger(__name__)
 router = Router()
 router.message.filter(F.chat.type == ChatType.PRIVATE)
 
+DEALS_PROMPTS = {
+    "deals_review": "<b>Отзыв о «Выгодно в NL»</b>\n\nРасскажите одним сообщением, что вам пригодилось, удалось ли воспользоваться предложениями и чего не хватает. Можно приложить скриншот. Отзыв получит команда; публично он автоматически не размещается.",
+    "deals_issue": "<b>Сообщить об ошибке в «Выгодно в NL»</b>\n\nПришлите ссылку на публикацию и опишите, что не работает или какие условия изменились. Можно приложить скриншот.",
+    "deals_offer": "<b>Предложить находку для «Выгодно в NL»</b>\n\nПришлите ссылку и коротко расскажите о предложении. Команда проверит условия перед возможной публикацией.",
+    "deals_help": "<b>Помощь участникам «Выгодно в NL»</b>\n\nОпишите одним сообщением вопрос о канале, оплате или доступе — передадим команде. Можно приложить скриншот без банковских реквизитов.",
+}
+
+
+async def deals_contact_start(message: Message, state: FSMContext, kind: str) -> None:
+    await state.set_state(SupportContact.waiting_message)
+    await state.update_data(kind=kind)
+    await message.answer(DEALS_PROMPTS[kind], reply_markup=cancel_menu())
+
 
 @router.message(Command("contact", "support"))
 @router.message(F.text == BTN_CONTACT)
@@ -95,6 +108,10 @@ async def contact_relay(message: Message, state: FSMContext) -> None:
     u = message.from_user
     uname = f"@{u.username}" if u and u.username else "—"
     title = {
+        "deals_review": "◆ <b>Отзыв о «Выгодно в NL»</b>",
+        "deals_issue": "◆ <b>Ошибка в «Выгодно в NL»</b>",
+        "deals_offer": "◆ <b>Находка для «Выгодно в NL»</b>",
+        "deals_help": "◆ <b>Поддержка «Выгодно в NL»</b>",
         "bug": "🐞 <b>Сообщение об ошибке</b>",
         "wrong": "🤔 <b>Бот ответил не по теме</b>",
     }.get(kind, "📨 <b>Обращение в поддержку</b>")
@@ -118,6 +135,7 @@ async def contact_relay(message: Message, state: FSMContext) -> None:
             log.warning("Не удалось переслать обращение админу %s: %s", admin_id, e)
     if sent:
         await message.answer(
+            "Спасибо! Ваш отзыв передан команде «Выгодно в NL»." if kind == "deals_review" else
             "Спасибо! Передал команде — ответим здесь или по e-mail 🙌",
             reply_markup=main_menu(),
         )

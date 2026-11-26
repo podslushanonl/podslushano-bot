@@ -236,5 +236,29 @@ class DealsIntakeTests(unittest.IsolatedAsyncioTestCase):
         self.bot.edit_message_reply_markup.assert_not_awaited()
 
 
+    async def test_pin_only_confirmed_post_in_configured_channel(self):
+        async def pin(payload):
+            body = json.dumps(payload).encode()
+            path = self.intake.BASE + "/pin"
+            return await self.client.post(path, data=body, headers=self.headers("POST", path, body))
+        payload = {"channel_id": self.cid, "id": self.batch["posts"][0]["id"]}
+        self.assertEqual((await pin(payload)).status, 409)
+        self.bot.pin_chat_message.assert_not_awaited()
+        await self.post()
+        payload["dry_run"] = True
+        self.assertTrue((await (await pin(payload)).json())["ok"])
+        self.bot.pin_chat_message.assert_not_awaited()
+        payload["dry_run"] = False
+        result = await (await pin(payload)).json()
+        self.assertEqual(result["state"], "pinned")
+        self.bot.pin_chat_message.assert_awaited_once_with(chat_id=int(self.cid), message_id=101, disable_notification=True)
+        payload["channel_id"] = "-1009999999999"
+        self.assertEqual((await pin(payload)).status, 503)
+        payload["channel_id"] = self.cid
+        payload["id"] += "-unknown"
+        self.assertEqual((await pin(payload)).status, 409)
+        self.bot.pin_chat_message.assert_awaited_once()
+
+
 if __name__ == "__main__":
     unittest.main()

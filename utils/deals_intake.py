@@ -85,7 +85,10 @@ async def target_status(bot, batch=None):
     member = await bot.get_chat_member(int(cid), bot.id)
     if chat.type != "channel" or getattr(member, "can_post_messages", False) is not True:
         raise ValueError("channel posting permission missing")
-    return {"can_post": True, "photo_supported": True, "chat_id": cid}
+    pinned = getattr(chat, "pinned_message", None)
+    return {"can_post": True, "photo_supported": True, "chat_id": cid,
+            "feedback_supported": True,
+            "pinned_message_id": getattr(pinned, "message_id", None)}
 
 
 async def status(request):
@@ -211,9 +214,47 @@ async def edit_buttons(request):
             "results": results}, status=200 if complete else 207)
 
 
+async def pin_post(request):
+    """Pin only an acknowledged editorial post in the configured channel."""
+    body = bytearray()
+    async for chunk in request.content.iter_chunked(4096):
+        body.extend(chunk)
+        if len(body) > MAX_BYTES:
+            raise web.HTTPRequestEntityTooLarge(max_size=MAX_BYTES, actual_size=len(body))
+    body = bytes(body)
+    authorize(request, body)
+    try:
+        payload = json.loads(body)
+        pid = payload["id"]
+        if not isinstance(pid, str) or not re.fullmatch(r"[a-z0-9_-]{3,64}", pid):
+            raise ValueError()
+        if not isinstance(payload.get("dry_run", False), bool):
+            raise ValueError()
+    except (ValueError, TypeError, KeyError, UnicodeError):
+        return web.json_response({"ok": False, "error": "invalid pin request"}, status=400)
+    try:
+        target = await target_status(request.app["bot"], payload)
+    except Exception:
+        return web.json_response({"ok": False, "error": "target preflight unavailable"}, status=503)
+    async with PUBLISH_LOCK:
+        found = [r for r in await read_receipts(pid) if r["id"] == pid and r["state"] == "sent"]
+        if not found:
+            return web.json_response({"ok": False, "error": "confirmed post receipt required"}, status=409)
+        receipt = found[0]
+        if payload.get("dry_run"):
+            return web.json_response({"ok": True, **receipt, "state": "validated_not_pinned"})
+        try:
+            await request.app["bot"].pin_chat_message(chat_id=int(target["chat_id"]),
+                message_id=receipt["message_id"], disable_notification=True)
+        except Exception:
+            return web.json_response({"ok": False, "state": "pin_unconfirmed"}, status=502)
+        return web.json_response({"ok": True, **receipt, "state": "pinned"})
+
+
 def install_routes(app):
     app[TASKS] = set()
     app.router.add_get(BASE + "/status", status)
     app.router.add_post(BASE, ingest)
     app.router.add_post(BASE + "/buttons", edit_buttons)
+    app.router.add_post(BASE + "/pin", pin_post)
     app.on_shutdown.append(cleanup)

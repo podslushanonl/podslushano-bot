@@ -11,6 +11,7 @@ import aiohttp
 from aiohttp import web
 from aiogram import Router, F
 from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
 from aiogram.types import Message
 
 import config
@@ -53,6 +54,22 @@ def message_payload(message: Message):
 async def forward(update):
     result = await wp_call("bridge-update", update)
     return bool(result and result.get("ok") is True)
+
+DEALS_DESTINATIONS = {"deals_feedback": "deals_review", "deals_help": "deals_help",
+                      "deals_issue": "deals_issue", "deals_offer": "deals_offer"}
+
+
+@router.message(F.chat.type == "private", F.text.regexp(
+    r"^/start(?:@\w+)?\s+deals_(?:feedback|help|issue|offer|access)$"))
+async def deals_start(message: Message, state: FSMContext):
+    """Channel buttons open their promised destination, before general /start."""
+    await state.clear()
+    destination = message.text.split(maxsplit=1)[1].strip()
+    if destination == "deals_access":
+        await access(message)
+        return
+    from handlers.support import deals_contact_start
+    await deals_contact_start(message, state, DEALS_DESTINATIONS[destination])
 
 @router.message(F.chat.type == "private", F.text.regexp(r"^/start(?:@\w+)?\s+bind_[a-f0-9]{48}$"))
 async def bind(message: Message):

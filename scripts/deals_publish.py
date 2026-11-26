@@ -24,17 +24,20 @@ def main():
     parser.add_argument("--status", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--buttons", action="store_true", help="correct URL keyboards of confirmed posts")
+    parser.add_argument("--pin", action="store_true", help="pin an acknowledged editorial post")
     args = parser.parse_args()
     if args.status == bool(args.batch):
         parser.error("choose either --status or --batch")
     if args.buttons and not args.batch:
         parser.error("--buttons requires --batch")
+    if args.pin and (not args.batch or args.buttons):
+        parser.error("--pin requires --batch and cannot be combined with --buttons")
     credentials = json.loads(Path(args.credentials).read_text())
     base = credentials["base_url"].rstrip("/")
     if urlsplit(base).scheme != "https":
         parser.error("HTTPS endpoint required")
     key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(credentials["private_key"]))
-    url = base + ("/status" if args.status else "/buttons" if args.buttons else "")
+    url = base + ("/status" if args.status else "/buttons" if args.buttons else "/pin" if args.pin else "")
     method, body = "GET", b""
     if args.batch:
         batch = json.loads(Path(args.batch).read_text())

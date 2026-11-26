@@ -53,3 +53,42 @@ class DealsBridgeTests(unittest.IsolatedAsyncioTestCase):
                 api.return_value=payment
                 self.assertIsNone(await bridge.mollie_rpc("DELETE","/v2/payments/tr_test",{},""))
                 self.assertEqual(api.await_count,1)
+
+
+class DealsContactTests(unittest.IsolatedAsyncioTestCase):
+    async def test_feedback_deep_link_opens_review_form(self):
+        from types import SimpleNamespace
+        from handlers import support
+        from states.forms import SupportContact
+        message = SimpleNamespace(text="/start deals_feedback", answer=AsyncMock())
+        state = AsyncMock()
+        await bridge.deals_start(message, state)
+        state.clear.assert_awaited_once()
+        state.set_state.assert_awaited_once_with(SupportContact.waiting_message)
+        state.update_data.assert_awaited_once_with(kind="deals_review")
+        self.assertIn("Отзыв", message.answer.call_args.args[0])
+
+    async def test_access_deep_link_keeps_existing_access_flow(self):
+        from types import SimpleNamespace
+        message = SimpleNamespace(text="/start deals_access")
+        with patch.object(bridge, "access", new_callable=AsyncMock) as access:
+            await bridge.deals_start(message, AsyncMock())
+            access.assert_awaited_once_with(message)
+
+    async def test_review_delivered_privately_and_acknowledged_only_on_success(self):
+        from types import SimpleNamespace
+        from handlers import support
+        user = SimpleNamespace(full_name="Reader", username="reader", id=123)
+        message = SimpleNamespace(from_user=user, bot=SimpleNamespace(send_message=AsyncMock()),
+            copy_to=AsyncMock(), answer=AsyncMock())
+        state = AsyncMock()
+        state.get_data.return_value = {"kind":"deals_review"}
+        with patch.object(support.config, "ADMIN_IDS", [456]):
+            await support.contact_relay(message, state)
+        self.assertIn("Отзыв", message.bot.send_message.call_args.args[1])
+        message.copy_to.assert_awaited_once_with(456)
+        self.assertIn("отзыв передан", message.answer.call_args.args[0])
+        message.copy_to.side_effect = RuntimeError("delivery failed")
+        with patch.object(support.config, "ADMIN_IDS", [456]):
+            await support.contact_relay(message, state)
+        self.assertIn("Не получилось", message.answer.call_args.args[0])
