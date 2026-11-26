@@ -189,3 +189,5 @@ async def rpc(request):
 
 def install_routes(app):
     app.router.add_post("/api/deals/bridge",rpc)
+    from utils.deals_intake import install_routes as install_editorial_intake
+    install_editorial_intake(app)

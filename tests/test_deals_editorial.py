@@ -12,6 +12,14 @@ def fixture():
         "publish_before":(datetime.now(timezone.utc)+timedelta(hours=1)).isoformat()}]}
 
 class DealsEditorialTests(unittest.IsolatedAsyncioTestCase):
+    async def asyncSetUp(self):
+        # These tests mock transport claims. Persistent receipt/conflict behavior
+        # is exercised against SQLite by test_deals_intake.
+        for name in ("verify_existing_posts", "record_sent"):
+            mock = patch.object(editorial, name, new=AsyncMock())
+            mock.start()
+            self.addCleanup(mock.stop)
+
     def test_validation(self):
         self.assertEqual(editorial.parse_batch(json.dumps(fixture()))["posts"][0]["id"],"sample_1")
         b=fixture()

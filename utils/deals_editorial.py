@@ -3,6 +3,7 @@ No payment changes, separate bot, new server or public storage of editorial copy
 """
 from __future__ import annotations
 import asyncio
+import hashlib
 import io
 import json
 import logging
@@ -13,6 +14,7 @@ from urllib.parse import urlsplit
 
 from aiogram import F, Router
 from aiogram.exceptions import TelegramRetryAfter, TelegramBadRequest
+from sqlalchemy import select
 from database.db import get_session
 from database.models import Meta
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, Message, LinkPreviewOptions
@@ -68,9 +70,42 @@ def parse_batch(raw):
 async def release_claim(pid):
     async with get_session() as session:
         row = await session.get(Meta, "deals_editorial:" + pid)
-        if row and row.value == "claimed":
+        if row and (row.value == "claimed" or row.value.startswith("claimed:")):
             await session.delete(row)
             await session.commit()
+
+def post_digest(post):
+    return hashlib.sha256(json.dumps(post, ensure_ascii=False, sort_keys=True,
+        separators=(",", ":")).encode()).hexdigest()
+
+def receipt(pid, value):
+    parts = (value or "").split(":")
+    if parts[0] == "sent" and len(parts) == 3:
+        return {"id": pid, "state": "sent", "message_id": int(parts[1])}
+    return {"id": pid, "state": "delivery_unknown"}
+
+async def read_receipts(prefix):
+    async with get_session() as session:
+        rows = (await session.scalars(select(Meta).where(
+            Meta.key.startswith("deals_editorial:" + prefix)).limit(100))).all()
+        return [receipt(row.key.removeprefix("deals_editorial:"), row.value) for row in rows]
+
+async def verify_existing_posts(posts):
+    # Reject changed content under an existing id before sending any part of a batch.
+    async with get_session() as session:
+        for post in posts:
+            row = await session.get(Meta, "deals_editorial:" + post["id"])
+            if row and ":" in row.value and row.value.rsplit(":", 1)[-1] != post_digest(post):
+                raise ValueError("post id already belongs to different content")
+
+async def record_sent(pid, digest, message_id):
+    async with get_session() as session:
+        row = await session.get(Meta, "deals_editorial:" + pid)
+        if row is None:
+            raise RuntimeError("publication claim missing")
+        # Under 100 characters, compatible with the existing Meta value column.
+        row.value = f"sent:{message_id}:{digest}"
+        await session.commit()
 
 async def deliver(bot, cid, post, silent):
     markup = InlineKeyboardMarkup(inline_keyboard=[
@@ -96,6 +131,7 @@ async def publish_batch(bot, batch):
     # Resolve the confirmed channel via existing authenticated WordPress bridge.
     # A batch cannot redirect the bot to any other channel.
     async with _lock:
+        await verify_existing_posts(batch["posts"])
         settings = await wp_call("bridge-secret")
         cid = str(batch["channel_id"])
         if not settings or str(settings.get("chat", "")) != cid:
@@ -112,11 +148,13 @@ async def publish_batch(bot, batch):
                 log.info("deals editorial skipped expired %s", pid)
                 continue
             # Claim first, to avoid duplicate public posts on restart or network timeout.
-            if not await _meta_set("deals_editorial:" + pid, "claimed"):
+            digest = post_digest(post)
+            if not await _meta_set("deals_editorial:" + pid, "claimed:" + digest):
                 stats["skipped"] += 1
                 continue
             try:
                 msg = await deliver(bot, cid, post, bool(batch.get("silent", True)))
+                await record_sent(pid, digest, msg.message_id)
                 stats["sent"] += 1
                 log.info("deals editorial published %s message_id=%s", pid, msg.message_id)
             except (TelegramRetryAfter, TelegramBadRequest) as e:
