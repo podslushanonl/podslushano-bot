@@ -6,6 +6,7 @@ It expires at the configured pilot boundary. Payment routes are not involved.
 """
 import asyncio
 import hashlib
+import json
 import logging
 import os
 import re
@@ -14,11 +15,14 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 
 from aiohttp import web
+from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
 
 from utils.deals_editorial import (
     MAX_BYTES, parse_batch, publish_batch, read_receipts, verify_existing_posts,
+    _lock as PUBLISH_LOCK,
 )
 
 log = logging.getLogger(__name__)
@@ -81,7 +85,7 @@ async def target_status(bot, batch=None):
     member = await bot.get_chat_member(int(cid), bot.id)
     if chat.type != "channel" or getattr(member, "can_post_messages", False) is not True:
         raise ValueError("channel posting permission missing")
-    return {"can_post": True, "photo_supported": True}
+    return {"can_post": True, "photo_supported": True, "chat_id": cid}
 
 
 async def status(request):
@@ -141,8 +145,75 @@ async def cleanup(app):
         await asyncio.wait(pending, timeout=5)
 
 
+async def edit_buttons(request):
+    # Only URL keyboards of posts with an acknowledged send receipt may change.
+    # The request cannot choose a Telegram message id, bot method or other chat.
+    body = bytearray()
+    async for chunk in request.content.iter_chunked(4096):
+        body.extend(chunk)
+        if len(body) > MAX_BYTES:
+            raise web.HTTPRequestEntityTooLarge(max_size=MAX_BYTES, actual_size=len(body))
+    body = bytes(body)
+    authorize(request, body)
+    try:
+        payload = json.loads(body)
+        updates = payload["updates"]
+        if not isinstance(updates, list) or not 1 <= len(updates) <= 6:
+            raise ValueError()
+        checked = datetime.fromisoformat(payload["checked_at"])
+        if checked.tzinfo is None or not -60 <= time.time() - checked.timestamp() <= 3600:
+            raise ValueError()
+        # Reuse the existing URL, label and unique-id validation. These dummy
+        # texts are never delivered: this route only calls edit_reply_markup.
+        parse_batch(json.dumps({"channel_id": payload["channel_id"], "posts": [
+            {"id": item["id"], "buttons": item["buttons"], "html": "keyboard edit",
+             "publish_before": checked.isoformat()} for item in updates]}))
+        if not isinstance(payload.get("dry_run", False), bool):
+            raise ValueError()
+    except (ValueError, TypeError, KeyError, UnicodeError):
+        return web.json_response({"ok": False, "error": "invalid button correction"}, status=400)
+    try:
+        target = await target_status(request.app["bot"], payload)
+    except Exception:
+        return web.json_response({"ok": False, "error": "target preflight unavailable"}, status=503)
+    async with PUBLISH_LOCK:
+        receipts = {}
+        for item in updates:
+            found = [r for r in await read_receipts(item["id"]) if r["id"] == item["id"]]
+            if not found or found[0]["state"] != "sent":
+                return web.json_response({"ok": False, "error": "confirmed post receipt required"}, status=409)
+            receipts[item["id"]] = found[0]
+        if payload.get("dry_run"):
+            return web.json_response({"ok": True, "state": "validated_not_edited", "count": len(updates)})
+        results = []
+        for item in updates:
+            receipt = receipts[item["id"]]
+            markup = InlineKeyboardMarkup(inline_keyboard=[
+                [InlineKeyboardButton(text=b["label"], url=b["url"])] for b in item["buttons"]])
+            try:
+                message = await request.app["bot"].edit_message_reply_markup(
+                    chat_id=int(target["chat_id"]), message_id=receipt["message_id"], reply_markup=markup)
+                confirmed = [{"label": b.text, "url": b.url} for row in message.reply_markup.inline_keyboard for b in row]
+                if confirmed != item["buttons"]:
+                    raise ValueError("keyboard acknowledgement mismatch")
+            except TelegramBadRequest as exc:
+                if "message is not modified" not in exc.message.lower():
+                    results.append({**receipt, "state": "edit_rejected"})
+                    continue
+                confirmed = item["buttons"]
+            except Exception:
+                results.append({**receipt, "state": "edit_unknown"})
+                continue
+            results.append({**receipt, "state": "buttons_updated", "buttons": confirmed})
+            log.info("deals editorial buttons updated %s message_id=%s", item["id"], receipt["message_id"])
+        complete = all(r["state"] == "buttons_updated" for r in results)
+        return web.json_response({"ok": complete, "edited": sum(r["state"] == "buttons_updated" for r in results),
+            "results": results}, status=200 if complete else 207)
+
+
 def install_routes(app):
     app[TASKS] = set()
     app.router.add_get(BASE + "/status", status)
     app.router.add_post(BASE, ingest)
+    app.router.add_post(BASE + "/buttons", edit_buttons)
     app.on_shutdown.append(cleanup)

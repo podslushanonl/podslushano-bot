@@ -197,6 +197,44 @@ class DealsIntakeTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(response.status, 413)
         self.bot.send_message.assert_not_awaited()
 
+    async def correct(self, payload):
+        body = json.dumps(payload).encode()
+        return await self.client.post(self.intake.BASE + "/buttons", data=body,
+            headers=self.headers("POST", self.intake.BASE + "/buttons", body))
+
+    async def test_button_correction_requires_receipt_and_preserves_post(self):
+        payload = {"channel_id": self.cid, "checked_at": self.batch["checked_at"], "updates": [{
+            "id": self.batch["posts"][0]["id"],
+            "buttons": [{"label": "Official catalogue", "url": "https://example.com/catalogue"}]}]}
+        self.assertEqual((await self.correct(payload)).status, 409)
+        self.bot.edit_message_reply_markup.assert_not_awaited()
+        await self.post()
+        from aiogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+        self.bot.edit_message_reply_markup.return_value = types.SimpleNamespace(reply_markup=
+            InlineKeyboardMarkup(inline_keyboard=[[InlineKeyboardButton(text="Official catalogue", url="https://example.com/catalogue")]]))
+        payload["dry_run"] = True
+        self.assertEqual((await (await self.correct(payload)).json())["state"], "validated_not_edited")
+        self.bot.edit_message_reply_markup.assert_not_awaited()
+        payload["dry_run"] = False
+        result = await (await self.correct(payload)).json()
+        self.assertTrue(result["ok"])
+        self.assertEqual(result["edited"], 1)
+        self.assertEqual(self.bot.edit_message_reply_markup.call_args.kwargs["message_id"], 101)
+        self.assertEqual(self.bot.edit_message_reply_markup.call_args.kwargs["chat_id"], int(self.cid))
+        self.bot.send_message.assert_awaited_once()
+        self.bot.send_photo.assert_not_awaited()
+        payload["channel_id"] = "-1009999999999"
+        self.assertEqual((await self.correct(payload)).status, 503)
+        self.bot.edit_message_reply_markup.assert_awaited_once()
+
+    async def test_ambiguous_send_cannot_be_edited(self):
+        self.bot.send_message.side_effect = TimeoutError()
+        await self.post()
+        payload = {"channel_id": self.cid, "checked_at": self.batch["checked_at"], "updates": [{
+            "id": self.batch["posts"][0]["id"], "buttons": [{"label": "Official", "url": "https://example.com/"}]}]}
+        self.assertEqual((await self.correct(payload)).status, 409)
+        self.bot.edit_message_reply_markup.assert_not_awaited()
+
 
 if __name__ == "__main__":
     unittest.main()

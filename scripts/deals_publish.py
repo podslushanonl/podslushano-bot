@@ -23,15 +23,18 @@ def main():
     parser.add_argument("--batch")
     parser.add_argument("--status", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--buttons", action="store_true", help="correct URL keyboards of confirmed posts")
     args = parser.parse_args()
     if args.status == bool(args.batch):
         parser.error("choose either --status or --batch")
+    if args.buttons and not args.batch:
+        parser.error("--buttons requires --batch")
     credentials = json.loads(Path(args.credentials).read_text())
     base = credentials["base_url"].rstrip("/")
     if urlsplit(base).scheme != "https":
         parser.error("HTTPS endpoint required")
     key = Ed25519PrivateKey.from_private_bytes(bytes.fromhex(credentials["private_key"]))
-    url = base + ("/status" if args.status else "")
+    url = base + ("/status" if args.status else "/buttons" if args.buttons else "")
     method, body = "GET", b""
     if args.batch:
         batch = json.loads(Path(args.batch).read_text())
